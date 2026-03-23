@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="12" fill="#0F172A"/>
+  <path d="M32 8l3 9h9l-7 5 3 9-8-6-8 6 3-9-7-5h9z" fill="#8B5CF6"/>
+  <path d="M18 30c0-2 2-3 4-3h20c2 0 4 1 4 3v22c0 2-2 3-4 3H22c-2 0-4-1-4-3V30z" fill="#1E293B" stroke="#8B5CF6" stroke-width="1.5"/>
+  <path d="M32 30v25" stroke="#8B5CF6" stroke-width="1" opacity="0.5"/>
+  <text x="32" y="46" text-anchor="middle" font-family="serif" font-size="10" fill="#F472B6">♥</text>
+</svg>
