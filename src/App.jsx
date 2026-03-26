@@ -1,11 +1,19 @@
-import { Routes, Route } from 'react-router-dom'
+import { useEffect } from 'react'
+import { Routes, Route, useNavigate } from 'react-router-dom'
 import AppShell from './components/layout/AppShell'
 import LandingPage from './pages/LandingPage'
 import CreatePage from './pages/CreatePage'
 import PreviewPage from './pages/PreviewPage'
 import BookshelfPage from './pages/BookshelfPage'
+import { initCapacitor } from './capacitor'
 
 export default function App() {
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    initCapacitor(navigate)
+  }, [navigate])
+
   return (
     <AppShell>
       <Routes>

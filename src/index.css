@@ -8,16 +8,38 @@
   box-sizing: border-box;
 }
 
+html {
+  --sat: env(safe-area-inset-top);
+  --sab: env(safe-area-inset-bottom);
+  --sal: env(safe-area-inset-left);
+  --sar: env(safe-area-inset-right);
+}
+
 body {
   font-family: 'Nunito', sans-serif;
   background-color: #0F172A;
   color: #F1F5F9;
   min-height: 100vh;
+  min-height: 100dvh;
   overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  user-select: none;
+}
+
+/* Allow text selection only in text areas and inputs */
+input, textarea, [contenteditable] {
+  user-select: text;
+  -webkit-user-select: text;
 }
 
 #root {
   min-height: 100vh;
+  min-height: 100dvh;
+  padding-top: var(--sat);
+  padding-bottom: var(--sab);
+  padding-left: var(--sal);
+  padding-right: var(--sar);
 }
 
 ::-webkit-scrollbar {
@@ -40,4 +62,14 @@ body {
 ::selection {
   background: rgba(139, 92, 246, 0.3);
   color: #F1F5F9;
+}
+
+/* When mobile keyboard is open, shrink the view */
+body.keyboard-open {
+  height: calc(100vh - 300px);
+  overflow: hidden;
+}
+
+body.keyboard-open main {
+  padding-bottom: 0 !important;
 }

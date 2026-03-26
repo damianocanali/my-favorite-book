@@ -5,6 +5,7 @@ import { useBookshelfStore } from '../stores/useBookshelfStore'
 import { useBookStore } from '../stores/useBookStore'
 import BookPreview from '../components/book/BookPreview'
 import SparkleButton from '../components/ui/SparkleButton'
+import { isNative } from '../capacitor'
 
 export default function PreviewPage() {
   const { bookId } = useParams()
@@ -36,10 +37,10 @@ export default function PreviewPage() {
   }
 
   return (
-    <div className="py-8 px-4">
+    <div className={isNative ? 'py-2 px-2 flex flex-col h-[calc(100dvh-60px)]' : 'py-6 px-4'}>
       {/* Header */}
       <motion.div
-        className="max-w-2xl mx-auto mb-8 flex items-center justify-between"
+        className={`mx-auto flex items-center justify-between ${isNative ? 'w-full mb-2 px-2' : 'max-w-3xl mb-6'}`}
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
       >
@@ -48,42 +49,46 @@ export default function PreviewPage() {
           className="flex items-center gap-2 text-galaxy-text-muted hover:text-galaxy-text transition-colors cursor-pointer font-body"
         >
           <ArrowLeft size={18} />
-          Back to Bookshelf
+          {!isNative && 'Back to Bookshelf'}
         </button>
         <SparkleButton onClick={handleEdit} variant="secondary" size="small">
           <span className="flex items-center gap-2">
-            <Edit3 size={16} /> Edit Book
+            <Edit3 size={16} /> Edit
           </span>
         </SparkleButton>
       </motion.div>
 
       {/* Book title */}
       <motion.div
-        className="text-center mb-8"
+        className={`text-center ${isNative ? 'mb-2' : 'mb-6'}`}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.2 }}
       >
-        <h1 className="font-heading text-3xl font-bold text-galaxy-text mb-1">
+        <h1 className={`font-heading font-bold text-galaxy-text mb-0.5 ${isNative ? 'text-xl' : 'text-3xl'}`}>
           {book.title}
         </h1>
-        <p className="text-galaxy-text-muted font-body">
+        <p className={`text-galaxy-text-muted font-body ${isNative ? 'text-sm' : ''}`}>
           by {book.authorName}
         </p>
       </motion.div>
 
       {/* Book preview */}
-      <BookPreview book={book} />
+      <div className={isNative ? 'flex-1 flex items-center justify-center' : ''}>
+        <BookPreview book={book} />
+      </div>
 
       {/* Tip */}
-      <motion.p
-        className="text-center text-galaxy-text-muted text-sm font-body mt-8"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1 }}
-      >
-        Click or swipe the pages to flip through your book!
-      </motion.p>
+      {!isNative && (
+        <motion.p
+          className="text-center text-galaxy-text-muted text-sm font-body mt-6"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1 }}
+        >
+          Click or swipe the pages to flip through your book!
+        </motion.p>
+      )}
     </div>
   )
 }

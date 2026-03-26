@@ -25,11 +25,11 @@ export default function BookPage({ page, book }) {
           /* Emoji fallback */
           <div className="text-center">
             {book.setting && (
-              <span className="text-5xl block mb-1">{book.setting.emoji}</span>
+              <span className="text-6xl block mb-2">{book.setting.emoji}</span>
             )}
             <div className="flex justify-center gap-2">
               {book.characters?.slice(0, 3).map((char) => (
-                <span key={char.id} className="text-2xl">
+                <span key={char.id} className="text-3xl">
                   {char.emoji}
                 </span>
               ))}
@@ -58,9 +58,9 @@ export default function BookPage({ page, book }) {
       </div>
 
       {/* Text content */}
-      <div className="flex-1 px-6 py-4 overflow-hidden">
+      <div className="flex-1 px-6 py-4 overflow-auto">
         <p
-          className="font-body text-sm leading-relaxed"
+          className="font-body text-base leading-relaxed"
           style={{ color: '#2D3748' }}
         >
           {page.text || (
