@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { motion } from 'motion/react'
 import { useBookStore } from '../../stores/useBookStore'
 import { useAgeAdaptive } from '../../hooks/useAgeAdaptive'
@@ -10,6 +11,16 @@ export default function PageEditor({ page }) {
   const adaptive = useAgeAdaptive()
 
   const bookColors = book?.colors ?? { cover: '#8B5CF6', accent: '#06B6D4', text: '#F1F5F9' }
+
+  const characterDelays = useMemo(() => {
+    const delays = {}
+    for (const c of book?.characters ?? []) {
+      delays[c.id] = Math.random() * 1.5
+    }
+    return delays
+  // Recompute only when the set of character IDs changes, not on every render
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [(book?.characters ?? []).map((c) => c.id).join(',')])
 
   return (
     <motion.div
@@ -46,7 +57,7 @@ export default function PageEditor({ page }) {
                   key={char.id}
                   className="text-3xl sm:text-4xl"
                   animate={{ y: [0, -5, 0] }}
-                  transition={{ duration: 2, repeat: Infinity, delay: Math.random() }}
+                  transition={{ duration: 2, repeat: Infinity, delay: characterDelays[char.id] ?? 0 }}
                 >
                   {char.emoji}
                 </motion.span>

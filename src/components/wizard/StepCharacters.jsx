@@ -6,6 +6,14 @@ import { characters } from '../../data/characters'
 import GlowCard from '../ui/GlowCard'
 import SparkleButton from '../ui/SparkleButton'
 
+const CHARACTER_EMOJIS = [
+  '🌟','👦','👧','🧒','👨','👩','🧑','👴','👵',
+  '🧙','🧜','🧝','🧚','🧛','🦸','🦹','🧞','🤖',
+  '👻','🐉','🦄','🐲','🦋','🐱','🐶','🐻','🦊',
+  '🐸','🦁','🐯','🦝','🐺','🦅','🦜','🐧','🐨',
+  '🦖','🐠','🦈','🦭','🐙','🦑','🌈','🔮','💎',
+]
+
 export default function StepCharacters({ onNext, onPrev }) {
   const book = useBookStore((state) => state.book)
   const toggleCharacter = useBookStore((state) => state.toggleCharacter)
@@ -13,6 +21,8 @@ export default function StepCharacters({ onNext, onPrev }) {
   const [showCreate, setShowCreate] = useState(false)
   const [customName, setCustomName] = useState('')
   const [customDesc, setCustomDesc] = useState('')
+  const [customEmoji, setCustomEmoji] = useState('🌟')
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false)
 
   const selectedIds = new Set(book?.characters?.map((c) => c.id) ?? [])
 
@@ -21,13 +31,15 @@ export default function StepCharacters({ onNext, onPrev }) {
     addCharacter({
       id: `custom-${Date.now()}`,
       name: customName,
-      emoji: '🌟',
+      emoji: customEmoji,
       description: customDesc || 'A mysterious character...',
       color: '#8B5CF6',
       isCustom: true,
     })
     setCustomName('')
     setCustomDesc('')
+    setCustomEmoji('🌟')
+    setShowEmojiPicker(false)
     setShowCreate(false)
   }
 
@@ -132,6 +144,36 @@ export default function StepCharacters({ onNext, onPrev }) {
           <h3 className="font-heading text-lg font-bold text-galaxy-text text-center">
             Create a Character
           </h3>
+
+          {/* Emoji selector */}
+          <div className="flex flex-col items-center gap-2">
+            <p className="text-galaxy-text-muted text-sm font-body">Choose an emoji</p>
+            <button
+              onClick={() => setShowEmojiPicker((v) => !v)}
+              className="text-5xl leading-none hover:scale-110 transition-transform"
+              aria-label="Pick emoji"
+            >
+              {customEmoji}
+            </button>
+            {showEmojiPicker && (
+              <motion.div
+                className="w-full bg-galaxy-bg border border-galaxy-secondary/30 rounded-xl p-3 grid grid-cols-8 gap-1 max-h-40 overflow-y-auto"
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+              >
+                {CHARACTER_EMOJIS.map((em) => (
+                  <button
+                    key={em}
+                    onClick={() => { setCustomEmoji(em); setShowEmojiPicker(false) }}
+                    className={`text-2xl leading-none p-1 rounded-lg hover:bg-galaxy-secondary/20 transition-colors ${customEmoji === em ? 'bg-galaxy-secondary/30 ring-1 ring-galaxy-secondary' : ''}`}
+                  >
+                    {em}
+                  </button>
+                ))}
+              </motion.div>
+            )}
+          </div>
+
           <input
             type="text"
             value={customName}
@@ -149,7 +191,7 @@ export default function StepCharacters({ onNext, onPrev }) {
             maxLength={80}
           />
           <div className="flex gap-3 justify-center">
-            <SparkleButton onClick={() => setShowCreate(false)} variant="secondary" size="small">
+            <SparkleButton onClick={() => { setShowCreate(false); setShowEmojiPicker(false) }} variant="secondary" size="small">
               Cancel
             </SparkleButton>
             <SparkleButton onClick={handleCreateCustom} disabled={!customName.trim()} size="small" variant="accent">
