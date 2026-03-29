@@ -1,10 +1,11 @@
 import { useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
-import { motion } from 'motion/react'
-import { ArrowLeft, Edit3, Printer, Send } from 'lucide-react'
+import { useParams, useNavigate, Link } from 'react-router-dom'
+import { motion, AnimatePresence } from 'motion/react'
+import { ArrowLeft, Edit3, Printer, Send, X, Shield } from 'lucide-react'
 import { useBookshelfStore } from '../stores/useBookshelfStore'
 import { useBookStore } from '../stores/useBookStore'
 import { useSubscription } from '../hooks/useSubscription'
+import { useAuthStore } from '../stores/useAuthStore'
 import BookPreview from '../components/book/BookPreview'
 import PrintableBook from '../components/print/PrintableBook'
 import SubmitToClassModal from '../components/classroom/SubmitToClassModal'
@@ -18,7 +19,9 @@ export default function PreviewPage() {
   const loadBook = useBookStore((state) => state.loadBook)
   const setStep = useBookStore((state) => state.setStep)
   const [showSubmitModal, setShowSubmitModal] = useState(false)
+  const [nudgeDismissed, setNudgeDismissed] = useState(false)
   const { plan } = useSubscription()
+  const user = useAuthStore((s) => s.user)
 
   const book = getBook(bookId)
 
@@ -129,6 +132,51 @@ export default function PreviewPage() {
 
       {/* Hidden print layout — only visible during window.print() */}
       <PrintableBook book={book} />
+
+      {/* Guest sign-up nudge */}
+      <AnimatePresence>
+        {!user && !nudgeDismissed && !isNative && (
+          <motion.div
+            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-full max-w-md px-4"
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 40 }}
+            transition={{ delay: 1.2, type: 'spring', stiffness: 200, damping: 20 }}
+          >
+            <div className="bg-galaxy-bg-light border border-galaxy-primary/40 rounded-2xl px-5 py-4 shadow-glow flex items-start gap-3">
+              <Shield size={20} className="text-galaxy-primary shrink-0 mt-0.5" />
+              <div className="flex-1 min-w-0">
+                <p className="text-galaxy-text font-body text-sm font-semibold mb-0.5">
+                  Keep your book safe!
+                </p>
+                <p className="text-galaxy-text-muted font-body text-xs">
+                  This book is saved on this device only. Create a free account to access it anywhere.
+                </p>
+                <div className="flex items-center gap-3 mt-3">
+                  <Link
+                    to="/signup"
+                    className="px-4 py-1.5 rounded-full bg-galaxy-primary text-white text-xs font-body font-semibold hover:bg-galaxy-primary/80 transition-colors"
+                  >
+                    Create free account
+                  </Link>
+                  <Link
+                    to="/login"
+                    className="text-galaxy-text-muted text-xs font-body hover:text-galaxy-text transition-colors"
+                  >
+                    Sign in
+                  </Link>
+                </div>
+              </div>
+              <button
+                onClick={() => setNudgeDismissed(true)}
+                className="text-galaxy-text-muted hover:text-galaxy-text transition-colors shrink-0"
+              >
+                <X size={16} />
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Submit to class modal */}
       {showSubmitModal && (
