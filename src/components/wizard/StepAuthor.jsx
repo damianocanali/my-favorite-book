@@ -1,14 +1,26 @@
+import { useEffect } from 'react'
 import { motion } from 'motion/react'
 import { User, ChevronLeft } from 'lucide-react'
 import { useBookStore } from '../../stores/useBookStore'
+import { useAuthStore, selectDisplayName } from '../../stores/useAuthStore'
 import SparkleButton from '../ui/SparkleButton'
 
 export default function StepAuthor({ onNext, onPrev }) {
   const book = useBookStore((state) => state.book)
   const setAuthor = useBookStore((state) => state.setAuthor)
+  const displayName = useAuthStore(selectDisplayName)
 
   const authorName = book?.authorName ?? ''
   const authorAge = book?.authorAge ?? 8
+
+  // Pre-fill name from the logged-in user's profile if the field is empty
+  useEffect(() => {
+    if (displayName && !authorName) {
+      setAuthor(displayName, authorAge)
+    }
+  // Only run once on mount
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   return (
     <div className="flex flex-col items-center gap-8">

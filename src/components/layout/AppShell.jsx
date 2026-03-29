@@ -1,12 +1,24 @@
-import { Link, useLocation } from 'react-router-dom'
-import { BookOpen, Home, Library } from 'lucide-react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { BookOpen, Home, Library, LogIn, LogOut, GraduationCap } from 'lucide-react'
 import { useBookshelfStore } from '../../stores/useBookshelfStore'
+import { useAuthStore, selectDisplayName, selectRole } from '../../stores/useAuthStore'
 import CosmicBackground from './CosmicBackground'
 
 export default function AppShell({ children }) {
   const location = useLocation()
+  const navigate = useNavigate()
   const bookCount = useBookshelfStore((state) => state.books.length)
   const isLanding = location.pathname === '/'
+
+  const user = useAuthStore((s) => s.user)
+  const signOut = useAuthStore((s) => s.signOut)
+  const displayName = useAuthStore(selectDisplayName)
+  const role = useAuthStore(selectRole)
+
+  const handleSignOut = async () => {
+    await signOut()
+    navigate('/')
+  }
 
   return (
     <div className="min-h-screen relative">
@@ -23,10 +35,10 @@ export default function AppShell({ children }) {
             <span className="font-heading font-bold text-lg hidden sm:inline">My Favorite Book</span>
           </Link>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
             <Link
               to="/"
-              className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all ${
+              className={`flex items-center gap-2 px-3 py-2 rounded-full transition-all ${
                 location.pathname === '/'
                   ? 'bg-galaxy-primary/20 text-galaxy-primary'
                   : 'text-galaxy-text-muted hover:text-galaxy-text'
@@ -35,9 +47,10 @@ export default function AppShell({ children }) {
               <Home size={18} />
               <span className="hidden sm:inline text-sm font-body font-semibold">Home</span>
             </Link>
+
             <Link
               to="/bookshelf"
-              className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all ${
+              className={`flex items-center gap-2 px-3 py-2 rounded-full transition-all ${
                 location.pathname === '/bookshelf'
                   ? 'bg-galaxy-primary/20 text-galaxy-primary'
                   : 'text-galaxy-text-muted hover:text-galaxy-text'
@@ -48,6 +61,46 @@ export default function AppShell({ children }) {
                 Bookshelf{bookCount > 0 && ` (${bookCount})`}
               </span>
             </Link>
+
+            {/* Teacher dashboard link — only for teachers */}
+            {role === 'teacher' && (
+              <Link
+                to="/teacher"
+                className={`flex items-center gap-2 px-3 py-2 rounded-full transition-all ${
+                  location.pathname === '/teacher'
+                    ? 'bg-galaxy-secondary/20 text-galaxy-secondary'
+                    : 'text-galaxy-text-muted hover:text-galaxy-text'
+                }`}
+              >
+                <GraduationCap size={18} />
+                <span className="hidden sm:inline text-sm font-body font-semibold">Classroom</span>
+              </Link>
+            )}
+
+            {/* Auth section */}
+            {user ? (
+              <div className="flex items-center gap-2 pl-2 border-l border-galaxy-text-muted/20">
+                <span className="text-galaxy-text-muted text-xs font-body hidden sm:block max-w-[120px] truncate">
+                  {displayName}
+                </span>
+                <button
+                  onClick={handleSignOut}
+                  title="Sign out"
+                  className="flex items-center gap-1 px-3 py-2 rounded-full text-galaxy-text-muted hover:text-galaxy-text transition-colors"
+                >
+                  <LogOut size={16} />
+                  <span className="hidden sm:inline text-sm font-body">Sign out</span>
+                </button>
+              </div>
+            ) : (
+              <Link
+                to="/login"
+                className="flex items-center gap-1.5 px-3 py-2 rounded-full text-galaxy-secondary border border-galaxy-secondary/40 hover:bg-galaxy-secondary/10 transition-colors text-sm font-body font-semibold"
+              >
+                <LogIn size={16} />
+                <span className="hidden sm:inline">Sign In</span>
+              </Link>
+            )}
           </div>
         </nav>
       )}

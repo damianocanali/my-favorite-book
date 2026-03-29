@@ -1,7 +1,8 @@
 import { motion } from 'motion/react'
 import { useNavigate, Link } from 'react-router-dom'
-import { BookOpen, Library, GraduationCap } from 'lucide-react'
+import { BookOpen, Library, GraduationCap, LogIn, LogOut } from 'lucide-react'
 import { useBookshelfStore } from '../stores/useBookshelfStore'
+import { useAuthStore, selectDisplayName, selectRole } from '../stores/useAuthStore'
 import SparkleButton from '../components/ui/SparkleButton'
 import CosmicBackground from '../components/layout/CosmicBackground'
 
@@ -29,6 +30,10 @@ function FloatingElement({ emoji, className, delay = 0 }) {
 export default function LandingPage() {
   const navigate = useNavigate()
   const bookCount = useBookshelfStore((state) => state.books.length)
+  const user = useAuthStore((s) => s.user)
+  const signOut = useAuthStore((s) => s.signOut)
+  const displayName = useAuthStore(selectDisplayName)
+  const role = useAuthStore(selectRole)
 
   return (
     <div className="min-h-screen relative flex flex-col items-center justify-center px-4 overflow-hidden">
@@ -122,20 +127,47 @@ export default function LandingPage() {
         </motion.div>
       </div>
 
-      {/* Teacher login link */}
+      {/* Auth footer */}
       <motion.div
-        className="relative z-10 mt-10"
+        className="relative z-10 mt-10 flex items-center gap-4"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 2 }}
       >
-        <Link
-          to="/login"
-          className="flex items-center gap-1.5 text-galaxy-text-muted hover:text-galaxy-secondary transition-colors font-body text-sm"
-        >
-          <GraduationCap size={15} />
-          Teachers / Educators
-        </Link>
+        {user ? (
+          <>
+            <span className="text-galaxy-text-muted font-body text-sm">Hi, {displayName}!</span>
+            {role === 'teacher' && (
+              <Link
+                to="/teacher"
+                className="flex items-center gap-1.5 text-galaxy-secondary hover:text-galaxy-secondary/80 transition-colors font-body text-sm"
+              >
+                <GraduationCap size={15} /> Classroom
+              </Link>
+            )}
+            <button
+              onClick={() => signOut()}
+              className="flex items-center gap-1.5 text-galaxy-text-muted hover:text-galaxy-text transition-colors font-body text-sm"
+            >
+              <LogOut size={15} /> Sign out
+            </button>
+          </>
+        ) : (
+          <>
+            <Link
+              to="/login"
+              className="flex items-center gap-1.5 text-galaxy-text-muted hover:text-galaxy-text transition-colors font-body text-sm"
+            >
+              <LogIn size={15} /> Sign In
+            </Link>
+            <Link
+              to="/login"
+              className="flex items-center gap-1.5 text-galaxy-text-muted hover:text-galaxy-secondary transition-colors font-body text-sm"
+            >
+              <GraduationCap size={15} /> Teachers
+            </Link>
+          </>
+        )}
       </motion.div>
 
       {/* Bottom wave */}
