@@ -1,14 +1,19 @@
-import { useMemo } from 'react'
-import { motion } from 'motion/react'
+import { useMemo, useCallback } from 'react'
+import { motion, AnimatePresence } from 'motion/react'
 import { useBookStore } from '../../stores/useBookStore'
+import { useAccessibilityStore } from '../../stores/useAccessibilityStore'
 import { useAgeAdaptive } from '../../hooks/useAgeAdaptive'
+import { useSpeechSynthesis } from '../../hooks/useSpeechSynthesis'
+import { useSpeechRecognition } from '../../hooks/useSpeechRecognition'
 import StoryBuddy from './StoryBuddy'
 import IllustrationGenerator from './IllustrationGenerator'
+import AccessibilityToolbar from './AccessibilityToolbar'
 
 export default function PageEditor({ page }) {
   const updatePageText = useBookStore((state) => state.updatePageText)
   const book = useBookStore((state) => state.book)
   const adaptive = useAgeAdaptive()
+  const dyslexiaFont = useAccessibilityStore((s) => s.dyslexiaFont)
 
   const bookColors = book?.colors ?? { cover: '#8B5CF6', accent: '#06B6D4', text: '#F1F5F9' }
 
@@ -21,6 +26,22 @@ export default function PageEditor({ page }) {
   // Recompute only when the set of character IDs changes, not on every render
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [(book?.characters ?? []).map((c) => c.id).join(',')])
+
+  // --- Text-to-speech ---
+  const { speak, stop: stopSpeaking, isSpeaking, currentWordIndex, words, isSupported: ttsSupported } = useSpeechSynthesis()
+  const handleReadAloud = useCallback(() => speak(page.text), [speak, page.text])
+
+  // --- Voice input ---
+  const handleVoiceResult = useCallback((transcript) => {
+    const current = page.text
+    const separator = current && !current.endsWith(' ') ? ' ' : ''
+    updatePageText(page.id, current + separator + transcript.trim())
+  }, [page.text, page.id, updatePageText])
+
+  const { start: startVoice, stop: stopVoice, isListening, interimText, isSupported: voiceSupported } = useSpeechRecognition({ onResult: handleVoiceResult })
+
+  // Font class based on dyslexia toggle
+  const fontClass = dyslexiaFont ? 'font-dyslexic' : 'font-body'
 
   return (
     <motion.div
@@ -38,7 +59,6 @@ export default function PageEditor({ page }) {
             : `linear-gradient(135deg, ${bookColors.cover}20, ${bookColors.accent}20)`,
         }}
       >
-        {/* AI-generated illustration */}
         {page.illustrationData ? (
           <img
             src={page.illustrationData}
@@ -46,7 +66,6 @@ export default function PageEditor({ page }) {
             className="w-full h-full object-cover"
           />
         ) : (
-          /* Emoji fallback: Scene and characters display */
           <div className="text-center">
             {book?.setting && (
               <span className="text-6xl sm:text-8xl block mb-2">{book.setting.emoji}</span>
@@ -74,25 +93,73 @@ export default function PageEditor({ page }) {
           {page.pageNumber}
         </div>
 
-        {/* Illustration generator button */}
         <IllustrationGenerator page={page} />
       </div>
 
       {/* Text area */}
-      <div className="p-4 sm:p-6">
-        <textarea
-          value={page.text}
-          onChange={(e) => updatePageText(page.id, e.target.value)}
-          placeholder={
-            page.pageNumber === 1
-              ? 'Once upon a time...'
-              : 'Continue your story...'
-          }
-          className={`w-full bg-transparent border-none outline-none resize-none text-galaxy-text placeholder:text-galaxy-text-muted/40 font-body leading-relaxed ${adaptive.fontSize.input}`}
-          rows={adaptive.mode === 'young' ? 4 : 6}
-          maxLength={adaptive.charLimit}
-        />
-        <div className="flex justify-between items-center mt-2">
+      <div className="p-4 sm:p-6 space-y-3">
+
+        {/* Read-aloud word-highlight overlay — shown while speaking */}
+        <AnimatePresence>
+          {isSpeaking && words.length > 0 && (
+            <motion.div
+              className={`w-full p-4 bg-galaxy-bg rounded-xl border border-galaxy-secondary/30 leading-loose ${fontClass} ${adaptive.fontSize.input}`}
+              initial={{ opacity: 0, y: -6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.2 }}
+              aria-live="polite"
+              aria-label="Reading aloud"
+            >
+              {words.map((word, i) => (
+                <span
+                  key={i}
+                  className={`transition-colors duration-100 ${
+                    i === currentWordIndex
+                      ? 'bg-yellow-300 text-galaxy-bg rounded px-0.5 font-bold'
+                      : 'text-galaxy-text'
+                  }`}
+                >
+                  {word}{' '}
+                </span>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Textarea — hidden while speaking to avoid confusion */}
+        <div className={isSpeaking ? 'hidden' : ''}>
+          <textarea
+            value={page.text}
+            onChange={(e) => updatePageText(page.id, e.target.value)}
+            placeholder={
+              page.pageNumber === 1
+                ? 'Once upon a time...'
+                : 'Continue your story...'
+            }
+            className={`w-full bg-transparent border-none outline-none resize-none text-galaxy-text placeholder:text-galaxy-text-muted/40 leading-relaxed ${fontClass} ${adaptive.fontSize.input}`}
+            rows={adaptive.mode === 'young' ? 4 : 6}
+            maxLength={adaptive.charLimit}
+          />
+        </div>
+
+        {/* Voice input interim text */}
+        <AnimatePresence>
+          {isListening && (
+            <motion.div
+              className="flex items-center gap-2 text-galaxy-accent text-sm font-body"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              <span className="w-2 h-2 rounded-full bg-galaxy-accent animate-pulse" />
+              <span>{interimText || 'Listening...'}</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Character counter */}
+        <div className="flex justify-between items-center">
           <p className="text-galaxy-text-muted text-xs font-body">
             {page.text.length}/{adaptive.charLimit} characters
           </p>
@@ -102,6 +169,18 @@ export default function PageEditor({ page }) {
             </p>
           )}
         </div>
+
+        {/* Accessibility toolbar */}
+        <AccessibilityToolbar
+          onReadAloud={handleReadAloud}
+          onStopReading={stopSpeaking}
+          onStartVoice={startVoice}
+          onStopVoice={stopVoice}
+          isSpeaking={isSpeaking}
+          isListening={isListening}
+          ttsSupported={ttsSupported}
+          voiceSupported={voiceSupported}
+        />
 
         {/* Story Buddy AI Helper */}
         <StoryBuddy

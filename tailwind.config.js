@@ -17,6 +17,7 @@ export default {
       fontFamily: {
         heading: ['"Fredoka"', 'sans-serif'],
         body: ['"Nunito"', 'sans-serif'],
+        dyslexic: ['"OpenDyslexic"', 'sans-serif'],
       },
       boxShadow: {
         'glow-purple': '0 0 20px rgba(139, 92, 246, 0.5), 0 0 40px rgba(139, 92, 246, 0.2)',
