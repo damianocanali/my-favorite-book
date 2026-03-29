@@ -1,6 +1,7 @@
-const TOGETHER_API_URL = 'https://api.together.xyz/v1/images/generations'
+import { checkRateLimit, getClientIp } from './_rateLimit.js'
 
-export const config = { runtime: 'edge' }
+const TOGETHER_API_URL = 'https://api.together.xyz/v1/images/generations'
+const IMAGE_GEN_LIMIT = 20 // requests per hour per IP
 
 export default async function handler(req) {
   if (req.method !== 'POST') {
@@ -8,6 +9,15 @@ export default async function handler(req) {
       status: 405,
       headers: { 'Content-Type': 'application/json' },
     })
+  }
+
+  const ip = getClientIp(req)
+  const { allowed } = checkRateLimit(`generate-image:${ip}`, IMAGE_GEN_LIMIT)
+  if (!allowed) {
+    return new Response(
+      JSON.stringify({ error: 'Too many requests. Please try again in an hour.' }),
+      { status: 429, headers: { 'Content-Type': 'application/json' } }
+    )
   }
 
   const apiKey = process.env.TOGETHER_API_KEY

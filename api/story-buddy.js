@@ -1,6 +1,7 @@
-const ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages'
+import { checkRateLimit, getClientIp } from './_rateLimit.js'
 
-export const config = { runtime: 'edge' }
+const ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages'
+const STORY_BUDDY_LIMIT = 30 // requests per hour per IP
 
 export default async function handler(req) {
   if (req.method !== 'POST') {
@@ -8,6 +9,15 @@ export default async function handler(req) {
       status: 405,
       headers: { 'Content-Type': 'application/json' },
     })
+  }
+
+  const ip = getClientIp(req)
+  const { allowed } = checkRateLimit(`story-buddy:${ip}`, STORY_BUDDY_LIMIT)
+  if (!allowed) {
+    return new Response(
+      JSON.stringify({ error: 'Too many requests. Please try again in an hour.' }),
+      { status: 429, headers: { 'Content-Type': 'application/json' } }
+    )
   }
 
   const apiKey = process.env.ANTHROPIC_API_KEY
