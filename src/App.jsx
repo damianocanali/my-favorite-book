@@ -5,6 +5,8 @@ import LandingPage from './pages/LandingPage'
 import CreatePage from './pages/CreatePage'
 import PreviewPage from './pages/PreviewPage'
 import BookshelfPage from './pages/BookshelfPage'
+import TeacherPage from './pages/TeacherPage'
+import ClassroomPage from './pages/ClassroomPage'
 import { initCapacitor } from './capacitor'
 
 export default function App() {
@@ -21,6 +23,8 @@ export default function App() {
         <Route path="/create" element={<CreatePage />} />
         <Route path="/preview/:bookId" element={<PreviewPage />} />
         <Route path="/bookshelf" element={<BookshelfPage />} />
+        <Route path="/teacher" element={<TeacherPage />} />
+        <Route path="/classroom/:code" element={<ClassroomPage />} />
       </Routes>
     </AppShell>
   )

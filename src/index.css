@@ -73,3 +73,32 @@ body.keyboard-open {
 body.keyboard-open main {
   padding-bottom: 0 !important;
 }
+
+/* ── Print styles ──────────────────────────────────────── */
+@media print {
+  /* Hide everything on screen except the printable book */
+  body > #root > * { display: none !important; }
+  .printable-book { display: block !important; }
+
+  body {
+    background: white !important;
+    color: black !important;
+    margin: 0;
+    padding: 0;
+  }
+
+  .print-page {
+    width: 100vw;
+    min-height: 100vh;
+    break-after: page;
+    page-break-after: always;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .print-page:last-child {
+    break-after: auto;
+    page-break-after: auto;
+  }
+}

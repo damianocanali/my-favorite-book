@@ -1,9 +1,12 @@
+import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { motion } from 'motion/react'
-import { ArrowLeft, Edit3 } from 'lucide-react'
+import { ArrowLeft, Edit3, Printer, Send } from 'lucide-react'
 import { useBookshelfStore } from '../stores/useBookshelfStore'
 import { useBookStore } from '../stores/useBookStore'
 import BookPreview from '../components/book/BookPreview'
+import PrintableBook from '../components/print/PrintableBook'
+import SubmitToClassModal from '../components/classroom/SubmitToClassModal'
 import SparkleButton from '../components/ui/SparkleButton'
 import { isNative } from '../capacitor'
 
@@ -12,8 +15,8 @@ export default function PreviewPage() {
   const navigate = useNavigate()
   const getBook = useBookshelfStore((state) => state.getBook)
   const loadBook = useBookStore((state) => state.loadBook)
-
   const setStep = useBookStore((state) => state.setStep)
+  const [showSubmitModal, setShowSubmitModal] = useState(false)
 
   const book = getBook(bookId)
 
@@ -22,6 +25,8 @@ export default function PreviewPage() {
     setStep(7)
     navigate('/create')
   }
+
+  const handlePrint = () => window.print()
 
   if (!book) {
     return (
@@ -40,7 +45,7 @@ export default function PreviewPage() {
     <div className={isNative ? 'py-2 px-2 flex flex-col h-[calc(100dvh-60px)]' : 'py-6 px-4'}>
       {/* Header */}
       <motion.div
-        className={`mx-auto flex items-center justify-between ${isNative ? 'w-full mb-2 px-2' : 'max-w-3xl mb-6'}`}
+        className={`mx-auto flex items-center justify-between gap-2 ${isNative ? 'w-full mb-2 px-2' : 'max-w-3xl mb-6'}`}
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
       >
@@ -51,11 +56,34 @@ export default function PreviewPage() {
           <ArrowLeft size={18} />
           {!isNative && 'Back to Bookshelf'}
         </button>
-        <SparkleButton onClick={handleEdit} variant="secondary" size="small">
-          <span className="flex items-center gap-2">
-            <Edit3 size={16} /> Edit
-          </span>
-        </SparkleButton>
+
+        <div className="flex items-center gap-2">
+          {/* Submit to class */}
+          <button
+            onClick={() => setShowSubmitModal(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-body font-semibold text-galaxy-secondary border border-galaxy-secondary/40 hover:bg-galaxy-secondary/10 transition-colors"
+          >
+            <Send size={14} />
+            {!isNative && 'Submit to Class'}
+          </button>
+
+          {/* Print / Save as PDF */}
+          {!isNative && (
+            <button
+              onClick={handlePrint}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-body font-semibold text-galaxy-text-muted border border-galaxy-text-muted/30 hover:text-galaxy-text hover:border-galaxy-text-muted/60 transition-colors"
+            >
+              <Printer size={14} />
+              Print / PDF
+            </button>
+          )}
+
+          <SparkleButton onClick={handleEdit} variant="secondary" size="small">
+            <span className="flex items-center gap-2">
+              <Edit3 size={16} /> Edit
+            </span>
+          </SparkleButton>
+        </div>
       </motion.div>
 
       {/* Book title */}
@@ -88,6 +116,14 @@ export default function PreviewPage() {
         >
           Click or swipe the pages to flip through your book!
         </motion.p>
+      )}
+
+      {/* Hidden print layout — only visible during window.print() */}
+      <PrintableBook book={book} />
+
+      {/* Submit to class modal */}
+      {showSubmitModal && (
+        <SubmitToClassModal book={book} onClose={() => setShowSubmitModal(false)} />
       )}
     </div>
   )
