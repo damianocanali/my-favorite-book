@@ -55,7 +55,7 @@ export default function LandingPage() {
         </motion.div>
 
         {/* Animated title */}
-        <h1 className="font-heading text-5xl sm:text-7xl font-bold mb-4 leading-tight">
+        <h1 className="font-heading text-2xl sm:text-7xl font-bold mb-4 leading-tight">
           {titleLetters.map((letter, i) => (
             <motion.span
               key={i}
