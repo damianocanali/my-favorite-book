@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { BookOpen, Home, Library, LogIn, LogOut, GraduationCap } from 'lucide-react'
+import { BookOpen, Home, Library, LogIn, LogOut, GraduationCap, Sparkles } from 'lucide-react'
 import { useBookshelfStore } from '../../stores/useBookshelfStore'
 import { useAuthStore, selectDisplayName, selectRole } from '../../stores/useAuthStore'
 import CosmicBackground from './CosmicBackground'
@@ -60,6 +60,18 @@ export default function AppShell({ children }) {
               <span className="hidden sm:inline text-sm font-body font-semibold">
                 Bookshelf{bookCount > 0 && ` (${bookCount})`}
               </span>
+            </Link>
+
+            <Link
+              to="/pricing"
+              className={`flex items-center gap-2 px-3 py-2 rounded-full transition-all ${
+                location.pathname === '/pricing'
+                  ? 'bg-galaxy-primary/20 text-galaxy-primary'
+                  : 'text-galaxy-text-muted hover:text-galaxy-text'
+              }`}
+            >
+              <Sparkles size={18} />
+              <span className="hidden sm:inline text-sm font-body font-semibold">Pricing</span>
             </Link>
 
             {/* Teacher dashboard link — only for teachers */}

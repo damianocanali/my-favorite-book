@@ -4,6 +4,7 @@ import { motion } from 'motion/react'
 import { ArrowLeft, Edit3, Printer, Send } from 'lucide-react'
 import { useBookshelfStore } from '../stores/useBookshelfStore'
 import { useBookStore } from '../stores/useBookStore'
+import { useSubscription } from '../hooks/useSubscription'
 import BookPreview from '../components/book/BookPreview'
 import PrintableBook from '../components/print/PrintableBook'
 import SubmitToClassModal from '../components/classroom/SubmitToClassModal'
@@ -17,6 +18,7 @@ export default function PreviewPage() {
   const loadBook = useBookStore((state) => state.loadBook)
   const setStep = useBookStore((state) => state.setStep)
   const [showSubmitModal, setShowSubmitModal] = useState(false)
+  const { plan } = useSubscription()
 
   const book = getBook(bookId)
 
@@ -26,7 +28,13 @@ export default function PreviewPage() {
     navigate('/create')
   }
 
-  const handlePrint = () => window.print()
+  const handlePrint = () => {
+    if (!plan.pdfExport) {
+      navigate('/pricing')
+      return
+    }
+    window.print()
+  }
 
   if (!book) {
     return (
@@ -71,10 +79,11 @@ export default function PreviewPage() {
           {!isNative && (
             <button
               onClick={handlePrint}
+              title={plan.pdfExport ? 'Print or save as PDF' : 'Upgrade to export PDF'}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-body font-semibold text-galaxy-text-muted border border-galaxy-text-muted/30 hover:text-galaxy-text hover:border-galaxy-text-muted/60 transition-colors"
             >
               <Printer size={14} />
-              Print / PDF
+              {plan.pdfExport ? 'Print / PDF' : '🔒 Print / PDF'}
             </button>
           )}
 

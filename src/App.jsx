@@ -9,6 +9,8 @@ import TeacherPage from './pages/TeacherPage'
 import ClassroomPage from './pages/ClassroomPage'
 import LoginPage from './pages/LoginPage'
 import SignupPage from './pages/SignupPage'
+import PricingPage from './pages/PricingPage'
+import SuccessPage from './pages/SuccessPage'
 import ProtectedRoute from './components/auth/ProtectedRoute'
 import { initCapacitor } from './capacitor'
 import { useAuthStore } from './stores/useAuthStore'
@@ -32,6 +34,8 @@ export default function App() {
         <Route path="/classroom/:code" element={<ClassroomPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
+        <Route path="/pricing" element={<PricingPage />} />
+        <Route path="/success" element={<SuccessPage />} />
         <Route
           path="/teacher"
           element={
