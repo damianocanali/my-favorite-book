@@ -1,10 +1,11 @@
 import { checkRateLimit, getClientIp } from './_rateLimit.js'
 
 function supabaseHeaders() {
+  const key = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY
   return {
     'Content-Type': 'application/json',
-    'apikey': process.env.SUPABASE_ANON_KEY,
-    'Authorization': `Bearer ${process.env.SUPABASE_ANON_KEY}`,
+    'apikey': key,
+    'Authorization': `Bearer ${key}`,
   }
 }
 
@@ -15,8 +16,8 @@ export default async function handler(req) {
     })
   }
 
-  const supabaseUrl = process.env.SUPABASE_URL
-  const supabaseKey = process.env.SUPABASE_ANON_KEY
+  const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL
+  const supabaseKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY
 
   if (!supabaseUrl || !supabaseKey) {
     return new Response(JSON.stringify({ error: 'Classroom feature not configured' }), {
@@ -41,7 +42,7 @@ export default async function handler(req) {
 
   // Verify the classroom exists
   const classRes = await fetch(
-    `${process.env.SUPABASE_URL}/rest/v1/classrooms?code=eq.${code.toUpperCase()}&select=code`,
+    `${supabaseUrl}/rest/v1/classrooms?code=eq.${code.toUpperCase()}&select=code`,
     { headers: supabaseHeaders() }
   )
   const classrooms = await classRes.json()

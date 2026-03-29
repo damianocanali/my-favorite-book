@@ -10,16 +10,17 @@ function generateCode() {
 }
 
 function supabaseHeaders() {
+  const key = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY
   return {
     'Content-Type': 'application/json',
-    'apikey': process.env.SUPABASE_ANON_KEY,
-    'Authorization': `Bearer ${process.env.SUPABASE_ANON_KEY}`,
+    'apikey': key,
+    'Authorization': `Bearer ${key}`,
   }
 }
 
 export default async function handler(req) {
-  const supabaseUrl = process.env.SUPABASE_URL
-  const supabaseKey = process.env.SUPABASE_ANON_KEY
+  const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL
+  const supabaseKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY
 
   if (!supabaseUrl || !supabaseKey) {
     return new Response(JSON.stringify({ error: 'Classroom feature not configured' }), {
