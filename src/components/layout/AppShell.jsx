@@ -105,13 +105,21 @@ export default function AppShell({ children }) {
                 </button>
               </div>
             ) : (
-              <Link
-                to="/login"
-                className="flex items-center gap-1.5 px-3 py-2 rounded-full text-galaxy-secondary border border-galaxy-secondary/40 hover:bg-galaxy-secondary/10 transition-colors text-sm font-body font-semibold"
-              >
-                <LogIn size={16} />
-                <span className="hidden sm:inline">Sign In</span>
-              </Link>
+              <div className="flex items-center gap-2">
+                <Link
+                  to="/login"
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-full text-galaxy-text-muted hover:text-galaxy-text transition-colors text-sm font-body font-semibold"
+                >
+                  <LogIn size={16} />
+                  <span className="hidden sm:inline">Sign In</span>
+                </Link>
+                <Link
+                  to="/signup"
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-full bg-galaxy-primary text-white hover:bg-galaxy-primary/80 transition-colors text-sm font-body font-semibold"
+                >
+                  Sign Up
+                </Link>
+              </div>
             )}
           </div>
         </nav>

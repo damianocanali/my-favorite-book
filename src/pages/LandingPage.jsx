@@ -161,7 +161,13 @@ export default function LandingPage() {
               <LogIn size={15} /> Sign In
             </Link>
             <Link
-              to="/login"
+              to="/signup"
+              className="flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-galaxy-primary text-white hover:bg-galaxy-primary/80 transition-colors font-body text-sm font-semibold"
+            >
+              Sign Up
+            </Link>
+            <Link
+              to="/signup?role=teacher"
               className="flex items-center gap-1.5 text-galaxy-text-muted hover:text-galaxy-secondary transition-colors font-body text-sm"
             >
               <GraduationCap size={15} /> Teachers

@@ -1,13 +1,14 @@
 import { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate, Link, useSearchParams } from 'react-router-dom'
 import { motion } from 'motion/react'
 import { BookOpen, GraduationCap, Mail, Lock, User, Eye, EyeOff, CheckCircle } from 'lucide-react'
 import { useAuthStore } from '../stores/useAuthStore'
 
 export default function SignupPage() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const signUp = useAuthStore((s) => s.signUp)
-  const [role, setRole] = useState('student') // 'student' | 'teacher'
+  const [role, setRole] = useState(searchParams.get('role') === 'teacher' ? 'teacher' : 'student')
   const [displayName, setDisplayName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
