@@ -66,7 +66,7 @@ export default async function handler(req) {
 
   // ── GET /api/classroom?code=XXXX — fetch classroom + submissions ──
   if (req.method === 'GET') {
-    const url = new URL(req.url)
+    const url = new URL(req.url, 'http://localhost')
     const code = url.searchParams.get('code')?.toUpperCase()
 
     if (!code) {

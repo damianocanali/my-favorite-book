@@ -1,6 +1,6 @@
 import { motion } from 'motion/react'
-import { useNavigate } from 'react-router-dom'
-import { BookOpen, Library } from 'lucide-react'
+import { useNavigate, Link } from 'react-router-dom'
+import { BookOpen, Library, GraduationCap } from 'lucide-react'
 import { useBookshelfStore } from '../stores/useBookshelfStore'
 import SparkleButton from '../components/ui/SparkleButton'
 import CosmicBackground from '../components/layout/CosmicBackground'
@@ -121,6 +121,22 @@ export default function LandingPage() {
           )}
         </motion.div>
       </div>
+
+      {/* Teacher login link */}
+      <motion.div
+        className="relative z-10 mt-10"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 2 }}
+      >
+        <Link
+          to="/login"
+          className="flex items-center gap-1.5 text-galaxy-text-muted hover:text-galaxy-secondary transition-colors font-body text-sm"
+        >
+          <GraduationCap size={15} />
+          Teachers / Educators
+        </Link>
+      </motion.div>
 
       {/* Bottom wave */}
       <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-galaxy-bg/80 to-transparent z-10 pointer-events-none" />

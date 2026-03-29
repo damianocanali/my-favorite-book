@@ -1,5 +1,7 @@
 import { checkRateLimit, getClientIp } from './_rateLimit.js'
 
+export const config = { runtime: 'edge' }
+
 const TOGETHER_API_URL = 'https://api.together.xyz/v1/images/generations'
 const IMAGE_GEN_LIMIT = 20 // requests per hour per IP
 

@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'motion/react'
-import { GraduationCap, Plus, ExternalLink, Copy, Check } from 'lucide-react'
+import { GraduationCap, Plus, ExternalLink, Copy, Check, LogOut } from 'lucide-react'
 import SparkleButton from '../components/ui/SparkleButton'
+import { useAuthStore } from '../stores/useAuthStore'
 
 const STORAGE_KEY = 'my-favorite-book-teacher-classes'
 
@@ -22,6 +23,8 @@ function saveClass(entry) {
 
 export default function TeacherPage() {
   const navigate = useNavigate()
+  const user = useAuthStore((s) => s.user)
+  const signOut = useAuthStore((s) => s.signOut)
   const [className, setClassName] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -71,6 +74,17 @@ export default function TeacherPage() {
         <p className="text-galaxy-text-muted font-body">
           Create a class code and share it with your students. When they finish a book, they'll submit it here.
         </p>
+        {user && (
+          <div className="flex items-center justify-center gap-3 mt-3">
+            <span className="text-galaxy-text-muted text-sm font-body">{user.email}</span>
+            <button
+              onClick={async () => { await signOut(); navigate('/') }}
+              className="flex items-center gap-1 text-galaxy-text-muted hover:text-galaxy-text text-sm font-body transition-colors"
+            >
+              <LogOut size={13} /> Sign out
+            </button>
+          </div>
+        )}
       </motion.div>
 
       {/* Create class form */}

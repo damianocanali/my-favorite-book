@@ -1,5 +1,7 @@
 import { checkRateLimit, getClientIp } from './_rateLimit.js'
 
+export const config = { runtime: 'edge' }
+
 const ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages'
 const STORY_BUDDY_LIMIT = 30 // requests per hour per IP
 
