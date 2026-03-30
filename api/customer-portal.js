@@ -1,3 +1,5 @@
+export const config = { runtime: 'edge' }
+
 // Opens Stripe's hosted billing portal so users can manage or cancel their subscription.
 
 async function stripePost(path, params) {

@@ -1,3 +1,5 @@
+export const config = { runtime: 'edge' }
+
 import { checkRateLimit, getClientIp } from './_rateLimit.js'
 
 // Characters that are unambiguous to read aloud and type

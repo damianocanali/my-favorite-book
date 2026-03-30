@@ -1,5 +1,6 @@
+export const config = { runtime: 'edge' }
+
 // Creates a Stripe Checkout session and returns the redirect URL.
-// Runs in Node.js runtime (not Edge) so we can use raw fetch to Stripe.
 
 async function stripePost(path, params) {
   const res = await fetch(`https://api.stripe.com/v1/${path}`, {

@@ -1,7 +1,7 @@
-// Handles Stripe webhook events to sync subscription status to Supabase.
-// Must run in Node.js runtime (not Edge) for crypto and raw body access.
+export const config = { runtime: 'edge' }
 
-import crypto from 'crypto'
+// Handles Stripe webhook events to sync subscription status to Supabase.
+// Uses Web Crypto API (Edge-compatible, no Node.js crypto import).
 
 async function verifyStripeSignature(body, signature, secret) {
   const parts = signature.split(',').reduce((acc, part) => {
@@ -20,17 +20,26 @@ async function verifyStripeSignature(body, signature, secret) {
   if (diff > 300) return false
 
   const payload = `${timestamp}.${body}`
-  const hmac = crypto.createHmac('sha256', secret).update(payload).digest('hex')
+  const encoder = new TextEncoder()
+  const key = await crypto.subtle.importKey(
+    'raw',
+    encoder.encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  )
+  const sig = await crypto.subtle.sign('HMAC', key, encoder.encode(payload))
+  const computed = Array.from(new Uint8Array(sig))
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('')
 
-  // Constant-time comparison to prevent timing attacks
-  try {
-    return crypto.timingSafeEqual(
-      Buffer.from(hmac, 'hex'),
-      Buffer.from(expectedSig, 'hex')
-    )
-  } catch {
-    return false
+  // Constant-length comparison
+  if (computed.length !== expectedSig.length) return false
+  let mismatch = 0
+  for (let i = 0; i < computed.length; i++) {
+    mismatch |= computed.charCodeAt(i) ^ expectedSig.charCodeAt(i)
   }
+  return mismatch === 0
 }
 
 async function upsertSubscription(supabaseUrl, serviceKey, data) {
@@ -115,7 +124,7 @@ export default async function handler(req) {
           stripe_customer_id: sub.customer,
           stripe_subscription_id: sub.id,
           plan: plan || 'family',
-          status: sub.status, // active, trialing, past_due, canceled, etc.
+          status: sub.status,
           current_period_end: new Date(sub.current_period_end * 1000).toISOString(),
           updated_at: new Date().toISOString(),
         })
@@ -143,7 +152,6 @@ export default async function handler(req) {
         const subId = invoice.subscription
         if (!subId) break
 
-        // Look up subscription to get user_id from metadata
         const res = await fetch(`https://api.stripe.com/v1/subscriptions/${subId}`, {
           headers: { Authorization: `Bearer ${process.env.STRIPE_SECRET_KEY}` },
         })
@@ -163,7 +171,6 @@ export default async function handler(req) {
       }
 
       default:
-        // Unhandled event type — still return 200 so Stripe doesn't retry
         break
     }
   } catch (err) {
