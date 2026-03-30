@@ -47,7 +47,7 @@ export default async function handler(req) {
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: 'black-forest-labs/FLUX.1-schnell-Free',
+        model: 'black-forest-labs/FLUX.1-schnell',
         prompt,
         width: 768,
         height: 512,

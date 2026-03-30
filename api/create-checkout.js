@@ -52,6 +52,7 @@ export default async function handler(req) {
     success_url: `${origin}/success?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${origin}/pricing`,
     allow_promotion_codes: 'true',
+    'phone_number_collection[enabled]': 'false',
   })
 
   if (session.error) {
