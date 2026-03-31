@@ -1,13 +1,12 @@
 export const config = { runtime: 'edge' }
 
-// Creates a Stripe Checkout session and returns the redirect URL.
-// Price IDs are resolved server-side — never exposed to the browser.
+// Creates a Stripe Checkout session for a one-time coin pack purchase.
+// Coin packs: 50 coins ($0.99), 200 coins ($2.99), 500 coins ($4.99)
 
-const PRICE_MAP = {
-  family_monthly:  'STRIPE_PRICE_FAMILY_MONTHLY',
-  family_annual:   'STRIPE_PRICE_FAMILY_ANNUAL',
-  teacher_monthly: 'STRIPE_PRICE_TEACHER_MONTHLY',
-  teacher_annual:  'STRIPE_PRICE_TEACHER_ANNUAL',
+const COIN_PACKS = {
+  small:  { coins: 50,  priceEnv: 'STRIPE_PRICE_COINS_SMALL' },
+  medium: { coins: 200, priceEnv: 'STRIPE_PRICE_COINS_MEDIUM' },
+  large:  { coins: 500, priceEnv: 'STRIPE_PRICE_COINS_LARGE' },
 }
 
 async function stripePost(path, params) {
@@ -35,19 +34,18 @@ export default async function handler(req) {
     })
   }
 
-  const { planName, billing, userId, userEmail } = await req.json()
-  if (!planName || !billing || !userId || !userEmail) {
-    return new Response(JSON.stringify({ error: 'planName, billing, userId, and userEmail are required' }), {
+  const { pack, userId, userEmail } = await req.json()
+  const packInfo = COIN_PACKS[pack]
+
+  if (!packInfo || !userId || !userEmail) {
+    return new Response(JSON.stringify({ error: 'pack, userId, and userEmail are required' }), {
       status: 400, headers: { 'Content-Type': 'application/json' },
     })
   }
 
-  // Look up the Stripe price ID from server-side env vars
-  const envKey = PRICE_MAP[`${planName}_${billing}`]
-  const priceId = envKey && process.env[envKey]
-
+  const priceId = process.env[packInfo.priceEnv]
   if (!priceId) {
-    return new Response(JSON.stringify({ error: 'Pricing not configured for this plan' }), {
+    return new Response(JSON.stringify({ error: 'Coin packs not configured yet' }), {
       status: 503, headers: { 'Content-Type': 'application/json' },
     })
   }
@@ -56,18 +54,15 @@ export default async function handler(req) {
     (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:5173')
 
   const session = await stripePost('checkout/sessions', {
-    mode: 'subscription',
+    mode: 'payment',
     'line_items[0][price]': priceId,
     'line_items[0][quantity]': '1',
     customer_email: userEmail,
     'metadata[user_id]': userId,
-    'metadata[plan]': planName,
-    'subscription_data[metadata][user_id]': userId,
-    'subscription_data[metadata][plan]': planName,
-    ...(planName === 'teacher' ? { 'subscription_data[trial_period_days]': '14' } : {}),
-    success_url: `${origin}/success?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${origin}/pricing`,
-    allow_promotion_codes: 'true',
+    'metadata[type]': 'coin_pack',
+    'metadata[coins]': String(packInfo.coins),
+    success_url: `${origin}/avatar?coins_added=${packInfo.coins}`,
+    cancel_url: `${origin}/avatar`,
     'phone_number_collection[enabled]': 'false',
   })
 

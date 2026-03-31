@@ -38,6 +38,11 @@ export default function BadgePopup() {
               <p className="text-galaxy-text-muted text-xs font-body">
                 {newBadge.description}
               </p>
+              {newBadge.coins > 0 && (
+                <p className="text-yellow-400 text-xs font-body font-semibold mt-0.5">
+                  +{newBadge.coins} coins earned!
+                </p>
+              )}
             </div>
           </button>
         </motion.div>

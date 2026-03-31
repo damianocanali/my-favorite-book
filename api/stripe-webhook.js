@@ -95,11 +95,16 @@ export default async function handler(req) {
       case 'checkout.session.completed': {
         const session = event.data.object
         const userId = session.metadata?.user_id
+
+        if (!userId) break
+
+        // Coin pack purchases — coins are added client-side via redirect URL
+        if (session.metadata?.type === 'coin_pack') break
+
+        // Subscription purchase
         const plan = session.metadata?.plan || 'family'
         const customerId = session.customer
         const subscriptionId = session.subscription
-
-        if (!userId) break
 
         await upsertSubscription(supabaseUrl, serviceKey, {
           user_id: userId,

@@ -2,6 +2,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { BookOpen, Home, Library, LogIn, LogOut, GraduationCap, Sparkles } from 'lucide-react'
 import { useBookshelfStore } from '../../stores/useBookshelfStore'
 import { useAuthStore, selectDisplayName, selectRole } from '../../stores/useAuthStore'
+import AvatarDisplay from '../avatar/AvatarDisplay'
 import CosmicBackground from './CosmicBackground'
 
 export default function AppShell({ children }) {
@@ -92,16 +93,22 @@ export default function AppShell({ children }) {
             {/* Auth section */}
             {user ? (
               <div className="flex items-center gap-2 pl-2 border-l border-galaxy-text-muted/20">
-                <span className="text-galaxy-text-muted text-xs font-body hidden sm:block max-w-[120px] truncate">
+                <Link
+                  to="/avatar"
+                  title="My Avatar"
+                  className="hover:opacity-80 transition-opacity"
+                >
+                  <AvatarDisplay size={32} mini />
+                </Link>
+                <span className="text-galaxy-text-muted text-xs font-body hidden sm:block max-w-[100px] truncate">
                   {displayName}
                 </span>
                 <button
                   onClick={handleSignOut}
                   title="Sign out"
-                  className="flex items-center gap-1 px-3 py-2 rounded-full text-galaxy-text-muted hover:text-galaxy-text transition-colors"
+                  className="flex items-center gap-1 px-2 py-2 rounded-full text-galaxy-text-muted hover:text-galaxy-text transition-colors"
                 >
                   <LogOut size={16} />
-                  <span className="hidden sm:inline text-sm font-body">Sign out</span>
                 </button>
               </div>
             ) : (

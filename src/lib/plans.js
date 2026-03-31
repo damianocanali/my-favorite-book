@@ -31,12 +31,10 @@ export const PLANS = {
 export const PRICES = {
   family: {
     monthly: {
-      id: import.meta.env.VITE_STRIPE_PRICE_FAMILY_MONTHLY,
       amount: '$4.99',
       interval: 'month',
     },
     annual: {
-      id: import.meta.env.VITE_STRIPE_PRICE_FAMILY_ANNUAL,
       amount: '$39.99',
       interval: 'year',
       monthlyEquivalent: '$3.33/mo',
@@ -44,12 +42,10 @@ export const PRICES = {
   },
   teacher: {
     monthly: {
-      id: import.meta.env.VITE_STRIPE_PRICE_TEACHER_MONTHLY,
       amount: '$9.99',
       interval: 'month',
     },
     annual: {
-      id: import.meta.env.VITE_STRIPE_PRICE_TEACHER_ANNUAL,
       amount: '$79.99',
       interval: 'year',
       monthlyEquivalent: '$6.67/mo',

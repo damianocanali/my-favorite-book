@@ -112,20 +112,12 @@ export default function PricingPage() {
   const handleUpgrade = async (planName) => {
     setShowGate(null)
 
-    const prices = PRICES[planName]
-    const priceId = billing === 'annual' ? prices.annual.id : prices.monthly.id
-
-    if (!priceId) {
-      alert('Pricing not configured yet. Please contact support.')
-      return
-    }
-
     const res = await fetch('/api/create-checkout', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        priceId,
         planName,
+        billing,
         userId: user.id,
         userEmail: user.email,
       }),
