@@ -7,6 +7,7 @@ import { useAgeAdaptive } from '../../hooks/useAgeAdaptive'
 import PageEditor from './PageEditor'
 import PageThumbnailStrip from './PageThumbnailStrip'
 import PageToolbar from './PageToolbar'
+import StoryProgressMap from './StoryProgressMap'
 import SparkleButton from '../ui/SparkleButton'
 import CoverArtGenerator from './CoverArtGenerator'
 import { BookOpen, Eye } from 'lucide-react'
@@ -59,6 +60,9 @@ export default function StoryEditor({ onPreview }) {
             </span>
           </SparkleButton>
         </div>
+
+        {/* Story progress map — persistent visual progress for ADHD scaffolding */}
+        <StoryProgressMap />
 
         {/* Cover art generator */}
         <CoverArtGenerator />

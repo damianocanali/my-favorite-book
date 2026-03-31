@@ -1,11 +1,55 @@
 import { motion } from 'motion/react'
-import { useNavigate } from 'react-router-dom'
-import { Library, Plus } from 'lucide-react'
+import { useNavigate, Link } from 'react-router-dom'
+import { Library, Plus, LogIn } from 'lucide-react'
 import Bookshelf from '../components/bookshelf/Bookshelf'
 import SparkleButton from '../components/ui/SparkleButton'
+import { useAuthStore } from '../stores/useAuthStore'
 
 export default function BookshelfPage() {
   const navigate = useNavigate()
+  const user = useAuthStore((s) => s.user)
+  const loading = useAuthStore((s) => s.loading)
+
+  if (loading) {
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-galaxy-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    )
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center px-4 text-center">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+        >
+          <Library size={48} className="text-galaxy-primary mx-auto mb-4" />
+          <h2 className="font-heading text-2xl font-bold text-galaxy-text mb-2">
+            Sign in to see your bookshelf
+          </h2>
+          <p className="text-galaxy-text-muted font-body mb-6 max-w-sm">
+            Create a free account to save your books and access them from any device.
+          </p>
+          <div className="flex items-center justify-center gap-4">
+            <Link
+              to="/signup"
+              className="px-6 py-3 rounded-xl font-body font-bold text-white bg-galaxy-primary hover:bg-galaxy-primary/90 transition-colors"
+            >
+              Create free account
+            </Link>
+            <Link
+              to="/login"
+              className="flex items-center gap-1.5 px-6 py-3 rounded-xl font-body font-semibold text-galaxy-text-muted border border-galaxy-text-muted/30 hover:text-galaxy-text hover:border-galaxy-text-muted/60 transition-colors"
+            >
+              <LogIn size={16} /> Sign in
+            </Link>
+          </div>
+        </motion.div>
+      </div>
+    )
+  }
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">

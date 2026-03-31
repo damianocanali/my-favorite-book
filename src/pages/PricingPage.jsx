@@ -6,6 +6,7 @@ import { useAuthStore } from '../stores/useAuthStore'
 import { useSubscription } from '../hooks/useSubscription'
 import { PRICES } from '../lib/plans'
 import SparkleButton from '../components/ui/SparkleButton'
+import ParentalGate from '../components/ui/ParentalGate'
 
 const FREE_FEATURES = [
   '2 books total',
@@ -98,12 +99,18 @@ export default function PricingPage() {
   const user = useAuthStore((s) => s.user)
   const { planKey, loading } = useSubscription()
   const [billing, setBilling] = useState('monthly')
+  const [showGate, setShowGate] = useState(null) // null or plan name
 
-  const handleUpgrade = async (planName) => {
+  const handleUpgradeClick = (planName) => {
     if (!user) {
       navigate('/signup')
       return
     }
+    setShowGate(planName)
+  }
+
+  const handleUpgrade = async (planName) => {
+    setShowGate(null)
 
     const prices = PRICES[planName]
     const priceId = billing === 'annual' ? prices.annual.id : prices.monthly.id
@@ -202,7 +209,7 @@ export default function PricingPage() {
             monthlyEquivalent={billing === 'annual' ? familyPrice.monthlyEquivalent : null}
             features={FAMILY_FEATURES}
             cta="Upgrade to Family"
-            onCta={() => handleUpgrade('family')}
+            onCta={() => handleUpgradeClick('family')}
             current={!loading && planKey === 'family'}
             highlight
           />
@@ -216,7 +223,7 @@ export default function PricingPage() {
             monthlyEquivalent={billing === 'annual' ? teacherPrice.monthlyEquivalent : null}
             features={TEACHER_FEATURES}
             cta="Start free trial"
-            onCta={() => handleUpgrade('teacher')}
+            onCta={() => handleUpgradeClick('teacher')}
             current={!loading && planKey === 'teacher'}
           />
         </div>
@@ -231,6 +238,14 @@ export default function PricingPage() {
           Secure checkout by Stripe · Cancel anytime from your account · No hidden fees
         </motion.p>
       </div>
+
+      {/* Parental gate — requires solving a math problem before checkout */}
+      {showGate && (
+        <ParentalGate
+          onPass={() => handleUpgrade(showGate)}
+          onClose={() => setShowGate(null)}
+        />
+      )}
     </div>
   )
 }

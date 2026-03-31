@@ -2,8 +2,10 @@ import { useState } from 'react'
 import { motion } from 'motion/react'
 import { Send, CheckCircle } from 'lucide-react'
 import SparkleButton from '../ui/SparkleButton'
+import { useRewardsStore } from '../../stores/useRewardsStore'
 
 export default function SubmitToClassModal({ book, onClose }) {
+  const earnBadge = useRewardsStore((s) => s.earnBadge)
   const [code, setCode] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -23,6 +25,7 @@ export default function SubmitToClassModal({ book, onClose }) {
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Could not submit book')
       setSuccess(true)
+      earnBadge('submitted_class')
     } catch (e) {
       setError(e.message)
     } finally {

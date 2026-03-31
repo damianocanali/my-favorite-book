@@ -8,6 +8,8 @@ import { useSpeechRecognition } from '../../hooks/useSpeechRecognition'
 import StoryBuddy from './StoryBuddy'
 import IllustrationGenerator from './IllustrationGenerator'
 import AccessibilityToolbar from './AccessibilityToolbar'
+import WritingScaffold from './WritingScaffold'
+import { useRewardsStore } from '../../stores/useRewardsStore'
 
 export default function PageEditor({ page }) {
   const updatePageText = useBookStore((state) => state.updatePageText)
@@ -15,6 +17,7 @@ export default function PageEditor({ page }) {
   const adaptive = useAgeAdaptive()
   const dyslexiaFont = useAccessibilityStore((s) => s.dyslexiaFont)
 
+  const earnBadge = useRewardsStore((s) => s.earnBadge)
   const bookColors = book?.colors ?? { cover: '#8B5CF6', accent: '#06B6D4', text: '#F1F5F9' }
 
   const characterDelays = useMemo(() => {
@@ -36,7 +39,8 @@ export default function PageEditor({ page }) {
     const current = page.text
     const separator = current && !current.endsWith(' ') ? ' ' : ''
     updatePageText(page.id, current + separator + transcript.trim())
-  }, [page.text, page.id, updatePageText])
+    earnBadge('used_voice')
+  }, [page.text, page.id, updatePageText, earnBadge])
 
   const { start: startVoice, stop: stopVoice, isListening, interimText, isSupported: voiceSupported } = useSpeechRecognition({ onResult: handleVoiceResult })
 
@@ -158,6 +162,14 @@ export default function PageEditor({ page }) {
           )}
         </AnimatePresence>
 
+        {/* Writing scaffolds — sentence starters, word bank, idle nudges */}
+        <WritingScaffold
+          page={page}
+          totalPages={book?.pages?.length ?? 1}
+          characterName={book?.characters?.[0]?.name}
+          onInsertText={updatePageText}
+        />
+
         {/* Character counter */}
         <div className="flex justify-between items-center">
           <p className="text-galaxy-text-muted text-xs font-body">
@@ -185,7 +197,10 @@ export default function PageEditor({ page }) {
         {/* Story Buddy AI Helper */}
         <StoryBuddy
           page={page}
-          onInsertText={(text) => updatePageText(page.id, text)}
+          onInsertText={(text) => {
+            updatePageText(page.id, text)
+            earnBadge('used_buddy')
+          }}
         />
       </div>
     </motion.div>

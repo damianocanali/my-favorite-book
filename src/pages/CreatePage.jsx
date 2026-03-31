@@ -5,6 +5,7 @@ import { Lock } from 'lucide-react'
 import { useBookStore } from '../stores/useBookStore'
 import { useBookshelfStore } from '../stores/useBookshelfStore'
 import { useSubscription } from '../hooks/useSubscription'
+import { useRewardsStore } from '../stores/useRewardsStore'
 import WizardContainer from '../components/wizard/WizardContainer'
 import StoryEditor from '../components/editor/StoryEditor'
 import SparkleButton from '../components/ui/SparkleButton'
@@ -22,6 +23,7 @@ export default function CreatePage() {
   const getBook = useBookshelfStore((state) => state.getBook)
   const bookCount = useBookshelfStore((state) => state.books.length)
   const { plan, loading: subLoading } = useSubscription()
+  const earnBadge = useRewardsStore((s) => s.earnBadge)
 
   // If currentStep is beyond wizard steps, go straight to editor
   const [phase, setPhase] = useState(
@@ -42,11 +44,20 @@ export default function CreatePage() {
     if (book) {
       const existingBook = getBook(book.id)
       if (existingBook) {
-        // Update existing book on the shelf
         updateBookOnShelf(book.id, book)
       } else {
-        // New book — add to shelf
         addBookToShelf(book)
+
+        // Effort-based badges
+        const pagesWritten = book.pages.filter((p) => p.text.trim()).length
+        if (pagesWritten >= 1) earnBadge('first_page')
+        if (pagesWritten >= 5) earnBadge('five_pages')
+        earnBadge('first_book')
+
+        const newTotal = bookCount + 1
+        if (newTotal >= 3) earnBadge('three_books')
+        if (newTotal >= 5) earnBadge('five_books')
+        if (newTotal >= 10) earnBadge('ten_books')
       }
       const bookId = book.id
       resetBook()

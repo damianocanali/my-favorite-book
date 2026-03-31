@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { motion } from 'motion/react'
 import { ImageIcon, Loader2, RefreshCw, Trash2 } from 'lucide-react'
 import { useBookStore } from '../../stores/useBookStore'
+import { useRewardsStore } from '../../stores/useRewardsStore'
 import { generatePageIllustration } from '../../services/imageGenerator'
 
 export default function IllustrationGenerator({ page }) {
@@ -10,6 +11,7 @@ export default function IllustrationGenerator({ page }) {
 
   const book = useBookStore((state) => state.book)
   const updatePageIllustration = useBookStore((state) => state.updatePageIllustration)
+  const earnBadge = useRewardsStore((s) => s.earnBadge)
 
   const hasIllustration = !!page.illustrationData
 
@@ -21,6 +23,7 @@ export default function IllustrationGenerator({ page }) {
     try {
       const imageData = await generatePageIllustration(page, book)
       updatePageIllustration(page.id, imageData)
+      earnBadge('added_illustration')
     } catch (err) {
       setError(err.message)
     } finally {

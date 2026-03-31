@@ -12,6 +12,7 @@ import SignupPage from './pages/SignupPage'
 import PricingPage from './pages/PricingPage'
 import SuccessPage from './pages/SuccessPage'
 import ProtectedRoute from './components/auth/ProtectedRoute'
+import BadgePopup from './components/ui/BadgePopup'
 import { initCapacitor } from './capacitor'
 import { useAuthStore } from './stores/useAuthStore'
 
@@ -26,6 +27,7 @@ export default function App() {
 
   return (
     <AppShell>
+      <BadgePopup />
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/create" element={<CreatePage />} />
