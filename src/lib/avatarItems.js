@@ -3,12 +3,12 @@
 // unlock: 'free' | 'coins' | badge ID string
 
 export const AVATAR_BODIES = [
-  { id: 'body-1', emoji: '🧒', label: 'Kid', skin: '#FFDBB4', unlock: 'free' },
-  { id: 'body-2', emoji: '🧒', label: 'Kid', skin: '#E8B88A', unlock: 'free' },
-  { id: 'body-3', emoji: '🧒', label: 'Kid', skin: '#C68642', unlock: 'free' },
-  { id: 'body-4', emoji: '🧒', label: 'Kid', skin: '#8D5524', unlock: 'free' },
-  { id: 'body-5', emoji: '🧒', label: 'Kid', skin: '#FFDBAC', unlock: 'free' },
-  { id: 'body-6', emoji: '🧒', label: 'Kid', skin: '#F1C27D', unlock: 'free' },
+  { id: 'body-1', emoji: null, label: 'Light', skin: '#FFDBB4', unlock: 'free' },
+  { id: 'body-2', emoji: null, label: 'Fair', skin: '#E8B88A', unlock: 'free' },
+  { id: 'body-3', emoji: null, label: 'Medium', skin: '#C68642', unlock: 'free' },
+  { id: 'body-4', emoji: null, label: 'Dark', skin: '#8D5524', unlock: 'free' },
+  { id: 'body-5', emoji: null, label: 'Peach', skin: '#FFDBAC', unlock: 'free' },
+  { id: 'body-6', emoji: null, label: 'Tan', skin: '#F1C27D', unlock: 'free' },
 ]
 
 export const AVATAR_HAIR = [
@@ -85,7 +85,7 @@ export const AVATAR_BACKGROUNDS = [
 ]
 
 export const CATEGORIES = [
-  { key: 'body', label: 'Body', items: AVATAR_BODIES },
+  { key: 'body', label: 'Face', items: AVATAR_BODIES },
   { key: 'hair', label: 'Hair', items: AVATAR_HAIR },
   { key: 'clothing', label: 'Clothes', items: AVATAR_CLOTHING },
   { key: 'hat', label: 'Hats', items: AVATAR_HATS },

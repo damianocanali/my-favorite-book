@@ -9,6 +9,9 @@ export const PLANS = {
     imagesPerBook: 2,
     pdfExport: false,
     classroom: false,
+    avatarGenerations: 1,     // first one free, then costs coins
+    freeAvatarRegen: false,
+    freeStyleChange: false,
   },
   family: {
     name: 'Family',
@@ -17,6 +20,9 @@ export const PLANS = {
     imagesPerBook: Infinity,
     pdfExport: true,
     classroom: false,
+    avatarGenerations: 5,     // 5 per day free
+    freeAvatarRegen: true,
+    freeStyleChange: false,   // 5 coins per style change
   },
   teacher: {
     name: 'Teacher',
@@ -25,6 +31,9 @@ export const PLANS = {
     imagesPerBook: Infinity,
     pdfExport: true,
     classroom: true,
+    avatarGenerations: Infinity,
+    freeAvatarRegen: true,
+    freeStyleChange: true,
   },
 }
 

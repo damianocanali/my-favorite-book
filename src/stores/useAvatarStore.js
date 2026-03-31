@@ -4,27 +4,76 @@ import { persist } from 'zustand/middleware'
 export const useAvatarStore = create(
   persist(
     (set, get) => ({
-      // Currently equipped items (one per category)
-      equipped: {
-        body: 'body-1',
-        hair: 'hair-short-brown',
-        clothing: 'clothes-tshirt-blue',
-        hat: 'hat-none',
-        accessory: 'acc-none',
-        background: 'bg-purple',
+      // AI-generated avatar image (base64)
+      avatarImage: null,
+
+      // Current feature selections for the AI prompt
+      features: {
+        skinTone: 'medium',
+        hairStyle: 'short',
+        hairColor: 'brown',
+        clothing: 'blue t-shirt',
+        hat: 'none',
+        accessory: 'none',
+        expression: 'happy smiling',
       },
+
+      // Art style
+      artStyle: 'cartoon',
 
       // Items purchased with coins
       ownedItems: [],
 
+      // Owned art styles (cartoon is free)
+      ownedStyles: ['cartoon'],
+
       // Coin balance
       coins: 0,
 
-      // Equip an item to a category slot
-      equip: (category, itemId) =>
+      // Generation count today (resets on new day)
+      generationsToday: 0,
+      generationDate: null,
+
+      // Update a single feature
+      setFeature: (key, value) =>
         set((s) => ({
-          equipped: { ...s.equipped, [category]: itemId },
+          features: { ...s.features, [key]: value },
         })),
+
+      // Set art style
+      setArtStyle: (style) => set({ artStyle: style }),
+
+      // Save generated avatar image
+      setAvatarImage: (image) => set({ avatarImage: image }),
+
+      // Track generation count
+      incrementGenerations: () => {
+        const today = new Date().toDateString()
+        const state = get()
+        if (state.generationDate !== today) {
+          set({ generationsToday: 1, generationDate: today })
+        } else {
+          set({ generationsToday: state.generationsToday + 1 })
+        }
+      },
+
+      getGenerationsToday: () => {
+        const today = new Date().toDateString()
+        const state = get()
+        return state.generationDate === today ? state.generationsToday : 0
+      },
+
+      // Purchase an art style with coins
+      purchaseStyle: (styleId, price) => {
+        const state = get()
+        if (state.coins < price) return false
+        if (state.ownedStyles.includes(styleId)) return false
+        set({
+          coins: state.coins - price,
+          ownedStyles: [...state.ownedStyles, styleId],
+        })
+        return true
+      },
 
       // Purchase an item with coins
       purchaseItem: (itemId, price) => {
@@ -38,11 +87,10 @@ export const useAvatarStore = create(
         return true
       },
 
-      // Add coins (from subscription bonus or coin pack purchase)
+      // Add coins
       addCoins: (amount) =>
         set((s) => ({ coins: s.coins + amount })),
 
-      // Check if an item is owned (purchased or free)
       isOwned: (itemId) => get().ownedItems.includes(itemId),
     }),
     { name: 'my-favorite-book-avatar' }

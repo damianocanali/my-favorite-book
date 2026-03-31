@@ -49,19 +49,21 @@ export default function AppShell({ children }) {
               <span className="hidden sm:inline text-sm font-body font-semibold">Home</span>
             </Link>
 
-            <Link
-              to="/bookshelf"
-              className={`flex items-center gap-2 px-3 py-2 rounded-full transition-all ${
-                location.pathname === '/bookshelf'
-                  ? 'bg-galaxy-primary/20 text-galaxy-primary'
-                  : 'text-galaxy-text-muted hover:text-galaxy-text'
-              }`}
-            >
-              <Library size={18} />
-              <span className="hidden sm:inline text-sm font-body font-semibold">
-                Bookshelf{bookCount > 0 && ` (${bookCount})`}
-              </span>
-            </Link>
+            {user && (
+              <Link
+                to="/bookshelf"
+                className={`flex items-center gap-2 px-3 py-2 rounded-full transition-all ${
+                  location.pathname === '/bookshelf'
+                    ? 'bg-galaxy-primary/20 text-galaxy-primary'
+                    : 'text-galaxy-text-muted hover:text-galaxy-text'
+                }`}
+              >
+                <Library size={18} />
+                <span className="hidden sm:inline text-sm font-body font-semibold">
+                  Bookshelf{bookCount > 0 && ` (${bookCount})`}
+                </span>
+              </Link>
+            )}
 
             <Link
               to="/pricing"
