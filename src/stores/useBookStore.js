@@ -37,6 +37,26 @@ export const useBookStore = create(
       currentStep: 0,
       currentPageIndex: 0,
 
+      // Daily image generation tracking (resets each day)
+      imageGenerationsToday: 0,
+      imageGenerationDate: null,
+
+      getImageGenerationsToday: () => {
+        const today = new Date().toDateString()
+        const state = get()
+        return state.imageGenerationDate === today ? state.imageGenerationsToday : 0
+      },
+
+      incrementImageGenerations: () => {
+        const today = new Date().toDateString()
+        const state = get()
+        if (state.imageGenerationDate !== today) {
+          set({ imageGenerationsToday: 1, imageGenerationDate: today })
+        } else {
+          set({ imageGenerationsToday: state.imageGenerationsToday + 1 })
+        }
+      },
+
       startNewBook: () =>
         set({ book: createBlankBook(), currentStep: 0, currentPageIndex: 0 }),
 

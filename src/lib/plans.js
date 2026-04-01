@@ -6,7 +6,7 @@ export const PLANS = {
     name: 'Free',
     maxBooks: 2,
     storyBuddyPerDay: 3,
-    imagesPerBook: 2,
+    imagesPerDay: 2,
     pdfExport: false,
     classroom: false,
     avatarGenerations: 1,     // first one free, then costs coins
@@ -17,7 +17,7 @@ export const PLANS = {
     name: 'Family',
     maxBooks: Infinity,
     storyBuddyPerDay: Infinity,
-    imagesPerBook: Infinity,
+    imagesPerDay: Infinity,
     pdfExport: true,
     classroom: false,
     avatarGenerations: 5,     // 5 per day free
@@ -28,7 +28,7 @@ export const PLANS = {
     name: 'Teacher',
     maxBooks: Infinity,
     storyBuddyPerDay: Infinity,
-    imagesPerBook: Infinity,
+    imagesPerDay: Infinity,
     pdfExport: true,
     classroom: true,
     avatarGenerations: Infinity,

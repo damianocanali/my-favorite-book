@@ -1,15 +1,19 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { motion } from 'motion/react'
-import { ImageIcon, Loader2, RefreshCw, Trash2 } from 'lucide-react'
+import { ImageIcon, Loader2, RefreshCw, Trash2, Lock, Sparkles } from 'lucide-react'
 import { useBookStore } from '../../stores/useBookStore'
+import { useSubscription } from '../../hooks/useSubscription'
 import { generateCoverArt } from '../../services/imageGenerator'
 
 export default function CoverArtGenerator() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+  const navigate = useNavigate()
 
   const book = useBookStore((state) => state.book)
   const setCoverImage = useBookStore((state) => state.setCoverImage)
+  const { isPaid } = useSubscription()
 
   if (!book) return null
 
@@ -47,51 +51,66 @@ export default function CoverArtGenerator() {
         <div className="flex-1 min-w-0">
           <p className="text-galaxy-text font-body font-semibold text-sm">Book Cover Art</p>
           <p className="text-galaxy-text-muted text-xs font-body">
-            {book.coverImage ? 'AI-generated cover' : 'Generate a custom cover illustration'}
+            {book.coverImage ? 'AI-generated cover' : isPaid ? 'Generate a custom cover illustration' : 'Upgrade to generate AI covers'}
           </p>
           {error && <p className="text-red-400 text-xs font-body mt-1">{error}</p>}
         </div>
 
         <div className="flex gap-2">
-          {book.coverImage && (
+          {isPaid ? (
+            <>
+              {book.coverImage && (
+                <motion.button
+                  onClick={() => setCoverImage(null)}
+                  className="p-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors cursor-pointer"
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  title="Remove cover"
+                >
+                  <Trash2 size={14} />
+                </motion.button>
+              )}
+              <motion.button
+                onClick={handleGenerate}
+                disabled={loading}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-body font-semibold transition-all cursor-pointer ${
+                  loading
+                    ? 'bg-galaxy-primary/30 text-galaxy-primary'
+                    : 'bg-galaxy-primary text-white hover:bg-purple-500'
+                } disabled:opacity-50`}
+                whileHover={loading ? {} : { scale: 1.05 }}
+                whileTap={loading ? {} : { scale: 0.95 }}
+              >
+                {loading ? (
+                  <>
+                    <Loader2 size={12} className="animate-spin" />
+                    Creating...
+                  </>
+                ) : book.coverImage ? (
+                  <>
+                    <RefreshCw size={12} />
+                    New Cover
+                  </>
+                ) : (
+                  <>
+                    <ImageIcon size={12} />
+                    Generate Cover
+                  </>
+                )}
+              </motion.button>
+            </>
+          ) : (
             <motion.button
-              onClick={() => setCoverImage(null)}
-              className="p-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors cursor-pointer"
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              title="Remove cover"
+              onClick={() => navigate('/pricing')}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-body font-semibold bg-galaxy-text-muted/20 text-galaxy-text-muted border border-galaxy-text-muted/20 cursor-pointer"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
             >
-              <Trash2 size={14} />
+              <Lock size={12} />
+              <Sparkles size={12} className="text-galaxy-primary" />
+              Upgrade for AI Covers
             </motion.button>
           )}
-          <motion.button
-            onClick={handleGenerate}
-            disabled={loading}
-            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-body font-semibold transition-all cursor-pointer ${
-              loading
-                ? 'bg-galaxy-primary/30 text-galaxy-primary'
-                : 'bg-galaxy-primary text-white hover:bg-purple-500'
-            } disabled:opacity-50`}
-            whileHover={loading ? {} : { scale: 1.05 }}
-            whileTap={loading ? {} : { scale: 0.95 }}
-          >
-            {loading ? (
-              <>
-                <Loader2 size={12} className="animate-spin" />
-                Creating...
-              </>
-            ) : book.coverImage ? (
-              <>
-                <RefreshCw size={12} />
-                New Cover
-              </>
-            ) : (
-              <>
-                <ImageIcon size={12} />
-                Generate Cover
-              </>
-            )}
-          </motion.button>
         </div>
       </div>
     </div>

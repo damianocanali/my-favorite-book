@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { useAvatarStore } from './useAvatarStore'
+import { useAuthStore } from './useAuthStore'
 
 // Effort-based badges — earned by completing steps, not quality.
 // Each badge also awards coins for the avatar shop.
@@ -25,6 +26,8 @@ export const useRewardsStore = create(
       newBadge: null,      // currently showing badge popup
 
       earnBadge: (badgeId) => {
+        // Only logged-in users can earn badges
+        if (!useAuthStore.getState().user) return false
         const state = get()
         if (state.earnedBadges.includes(badgeId)) return false
         const badge = BADGE_DEFINITIONS.find((b) => b.id === badgeId)

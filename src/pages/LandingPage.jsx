@@ -152,7 +152,7 @@ export default function LandingPage() {
               </div>
               <p className="font-heading text-2xl font-bold text-galaxy-text mb-3">$0</p>
               <ul className="space-y-1.5">
-                {['2 books', '3 Story Buddy chats/day', '2 illustrations per book', 'Read aloud & voice input'].map((f) => (
+                {['2 books', '3 Story Buddy chats/day', '2 AI illustrations per day', 'Read aloud & voice input'].map((f) => (
                   <li key={f} className="flex items-start gap-1.5 text-galaxy-text-muted font-body text-xs">
                     <Check size={13} className="mt-0.5 shrink-0 text-galaxy-secondary" />
                     {f}
