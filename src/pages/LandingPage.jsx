@@ -1,6 +1,6 @@
 import { motion } from 'motion/react'
 import { useNavigate, Link } from 'react-router-dom'
-import { BookOpen, Library, GraduationCap, LogIn, LogOut, Check, Sparkles } from 'lucide-react'
+import { BookOpen, Library, GraduationCap, LogIn, LogOut, Check, Sparkles, Mic, Brain, Palette, Users, Volume2, Wand2 } from 'lucide-react'
 import { useBookshelfStore } from '../stores/useBookshelfStore'
 import { useAuthStore, selectDisplayName, selectRole } from '../stores/useAuthStore'
 import { PRICES } from '../lib/plans'
@@ -127,6 +127,58 @@ export default function LandingPage() {
           )}
         </motion.div>
       </div>
+
+      {/* What is My Favorite Book */}
+      <motion.div
+        className="relative z-10 w-full max-w-4xl mt-20 px-2"
+        initial={{ opacity: 0, y: 40 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 1.7, duration: 0.6 }}
+      >
+        <h2 className="font-heading text-2xl sm:text-3xl font-bold text-galaxy-text text-center mb-3">
+          Every child has a story to tell
+        </h2>
+        <p className="text-galaxy-text-muted font-body text-sm sm:text-base text-center max-w-2xl mx-auto mb-10">
+          My Favorite Book helps kids write, illustrate, and share their own stories — with built-in tools
+          that make reading and writing fun and accessible for every learner.
+        </p>
+
+        {/* Feature grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-10">
+          {[
+            { icon: Wand2, color: 'text-galaxy-primary', title: 'AI Story Buddy', desc: 'A friendly writing assistant that gives ideas, not answers — encouraging kids to build their own stories.' },
+            { icon: Palette, color: 'text-pink-400', title: 'AI Illustrations', desc: 'Turn any page into art with one tap. Kids see their words come to life as unique illustrations.' },
+            { icon: Mic, color: 'text-green-400', title: 'Voice Input & Read Aloud', desc: 'Speak your story or listen to it read back. Great for early writers and auditory learners.' },
+            { icon: Brain, color: 'text-yellow-400', title: 'ADHD & Dyslexia Friendly', desc: 'Sentence starters, word banks, visual progress maps, and gentle nudges keep kids focused without pressure.' },
+            { icon: Users, color: 'text-galaxy-secondary', title: 'Classroom Ready', desc: 'Teachers can create classrooms, collect student stories, and track writing progress.' },
+            { icon: Volume2, color: 'text-cyan-400', title: 'Built for All Learners', desc: 'Adjustable fonts, high contrast mode, text-to-speech, and scaffolding tools support UDL and WCAG standards.' },
+          ].map(({ icon: Icon, color, title, desc }) => (
+            <div
+              key={title}
+              className="rounded-2xl p-5 border border-galaxy-text-muted/10 bg-galaxy-bg-light/60 backdrop-blur-sm"
+            >
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center bg-galaxy-bg mb-3`}>
+                <Icon size={20} className={color} />
+              </div>
+              <h3 className="font-heading text-sm font-bold text-galaxy-text mb-1">{title}</h3>
+              <p className="text-galaxy-text-muted font-body text-xs leading-relaxed">{desc}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Accessibility callout */}
+        <div className="rounded-2xl p-5 sm:p-6 border border-galaxy-secondary/30 bg-galaxy-secondary/5 backdrop-blur-sm text-center max-w-2xl mx-auto">
+          <p className="font-heading text-base sm:text-lg font-bold text-galaxy-text mb-2">
+            Designed with every child in mind
+          </p>
+          <p className="text-galaxy-text-muted font-body text-xs sm:text-sm leading-relaxed">
+            My Favorite Book follows Universal Design for Learning (UDL) principles and WCAG/COGA accessibility
+            guidelines. Features like sentence starters, visual progress tracking, effort-based rewards, and
+            multi-modal input are specifically designed to support children with ADHD, dyslexia, and other
+            learning differences — making creative writing achievable and fun for everyone.
+          </p>
+        </div>
+      </motion.div>
 
       {/* Pricing section — guests only */}
       {!user && (
