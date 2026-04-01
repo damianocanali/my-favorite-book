@@ -259,7 +259,7 @@ export default function AvatarPage() {
         <p className="text-galaxy-text-muted font-body">Design your look, then bring it to life with AI!</p>
       </motion.div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-[280px_1fr] lg:grid-cols-[320px_1fr] gap-6 sm:gap-8">
         {/* Left: Preview + actions */}
         <motion.div
           className="flex flex-col items-center gap-4"
@@ -282,7 +282,7 @@ export default function AvatarPage() {
             disabled={generating}
             size="large"
             variant="primary"
-            className="w-full max-w-[260px]"
+            className="w-full max-w-[280px] w-full"
           >
             <span className="flex items-center justify-center gap-2">
               {generating ? (
@@ -303,7 +303,7 @@ export default function AvatarPage() {
           )}
 
           {error && (
-            <p className="text-red-400 text-sm font-body text-center max-w-[260px]">{error}</p>
+            <p className="text-red-400 text-sm font-body text-center max-w-[280px] w-full">{error}</p>
           )}
 
           {/* Coin balance */}
@@ -365,7 +365,7 @@ export default function AvatarPage() {
           {/* Badges */}
           <button
             onClick={() => setShowBadges(!showBadges)}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-galaxy-bg-light border border-galaxy-text-muted/20 hover:border-galaxy-primary/40 transition-colors w-full max-w-[260px]"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-galaxy-bg-light border border-galaxy-text-muted/20 hover:border-galaxy-primary/40 transition-colors w-full max-w-[280px] w-full"
           >
             <Award size={16} className="text-galaxy-primary" />
             <span className="text-galaxy-text font-body text-sm font-semibold">
@@ -376,12 +376,12 @@ export default function AvatarPage() {
           <AnimatePresence>
             {showBadges && (
               <motion.div
-                className="w-full bg-galaxy-bg-light rounded-2xl p-4 border border-galaxy-text-muted/10 max-w-[260px]"
+                className="w-full bg-galaxy-bg-light rounded-2xl p-4 border border-galaxy-text-muted/10 max-w-[280px] w-full"
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
               >
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {badges.map((b) => (
                     <div
                       key={b.id}

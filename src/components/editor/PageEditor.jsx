@@ -77,7 +77,7 @@ export default function PageEditor({ page }) {
         ) : (
           <div className="text-center">
             {book?.setting && (
-              <span className="text-6xl sm:text-8xl block mb-2">{book.setting.emoji}</span>
+              <span className="text-5xl sm:text-7xl block mb-2">{book.setting.emoji}</span>
             )}
             <div className="flex justify-center gap-4">
               {book?.characters?.map((char) => (

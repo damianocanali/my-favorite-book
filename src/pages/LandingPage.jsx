@@ -37,7 +37,7 @@ export default function LandingPage() {
   const role = useAuthStore(selectRole)
 
   return (
-    <div className="min-h-screen relative flex flex-col items-center px-4 overflow-hidden">
+    <div className="min-h-screen relative flex flex-col items-center px-4 pb-8 overflow-hidden">
       <CosmicBackground />
 
       {/* Top navbar */}
@@ -47,11 +47,11 @@ export default function LandingPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
       >
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           <BookOpen size={20} className="text-galaxy-primary" />
-          <span className="font-heading text-sm font-bold text-galaxy-text">My Favorite Book</span>
+          <span className="font-heading text-sm font-bold text-galaxy-text hidden sm:inline">My Favorite Book</span>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           {user ? (
             <>
               <span className="text-galaxy-text-muted font-body text-sm hidden sm:inline">Hi, {displayName}!</span>
@@ -250,7 +250,7 @@ export default function LandingPage() {
             Start free. Upgrade when you're ready.
           </p>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Free */}
             <div className="rounded-2xl p-5 border border-galaxy-text-muted/20 bg-galaxy-bg-light/60 backdrop-blur-sm">
               <div className="flex items-center gap-2 mb-3">

@@ -27,7 +27,7 @@ export default function AppShell({ children }) {
 
       {/* Navigation */}
       {!isLanding && (
-        <nav className="relative z-20 flex items-center justify-between px-6 py-4 border-b border-galaxy-primary/20 bg-galaxy-bg/50 backdrop-blur-md">
+        <nav className="relative z-20 flex items-center justify-between px-3 sm:px-6 py-3 sm:py-4 border-b border-galaxy-primary/20 bg-galaxy-bg/50 backdrop-blur-md gap-2">
           <Link
             to="/"
             className="flex items-center gap-2 text-galaxy-text hover:text-galaxy-primary transition-colors"
@@ -36,10 +36,10 @@ export default function AppShell({ children }) {
             <span className="font-heading font-bold text-lg hidden sm:inline">My Favorite Book</span>
           </Link>
 
-          <div className="flex items-center gap-2 sm:gap-4">
+          <div className="flex items-center gap-1 sm:gap-3 flex-shrink-0">
             <Link
               to="/"
-              className={`flex items-center gap-2 px-3 py-2 rounded-full transition-all ${
+              className={`flex items-center gap-2 px-2 sm:px-3 py-2 rounded-full transition-all ${
                 location.pathname === '/'
                   ? 'bg-galaxy-primary/20 text-galaxy-primary'
                   : 'text-galaxy-text-muted hover:text-galaxy-text'
@@ -52,7 +52,7 @@ export default function AppShell({ children }) {
             {user && (
               <Link
                 to="/bookshelf"
-                className={`flex items-center gap-2 px-3 py-2 rounded-full transition-all ${
+                className={`flex items-center gap-2 px-2 sm:px-3 py-2 rounded-full transition-all ${
                   location.pathname === '/bookshelf'
                     ? 'bg-galaxy-primary/20 text-galaxy-primary'
                     : 'text-galaxy-text-muted hover:text-galaxy-text'
@@ -67,7 +67,7 @@ export default function AppShell({ children }) {
 
             <Link
               to="/pricing"
-              className={`flex items-center gap-2 px-3 py-2 rounded-full transition-all ${
+              className={`flex items-center gap-2 px-2 sm:px-3 py-2 rounded-full transition-all ${
                 location.pathname === '/pricing'
                   ? 'bg-galaxy-primary/20 text-galaxy-primary'
                   : 'text-galaxy-text-muted hover:text-galaxy-text'
@@ -81,7 +81,7 @@ export default function AppShell({ children }) {
             {role === 'teacher' && (
               <Link
                 to="/teacher"
-                className={`flex items-center gap-2 px-3 py-2 rounded-full transition-all ${
+                className={`flex items-center gap-2 px-2 sm:px-3 py-2 rounded-full transition-all ${
                   location.pathname === '/teacher'
                     ? 'bg-galaxy-secondary/20 text-galaxy-secondary'
                     : 'text-galaxy-text-muted hover:text-galaxy-text'

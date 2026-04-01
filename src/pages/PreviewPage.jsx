@@ -68,7 +68,7 @@ export default function PreviewPage() {
           {!isNative && 'Back to Bookshelf'}
         </button>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap justify-end">
           {/* Submit to class */}
           <button
             onClick={() => setShowSubmitModal(true)}
@@ -137,7 +137,7 @@ export default function PreviewPage() {
       <AnimatePresence>
         {!user && !nudgeDismissed && !isNative && (
           <motion.div
-            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-full max-w-md px-4"
+            className="fixed bottom-[calc(1.5rem+var(--sab,0px))] left-1/2 -translate-x-1/2 z-50 w-full max-w-md px-4"
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 40 }}

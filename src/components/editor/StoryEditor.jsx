@@ -42,14 +42,14 @@ export default function StoryEditor({ onPreview }) {
         transition={{ duration: 0.5 }}
       >
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <BookOpen size={24} className="text-galaxy-primary" />
-            <div>
-              <h2 className={`font-heading font-bold text-galaxy-text ${adaptive.fontSize.heading}`}>
+        <div className="flex items-center justify-between mb-6 gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+            <BookOpen size={24} className="text-galaxy-primary shrink-0" />
+            <div className="min-w-0">
+              <h2 className={`font-heading font-bold text-galaxy-text truncate ${adaptive.fontSize.heading}`}>
                 {book.title}
               </h2>
-              <p className="text-galaxy-text-muted text-sm font-body">
+              <p className="text-galaxy-text-muted text-xs sm:text-sm font-body">
                 by {book.authorName} — Page {currentPageIndex + 1} of {book.pages.length}
               </p>
             </div>

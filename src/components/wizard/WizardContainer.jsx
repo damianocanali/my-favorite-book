@@ -70,7 +70,7 @@ export default function WizardContainer({ onFinish }) {
     <div className="max-w-3xl mx-auto px-4 py-6">
       <ProgressBar currentStep={currentStep} />
 
-      <div className="relative min-h-[500px] mt-6 overflow-hidden">
+      <div className="relative min-h-[400px] sm:min-h-[500px] mt-6 overflow-hidden">
         <AnimatePresence mode="wait" custom={directionRef.current}>
           <motion.div
             key={currentStep}

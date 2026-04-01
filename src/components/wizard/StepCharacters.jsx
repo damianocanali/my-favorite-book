@@ -157,7 +157,7 @@ export default function StepCharacters({ onNext, onPrev }) {
             </button>
             {showEmojiPicker && (
               <motion.div
-                className="w-full bg-galaxy-bg border border-galaxy-secondary/30 rounded-xl p-3 grid grid-cols-8 gap-1 max-h-40 overflow-y-auto"
+                className="w-full bg-galaxy-bg border border-galaxy-secondary/30 rounded-xl p-3 grid grid-cols-6 sm:grid-cols-8 gap-1.5 max-h-40 overflow-y-auto"
                 initial={{ opacity: 0, y: -8 }}
                 animate={{ opacity: 1, y: 0 }}
               >

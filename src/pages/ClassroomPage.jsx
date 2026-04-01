@@ -39,8 +39,8 @@ function BookCard({ submission, onClick }) {
 
 function BookModal({ submission, onClose }) {
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-galaxy-bg overflow-y-auto">
-      <div className="flex items-center justify-between p-4 max-w-3xl mx-auto w-full">
+    <div className="fixed inset-0 z-50 flex flex-col bg-galaxy-bg overflow-y-auto" style={{ paddingTop: 'var(--sat, 0px)', paddingBottom: 'var(--sab, 0px)' }}>
+      <div className="flex items-center justify-between p-4 max-w-3xl mx-auto w-full gap-3">
         <div>
           <h2 className="font-heading text-xl font-bold text-galaxy-text">{submission.book?.title}</h2>
           <p className="text-galaxy-text-muted text-sm font-body">by {submission.book?.authorName}</p>
