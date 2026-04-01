@@ -113,7 +113,7 @@ export default function LandingPage() {
             Create a Book 📖
           </SparkleButton>
 
-          {bookCount > 0 && (
+          {user && bookCount > 0 && (
             <SparkleButton
               onClick={() => navigate('/bookshelf')}
               size="large"
