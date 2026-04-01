@@ -1,6 +1,6 @@
 import { motion } from 'motion/react'
 import { useNavigate, Link } from 'react-router-dom'
-import { BookOpen, Library, GraduationCap, LogIn, LogOut, Check, Sparkles, Mic, Brain, Palette, Users, Volume2, Wand2 } from 'lucide-react'
+import { BookOpen, Library, GraduationCap, LogOut, Check, Sparkles, Mic, Brain, Palette, Users, Volume2, Wand2 } from 'lucide-react'
 import { useBookshelfStore } from '../stores/useBookshelfStore'
 import { useAuthStore, selectDisplayName, selectRole } from '../stores/useAuthStore'
 import { PRICES } from '../lib/plans'
@@ -37,8 +37,63 @@ export default function LandingPage() {
   const role = useAuthStore(selectRole)
 
   return (
-    <div className="min-h-screen relative flex flex-col items-center justify-center px-4 overflow-hidden">
+    <div className="min-h-screen relative flex flex-col items-center px-4 overflow-hidden">
       <CosmicBackground />
+
+      {/* Top navbar */}
+      <motion.nav
+        className="relative z-20 w-full max-w-5xl flex items-center justify-between py-4 px-2"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+      >
+        <div className="flex items-center gap-2">
+          <BookOpen size={20} className="text-galaxy-primary" />
+          <span className="font-heading text-sm font-bold text-galaxy-text">My Favorite Book</span>
+        </div>
+        <div className="flex items-center gap-3">
+          {user ? (
+            <>
+              <span className="text-galaxy-text-muted font-body text-sm hidden sm:inline">Hi, {displayName}!</span>
+              {role === 'teacher' && (
+                <Link
+                  to="/teacher"
+                  className="flex items-center gap-1.5 text-galaxy-secondary hover:text-galaxy-secondary/80 transition-colors font-body text-sm"
+                >
+                  <GraduationCap size={15} /> Classroom
+                </Link>
+              )}
+              <button
+                onClick={() => signOut()}
+                className="flex items-center gap-1.5 text-galaxy-text-muted hover:text-galaxy-text transition-colors font-body text-sm"
+              >
+                <LogOut size={15} /> Sign out
+              </button>
+            </>
+          ) : (
+            <>
+              <Link
+                to="/login"
+                className="text-galaxy-text-muted hover:text-galaxy-text transition-colors font-body text-sm"
+              >
+                Sign In
+              </Link>
+              <Link
+                to="/signup"
+                className="px-4 py-1.5 rounded-full bg-galaxy-primary text-white hover:bg-galaxy-primary/80 transition-colors font-body text-sm font-semibold"
+              >
+                Sign Up
+              </Link>
+              <Link
+                to="/signup?role=teacher"
+                className="flex items-center gap-1.5 text-galaxy-text-muted hover:text-galaxy-secondary transition-colors font-body text-sm hidden sm:flex"
+              >
+                <GraduationCap size={15} /> Teachers
+              </Link>
+            </>
+          )}
+        </div>
+      </motion.nav>
 
       {/* Floating cosmic elements */}
       <FloatingElement emoji="🚀" className="top-[10%] left-[10%]" delay={0} />
@@ -49,7 +104,7 @@ export default function LandingPage() {
       <FloatingElement emoji="🌟" className="top-[35%] right-[5%]" delay={0.8} />
 
       {/* Main content */}
-      <div className="relative z-10 text-center max-w-2xl">
+      <div className="relative z-10 text-center max-w-2xl mt-16 sm:mt-24">
         {/* Logo/icon */}
         <motion.div
           className="w-24 h-24 mx-auto mb-8 rounded-full bg-galaxy-primary/20 flex items-center justify-center border border-galaxy-primary/30"
@@ -272,54 +327,8 @@ export default function LandingPage() {
         </motion.div>
       )}
 
-      {/* Auth footer */}
-      <motion.div
-        className="relative z-10 mt-10 flex items-center gap-4"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 2 }}
-      >
-        {user ? (
-          <>
-            <span className="text-galaxy-text-muted font-body text-sm">Hi, {displayName}!</span>
-            {role === 'teacher' && (
-              <Link
-                to="/teacher"
-                className="flex items-center gap-1.5 text-galaxy-secondary hover:text-galaxy-secondary/80 transition-colors font-body text-sm"
-              >
-                <GraduationCap size={15} /> Classroom
-              </Link>
-            )}
-            <button
-              onClick={() => signOut()}
-              className="flex items-center gap-1.5 text-galaxy-text-muted hover:text-galaxy-text transition-colors font-body text-sm"
-            >
-              <LogOut size={15} /> Sign out
-            </button>
-          </>
-        ) : (
-          <>
-            <Link
-              to="/login"
-              className="flex items-center gap-1.5 text-galaxy-text-muted hover:text-galaxy-text transition-colors font-body text-sm"
-            >
-              <LogIn size={15} /> Sign In
-            </Link>
-            <Link
-              to="/signup"
-              className="flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-galaxy-primary text-white hover:bg-galaxy-primary/80 transition-colors font-body text-sm font-semibold"
-            >
-              Sign Up
-            </Link>
-            <Link
-              to="/signup?role=teacher"
-              className="flex items-center gap-1.5 text-galaxy-text-muted hover:text-galaxy-secondary transition-colors font-body text-sm"
-            >
-              <GraduationCap size={15} /> Teachers
-            </Link>
-          </>
-        )}
-      </motion.div>
+      {/* Bottom spacer */}
+      <div className="h-16" />
 
       {/* Bottom wave */}
       <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-galaxy-bg/80 to-transparent z-10 pointer-events-none" />
