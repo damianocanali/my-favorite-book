@@ -113,6 +113,9 @@ export default function CoverArtGenerator() {
           )}
         </div>
       </div>
+      <p className="text-galaxy-text-muted/50 text-[10px] font-body mt-1.5 px-1">
+        AI images may not be perfect — you can always redraw or remove them.
+      </p>
     </div>
   )
 }

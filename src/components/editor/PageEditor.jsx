@@ -64,11 +64,16 @@ export default function PageEditor({ page }) {
         }}
       >
         {page.illustrationData ? (
-          <img
-            src={page.illustrationData}
-            alt={`Illustration for page ${page.pageNumber}`}
-            className="w-full h-full object-cover"
-          />
+          <>
+            <img
+              src={page.illustrationData}
+              alt={`Illustration for page ${page.pageNumber}`}
+              className="w-full h-full object-cover"
+            />
+            <span className="absolute bottom-1 left-2 text-[9px] font-body text-white/40 drop-shadow-sm pointer-events-none">
+              AI-generated — may not be perfect
+            </span>
+          </>
         ) : (
           <div className="text-center">
             {book?.setting && (
