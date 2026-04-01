@@ -1,8 +1,9 @@
 import { motion } from 'motion/react'
 import { useNavigate, Link } from 'react-router-dom'
-import { BookOpen, Library, GraduationCap, LogIn, LogOut } from 'lucide-react'
+import { BookOpen, Library, GraduationCap, LogIn, LogOut, Check, Sparkles } from 'lucide-react'
 import { useBookshelfStore } from '../stores/useBookshelfStore'
 import { useAuthStore, selectDisplayName, selectRole } from '../stores/useAuthStore'
+import { PRICES } from '../lib/plans'
 import SparkleButton from '../components/ui/SparkleButton'
 import CosmicBackground from '../components/layout/CosmicBackground'
 
@@ -126,6 +127,98 @@ export default function LandingPage() {
           )}
         </motion.div>
       </div>
+
+      {/* Pricing section — guests only */}
+      {!user && (
+        <motion.div
+          className="relative z-10 w-full max-w-4xl mt-16 px-2"
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1.8, duration: 0.6 }}
+        >
+          <h2 className="font-heading text-2xl sm:text-3xl font-bold text-galaxy-text text-center mb-2">
+            Plans & Pricing
+          </h2>
+          <p className="text-galaxy-text-muted font-body text-sm text-center mb-8">
+            Start free. Upgrade when you're ready.
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {/* Free */}
+            <div className="rounded-2xl p-5 border border-galaxy-text-muted/20 bg-galaxy-bg-light/60 backdrop-blur-sm">
+              <div className="flex items-center gap-2 mb-3">
+                <BookOpen size={20} className="text-galaxy-text-muted" />
+                <h3 className="font-heading text-lg font-bold text-galaxy-text">Free</h3>
+              </div>
+              <p className="font-heading text-2xl font-bold text-galaxy-text mb-3">$0</p>
+              <ul className="space-y-1.5">
+                {['2 books', '3 Story Buddy chats/day', '2 illustrations per book', 'Read aloud & voice input'].map((f) => (
+                  <li key={f} className="flex items-start gap-1.5 text-galaxy-text-muted font-body text-xs">
+                    <Check size={13} className="mt-0.5 shrink-0 text-galaxy-secondary" />
+                    {f}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Family */}
+            <div className="relative rounded-2xl p-5 border border-galaxy-primary/50 bg-galaxy-primary/10 backdrop-blur-sm shadow-glow">
+              <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-galaxy-primary text-white text-[10px] font-body font-bold uppercase tracking-wider">
+                Most Popular
+              </div>
+              <div className="flex items-center gap-2 mb-3">
+                <Sparkles size={20} className="text-galaxy-primary" />
+                <h3 className="font-heading text-lg font-bold text-galaxy-text">Family</h3>
+              </div>
+              <p className="font-heading text-2xl font-bold text-galaxy-text mb-0.5">
+                {PRICES.family.monthly.amount}<span className="text-sm font-body text-galaxy-text-muted">/mo</span>
+              </p>
+              <p className="text-galaxy-secondary font-body text-xs mb-3">
+                or {PRICES.family.annual.amount}/yr ({PRICES.family.annual.monthlyEquivalent})
+              </p>
+              <ul className="space-y-1.5">
+                {['Unlimited books', 'Unlimited Story Buddy', 'Unlimited illustrations', 'PDF & print export'].map((f) => (
+                  <li key={f} className="flex items-start gap-1.5 text-galaxy-text font-body text-xs">
+                    <Check size={13} className="mt-0.5 shrink-0 text-galaxy-primary" />
+                    {f}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Teacher */}
+            <div className="rounded-2xl p-5 border border-galaxy-text-muted/20 bg-galaxy-bg-light/60 backdrop-blur-sm">
+              <div className="flex items-center gap-2 mb-3">
+                <GraduationCap size={20} className="text-galaxy-secondary" />
+                <h3 className="font-heading text-lg font-bold text-galaxy-text">Teacher</h3>
+              </div>
+              <p className="font-heading text-2xl font-bold text-galaxy-text mb-0.5">
+                {PRICES.teacher.monthly.amount}<span className="text-sm font-body text-galaxy-text-muted">/mo</span>
+              </p>
+              <p className="text-galaxy-secondary font-body text-xs mb-3">
+                or {PRICES.teacher.annual.amount}/yr · 14-day free trial
+              </p>
+              <ul className="space-y-1.5">
+                {['Everything in Family', 'Create & manage classrooms', 'Student submissions', 'Classroom dashboard'].map((f) => (
+                  <li key={f} className="flex items-start gap-1.5 text-galaxy-text-muted font-body text-xs">
+                    <Check size={13} className="mt-0.5 shrink-0 text-galaxy-secondary" />
+                    {f}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          <div className="text-center mt-5">
+            <Link
+              to="/pricing"
+              className="text-galaxy-primary font-body text-sm font-semibold hover:underline"
+            >
+              View full plan details →
+            </Link>
+          </div>
+        </motion.div>
+      )}
 
       {/* Auth footer */}
       <motion.div
