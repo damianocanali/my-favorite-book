@@ -327,8 +327,20 @@ export default function LandingPage() {
         </motion.div>
       )}
 
-      {/* Bottom spacer */}
-      <div className="h-16" />
+      {/* Footer */}
+      <div className="relative z-10 w-full max-w-4xl mt-12 mb-8 px-2 text-center">
+        <div className="flex items-center justify-center gap-4 text-galaxy-text-muted/50 font-body text-xs">
+          <Link to="/privacy" className="hover:text-galaxy-text-muted transition-colors">
+            Privacy Policy
+          </Link>
+          <span>·</span>
+          <Link to="/privacy" className="hover:text-galaxy-text-muted transition-colors">
+            Terms of Service
+          </Link>
+          <span>·</span>
+          <span>© {new Date().getFullYear()} My Favorite Book</span>
+        </div>
+      </div>
 
       {/* Bottom wave */}
       <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-galaxy-bg/80 to-transparent z-10 pointer-events-none" />

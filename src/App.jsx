@@ -12,6 +12,7 @@ import SignupPage from './pages/SignupPage'
 import PricingPage from './pages/PricingPage'
 import SuccessPage from './pages/SuccessPage'
 import AvatarPage from './pages/AvatarPage'
+import PrivacyPage from './pages/PrivacyPage'
 import ProtectedRoute from './components/auth/ProtectedRoute'
 import BadgePopup from './components/ui/BadgePopup'
 import { initCapacitor } from './capacitor'
@@ -40,6 +41,7 @@ export default function App() {
         <Route path="/pricing" element={<PricingPage />} />
         <Route path="/success" element={<SuccessPage />} />
         <Route path="/avatar" element={<AvatarPage />} />
+        <Route path="/privacy" element={<PrivacyPage />} />
         <Route
           path="/teacher"
           element={
