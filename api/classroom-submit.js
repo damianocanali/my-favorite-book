@@ -1,6 +1,6 @@
 export const config = { runtime: 'edge' }
 
-import { checkRateLimit, getClientIp } from './_rateLimit.js'
+import { checkRateLimit, getClientIp, handleCors, withCors } from './_rateLimit.js'
 
 function supabaseHeaders() {
   const key = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY
@@ -12,9 +12,12 @@ function supabaseHeaders() {
 }
 
 export default async function handler(req) {
+  const corsResponse = handleCors(req)
+  if (corsResponse) return corsResponse
+
   if (req.method !== 'POST') {
     return new Response(JSON.stringify({ error: 'Method not allowed' }), {
-      status: 405, headers: { 'Content-Type': 'application/json' },
+      status: 405, headers: withCors({ 'Content-Type': 'application/json' }),
     })
   }
 
@@ -23,7 +26,7 @@ export default async function handler(req) {
 
   if (!supabaseUrl || !supabaseKey) {
     return new Response(JSON.stringify({ error: 'Classroom feature not configured' }), {
-      status: 503, headers: { 'Content-Type': 'application/json' },
+      status: 503, headers: withCors({ 'Content-Type': 'application/json' }),
     })
   }
 
@@ -31,14 +34,14 @@ export default async function handler(req) {
   const { allowed } = checkRateLimit(`classroom-submit:${ip}`, 20)
   if (!allowed) {
     return new Response(JSON.stringify({ error: 'Too many requests. Try again in an hour.' }), {
-      status: 429, headers: { 'Content-Type': 'application/json' },
+      status: 429, headers: withCors({ 'Content-Type': 'application/json' }),
     })
   }
 
   const { code, book } = await req.json()
   if (!code || !book) {
     return new Response(JSON.stringify({ error: 'code and book are required' }), {
-      status: 400, headers: { 'Content-Type': 'application/json' },
+      status: 400, headers: withCors({ 'Content-Type': 'application/json' }),
     })
   }
 
@@ -50,7 +53,7 @@ export default async function handler(req) {
   const classrooms = await classRes.json()
   if (!classrooms?.length) {
     return new Response(JSON.stringify({ error: 'Class code not found. Check with your teacher.' }), {
-      status: 404, headers: { 'Content-Type': 'application/json' },
+      status: 404, headers: withCors({ 'Content-Type': 'application/json' }),
     })
   }
 
@@ -71,12 +74,12 @@ export default async function handler(req) {
   if (!res.ok) {
     const err = await res.json().catch(() => ({}))
     return new Response(JSON.stringify({ error: err.message || 'Failed to submit book' }), {
-      status: 500, headers: { 'Content-Type': 'application/json' },
+      status: 500, headers: withCors({ 'Content-Type': 'application/json' }),
     })
   }
 
   const [submission] = await res.json()
   return new Response(JSON.stringify({ id: submission.id }), {
-    status: 201, headers: { 'Content-Type': 'application/json' },
+    status: 201, headers: withCors({ 'Content-Type': 'application/json' }),
   })
 }

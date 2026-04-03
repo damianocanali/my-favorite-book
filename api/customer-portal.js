@@ -1,5 +1,7 @@
 export const config = { runtime: 'edge' }
 
+import { handleCors, withCors } from './_rateLimit.js'
+
 // Opens Stripe's hosted billing portal so users can manage or cancel their subscription.
 
 async function stripePost(path, params) {
@@ -22,15 +24,18 @@ async function stripeGet(path) {
 }
 
 export default async function handler(req) {
+  const corsResponse = handleCors(req)
+  if (corsResponse) return corsResponse
+
   if (req.method !== 'POST') {
     return new Response(JSON.stringify({ error: 'Method not allowed' }), {
-      status: 405, headers: { 'Content-Type': 'application/json' },
+      status: 405, headers: withCors({ 'Content-Type': 'application/json' }),
     })
   }
 
   if (!process.env.STRIPE_SECRET_KEY) {
     return new Response(JSON.stringify({ error: 'Payments not configured' }), {
-      status: 503, headers: { 'Content-Type': 'application/json' },
+      status: 503, headers: withCors({ 'Content-Type': 'application/json' }),
     })
   }
 
@@ -49,7 +54,7 @@ export default async function handler(req) {
 
   if (!customerId) {
     return new Response(JSON.stringify({ error: 'No billing account found' }), {
-      status: 404, headers: { 'Content-Type': 'application/json' },
+      status: 404, headers: withCors({ 'Content-Type': 'application/json' }),
     })
   }
 
@@ -60,11 +65,11 @@ export default async function handler(req) {
 
   if (portal.error) {
     return new Response(JSON.stringify({ error: portal.error.message }), {
-      status: 400, headers: { 'Content-Type': 'application/json' },
+      status: 400, headers: withCors({ 'Content-Type': 'application/json' }),
     })
   }
 
   return new Response(JSON.stringify({ url: portal.url }), {
-    status: 200, headers: { 'Content-Type': 'application/json' },
+    status: 200, headers: withCors({ 'Content-Type': 'application/json' }),
   })
 }

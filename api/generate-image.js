@@ -1,4 +1,4 @@
-import { checkRateLimit, getClientIp } from './_rateLimit.js'
+import { checkRateLimit, getClientIp, handleCors, withCors } from './_rateLimit.js'
 
 export const config = { runtime: 'edge' }
 
@@ -6,10 +6,13 @@ const TOGETHER_API_URL = 'https://api.together.xyz/v1/images/generations'
 const IMAGE_GEN_LIMIT = 20 // requests per hour per IP
 
 export default async function handler(req) {
+  const corsResponse = handleCors(req)
+  if (corsResponse) return corsResponse
+
   if (req.method !== 'POST') {
     return new Response(JSON.stringify({ error: 'Method not allowed' }), {
       status: 405,
-      headers: { 'Content-Type': 'application/json' },
+      headers: withCors({ 'Content-Type': 'application/json' }),
     })
   }
 
@@ -18,7 +21,7 @@ export default async function handler(req) {
   if (!allowed) {
     return new Response(
       JSON.stringify({ error: 'Too many requests. Please try again in an hour.' }),
-      { status: 429, headers: { 'Content-Type': 'application/json' } }
+      { status: 429, headers: withCors({ 'Content-Type': 'application/json' }) }
     )
   }
 
@@ -26,7 +29,7 @@ export default async function handler(req) {
   if (!apiKey) {
     return new Response(JSON.stringify({ error: 'API key not configured' }), {
       status: 500,
-      headers: { 'Content-Type': 'application/json' },
+      headers: withCors({ 'Content-Type': 'application/json' }),
     })
   }
 
@@ -36,7 +39,7 @@ export default async function handler(req) {
     if (!prompt) {
       return new Response(JSON.stringify({ error: 'Missing prompt' }), {
         status: 400,
-        headers: { 'Content-Type': 'application/json' },
+        headers: withCors({ 'Content-Type': 'application/json' }),
       })
     }
 
@@ -61,7 +64,7 @@ export default async function handler(req) {
       const error = await response.json().catch(() => ({}))
       return new Response(
         JSON.stringify({ error: error?.error?.message || `Together API error: ${response.status}` }),
-        { status: response.status, headers: { 'Content-Type': 'application/json' } }
+        { status: response.status, headers: withCors({ 'Content-Type': 'application/json' }) }
       )
     }
 
@@ -70,18 +73,18 @@ export default async function handler(req) {
     if (!b64) {
       return new Response(JSON.stringify({ error: 'No image data returned' }), {
         status: 500,
-        headers: { 'Content-Type': 'application/json' },
+        headers: withCors({ 'Content-Type': 'application/json' }),
       })
     }
 
     return new Response(JSON.stringify({ image: `data:image/png;base64,${b64}` }), {
       status: 200,
-      headers: { 'Content-Type': 'application/json' },
+      headers: withCors({ 'Content-Type': 'application/json' }),
     })
   } catch (err) {
     return new Response(JSON.stringify({ error: err.message }), {
       status: 500,
-      headers: { 'Content-Type': 'application/json' },
+      headers: withCors({ 'Content-Type': 'application/json' }),
     })
   }
 }

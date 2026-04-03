@@ -35,3 +35,22 @@ export function getClientIp(req) {
   const forwarded = req.headers.get?.('x-forwarded-for') ?? req.headers['x-forwarded-for']
   return (forwarded ? forwarded.split(',')[0] : '').trim() || 'unknown'
 }
+
+const CORS_HEADERS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type',
+}
+
+/** Handle CORS preflight — returns a Response if OPTIONS, otherwise null. */
+export function handleCors(req) {
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { status: 204, headers: CORS_HEADERS })
+  }
+  return null
+}
+
+/** Merge CORS headers into a plain headers object. */
+export function withCors(headers = {}) {
+  return { ...CORS_HEADERS, ...headers }
+}

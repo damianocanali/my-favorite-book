@@ -1,6 +1,6 @@
 export const config = { runtime: 'edge' }
 
-import { checkRateLimit, getClientIp } from './_rateLimit.js'
+import { checkRateLimit, getClientIp, handleCors, withCors } from './_rateLimit.js'
 
 // Characters that are unambiguous to read aloud and type
 const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
@@ -21,12 +21,15 @@ function supabaseHeaders() {
 }
 
 export default async function handler(req) {
+  const corsResponse = handleCors(req)
+  if (corsResponse) return corsResponse
+
   const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL
   const supabaseKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY
 
   if (!supabaseUrl || !supabaseKey) {
     return new Response(JSON.stringify({ error: 'Classroom feature not configured' }), {
-      status: 503, headers: { 'Content-Type': 'application/json' },
+      status: 503, headers: withCors({ 'Content-Type': 'application/json' }),
     })
   }
 
@@ -36,14 +39,14 @@ export default async function handler(req) {
     const { allowed } = checkRateLimit(`classroom-create:${ip}`, 10)
     if (!allowed) {
       return new Response(JSON.stringify({ error: 'Too many requests. Try again in an hour.' }), {
-        status: 429, headers: { 'Content-Type': 'application/json' },
+        status: 429, headers: withCors({ 'Content-Type': 'application/json' }),
       })
     }
 
     const { name } = await req.json()
     if (!name?.trim()) {
       return new Response(JSON.stringify({ error: 'Class name is required' }), {
-        status: 400, headers: { 'Content-Type': 'application/json' },
+        status: 400, headers: withCors({ 'Content-Type': 'application/json' }),
       })
     }
 
@@ -57,13 +60,13 @@ export default async function handler(req) {
     if (!res.ok) {
       const err = await res.json().catch(() => ({}))
       return new Response(JSON.stringify({ error: err.message || 'Failed to create classroom' }), {
-        status: 500, headers: { 'Content-Type': 'application/json' },
+        status: 500, headers: withCors({ 'Content-Type': 'application/json' }),
       })
     }
 
     const [classroom] = await res.json()
     return new Response(JSON.stringify({ code: classroom.code, name: classroom.name }), {
-      status: 201, headers: { 'Content-Type': 'application/json' },
+      status: 201, headers: withCors({ 'Content-Type': 'application/json' }),
     })
   }
 
@@ -74,7 +77,7 @@ export default async function handler(req) {
 
     if (!code) {
       return new Response(JSON.stringify({ error: 'code is required' }), {
-        status: 400, headers: { 'Content-Type': 'application/json' },
+        status: 400, headers: withCors({ 'Content-Type': 'application/json' }),
       })
     }
 
@@ -86,7 +89,7 @@ export default async function handler(req) {
     const classrooms = await classRes.json()
     if (!classrooms?.length) {
       return new Response(JSON.stringify({ error: 'Classroom not found' }), {
-        status: 404, headers: { 'Content-Type': 'application/json' },
+        status: 404, headers: withCors({ 'Content-Type': 'application/json' }),
       })
     }
 
@@ -98,11 +101,11 @@ export default async function handler(req) {
     const submissions = await subRes.json()
 
     return new Response(JSON.stringify({ ...classrooms[0], submissions: submissions ?? [] }), {
-      status: 200, headers: { 'Content-Type': 'application/json' },
+      status: 200, headers: withCors({ 'Content-Type': 'application/json' }),
     })
   }
 
   return new Response(JSON.stringify({ error: 'Method not allowed' }), {
-    status: 405, headers: { 'Content-Type': 'application/json' },
+    status: 405, headers: withCors({ 'Content-Type': 'application/json' }),
   })
 }

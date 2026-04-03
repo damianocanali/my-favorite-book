@@ -1,5 +1,7 @@
 export const config = { runtime: 'edge' }
 
+import { handleCors, withCors } from './_rateLimit.js'
+
 // Creates a Stripe Checkout session for a one-time coin pack purchase.
 // Coin packs: 50 coins ($0.99), 200 coins ($2.99), 500 coins ($4.99)
 
@@ -22,15 +24,18 @@ async function stripePost(path, params) {
 }
 
 export default async function handler(req) {
+  const corsResponse = handleCors(req)
+  if (corsResponse) return corsResponse
+
   if (req.method !== 'POST') {
     return new Response(JSON.stringify({ error: 'Method not allowed' }), {
-      status: 405, headers: { 'Content-Type': 'application/json' },
+      status: 405, headers: withCors({ 'Content-Type': 'application/json' }),
     })
   }
 
   if (!process.env.STRIPE_SECRET_KEY) {
     return new Response(JSON.stringify({ error: 'Payments not configured' }), {
-      status: 503, headers: { 'Content-Type': 'application/json' },
+      status: 503, headers: withCors({ 'Content-Type': 'application/json' }),
     })
   }
 
@@ -39,14 +44,14 @@ export default async function handler(req) {
 
   if (!packInfo || !userId || !userEmail) {
     return new Response(JSON.stringify({ error: 'pack, userId, and userEmail are required' }), {
-      status: 400, headers: { 'Content-Type': 'application/json' },
+      status: 400, headers: withCors({ 'Content-Type': 'application/json' }),
     })
   }
 
   const priceId = process.env[packInfo.priceEnv]
   if (!priceId) {
     return new Response(JSON.stringify({ error: 'Coin packs not configured yet' }), {
-      status: 503, headers: { 'Content-Type': 'application/json' },
+      status: 503, headers: withCors({ 'Content-Type': 'application/json' }),
     })
   }
 
@@ -68,11 +73,11 @@ export default async function handler(req) {
 
   if (session.error) {
     return new Response(JSON.stringify({ error: session.error.message }), {
-      status: 400, headers: { 'Content-Type': 'application/json' },
+      status: 400, headers: withCors({ 'Content-Type': 'application/json' }),
     })
   }
 
   return new Response(JSON.stringify({ url: session.url }), {
-    status: 200, headers: { 'Content-Type': 'application/json' },
+    status: 200, headers: withCors({ 'Content-Type': 'application/json' }),
   })
 }
