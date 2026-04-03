@@ -3,6 +3,7 @@ import { motion } from 'motion/react'
 import { Send, CheckCircle } from 'lucide-react'
 import SparkleButton from '../ui/SparkleButton'
 import { useRewardsStore } from '../../stores/useRewardsStore'
+import { apiFetch } from '../../lib/api'
 
 export default function SubmitToClassModal({ book, onClose }) {
   const earnBadge = useRewardsStore((s) => s.earnBadge)
@@ -17,7 +18,7 @@ export default function SubmitToClassModal({ book, onClose }) {
     setLoading(true)
     setError('')
     try {
-      const res = await fetch('/api/classroom-submit', {
+      const res = await apiFetch('/api/classroom-submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code: trimmed, book }),

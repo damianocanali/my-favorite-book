@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'motion/react'
 import { GraduationCap, Plus, ExternalLink, Copy, Check, LogOut } from 'lucide-react'
 import SparkleButton from '../components/ui/SparkleButton'
+import { apiFetch } from '../lib/api'
 import { useAuthStore } from '../stores/useAuthStore'
 
 const STORAGE_KEY = 'my-favorite-book-teacher-classes'
@@ -36,7 +37,7 @@ export default function TeacherPage() {
     setLoading(true)
     setError('')
     try {
-      const res = await fetch('/api/classroom', {
+      const res = await apiFetch('/api/classroom', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: className.trim() }),

@@ -1,0 +1,122 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <!-- Galaxy gradient background -->
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1a0533"/>
+      <stop offset="50%" stop-color="#2d1b69"/>
+      <stop offset="100%" stop-color="#1a1145"/>
+    </linearGradient>
+    <!-- Book page gradient -->
+    <linearGradient id="pageLeft" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#f8f4ff"/>
+      <stop offset="100%" stop-color="#ede4ff"/>
+    </linearGradient>
+    <linearGradient id="pageRight" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#ede4ff"/>
+      <stop offset="100%" stop-color="#f8f4ff"/>
+    </linearGradient>
+    <!-- Star glow -->
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FFD700" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#FFD700" stop-opacity="0"/>
+    </radialGradient>
+    <!-- Sparkle gradient -->
+    <linearGradient id="sparkle" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FFE066"/>
+      <stop offset="100%" stop-color="#FFD700"/>
+    </linearGradient>
+    <!-- Book cover gradient -->
+    <linearGradient id="coverLeft" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#7C4DFF"/>
+      <stop offset="100%" stop-color="#6200EA"/>
+    </linearGradient>
+    <linearGradient id="coverRight" x1="1" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#B388FF"/>
+      <stop offset="100%" stop-color="#7C4DFF"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background rounded square -->
+  <rect width="1024" height="1024" rx="224" fill="url(#bg)"/>
+
+  <!-- Subtle stars in background -->
+  <circle cx="180" cy="200" r="3" fill="white" opacity="0.5"/>
+  <circle cx="850" cy="180" r="2.5" fill="white" opacity="0.4"/>
+  <circle cx="150" cy="680" r="2" fill="white" opacity="0.3"/>
+  <circle cx="880" cy="720" r="3" fill="white" opacity="0.4"/>
+  <circle cx="300" cy="140" r="2" fill="white" opacity="0.35"/>
+  <circle cx="750" cy="850" r="2.5" fill="white" opacity="0.3"/>
+  <circle cx="200" cy="450" r="2" fill="white" opacity="0.25"/>
+  <circle cx="830" cy="450" r="2" fill="white" opacity="0.3"/>
+
+  <!-- Glow behind the star -->
+  <circle cx="512" cy="340" r="180" fill="url(#glow)"/>
+
+  <!-- Open book — left cover (back) -->
+  <path d="M200 480 Q200 440 240 430 L480 390 Q510 385 512 390 L512 750 Q510 745 480 748 L240 770 Q200 775 200 740 Z"
+        fill="url(#coverLeft)" stroke="#5600C7" stroke-width="4"/>
+
+  <!-- Open book — right cover (back) -->
+  <path d="M824 480 Q824 440 784 430 L544 390 Q514 385 512 390 L512 750 Q514 745 544 748 L784 770 Q824 775 824 740 Z"
+        fill="url(#coverRight)" stroke="#6A1FD6" stroke-width="4"/>
+
+  <!-- Left page -->
+  <path d="M220 470 Q220 440 255 432 L485 395 Q508 391 512 396 L512 735 Q508 730 485 733 L255 762 Q220 767 220 740 Z"
+        fill="url(#pageLeft)"/>
+
+  <!-- Right page -->
+  <path d="M804 470 Q804 440 769 432 L539 395 Q516 391 512 396 L512 735 Q516 730 539 733 L769 762 Q804 767 804 740 Z"
+        fill="url(#pageRight)"/>
+
+  <!-- Book spine line -->
+  <line x1="512" y1="390" x2="512" y2="750" stroke="#d4c4f0" stroke-width="3" opacity="0.6"/>
+
+  <!-- Fake text lines on left page -->
+  <rect x="270" y="460" width="180" height="8" rx="4" fill="#c4b5e0" opacity="0.4"/>
+  <rect x="270" y="485" width="150" height="8" rx="4" fill="#c4b5e0" opacity="0.3"/>
+  <rect x="270" y="510" width="170" height="8" rx="4" fill="#c4b5e0" opacity="0.35"/>
+  <rect x="270" y="560" width="160" height="8" rx="4" fill="#c4b5e0" opacity="0.3"/>
+  <rect x="270" y="585" width="140" height="8" rx="4" fill="#c4b5e0" opacity="0.25"/>
+
+  <!-- Cute little drawing on right page (a simple star doodle) -->
+  <polygon points="620,490 630,520 660,520 636,538 645,568 620,550 595,568 604,538 580,520 610,520"
+           fill="#FFE082" stroke="#FFB300" stroke-width="2" opacity="0.6"/>
+  <rect x="570" y="600" width="130" height="8" rx="4" fill="#c4b5e0" opacity="0.3"/>
+  <rect x="570" y="625" width="110" height="8" rx="4" fill="#c4b5e0" opacity="0.25"/>
+
+  <!-- Main sparkle/star rising from book -->
+  <g transform="translate(512, 310)">
+    <!-- 4-pointed star -->
+    <polygon points="0,-100 18,-30 90,-18 30,18 18,90 0,30 -18,90 -30,18 -90,-18 -18,-30"
+             fill="url(#sparkle)" stroke="#FFC107" stroke-width="2"/>
+    <!-- Inner highlight -->
+    <circle cx="0" cy="0" r="22" fill="white" opacity="0.6"/>
+  </g>
+
+  <!-- Small sparkles around the big star -->
+  <!-- Top-left sparkle -->
+  <g transform="translate(380, 250) scale(0.35)">
+    <polygon points="0,-60 10,-18 55,-10 18,10 10,55 0,18 -10,55 -18,10 -55,-10 -10,-18"
+             fill="#FFE082"/>
+  </g>
+  <!-- Top-right sparkle -->
+  <g transform="translate(660, 220) scale(0.28)">
+    <polygon points="0,-60 10,-18 55,-10 18,10 10,55 0,18 -10,55 -18,10 -55,-10 -10,-18"
+             fill="#FFE082"/>
+  </g>
+  <!-- Left sparkle -->
+  <g transform="translate(320, 370) scale(0.22)">
+    <polygon points="0,-60 10,-18 55,-10 18,10 10,55 0,18 -10,55 -18,10 -55,-10 -10,-18"
+             fill="#B388FF"/>
+  </g>
+  <!-- Right sparkle -->
+  <g transform="translate(710, 330) scale(0.25)">
+    <polygon points="0,-60 10,-18 55,-10 18,10 10,55 0,18 -10,55 -18,10 -55,-10 -10,-18"
+             fill="#B388FF"/>
+  </g>
+  <!-- Tiny dots -->
+  <circle cx="430" cy="200" r="5" fill="#FFE082" opacity="0.7"/>
+  <circle cx="610" cy="180" r="4" fill="#B388FF" opacity="0.6"/>
+  <circle cx="350" cy="310" r="3.5" fill="#FFD700" opacity="0.5"/>
+  <circle cx="690" cy="280" r="4" fill="#FFD700" opacity="0.5"/>
+</svg>

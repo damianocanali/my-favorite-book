@@ -5,6 +5,7 @@ import { Check, Sparkles, GraduationCap, BookOpen } from 'lucide-react'
 import { useAuthStore } from '../stores/useAuthStore'
 import { useSubscription } from '../hooks/useSubscription'
 import { PRICES } from '../lib/plans'
+import { apiFetch } from '../lib/api'
 import SparkleButton from '../components/ui/SparkleButton'
 import ParentalGate from '../components/ui/ParentalGate'
 
@@ -112,7 +113,7 @@ export default function PricingPage() {
   const handleUpgrade = async (planName) => {
     setShowGate(null)
 
-    const res = await fetch('/api/create-checkout', {
+    const res = await apiFetch('/api/create-checkout', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

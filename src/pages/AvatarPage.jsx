@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'motion/react'
 import { Coins, Lock, Award, Wand2, Loader2, Sparkles, RefreshCw } from 'lucide-react'
+import { apiFetch } from '../lib/api'
 import { useAvatarStore } from '../stores/useAvatarStore'
 import { useRewardsStore } from '../stores/useRewardsStore'
 import { useSubscription } from '../hooks/useSubscription'
@@ -191,7 +192,7 @@ export default function AvatarPage() {
     }
 
     try {
-      const res = await fetch('/api/generate-avatar', {
+      const res = await apiFetch('/api/generate-avatar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ features, artStyle }),
@@ -233,7 +234,7 @@ export default function AvatarPage() {
     if (!user) return
     setCoinBuyLoading(pack.key)
     try {
-      const res = await fetch('/api/buy-coins', {
+      const res = await apiFetch('/api/buy-coins', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ pack: pack.key, userId: user.id, userEmail: user.email }),

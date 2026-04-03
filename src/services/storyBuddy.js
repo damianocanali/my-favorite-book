@@ -30,8 +30,10 @@ ${book.authorAge <= 7 ? '- Use simple words and short sentences\n- Keep things f
 `.trim()
 }
 
+import { apiFetch } from '../lib/api'
+
 async function callStoryBuddy(system, messages, max_tokens) {
-  const response = await fetch('/api/story-buddy', {
+  const response = await apiFetch('/api/story-buddy', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ system, messages, max_tokens }),
