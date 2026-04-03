@@ -1,4 +1,4 @@
-import { useMemo, useCallback } from 'react'
+import { useMemo, useCallback, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { useBookStore } from '../../stores/useBookStore'
 import { useAccessibilityStore } from '../../stores/useAccessibilityStore'
@@ -46,6 +46,22 @@ export default function PageEditor({ page }) {
 
   // Font class based on dyslexia toggle
   const fontClass = dyslexiaFont ? 'font-dyslexic' : 'font-body'
+
+  // Auto-expanding textarea
+  const textareaRef = useRef(null)
+  useEffect(() => {
+    const el = textareaRef.current
+    if (!el) return
+    el.style.height = 'auto'
+    el.style.height = el.scrollHeight + 'px'
+  }, [page.text])
+
+  const handleTextareaFocus = useCallback(() => {
+    // Wait for iOS keyboard to appear, then scroll input into view
+    setTimeout(() => {
+      textareaRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }, 300)
+  }, [])
 
   return (
     <motion.div
@@ -139,8 +155,10 @@ export default function PageEditor({ page }) {
         {/* Textarea — hidden while speaking to avoid confusion */}
         <div className={isSpeaking ? 'hidden' : ''}>
           <textarea
+            ref={textareaRef}
             value={page.text}
             onChange={(e) => updatePageText(page.id, e.target.value)}
+            onFocus={handleTextareaFocus}
             placeholder={
               page.pageNumber === 1
                 ? 'Once upon a time...'
@@ -148,6 +166,7 @@ export default function PageEditor({ page }) {
             }
             className={`w-full bg-transparent border-none outline-none resize-none text-galaxy-text placeholder:text-galaxy-text-muted/40 leading-relaxed ${fontClass} ${adaptive.fontSize.input}`}
             rows={adaptive.mode === 'young' ? 4 : 6}
+            style={{ overflow: 'hidden' }}
             maxLength={adaptive.charLimit}
           />
         </div>

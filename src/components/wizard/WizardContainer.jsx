@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useBookStore } from '../../stores/useBookStore'
 import ProgressBar from '../layout/ProgressBar'
@@ -63,6 +63,11 @@ export default function WizardContainer({ onFinish }) {
     setDirection(dir)
     useBookStore.getState().setStep(step)
   }
+
+  // Scroll to top when step changes
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [currentStep])
 
   const StepComponent = steps[currentStep]
 
