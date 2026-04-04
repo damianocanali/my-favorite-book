@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'motion/react'
-import { ArrowLeft, Edit3, Printer, Send, X, Shield } from 'lucide-react'
+import { ArrowLeft, Edit3, Printer, Send, X, Shield, Globe, Check, Loader2 } from 'lucide-react'
 import { useBookshelfStore } from '../stores/useBookshelfStore'
 import { useBookStore } from '../stores/useBookStore'
 import { useSubscription } from '../hooks/useSubscription'
@@ -11,6 +11,7 @@ import PrintableBook from '../components/print/PrintableBook'
 import SubmitToClassModal from '../components/classroom/SubmitToClassModal'
 import SparkleButton from '../components/ui/SparkleButton'
 import { isNative } from '../capacitor'
+import { apiFetch } from '../lib/api'
 
 export default function PreviewPage() {
   const { bookId } = useParams()
@@ -20,6 +21,8 @@ export default function PreviewPage() {
   const setStep = useBookStore((state) => state.setStep)
   const [showSubmitModal, setShowSubmitModal] = useState(false)
   const [nudgeDismissed, setNudgeDismissed] = useState(false)
+  const [publishing, setPublishing] = useState(false)
+  const [publishedUrl, setPublishedUrl] = useState(null)
   const { plan } = useSubscription()
   const user = useAuthStore((s) => s.user)
 
@@ -37,6 +40,26 @@ export default function PreviewPage() {
       return
     }
     window.print()
+  }
+
+  const handlePublish = async () => {
+    setPublishing(true)
+    try {
+      const res = await apiFetch('/api/publish-book', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ book, userId: user?.id }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
+      const fullUrl = `${window.location.origin}/view/${data.slug}`
+      setPublishedUrl(fullUrl)
+      if (navigator.clipboard) navigator.clipboard.writeText(fullUrl)
+    } catch {
+      alert('Failed to publish. Please try again.')
+    } finally {
+      setPublishing(false)
+    }
   }
 
   if (!book) {
@@ -77,6 +100,30 @@ export default function PreviewPage() {
             <Send size={14} />
             {!isNative && 'Submit to Class'}
           </button>
+
+          {/* Publish / Share */}
+          {user && !publishedUrl && (
+            <button
+              onClick={handlePublish}
+              disabled={publishing}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-body font-semibold text-galaxy-primary border border-galaxy-primary/40 hover:bg-galaxy-primary/10 transition-colors"
+            >
+              {publishing ? <Loader2 size={14} className="animate-spin" /> : <Globe size={14} />}
+              {!isNative && (publishing ? 'Publishing...' : 'Publish')}
+            </button>
+          )}
+          {publishedUrl && (
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(publishedUrl)
+                if (navigator.share) navigator.share({ title: book.title, url: publishedUrl })
+              }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-body font-semibold text-green-400 border border-green-400/40 bg-green-400/5"
+            >
+              <Check size={14} />
+              {!isNative && 'Share Link'}
+            </button>
+          )}
 
           {/* Print / Save as PDF */}
           {!isNative && (

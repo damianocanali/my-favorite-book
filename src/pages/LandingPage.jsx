@@ -180,6 +180,13 @@ export default function LandingPage() {
               </span>
             </SparkleButton>
           )}
+
+          <button
+            onClick={() => navigate('/gallery')}
+            className="text-galaxy-text-muted font-body text-sm hover:text-yellow-400 transition-colors flex items-center gap-1.5"
+          >
+            ⭐ Browse Featured Books
+          </button>
         </motion.div>
       </div>
 

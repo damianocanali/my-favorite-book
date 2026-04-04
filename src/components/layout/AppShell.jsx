@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { BookOpen, Home, Library, LogIn, LogOut, GraduationCap, Sparkles } from 'lucide-react'
+import { BookOpen, Home, Library, LogIn, LogOut, GraduationCap, Sparkles, Star } from 'lucide-react'
 import { useBookshelfStore } from '../../stores/useBookshelfStore'
 import { useAuthStore, selectDisplayName, selectRole } from '../../stores/useAuthStore'
 import AvatarDisplay from '../avatar/AvatarDisplay'
@@ -75,6 +75,18 @@ export default function AppShell({ children }) {
             >
               <Sparkles size={18} />
               <span className="hidden sm:inline text-sm font-body font-semibold">Pricing</span>
+            </Link>
+
+            <Link
+              to="/gallery"
+              className={`flex items-center gap-2 px-2 sm:px-3 py-2 rounded-full transition-all ${
+                location.pathname === '/gallery'
+                  ? 'bg-yellow-400/20 text-yellow-400'
+                  : 'text-galaxy-text-muted hover:text-galaxy-text'
+              }`}
+            >
+              <Star size={18} />
+              <span className="hidden sm:inline text-sm font-body font-semibold">Gallery</span>
             </Link>
 
             {/* Teacher dashboard link — only for teachers */}
