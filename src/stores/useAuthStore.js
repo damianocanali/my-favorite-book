@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { supabase } from '../lib/supabase'
+import { useBookshelfStore, setBookshelfUserId } from './useBookshelfStore'
 
 export const useAuthStore = create((set) => ({
   user: null,
@@ -11,20 +12,19 @@ export const useAuthStore = create((set) => ({
     const user = session?.user ?? null
     set({ user, loading: false })
     if (user) {
-      const { useBookshelfStore } = await import('./useBookshelfStore')
+      setBookshelfUserId(user.id)
       useBookshelfStore.getState().loadCloudBooks(user.id)
     }
-    supabase.auth.onAuthStateChange(async (_event, session) => {
+    supabase.auth.onAuthStateChange((_event, session) => {
       const newUser = session?.user ?? null
       set({ user: newUser })
+      setBookshelfUserId(newUser?.id ?? null)
       if (newUser) {
-        const { useBookshelfStore } = await import('./useBookshelfStore')
         useBookshelfStore.getState().loadCloudBooks(newUser.id)
       }
     })
   },
 
-  // metadata: { role: 'student' | 'teacher', display_name: string }
   signUp: async (email, password, metadata = {}) => {
     if (!supabase) throw new Error('Auth not configured')
     const { data, error } = await supabase.auth.signUp({
@@ -46,6 +46,7 @@ export const useAuthStore = create((set) => ({
   signOut: async () => {
     if (!supabase) return
     await supabase.auth.signOut()
+    setBookshelfUserId(null)
     set({ user: null })
   },
 }))

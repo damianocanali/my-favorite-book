@@ -2,6 +2,12 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { apiFetch } from '../lib/api'
 
+// userId is set externally by useAuthStore on login
+let _currentUserId = null
+export function setBookshelfUserId(userId) {
+  _currentUserId = userId
+}
+
 export const useBookshelfStore = create(
   persist(
     (set, get) => ({
@@ -12,12 +18,12 @@ export const useBookshelfStore = create(
       addBook: (book) => {
         const updated = { ...book, updatedAt: new Date().toISOString() }
         set((state) => ({ books: [...state.books, updated] }))
-        get()._syncBook(updated)
+        syncBookToCloud(updated)
       },
 
       removeBook: (id) => {
         set((state) => ({ books: state.books.filter((b) => b.id !== id) }))
-        get()._deleteCloudBook(id)
+        deleteCloudBook(id)
       },
 
       getBook: (id) => get().books.find((b) => b.id === id),
@@ -30,10 +36,9 @@ export const useBookshelfStore = create(
           ),
         }))
         const book = get().books.find((b) => b.id === id)
-        if (book) get()._syncBook(book)
+        if (book) syncBookToCloud(book)
       },
 
-      // Fetch books from cloud and merge with local
       loadCloudBooks: async (userId) => {
         if (!userId) return
         set({ syncing: true })
@@ -51,15 +56,11 @@ export const useBookshelfStore = create(
               const local = localMap.get(row.book_id)
 
               if (!local) {
-                // Book exists in cloud but not locally — add it
-                // Mark images as needing re-fetch since we stripped them
                 merged.push(cloudBook)
               } else {
-                // Both exist — keep the newer one
                 const cloudTime = new Date(row.updated_at).getTime()
                 const localTime = new Date(local.updatedAt || 0).getTime()
                 if (cloudTime > localTime) {
-                  // Cloud is newer — merge but keep local images
                   merged = merged.map((b) =>
                     b.id === row.book_id
                       ? {
@@ -84,44 +85,12 @@ export const useBookshelfStore = create(
           const cloudIds = new Set(cloudBooks.map((r) => r.book_id))
           const localOnly = get().books.filter((b) => !cloudIds.has(b.id))
           for (const book of localOnly) {
-            get()._syncBook(book)
+            syncBookToCloud(book)
           }
         } catch {
           // Silent fail — local books still work
         } finally {
           set({ syncing: false })
-        }
-      },
-
-      // Internal: sync a single book to cloud
-      _syncBook: async (book) => {
-        const { useAuthStore } = await import('./useAuthStore')
-        const user = useAuthStore.getState().user
-        if (!user) return
-        try {
-          await apiFetch('/api/sync-books', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId: user.id, book }),
-          })
-        } catch {
-          // Silent fail
-        }
-      },
-
-      // Internal: delete a book from cloud
-      _deleteCloudBook: async (bookId) => {
-        const { useAuthStore } = await import('./useAuthStore')
-        const user = useAuthStore.getState().user
-        if (!user) return
-        try {
-          await apiFetch('/api/sync-books', {
-            method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId: user.id, bookId }),
-          })
-        } catch {
-          // Silent fail
         }
       },
     }),
@@ -134,3 +103,30 @@ export const useBookshelfStore = create(
     }
   )
 )
+
+// Standalone sync functions — no circular imports
+async function syncBookToCloud(book) {
+  if (!_currentUserId) return
+  try {
+    await apiFetch('/api/sync-books', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: _currentUserId, book }),
+    })
+  } catch {
+    // Silent fail
+  }
+}
+
+async function deleteCloudBook(bookId) {
+  if (!_currentUserId) return
+  try {
+    await apiFetch('/api/sync-books', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: _currentUserId, bookId }),
+    })
+  } catch {
+    // Silent fail
+  }
+}
