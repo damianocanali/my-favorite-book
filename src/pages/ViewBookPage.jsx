@@ -139,10 +139,13 @@ export default function ViewBookPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
       >
+        <p className="text-center text-galaxy-text font-heading font-bold text-base mb-1">
+          Leave a Sticker! 🎉
+        </p>
         <p className="text-center text-galaxy-text-muted font-body text-sm mb-3">
           {totalReactions > 0
-            ? `${totalReactions} sticker${totalReactions === 1 ? '' : 's'} so far!`
-            : 'Be the first to leave a sticker!'}
+            ? `${totalReactions} sticker${totalReactions === 1 ? '' : 's'} so far — keep them coming!`
+            : 'Tap a sticker to show this author some love!'}
         </p>
 
         <div className="flex flex-wrap justify-center gap-2">
@@ -151,7 +154,9 @@ export default function ViewBookPage() {
               key={sticker}
               onClick={() => handleReaction(sticker)}
               className="relative flex flex-col items-center gap-1 px-3 py-2 rounded-xl bg-galaxy-bg-light border border-galaxy-text-muted/10 hover:border-galaxy-primary/40 hover:bg-galaxy-primary/5 transition-colors"
+              whileHover={{ scale: 1.15, rotate: [0, -10, 10, 0] }}
               whileTap={{ scale: 0.85 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 15 }}
             >
               <span className="text-2xl">{sticker}</span>
               {reactions[sticker] > 0 && (
@@ -160,18 +165,29 @@ export default function ViewBookPage() {
                 </span>
               )}
 
-              {/* Pop animation when reacted */}
+              {/* Burst animation when reacted */}
               <AnimatePresence>
                 {justReacted === sticker && (
-                  <motion.span
-                    className="absolute -top-4 text-3xl pointer-events-none"
-                    initial={{ opacity: 1, y: 0, scale: 0.5 }}
-                    animate={{ opacity: 0, y: -30, scale: 1.5 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.8 }}
-                  >
-                    {sticker}
-                  </motion.span>
+                  <>
+                    {[...Array(5)].map((_, i) => (
+                      <motion.span
+                        key={i}
+                        className="absolute text-xl pointer-events-none"
+                        initial={{ opacity: 1, x: 0, y: 0, scale: 0.5 }}
+                        animate={{
+                          opacity: 0,
+                          x: (Math.random() - 0.5) * 80,
+                          y: -20 - Math.random() * 40,
+                          scale: 0.8 + Math.random() * 0.6,
+                          rotate: (Math.random() - 0.5) * 90,
+                        }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.6 + Math.random() * 0.4 }}
+                      >
+                        {sticker}
+                      </motion.span>
+                    ))}
+                  </>
                 )}
               </AnimatePresence>
             </motion.button>

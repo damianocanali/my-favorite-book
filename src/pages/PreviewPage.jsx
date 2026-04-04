@@ -165,8 +165,54 @@ export default function PreviewPage() {
         <BookPreview book={book} />
       </div>
 
+      {/* Published celebration */}
+      <AnimatePresence>
+        {publishedUrl && (
+          <motion.div
+            className="max-w-md mx-auto mt-6 relative"
+            initial={{ opacity: 0, scale: 0.8, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ type: 'spring', stiffness: 200, damping: 15 }}
+          >
+            {/* Sparkle particles */}
+            {['⭐', '✨', '🎉', '🌟', '💫'].map((emoji, i) => (
+              <motion.span
+                key={i}
+                className="absolute text-2xl pointer-events-none"
+                style={{ left: `${20 + i * 15}%`, top: '-10px' }}
+                initial={{ opacity: 1, y: 0 }}
+                animate={{ opacity: 0, y: -40 - Math.random() * 30, x: (Math.random() - 0.5) * 60 }}
+                transition={{ duration: 1.2, delay: i * 0.1 }}
+              >
+                {emoji}
+              </motion.span>
+            ))}
+            <div className="bg-green-400/10 border border-green-400/30 rounded-2xl px-5 py-4 text-center">
+              <p className="font-heading text-lg font-bold text-green-400 mb-1">
+                Your book is live! 🎉
+              </p>
+              <p className="text-galaxy-text-muted font-body text-xs mb-3">
+                Share this link with family and friends — they can read your book and leave stickers!
+              </p>
+              <div className="flex items-center gap-2 bg-galaxy-bg rounded-xl px-3 py-2 border border-galaxy-text-muted/10">
+                <p className="text-galaxy-text font-body text-xs truncate flex-1">{publishedUrl}</p>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(publishedUrl)
+                    if (navigator.share) navigator.share({ title: book.title, url: publishedUrl })
+                  }}
+                  className="shrink-0 px-3 py-1 rounded-lg bg-green-400/20 text-green-400 text-xs font-body font-semibold hover:bg-green-400/30 transition-colors"
+                >
+                  Copy
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Tip */}
-      {!isNative && (
+      {!isNative && !publishedUrl && (
         <motion.p
           className="text-center text-galaxy-text-muted text-sm font-body mt-6"
           initial={{ opacity: 0 }}

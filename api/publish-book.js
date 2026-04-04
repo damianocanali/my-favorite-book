@@ -53,7 +53,18 @@ export default async function handler(req) {
       return json(200, rows || [])
     }
 
-    return json(400, { error: 'slug or featured param required' })
+    // Fetch recent books (all published, newest first)
+    const recent = url.searchParams.get('recent')
+    if (recent !== null) {
+      const res = await fetch(
+        `${supabaseUrl}/rest/v1/published_books?order=published_at.desc&limit=30&select=slug,title,author_name,author_age,cover_emoji,cover_color,reaction_counts,published_at,featured`,
+        { headers }
+      )
+      const rows = await res.json()
+      return json(200, rows || [])
+    }
+
+    return json(400, { error: 'slug, featured, or recent param required' })
   }
 
   if (req.method !== 'POST') {
@@ -88,7 +99,8 @@ export default async function handler(req) {
     cover_color: book.colors?.cover || '#8B5CF6',
     book_data: book,
     reaction_counts: {},
-    featured: false,
+    featured: true,
+    featured_at: new Date().toISOString(),
     published_at: new Date().toISOString(),
   }
 

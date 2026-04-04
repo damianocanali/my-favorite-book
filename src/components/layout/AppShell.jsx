@@ -9,7 +9,6 @@ export default function AppShell({ children }) {
   const location = useLocation()
   const navigate = useNavigate()
   const bookCount = useBookshelfStore((state) => state.books.length)
-  const isLanding = location.pathname === '/'
 
   const user = useAuthStore((s) => s.user)
   const signOut = useAuthStore((s) => s.signOut)
@@ -26,7 +25,6 @@ export default function AppShell({ children }) {
       <CosmicBackground />
 
       {/* Navigation */}
-      {!isLanding && (
         <nav className="relative z-20 flex items-center justify-between px-3 sm:px-6 py-3 sm:py-4 border-b border-galaxy-primary/20 bg-galaxy-bg/50 backdrop-blur-md gap-2">
           <Link
             to="/"
@@ -144,7 +142,6 @@ export default function AppShell({ children }) {
             )}
           </div>
         </nav>
-      )}
 
       {/* Main content */}
       <main className="relative z-10">{children}</main>

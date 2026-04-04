@@ -1,44 +1,100 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { motion } from 'motion/react'
+import { motion, AnimatePresence } from 'motion/react'
 import { BookOpen, Star, Loader2, Sparkles } from 'lucide-react'
 import { apiFetch } from '../lib/api'
 
+// Floating emojis in the background
+const FLOATERS = [
+  { emoji: '📖', x: '8%', y: '12%', delay: 0, duration: 6 },
+  { emoji: '⭐', x: '88%', y: '8%', delay: 1, duration: 5 },
+  { emoji: '🦄', x: '5%', y: '55%', delay: 0.5, duration: 7 },
+  { emoji: '🌈', x: '92%', y: '45%', delay: 2, duration: 6 },
+  { emoji: '✨', x: '15%', y: '85%', delay: 1.5, duration: 5 },
+  { emoji: '🚀', x: '85%', y: '80%', delay: 0.8, duration: 7 },
+]
+
+function FloatingEmoji({ emoji, x, y, delay, duration }) {
+  return (
+    <motion.div
+      className="absolute text-3xl sm:text-4xl pointer-events-none select-none opacity-20"
+      style={{ left: x, top: y }}
+      animate={{
+        y: [0, -15, 0],
+        rotate: [0, 8, -8, 0],
+        scale: [1, 1.1, 1],
+      }}
+      transition={{
+        duration,
+        repeat: Infinity,
+        delay,
+        ease: 'easeInOut',
+      }}
+    >
+      {emoji}
+    </motion.div>
+  )
+}
+
 function BookCard({ book, index }) {
   const totalReactions = Object.values(book.reaction_counts || {}).reduce((s, n) => s + n, 0)
-  const topSticker = Object.entries(book.reaction_counts || {})
-    .sort((a, b) => b[1] - a[1])[0]?.[0]
+  const topStickers = Object.entries(book.reaction_counts || {})
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3)
+    .map(([s]) => s)
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.08 }}
+      initial={{ opacity: 0, y: 30, scale: 0.9 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{
+        delay: index * 0.08,
+        type: 'spring',
+        stiffness: 200,
+        damping: 20,
+      }}
     >
-      <Link
-        to={`/view/${book.slug}`}
-        className="block group"
-      >
-        <div className="relative bg-galaxy-bg-light rounded-2xl border border-galaxy-text-muted/10 overflow-hidden hover:border-galaxy-primary/40 transition-all hover:shadow-glow-purple">
+      <Link to={`/view/${book.slug}`} className="block group">
+        <motion.div
+          className="relative bg-galaxy-bg-light rounded-2xl border border-galaxy-text-muted/10 overflow-hidden"
+          whileHover={{ scale: 1.03, y: -4 }}
+          whileTap={{ scale: 0.97 }}
+          transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+        >
           {/* Book cover preview */}
           <div
-            className="h-44 sm:h-52 flex items-center justify-center relative"
+            className="h-48 sm:h-56 flex items-center justify-center relative overflow-hidden"
             style={{ backgroundColor: book.cover_color || '#8B5CF6' }}
           >
-            <div className="text-center">
+            {/* Shimmer effect on hover */}
+            <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/10 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
+
+            <div className="text-center relative z-10">
               {book.cover_emoji && (
-                <span className="text-5xl sm:text-6xl block mb-2">{book.cover_emoji}</span>
+                <motion.span
+                  className="text-5xl sm:text-6xl block mb-2"
+                  animate={{ rotate: [0, 5, -5, 0] }}
+                  transition={{ duration: 4, repeat: Infinity, delay: index * 0.3 }}
+                >
+                  {book.cover_emoji}
+                </motion.span>
               )}
               <h3 className="font-heading text-lg sm:text-xl font-bold text-white px-4 leading-tight drop-shadow-md">
                 {book.title}
               </h3>
             </div>
 
-            {/* Featured badge */}
-            <div className="absolute top-2 right-2 flex items-center gap-1 px-2 py-1 rounded-full bg-yellow-400/20 border border-yellow-400/40">
-              <Star size={12} className="text-yellow-400 fill-yellow-400" />
-              <span className="text-yellow-400 text-[10px] font-bold font-body">FEATURED</span>
-            </div>
+            {/* Featured sparkle */}
+            {book.featured && (
+              <motion.div
+                className="absolute top-2 right-2 flex items-center gap-1 px-2 py-1 rounded-full bg-yellow-400/20 border border-yellow-400/40 backdrop-blur-sm"
+                animate={{ scale: [1, 1.1, 1] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              >
+                <Star size={12} className="text-yellow-400 fill-yellow-400" />
+                <span className="text-yellow-400 text-[10px] font-bold font-body">FEATURED</span>
+              </motion.div>
+            )}
           </div>
 
           {/* Book info */}
@@ -49,15 +105,24 @@ function BookCard({ book, index }) {
             </p>
 
             {totalReactions > 0 && (
-              <div className="flex items-center gap-1.5 mt-2">
-                {topSticker && <span className="text-sm">{topSticker}</span>}
+              <motion.div
+                className="flex items-center gap-1.5 mt-2"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: index * 0.08 + 0.3 }}
+              >
+                <div className="flex -space-x-1">
+                  {topStickers.map((s) => (
+                    <span key={s} className="text-sm">{s}</span>
+                  ))}
+                </div>
                 <span className="text-galaxy-text-muted font-body text-xs">
                   {totalReactions} sticker{totalReactions === 1 ? '' : 's'}
                 </span>
-              </div>
+              </motion.div>
             )}
           </div>
-        </div>
+        </motion.div>
       </Link>
     </motion.div>
   )
@@ -68,97 +133,183 @@ export default function GalleryPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    async function fetchFeatured() {
+    async function fetchBooks() {
       try {
-        const res = await apiFetch('/api/publish-book?featured=true')
-        if (res.ok) {
-          const data = await res.json()
-          setBooks(data)
-        }
+        const res = await apiFetch('/api/publish-book?recent=true')
+        if (res.ok) setBooks(await res.json())
       } catch {
         // Silent fail
       } finally {
         setLoading(false)
       }
     }
-    fetchFeatured()
+    fetchBooks()
   }, [])
 
+  const featured = books.filter((b) => b.featured)
+  const recent = books.filter((b) => !b.featured)
+
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8">
+    <div className="max-w-5xl mx-auto px-4 py-8 relative min-h-[60vh]">
+      {/* Floating background emojis */}
+      {FLOATERS.map((f, i) => (
+        <FloatingEmoji key={i} {...f} />
+      ))}
+
       {/* Header */}
       <motion.div
-        className="text-center mb-10"
-        initial={{ opacity: 0, y: -20 }}
+        className="text-center mb-10 relative z-10"
+        initial={{ opacity: 0, y: -30 }}
         animate={{ opacity: 1, y: 0 }}
+        transition={{ type: 'spring', stiffness: 200, damping: 20 }}
       >
-        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-yellow-400/20 flex items-center justify-center border border-yellow-400/30">
-          <Sparkles size={32} className="text-yellow-400" />
-        </div>
+        <motion.div
+          className="w-20 h-20 mx-auto mb-4 rounded-full bg-yellow-400/20 flex items-center justify-center border border-yellow-400/30"
+          animate={{ rotate: [0, 5, -5, 0], scale: [1, 1.05, 1] }}
+          transition={{ duration: 4, repeat: Infinity }}
+        >
+          <Sparkles size={36} className="text-yellow-400" />
+        </motion.div>
         <h1 className="font-heading text-3xl sm:text-4xl font-bold text-galaxy-text mb-2">
-          Featured Books
+          Book Gallery
         </h1>
-        <p className="text-galaxy-text-muted font-body text-lg max-w-md mx-auto">
+        <motion.p
+          className="text-galaxy-text-muted font-body text-lg max-w-md mx-auto"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3 }}
+        >
           Amazing stories written by young authors just like you!
-        </p>
+        </motion.p>
       </motion.div>
 
       {/* Loading */}
-      {loading && (
-        <div className="flex justify-center py-20">
-          <Loader2 size={32} className="text-galaxy-primary animate-spin" />
-        </div>
-      )}
+      <AnimatePresence>
+        {loading && (
+          <motion.div
+            className="flex flex-col items-center justify-center py-20 gap-4"
+            exit={{ opacity: 0, scale: 0.8 }}
+          >
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+            >
+              <Loader2 size={36} className="text-galaxy-primary" />
+            </motion.div>
+            <p className="text-galaxy-text-muted font-body text-sm animate-pulse">
+              Loading amazing stories...
+            </p>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Empty state */}
       {!loading && books.length === 0 && (
         <motion.div
-          className="text-center py-16"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
+          className="text-center py-16 relative z-10"
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ type: 'spring', stiffness: 200, damping: 20 }}
         >
-          <p className="text-6xl mb-4">📚</p>
+          <motion.p
+            className="text-7xl mb-4"
+            animate={{ y: [0, -10, 0], rotate: [0, 5, -5, 0] }}
+            transition={{ duration: 3, repeat: Infinity }}
+          >
+            📚
+          </motion.p>
           <h2 className="font-heading text-xl font-bold text-galaxy-text mb-2">
             The gallery is getting ready!
           </h2>
           <p className="text-galaxy-text-muted font-body mb-6">
-            Amazing stories are being added soon. Why not write the first featured book?
+            Be the first to publish a book and share it with the world!
           </p>
-          <Link
-            to="/create"
-            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-galaxy-primary text-white font-body font-semibold hover:bg-galaxy-primary/80 transition-colors"
-          >
-            <BookOpen size={18} /> Start Writing
-          </Link>
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Link
+              to="/create"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-galaxy-primary text-white font-body font-semibold hover:bg-galaxy-primary/80 transition-colors text-lg"
+            >
+              <BookOpen size={20} /> Start Writing
+            </Link>
+          </motion.div>
         </motion.div>
       )}
 
-      {/* Book grid */}
-      {books.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {books.map((book, i) => (
-            <BookCard key={book.slug} book={book} index={i} />
-          ))}
-        </div>
+      {/* Featured section */}
+      {featured.length > 0 && (
+        <motion.div
+          className="mb-12 relative z-10"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2 }}
+        >
+          <div className="flex items-center gap-2 mb-5">
+            <motion.div
+              animate={{ rotate: [0, 15, -15, 0] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            >
+              <Star size={22} className="text-yellow-400 fill-yellow-400" />
+            </motion.div>
+            <h2 className="font-heading text-xl font-bold text-galaxy-text">Featured Stories</h2>
+            <motion.span
+              className="text-lg"
+              animate={{ scale: [1, 1.3, 1] }}
+              transition={{ duration: 1.5, repeat: Infinity, delay: 0.5 }}
+            >
+              ✨
+            </motion.span>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {featured.map((book, i) => (
+              <BookCard key={book.slug} book={book} index={i} />
+            ))}
+          </div>
+        </motion.div>
+      )}
+
+      {/* Recently Published section */}
+      {recent.length > 0 && (
+        <motion.div
+          className="relative z-10"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.4 }}
+        >
+          <div className="flex items-center gap-2 mb-5">
+            <BookOpen size={20} className="text-galaxy-primary" />
+            <h2 className="font-heading text-xl font-bold text-galaxy-text">Recently Published</h2>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {recent.map((book, i) => (
+              <BookCard key={book.slug} book={book} index={i + featured.length} />
+            ))}
+          </div>
+        </motion.div>
       )}
 
       {/* CTA */}
       {books.length > 0 && (
         <motion.div
-          className="text-center mt-12"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
+          className="text-center mt-12 relative z-10"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.8 }}
         >
-          <p className="text-galaxy-text-muted font-body text-sm mb-3">
-            Want your book featured here?
-          </p>
-          <Link
-            to="/create"
-            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-galaxy-primary text-white font-body font-semibold hover:bg-galaxy-primary/80 transition-colors"
+          <motion.p
+            className="text-galaxy-text-muted font-body text-sm mb-3"
+            animate={{ opacity: [0.6, 1, 0.6] }}
+            transition={{ duration: 3, repeat: Infinity }}
           >
-            <BookOpen size={18} /> Write Your Story
-          </Link>
+            Want your book in the gallery? Publish it from your preview page!
+          </motion.p>
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Link
+              to="/create"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-galaxy-primary text-white font-body font-semibold hover:bg-galaxy-primary/80 transition-colors"
+            >
+              <BookOpen size={18} /> Write Your Story
+            </Link>
+          </motion.div>
         </motion.div>
       )}
     </div>

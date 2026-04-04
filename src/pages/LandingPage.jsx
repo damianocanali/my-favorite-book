@@ -1,8 +1,8 @@
 import { motion } from 'motion/react'
 import { useNavigate, Link } from 'react-router-dom'
-import { BookOpen, Library, GraduationCap, LogOut, Check, Sparkles, Mic, Brain, Palette, Users, Volume2, Wand2 } from 'lucide-react'
+import { BookOpen, Library, Check, Sparkles, Mic, Brain, Palette, Users, Volume2, Wand2 } from 'lucide-react'
 import { useBookshelfStore } from '../stores/useBookshelfStore'
-import { useAuthStore, selectDisplayName, selectRole } from '../stores/useAuthStore'
+import { useAuthStore } from '../stores/useAuthStore'
 import { PRICES } from '../lib/plans'
 import SparkleButton from '../components/ui/SparkleButton'
 import CosmicBackground from '../components/layout/CosmicBackground'
@@ -32,68 +32,10 @@ export default function LandingPage() {
   const navigate = useNavigate()
   const bookCount = useBookshelfStore((state) => state.books.length)
   const user = useAuthStore((s) => s.user)
-  const signOut = useAuthStore((s) => s.signOut)
-  const displayName = useAuthStore(selectDisplayName)
-  const role = useAuthStore(selectRole)
 
   return (
     <div className="min-h-screen relative flex flex-col items-center px-4 pb-8 overflow-hidden">
       <CosmicBackground />
-
-      {/* Top navbar */}
-      <motion.nav
-        className="relative z-20 w-full max-w-5xl flex items-center justify-between py-4 px-2"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-      >
-        <div className="flex items-center gap-2 shrink-0">
-          <BookOpen size={20} className="text-galaxy-primary" />
-          <span className="font-heading text-sm font-bold text-galaxy-text hidden sm:inline">My Favorite Book</span>
-        </div>
-        <div className="flex items-center gap-2 sm:gap-3">
-          {user ? (
-            <>
-              <span className="text-galaxy-text-muted font-body text-sm hidden sm:inline">Hi, {displayName}!</span>
-              {role === 'teacher' && (
-                <Link
-                  to="/teacher"
-                  className="flex items-center gap-1.5 text-galaxy-secondary hover:text-galaxy-secondary/80 transition-colors font-body text-sm"
-                >
-                  <GraduationCap size={15} /> Classroom
-                </Link>
-              )}
-              <button
-                onClick={() => signOut()}
-                className="flex items-center gap-1.5 text-galaxy-text-muted hover:text-galaxy-text transition-colors font-body text-sm"
-              >
-                <LogOut size={15} /> Sign out
-              </button>
-            </>
-          ) : (
-            <>
-              <Link
-                to="/login"
-                className="text-galaxy-text-muted hover:text-galaxy-text transition-colors font-body text-sm"
-              >
-                Sign In
-              </Link>
-              <Link
-                to="/signup"
-                className="px-4 py-1.5 rounded-full bg-galaxy-primary text-white hover:bg-galaxy-primary/80 transition-colors font-body text-sm font-semibold"
-              >
-                Sign Up
-              </Link>
-              <Link
-                to="/signup?role=teacher"
-                className="flex items-center gap-1.5 text-galaxy-text-muted hover:text-galaxy-secondary transition-colors font-body text-sm hidden sm:flex"
-              >
-                <GraduationCap size={15} /> Teachers
-              </Link>
-            </>
-          )}
-        </div>
-      </motion.nav>
 
       {/* Floating cosmic elements */}
       <FloatingElement emoji="🚀" className="top-[10%] left-[10%]" delay={0} />
