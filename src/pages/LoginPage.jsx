@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { motion } from 'motion/react'
-import { BookOpen, Mail, Lock, Eye, EyeOff, ArrowLeft, CheckCircle } from 'lucide-react'
+import { Mail, Lock, Eye, EyeOff, ArrowLeft, CheckCircle } from 'lucide-react'
 import { useAuthStore } from '../stores/useAuthStore'
 import { supabase } from '../lib/supabase'
 
@@ -61,9 +61,7 @@ export default function LoginPage() {
       >
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-galaxy-primary/20 flex items-center justify-center border border-galaxy-primary/30">
-            <BookOpen size={32} className="text-galaxy-primary" />
-          </div>
+          <img src="/logo.png" alt="My Book Lab" className="w-16 h-16 mx-auto mb-4 rounded-xl" />
           <h1 className="font-heading text-2xl font-bold text-galaxy-text">Welcome Back!</h1>
           <p className="text-galaxy-text-muted font-body text-sm mt-1">
             Sign in to continue your story

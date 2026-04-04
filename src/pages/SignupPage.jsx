@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, Link, useSearchParams } from 'react-router-dom'
 import { motion } from 'motion/react'
-import { BookOpen, GraduationCap, Mail, Lock, User, Eye, EyeOff, CheckCircle } from 'lucide-react'
+import { GraduationCap, Mail, Lock, User, Eye, EyeOff, CheckCircle } from 'lucide-react'
 import { useAuthStore } from '../stores/useAuthStore'
 
 export default function SignupPage() {
@@ -76,9 +76,7 @@ export default function SignupPage() {
       >
         {/* Header */}
         <div className="text-center mb-6">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-galaxy-primary/20 flex items-center justify-center border border-galaxy-primary/30">
-            <BookOpen size={32} className="text-galaxy-primary" />
-          </div>
+          <img src="/logo.png" alt="My Book Lab" className="w-16 h-16 mx-auto mb-4 rounded-xl" />
           <h1 className="font-heading text-2xl font-bold text-galaxy-text">Create an Account</h1>
           <p className="text-galaxy-text-muted font-body text-sm mt-1">Join the adventure!</p>
         </div>

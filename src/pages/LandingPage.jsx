@@ -7,7 +7,7 @@ import { PRICES } from '../lib/plans'
 import SparkleButton from '../components/ui/SparkleButton'
 import CosmicBackground from '../components/layout/CosmicBackground'
 
-const titleLetters = 'My Favorite Book'.split('')
+const titleLetters = 'My Book Lab'.split('')
 
 function FloatingElement({ emoji, className, delay = 0 }) {
   return (
@@ -49,12 +49,12 @@ export default function LandingPage() {
       <div className="relative z-10 text-center max-w-2xl mt-16 sm:mt-24">
         {/* Logo/icon */}
         <motion.div
-          className="w-24 h-24 mx-auto mb-8 rounded-full bg-galaxy-primary/20 flex items-center justify-center border border-galaxy-primary/30"
+          className="w-28 h-28 mx-auto mb-8"
           initial={{ scale: 0, rotate: -180 }}
           animate={{ scale: 1, rotate: 0 }}
           transition={{ type: 'spring', stiffness: 200, damping: 15, delay: 0.2 }}
         >
-          <BookOpen size={48} className="text-galaxy-primary" />
+          <img src="/logo.png" alt="My Book Lab" className="w-full h-full rounded-2xl shadow-glow-purple" />
         </motion.div>
 
         {/* Animated title */}

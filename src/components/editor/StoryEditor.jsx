@@ -10,7 +10,8 @@ import PageToolbar from './PageToolbar'
 import StoryProgressMap from './StoryProgressMap'
 import SparkleButton from '../ui/SparkleButton'
 import CoverArtGenerator from './CoverArtGenerator'
-import { BookOpen, Eye } from 'lucide-react'
+import { Eye } from 'lucide-react'
+import AppLogo from '../ui/AppLogo'
 
 export default function StoryEditor({ onPreview }) {
   const book = useBookStore((state) => state.book)
@@ -44,7 +45,7 @@ export default function StoryEditor({ onPreview }) {
         {/* Header */}
         <div className="flex items-center justify-between mb-6 gap-3">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-            <BookOpen size={24} className="text-galaxy-primary shrink-0" />
+            <AppLogo size={24} className="shrink-0" />
             <div className="min-w-0">
               <h2 className={`font-heading font-bold text-galaxy-text truncate ${adaptive.fontSize.heading}`}>
                 {book.title}

@@ -1,6 +1,5 @@
 import { motion } from 'motion/react'
 import { useNavigate } from 'react-router-dom'
-import { BookOpen } from 'lucide-react'
 import SparkleButton from '../ui/SparkleButton'
 
 export default function EmptyShelf() {
@@ -13,11 +12,11 @@ export default function EmptyShelf() {
       animate={{ opacity: 1, y: 0 }}
     >
       <motion.div
-        className="w-24 h-24 mx-auto mb-6 rounded-full bg-galaxy-primary/10 flex items-center justify-center"
+        className="w-24 h-24 mx-auto mb-6"
         animate={{ y: [0, -10, 0] }}
         transition={{ duration: 3, repeat: Infinity }}
       >
-        <BookOpen size={48} className="text-galaxy-primary/50" />
+        <img src="/logo.png" alt="My Book Lab" className="w-full h-full rounded-2xl opacity-60" />
       </motion.div>
       <h3 className="font-heading text-2xl font-bold text-galaxy-text mb-2">
         Your Bookshelf is Empty

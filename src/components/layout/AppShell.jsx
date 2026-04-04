@@ -1,8 +1,9 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { BookOpen, Home, Library, LogIn, LogOut, GraduationCap, Sparkles, Star } from 'lucide-react'
+import { Home, Library, LogIn, LogOut, GraduationCap, Sparkles, Star } from 'lucide-react'
 import { useBookshelfStore } from '../../stores/useBookshelfStore'
 import { useAuthStore, selectDisplayName, selectRole } from '../../stores/useAuthStore'
 import AvatarDisplay from '../avatar/AvatarDisplay'
+import AppLogo from '../ui/AppLogo'
 import CosmicBackground from './CosmicBackground'
 
 export default function AppShell({ children }) {
@@ -30,8 +31,8 @@ export default function AppShell({ children }) {
             to="/"
             className="flex items-center gap-2 text-galaxy-text hover:text-galaxy-primary transition-colors"
           >
-            <BookOpen size={24} className="text-galaxy-primary" />
-            <span className="font-heading font-bold text-lg hidden sm:inline">My Favorite Book</span>
+            <AppLogo size={28} />
+            <span className="font-heading font-bold text-lg hidden sm:inline">My Book Lab</span>
           </Link>
 
           <div className="flex items-center gap-1 sm:gap-3 flex-shrink-0">
