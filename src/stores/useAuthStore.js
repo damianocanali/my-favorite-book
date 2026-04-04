@@ -8,9 +8,19 @@ export const useAuthStore = create((set) => ({
   initialize: async () => {
     if (!supabase) { set({ loading: false }); return }
     const { data: { session } } = await supabase.auth.getSession()
-    set({ user: session?.user ?? null, loading: false })
-    supabase.auth.onAuthStateChange((_event, session) => {
-      set({ user: session?.user ?? null })
+    const user = session?.user ?? null
+    set({ user, loading: false })
+    if (user) {
+      const { useBookshelfStore } = await import('./useBookshelfStore')
+      useBookshelfStore.getState().loadCloudBooks(user.id)
+    }
+    supabase.auth.onAuthStateChange(async (_event, session) => {
+      const newUser = session?.user ?? null
+      set({ user: newUser })
+      if (newUser) {
+        const { useBookshelfStore } = await import('./useBookshelfStore')
+        useBookshelfStore.getState().loadCloudBooks(newUser.id)
+      }
     })
   },
 
