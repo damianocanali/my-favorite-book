@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, Link, useSearchParams } from 'react-router-dom'
 import { motion } from 'motion/react'
-import { GraduationCap, Mail, Lock, User, Eye, EyeOff, CheckCircle } from 'lucide-react'
+import { GraduationCap, Mail, Lock, User, Eye, EyeOff, CheckCircle, BookOpen } from 'lucide-react'
 import { useAuthStore } from '../stores/useAuthStore'
 
 export default function SignupPage() {

@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { Home, Library, LogIn, LogOut, GraduationCap, Sparkles, Star } from 'lucide-react'
+import { Home, Library, LogOut, GraduationCap, Sparkles, Star } from 'lucide-react'
 import { useBookshelfStore } from '../../stores/useBookshelfStore'
 import { useAuthStore, selectDisplayName, selectRole } from '../../stores/useAuthStore'
 import AvatarDisplay from '../avatar/AvatarDisplay'
@@ -128,10 +128,9 @@ export default function AppShell({ children }) {
               <div className="flex items-center gap-2">
                 <Link
                   to="/login"
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-full text-galaxy-text-muted hover:text-galaxy-text transition-colors text-sm font-body font-semibold"
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-full text-galaxy-text-muted hover:text-galaxy-text transition-colors text-sm font-body font-semibold border border-galaxy-text-muted/30 hover:border-galaxy-text-muted/60"
                 >
-                  <LogIn size={16} />
-                  <span className="hidden sm:inline">Sign In</span>
+                  Sign In
                 </Link>
                 <Link
                   to="/signup"
