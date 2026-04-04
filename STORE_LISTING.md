@@ -54,13 +54,13 @@ kids, writing, stories, books, ADHD, dyslexia, reading, education, classroom, cr
 - Google Play: Rated for Ages 6+ / Everyone / Designed for Families
 
 ## Privacy Policy URL
-https://myfavoritebook.app/privacy
+https://mybooklab.app/privacy
 
 ## Support URL
-https://myfavoritebook.app
+https://mybooklab.app
 
 ## Contact Email
-support@myfavoritebook.app
+support@mybooklab.app
 
 ## Screenshots Needed
 

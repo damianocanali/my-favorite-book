@@ -1,6 +1,6 @@
 {
   "appId": "com.myfavoritebook.app",
-  "appName": "My Favorite Book",
+  "appName": "My Book Lab",
   "webDir": "dist",
   "server": {
     "androidScheme": "https",

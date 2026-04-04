@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-        <string>My Favorite Book</string>
+        <string>My Book Lab</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -57,8 +57,8 @@
 		</dict>
 	</array>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>My Favorite Book uses the microphone so you can speak your story using voice input.</string>
+	<string>My Book Lab uses the microphone so you can speak your story using voice input.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
-	<string>My Favorite Book uses speech recognition to turn your voice into written words on the page.</string>
+	<string>My Book Lab uses speech recognition to turn your voice into written words on the page.</string>
 </dict>
 </plist>

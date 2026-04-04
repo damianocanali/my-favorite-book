@@ -93,7 +93,7 @@ export default function PrivacyPage() {
             <h2 className="font-heading text-lg font-bold text-galaxy-text mb-2">Contact Us</h2>
             <p>
               If you have questions about this privacy policy or wish to exercise your data rights, please
-              contact us at <span className="text-galaxy-primary">privacy@myfavoritebook.app</span>
+              contact us at <span className="text-galaxy-primary">privacy@mybooklab.app</span>
             </p>
           </section>
         </div>
@@ -157,7 +157,7 @@ export default function PrivacyPage() {
             <section>
               <h2 className="font-heading text-lg font-bold text-galaxy-text mb-2">Contact</h2>
               <p>
-                Questions about these terms? Contact us at <span className="text-galaxy-primary">support@myfavoritebook.app</span>
+                Questions about these terms? Contact us at <span className="text-galaxy-primary">support@mybooklab.app</span>
               </p>
             </section>
           </div>

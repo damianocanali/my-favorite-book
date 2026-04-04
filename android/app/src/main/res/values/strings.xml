@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">My Favorite Book</string>
-    <string name="title_activity_main">My Favorite Book</string>
+    <string name="app_name">My Book Lab</string>
+    <string name="title_activity_main">My Book Lab</string>
     <string name="package_name">com.myfavoritebook.app</string>
     <string name="custom_url_scheme">com.myfavoritebook.app</string>
 </resources>
