@@ -1,6 +1,6 @@
 import { motion } from 'motion/react'
 import { useNavigate, Link } from 'react-router-dom'
-import { BookOpen, Library, Check, Sparkles, Mic, Brain, Palette, Users, Volume2, Wand2 } from 'lucide-react'
+import { BookOpen, Library, GraduationCap, Check, Sparkles, Mic, Brain, Palette, Users, Volume2, Wand2 } from 'lucide-react'
 import { useBookshelfStore } from '../stores/useBookshelfStore'
 import { useAuthStore } from '../stores/useAuthStore'
 import { PRICES } from '../lib/plans'
