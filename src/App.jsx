@@ -15,6 +15,7 @@ import AvatarPage from './pages/AvatarPage'
 import PrivacyPage from './pages/PrivacyPage'
 import GalleryPage from './pages/GalleryPage'
 import ViewBookPage from './pages/ViewBookPage'
+import ResetPasswordPage from './pages/ResetPasswordPage'
 import ProtectedRoute from './components/auth/ProtectedRoute'
 import BadgePopup from './components/ui/BadgePopup'
 import { initCapacitor } from './capacitor'
@@ -44,6 +45,7 @@ export default function App() {
         <Route path="/success" element={<SuccessPage />} />
         <Route path="/avatar" element={<AvatarPage />} />
         <Route path="/privacy" element={<PrivacyPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/gallery" element={<GalleryPage />} />
         <Route path="/view/:slug" element={<ViewBookPage />} />
         <Route
