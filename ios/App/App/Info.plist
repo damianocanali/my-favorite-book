@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-        <string>My Book Lab</string>
+	<string>My Book Lab</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -18,10 +18,25 @@
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
 	<string>$(MARKETING_VERSION)</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.myfavoritebook.app</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.myfavoritebook.app</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>My Book Lab uses the microphone so you can speak your story using voice input.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>My Book Lab uses speech recognition to turn your voice into written words on the page.</string>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
@@ -45,20 +60,5 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
-	<key>CFBundleURLTypes</key>
-	<array>
-		<dict>
-			<key>CFBundleURLName</key>
-			<string>com.myfavoritebook.app</string>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>com.myfavoritebook.app</string>
-			</array>
-		</dict>
-	</array>
-	<key>NSMicrophoneUsageDescription</key>
-	<string>My Book Lab uses the microphone so you can speak your story using voice input.</string>
-	<key>NSSpeechRecognitionUsageDescription</key>
-	<string>My Book Lab uses speech recognition to turn your voice into written words on the page.</string>
 </dict>
 </plist>
