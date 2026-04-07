@@ -10,9 +10,16 @@ fi
 # Install Node.js
 brew install node
 
-# Install npm dependencies (Capacitor pods use local node_modules paths)
 cd "$CI_PRIMARY_REPOSITORY_PATH"
+
+# Install npm dependencies (Capacitor pods use local node_modules paths)
 npm install
+
+# Build web assets (generates dist/)
+npm run build
+
+# Copy web assets + generate capacitor.config.json and public/ into ios/App/App
+npx cap sync ios
 
 # Install CocoaPods dependencies
 cd "$CI_PRIMARY_REPOSITORY_PATH/ios/App"

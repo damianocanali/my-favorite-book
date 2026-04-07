@@ -12,6 +12,7 @@ export const useBookshelfStore = create(
   persist(
     (set, get) => ({
       books: [],
+      deletedBookIds: [],
       syncing: false,
       lastSyncedAt: null,
 
@@ -22,7 +23,10 @@ export const useBookshelfStore = create(
       },
 
       removeBook: (id) => {
-        set((state) => ({ books: state.books.filter((b) => b.id !== id) }))
+        set((state) => ({
+          books: state.books.filter((b) => b.id !== id),
+          deletedBookIds: [...state.deletedBookIds, id],
+        }))
         deleteCloudBook(id)
       },
 
@@ -49,11 +53,15 @@ export const useBookshelfStore = create(
 
           set((state) => {
             const localMap = new Map(state.books.map((b) => [b.id, b]))
+            const deletedSet = new Set(state.deletedBookIds)
             let merged = [...state.books]
 
             for (const row of cloudBooks) {
               const cloudBook = row.book_data
               const local = localMap.get(row.book_id)
+
+              // Skip books the user has deleted locally
+              if (deletedSet.has(row.book_id)) continue
 
               if (!local) {
                 merged.push(cloudBook)
@@ -98,6 +106,7 @@ export const useBookshelfStore = create(
       name: 'my-favorite-book-shelf',
       partialize: (state) => ({
         books: state.books,
+        deletedBookIds: state.deletedBookIds,
         lastSyncedAt: state.lastSyncedAt,
       }),
     }
