@@ -70,7 +70,10 @@ export default async function handler(req) {
 
   // DELETE — remove a published book (owner only)
   if (req.method === 'DELETE') {
-    const { slug, userId } = await req.json()
+    // Read from query params (iOS WKWebView drops DELETE body)
+    const url = new URL(req.url)
+    const slug = url.searchParams.get('slug')
+    const userId = url.searchParams.get('userId')
     if (!slug || !userId) return json(400, { error: 'slug and userId required' })
 
     // Verify ownership before deleting
