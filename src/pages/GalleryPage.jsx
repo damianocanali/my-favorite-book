@@ -46,8 +46,10 @@ function BookCard({ book, index, currentUserId, onRemoved }) {
     e.preventDefault()
     setRemoving(true)
     try {
-      const res = await apiFetch(`/api/publish-book?slug=${encodeURIComponent(book.slug)}&userId=${encodeURIComponent(currentUserId)}`, {
-        method: 'DELETE',
+      const res = await apiFetch('/api/publish-book', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'unpublish', slug: book.slug, userId: currentUserId }),
       })
       if (res.ok) onRemoved(book.slug)
     } catch {

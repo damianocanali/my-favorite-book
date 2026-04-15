@@ -43,8 +43,10 @@ export default function ViewBookPage() {
   const handleRemove = async () => {
     setRemoving(true)
     try {
-      const res = await apiFetch(`/api/publish-book?slug=${encodeURIComponent(slug)}&userId=${encodeURIComponent(user.id)}`, {
-        method: 'DELETE',
+      const res = await apiFetch('/api/publish-book', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'unpublish', slug, userId: user.id }),
       })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`)

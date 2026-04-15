@@ -68,22 +68,27 @@ export default async function handler(req) {
     return json(400, { error: 'slug, featured, or recent param required' })
   }
 
-  // DELETE — remove a published book (owner only)
-  if (req.method === 'DELETE') {
-    // Read from query params (iOS WKWebView drops DELETE body)
-    const url = new URL(req.url)
-    const slug = url.searchParams.get('slug')
-    const userId = url.searchParams.get('userId')
+  if (req.method !== 'POST') {
+    return json(405, { error: 'Method not allowed' })
+  }
+
+  // POST — publish or unpublish a book
+  const { allowed } = checkRateLimit(`publish:${ip}`, 10)
+  if (!allowed) return json(429, { error: 'Too many requests. Try again later.' })
+
+  const body = await req.json()
+
+  // Unpublish action
+  if (body.action === 'unpublish') {
+    const { slug, userId } = body
     if (!slug || !userId) return json(400, { error: 'slug and userId required' })
 
-    // Verify ownership before deleting
     const checkRes = await fetch(
       `${supabaseUrl}/rest/v1/published_books?slug=eq.${encodeURIComponent(slug)}&select=user_id`,
       { headers }
     )
     const rows = await checkRes.json()
     if (!rows?.length) return json(404, { error: 'Book not found' })
-    // Allow delete if book has no owner (legacy) or owner matches
     if (rows[0].user_id && rows[0].user_id !== userId) return json(403, { error: 'Not authorized' })
 
     const delRes = await fetch(
@@ -92,20 +97,12 @@ export default async function handler(req) {
     )
     if (!delRes.ok) {
       const err = await delRes.json().catch(() => ({}))
-      return json(500, { error: err.message || `Supabase delete failed (${delRes.status})` })
+      return json(500, { error: err.message || `Delete failed (${delRes.status})` })
     }
     return json(200, { success: true })
   }
 
-  if (req.method !== 'POST') {
-    return json(405, { error: 'Method not allowed' })
-  }
-
-  // POST — publish a book
-  const { allowed } = checkRateLimit(`publish:${ip}`, 10)
-  if (!allowed) return json(429, { error: 'Too many requests. Try again later.' })
-
-  const { book, userId } = await req.json()
+  const { book, userId } = body
   if (!book || !book.title || !book.pages?.length) {
     return json(400, { error: 'A valid book is required' })
   }
