@@ -22,7 +22,7 @@
     "@capacitor/haptics": "^6.0.3",
     "@capacitor/ios": "^6.2.1",
     "@capacitor/keyboard": "^6.0.4",
-    "@capacitor/local-notifications": "^8.0.2",
+    "@capacitor/local-notifications": "^6.1.3",
     "@capacitor/preferences": "^6.0.4",
     "@capacitor/splash-screen": "^6.0.4",
     "@capacitor/status-bar": "^6.0.3",
