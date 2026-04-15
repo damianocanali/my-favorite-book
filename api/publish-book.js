@@ -72,37 +72,11 @@ export default async function handler(req) {
     return json(405, { error: 'Method not allowed' })
   }
 
-  // POST — publish or unpublish a book
+  // POST — publish a book
   const { allowed } = checkRateLimit(`publish:${ip}`, 10)
   if (!allowed) return json(429, { error: 'Too many requests. Try again later.' })
 
-  const body = await req.json()
-
-  // Unpublish action
-  if (body.action === 'unpublish') {
-    const { slug, userId } = body
-    if (!slug || !userId) return json(400, { error: 'slug and userId required' })
-
-    const checkRes = await fetch(
-      `${supabaseUrl}/rest/v1/published_books?slug=eq.${encodeURIComponent(slug)}&select=user_id`,
-      { headers }
-    )
-    const rows = await checkRes.json()
-    if (!rows?.length) return json(404, { error: 'Book not found' })
-    if (rows[0].user_id && rows[0].user_id !== userId) return json(403, { error: 'Not authorized' })
-
-    const delRes = await fetch(
-      `${supabaseUrl}/rest/v1/published_books?slug=eq.${encodeURIComponent(slug)}`,
-      { method: 'DELETE', headers: { ...headers, Prefer: 'return=minimal' } }
-    )
-    if (!delRes.ok) {
-      const err = await delRes.json().catch(() => ({}))
-      return json(500, { error: err.message || `Delete failed (${delRes.status})` })
-    }
-    return json(200, { success: true })
-  }
-
-  const { book, userId } = body
+  const { book, userId } = await req.json()
   if (!book || !book.title || !book.pages?.length) {
     return json(400, { error: 'A valid book is required' })
   }
