@@ -15,7 +15,7 @@ export default async function handler(req) {
   if (corsResponse) return corsResponse
 
   const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL
-  const supabaseKey = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY
 
   if (!supabaseUrl || !supabaseKey) {
     return new Response(JSON.stringify({ error: 'Not configured' }), {
