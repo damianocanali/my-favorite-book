@@ -3,6 +3,7 @@ import { StatusBar, Style } from '@capacitor/status-bar'
 import { SplashScreen } from '@capacitor/splash-screen'
 import { Keyboard } from '@capacitor/keyboard'
 import { App } from '@capacitor/app'
+import { initNotifications } from './services/notifications'
 
 export const isNative = Capacitor.isNativePlatform()
 export const platform = Capacitor.getPlatform() // 'ios' | 'android' | 'web'
@@ -32,6 +33,9 @@ export async function initCapacitor(navigateFn) {
       })
     } catch {}
   }
+
+  // Schedule daily writing reminders
+  initNotifications()
 
   // Handle Android back button
   App.addListener('backButton', ({ canGoBack }) => {

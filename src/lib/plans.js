@@ -4,7 +4,7 @@
 export const PLANS = {
   free: {
     name: 'Free',
-    maxBooks: 2,
+    maxBooks: 1,
     storyBuddyPerDay: 3,
     imagesPerDay: 2,
     pdfExport: false,
