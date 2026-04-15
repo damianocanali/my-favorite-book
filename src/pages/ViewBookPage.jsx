@@ -52,7 +52,7 @@ export default function ViewBookPage() {
       if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`)
       navigate('/gallery')
     } catch (err) {
-      alert(`Failed to remove: ${err.message}`)
+      alert(`Failed to remove: ${err.message} | slug=${slug} | uid=${user?.id} | pubUid=${publishedUserId}`)
     } finally {
       setRemoving(false)
       setConfirmRemove(false)
