@@ -35,11 +35,12 @@ export default async function handler(req) {
 
     if (slug) {
       const res = await fetch(
-        `${supabaseUrl}/rest/v1/published_books?slug=eq.${slug}&select=*`,
+        `${supabaseUrl}/rest/v1/published_books?slug=eq.${encodeURIComponent(slug)}&select=*`,
         { headers }
       )
       const rows = await res.json()
       if (!rows?.length) return json(404, { error: 'Book not found' })
+      // Return user_id so the client can determine ownership
       return json(200, rows[0])
     }
 
@@ -57,7 +58,7 @@ export default async function handler(req) {
     const recent = url.searchParams.get('recent')
     if (recent !== null) {
       const res = await fetch(
-        `${supabaseUrl}/rest/v1/published_books?order=published_at.desc&limit=30&select=slug,title,author_name,author_age,cover_emoji,cover_color,reaction_counts,published_at,featured`,
+        `${supabaseUrl}/rest/v1/published_books?order=published_at.desc&limit=30&select=slug,user_id,title,author_name,author_age,cover_emoji,cover_color,reaction_counts,published_at,featured`,
         { headers }
       )
       const rows = await res.json()
@@ -65,6 +66,28 @@ export default async function handler(req) {
     }
 
     return json(400, { error: 'slug, featured, or recent param required' })
+  }
+
+  // DELETE — remove a published book (owner only)
+  if (req.method === 'DELETE') {
+    const { slug, userId } = await req.json()
+    if (!slug || !userId) return json(400, { error: 'slug and userId required' })
+
+    // Verify ownership before deleting
+    const checkRes = await fetch(
+      `${supabaseUrl}/rest/v1/published_books?slug=eq.${encodeURIComponent(slug)}&select=user_id`,
+      { headers }
+    )
+    const rows = await checkRes.json()
+    if (!rows?.length) return json(404, { error: 'Book not found' })
+    if (rows[0].user_id !== userId) return json(403, { error: 'Not authorized' })
+
+    const delRes = await fetch(
+      `${supabaseUrl}/rest/v1/published_books?slug=eq.${encodeURIComponent(slug)}`,
+      { method: 'DELETE', headers }
+    )
+    if (!delRes.ok) return json(500, { error: 'Failed to delete' })
+    return json(200, { success: true })
   }
 
   if (req.method !== 'POST') {

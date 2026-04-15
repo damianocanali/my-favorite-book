@@ -52,7 +52,8 @@ export default function PreviewPage() {
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)
-      const fullUrl = `${window.location.origin}/view/${data.slug}`
+      const appOrigin = import.meta.env.VITE_API_BASE_URL || window.location.origin
+      const fullUrl = `${appOrigin}/view/${data.slug}`
       setPublishedUrl(fullUrl)
       if (navigator.clipboard) navigator.clipboard.writeText(fullUrl)
     } catch {

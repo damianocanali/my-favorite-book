@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'motion/react'
-import { BookOpen, Star, Loader2, Sparkles } from 'lucide-react'
+import { BookOpen, Star, Loader2, Sparkles, Trash2 } from 'lucide-react'
 import { apiFetch } from '../lib/api'
+import { useAuthStore } from '../stores/useAuthStore'
 
 // Floating emojis in the background
 const FLOATERS = [
@@ -36,7 +37,29 @@ function FloatingEmoji({ emoji, x, y, delay, duration }) {
   )
 }
 
-function BookCard({ book, index }) {
+function BookCard({ book, index, currentUserId, onRemoved }) {
+  const [confirmRemove, setConfirmRemove] = useState(false)
+  const [removing, setRemoving] = useState(false)
+  const isOwner = currentUserId && book.user_id === currentUserId
+
+  const handleRemove = async (e) => {
+    e.preventDefault()
+    setRemoving(true)
+    try {
+      const res = await apiFetch('/api/publish-book', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slug: book.slug, userId: currentUserId }),
+      })
+      if (res.ok) onRemoved(book.slug)
+    } catch {
+      // Silent fail
+    } finally {
+      setRemoving(false)
+      setConfirmRemove(false)
+    }
+  }
+
   const totalReactions = Object.values(book.reaction_counts || {}).reduce((s, n) => s + n, 0)
   const topStickers = Object.entries(book.reaction_counts || {})
     .sort((a, b) => b[1] - a[1])
@@ -121,6 +144,37 @@ function BookCard({ book, index }) {
                 </span>
               </motion.div>
             )}
+
+            {/* Owner remove button */}
+            {isOwner && (
+              <div className="mt-3 pt-3 border-t border-galaxy-text-muted/10">
+                {confirmRemove ? (
+                  <div className="flex items-center gap-2">
+                    <span className="text-galaxy-text-muted font-body text-xs">Remove?</span>
+                    <button
+                      onClick={handleRemove}
+                      disabled={removing}
+                      className="flex items-center gap-1 px-2 py-1 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-xs font-body font-semibold hover:bg-red-500/20 transition-colors"
+                    >
+                      {removing ? <Loader2 size={10} className="animate-spin" /> : 'Yes'}
+                    </button>
+                    <button
+                      onClick={(e) => { e.preventDefault(); setConfirmRemove(false) }}
+                      className="text-galaxy-text-muted text-xs font-body hover:text-galaxy-text transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={(e) => { e.preventDefault(); setConfirmRemove(true) }}
+                    className="flex items-center gap-1.5 text-galaxy-text-muted hover:text-red-400 transition-colors text-xs font-body"
+                  >
+                    <Trash2 size={12} /> Remove from gallery
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         </motion.div>
       </Link>
@@ -131,6 +185,7 @@ function BookCard({ book, index }) {
 export default function GalleryPage() {
   const [books, setBooks] = useState([])
   const [loading, setLoading] = useState(true)
+  const user = useAuthStore((s) => s.user)
 
   useEffect(() => {
     async function fetchBooks() {
@@ -145,6 +200,8 @@ export default function GalleryPage() {
     }
     fetchBooks()
   }, [])
+
+  const handleRemoved = (slug) => setBooks((prev) => prev.filter((b) => b.slug !== slug))
 
   const featured = books.filter((b) => b.featured)
   const recent = books.filter((b) => !b.featured)
@@ -261,7 +318,7 @@ export default function GalleryPage() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {featured.map((book, i) => (
-              <BookCard key={book.slug} book={book} index={i} />
+              <BookCard key={book.slug} book={book} index={i} currentUserId={user?.id} onRemoved={handleRemoved} />
             ))}
           </div>
         </motion.div>
@@ -281,7 +338,7 @@ export default function GalleryPage() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {recent.map((book, i) => (
-              <BookCard key={book.slug} book={book} index={i + featured.length} />
+              <BookCard key={book.slug} book={book} index={i + featured.length} currentUserId={user?.id} onRemoved={handleRemoved} />
             ))}
           </div>
         </motion.div>

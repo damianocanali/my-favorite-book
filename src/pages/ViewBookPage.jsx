@@ -1,20 +1,26 @@
 import { useState, useEffect } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, useNavigate, Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'motion/react'
-import { BookOpen, Share2, Loader2, ArrowLeft } from 'lucide-react'
+import { BookOpen, Share2, Loader2, ArrowLeft, Trash2 } from 'lucide-react'
 import { apiFetch } from '../lib/api'
 import BookPreview from '../components/book/BookPreview'
+import { useAuthStore } from '../stores/useAuthStore'
 
 const STICKERS = ['❤️', '⭐', '😍', '🎉', '👏', '🦄', '🌈', '🔥', '💎', '🫶']
 
 export default function ViewBookPage() {
   const { slug } = useParams()
+  const navigate = useNavigate()
+  const user = useAuthStore((s) => s.user)
   const [book, setBook] = useState(null)
+  const [publishedUserId, setPublishedUserId] = useState(null)
   const [reactions, setReactions] = useState({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [justReacted, setJustReacted] = useState(null)
   const [copied, setCopied] = useState(false)
+  const [removing, setRemoving] = useState(false)
+  const [confirmRemove, setConfirmRemove] = useState(false)
 
   useEffect(() => {
     async function fetchBook() {
@@ -23,6 +29,7 @@ export default function ViewBookPage() {
         if (!res.ok) throw new Error('Book not found')
         const data = await res.json()
         setBook(data.book_data)
+        setPublishedUserId(data.user_id)
         setReactions(data.reaction_counts || {})
       } catch {
         setError('This book could not be found. It may have been removed.')
@@ -32,6 +39,24 @@ export default function ViewBookPage() {
     }
     fetchBook()
   }, [slug])
+
+  const handleRemove = async () => {
+    setRemoving(true)
+    try {
+      const res = await apiFetch('/api/publish-book', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slug, userId: user.id }),
+      })
+      if (!res.ok) throw new Error()
+      navigate('/gallery')
+    } catch {
+      alert('Failed to remove. Please try again.')
+    } finally {
+      setRemoving(false)
+      setConfirmRemove(false)
+    }
+  }
 
   const handleReaction = async (sticker) => {
     setJustReacted(sticker)
@@ -117,13 +142,43 @@ export default function ViewBookPage() {
             </div>
           </div>
 
-          <button
-            onClick={handleShare}
-            className="flex items-center gap-2 px-4 py-2 rounded-full bg-galaxy-bg-light border border-galaxy-text-muted/20 text-galaxy-text-muted hover:text-galaxy-text hover:border-galaxy-primary/40 transition-colors shrink-0 text-sm font-body"
-          >
-            <Share2 size={16} />
-            {copied ? 'Link Copied!' : 'Share'}
-          </button>
+          <div className="flex items-center gap-2 shrink-0">
+            {user && publishedUserId === user.id && (
+              confirmRemove ? (
+                <div className="flex items-center gap-2">
+                  <span className="text-galaxy-text-muted font-body text-xs">Remove from gallery?</span>
+                  <button
+                    onClick={handleRemove}
+                    disabled={removing}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-red-500/10 border border-red-500/40 text-red-400 hover:bg-red-500/20 transition-colors text-sm font-body font-semibold"
+                  >
+                    {removing ? <Loader2 size={14} className="animate-spin" /> : 'Yes, remove'}
+                  </button>
+                  <button
+                    onClick={() => setConfirmRemove(false)}
+                    className="text-galaxy-text-muted hover:text-galaxy-text transition-colors text-sm font-body"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setConfirmRemove(true)}
+                  className="flex items-center gap-2 px-4 py-2 rounded-full bg-galaxy-bg-light border border-galaxy-text-muted/20 text-galaxy-text-muted hover:text-red-400 hover:border-red-400/40 transition-colors text-sm font-body"
+                >
+                  <Trash2 size={16} />
+                  Remove
+                </button>
+              )
+            )}
+            <button
+              onClick={handleShare}
+              className="flex items-center gap-2 px-4 py-2 rounded-full bg-galaxy-bg-light border border-galaxy-text-muted/20 text-galaxy-text-muted hover:text-galaxy-text hover:border-galaxy-primary/40 transition-colors text-sm font-body"
+            >
+              <Share2 size={16} />
+              {copied ? 'Link Copied!' : 'Share'}
+            </button>
+          </div>
         </div>
       </div>
 
