@@ -95,6 +95,14 @@ export const useBookshelfStore = create(
           for (const book of localOnly) {
             syncBookToCloud(book)
           }
+
+          // Delete cloud books that were deleted locally on another platform
+          const deletedSet = new Set(get().deletedBookIds)
+          for (const cloudBook of cloudBooks) {
+            if (deletedSet.has(cloudBook.book_id)) {
+              deleteCloudBook(cloudBook.book_id)
+            }
+          }
         } catch {
           // Silent fail — local books still work
         } finally {
@@ -131,9 +139,9 @@ async function deleteCloudBook(bookId) {
   if (!_currentUserId) return
   try {
     await apiFetch('/api/sync-books', {
-      method: 'DELETE',
+      method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId: _currentUserId, bookId }),
+      body: JSON.stringify({ action: 'delete', userId: _currentUserId, bookId }),
     })
   } catch {
     // Silent fail

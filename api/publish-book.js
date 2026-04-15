@@ -95,11 +95,20 @@ export default async function handler(req) {
 
     const delRes = await fetch(
       `${supabaseUrl}/rest/v1/published_books?slug=eq.${encodeURIComponent(slug)}`,
-      { method: 'DELETE', headers: { ...headers, Prefer: 'return=minimal' } }
+      { method: 'DELETE', headers: { ...headers, Prefer: 'return=representation' } }
     )
     if (!delRes.ok) {
       const err = await delRes.json().catch(() => ({}))
       return json(500, { error: err.message || `Delete failed (${delRes.status})` })
+    }
+    // Verify the row was actually deleted (RLS can silently block deletes)
+    const verifyRes = await fetch(
+      `${supabaseUrl}/rest/v1/published_books?slug=eq.${encodeURIComponent(slug)}&select=slug`,
+      { headers }
+    )
+    const remaining = await verifyRes.json()
+    if (remaining?.length > 0) {
+      return json(500, { error: 'Delete blocked by database policy. Please contact support.' })
     }
     return json(200, { success: true })
   }

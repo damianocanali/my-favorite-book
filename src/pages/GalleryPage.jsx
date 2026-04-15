@@ -51,9 +51,11 @@ function BookCard({ book, index, currentUserId, onRemoved }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'unpublish', slug: book.slug, userId: currentUserId }),
       })
-      if (res.ok) onRemoved(book.slug)
-    } catch {
-      // Silent fail
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`)
+      onRemoved(book.slug)
+    } catch (err) {
+      alert(`Could not remove book: ${err.message}`)
     } finally {
       setRemoving(false)
       setConfirmRemove(false)

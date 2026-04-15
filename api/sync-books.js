@@ -42,9 +42,22 @@ export default async function handler(req) {
     return json(200, rows || [])
   }
 
-  // POST — upsert a book (save or update)
+  // POST — upsert a book, or delete (action:'delete') for iOS compatibility
   if (req.method === 'POST') {
-    const { userId, book } = await req.json()
+    const body = await req.json().catch(() => ({}))
+
+    // Delete action — iOS WKWebView drops DELETE request bodies
+    if (body.action === 'delete') {
+      const { userId, bookId } = body
+      if (!userId || !bookId) return json(400, { error: 'userId and bookId required' })
+      await fetch(
+        `${supabaseUrl}/rest/v1/user_books?user_id=eq.${userId}&book_id=eq.${bookId}`,
+        { method: 'DELETE', headers: { ...headers, Prefer: 'return=minimal' } }
+      )
+      return json(200, { deleted: true })
+    }
+
+    const { userId, book } = body
     if (!userId || !book?.id) return json(400, { error: 'userId and book required' })
 
     // Strip large base64 images to keep DB payload reasonable
@@ -84,16 +97,15 @@ export default async function handler(req) {
     return json(200, { saved: true })
   }
 
-  // DELETE — remove a book
+  // DELETE — remove a book (also accepted as POST with action:'delete' for iOS compatibility)
   if (req.method === 'DELETE') {
-    const { userId, bookId } = await req.json()
+    const { userId, bookId } = await req.json().catch(() => ({}))
     if (!userId || !bookId) return json(400, { error: 'userId and bookId required' })
 
     await fetch(
       `${supabaseUrl}/rest/v1/user_books?user_id=eq.${userId}&book_id=eq.${bookId}`,
-      { method: 'DELETE', headers }
+      { method: 'DELETE', headers: { ...headers, Prefer: 'return=minimal' } }
     )
-
     return json(200, { deleted: true })
   }
 
