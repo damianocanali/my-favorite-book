@@ -80,13 +80,17 @@ export default async function handler(req) {
     )
     const rows = await checkRes.json()
     if (!rows?.length) return json(404, { error: 'Book not found' })
-    if (rows[0].user_id !== userId) return json(403, { error: 'Not authorized' })
+    // Allow delete if book has no owner (legacy) or owner matches
+    if (rows[0].user_id && rows[0].user_id !== userId) return json(403, { error: 'Not authorized' })
 
     const delRes = await fetch(
       `${supabaseUrl}/rest/v1/published_books?slug=eq.${encodeURIComponent(slug)}`,
-      { method: 'DELETE', headers }
+      { method: 'DELETE', headers: { ...headers, Prefer: 'return=minimal' } }
     )
-    if (!delRes.ok) return json(500, { error: 'Failed to delete' })
+    if (!delRes.ok) {
+      const err = await delRes.json().catch(() => ({}))
+      return json(500, { error: err.message || `Supabase delete failed (${delRes.status})` })
+    }
     return json(200, { success: true })
   }
 

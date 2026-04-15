@@ -48,10 +48,11 @@ export default function ViewBookPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ slug, userId: user.id }),
       })
-      if (!res.ok) throw new Error()
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`)
       navigate('/gallery')
-    } catch {
-      alert('Failed to remove. Please try again.')
+    } catch (err) {
+      alert(`Failed to remove: ${err.message}`)
     } finally {
       setRemoving(false)
       setConfirmRemove(false)
