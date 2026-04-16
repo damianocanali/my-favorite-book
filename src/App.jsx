@@ -21,6 +21,7 @@ import ProtectedRoute from './components/auth/ProtectedRoute'
 import BadgePopup from './components/ui/BadgePopup'
 import { initCapacitor } from './capacitor'
 import { useAuthStore } from './stores/useAuthStore'
+import { resumeOnGesture } from './services/audioService'
 
 export default function App() {
   const navigate = useNavigate()
@@ -29,6 +30,20 @@ export default function App() {
   useEffect(() => {
     initCapacitor(navigate)
     initializeAuth()
+
+    // iOS requires a user gesture before audio can play
+    const handleFirstGesture = () => {
+      resumeOnGesture()
+      document.removeEventListener('click', handleFirstGesture)
+      document.removeEventListener('touchstart', handleFirstGesture)
+    }
+    document.addEventListener('click', handleFirstGesture)
+    document.addEventListener('touchstart', handleFirstGesture, { passive: true })
+
+    return () => {
+      document.removeEventListener('click', handleFirstGesture)
+      document.removeEventListener('touchstart', handleFirstGesture)
+    }
   }, [navigate, initializeAuth])
 
   return (

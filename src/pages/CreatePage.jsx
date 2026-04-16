@@ -10,6 +10,7 @@ import { useAuthStore } from '../stores/useAuthStore'
 import WizardContainer from '../components/wizard/WizardContainer'
 import StoryEditor from '../components/editor/StoryEditor'
 import SparkleButton from '../components/ui/SparkleButton'
+import { playTrack } from '../services/audioService'
 
 const TOTAL_WIZARD_STEPS = 7
 
@@ -37,6 +38,10 @@ export default function CreatePage() {
       startNewBook()
     }
   }, [book, startNewBook])
+
+  useEffect(() => {
+    playTrack(phase === 'editor' ? 'editor' : 'wizard')
+  }, [phase])
 
   const handleWizardFinish = () => {
     setPhase('editor')

@@ -1,7 +1,9 @@
+import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { Home, Library, LogOut, GraduationCap, Sparkles, Star } from 'lucide-react'
+import { Home, Library, LogOut, GraduationCap, Sparkles, Star, Volume2, VolumeX } from 'lucide-react'
 import { useBookshelfStore } from '../../stores/useBookshelfStore'
 import { useAuthStore, selectDisplayName, selectRole } from '../../stores/useAuthStore'
+import { toggleMute, isMuted } from '../../services/audioService'
 import AvatarDisplay from '../avatar/AvatarDisplay'
 import AppLogo from '../ui/AppLogo'
 import CosmicBackground from './CosmicBackground'
@@ -16,9 +18,16 @@ export default function AppShell({ children }) {
   const displayName = useAuthStore(selectDisplayName)
   const role = useAuthStore(selectRole)
 
+  const [muted, setMuted] = useState(isMuted())
+
   const handleSignOut = async () => {
     await signOut()
     navigate('/')
+  }
+
+  const handleToggleMute = () => {
+    const nowMuted = toggleMute()
+    setMuted(nowMuted)
   }
 
   return (
@@ -102,6 +111,15 @@ export default function AppShell({ children }) {
                 <span className="hidden sm:inline text-sm font-body font-semibold">Classroom</span>
               </Link>
             )}
+
+            {/* Music mute toggle */}
+            <button
+              onClick={handleToggleMute}
+              title={muted ? 'Unmute music' : 'Mute music'}
+              className="flex items-center px-2 py-2 rounded-full text-galaxy-text-muted hover:text-galaxy-text transition-colors"
+            >
+              {muted ? <VolumeX size={18} /> : <Volume2 size={18} />}
+            </button>
 
             {/* Auth section */}
             {user ? (

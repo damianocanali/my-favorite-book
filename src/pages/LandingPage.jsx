@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { motion } from 'motion/react'
 import { useNavigate, Link } from 'react-router-dom'
 import { BookOpen, Library, GraduationCap, Check, Sparkles, Mic, Brain, Palette, Users, Volume2, Wand2 } from 'lucide-react'
@@ -6,6 +7,7 @@ import { useAuthStore } from '../stores/useAuthStore'
 import { PRICES } from '../lib/plans'
 import SparkleButton from '../components/ui/SparkleButton'
 import CosmicBackground from '../components/layout/CosmicBackground'
+import { playTrack } from '../services/audioService'
 
 const titleLetters = 'My Book Lab'.split('')
 
@@ -32,6 +34,8 @@ export default function LandingPage() {
   const navigate = useNavigate()
   const bookCount = useBookshelfStore((state) => state.books.length)
   const user = useAuthStore((s) => s.user)
+
+  useEffect(() => { playTrack('home') }, [])
 
   return (
     <div className="min-h-screen relative flex flex-col items-center px-4 pb-8 overflow-hidden">

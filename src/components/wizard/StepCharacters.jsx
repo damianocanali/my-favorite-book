@@ -81,6 +81,18 @@ export default function StepCharacters({ onNext, onPrev }) {
         transition={{ delay: 0.2 }}
       >
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+          {/* Create your own — first */}
+          <GlowCard
+            onClick={() => setShowCreate(true)}
+            color="#06B6D4"
+            className="flex flex-col items-center justify-center gap-2 py-4 border-dashed"
+          >
+            <Plus size={28} className="text-galaxy-secondary" />
+            <span className="font-heading font-semibold text-sm text-galaxy-secondary text-center">
+              Create Your Own!
+            </span>
+          </GlowCard>
+
           {characters.map((char) => (
             <GlowCard
               key={char.id}
@@ -120,17 +132,6 @@ export default function StepCharacters({ onNext, onPrev }) {
               </GlowCard>
             ))}
 
-          {/* Create your own */}
-          <GlowCard
-            onClick={() => setShowCreate(true)}
-            color="#06B6D4"
-            className="flex flex-col items-center justify-center gap-2 py-4 border-dashed"
-          >
-            <Plus size={28} className="text-galaxy-secondary" />
-            <span className="font-heading font-semibold text-sm text-galaxy-secondary text-center">
-              Create Your Own!
-            </span>
-          </GlowCard>
         </div>
       </motion.div>
 

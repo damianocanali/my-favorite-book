@@ -1,14 +1,18 @@
+import { useEffect } from 'react'
 import { motion } from 'motion/react'
 import { useNavigate, Link } from 'react-router-dom'
 import { Library, Plus, LogIn } from 'lucide-react'
 import Bookshelf from '../components/bookshelf/Bookshelf'
 import SparkleButton from '../components/ui/SparkleButton'
+import { playTrack } from '../services/audioService'
 import { useAuthStore } from '../stores/useAuthStore'
 
 export default function BookshelfPage() {
   const navigate = useNavigate()
   const user = useAuthStore((s) => s.user)
   const loading = useAuthStore((s) => s.loading)
+
+  useEffect(() => { playTrack('bookshelf') }, [])
 
   if (loading) {
     return (

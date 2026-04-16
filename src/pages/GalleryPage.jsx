@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'motion/react'
 import { BookOpen, Star, Loader2, Sparkles, Trash2 } from 'lucide-react'
 import { apiFetch } from '../lib/api'
 import { useAuthStore } from '../stores/useAuthStore'
+import { playTrack } from '../services/audioService'
 
 // Floating emojis in the background
 const FLOATERS = [
@@ -188,6 +189,8 @@ export default function GalleryPage() {
   const [books, setBooks] = useState([])
   const [loading, setLoading] = useState(true)
   const user = useAuthStore((s) => s.user)
+
+  useEffect(() => { playTrack('gallery') }, [])
 
   useEffect(() => {
     async function fetchBooks() {
