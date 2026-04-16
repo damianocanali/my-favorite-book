@@ -23,7 +23,7 @@ export default function PrivacyPage() {
           <section>
             <h2 className="font-heading text-lg font-bold text-galaxy-text mb-2">Our Commitment to Children's Privacy</h2>
             <p>
-              My Favorite Book ("we", "our", "us") is designed for children and families. We take children's
+              My Book Lab ("we", "our", "us") is designed for children and families. We take children's
               privacy extremely seriously and comply with the Children's Online Privacy Protection Act (COPPA)
               and applicable data protection laws. We do not knowingly collect personal information from children
               under 13 without verifiable parental consent.
@@ -105,7 +105,7 @@ export default function PrivacyPage() {
             <section>
               <h2 className="font-heading text-lg font-bold text-galaxy-text mb-2">Acceptance of Terms</h2>
               <p>
-                By using My Favorite Book, you agree to these terms of service. If you are a parent or
+                By using My Book Lab, you agree to these terms of service. If you are a parent or
                 guardian, you are responsible for your child's use of the app.
               </p>
             </section>

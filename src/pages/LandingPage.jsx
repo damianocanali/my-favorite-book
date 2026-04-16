@@ -136,7 +136,7 @@ export default function LandingPage() {
         </motion.div>
       </div>
 
-      {/* What is My Favorite Book */}
+      {/* What is My Book Lab */}
       <motion.div
         className="relative z-10 w-full max-w-4xl mt-20 px-2"
         initial={{ opacity: 0, y: 40 }}
@@ -147,7 +147,7 @@ export default function LandingPage() {
           Every child has a story to tell
         </h2>
         <p className="text-galaxy-text-muted font-body text-sm sm:text-base text-center max-w-2xl mx-auto mb-10">
-          My Favorite Book helps kids write, illustrate, and share their own stories — with built-in tools
+          My Book Lab helps kids write, illustrate, and share their own stories — with built-in tools
           that make reading and writing fun and accessible for every learner.
         </p>
 
@@ -180,7 +180,7 @@ export default function LandingPage() {
             Designed with every child in mind
           </p>
           <p className="text-galaxy-text-muted font-body text-xs sm:text-sm leading-relaxed">
-            My Favorite Book follows Universal Design for Learning (UDL) principles and WCAG/COGA accessibility
+            My Book Lab follows Universal Design for Learning (UDL) principles and WCAG/COGA accessibility
             guidelines. Features like sentence starters, visual progress tracking, effort-based rewards, and
             multi-modal input are specifically designed to support children with ADHD, dyslexia, and other
             learning differences — making creative writing achievable and fun for everyone.
@@ -291,7 +291,7 @@ export default function LandingPage() {
             Terms of Service
           </Link>
           <span>·</span>
-          <span>© {new Date().getFullYear()} My Favorite Book</span>
+          <span>© {new Date().getFullYear()} My Book Lab</span>
         </div>
       </div>
 

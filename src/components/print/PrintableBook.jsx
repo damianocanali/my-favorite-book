@@ -123,7 +123,7 @@ export default function PrintableBook({ book }) {
             Written and illustrated by {book.authorName}
           </p>
           <p style={{ fontFamily: 'Nunito, sans-serif', fontSize: '0.9rem', opacity: 0.5, marginTop: '3rem' }}>
-            Created with My Favorite Book ✨
+            Created with My Book Lab ✨
           </p>
         </div>
       </div>

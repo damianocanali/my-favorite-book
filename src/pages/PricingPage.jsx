@@ -10,7 +10,7 @@ import SparkleButton from '../components/ui/SparkleButton'
 import ParentalGate from '../components/ui/ParentalGate'
 
 const FREE_FEATURES = [
-  '2 books total',
+  '1 book total',
   '3 Story Buddy suggestions/day',
   '2 AI illustrations per day',
   'All themes & characters',
