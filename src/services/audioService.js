@@ -23,10 +23,16 @@ async function nativePlayTrack(trackKey) {
   if (!TRACKS[trackKey]) return
   try {
     const { NativeMusic } = Capacitor.Plugins
-    if (!NativeMusic) return
+    if (!NativeMusic) {
+      console.warn('[Audio] NativeMusic plugin not found')
+      return
+    }
     const muted = getMuted()
+    console.log('[Audio] nativePlayTrack', trackKey, 'muted:', muted)
     await NativeMusic.playTrack({ track: trackKey, muted })
-  } catch {}
+  } catch (e) {
+    console.error('[Audio] nativePlayTrack error', e)
+  }
 }
 
 async function nativeSetMuted(muted) {
