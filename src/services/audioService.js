@@ -1,9 +1,13 @@
-// Singleton audio service — plain JS, no React dependencies
-// Place CC0 MP3 files in public/audio/
+// Singleton audio service
+// On iOS native: delegates to NativeMusicPlugin (AVAudioPlayer — no gesture needed)
+// On web/Android: uses HTMLAudioElement (requires user gesture)
+
+import { Capacitor } from '@capacitor/core'
 
 const MUTE_KEY = 'myBookLab_musicMuted'
 const TARGET_VOLUME = 0.25
 const FADE_MS = 800
+const IS_NATIVE = Capacitor.isNativePlatform()
 
 export const TRACKS = {
   home:      '/audio/home.mp3',
@@ -13,8 +17,29 @@ export const TRACKS = {
   gallery:   '/audio/gallery.mp3',
 }
 
-let current = null       // { audio, key, fadeTimer }
-let gestureUnlocked = false
+// ─── Native path (iOS) ────────────────────────────────────────────────────────
+
+async function nativePlayTrack(trackKey) {
+  if (!TRACKS[trackKey]) return
+  try {
+    const { NativeMusic } = Capacitor.Plugins
+    if (!NativeMusic) return
+    const muted = getMuted()
+    await NativeMusic.playTrack({ track: trackKey, muted })
+  } catch {}
+}
+
+async function nativeSetMuted(muted) {
+  try {
+    const { NativeMusic } = Capacitor.Plugins
+    if (!NativeMusic) return
+    await NativeMusic.setMuted({ muted })
+  } catch {}
+}
+
+// ─── Web path (HTMLAudioElement) ──────────────────────────────────────────────
+
+let current = null   // { audio, key, fadeTimer }
 
 function getMuted() {
   try { return localStorage.getItem(MUTE_KEY) === 'true' } catch { return false }
@@ -40,12 +65,10 @@ function fadeIn(audio) {
   return timer
 }
 
-export function playTrack(trackKey) {
+function webPlayTrack(trackKey) {
   if (!TRACKS[trackKey]) return
-  // Already playing this track — do nothing
   if (current?.key === trackKey && !current.audio.paused) return
 
-  // Stop old track immediately
   if (current) {
     clearTimer(current)
     current.audio.pause()
@@ -62,18 +85,27 @@ export function playTrack(trackKey) {
   current.fadeTimer = fadeIn(audio)
 }
 
-export function stopMusic() {
-  if (current) {
-    clearTimer(current)
-    current.audio.pause()
-    current.audio.src = ''
-    current = null
+// ─── Public API ───────────────────────────────────────────────────────────────
+
+export function playTrack(trackKey) {
+  if (IS_NATIVE) {
+    nativePlayTrack(trackKey)
+  } else {
+    webPlayTrack(trackKey)
   }
 }
 
 export function toggleMute() {
   const nowMuted = !getMuted()
   try { localStorage.setItem(MUTE_KEY, String(nowMuted)) } catch {}
+
+  if (IS_NATIVE) {
+    // Persist to UserDefaults via key so AppDelegate reads it on next launch
+    try { window.localStorage.setItem(MUTE_KEY, String(nowMuted)) } catch {}
+    nativeSetMuted(nowMuted)
+    return nowMuted
+  }
+
   if (!current) return nowMuted
   if (nowMuted) {
     clearTimer(current)
@@ -88,11 +120,12 @@ export function isMuted() {
   return getMuted()
 }
 
-// Call once on first user gesture to unlock iOS autoplay
+// Web only — called on user gestures to unlock autoplay
 export function resumeOnGesture() {
-  if (gestureUnlocked || !current || getMuted()) return
+  if (IS_NATIVE || !current || getMuted()) return
   if (current.audio.paused) {
-    current.fadeTimer = fadeIn(current.audio)
-    gestureUnlocked = true
+    clearTimer(current)
+    current.audio.volume = TARGET_VOLUME
+    current.audio.play().catch(() => {})
   }
 }

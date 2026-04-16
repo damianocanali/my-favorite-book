@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1A31EBFE2F910D2F00F2C9C1 /* wizard.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 1A31EBFD2F910D2F00F2C9C1 /* wizard.mp3 */; };
+		1A31EBFF2F910D2F00F2C9C1 /* editor.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 1A31EBFA2F910D2F00F2C9C1 /* editor.mp3 */; };
+		1A31EC002F910D2F00F2C9C1 /* home.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 1A31EBFC2F910D2F00F2C9C1 /* home.mp3 */; };
+		1A31EC012F910D2F00F2C9C1 /* gallery.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 1A31EBFB2F910D2F00F2C9C1 /* gallery.mp3 */; };
 		2FAD9763203C412B000D30F8 /* config.xml in Resources */ = {isa = PBXBuildFile; fileRef = 2FAD9762203C412B000D30F8 /* config.xml */; };
 		50379B232058CBB4000EE86E /* capacitor.config.json in Resources */ = {isa = PBXBuildFile; fileRef = 50379B222058CBB4000EE86E /* capacitor.config.json */; };
 		504EC3081FED79650016851F /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 504EC3071FED79650016851F /* AppDelegate.swift */; };
@@ -18,6 +22,10 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		1A31EBFA2F910D2F00F2C9C1 /* editor.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = editor.mp3; sourceTree = "<group>"; };
+		1A31EBFB2F910D2F00F2C9C1 /* gallery.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = gallery.mp3; sourceTree = "<group>"; };
+		1A31EBFC2F910D2F00F2C9C1 /* home.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = home.mp3; sourceTree = "<group>"; };
+		1A31EBFD2F910D2F00F2C9C1 /* wizard.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = wizard.mp3; sourceTree = "<group>"; };
 		2FAD9762203C412B000D30F8 /* config.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = config.xml; sourceTree = "<group>"; };
 		50379B222058CBB4000EE86E /* capacitor.config.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = capacitor.config.json; sourceTree = "<group>"; };
 		504EC3041FED79650016851F /* My Book LAB.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "My Book LAB.app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -44,6 +52,17 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		1A31EBF92F910D0400F2C9C1 /* audio */ = {
+			isa = PBXGroup;
+			children = (
+				1A31EBFA2F910D2F00F2C9C1 /* editor.mp3 */,
+				1A31EBFB2F910D2F00F2C9C1 /* gallery.mp3 */,
+				1A31EBFC2F910D2F00F2C9C1 /* home.mp3 */,
+				1A31EBFD2F910D2F00F2C9C1 /* wizard.mp3 */,
+			);
+			path = audio;
+			sourceTree = "<group>";
+		};
 		27E2DDA53C4D2A4D1A88CE4A /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
@@ -73,6 +92,7 @@
 		504EC3061FED79650016851F /* App */ = {
 			isa = PBXGroup;
 			children = (
+				1A31EBF92F910D0400F2C9C1 /* audio */,
 				50379B222058CBB4000EE86E /* capacitor.config.json */,
 				504EC3071FED79650016851F /* AppDelegate.swift */,
 				504EC30B1FED79650016851F /* Main.storyboard */,
@@ -159,6 +179,10 @@
 			files = (
 				504EC3121FED79650016851F /* LaunchScreen.storyboard in Resources */,
 				50B271D11FEDC1A000F3C39B /* public in Resources */,
+				1A31EBFE2F910D2F00F2C9C1 /* wizard.mp3 in Resources */,
+				1A31EBFF2F910D2F00F2C9C1 /* editor.mp3 in Resources */,
+				1A31EC002F910D2F00F2C9C1 /* home.mp3 in Resources */,
+				1A31EC012F910D2F00F2C9C1 /* gallery.mp3 in Resources */,
 				504EC30F1FED79650016851F /* Assets.xcassets in Resources */,
 				50379B232058CBB4000EE86E /* capacitor.config.json in Resources */,
 				504EC30D1FED79650016851F /* Main.storyboard in Resources */,

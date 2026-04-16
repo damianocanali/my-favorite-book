@@ -31,18 +31,17 @@ export default function App() {
     initCapacitor(navigate)
     initializeAuth()
 
-    // iOS requires a user gesture before audio can play
-    const handleFirstGesture = () => {
+    // Mobile browsers block autoplay until a user gesture — keep trying on every
+    // interaction until audio is confirmed playing
+    const handleGesture = () => {
       resumeOnGesture()
-      document.removeEventListener('click', handleFirstGesture)
-      document.removeEventListener('touchstart', handleFirstGesture)
     }
-    document.addEventListener('click', handleFirstGesture)
-    document.addEventListener('touchstart', handleFirstGesture, { passive: true })
+    document.addEventListener('click', handleGesture)
+    document.addEventListener('touchstart', handleGesture, { passive: true })
 
     return () => {
-      document.removeEventListener('click', handleFirstGesture)
-      document.removeEventListener('touchstart', handleFirstGesture)
+      document.removeEventListener('click', handleGesture)
+      document.removeEventListener('touchstart', handleGesture)
     }
   }, [navigate, initializeAuth])
 
