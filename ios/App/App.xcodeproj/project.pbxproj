@@ -14,6 +14,7 @@
 		1A31EC042F910FF800F2C9C1 /* NativeMusicPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A31EC032F910FF800F2C9C1 /* NativeMusicPlugin.swift */; };
 		1A31EC052F910FF800F2C9C1 /* NativeMusicPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A31EC022F910FF800F2C9C1 /* NativeMusicPlayer.swift */; };
 		1A31EC072F9110C100F2C9C1 /* NativeMusicPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A31EC062F9110C100F2C9C1 /* NativeMusicPlugin.m */; };
+		1A31EC0A2F91142E00F2C9C1 /* MainViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A31EC092F91142E00F2C9C1 /* MainViewController.swift */; };
 		2FAD9763203C412B000D30F8 /* config.xml in Resources */ = {isa = PBXBuildFile; fileRef = 2FAD9762203C412B000D30F8 /* config.xml */; };
 		50379B232058CBB4000EE86E /* capacitor.config.json in Resources */ = {isa = PBXBuildFile; fileRef = 50379B222058CBB4000EE86E /* capacitor.config.json */; };
 		504EC3081FED79650016851F /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 504EC3071FED79650016851F /* AppDelegate.swift */; };
@@ -33,6 +34,7 @@
 		1A31EC032F910FF800F2C9C1 /* NativeMusicPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeMusicPlugin.swift; sourceTree = "<group>"; };
 		1A31EC062F9110C100F2C9C1 /* NativeMusicPlugin.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = NativeMusicPlugin.m; sourceTree = "<group>"; };
 		1A31EC082F9110DB00F2C9C1 /* App-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "App-Bridging-Header.h"; sourceTree = "<group>"; };
+		1A31EC092F91142E00F2C9C1 /* MainViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainViewController.swift; sourceTree = "<group>"; };
 		2FAD9762203C412B000D30F8 /* config.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = config.xml; sourceTree = "<group>"; };
 		50379B222058CBB4000EE86E /* capacitor.config.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = capacitor.config.json; sourceTree = "<group>"; };
 		504EC3041FED79650016851F /* My Book LAB.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "My Book LAB.app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -99,6 +101,7 @@
 		504EC3061FED79650016851F /* App */ = {
 			isa = PBXGroup;
 			children = (
+				1A31EC092F91142E00F2C9C1 /* MainViewController.swift */,
 				1A31EC062F9110C100F2C9C1 /* NativeMusicPlugin.m */,
 				1A31EC022F910FF800F2C9C1 /* NativeMusicPlayer.swift */,
 				1A31EC032F910FF800F2C9C1 /* NativeMusicPlugin.swift */,
@@ -248,6 +251,7 @@
 				1A31EC072F9110C100F2C9C1 /* NativeMusicPlugin.m in Sources */,
 				1A31EC052F910FF800F2C9C1 /* NativeMusicPlayer.swift in Sources */,
 				504EC3081FED79650016851F /* AppDelegate.swift in Sources */,
+				1A31EC0A2F91142E00F2C9C1 /* MainViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
