@@ -4,6 +4,7 @@ import { SplashScreen } from '@capacitor/splash-screen'
 import { Keyboard } from '@capacitor/keyboard'
 import { App } from '@capacitor/app'
 import { initNotifications } from './services/notifications'
+import { supabase } from './lib/supabase'
 
 export const isNative = Capacitor.isNativePlatform()
 export const platform = Capacitor.getPlatform() // 'ios' | 'android' | 'web'
@@ -47,10 +48,34 @@ export async function initCapacitor(navigateFn) {
   })
 
   // Handle deep links / app URL open
-  App.addListener('appUrlOpen', ({ url }) => {
-    const path = new URL(url).pathname
-    if (navigateFn && path) {
-      navigateFn(path)
+  App.addListener('appUrlOpen', async ({ url }) => {
+    try {
+      const parsed = new URL(url)
+
+      // Supabase auth callback — exchange code for session
+      const code = parsed.searchParams.get('code')
+      const accessToken = parsed.searchParams.get('access_token') ||
+        new URLSearchParams(parsed.hash.slice(1)).get('access_token')
+      const refreshToken = parsed.searchParams.get('refresh_token') ||
+        new URLSearchParams(parsed.hash.slice(1)).get('refresh_token')
+
+      if (code) {
+        await supabase.auth.exchangeCodeForSession(code)
+        if (navigateFn) navigateFn('/login')
+        return
+      }
+
+      if (accessToken && refreshToken) {
+        await supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken })
+        if (navigateFn) navigateFn('/login')
+        return
+      }
+
+      // Regular deep link
+      const path = parsed.pathname
+      if (navigateFn && path) navigateFn(path)
+    } catch {
+      // Silent fail — invalid URL
     }
   })
 }

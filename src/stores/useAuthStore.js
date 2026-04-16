@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { supabase } from '../lib/supabase'
 import { useBookshelfStore, setBookshelfUserId } from './useBookshelfStore'
+import { Capacitor } from '@capacitor/core'
 
 export const useAuthStore = create((set) => ({
   user: null,
@@ -27,10 +28,13 @@ export const useAuthStore = create((set) => ({
 
   signUp: async (email, password, metadata = {}) => {
     if (!supabase) throw new Error('Auth not configured')
+    const redirectTo = Capacitor.isNativePlatform()
+      ? 'com.myfavoritebook.app://auth/callback'
+      : `${window.location.origin}/auth/callback`
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: metadata },
+      options: { data: metadata, emailRedirectTo: redirectTo },
     })
     if (error) throw error
     return data
