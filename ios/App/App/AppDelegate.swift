@@ -7,6 +7,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+        // Register custom Capacitor plugin so JS can access it via Capacitor.Plugins.NativeMusic
+        CAPBridge.registerPlugin(NativeMusicPlugin.self)
+
         // Start native music immediately on launch — no user gesture needed
         let muted = UserDefaults.standard.bool(forKey: "myBookLab_musicMuted")
         NativeMusicPlayer.shared.play(track: "home", muted: muted)
