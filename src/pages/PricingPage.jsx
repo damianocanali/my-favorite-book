@@ -1,13 +1,14 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'motion/react'
-import { Check, Sparkles, GraduationCap, BookOpen } from 'lucide-react'
+import { Check, Sparkles, GraduationCap, BookOpen, RotateCcw } from 'lucide-react'
 import { useAuthStore } from '../stores/useAuthStore'
 import { useSubscription } from '../hooks/useSubscription'
 import { PRICES } from '../lib/plans'
 import { apiFetch } from '../lib/api'
 import SparkleButton from '../components/ui/SparkleButton'
 import ParentalGate from '../components/ui/ParentalGate'
+import { IS_NATIVE, purchasePackage, restorePurchases } from '../services/purchaseService'
 
 const FREE_FEATURES = [
   '1 book total',
@@ -113,6 +114,19 @@ export default function PricingPage() {
   const handleUpgrade = async (planName) => {
     setShowGate(null)
 
+    if (IS_NATIVE) {
+      try {
+        await purchasePackage(planName, billing)
+        // RevenueCat webhook updates Supabase — reload subscription after short delay
+        setTimeout(() => window.location.reload(), 1500)
+      } catch (e) {
+        if (!e.message?.includes('cancelled')) {
+          alert(e.message || 'Purchase failed. Please try again.')
+        }
+      }
+      return
+    }
+
     const res = await apiFetch('/api/create-checkout', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -126,6 +140,15 @@ export default function PricingPage() {
     const data = await res.json()
     if (data.url) window.location.href = data.url
     else alert(data.error || 'Something went wrong')
+  }
+
+  const handleRestore = async () => {
+    try {
+      await restorePurchases()
+      setTimeout(() => window.location.reload(), 1500)
+    } catch (e) {
+      alert(e.message || 'Restore failed. Please try again.')
+    }
   }
 
   const familyPrice = billing === 'annual' ? PRICES.family.annual : PRICES.family.monthly
@@ -222,14 +245,27 @@ export default function PricingPage() {
         </div>
 
         {/* FAQ / reassurance */}
-        <motion.p
-          className="text-center text-galaxy-text-muted font-body text-sm mt-10"
+        <motion.div
+          className="text-center mt-10 space-y-3"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
         >
-          Secure checkout by Stripe · Cancel anytime from your account · No hidden fees
-        </motion.p>
+          <p className="text-galaxy-text-muted font-body text-sm">
+            {IS_NATIVE
+              ? 'Payment processed by Apple · Cancel anytime in Settings → Subscriptions'
+              : 'Secure checkout by Stripe · Cancel anytime from your account · No hidden fees'}
+          </p>
+          {IS_NATIVE && (
+            <button
+              onClick={handleRestore}
+              className="flex items-center gap-1.5 mx-auto text-galaxy-text-muted font-body text-sm hover:text-galaxy-text transition-colors"
+            >
+              <RotateCcw size={14} />
+              Restore purchases
+            </button>
+          )}
+        </motion.div>
       </div>
 
       {/* Parental gate — requires solving a math problem before checkout */}

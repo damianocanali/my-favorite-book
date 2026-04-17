@@ -5,6 +5,7 @@ import { Keyboard } from '@capacitor/keyboard'
 import { App } from '@capacitor/app'
 import { initNotifications } from './services/notifications'
 import { supabase } from './lib/supabase'
+import { initRevenueCat } from './services/purchaseService'
 
 export const isNative = Capacitor.isNativePlatform()
 export const platform = Capacitor.getPlatform() // 'ios' | 'android' | 'web'
@@ -37,6 +38,11 @@ export async function initCapacitor(navigateFn) {
 
   // Schedule daily writing reminders
   initNotifications()
+
+  // Initialize RevenueCat IAP — user ID set after auth
+  supabase.auth.getSession().then(({ data }) => {
+    initRevenueCat(data?.session?.user?.id)
+  })
 
   // Handle Android back button
   App.addListener('backButton', ({ canGoBack }) => {
