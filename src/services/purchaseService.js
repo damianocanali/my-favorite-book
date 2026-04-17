@@ -25,28 +25,35 @@ export const COIN_PACK_IAP_PRODUCTS = {
   large:  'com.myfavoritebook.app.coins.large',
 }
 
-let _purchases = null
+// The Capacitor Purchases plugin is a proxy that forwards every property
+// access to native. If we ever return it from an async function, the
+// promise-resolution machinery probes the returned value for .then, which
+// routes through the proxy to native and blows up with "Purchases.then() is
+// not implemented on ios". So we keep the plugin in a module-local and
+// always call its methods inline — never hand the proxy back to callers.
+let _Purchases = null
 
-async function getRC() {
-  if (!IS_NATIVE) return null
-  if (_purchases) return _purchases
-  const { Purchases } = await import('@revenuecat/purchases-capacitor')
-  _purchases = Purchases
-  return _purchases
+async function ensureRC() {
+  if (!IS_NATIVE) return false
+  if (_Purchases) return true
+  const mod = await import('@revenuecat/purchases-capacitor')
+  _Purchases = mod.Purchases
+  return true
 }
 
 export async function initRevenueCat(userId) {
   if (!IS_NATIVE) return
   try {
-    const RC = await getRC()
+    const ok = await ensureRC()
+    if (!ok) return
     const apiKey = import.meta.env.VITE_REVENUECAT_IOS_KEY
     if (!apiKey) {
       console.warn('[IAP] VITE_REVENUECAT_IOS_KEY not set')
       return
     }
-    await RC.configure({ apiKey })
+    await _Purchases.configure({ apiKey })
     if (userId) {
-      await RC.logIn({ appUserID: userId })
+      await _Purchases.logIn({ appUserID: userId })
     }
   } catch (e) {
     console.error('[IAP] initRevenueCat error', e)
@@ -55,9 +62,9 @@ export async function initRevenueCat(userId) {
 
 export async function getOfferings() {
   try {
-    const RC = await getRC()
-    if (!RC) return null
-    const { current } = await RC.getOfferings()
+    const ok = await ensureRC()
+    if (!ok) return null
+    const { current } = await _Purchases.getOfferings()
     return current
   } catch (e) {
     console.error('[IAP] getOfferings error', e)
@@ -66,8 +73,8 @@ export async function getOfferings() {
 }
 
 export async function purchasePackage(planName, billing) {
-  const RC = await getRC()
-  if (!RC) throw new Error('IAP not available')
+  const ok = await ensureRC()
+  if (!ok) throw new Error('IAP not available')
 
   const productId = IAP_PRODUCTS[`${planName}_${billing}`]
   if (!productId) throw new Error('Unknown product')
@@ -80,7 +87,7 @@ export async function purchasePackage(planName, billing) {
   )
   if (!pkg) throw new Error(`Package not found: ${productId}`)
 
-  const { customerInfo } = await RC.purchasePackage({ aPackage: pkg })
+  const { customerInfo } = await _Purchases.purchasePackage({ aPackage: pkg })
   return customerInfo
 }
 
@@ -89,46 +96,41 @@ export async function purchasePackage(planName, billing) {
 // server-side via add_coins. The caller should refresh the balance
 // afterwards rather than trust any amount from the client.
 export async function purchaseCoinPack(packKey) {
-  const RC = await getRC()
-  if (!RC) throw new Error('IAP not available')
+  const ok = await ensureRC()
+  if (!ok) throw new Error('IAP not available')
 
   const productId = COIN_PACK_IAP_PRODUCTS[packKey]
   if (!productId) throw new Error('Unknown coin pack')
 
-  // Coin packs may live in a separate offering (e.g. "coins") or as
-  // non-subscription packages on the default offering. Try the default
-  // offering first, then fall back to getProducts for a direct purchase.
   const offering = await getOfferings()
   const pkg = offering?.availablePackages?.find(
     (p) => p.product.identifier === productId
   )
 
   if (pkg) {
-    const { customerInfo } = await RC.purchasePackage({ aPackage: pkg })
+    const { customerInfo } = await _Purchases.purchasePackage({ aPackage: pkg })
     return { ok: true, customerInfo }
   }
 
-  // Fallback: purchase the bare product. Some RC setups expose consumables
-  // only via getProducts rather than as packages.
-  const { products } = await RC.getProducts({ productIdentifiers: [productId] })
+  const { products } = await _Purchases.getProducts({ productIdentifiers: [productId] })
   const product = products?.[0]
   if (!product) throw new Error(`Product not found: ${productId}`)
-  const { customerInfo } = await RC.purchaseStoreProduct({ product })
+  const { customerInfo } = await _Purchases.purchaseStoreProduct({ product })
   return { ok: true, customerInfo }
 }
 
 export async function restorePurchases() {
-  const RC = await getRC()
-  if (!RC) throw new Error('IAP not available')
-  const { customerInfo } = await RC.restorePurchases()
+  const ok = await ensureRC()
+  if (!ok) throw new Error('IAP not available')
+  const { customerInfo } = await _Purchases.restorePurchases()
   return customerInfo
 }
 
 export async function getCustomerInfo() {
   try {
-    const RC = await getRC()
-    if (!RC) return null
-    const { customerInfo } = await RC.getCustomerInfo()
+    const ok = await ensureRC()
+    if (!ok) return null
+    const { customerInfo } = await _Purchases.getCustomerInfo()
     return customerInfo
   } catch (e) {
     console.error('[IAP] getCustomerInfo error', e)
