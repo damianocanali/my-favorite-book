@@ -1,9 +1,6 @@
 // Single source of truth for plan features and pricing.
 // Price IDs come from environment variables set in the Vercel dashboard.
 
-import { Capacitor } from '@capacitor/core'
-const IS_NATIVE = Capacitor.isNativePlatform()
-
 
 export const PLANS = {
   free: {
@@ -41,18 +38,7 @@ export const PLANS = {
   },
 }
 
-const WEB_PRICES = {
-  family: {
-    monthly: { amount: '$4.99', interval: 'month' },
-    annual:  { amount: '$39.99', interval: 'year', monthlyEquivalent: '$3.33/mo' },
-  },
-  teacher: {
-    monthly: { amount: '$9.99',  interval: 'month' },
-    annual:  { amount: '$79.99', interval: 'year', monthlyEquivalent: '$6.67/mo' },
-  },
-}
-
-const IOS_PRICES = {
+export const PRICES = {
   family: {
     monthly: { amount: '$6.99',  interval: 'month' },
     annual:  { amount: '$54.99', interval: 'year', monthlyEquivalent: '$4.58/mo' },
@@ -62,8 +48,6 @@ const IOS_PRICES = {
     annual:  { amount: '$109.99', interval: 'year', monthlyEquivalent: '$9.17/mo' },
   },
 }
-
-export const PRICES = IS_NATIVE ? IOS_PRICES : WEB_PRICES
 
 /** Returns the plan object for a given plan key (defaults to 'free'). */
 export function getPlan(planKey) {
