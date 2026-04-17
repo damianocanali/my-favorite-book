@@ -131,9 +131,13 @@ export default function AppShell({ children }) {
                 >
                   <AvatarDisplay size={32} mini />
                 </Link>
-                <span className="text-galaxy-text-muted text-xs font-body hidden sm:block max-w-[100px] truncate">
+                <Link
+                  to="/account"
+                  title="Account"
+                  className="text-galaxy-text-muted text-xs font-body hidden sm:block max-w-[100px] truncate hover:text-galaxy-text transition-colors"
+                >
                   {displayName}
-                </span>
+                </Link>
                 <button
                   onClick={handleSignOut}
                   title="Sign out"
