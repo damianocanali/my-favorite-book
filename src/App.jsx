@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { Routes, Route, useNavigate } from 'react-router-dom'
+import { Routes, Route, useNavigate, useLocation } from 'react-router-dom'
 import AppShell from './components/layout/AppShell'
 import LandingPage from './pages/LandingPage'
 import CreatePage from './pages/CreatePage'
@@ -23,6 +23,18 @@ import BadgePopup from './components/ui/BadgePopup'
 import { initCapacitor } from './capacitor'
 import { useAuthStore } from './stores/useAuthStore'
 import { resumeOnGesture } from './services/audioService'
+
+// Reset scroll on every route change. Without this, navigating from a long
+// page (e.g. scrolled-down /login) to another page leaves the new page
+// positioned wherever the previous scroll was, which on iOS/Capacitor
+// makes it look like the screen "opens in the middle."
+function ScrollToTop() {
+  const { pathname } = useLocation()
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [pathname])
+  return null
+}
 
 export default function App() {
   const navigate = useNavigate()
@@ -48,6 +60,7 @@ export default function App() {
 
   return (
     <AppShell>
+      <ScrollToTop />
       <BadgePopup />
       <Routes>
         <Route path="/" element={<LandingPage />} />
