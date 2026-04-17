@@ -36,8 +36,8 @@ export default function AccountPage() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${jwt}`,
         },
-      })
-      const data = await res.json()
+      }).catch((e) => { throw new Error(`Network error: ${e.message}`) })
+      const data = await res.json().catch(() => { throw new Error(`Server error: ${res.status}`) })
       if (!data.deleted) throw new Error(data.error || 'Deletion failed')
 
       await signOut()
