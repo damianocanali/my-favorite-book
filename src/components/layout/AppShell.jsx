@@ -125,8 +125,8 @@ export default function AppShell({ children }) {
             {user ? (
               <div className="flex items-center gap-2 pl-2 border-l border-galaxy-text-muted/20">
                 <Link
-                  to="/avatar"
-                  title="My Avatar"
+                  to="/account"
+                  title="Account"
                   className="hover:opacity-80 transition-opacity"
                 >
                   <AvatarDisplay size={32} mini />

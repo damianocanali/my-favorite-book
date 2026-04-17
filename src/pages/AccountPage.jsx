@@ -1,10 +1,11 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { motion } from 'motion/react'
-import { Trash2, LogOut, AlertTriangle, Loader2 } from 'lucide-react'
+import { Trash2, LogOut, AlertTriangle, Loader2, Sparkles } from 'lucide-react'
 import { useAuthStore, selectDisplayName } from '../stores/useAuthStore'
 import { supabase } from '../lib/supabase'
 import { apiFetch } from '../lib/api'
+import AvatarDisplay from '../components/avatar/AvatarDisplay'
 
 export default function AccountPage() {
   const navigate = useNavigate()
@@ -60,8 +61,26 @@ export default function AccountPage() {
           animate={{ opacity: 1, y: 0 }}
           className="bg-galaxy-bg-light border border-galaxy-text-muted/20 rounded-3xl p-8"
         >
-          <h1 className="font-heading text-3xl font-bold text-galaxy-text mb-1">Account</h1>
-          <p className="text-galaxy-text-muted font-body text-sm mb-8">{user.email}</p>
+          {/* Avatar + name */}
+          <div className="flex items-center gap-4 mb-8">
+            <AvatarDisplay size={56} />
+            <div>
+              <h1 className="font-heading text-2xl font-bold text-galaxy-text">{displayName}</h1>
+              <p className="text-galaxy-text-muted font-body text-sm">{user.email}</p>
+            </div>
+          </div>
+
+          {/* Avatar customization */}
+          <div className="border-b border-galaxy-text-muted/20 pb-6 mb-6">
+            <h2 className="font-heading text-lg font-semibold text-galaxy-text mb-3">Profile</h2>
+            <Link
+              to="/avatar"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-2xl border border-galaxy-text-muted/30 text-galaxy-text-muted hover:text-galaxy-text hover:border-galaxy-text-muted/60 transition-colors font-body text-sm w-fit"
+            >
+              <Sparkles size={16} />
+              Customize my avatar
+            </Link>
+          </div>
 
           {/* Sign out */}
           <div className="border-b border-galaxy-text-muted/20 pb-6 mb-6">
