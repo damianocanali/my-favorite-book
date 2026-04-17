@@ -37,7 +37,7 @@ const TEACHER_FEATURES = [
   'Classroom admin dashboard',
 ]
 
-function PlanCard({ icon: Icon, iconColor, title, badge, billing, price, monthlyEquivalent, features, cta, onCta, current, highlight }) {
+function PlanCard({ icon: Icon, iconColor, title, badge, billing, price, monthlyEquivalent, features, cta, onCta, current, highlight, loading, disabled }) {
   return (
     <motion.div
       className={`relative flex flex-col rounded-3xl p-6 sm:p-8 border transition-all ${
@@ -88,8 +88,9 @@ function PlanCard({ icon: Icon, iconColor, title, badge, billing, price, monthly
           variant={highlight ? 'primary' : 'secondary'}
           size="default"
           className="w-full"
+          disabled={disabled || loading}
         >
-          {cta}
+          {loading ? 'Starting checkout…' : cta}
         </SparkleButton>
       )}
     </motion.div>
@@ -102,8 +103,11 @@ export default function PricingPage() {
   const { planKey, loading } = useSubscription()
   const [billing, setBilling] = useState('monthly')
   const [showGate, setShowGate] = useState(null) // null or plan name
+  const [upgrading, setUpgrading] = useState(null) // plan currently being processed
+  const [upgradeError, setUpgradeError] = useState(null)
 
   const handleUpgradeClick = (planName) => {
+    setUpgradeError(null)
     if (!user) {
       navigate('/signup')
       return
@@ -113,28 +117,44 @@ export default function PricingPage() {
 
   const handleUpgrade = async (planName) => {
     setShowGate(null)
+    setUpgradeError(null)
+    setUpgrading(planName)
 
-    if (IS_NATIVE) {
-      try {
-        await purchasePackage(planName, billing)
-        // RevenueCat webhook updates Supabase — reload subscription after short delay
-        setTimeout(() => window.location.reload(), 1500)
-      } catch (e) {
-        if (!e.message?.includes('cancelled')) {
-          alert(e.message || 'Purchase failed. Please try again.')
+    try {
+      if (IS_NATIVE) {
+        try {
+          await purchasePackage(planName, billing)
+          setTimeout(() => window.location.reload(), 1500)
+        } catch (e) {
+          const cancelled = e?.userCancelled || /cancell?ed/i.test(e?.message || '')
+          if (!cancelled) throw e
         }
+        return
       }
-      return
-    }
 
-    const res = await apiFetchAuthed('/api/create-checkout', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ planName, billing }),
-    })
-    const data = await res.json()
-    if (data.url) window.location.href = data.url
-    else alert(data.error || 'Something went wrong')
+      const res = await apiFetchAuthed('/api/create-checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ planName, billing }),
+      })
+      const data = await res.json().catch(() => null)
+
+      if (!res.ok || !data?.url) {
+        const msg = data?.error
+          || `Checkout failed (${res.status}). Check that STRIPE_SECRET_KEY and STRIPE_PRICE_${planName.toUpperCase()}_${billing.toUpperCase()} are configured on the server.`
+        throw new Error(msg)
+      }
+
+      window.location.href = data.url
+    } catch (e) {
+      // Surface the real error in the UI instead of a silent reject, which
+      // is what you hit if the Stripe env vars aren't wired up or the
+      // auth token didn't attach.
+      console.error('[upgrade]', e)
+      setUpgradeError(e?.message || 'Upgrade failed. Please try again.')
+    } finally {
+      setUpgrading(null)
+    }
   }
 
   const handleRestore = async () => {
@@ -196,6 +216,26 @@ export default function PricingPage() {
           </button>
         </motion.div>
 
+        {/* Upgrade error banner */}
+        {upgradeError && (
+          <motion.div
+            className="max-w-2xl mx-auto mb-6 rounded-2xl border border-red-400/40 bg-red-400/10 px-4 py-3 text-red-200 font-body text-sm"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <div className="flex items-start justify-between gap-3">
+              <p className="flex-1">{upgradeError}</p>
+              <button
+                onClick={() => setUpgradeError(null)}
+                className="text-red-200/70 hover:text-red-100 text-xs font-bold shrink-0"
+                aria-label="Dismiss error"
+              >
+                ✕
+              </button>
+            </div>
+          </motion.div>
+        )}
+
         {/* Plan cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <PlanCard
@@ -222,6 +262,8 @@ export default function PricingPage() {
             cta="Upgrade to Family"
             onCta={() => handleUpgradeClick('family')}
             current={!loading && planKey === 'family'}
+            loading={upgrading === 'family'}
+            disabled={!!upgrading && upgrading !== 'family'}
             highlight
           />
 
@@ -236,6 +278,8 @@ export default function PricingPage() {
             cta="Start free trial"
             onCta={() => handleUpgradeClick('teacher')}
             current={!loading && planKey === 'teacher'}
+            loading={upgrading === 'teacher'}
+            disabled={!!upgrading && upgrading !== 'teacher'}
           />
         </div>
 

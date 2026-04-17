@@ -12,6 +12,7 @@ import SubmitToClassModal from '../components/classroom/SubmitToClassModal'
 import SparkleButton from '../components/ui/SparkleButton'
 import { isNative } from '../capacitor'
 import { apiFetchAuthed } from '../lib/api'
+import { celebrateBig } from '../lib/celebrate'
 
 export default function PreviewPage() {
   const { bookId } = useParams()
@@ -56,6 +57,8 @@ export default function PreviewPage() {
       const fullUrl = `${appOrigin}/view/${data.slug}`
       setPublishedUrl(fullUrl)
       if (navigator.clipboard) navigator.clipboard.writeText(fullUrl)
+      // Shipping a book is the headline moment — blast confetti.
+      celebrateBig()
     } catch {
       alert('Failed to publish. Please try again.')
     } finally {

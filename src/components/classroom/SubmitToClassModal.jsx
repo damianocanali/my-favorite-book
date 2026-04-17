@@ -4,6 +4,7 @@ import { Send, CheckCircle } from 'lucide-react'
 import SparkleButton from '../ui/SparkleButton'
 import { useRewardsStore } from '../../stores/useRewardsStore'
 import { apiFetch } from '../../lib/api'
+import { celebrateBig } from '../../lib/celebrate'
 
 export default function SubmitToClassModal({ book, onClose }) {
   const earnBadge = useRewardsStore((s) => s.earnBadge)
@@ -26,6 +27,7 @@ export default function SubmitToClassModal({ book, onClose }) {
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Could not submit book')
       setSuccess(true)
+      celebrateBig()
       earnBadge('submitted_class')
     } catch (e) {
       setError(e.message)
