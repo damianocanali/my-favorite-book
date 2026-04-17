@@ -1,6 +1,7 @@
 export const config = { runtime: 'edge' }
 
 import { checkRateLimit, getClientIp, handleCors, withCors } from './_rateLimit.js'
+import { verifyJwt } from './_auth.js'
 
 function supabaseHeaders(serviceKey) {
   return {
@@ -15,7 +16,7 @@ export default async function handler(req) {
   if (corsResponse) return corsResponse
 
   const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY
 
   if (!supabaseUrl || !supabaseKey) {
     return new Response(JSON.stringify({ error: 'Not configured' }), {
@@ -27,7 +28,7 @@ export default async function handler(req) {
   const headers = supabaseHeaders(supabaseKey)
   const json = (s, o) => new Response(JSON.stringify(o), { status: s, headers: withCors({ 'Content-Type': 'application/json' }) })
 
-  // GET — fetch a single published book by slug
+  // GET — public reads (single slug, featured list, recent list). No auth required.
   if (req.method === 'GET') {
     const url = new URL(req.url)
     const slug = url.searchParams.get('slug')
@@ -72,7 +73,11 @@ export default async function handler(req) {
     return json(405, { error: 'Method not allowed' })
   }
 
-  // POST — publish or unpublish a book
+  // POST — publish or unpublish a book. Both require a signed-in user.
+  const auth = await verifyJwt(req)
+  if (!auth.ok) return auth.response
+  const userId = auth.userId
+
   let body
   try {
     body = await req.json()
@@ -80,21 +85,22 @@ export default async function handler(req) {
     return json(400, { error: 'Invalid request body' })
   }
 
-  // Unpublish action — separate rate limit key so it never conflicts with publish
+  // Unpublish action
   if (body.action === 'unpublish') {
-    const { slug, userId } = body
-    if (!slug || !userId) return json(400, { error: 'slug and userId required' })
+    const { slug } = body
+    if (!slug) return json(400, { error: 'slug required' })
 
+    const encodedSlug = encodeURIComponent(slug)
     const checkRes = await fetch(
-      `${supabaseUrl}/rest/v1/published_books?slug=eq.${encodeURIComponent(slug)}&select=user_id`,
+      `${supabaseUrl}/rest/v1/published_books?slug=eq.${encodedSlug}&select=user_id`,
       { headers }
     )
     const rows = await checkRes.json()
     if (!rows?.length) return json(404, { error: 'Book not found' })
-    if (rows[0].user_id && rows[0].user_id !== userId) return json(403, { error: 'Not authorized' })
+    if (!rows[0].user_id || rows[0].user_id !== userId) return json(403, { error: 'Not authorized' })
 
     const delRes = await fetch(
-      `${supabaseUrl}/rest/v1/published_books?slug=eq.${encodeURIComponent(slug)}`,
+      `${supabaseUrl}/rest/v1/published_books?slug=eq.${encodedSlug}`,
       { method: 'DELETE', headers: { ...headers, Prefer: 'return=representation' } }
     )
     if (!delRes.ok) {
@@ -103,7 +109,7 @@ export default async function handler(req) {
     }
     // Verify the row was actually deleted (RLS can silently block deletes)
     const verifyRes = await fetch(
-      `${supabaseUrl}/rest/v1/published_books?slug=eq.${encodeURIComponent(slug)}&select=slug`,
+      `${supabaseUrl}/rest/v1/published_books?slug=eq.${encodedSlug}&select=slug`,
       { headers }
     )
     const remaining = await verifyRes.json()
@@ -114,10 +120,10 @@ export default async function handler(req) {
   }
 
   // Publish a book
-  const { allowed } = checkRateLimit(`publish:${ip}`, 10)
+  const { allowed } = checkRateLimit(`publish:${userId}:${ip}`, 10)
   if (!allowed) return json(429, { error: 'Too many requests. Try again later.' })
 
-  const { book, userId } = body
+  const { book } = body
   if (!book || !book.title || !book.pages?.length) {
     return json(400, { error: 'A valid book is required' })
   }
@@ -128,12 +134,11 @@ export default async function handler(req) {
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-|-$/g, '')
     .slice(0, 40)
-  const slug = `${baseSlug}-${Date.now().toString(36)}`
+  const slug = `${baseSlug || 'book'}-${Date.now().toString(36)}`
 
-  // Store book with images included (they'll view them)
   const record = {
     slug,
-    user_id: userId || null,
+    user_id: userId,
     title: book.title,
     author_name: book.authorName || 'Anonymous',
     author_age: book.authorAge || null,
@@ -141,8 +146,8 @@ export default async function handler(req) {
     cover_color: book.colors?.cover || '#8B5CF6',
     book_data: book,
     reaction_counts: {},
-    featured: true,
-    featured_at: new Date().toISOString(),
+    featured: false,
+    featured_at: null,
     published_at: new Date().toISOString(),
   }
 

@@ -11,7 +11,7 @@ import PrintableBook from '../components/print/PrintableBook'
 import SubmitToClassModal from '../components/classroom/SubmitToClassModal'
 import SparkleButton from '../components/ui/SparkleButton'
 import { isNative } from '../capacitor'
-import { apiFetch } from '../lib/api'
+import { apiFetchAuthed } from '../lib/api'
 
 export default function PreviewPage() {
   const { bookId } = useParams()
@@ -45,10 +45,10 @@ export default function PreviewPage() {
   const handlePublish = async () => {
     setPublishing(true)
     try {
-      const res = await apiFetch('/api/publish-book', {
+      const res = await apiFetchAuthed('/api/publish-book', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ book, userId: user?.id }),
+        body: JSON.stringify({ book }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)

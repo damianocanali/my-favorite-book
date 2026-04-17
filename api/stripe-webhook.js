@@ -56,6 +56,19 @@ async function upsertSubscription(supabaseUrl, serviceKey, data) {
   return res.ok
 }
 
+async function creditCoins(supabaseUrl, serviceKey, userId, amount) {
+  const res = await fetch(`${supabaseUrl}/rest/v1/rpc/add_coins`, {
+    method: 'POST',
+    headers: {
+      apikey: serviceKey,
+      Authorization: `Bearer ${serviceKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ p_user_id: userId, p_amount: amount }),
+  })
+  return res.ok
+}
+
 export default async function handler(req) {
   if (req.method !== 'POST') {
     return new Response(JSON.stringify({ error: 'Method not allowed' }), {
@@ -98,8 +111,15 @@ export default async function handler(req) {
 
         if (!userId) break
 
-        // Coin pack purchases — coins are added client-side via redirect URL
-        if (session.metadata?.type === 'coin_pack') break
+        // Coin pack purchases are credited server-side from the metadata
+        // the buy-coins endpoint set on the checkout session.
+        if (session.metadata?.type === 'coin_pack') {
+          const coins = parseInt(session.metadata?.coins ?? '0', 10)
+          if (Number.isFinite(coins) && coins > 0 && coins <= 10000) {
+            await creditCoins(supabaseUrl, serviceKey, userId, coins)
+          }
+          break
+        }
 
         // Subscription purchase
         const plan = session.metadata?.plan || 'family'

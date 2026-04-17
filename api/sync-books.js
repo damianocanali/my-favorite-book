@@ -1,6 +1,7 @@
 export const config = { runtime: 'edge' }
 
 import { handleCors, withCors } from './_rateLimit.js'
+import { verifyJwt } from './_auth.js'
 
 function supabaseHeaders(key) {
   return {
@@ -15,7 +16,7 @@ export default async function handler(req) {
   if (corsResponse) return corsResponse
 
   const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY
 
   if (!supabaseUrl || !supabaseKey) {
     return new Response(JSON.stringify({ error: 'Not configured' }), {
@@ -23,17 +24,19 @@ export default async function handler(req) {
     })
   }
 
-  const headers = supabaseHeaders(supabaseKey)
   const json = (s, o) => new Response(JSON.stringify(o), {
     status: s, headers: withCors({ 'Content-Type': 'application/json' }),
   })
 
-  // GET — fetch all books for a user
-  if (req.method === 'GET') {
-    const url = new URL(req.url)
-    const userId = url.searchParams.get('userId')
-    if (!userId) return json(400, { error: 'userId required' })
+  // Auth — userId always comes from the verified JWT, never from the body
+  const auth = await verifyJwt(req)
+  if (!auth.ok) return auth.response
+  const userId = auth.userId
 
+  const headers = supabaseHeaders(supabaseKey)
+
+  // GET — fetch all books for the authed user
+  if (req.method === 'GET') {
     const res = await fetch(
       `${supabaseUrl}/rest/v1/user_books?user_id=eq.${userId}&order=updated_at.desc&select=book_id,book_data,updated_at`,
       { headers }
@@ -48,17 +51,17 @@ export default async function handler(req) {
 
     // Delete action — iOS WKWebView drops DELETE request bodies
     if (body.action === 'delete') {
-      const { userId, bookId } = body
-      if (!userId || !bookId) return json(400, { error: 'userId and bookId required' })
+      const { bookId } = body
+      if (!bookId) return json(400, { error: 'bookId required' })
       await fetch(
-        `${supabaseUrl}/rest/v1/user_books?user_id=eq.${userId}&book_id=eq.${bookId}`,
+        `${supabaseUrl}/rest/v1/user_books?user_id=eq.${userId}&book_id=eq.${encodeURIComponent(bookId)}`,
         { method: 'DELETE', headers: { ...headers, Prefer: 'return=minimal' } }
       )
       return json(200, { deleted: true })
     }
 
-    const { userId, book } = body
-    if (!userId || !book?.id) return json(400, { error: 'userId and book required' })
+    const { book } = body
+    if (!book?.id) return json(400, { error: 'book required' })
 
     // Strip large base64 images to keep DB payload reasonable
     // Store a lightweight version — images stay in localStorage
@@ -99,11 +102,11 @@ export default async function handler(req) {
 
   // DELETE — remove a book (also accepted as POST with action:'delete' for iOS compatibility)
   if (req.method === 'DELETE') {
-    const { userId, bookId } = await req.json().catch(() => ({}))
-    if (!userId || !bookId) return json(400, { error: 'userId and bookId required' })
+    const { bookId } = await req.json().catch(() => ({}))
+    if (!bookId) return json(400, { error: 'bookId required' })
 
     await fetch(
-      `${supabaseUrl}/rest/v1/user_books?user_id=eq.${userId}&book_id=eq.${bookId}`,
+      `${supabaseUrl}/rest/v1/user_books?user_id=eq.${userId}&book_id=eq.${encodeURIComponent(bookId)}`,
       { method: 'DELETE', headers: { ...headers, Prefer: 'return=minimal' } }
     )
     return json(200, { deleted: true })

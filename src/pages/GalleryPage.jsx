@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'motion/react'
 import { BookOpen, Star, Loader2, Sparkles, Trash2 } from 'lucide-react'
-import { apiFetch } from '../lib/api'
+import { apiFetch, apiFetchAuthed } from '../lib/api'
 import { useAuthStore } from '../stores/useAuthStore'
 import { playTrack } from '../services/audioService'
 
@@ -47,10 +47,10 @@ function BookCard({ book, index, currentUserId, onRemoved }) {
     e.preventDefault()
     setRemoving(true)
     try {
-      const res = await apiFetch('/api/publish-book', {
+      const res = await apiFetchAuthed('/api/publish-book', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'unpublish', slug: book.slug, userId: currentUserId }),
+        body: JSON.stringify({ action: 'unpublish', slug: book.slug }),
       })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`)

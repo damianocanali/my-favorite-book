@@ -2,9 +2,11 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { useAvatarStore } from './useAvatarStore'
 import { useAuthStore } from './useAuthStore'
+import { apiFetchAuthed } from '../lib/api'
 
-// Effort-based badges — earned by completing steps, not quality.
-// Each badge also awards coins for the avatar shop.
+// Effort-based badges — earned by completing steps, not quality. Coin
+// values here are UI hints only; the authoritative amount and the
+// idempotent "credit once" behavior live in the /api/claim-badge handler.
 const BADGE_DEFINITIONS = [
   { id: 'first_page', emoji: '📝', label: 'First Page', description: 'Wrote your first page', coins: 10 },
   { id: 'first_book', emoji: '📖', label: 'Storyteller', description: 'Finished your first book', coins: 25 },
@@ -21,26 +23,41 @@ const BADGE_DEFINITIONS = [
 export const useRewardsStore = create(
   persist(
     (set, get) => ({
-      earnedBadges: [],   // array of badge IDs
-      totalPages: 0,      // lifetime pages written
-      newBadge: null,      // currently showing badge popup
+      earnedBadges: [],
+      totalPages: 0,
+      newBadge: null,
 
-      earnBadge: (badgeId) => {
-        // Only logged-in users can earn badges
+      earnBadge: async (badgeId) => {
+        // Only logged-in users can earn badges.
         if (!useAuthStore.getState().user) return false
         const state = get()
         if (state.earnedBadges.includes(badgeId)) return false
         const badge = BADGE_DEFINITIONS.find((b) => b.id === badgeId)
         if (!badge) return false
-        set({
-          earnedBadges: [...state.earnedBadges, badgeId],
-          newBadge: badge,
-        })
-        // Award coins for earning the badge
-        if (badge.coins) {
-          useAvatarStore.getState().addCoins(badge.coins)
+
+        try {
+          const res = await apiFetchAuthed('/api/claim-badge', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ badgeId }),
+          })
+          const data = await res.json().catch(() => ({}))
+          if (!res.ok) return false
+
+          set({
+            earnedBadges: [...state.earnedBadges, badgeId],
+            // Only show the popup when the server actually credited — avoids
+            // re-popping a badge that was already claimed on another device.
+            newBadge: data.alreadyClaimed ? null : badge,
+          })
+
+          if (!data.alreadyClaimed && typeof data.balance === 'number') {
+            useAvatarStore.setState({ coins: data.balance })
+          }
+          return !data.alreadyClaimed
+        } catch {
+          return false
         }
-        return true
       },
 
       dismissBadge: () => set({ newBadge: null }),

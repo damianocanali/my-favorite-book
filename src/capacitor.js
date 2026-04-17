@@ -67,13 +67,15 @@ export async function initCapacitor(navigateFn) {
 
       if (code) {
         await supabase.auth.exchangeCodeForSession(code)
-        if (navigateFn) navigateFn('/login')
+        // After exchanging a magic-link / email-confirm code the user is
+        // signed in — send them home, not to /login.
+        if (navigateFn) navigateFn('/')
         return
       }
 
       if (accessToken && refreshToken) {
         await supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken })
-        if (navigateFn) navigateFn('/login')
+        if (navigateFn) navigateFn('/')
         return
       }
 

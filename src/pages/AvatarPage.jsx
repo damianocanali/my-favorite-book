@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'motion/react'
 import { Coins, Lock, Award, Wand2, Loader2, Sparkles, RefreshCw } from 'lucide-react'
-import { apiFetch } from '../lib/api'
+import { apiFetchAuthed } from '../lib/api'
+import { IS_NATIVE, purchaseCoinPack } from '../services/purchaseService'
 import { useAvatarStore } from '../stores/useAvatarStore'
 import { useRewardsStore } from '../stores/useRewardsStore'
 import { useSubscription } from '../hooks/useSubscription'
@@ -146,7 +147,8 @@ export default function AvatarPage() {
   const avatarImage = useAvatarStore((s) => s.avatarImage)
   const setAvatarImage = useAvatarStore((s) => s.setAvatarImage)
   const coins = useAvatarStore((s) => s.coins)
-  const addCoins = useAvatarStore((s) => s.addCoins)
+  const spendCoins = useAvatarStore((s) => s.spendCoins)
+  const refreshCoins = useAvatarStore((s) => s.refreshCoins)
   const ownedStyles = useAvatarStore((s) => s.ownedStyles)
   const purchaseStyle = useAvatarStore((s) => s.purchaseStyle)
   const incrementGenerations = useAvatarStore((s) => s.incrementGenerations)
@@ -168,31 +170,32 @@ export default function AvatarPage() {
   const isFirstGeneration = !avatarImage
   const canGenerateFree = isFirstGeneration || plan.freeAvatarRegen && generationsUsed < plan.avatarGenerations
 
-  // Handle coins_added query param from Stripe redirect
+  // Pull the authoritative balance on mount and after Stripe redirects.
   useEffect(() => {
-    const coinsAdded = searchParams.get('coins_added')
-    if (coinsAdded) {
-      addCoins(parseInt(coinsAdded, 10))
+    if (!user) return
+    refreshCoins()
+    if (searchParams.get('coins_purchased')) {
       setSearchParams({}, { replace: true })
     }
-  }, [searchParams, addCoins, setSearchParams])
+  }, [user, refreshCoins, searchParams, setSearchParams])
 
   const handleGenerate = async () => {
     setError(null)
     setGenerating(true)
 
-    // Check if this costs coins
+    // Regenerations past the free daily allowance cost coins. Debit via
+    // the server so localStorage tampering can't grant free regens.
     if (!canGenerateFree) {
-      if (coins < REGEN_COIN_COST) {
+      const newBalance = await spendCoins(REGEN_COIN_COST)
+      if (newBalance === null) {
         setError(`Not enough coins! You need ${REGEN_COIN_COST} coins to regenerate.`)
         setGenerating(false)
         return
       }
-      addCoins(-REGEN_COIN_COST)
     }
 
     try {
-      const res = await apiFetch('/api/generate-avatar', {
+      const res = await apiFetchAuthed('/api/generate-avatar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ features, artStyle }),
@@ -203,14 +206,15 @@ export default function AvatarPage() {
       incrementGenerations()
     } catch (err) {
       setError(err.message)
-      // Refund coins on failure
-      if (!canGenerateFree) addCoins(REGEN_COIN_COST)
+      // Refresh balance so the UI reflects the debit even though the
+      // generation failed — we don't refund automatically.
+      refreshCoins()
     } finally {
       setGenerating(false)
     }
   }
 
-  const handleStyleChange = (styleId) => {
+  const handleStyleChange = async (styleId) => {
     if (ownedStyles.includes(styleId)) {
       setArtStyle(styleId)
       return
@@ -219,31 +223,44 @@ export default function AvatarPage() {
     if (!style) return
 
     if (plan.freeStyleChange) {
-      purchaseStyle(styleId, 0)
+      await purchaseStyle(styleId, 0)
       setArtStyle(styleId)
       return
     }
 
     const cost = style.price
     if (coins < cost) return
-    purchaseStyle(styleId, cost)
-    setArtStyle(styleId)
+    const ok = await purchaseStyle(styleId, cost)
+    if (ok) setArtStyle(styleId)
   }
 
   const handleBuyCoins = async (pack) => {
     if (!user) return
     setCoinBuyLoading(pack.key)
     try {
-      const res = await apiFetch('/api/buy-coins', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ pack: pack.key, userId: user.id, userEmail: user.email }),
-      })
-      const data = await res.json()
-      if (data.url) window.location.href = data.url
-      else alert(data.error || 'Something went wrong')
-    } catch {
-      alert('Something went wrong')
+      if (IS_NATIVE) {
+        // App Store guideline 3.1.1 — in-app currency purchases on iOS must
+        // go through StoreKit. RevenueCat's webhook credits the balance
+        // server-side; we just refresh afterwards.
+        await purchaseCoinPack(pack.key)
+        // Webhook may race with our refresh; give it a beat then poll once.
+        await refreshCoins()
+        setTimeout(() => { refreshCoins() }, 2500)
+      } else {
+        const res = await apiFetchAuthed('/api/buy-coins', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ pack: pack.key }),
+        })
+        const data = await res.json()
+        if (data.url) window.location.href = data.url
+        else alert(data.error || 'Something went wrong')
+      }
+    } catch (e) {
+      // RevenueCat throws with userCancelled when the user dismisses the
+      // native sheet — treat that as silent.
+      const cancelled = e?.userCancelled || /cancell?ed/i.test(e?.message || '')
+      if (!cancelled) alert(e?.message || 'Something went wrong')
     } finally {
       setCoinBuyLoading(null)
     }

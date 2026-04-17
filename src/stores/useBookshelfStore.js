@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { apiFetch } from '../lib/api'
+import { apiFetchAuthed } from '../lib/api'
 
 // userId is set externally by useAuthStore on login
 let _currentUserId = null
@@ -47,7 +47,7 @@ export const useBookshelfStore = create(
         if (!userId) return
         set({ syncing: true })
         try {
-          const res = await apiFetch(`/api/sync-books?userId=${userId}`)
+          const res = await apiFetchAuthed('/api/sync-books')
           if (!res.ok) return
           const cloudBooks = await res.json()
 
@@ -103,8 +103,8 @@ export const useBookshelfStore = create(
               deleteCloudBook(cloudBook.book_id)
             }
           }
-        } catch {
-          // Silent fail — local books still work
+        } catch (err) {
+          console.warn('[bookshelf] cloud sync failed', err)
         } finally {
           set({ syncing: false })
         }
@@ -125,25 +125,25 @@ export const useBookshelfStore = create(
 async function syncBookToCloud(book) {
   if (!_currentUserId) return
   try {
-    await apiFetch('/api/sync-books', {
+    await apiFetchAuthed('/api/sync-books', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId: _currentUserId, book }),
+      body: JSON.stringify({ book }),
     })
-  } catch {
-    // Silent fail
+  } catch (err) {
+    console.warn('[bookshelf] upload failed', err)
   }
 }
 
 async function deleteCloudBook(bookId) {
   if (!_currentUserId) return
   try {
-    await apiFetch('/api/sync-books', {
+    await apiFetchAuthed('/api/sync-books', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'delete', userId: _currentUserId, bookId }),
+      body: JSON.stringify({ action: 'delete', bookId }),
     })
-  } catch {
-    // Silent fail
+  } catch (err) {
+    console.warn('[bookshelf] delete failed', err)
   }
 }

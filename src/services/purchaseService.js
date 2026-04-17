@@ -13,6 +13,18 @@ export const IAP_PRODUCTS = {
   teacher_annual:  'com.myfavoritebook.app.teacher.annual',
 }
 
+// Consumable coin packs. Apple requires in-app currency purchased on iOS to
+// go through StoreKit (App Store Review Guideline 3.1.1), so on native we
+// route these through RevenueCat. The web build continues to use Stripe.
+// Product IDs must be created as Consumable IAPs in App Store Connect and
+// mapped in RevenueCat. Expected retail prices: small=$0.99, medium=$2.99,
+// large=$4.99 — Apple set them, not our server.
+export const COIN_PACK_IAP_PRODUCTS = {
+  small:  'com.myfavoritebook.app.coins.small',
+  medium: 'com.myfavoritebook.app.coins.medium',
+  large:  'com.myfavoritebook.app.coins.large',
+}
+
 let _purchases = null
 
 async function getRC() {
@@ -70,6 +82,39 @@ export async function purchasePackage(planName, billing) {
 
   const { customerInfo } = await RC.purchasePackage({ aPackage: pkg })
   return customerInfo
+}
+
+// Purchase a consumable coin pack via StoreKit. Returns true when the
+// transaction succeeds; the RevenueCat webhook then credits coins
+// server-side via add_coins. The caller should refresh the balance
+// afterwards rather than trust any amount from the client.
+export async function purchaseCoinPack(packKey) {
+  const RC = await getRC()
+  if (!RC) throw new Error('IAP not available')
+
+  const productId = COIN_PACK_IAP_PRODUCTS[packKey]
+  if (!productId) throw new Error('Unknown coin pack')
+
+  // Coin packs may live in a separate offering (e.g. "coins") or as
+  // non-subscription packages on the default offering. Try the default
+  // offering first, then fall back to getProducts for a direct purchase.
+  const offering = await getOfferings()
+  const pkg = offering?.availablePackages?.find(
+    (p) => p.product.identifier === productId
+  )
+
+  if (pkg) {
+    const { customerInfo } = await RC.purchasePackage({ aPackage: pkg })
+    return { ok: true, customerInfo }
+  }
+
+  // Fallback: purchase the bare product. Some RC setups expose consumables
+  // only via getProducts rather than as packages.
+  const { products } = await RC.getProducts({ productIdentifiers: [productId] })
+  const product = products?.[0]
+  if (!product) throw new Error(`Product not found: ${productId}`)
+  const { customerInfo } = await RC.purchaseStoreProduct({ product })
+  return { ok: true, customerInfo }
 }
 
 export async function restorePurchases() {

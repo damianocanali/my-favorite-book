@@ -1,9 +1,11 @@
 export const config = { runtime: 'edge' }
 
 import { handleCors, withCors } from './_rateLimit.js'
+import { verifyJwt } from './_auth.js'
 
 // Creates a Stripe Checkout session for a one-time coin pack purchase.
-// Coin packs: 50 coins ($0.99), 200 coins ($2.99), 500 coins ($4.99)
+// The user identity comes from the verified JWT. Coins are credited by the
+// Stripe webhook after payment succeeds — never from a client redirect.
 
 const COIN_PACKS = {
   small:  { coins: 50,  priceEnv: 'STRIPE_PRICE_COINS_SMALL' },
@@ -39,11 +41,20 @@ export default async function handler(req) {
     })
   }
 
-  const { pack, userId, userEmail } = await req.json()
-  const packInfo = COIN_PACKS[pack]
+  const auth = await verifyJwt(req)
+  if (!auth.ok) return auth.response
+  const { userId, email } = auth
 
-  if (!packInfo || !userId || !userEmail) {
-    return new Response(JSON.stringify({ error: 'pack, userId, and userEmail are required' }), {
+  if (!email) {
+    return new Response(JSON.stringify({ error: 'Account has no email on file' }), {
+      status: 400, headers: withCors({ 'Content-Type': 'application/json' }),
+    })
+  }
+
+  const { pack } = await req.json().catch(() => ({}))
+  const packInfo = COIN_PACKS[pack]
+  if (!packInfo) {
+    return new Response(JSON.stringify({ error: 'Unknown pack' }), {
       status: 400, headers: withCors({ 'Content-Type': 'application/json' }),
     })
   }
@@ -62,11 +73,11 @@ export default async function handler(req) {
     mode: 'payment',
     'line_items[0][price]': priceId,
     'line_items[0][quantity]': '1',
-    customer_email: userEmail,
+    customer_email: email,
     'metadata[user_id]': userId,
     'metadata[type]': 'coin_pack',
     'metadata[coins]': String(packInfo.coins),
-    success_url: `${origin}/avatar?coins_added=${packInfo.coins}`,
+    success_url: `${origin}/avatar?coins_purchased=1`,
     cancel_url: `${origin}/avatar`,
     'phone_number_collection[enabled]': 'false',
   })

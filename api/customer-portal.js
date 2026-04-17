@@ -1,8 +1,11 @@
 export const config = { runtime: 'edge' }
 
 import { handleCors, withCors } from './_rateLimit.js'
+import { verifyJwt } from './_auth.js'
 
-// Opens Stripe's hosted billing portal so users can manage or cancel their subscription.
+// Opens Stripe's hosted billing portal for the signed-in user.
+// Customer ID is looked up by the verified JWT's user id (via the
+// subscriptions table) — never trusted from the client.
 
 async function stripePost(path, params) {
   const res = await fetch(`https://api.stripe.com/v1/${path}`, {
@@ -16,11 +19,13 @@ async function stripePost(path, params) {
   return res.json()
 }
 
-async function stripeGet(path) {
-  const res = await fetch(`https://api.stripe.com/v1/${path}`, {
-    headers: { Authorization: `Bearer ${process.env.STRIPE_SECRET_KEY}` },
-  })
-  return res.json()
+async function lookupCustomerId(supabaseUrl, serviceKey, userId) {
+  const res = await fetch(
+    `${supabaseUrl}/rest/v1/subscriptions?user_id=eq.${userId}&select=stripe_customer_id`,
+    { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } }
+  )
+  const rows = await res.json().catch(() => [])
+  return rows?.[0]?.stripe_customer_id || null
 }
 
 export default async function handler(req) {
@@ -39,24 +44,27 @@ export default async function handler(req) {
     })
   }
 
-  const { stripeCustomerId, userEmail } = await req.json()
-
-  const origin = req.headers.get('origin') ||
-    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:5173')
-
-  let customerId = stripeCustomerId
-
-  // If we don't have a customer ID, look it up by email
-  if (!customerId && userEmail) {
-    const search = await stripeGet(`customers/search?query=email:'${encodeURIComponent(userEmail)}'`)
-    customerId = search.data?.[0]?.id
+  const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!supabaseUrl || !serviceKey) {
+    return new Response(JSON.stringify({ error: 'Not configured' }), {
+      status: 503, headers: withCors({ 'Content-Type': 'application/json' }),
+    })
   }
 
+  const auth = await verifyJwt(req)
+  if (!auth.ok) return auth.response
+  const { userId } = auth
+
+  const customerId = await lookupCustomerId(supabaseUrl, serviceKey, userId)
   if (!customerId) {
     return new Response(JSON.stringify({ error: 'No billing account found' }), {
       status: 404, headers: withCors({ 'Content-Type': 'application/json' }),
     })
   }
+
+  const origin = req.headers.get('origin') ||
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:5173')
 
   const portal = await stripePost('billing_portal/sessions', {
     customer: customerId,

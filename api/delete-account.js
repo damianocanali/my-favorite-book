@@ -1,6 +1,7 @@
 export const config = { runtime: 'edge' }
 
 import { handleCors, withCors } from './_rateLimit.js'
+import { verifyJwt } from './_auth.js'
 
 // Permanently deletes a user account and all associated data.
 // Requires the user's own JWT to verify identity.
@@ -24,35 +25,9 @@ export default async function handler(req) {
     })
   }
 
-  // Verify the caller's JWT to get their user ID
-  const authHeader = req.headers.get('authorization') || ''
-  const jwt = authHeader.replace('Bearer ', '')
-  if (!jwt) {
-    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-      status: 401, headers: withCors({ 'Content-Type': 'application/json' }),
-    })
-  }
-
-  // Get user from JWT
-  const userRes = await fetch(`${supabaseUrl}/auth/v1/user`, {
-    headers: {
-      apikey: serviceKey,
-      Authorization: `Bearer ${jwt}`,
-    },
-  })
-
-  if (!userRes.ok) {
-    return new Response(JSON.stringify({ error: 'Invalid session' }), {
-      status: 401, headers: withCors({ 'Content-Type': 'application/json' }),
-    })
-  }
-
-  const { id: userId } = await userRes.json()
-  if (!userId) {
-    return new Response(JSON.stringify({ error: 'Could not identify user' }), {
-      status: 401, headers: withCors({ 'Content-Type': 'application/json' }),
-    })
-  }
+  const auth = await verifyJwt(req)
+  if (!auth.ok) return auth.response
+  const { userId } = auth
 
   try {
     // Delete user data in order (books, subscriptions, then auth account)

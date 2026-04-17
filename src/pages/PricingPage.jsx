@@ -5,7 +5,7 @@ import { Check, Sparkles, GraduationCap, BookOpen, RotateCcw } from 'lucide-reac
 import { useAuthStore } from '../stores/useAuthStore'
 import { useSubscription } from '../hooks/useSubscription'
 import { PRICES } from '../lib/plans'
-import { apiFetch } from '../lib/api'
+import { apiFetchAuthed } from '../lib/api'
 import SparkleButton from '../components/ui/SparkleButton'
 import ParentalGate from '../components/ui/ParentalGate'
 import { IS_NATIVE, purchasePackage, restorePurchases } from '../services/purchaseService'
@@ -127,15 +127,10 @@ export default function PricingPage() {
       return
     }
 
-    const res = await apiFetch('/api/create-checkout', {
+    const res = await apiFetchAuthed('/api/create-checkout', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        planName,
-        billing,
-        userId: user.id,
-        userEmail: user.email,
-      }),
+      body: JSON.stringify({ planName, billing }),
     })
     const data = await res.json()
     if (data.url) window.location.href = data.url

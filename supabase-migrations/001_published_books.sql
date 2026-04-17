@@ -31,16 +31,42 @@ CREATE POLICY "Published books are publicly readable"
   ON published_books FOR SELECT
   USING (true);
 
--- Anyone can insert (publish) a book
-CREATE POLICY "Anyone can publish a book"
-  ON published_books FOR INSERT
-  WITH CHECK (true);
+-- Writes go through the API (service role, which bypasses RLS). No
+-- public insert/update/delete policies — the permissive legacy ones
+-- would let any anon caller rewrite titles, bodies, ownership, and
+-- the featured flag.
 
--- Anyone can update reaction_counts (for sticker reactions)
-CREATE POLICY "Anyone can react to books"
-  ON published_books FOR UPDATE
-  USING (true)
-  WITH CHECK (true);
+-- Atomic sticker-reaction increment, called from /api/react-book.
+-- Bumps a single allowed sticker key without clobbering concurrent writes.
+CREATE OR REPLACE FUNCTION increment_reaction(p_slug TEXT, p_sticker TEXT)
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  allowed_stickers TEXT[] := ARRAY['❤️','⭐','😍','🎉','👏','🦄','🌈','🔥','💎','🫶'];
+  new_counts JSONB;
+BEGIN
+  IF NOT (p_sticker = ANY(allowed_stickers)) THEN
+    RAISE EXCEPTION 'invalid sticker';
+  END IF;
+
+  UPDATE published_books
+  SET reaction_counts = jsonb_set(
+    COALESCE(reaction_counts, '{}'::jsonb),
+    ARRAY[p_sticker],
+    to_jsonb(COALESCE((reaction_counts ->> p_sticker)::int, 0) + 1)
+  )
+  WHERE slug = p_slug
+  RETURNING reaction_counts INTO new_counts;
+
+  RETURN new_counts;
+END;
+$$;
+
+-- Anon clients (react-book endpoint) must be able to call this RPC.
+GRANT EXECUTE ON FUNCTION increment_reaction(TEXT, TEXT) TO anon, authenticated;
 
 -- To feature a book, run this in SQL Editor:
 -- UPDATE published_books SET featured = TRUE, featured_at = NOW() WHERE slug = 'the-book-slug';

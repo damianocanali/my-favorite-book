@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'motion/react'
 import { BookOpen, Share2, Loader2, ArrowLeft, Trash2 } from 'lucide-react'
-import { apiFetch } from '../lib/api'
+import { apiFetch, apiFetchAuthed } from '../lib/api'
 import BookPreview from '../components/book/BookPreview'
 import { useAuthStore } from '../stores/useAuthStore'
 
@@ -43,10 +43,10 @@ export default function ViewBookPage() {
   const handleRemove = async () => {
     setRemoving(true)
     try {
-      const res = await apiFetch('/api/publish-book', {
+      const res = await apiFetchAuthed('/api/publish-book', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'unpublish', slug, userId: user.id }),
+        body: JSON.stringify({ action: 'unpublish', slug }),
       })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`)

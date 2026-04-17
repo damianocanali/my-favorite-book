@@ -1,9 +1,11 @@
 export const config = { runtime: 'edge' }
 
 import { handleCors, withCors } from './_rateLimit.js'
+import { verifyJwt } from './_auth.js'
 
 // Creates a Stripe Checkout session and returns the redirect URL.
 // Price IDs are resolved server-side — never exposed to the browser.
+// User identity comes from the verified JWT, never from the body.
 
 const PRICE_MAP = {
   family_monthly:  'STRIPE_PRICE_FAMILY_MONTHLY',
@@ -40,9 +42,19 @@ export default async function handler(req) {
     })
   }
 
-  const { planName, billing, userId, userEmail } = await req.json()
-  if (!planName || !billing || !userId || !userEmail) {
-    return new Response(JSON.stringify({ error: 'planName, billing, userId, and userEmail are required' }), {
+  const auth = await verifyJwt(req)
+  if (!auth.ok) return auth.response
+  const { userId, email } = auth
+
+  if (!email) {
+    return new Response(JSON.stringify({ error: 'Account has no email on file' }), {
+      status: 400, headers: withCors({ 'Content-Type': 'application/json' }),
+    })
+  }
+
+  const { planName, billing } = await req.json().catch(() => ({}))
+  if (!planName || !billing) {
+    return new Response(JSON.stringify({ error: 'planName and billing are required' }), {
       status: 400, headers: withCors({ 'Content-Type': 'application/json' }),
     })
   }
@@ -64,7 +76,7 @@ export default async function handler(req) {
     mode: 'subscription',
     'line_items[0][price]': priceId,
     'line_items[0][quantity]': '1',
-    customer_email: userEmail,
+    customer_email: email,
     'metadata[user_id]': userId,
     'metadata[plan]': planName,
     'subscription_data[metadata][user_id]': userId,

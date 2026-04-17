@@ -1,10 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { motion } from 'motion/react'
 import { Trash2, LogOut, AlertTriangle, Loader2, Sparkles } from 'lucide-react'
 import { useAuthStore, selectDisplayName } from '../stores/useAuthStore'
-import { supabase } from '../lib/supabase'
-import { apiFetch } from '../lib/api'
+import { apiFetchAuthed } from '../lib/api'
 import AvatarDisplay from '../components/avatar/AvatarDisplay'
 
 export default function AccountPage() {
@@ -26,16 +25,9 @@ export default function AccountPage() {
     setDeleting(true)
     setError(null)
     try {
-      const { data: { session } } = await supabase.auth.getSession()
-      const jwt = session?.access_token
-      if (!jwt) throw new Error('No active session')
-
-      const res = await apiFetch('/api/delete-account', {
+      const res = await apiFetchAuthed('/api/delete-account', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${jwt}`,
-        },
+        headers: { 'Content-Type': 'application/json' },
       }).catch((e) => { throw new Error(`Network error: ${e.message}`) })
       const data = await res.json().catch(() => { throw new Error(`Server error: ${res.status}`) })
       if (!data.deleted) throw new Error(data.error || 'Deletion failed')
@@ -48,10 +40,13 @@ export default function AccountPage() {
     }
   }
 
-  if (!user) {
-    navigate('/login')
-    return null
-  }
+  // Redirect unauthenticated visitors. navigate() must run after render —
+  // calling it inline logs a React warning about updating during render.
+  useEffect(() => {
+    if (!user) navigate('/login', { replace: true })
+  }, [user, navigate])
+
+  if (!user) return null
 
   return (
     <div className="min-h-screen py-12 px-4">

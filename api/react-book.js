@@ -2,67 +2,53 @@ export const config = { runtime: 'edge' }
 
 import { checkRateLimit, getClientIp, handleCors, withCors } from './_rateLimit.js'
 
+// Kept in sync with the allowlist inside the increment_reaction RPC so we
+// can reject obvious bad input without a round-trip to the DB.
 const ALLOWED_STICKERS = ['❤️', '⭐', '😍', '🎉', '👏', '🦄', '🌈', '🔥', '💎', '🫶']
 
 export default async function handler(req) {
   const corsResponse = handleCors(req)
   if (corsResponse) return corsResponse
 
-  if (req.method !== 'POST') {
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
-      status: 405, headers: withCors({ 'Content-Type': 'application/json' }),
-    })
-  }
+  const json = (s, o) =>
+    new Response(JSON.stringify(o), { status: s, headers: withCors({ 'Content-Type': 'application/json' }) })
+
+  if (req.method !== 'POST') return json(405, { error: 'Method not allowed' })
 
   const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY
-
-  if (!supabaseUrl || !supabaseKey) {
-    return new Response(JSON.stringify({ error: 'Not configured' }), {
-      status: 503, headers: withCors({ 'Content-Type': 'application/json' }),
-    })
-  }
-
-  const headers = {
-    'Content-Type': 'application/json',
-    'apikey': supabaseKey,
-    'Authorization': `Bearer ${supabaseKey}`,
-  }
-  const json = (s, o) => new Response(JSON.stringify(o), { status: s, headers: withCors({ 'Content-Type': 'application/json' }) })
+  // The RPC is SECURITY DEFINER and granted to anon, so the anon key is enough.
+  const supabaseKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY
+  if (!supabaseUrl || !supabaseKey) return json(503, { error: 'Not configured' })
 
   const ip = getClientIp(req)
-  const { slug, sticker } = await req.json()
+  const { slug, sticker } = await req.json().catch(() => ({}))
 
   if (!slug || !sticker) return json(400, { error: 'slug and sticker required' })
   if (!ALLOWED_STICKERS.includes(sticker)) return json(400, { error: 'Invalid sticker' })
 
-  // Rate limit: 30 reactions per hour per IP
   const { allowed } = checkRateLimit(`react:${ip}`, 30)
   if (!allowed) return json(429, { error: 'Slow down! Try again later.' })
 
-  // Fetch current reaction counts
-  const fetchRes = await fetch(
-    `${supabaseUrl}/rest/v1/published_books?slug=eq.${slug}&select=reaction_counts`,
-    { headers }
-  )
-  const rows = await fetchRes.json()
-  if (!rows?.length) return json(404, { error: 'Book not found' })
+  const rpcRes = await fetch(`${supabaseUrl}/rest/v1/rpc/increment_reaction`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      apikey: supabaseKey,
+      Authorization: `Bearer ${supabaseKey}`,
+    },
+    body: JSON.stringify({ p_slug: slug, p_sticker: sticker }),
+  })
 
-  const counts = rows[0].reaction_counts || {}
-  counts[sticker] = (counts[sticker] || 0) + 1
+  if (!rpcRes.ok) {
+    const err = await rpcRes.json().catch(() => ({}))
+    return json(rpcRes.status === 404 ? 404 : 500, {
+      error: err?.message || 'Failed to save reaction',
+    })
+  }
 
-  // Update counts
-  const updateRes = await fetch(
-    `${supabaseUrl}/rest/v1/published_books?slug=eq.${slug}`,
-    {
-      method: 'PATCH',
-      headers: { ...headers, Prefer: 'return=representation' },
-      body: JSON.stringify({ reaction_counts: counts }),
-    }
-  )
+  const reaction_counts = await rpcRes.json()
+  // The RPC returns NULL when the slug didn't match any row.
+  if (reaction_counts === null) return json(404, { error: 'Book not found' })
 
-  if (!updateRes.ok) return json(500, { error: 'Failed to save reaction' })
-
-  const [updated] = await updateRes.json()
-  return json(200, { reaction_counts: updated.reaction_counts })
+  return json(200, { reaction_counts })
 }

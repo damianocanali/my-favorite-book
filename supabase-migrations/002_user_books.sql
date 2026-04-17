@@ -14,7 +14,10 @@ CREATE TABLE user_books (
 -- Fast lookup by user
 CREATE INDEX idx_user_books_user ON user_books(user_id, updated_at DESC);
 
--- Enable Row Level Security
+-- Enable Row Level Security.
+-- The API routes run with the Supabase service role, which bypasses RLS,
+-- so no policy is needed for server-side access. These policies are the
+-- safety net if the anon key is ever used directly against this table.
 ALTER TABLE user_books ENABLE ROW LEVEL SECURITY;
 
 -- Users can only read their own books
@@ -36,9 +39,3 @@ CREATE POLICY "Users can update own books"
 CREATE POLICY "Users can delete own books"
   ON user_books FOR DELETE
   USING (auth.uid() = user_id);
-
--- Also allow service key (API routes) full access
-CREATE POLICY "Service key full access"
-  ON user_books FOR ALL
-  USING (true)
-  WITH CHECK (true);

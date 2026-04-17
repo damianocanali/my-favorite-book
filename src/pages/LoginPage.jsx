@@ -41,8 +41,11 @@ export default function LoginPage() {
     setResetLoading(true)
     setResetError('')
     try {
+      // VITE_API_BASE_URL may be empty in dev; fall back to the live origin
+      // so the reset link always lands on the same site the user is on.
+      const origin = (typeof window !== 'undefined' && window.location?.origin) || ''
       const { error } = await supabase.auth.resetPasswordForEmail(resetEmail.trim(), {
-        redirectTo: `${import.meta.env.VITE_API_BASE_URL}/reset-password`,
+        redirectTo: `${origin}/reset-password`,
       })
       if (error) throw error
       setResetSent(true)

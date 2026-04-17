@@ -1,13 +1,31 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { apiFetchAuthed } from '../lib/api'
+
+// The coin balance is authoritative on the server. We mirror it in the store
+// so the UI can read it synchronously, but every mutation goes through the
+// server — refreshCoins to pull, spendCoins to atomically debit. The
+// persisted value is only a warm-start hint; fetchCoins reconciles it on
+// load.
+
+async function serverSpend(amount) {
+  const res = await apiFetchAuthed('/api/spend-coins', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ amount }),
+  })
+  if (res.status === 402) return { ok: false, insufficient: true }
+  if (!res.ok) return { ok: false, error: true }
+  const data = await res.json().catch(() => null)
+  if (data?.balance === undefined) return { ok: false, error: true }
+  return { ok: true, balance: data.balance }
+}
 
 export const useAvatarStore = create(
   persist(
     (set, get) => ({
-      // AI-generated avatar image (base64)
       avatarImage: null,
 
-      // Current feature selections for the AI prompt
       features: {
         skinTone: 'medium',
         hairStyle: 'short',
@@ -18,35 +36,20 @@ export const useAvatarStore = create(
         expression: 'happy smiling',
       },
 
-      // Art style
       artStyle: 'cartoon',
-
-      // Items purchased with coins
       ownedItems: [],
-
-      // Owned art styles (cartoon is free)
       ownedStyles: ['cartoon'],
-
-      // Coin balance
       coins: 0,
 
-      // Generation count today (resets on new day)
       generationsToday: 0,
       generationDate: null,
 
-      // Update a single feature
       setFeature: (key, value) =>
-        set((s) => ({
-          features: { ...s.features, [key]: value },
-        })),
+        set((s) => ({ features: { ...s.features, [key]: value } })),
 
-      // Set art style
       setArtStyle: (style) => set({ artStyle: style }),
-
-      // Save generated avatar image
       setAvatarImage: (image) => set({ avatarImage: image }),
 
-      // Track generation count
       incrementGenerations: () => {
         const today = new Date().toDateString()
         const state = get()
@@ -63,33 +66,62 @@ export const useAvatarStore = create(
         return state.generationDate === today ? state.generationsToday : 0
       },
 
-      // Purchase an art style with coins
-      purchaseStyle: (styleId, price) => {
+      // Fetch the server-side balance. Safe to call whenever we land on a
+      // coin-aware screen or after a purchase redirect.
+      refreshCoins: async () => {
+        try {
+          const res = await apiFetchAuthed('/api/coins')
+          if (!res.ok) return
+          const data = await res.json().catch(() => null)
+          if (data && typeof data.balance === 'number') set({ coins: data.balance })
+        } catch {
+          // Offline / signed out — keep the cached value.
+        }
+      },
+
+      // Attempt to spend coins for a style. Returns true if the server
+      // debited and the style was unlocked, false otherwise.
+      purchaseStyle: async (styleId, price) => {
         const state = get()
-        if (state.coins < price) return false
         if (state.ownedStyles.includes(styleId)) return false
-        set({
-          coins: state.coins - price,
-          ownedStyles: [...state.ownedStyles, styleId],
-        })
+        if (price > 0) {
+          const result = await serverSpend(price)
+          if (!result.ok) return false
+          set({
+            coins: result.balance,
+            ownedStyles: [...state.ownedStyles, styleId],
+          })
+        } else {
+          set({ ownedStyles: [...state.ownedStyles, styleId] })
+        }
         return true
       },
 
-      // Purchase an item with coins
-      purchaseItem: (itemId, price) => {
+      purchaseItem: async (itemId, price) => {
         const state = get()
-        if (state.coins < price) return false
         if (state.ownedItems.includes(itemId)) return false
-        set({
-          coins: state.coins - price,
-          ownedItems: [...state.ownedItems, itemId],
-        })
+        if (price > 0) {
+          const result = await serverSpend(price)
+          if (!result.ok) return false
+          set({
+            coins: result.balance,
+            ownedItems: [...state.ownedItems, itemId],
+          })
+        } else {
+          set({ ownedItems: [...state.ownedItems, itemId] })
+        }
         return true
       },
 
-      // Add coins
-      addCoins: (amount) =>
-        set((s) => ({ coins: s.coins + amount })),
+      // Generic spend used by one-shot actions (e.g., avatar regen). Returns
+      // the server's new balance on success, or null on failure.
+      spendCoins: async (amount) => {
+        if (!Number.isInteger(amount) || amount <= 0) return null
+        const result = await serverSpend(amount)
+        if (!result.ok) return null
+        set({ coins: result.balance })
+        return result.balance
+      },
 
       isOwned: (itemId) => get().ownedItems.includes(itemId),
     }),
