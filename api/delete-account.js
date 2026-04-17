@@ -30,6 +30,42 @@ export default async function handler(req) {
   const { userId } = auth
 
   try {
+    // If the user has an active Stripe subscription, cancel it at Stripe
+    // BEFORE we drop the subscriptions row — otherwise we lose the
+    // stripe_subscription_id and the customer keeps getting billed.
+    // Apple (RevenueCat) subscriptions can't be cancelled server-side;
+    // iOS users must cancel in Settings → Subscriptions themselves, and
+    // deleting the account does not refund prior Apple charges.
+    if (process.env.STRIPE_SECRET_KEY) {
+      try {
+        const subsRes = await fetch(
+          `${supabaseUrl}/rest/v1/subscriptions?user_id=eq.${userId}&select=stripe_subscription_id`,
+          { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } }
+        )
+        const rows = await subsRes.json().catch(() => [])
+        const stripeSubId = rows?.[0]?.stripe_subscription_id
+        if (stripeSubId) {
+          const cancelRes = await fetch(
+            `https://api.stripe.com/v1/subscriptions/${encodeURIComponent(stripeSubId)}`,
+            {
+              method: 'DELETE',
+              headers: {
+                Authorization: `Bearer ${process.env.STRIPE_SECRET_KEY}`,
+              },
+            }
+          )
+          if (!cancelRes.ok) {
+            // Log but don't block account deletion — the user may already
+            // have cancelled via the portal, leaving a stale row.
+            const err = await cancelRes.text().catch(() => '')
+            console.warn('[delete-account] Stripe cancel failed', cancelRes.status, err)
+          }
+        }
+      } catch (e) {
+        console.warn('[delete-account] Stripe cancel threw', e)
+      }
+    }
+
     // Delete user data in order (books, subscriptions, then auth account)
     await fetch(`${supabaseUrl}/rest/v1/user_books?user_id=eq.${userId}`, {
       method: 'DELETE',

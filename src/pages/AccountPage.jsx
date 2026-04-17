@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { motion } from 'motion/react'
-import { Trash2, LogOut, AlertTriangle, Loader2, Sparkles } from 'lucide-react'
+import { Trash2, LogOut, AlertTriangle, Loader2, Sparkles, CreditCard, ExternalLink } from 'lucide-react'
 import { useAuthStore, selectDisplayName } from '../stores/useAuthStore'
+import { useSubscription } from '../hooks/useSubscription'
 import { apiFetchAuthed } from '../lib/api'
+import { IS_NATIVE } from '../services/purchaseService'
 import AvatarDisplay from '../components/avatar/AvatarDisplay'
 
 export default function AccountPage() {
@@ -12,9 +14,28 @@ export default function AccountPage() {
   const signOut = useAuthStore((s) => s.signOut)
   const displayName = useAuthStore(selectDisplayName)
 
+  const { planKey, isPaid, loading: subLoading } = useSubscription()
   const [confirmStep, setConfirmStep] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [error, setError] = useState(null)
+  const [portalLoading, setPortalLoading] = useState(false)
+  const [portalError, setPortalError] = useState(null)
+
+  const handleManageSubscription = async () => {
+    setPortalError(null)
+    setPortalLoading(true)
+    try {
+      const res = await apiFetchAuthed('/api/customer-portal', { method: 'POST' })
+      const data = await res.json().catch(() => null)
+      if (!res.ok || !data?.url) {
+        throw new Error(data?.error || `Couldn't open billing portal (${res.status})`)
+      }
+      window.location.href = data.url
+    } catch (e) {
+      setPortalError(e?.message || 'Failed to open billing portal. Please try again.')
+      setPortalLoading(false)
+    }
+  }
 
   const handleSignOut = async () => {
     await signOut()
@@ -76,6 +97,41 @@ export default function AccountPage() {
               Customize my avatar
             </Link>
           </div>
+
+          {/* Subscription */}
+          {!subLoading && isPaid && (
+            <div className="border-b border-galaxy-text-muted/20 pb-6 mb-6">
+              <h2 className="font-heading text-lg font-semibold text-galaxy-text mb-1">Subscription</h2>
+              <p className="text-galaxy-text-muted font-body text-sm mb-3">
+                Current plan: <span className="text-galaxy-text font-semibold capitalize">{planKey}</span>
+              </p>
+              {IS_NATIVE ? (
+                <p className="text-galaxy-text-muted font-body text-sm">
+                  Manage or cancel your subscription in <span className="text-galaxy-text">Settings → Apple ID → Subscriptions</span>.
+                </p>
+              ) : (
+                <>
+                  <button
+                    onClick={handleManageSubscription}
+                    disabled={portalLoading}
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-2xl border border-galaxy-text-muted/30 text-galaxy-text-muted hover:text-galaxy-text hover:border-galaxy-text-muted/60 transition-colors font-body text-sm disabled:opacity-60"
+                  >
+                    {portalLoading ? (
+                      <><Loader2 size={15} className="animate-spin" /> Opening portal…</>
+                    ) : (
+                      <><CreditCard size={16} /> Manage subscription <ExternalLink size={13} className="opacity-60" /></>
+                    )}
+                  </button>
+                  <p className="text-galaxy-text-muted font-body text-xs mt-2">
+                    Update payment method, change plan, or cancel anytime via Stripe's secure portal.
+                  </p>
+                  {portalError && (
+                    <p className="text-red-400 font-body text-sm mt-3">{portalError}</p>
+                  )}
+                </>
+              )}
+            </div>
+          )}
 
           {/* Sign out */}
           <div className="border-b border-galaxy-text-muted/20 pb-6 mb-6">
