@@ -33,6 +33,12 @@ export const COIN_PACK_IAP_PRODUCTS = {
 // always call its methods inline — never hand the proxy back to callers.
 let _Purchases = null
 
+// A single promise that resolves once configure() has run successfully.
+// Every IAP method awaits this before calling native — prevents races
+// where a user taps "Upgrade" before startup init has finished, which
+// manifests as "Purchases must be configured before calling this function".
+let _configured = null
+
 async function ensureRC() {
   if (!IS_NATIVE) return false
   if (_Purchases) return true
@@ -41,29 +47,42 @@ async function ensureRC() {
   return true
 }
 
+async function configureOnce(userId) {
+  const ok = await ensureRC()
+  if (!ok) throw new Error('IAP not available on this platform')
+  const apiKey = import.meta.env.VITE_REVENUECAT_IOS_KEY
+  if (!apiKey) {
+    throw new Error('VITE_REVENUECAT_IOS_KEY is not set in the build — rebuild after adding it to .env.local')
+  }
+  await _Purchases.configure({ apiKey })
+  if (userId) {
+    try { await _Purchases.logIn({ appUserID: userId }) } catch (e) { console.warn('[IAP] logIn failed', e) }
+  }
+}
+
 export async function initRevenueCat(userId) {
   if (!IS_NATIVE) return
-  try {
-    const ok = await ensureRC()
-    if (!ok) return
-    const apiKey = import.meta.env.VITE_REVENUECAT_IOS_KEY
-    if (!apiKey) {
-      console.warn('[IAP] VITE_REVENUECAT_IOS_KEY not set')
-      return
-    }
-    await _Purchases.configure({ apiKey })
-    if (userId) {
-      await _Purchases.logIn({ appUserID: userId })
-    }
-  } catch (e) {
+  if (_configured) return _configured
+  _configured = configureOnce(userId).catch((e) => {
     console.error('[IAP] initRevenueCat error', e)
-  }
+    _configured = null // let a later call retry
+    throw e
+  })
+  return _configured
+}
+
+// Called before any getOfferings / purchase call. If init hasn't fired
+// yet (shouldn't happen, but covers races), kicks it off without a
+// userId — we'll rely on anonymous IAP until auth fills in.
+async function ensureConfigured() {
+  if (!IS_NATIVE) throw new Error('IAP not available on this platform')
+  if (!_configured) await initRevenueCat(null)
+  else await _configured
 }
 
 export async function getOfferings() {
   try {
-    const ok = await ensureRC()
-    if (!ok) return null
+    await ensureConfigured()
     const { current } = await _Purchases.getOfferings()
     return current
   } catch (e) {
@@ -73,19 +92,18 @@ export async function getOfferings() {
 }
 
 export async function purchasePackage(planName, billing) {
-  const ok = await ensureRC()
-  if (!ok) throw new Error('IAP not available')
+  await ensureConfigured()
 
   const productId = IAP_PRODUCTS[`${planName}_${billing}`]
   if (!productId) throw new Error('Unknown product')
 
   const offering = await getOfferings()
-  if (!offering) throw new Error('No offerings available')
+  if (!offering) throw new Error('No offerings available — configure an offering with these products in RevenueCat')
 
   const pkg = offering.availablePackages.find(
     (p) => p.product.identifier === productId
   )
-  if (!pkg) throw new Error(`Package not found: ${productId}`)
+  if (!pkg) throw new Error(`Package not found: ${productId}. Make sure this product is attached to the current RevenueCat offering.`)
 
   const { customerInfo } = await _Purchases.purchasePackage({ aPackage: pkg })
   return customerInfo
@@ -96,8 +114,7 @@ export async function purchasePackage(planName, billing) {
 // server-side via add_coins. The caller should refresh the balance
 // afterwards rather than trust any amount from the client.
 export async function purchaseCoinPack(packKey) {
-  const ok = await ensureRC()
-  if (!ok) throw new Error('IAP not available')
+  await ensureConfigured()
 
   const productId = COIN_PACK_IAP_PRODUCTS[packKey]
   if (!productId) throw new Error('Unknown coin pack')
@@ -120,16 +137,14 @@ export async function purchaseCoinPack(packKey) {
 }
 
 export async function restorePurchases() {
-  const ok = await ensureRC()
-  if (!ok) throw new Error('IAP not available')
+  await ensureConfigured()
   const { customerInfo } = await _Purchases.restorePurchases()
   return customerInfo
 }
 
 export async function getCustomerInfo() {
   try {
-    const ok = await ensureRC()
-    if (!ok) return null
+    await ensureConfigured()
     const { customerInfo } = await _Purchases.getCustomerInfo()
     return customerInfo
   } catch (e) {
