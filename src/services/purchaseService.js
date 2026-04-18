@@ -7,7 +7,7 @@ const IS_NATIVE = Capacitor.isNativePlatform()
 
 // RevenueCat product IDs — must match App Store Connect exactly
 export const IAP_PRODUCTS = {
-  family_monthly:  'com.myfavoritebook.app.family.monthly',
+  family_monthly:  'com.myfavoritebook.app.family.monthly.v2',
   family_annual:   'com.myfavoritebook.app.family.annual',
   teacher_monthly: 'com.myfavoritebook.app.teacher.monthly',
   teacher_annual:  'com.myfavoritebook.app.teacher.annual',
