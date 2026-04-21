@@ -1,7 +1,9 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { motion } from 'motion/react'
 import { Check, Sparkles, GraduationCap, BookOpen, RotateCcw } from 'lucide-react'
+
+const APPLE_EULA_URL = 'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/'
 import { useAuthStore } from '../stores/useAuthStore'
 import { useSubscription } from '../hooks/useSubscription'
 import { PRICES } from '../lib/plans'
@@ -304,6 +306,43 @@ export default function PricingPage() {
               Restore purchases
             </button>
           )}
+        </motion.div>
+
+        {/* Subscription legal disclosure — required by App Store Review
+            Guideline 3.1.2 for auto-renewable subscriptions. Must be visible
+            at the point of purchase, and must include title, length, price,
+            and links to Privacy Policy + Terms of Use (EULA). */}
+        <motion.div
+          className="max-w-3xl mx-auto mt-10 pt-8 border-t border-galaxy-text-muted/20 text-galaxy-text-muted font-body text-xs leading-relaxed space-y-3"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.6 }}
+        >
+          <p className="font-semibold text-galaxy-text">Subscription details</p>
+          <ul className="space-y-1.5 list-disc pl-5">
+            <li>
+              <span className="text-galaxy-text">Family</span> — {PRICES.family.monthly.amount}/month or {PRICES.family.annual.amount}/year (auto-renewing).
+            </li>
+            <li>
+              <span className="text-galaxy-text">Teacher</span> — {PRICES.teacher.monthly.amount}/month or {PRICES.teacher.annual.amount}/year (auto-renewing). Includes a 14-day free trial.
+            </li>
+          </ul>
+          <p>
+            Subscriptions automatically renew at the end of each billing period unless cancelled at least 24 hours before the end of the current period. Your Apple ID will be charged the renewal price at the start of each new period. Manage or cancel at any time in Settings → Apple ID → Subscriptions. Any unused portion of a free trial is forfeited when you purchase a subscription.
+          </p>
+          <p className="flex flex-wrap gap-x-4 gap-y-1 pt-1">
+            <Link to="/privacy" className="underline hover:text-galaxy-text transition-colors">
+              Privacy Policy
+            </Link>
+            <a
+              href={APPLE_EULA_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline hover:text-galaxy-text transition-colors"
+            >
+              Terms of Use (EULA)
+            </a>
+          </p>
         </motion.div>
       </div>
 
