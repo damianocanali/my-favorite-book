@@ -97,15 +97,26 @@ export async function purchasePackage(planName, billing) {
   const productId = IAP_PRODUCTS[`${planName}_${billing}`]
   if (!productId) throw new Error('Unknown product')
 
+  // Preferred path: go through the RC offering/package so RC attributes the
+  // purchase to its analytics + webhook chain. If the offering is unavailable
+  // (e.g. local StoreKit Configuration File testing, or products still in
+  // DEVELOPER_ACTION_NEEDED in RC), fall back to fetching the raw StoreKit
+  // product and purchasing it directly. RC still posts the receipt to its
+  // backend, so entitlements resolve the same way.
   const offering = await getOfferings()
-  if (!offering) throw new Error('No offerings available — configure an offering with these products in RevenueCat')
-
-  const pkg = offering.availablePackages.find(
+  const pkg = offering?.availablePackages?.find(
     (p) => p.product.identifier === productId
   )
-  if (!pkg) throw new Error(`Package not found: ${productId}. Make sure this product is attached to the current RevenueCat offering.`)
 
-  const { customerInfo } = await _Purchases.purchasePackage({ aPackage: pkg })
+  if (pkg) {
+    const { customerInfo } = await _Purchases.purchasePackage({ aPackage: pkg })
+    return customerInfo
+  }
+
+  const { products } = await _Purchases.getProducts({ productIdentifiers: [productId] })
+  const product = products?.[0]
+  if (!product) throw new Error(`Product not found: ${productId}. If RC offerings are unavailable, verify the product exists in the StoreKit Configuration File (local testing) or in App Store Connect (sandbox / production).`)
+  const { customerInfo } = await _Purchases.purchaseStoreProduct({ product })
   return customerInfo
 }
 
