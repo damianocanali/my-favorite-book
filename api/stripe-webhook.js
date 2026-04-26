@@ -195,6 +195,42 @@ export default async function handler(req) {
         break
       }
 
+      case 'payment_intent.succeeded': {
+        const pi = event.data.object
+        if (pi.metadata?.type !== 'print_order') break
+
+        const orderId = pi.metadata.order_id
+        if (!orderId) break
+
+        const r = await fetch(`${supabaseUrl}/rest/v1/print_orders?id=eq.${orderId}&status=eq.pending`, {
+          method: 'PATCH',
+          headers: {
+            apikey: serviceKey,
+            Authorization: `Bearer ${serviceKey}`,
+            'Content-Type': 'application/json',
+            Prefer: 'return=minimal',
+          },
+          body: JSON.stringify({
+            status: 'paid',
+            stripe_charge_id: pi.latest_charge ?? null,
+          }),
+        })
+        if (!r.ok) {
+          console.error('[print] failed to mark paid', r.status)
+          break
+        }
+
+        const base = process.env.PUBLIC_BASE_URL || `https://${req.headers.get('host')}`
+        const workerSecret = process.env.PRINT_WORKER_SECRET
+        fetch(`${base}/api/print-orders/pdf-worker`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${workerSecret}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orderId }),
+        }).catch((e) => console.error('[print] pdf worker dispatch failed', e))
+
+        break
+      }
+
       default:
         break
     }

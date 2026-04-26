@@ -116,6 +116,13 @@ export default async function handler(req, res) {
       status_message: null,
     })
 
+    const base = process.env.PUBLIC_BASE_URL || `http://${req.headers.host}`
+    fetch(`${base}/api/print-orders/submit-to-lulu`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${WORKER_SECRET}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ orderId }),
+    }).catch((e) => console.error('[print] lulu submitter dispatch failed', e))
+
     return res.status(200).json({ ok: true, status: 'pdf_ready' })
   } catch (err) {
     await patchOrder(orderId, { status: 'failed', status_message: String(err?.message ?? err).slice(0, 500) }).catch(() => {})
