@@ -126,6 +126,12 @@ export default async function handler(req, res) {
     return res.status(200).json({ ok: true, status: 'pdf_ready' })
   } catch (err) {
     await patchOrder(orderId, { status: 'failed', status_message: String(err?.message ?? err).slice(0, 500) }).catch(() => {})
+    const base = process.env.PUBLIC_BASE_URL || `http://${req.headers.host}`
+    fetch(`${base}/api/print-orders/refund`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${WORKER_SECRET}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ orderId, reason: `pdf_worker: ${String(err?.message ?? err).slice(0, 200)}` }),
+    }).catch(() => {})
     return res.status(500).json({ error: String(err?.message ?? err) })
   }
 }
