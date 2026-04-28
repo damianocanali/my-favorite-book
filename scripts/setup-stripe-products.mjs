@@ -43,7 +43,6 @@ async function ensure({ kind, name, description, unit_amount }) {
       description,
       metadata: { kind },
       shippable: true,
-      tax_code: 'txcd_30060003', // "Books — physical" (Stripe tax code; verify in Stripe Dashboard)
     })
     console.log(`Created product ${kind} → ${product.id}`)
   }
