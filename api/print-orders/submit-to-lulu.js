@@ -9,11 +9,14 @@ const SUPABASE = process.env.SUPABASE_URL
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
 const WORKER_SECRET = process.env.PRINT_WORKER_SECRET
 
-// Lulu pod_package_id values for 8.5"×8.5" Lulu products.
-// Verify at /print-shop/ in Lulu dashboard before going live.
+// Verified against Lulu sandbox 2026-04-27 via cost-calc probe.
+// 0850X0850 = 8.5"×8.5" trim, FC = full color, STD = standard quality,
+// CW = casewrap (hardcover), PB = perfect-bound (softcover),
+// 080 = 80# paper, CW = coated white, 444 / MXX = standard glue + cover.
+// Both require >= 24 pages; pad short books in the PDF worker.
 const POD_PACKAGE = {
-  hardcover: '0850X0850BWSTDCW060UC444MXX',
-  softcover: '0850X0850FCSTDPB060UC444MXX',
+  hardcover: '0850X0850FCSTDCW080CW444MXX',
+  softcover: '0850X0850FCSTDPB080CW444MXX',
 }
 
 async function getOrder(id) {
