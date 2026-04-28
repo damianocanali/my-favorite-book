@@ -1,0 +1,13 @@
+{
+  "title": "Smoke Test",
+  "authorName": "Tester",
+  "colors": { "cover": "#8B5CF6", "accent": "#06B6D4", "text": "#FFFFFF" },
+  "coverImage": "https://picsum.photos/id/237/768/512",
+  "pages": [
+    { "id": 1, "pageNumber": 1, "text": "Page one.", "illustrationData": "https://picsum.photos/id/238/768/512" },
+    { "id": 2, "pageNumber": 2, "text": "Page two.", "illustrationData": "https://picsum.photos/id/239/768/512" },
+    { "id": 3, "pageNumber": 3, "text": "Page three.", "illustrationData": "https://picsum.photos/id/240/768/512" }
+  ],
+  "characters": [{ "id": "c1", "emoji": "🐻" }],
+  "setting": { "emoji": "🌲" }
+}

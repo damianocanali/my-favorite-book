@@ -102,3 +102,26 @@ body.keyboard-open main {
     page-break-after: auto;
   }
 }
+
+/* ── Lulu trim (8.5"×8.5" + 0.125" bleed) ──────────────── */
+@media print {
+  .printable-book[data-print-mode="lulu"] .print-page {
+    width: 8.75in;            /* trim 8.5" + 0.125" bleed each side = 8.75" */
+    height: 8.75in;
+    min-height: unset;
+    page-break-after: always;
+    break-after: page;
+  }
+
+  .printable-book[data-print-mode="lulu"] .print-safe {
+    /* 0.25" inner safe area on top of bleed; total 0.375" from edge to text */
+    padding: 0.375in;
+    box-sizing: border-box;
+    height: 100%;
+  }
+
+  @page {
+    size: 8.75in 8.75in;
+    margin: 0;
+  }
+}

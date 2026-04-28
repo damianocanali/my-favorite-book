@@ -7,6 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "cap:sync": "vite build && cap sync",
     "cap:ios": "vite build && cap sync ios && cap open ios",
     "cap:android": "vite build && cap sync android && cap open android",
@@ -30,25 +32,30 @@
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
     "@revenuecat/purchases-capacitor": "^11.3.2",
+    "@sparticuz/chromium": "^147.0.2",
     "@supabase/supabase-js": "^2.49.4",
     "canvas-confetti": "^1.9.4",
     "lucide-react": "^0.577.0",
     "motion": "^12.38.0",
     "nanoid": "^5.1.7",
+    "puppeteer-core": "^24.42.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "react-pageflip": "^2.0.3",
     "react-router-dom": "^7.13.1",
+    "stripe": "^22.1.0",
     "zustand": "^5.0.12"
   },
   "devDependencies": {
     "@capacitor/cli": "^7.6.2",
     "@tailwindcss/vite": "^4.2.2",
     "@vitejs/plugin-react": "^4.7.0",
+    "@vitest/coverage-v8": "^4.1.5",
     "autoprefixer": "^10.4.27",
     "postcss": "^8.5.8",
     "sharp": "^0.34.5",
     "tailwindcss": "^3.4.19",
-    "vite": "^5.4.21"
+    "vite": "^5.4.21",
+    "vitest": "^4.1.5"
   }
 }
