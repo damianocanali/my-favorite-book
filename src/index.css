@@ -64,14 +64,15 @@ input, textarea, [contenteditable] {
   color: #F1F5F9;
 }
 
-/* When mobile keyboard is open, shrink the view */
-body.keyboard-open {
-  height: calc(100vh - 300px);
-  overflow: hidden;
+/* iOS keyboard handling: --kb-height is set from the native keyboardWillShow
+   event in src/capacitor.js. Padding the bottom of <main> ensures the focused
+   input scrolls above the keyboard instead of being covered by it. */
+:root {
+  --kb-height: 0px;
 }
 
 body.keyboard-open main {
-  padding-bottom: 0 !important;
+  padding-bottom: var(--kb-height) !important;
 }
 
 /* ── Print styles ──────────────────────────────────────── */

@@ -24,13 +24,21 @@ export async function initCapacitor(navigateFn) {
     await SplashScreen.hide()
   } catch {}
 
-  // Handle keyboard on iOS (push content up)
+  // Handle keyboard on iOS — pad the page by the actual keyboard height and
+  // scroll the focused input into view so writing isn't hidden underneath.
   if (platform === 'ios') {
     try {
-      Keyboard.addListener('keyboardWillShow', () => {
+      Keyboard.addListener('keyboardWillShow', (info) => {
+        const h = info?.keyboardHeight ?? 300
+        document.documentElement.style.setProperty('--kb-height', `${h}px`)
         document.body.classList.add('keyboard-open')
+        const el = document.activeElement
+        if (el && typeof el.scrollIntoView === 'function') {
+          requestAnimationFrame(() => el.scrollIntoView({ block: 'center', behavior: 'smooth' }))
+        }
       })
       Keyboard.addListener('keyboardWillHide', () => {
+        document.documentElement.style.setProperty('--kb-height', '0px')
         document.body.classList.remove('keyboard-open')
       })
     } catch {}
