@@ -6,6 +6,10 @@ import { useBookStore } from '../../stores/useBookStore'
 import { useSubscription } from '../../hooks/useSubscription'
 import { generateCoverArt } from '../../services/imageGenerator'
 
+// Cost-protection cap: a paid user can regenerate the cover at most this many
+// times per book. Clearing the cover resets the counter.
+const MAX_COVER_REGENS = 5
+
 export default function CoverArtGenerator() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
@@ -17,7 +21,11 @@ export default function CoverArtGenerator() {
 
   if (!book) return null
 
+  const coverRegenCount = book.coverRegenCount ?? 0
+  const atCoverRegenLimit = coverRegenCount >= MAX_COVER_REGENS
+
   const handleGenerate = async () => {
+    if (atCoverRegenLimit) return
     setLoading(true)
     setError(null)
     try {
@@ -70,34 +78,44 @@ export default function CoverArtGenerator() {
                   <Trash2 size={14} />
                 </motion.button>
               )}
-              <motion.button
-                onClick={handleGenerate}
-                disabled={loading}
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-body font-semibold transition-all cursor-pointer ${
-                  loading
-                    ? 'bg-galaxy-primary/30 text-galaxy-primary'
-                    : 'bg-galaxy-primary text-white hover:bg-purple-500'
-                } disabled:opacity-50`}
-                whileHover={loading ? {} : { scale: 1.05 }}
-                whileTap={loading ? {} : { scale: 0.95 }}
-              >
-                {loading ? (
-                  <>
-                    <Loader2 size={12} className="animate-spin" />
-                    Creating...
-                  </>
-                ) : book.coverImage ? (
-                  <>
-                    <RefreshCw size={12} />
-                    New Cover
-                  </>
-                ) : (
-                  <>
-                    <ImageIcon size={12} />
-                    Generate Cover
-                  </>
-                )}
-              </motion.button>
+              {atCoverRegenLimit ? (
+                <div
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-body font-semibold bg-galaxy-text-muted/20 text-galaxy-text-muted border border-galaxy-text-muted/20"
+                  title={`Max ${MAX_COVER_REGENS} regenerations per book. Clear the cover to start over.`}
+                >
+                  <Lock size={12} />
+                  Max redraws — clear to retry
+                </div>
+              ) : (
+                <motion.button
+                  onClick={handleGenerate}
+                  disabled={loading}
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-body font-semibold transition-all cursor-pointer ${
+                    loading
+                      ? 'bg-galaxy-primary/30 text-galaxy-primary'
+                      : 'bg-galaxy-primary text-white hover:bg-purple-500'
+                  } disabled:opacity-50`}
+                  whileHover={loading ? {} : { scale: 1.05 }}
+                  whileTap={loading ? {} : { scale: 0.95 }}
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 size={12} className="animate-spin" />
+                      Creating...
+                    </>
+                  ) : book.coverImage ? (
+                    <>
+                      <RefreshCw size={12} />
+                      New Cover
+                    </>
+                  ) : (
+                    <>
+                      <ImageIcon size={12} />
+                      Generate Cover
+                    </>
+                  )}
+                </motion.button>
+              )}
             </>
           ) : (
             <motion.button

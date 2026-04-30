@@ -7,6 +7,7 @@ const createBlankPage = (pageNumber) => ({
   pageNumber,
   text: '',
   illustrationData: null,
+  illustrationRegenCount: 0,
   borderStyle: 'stars',
 })
 
@@ -150,7 +151,17 @@ export const useBookStore = create(
       setCoverImage: (coverImage) =>
         set((state) => ({
           book: state.book
-            ? { ...state.book, coverImage, updatedAt: new Date().toISOString() }
+            ? {
+                ...state.book,
+                coverImage,
+                // Reset regen counter when the user clears the cover; otherwise
+                // count this as a regeneration. Same per-asset cap rationale
+                // as page illustrations.
+                coverRegenCount: coverImage == null
+                  ? 0
+                  : (state.book.coverRegenCount ?? 0) + 1,
+                updatedAt: new Date().toISOString(),
+              }
             : null,
         })),
 
@@ -160,7 +171,17 @@ export const useBookStore = create(
             ? {
                 ...state.book,
                 pages: state.book.pages.map((p) =>
-                  p.id === pageId ? { ...p, illustrationData } : p
+                  p.id === pageId
+                    ? {
+                        ...p,
+                        illustrationData,
+                        // Reset the per-page regen counter when the user clears
+                        // the illustration; otherwise count this as a regen.
+                        illustrationRegenCount: illustrationData == null
+                          ? 0
+                          : (p.illustrationRegenCount ?? 0) + 1,
+                      }
+                    : p
                 ),
                 updatedAt: new Date().toISOString(),
               }

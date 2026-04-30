@@ -7,6 +7,12 @@ import { useRewardsStore } from '../../stores/useRewardsStore'
 import { useSubscription } from '../../hooks/useSubscription'
 import { generatePageIllustration } from '../../services/imageGenerator'
 
+// Hard cap on regenerations per page across all users. Cost-protection
+// safety net: a page is a small artifact and 5 retries is far more than
+// any legitimate iteration needs. To start over, the user clears the
+// illustration (resets the counter to 0).
+const MAX_REGENS_PER_PAGE = 5
+
 export default function IllustrationGenerator({ page }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
@@ -20,6 +26,8 @@ export default function IllustrationGenerator({ page }) {
   const { plan, isPaid } = useSubscription()
 
   const hasIllustration = !!page.illustrationData
+  const regenCount = page.illustrationRegenCount ?? 0
+  const atPageRegenLimit = regenCount >= MAX_REGENS_PER_PAGE
 
   // Daily global limit for free users — not per-book
   const usedToday = getImageGenerationsToday()
@@ -29,6 +37,7 @@ export default function IllustrationGenerator({ page }) {
   const handleGenerate = async () => {
     if (!book) return
     if (atLimit) return
+    if (atPageRegenLimit) return
     setLoading(true)
     setError(null)
 
@@ -73,6 +82,14 @@ export default function IllustrationGenerator({ page }) {
           <Lock size={12} />
           Limit reached today
         </motion.button>
+      ) : atPageRegenLimit ? (
+        <div
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-body font-semibold bg-galaxy-text-muted/20 text-galaxy-text-muted border border-galaxy-text-muted/20 backdrop-blur-sm"
+          title={`Max ${MAX_REGENS_PER_PAGE} redraws per page. Clear and try again to start over.`}
+        >
+          <Lock size={12} />
+          Max redraws — clear to retry
+        </div>
       ) : (
         <motion.button
           onClick={handleGenerate}
