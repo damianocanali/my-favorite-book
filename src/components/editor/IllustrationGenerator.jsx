@@ -29,10 +29,11 @@ export default function IllustrationGenerator({ page }) {
   const regenCount = page.illustrationRegenCount ?? 0
   const atPageRegenLimit = regenCount >= MAX_REGENS_PER_PAGE
 
-  // Daily global limit for free users — not per-book
+  // Daily per-user cap. Plans now define a real number (not Infinity) for
+  // every tier as a cost-protection layer; we enforce it for every user.
   const usedToday = getImageGenerationsToday()
-  const atLimit = !isPaid && usedToday >= plan.imagesPerDay
-  const remaining = isPaid ? Infinity : plan.imagesPerDay - usedToday
+  const atLimit = usedToday >= plan.imagesPerDay
+  const remaining = plan.imagesPerDay - usedToday
 
   const handleGenerate = async () => {
     if (!book) return

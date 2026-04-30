@@ -17,20 +17,26 @@ export default function CoverArtGenerator() {
 
   const book = useBookStore((state) => state.book)
   const setCoverImage = useBookStore((state) => state.setCoverImage)
-  const { isPaid } = useSubscription()
+  const getImageGenerationsToday = useBookStore((s) => s.getImageGenerationsToday)
+  const incrementImageGenerations = useBookStore((s) => s.incrementImageGenerations)
+  const { plan, isPaid } = useSubscription()
 
   if (!book) return null
 
   const coverRegenCount = book.coverRegenCount ?? 0
   const atCoverRegenLimit = coverRegenCount >= MAX_COVER_REGENS
+  const usedToday = getImageGenerationsToday()
+  const atDailyLimit = usedToday >= plan.imagesPerDay
 
   const handleGenerate = async () => {
     if (atCoverRegenLimit) return
+    if (atDailyLimit) return
     setLoading(true)
     setError(null)
     try {
       const imageData = await generateCoverArt(book)
       setCoverImage(imageData)
+      incrementImageGenerations()
     } catch (err) {
       setError(err.message)
     } finally {
@@ -86,6 +92,17 @@ export default function CoverArtGenerator() {
                   <Lock size={12} />
                   Max redraws — clear to retry
                 </div>
+              ) : atDailyLimit ? (
+                <motion.button
+                  onClick={() => navigate('/pricing')}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-body font-semibold bg-galaxy-text-muted/20 text-galaxy-text-muted border border-galaxy-text-muted/20 cursor-pointer"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  title={`Daily image limit reached (${plan.imagesPerDay}/day). Resets at midnight.`}
+                >
+                  <Lock size={12} />
+                  Daily limit reached
+                </motion.button>
               ) : (
                 <motion.button
                   onClick={handleGenerate}

@@ -18,7 +18,8 @@ export const PLANS = {
     name: 'Family',
     maxBooks: Infinity,
     storyBuddyPerDay: Infinity,
-    imagesPerDay: Infinity,
+    // Cost-protection cap. ~8x normal usage; abuse ceiling ~1500/mo at $0.005/image.
+    imagesPerDay: 50,
     pdfExport: true,
     classroom: false,
     avatarGenerations: 5,     // 5 per day free
@@ -29,7 +30,8 @@ export const PLANS = {
     name: 'Teacher',
     maxBooks: Infinity,
     storyBuddyPerDay: Infinity,
-    imagesPerDay: Infinity,
+    // Cost-protection cap. ~5x normal classroom usage; abuse ceiling ~6000/mo.
+    imagesPerDay: 200,
     pdfExport: true,
     classroom: true,
     avatarGenerations: Infinity,
