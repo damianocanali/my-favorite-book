@@ -1,4 +1,5 @@
 import { checkRateLimit, getClientIp, handleCors, withCors } from './_rateLimit.js'
+import { logUsage, estimateTogetherImageCostCents } from './_usage.js'
 
 export const config = { runtime: 'edge' }
 
@@ -76,6 +77,15 @@ export default async function handler(req) {
         headers: withCors({ 'Content-Type': 'application/json' }),
       })
     }
+
+    const model = 'black-forest-labs/FLUX.1-schnell'
+    logUsage({
+      service: 'together',
+      feature: 'generate_image',
+      model,
+      images: 1,
+      cost_cents: estimateTogetherImageCostCents({ model, images: 1 }),
+    })
 
     return new Response(JSON.stringify({ image: `data:image/png;base64,${b64}` }), {
       status: 200,

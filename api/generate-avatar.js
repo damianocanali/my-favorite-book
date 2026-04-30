@@ -1,6 +1,7 @@
 export const config = { runtime: 'edge' }
 
 import { checkRateLimit, getClientIp, handleCors, withCors } from './_rateLimit.js'
+import { logUsage, estimateTogetherImageCostCents } from './_usage.js'
 
 const TOGETHER_API_URL = 'https://api.together.xyz/v1/images/generations'
 const AVATAR_LIMIT = 10 // per hour per IP
@@ -98,6 +99,15 @@ export default async function handler(req) {
         status: 500, headers: withCors({ 'Content-Type': 'application/json' }),
       })
     }
+
+    const model = 'black-forest-labs/FLUX.1-schnell'
+    logUsage({
+      service: 'together',
+      feature: 'generate_avatar',
+      model,
+      images: 1,
+      cost_cents: estimateTogetherImageCostCents({ model, images: 1 }),
+    })
 
     return new Response(JSON.stringify({ image: `data:image/png;base64,${b64}` }), {
       status: 200, headers: withCors({ 'Content-Type': 'application/json' }),

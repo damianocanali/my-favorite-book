@@ -19,6 +19,7 @@ import ViewBookPage from './pages/ViewBookPage'
 import ResetPasswordPage from './pages/ResetPasswordPage'
 import AuthCallbackPage from './pages/AuthCallbackPage'
 import AccountPage from './pages/AccountPage'
+import AdminPage from './pages/AdminPage'
 import ProtectedRoute from './components/auth/ProtectedRoute'
 import BadgePopup from './components/ui/BadgePopup'
 import { initCapacitor } from './capacitor'
@@ -79,6 +80,7 @@ export default function App() {
         <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/auth/callback" element={<AuthCallbackPage />} />
         <Route path="/account" element={<AccountPage />} />
+        <Route path="/admin" element={<AdminPage />} />
         <Route path="/gallery" element={<GalleryPage />} />
         <Route path="/view/:slug" element={<ViewBookPage />} />
         <Route

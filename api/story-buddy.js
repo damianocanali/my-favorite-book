@@ -1,4 +1,5 @@
 import { checkRateLimit, getClientIp, handleCors, withCors } from './_rateLimit.js'
+import { logUsage, estimateAnthropicCostCents } from './_usage.js'
 
 export const config = { runtime: 'edge' }
 
@@ -143,6 +144,19 @@ export default async function handler(req) {
     }
 
     const data = await response.json()
+
+    const model = 'claude-haiku-4-5-20251001'
+    const input_tokens = data?.usage?.input_tokens ?? 0
+    const output_tokens = data?.usage?.output_tokens ?? 0
+    logUsage({
+      service: 'anthropic',
+      feature: 'story_buddy',
+      model,
+      input_tokens,
+      output_tokens,
+      cost_cents: estimateAnthropicCostCents({ model, input_tokens, output_tokens }),
+    })
+
     return new Response(JSON.stringify(data), {
       status: 200,
       headers: withCors({ 'Content-Type': 'application/json' }),
