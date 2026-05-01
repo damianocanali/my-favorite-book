@@ -1,5 +1,13 @@
-// Edge runtime. Verifies HMAC SHA-256 of the body using LULU_WEBHOOK_SECRET.
-// Lulu sends header `Lulu-HMAC-SHA256` with hex-encoded HMAC of the raw body.
+// Edge runtime. Verifies the HMAC signature on inbound Lulu webhooks.
+//
+// Lulu's docs are thin on the exact signing scheme, so we try multiple
+// known/plausible combinations:
+//   - header: Lulu-HMAC-SHA256 | X-Lulu-HMAC-SHA256 | Lulu-Signature
+//   - secret: LULU_WEBHOOK_SECRET (set explicitly) || LULU_CLIENT_SECRET
+//             (some providers re-use the API client secret for webhook signing)
+//   - encoding: hex || base64
+// If none match, we log the full header set + a body prefix so we can see
+// what Lulu actually sent and tighten the verifier on the next deploy.
 export const config = { runtime: 'edge' }
 
 import { canAdvance } from '../../lib/print/state.js'
@@ -7,6 +15,7 @@ import { canAdvance } from '../../lib/print/state.js'
 const SUPABASE = process.env.SUPABASE_URL
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
 const WEBHOOK_SECRET = process.env.LULU_WEBHOOK_SECRET
+const CLIENT_SECRET = process.env.LULU_CLIENT_SECRET
 
 const STATUS_MAP = {
   CREATED: 'submitted',
@@ -20,21 +29,70 @@ const STATUS_MAP = {
   CANCELED: 'failed',
 }
 
-async function verify(body, signatureHex) {
-  if (!signatureHex) return false
+function bytesToHex(bytes) {
+  return Array.from(bytes).map((b) => b.toString(16).padStart(2, '0')).join('')
+}
+
+function bytesToBase64(bytes) {
+  let s = ''
+  for (const b of bytes) s += String.fromCharCode(b)
+  return btoa(s)
+}
+
+function constantTimeEq(a, b) {
+  if (a.length !== b.length) return false
+  let mismatch = 0
+  for (let i = 0; i < a.length; i++) mismatch |= a.charCodeAt(i) ^ b.charCodeAt(i)
+  return mismatch === 0
+}
+
+async function hmac(secret, body) {
   const enc = new TextEncoder()
   const key = await crypto.subtle.importKey(
-    'raw', enc.encode(WEBHOOK_SECRET),
+    'raw', enc.encode(secret),
     { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
   )
   const sig = await crypto.subtle.sign('HMAC', key, enc.encode(body))
-  const computed = Array.from(new Uint8Array(sig)).map((b) => b.toString(16).padStart(2, '0')).join('')
-  if (computed.length !== signatureHex.length) return false
-  let mismatch = 0
-  for (let i = 0; i < computed.length; i++) {
-    mismatch |= computed.charCodeAt(i) ^ signatureHex.charCodeAt(i)
+  return new Uint8Array(sig)
+}
+
+// Tries every plausible combination of header / secret / encoding. Returns
+// the matching scheme name on success, or null if none verified.
+async function verifyAny(req, body) {
+  const headers = ['lulu-hmac-sha256', 'x-lulu-hmac-sha256', 'lulu-signature']
+  const secrets = [
+    WEBHOOK_SECRET && ['LULU_WEBHOOK_SECRET', WEBHOOK_SECRET],
+    CLIENT_SECRET && ['LULU_CLIENT_SECRET', CLIENT_SECRET],
+  ].filter(Boolean)
+
+  for (const h of headers) {
+    const provided = req.headers.get(h)
+    if (!provided) continue
+    for (const [secretName, secret] of secrets) {
+      const sigBytes = await hmac(secret, body)
+      const hex = bytesToHex(sigBytes)
+      const b64 = bytesToBase64(sigBytes)
+      if (constantTimeEq(hex, provided.trim())) return `${h}:${secretName}:hex`
+      if (constantTimeEq(b64, provided.trim())) return `${h}:${secretName}:base64`
+    }
   }
-  return mismatch === 0
+  return null
+}
+
+// Used when verification fails — captures headers + body prefix to Vercel
+// logs so the next time Lulu fires we can see what they actually sent.
+function logFailedVerification(req, body) {
+  const hdrs = {}
+  for (const [k, v] of req.headers.entries()) {
+    // Don't log auth bearer tokens or cookies; those aren't from Lulu and
+    // could leak third-party state.
+    if (/authorization|cookie/i.test(k)) continue
+    hdrs[k] = v
+  }
+  console.warn('[lulu-webhook] signature verification FAILED', {
+    headers: hdrs,
+    body_prefix: body.slice(0, 400),
+  })
 }
 
 async function findOrderByLuluId(luluId) {
@@ -63,10 +121,14 @@ export default async function handler(req) {
     return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405 })
   }
   const body = await req.text()
-  const sig = req.headers.get('lulu-hmac-sha256') || req.headers.get('Lulu-HMAC-SHA256')
-  if (!await verify(body, sig)) {
+  const scheme = await verifyAny(req, body)
+  if (!scheme) {
+    logFailedVerification(req, body)
     return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 })
   }
+  // Once we see which scheme works in production logs, narrow this verifier
+  // to a single, fast path for security/clarity.
+  console.log('[lulu-webhook] verified via', scheme)
 
   const event = JSON.parse(body)
   const luluId = String(event?.data?.id ?? '')
