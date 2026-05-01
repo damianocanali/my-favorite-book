@@ -35,7 +35,7 @@ export default async function handler(req) {
   }
 
   try {
-    const { prompt } = await req.json()
+    const { prompt, sourceImage, strength } = await req.json()
 
     if (!prompt) {
       return new Response(JSON.stringify({ error: 'Missing prompt' }), {
@@ -44,21 +44,45 @@ export default async function handler(req) {
       })
     }
 
+    // Image edits go through FLUX.1-Kontext-Dev (purpose-built for editing
+    // an existing image with a text instruction). Falls back to FLUX.1-schnell
+    // for plain generation. Edit cost is ~5× schnell — reflected in usage log.
+    const isEdit = Boolean(sourceImage)
+    const model = isEdit
+      ? 'black-forest-labs/FLUX.1-kontext-dev'
+      : 'black-forest-labs/FLUX.1-schnell'
+
+    const body = isEdit
+      ? {
+          model,
+          prompt,
+          image_url: sourceImage,
+          // 0.0 = identical to source; 1.0 = full regen. ~0.55 keeps composition
+          // while letting the instruction take effect.
+          strength: typeof strength === 'number' ? strength : 0.55,
+          width: 768,
+          height: 512,
+          steps: 12,
+          n: 1,
+          response_format: 'b64_json',
+        }
+      : {
+          model,
+          prompt,
+          width: 768,
+          height: 512,
+          steps: 4,
+          n: 1,
+          response_format: 'b64_json',
+        }
+
     const response = await fetch(TOGETHER_API_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${apiKey}`,
       },
-      body: JSON.stringify({
-        model: 'black-forest-labs/FLUX.1-schnell',
-        prompt,
-        width: 768,
-        height: 512,
-        steps: 4,
-        n: 1,
-        response_format: 'b64_json',
-      }),
+      body: JSON.stringify(body),
     })
 
     if (!response.ok) {
@@ -78,10 +102,9 @@ export default async function handler(req) {
       })
     }
 
-    const model = 'black-forest-labs/FLUX.1-schnell'
     logUsage({
       service: 'together',
-      feature: 'generate_image',
+      feature: isEdit ? 'edit_image' : 'generate_image',
       model,
       images: 1,
       cost_cents: estimateTogetherImageCostCents({ model, images: 1 }),

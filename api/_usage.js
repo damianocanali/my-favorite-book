@@ -16,9 +16,11 @@ const ANTHROPIC_PRICES = {
 // Together AI — per image (any FLUX schnell call is roughly the same).
 // Source: together.ai/pricing as of 2026-04. Update when changed.
 const TOGETHER_IMAGE_PRICES = {
-  'black-forest-labs/FLUX.1-schnell': 0.5,  // ~$0.005/image = 0.5 cents
-  'black-forest-labs/FLUX.1-dev':     2.5,  // ~$0.025/image = 2.5 cents (estimate)
-  'black-forest-labs/FLUX.1-pro':     5,    // ~$0.05/image = 5 cents (estimate)
+  'black-forest-labs/FLUX.1-schnell':      0.5,  // ~$0.005/image = 0.5 cents
+  'black-forest-labs/FLUX.1-dev':          2.5,  // ~$0.025/image = 2.5 cents
+  'black-forest-labs/FLUX.1-pro':          5,    // ~$0.05/image = 5 cents
+  'black-forest-labs/FLUX.1-kontext-dev':  3,    // ~$0.03/image = 3 cents (image edit)
+  'black-forest-labs/FLUX.1-kontext-pro':  6,    // ~$0.06/image = 6 cents (image edit, higher fidelity)
 }
 
 export function estimateAnthropicCostCents({ model, input_tokens = 0, output_tokens = 0 }) {
