@@ -4,9 +4,10 @@
 export const config = { maxDuration: 300 }
 
 import { upscaleAllIllustrations } from '../../lib/print/upscale.js'
-import { buildPrintHtml } from '../../lib/print/pdf-html.js'
+import { buildInteriorHtml, buildCoverHtml } from '../../lib/print/pdf-html.js'
 import { renderHtmlToPdf } from '../../lib/print/pdf-render.js'
 import { canAdvance } from '../../lib/print/state.js'
+import { spineWidthInches } from '../../lib/print/spine-width.js'
 
 const SUPABASE = process.env.SUPABASE_URL
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -91,14 +92,19 @@ export default async function handler(req, res) {
   try {
     const upscaled = await upscaleAllIllustrations(order.book_snapshot)
 
-    const interiorBook = { ...upscaled, coverImage: null, hideBackCover: false }
-    const interiorHtml = buildPrintHtml(interiorBook)
+    // Interior PDF: story pages + closing pages, no cover. The HTML builder
+    // pads to Lulu's 24-page minimum with closing/promo content (see
+    // lib/print/pdf-html.js).
+    const interiorHtml = await buildInteriorHtml(upscaled)
     const interiorPdf = await renderHtmlToPdf({ html: interiorHtml })
 
-    const coverHtml = buildPrintHtml({
-      ...upscaled,
-      pages: [],
-    })
+    // Cover spread: back + spine + front as one wide page. Spine width
+    // depends on the actual interior page count Lulu will print, which is
+    // the closing-padded length, not the story length. We approximate by
+    // using the same MIN_INTERIOR_PAGES (24) when story is shorter.
+    const interiorPageCount = Math.max(24, upscaled.pages.length + 3) // story + The End/About/Promo
+    const spine = spineWidthInches({ format: order.format, pageCount: interiorPageCount })
+    const coverHtml = await buildCoverHtml(upscaled, { spineWidthInches: spine })
     const coverPdf = await renderHtmlToPdf({ html: coverHtml })
 
     const interiorKey = `${orderId}/interior.pdf`
