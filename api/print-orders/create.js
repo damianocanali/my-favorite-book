@@ -88,7 +88,9 @@ export default async function handler(req) {
   if (format !== 'hardcover' && format !== 'softcover') return bad(400, 'Bad format')
   const qty = Number.parseInt(quantity, 10)
   if (!Number.isInteger(qty) || qty < 1 || qty > 10) return bad(400, 'Bad quantity')
-  for (const k of ['name','address_line1','city','state','postal_code','email']) {
+  // phone is required by Lulu's API on the shipping address — collect at
+  // checkout. The other fields are required by US Postal address rules.
+  for (const k of ['name','address_line1','city','state','postal_code','email','phone']) {
     if (!shipping?.[k]) return bad(400, `Missing shipping.${k}`)
   }
   if ((shipping.country ?? 'US') !== 'US') return bad(400, 'US shipping only in v1')
