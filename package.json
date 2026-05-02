@@ -18,6 +18,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@capacitor-community/stripe": "^8.1.1",
     "@capacitor/android": "^7.6.2",
     "@capacitor/app": "^7.1.2",
     "@capacitor/core": "^7.6.2",
@@ -33,6 +34,8 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@revenuecat/purchases-capacitor": "^11.3.2",
     "@sparticuz/chromium": "^147.0.2",
+    "@stripe/react-stripe-js": "^6.3.0",
+    "@stripe/stripe-js": "^9.4.0",
     "@supabase/supabase-js": "^2.49.4",
     "canvas-confetti": "^1.9.4",
     "lucide-react": "^0.577.0",
