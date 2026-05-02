@@ -1,10 +1,10 @@
 export const config = { runtime: 'edge' }
 
 import { unitPriceCents, totalCents } from '../../lib/print/pricing.js'
+import { getStripeSecretKey } from '../../lib/print/stripe-key.js'
 
 const SUPABASE = process.env.SUPABASE_URL
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
-const STRIPE_SECRET = process.env.STRIPE_SECRET_KEY
 
 // Flat US shipping placeholder; Plan B will switch to Lulu's shipping calculator + Stripe Tax.
 const FLAT_SHIPPING_CENTS = 499
@@ -57,7 +57,7 @@ async function createPaymentIntent({ amountCents, orderId, userId, email }) {
   const r = await fetch('https://api.stripe.com/v1/payment_intents', {
     method: 'POST',
     headers: {
-      Authorization: `Bearer ${STRIPE_SECRET}`,
+      Authorization: `Bearer ${getStripeSecretKey()}`,
       'Content-Type': 'application/x-www-form-urlencoded',
     },
     body: params.toString(),

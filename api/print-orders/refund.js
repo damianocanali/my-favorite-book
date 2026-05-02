@@ -1,10 +1,10 @@
 export const config = { maxDuration: 30 }
 
 import { canAdvance } from '../../lib/print/state.js'
+import { getStripeSecretKey } from '../../lib/print/stripe-key.js'
 
 const SUPABASE = process.env.SUPABASE_URL
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
-const STRIPE_SECRET = process.env.STRIPE_SECRET_KEY
 const WORKER_SECRET = process.env.PRINT_WORKER_SECRET
 
 async function getOrder(id) {
@@ -33,7 +33,7 @@ async function stripeRefund(paymentIntentId) {
   const r = await fetch('https://api.stripe.com/v1/refunds', {
     method: 'POST',
     headers: {
-      Authorization: `Bearer ${STRIPE_SECRET}`,
+      Authorization: `Bearer ${getStripeSecretKey()}`,
       'Content-Type': 'application/x-www-form-urlencoded',
     },
     body: params.toString(),
