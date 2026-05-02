@@ -8,6 +8,15 @@ import { buildInteriorHtml, buildCoverHtml } from '../../lib/print/pdf-html.js'
 import { renderHtmlToPdf } from '../../lib/print/pdf-render.js'
 import { canAdvance } from '../../lib/print/state.js'
 import { spineWidthInches } from '../../lib/print/spine-width.js'
+import { LuluClient } from '../../lib/print/lulu.js'
+
+// pod_package_id values are duplicated here from submit-to-lulu.js because
+// we need to know the SKU at PDF-generation time to query Lulu's exact
+// cover dimensions. Keep in sync.
+const POD_PACKAGE = {
+  hardcover: '0850X0850FCSTDCW080CW444MXX',
+  softcover: '0850X0850FCSTDPB080CW444MXX',
+}
 
 const SUPABASE = process.env.SUPABASE_URL
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -98,14 +107,28 @@ export default async function handler(req, res) {
     const interiorHtml = await buildInteriorHtml(upscaled)
     const interiorPdf = await renderHtmlToPdf({ html: interiorHtml })
 
-    // Cover spread: back + spine + front as one wide page. Spine width
-    // depends on the actual interior page count Lulu will print, which is
-    // the closing-padded length, not the story length. We approximate by
-    // using the same MIN_INTERIOR_PAGES (24) when story is shorter.
+    // Cover spread: back + spine + front as ONE wide page. Lulu validates
+    // the spread dimensions strictly, and they differ a lot between
+    // hardcover (~19" wide due to case wrap) and softcover (~17.4"). Query
+    // Lulu's cover-dimensions API for the exact size — never compute locally.
     const interiorPageCount = Math.max(24, upscaled.pages.length + 3) // story + The End/About/Promo
     const spine = spineWidthInches({ format: order.format, pageCount: interiorPageCount })
-    const coverHtml = await buildCoverHtml(upscaled, { spineWidthInches: spine })
-    const coverPdf = await renderHtmlToPdf({ html: coverHtml })
+    const podPackageId = POD_PACKAGE[order.format]
+    if (!podPackageId) throw new Error(`no POD package for format ${order.format}`)
+    const lulu = new LuluClient()
+    const dims = await lulu.getCoverDimensions({
+      pod_package_id: podPackageId,
+      interior_page_count: interiorPageCount,
+      unit: 'inch',
+    })
+    const widthInches = Number(dims.width)
+    const heightInches = Number(dims.height)
+    const coverHtml = await buildCoverHtml(upscaled, {
+      widthInches, heightInches, spineWidthInches: spine,
+    })
+    const coverPdf = await renderHtmlToPdf({
+      html: coverHtml, widthInches, heightInches,
+    })
 
     const interiorKey = `${orderId}/interior.pdf`
     const coverKey = `${orderId}/cover.pdf`

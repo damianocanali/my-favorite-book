@@ -76,22 +76,31 @@ describe('buildInteriorHtml', () => {
 })
 
 describe('buildCoverHtml', () => {
-  it('produces a single-page spread sized for back + spine + front + bleed', async () => {
-    const html = await buildCoverHtml(fixtureBook, { spineWidthInches: 0.11 })
-    // 0.25 (bleed both sides) + 8.5 + 0.11 + 8.5 = 17.36in wide; 8.75in tall.
-    expect(html).toMatch(/size:\s*17\.36in\s+8\.75in/)
+  // Hardcover dimensions per Lulu cover-dimensions API for 8.5x8.5/24p.
+  const HARDCOVER = { widthInches: 19.0, heightInches: 10.25, spineWidthInches: 0.11 }
+  // Softcover dimensions per Lulu cover-dimensions API for 8.5x8.5/24p.
+  const SOFTCOVER = { widthInches: 17.364, heightInches: 8.75, spineWidthInches: 0.06 }
+
+  it('uses the exact hardcover dimensions from Lulu', async () => {
+    const html = await buildCoverHtml(fixtureBook, HARDCOVER)
+    expect(html).toMatch(/size:\s*19in\s+10\.25in/)
+  })
+
+  it('uses the exact softcover dimensions from Lulu', async () => {
+    const html = await buildCoverHtml(fixtureBook, SOFTCOVER)
+    expect(html).toMatch(/size:\s*17\.364in\s+8\.75in/)
   })
 
   it('embeds the front cover image and the title on both back and front', async () => {
-    const html = await buildCoverHtml(fixtureBook, { spineWidthInches: 0.11 })
+    const html = await buildCoverHtml(fixtureBook, HARDCOVER)
     expect(html).toContain('https://x/cover.png')
-    // Title appears on back, spine, and front — at least 2 occurrences.
     const titleMatches = html.match(/My Bear/g) ?? []
     expect(titleMatches.length).toBeGreaterThanOrEqual(2)
   })
 
-  it('uses the spine width to size the middle column', async () => {
-    const html = await buildCoverHtml(fixtureBook, { spineWidthInches: 0.25 })
-    expect(html).toContain('0.25in')
+  it('side panels split the remaining width after the spine', async () => {
+    // (19 - 0.11) / 2 = 9.445
+    const html = await buildCoverHtml(fixtureBook, HARDCOVER)
+    expect(html).toContain('9.445in')
   })
 })
