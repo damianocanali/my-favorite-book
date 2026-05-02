@@ -18,7 +18,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@capacitor-community/stripe": "^8.1.1",
+    "@capacitor-community/stripe": "^7.2.3",
     "@capacitor/android": "^7.6.2",
     "@capacitor/app": "^7.1.2",
     "@capacitor/core": "^7.6.2",
