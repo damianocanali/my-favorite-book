@@ -52,6 +52,22 @@ export async function initCapacitor(navigateFn) {
     initRevenueCat(data?.session?.user?.id)
   })
 
+  // Native Stripe Payment Sheet for print orders. Dynamic import so the
+  // module is only evaluated on iOS — keeps the web bundle clean.
+  if (platform === 'ios') {
+    try {
+      const { Stripe } = await import('@capacitor-community/stripe')
+      const key = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY
+      if (key) {
+        await Stripe.initialize({ publishableKey: key })
+      } else {
+        console.warn('[stripe-ios] VITE_STRIPE_PUBLISHABLE_KEY not set')
+      }
+    } catch (e) {
+      console.warn('[stripe-ios] init failed', e?.message ?? e)
+    }
+  }
+
   // Handle Android back button
   App.addListener('backButton', ({ canGoBack }) => {
     if (canGoBack && navigateFn) {
