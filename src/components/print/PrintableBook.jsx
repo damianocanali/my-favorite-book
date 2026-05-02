@@ -2,7 +2,7 @@
  * PrintableBook — hidden on screen, shown only during window.print().
  * Each page uses .print-page which triggers a page break in @media print.
  */
-export default function PrintableBook({ book, printMode = 'browser' }) {
+export default function PrintableBook({ book, printMode = 'browser', visible = false }) {
   if (!book) return null
 
   const cover = book.colors?.cover ?? '#8B5CF6'
@@ -10,7 +10,7 @@ export default function PrintableBook({ book, printMode = 'browser' }) {
   const textColor = book.colors?.text ?? '#F1F5F9'
 
   return (
-    <div className="printable-book hidden" data-print-mode={printMode}>
+    <div className={`printable-book ${visible ? 'block' : 'hidden'}`} data-print-mode={printMode}>
 
       {/* ── Cover page ── */}
       <div
