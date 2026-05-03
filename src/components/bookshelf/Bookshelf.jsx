@@ -72,6 +72,7 @@ export default function Bookshelf() {
               onClick={() => navigate(`/preview/${book.id}`)}
               onEdit={() => handleEdit(book)}
               onDelete={() => setPendingDelete(book)}
+              onOrderPrint={() => navigate(`/order/${book.id}`)}
             />
           </motion.div>
         ))}
