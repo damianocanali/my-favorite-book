@@ -28,7 +28,10 @@ export default async function handler(req) {
   const user = await authUser(tok)
   if (!user?.id) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 })
 
-  const id = new URL(req.url).pathname.split('/').pop()
+  const id = new URL(req.url).searchParams.get('id')
+  if (!id) return new Response(JSON.stringify({ error: 'Missing id' }), {
+    status: 400, headers: { 'Content-Type': 'application/json' },
+  })
   const r = await fetch(
     `${SUPABASE}/rest/v1/print_orders?id=eq.${id}&user_id=eq.${user.id}&select=${PUBLIC_FIELDS.join(',')}`,
     { headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` } }
