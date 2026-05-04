@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useParams, useNavigate, Link } from 'react-router-dom'
+import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom'
 import { motion, AnimatePresence } from 'motion/react'
 import { ArrowLeft, Edit3, Printer, Send, X, Shield, Globe, Check, Loader2 } from 'lucide-react'
 import { useBookshelfStore } from '../stores/useBookshelfStore'
@@ -9,6 +9,7 @@ import { useAuthStore } from '../stores/useAuthStore'
 import BookPreview from '../components/book/BookPreview'
 import PrintableBook from '../components/print/PrintableBook'
 import SubmitToClassModal from '../components/classroom/SubmitToClassModal'
+import BookFinishedModal from '../components/print/BookFinishedModal'
 import SparkleButton from '../components/ui/SparkleButton'
 import { isNative } from '../capacitor'
 import { apiFetchAuthed } from '../lib/api'
@@ -20,10 +21,12 @@ export default function PreviewPage() {
   const getBook = useBookshelfStore((state) => state.getBook)
   const loadBook = useBookStore((state) => state.loadBook)
   const setStep = useBookStore((state) => state.setStep)
+  const [searchParams] = useSearchParams()
   const [showSubmitModal, setShowSubmitModal] = useState(false)
   const [nudgeDismissed, setNudgeDismissed] = useState(false)
   const [publishing, setPublishing] = useState(false)
   const [publishedUrl, setPublishedUrl] = useState(null)
+  const [finishedOpen, setFinishedOpen] = useState(searchParams.get('celebrate') === '1')
   const { plan } = useSubscription()
   const user = useAuthStore((s) => s.user)
 
@@ -126,6 +129,18 @@ export default function PreviewPage() {
             >
               <Check size={14} />
               {!isNative && 'Share Link'}
+            </button>
+          )}
+
+          {/* Order a printed copy — owner-only until production env is ready. */}
+          {printEnabled && (
+            <button
+              onClick={() => navigate(`/order/${book.id}`)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-galaxy-bg-light border border-galaxy-text-muted/20 text-galaxy-text-muted hover:text-galaxy-text hover:border-galaxy-text-muted/40 transition-colors text-sm"
+              title="Order a printed copy"
+            >
+              <Printer size={14} />
+              {!isNative && 'Print'}
             </button>
           )}
 
@@ -279,6 +294,12 @@ export default function PreviewPage() {
       {showSubmitModal && (
         <SubmitToClassModal book={book} onClose={() => setShowSubmitModal(false)} />
       )}
+
+      <BookFinishedModal
+        open={finishedOpen}
+        book={book}
+        onClose={() => setFinishedOpen(false)}
+      />
     </div>
   )
 }

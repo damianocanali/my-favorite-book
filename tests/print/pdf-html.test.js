@@ -51,11 +51,12 @@ describe('buildInteriorHtml', () => {
     expect(html).toMatch(/data:image\/png;base64,/)
   })
 
-  it('pads with "Notes from your reader" pages until at least 24 interior pages total', async () => {
+  it('pads with "Notes from your reader" pages until at least 32 interior pages total', async () => {
+    // Lulu's softcover SKU requires >= 32 pages; we use that as the floor
+    // for both formats so the same interior PDF is valid everywhere.
     const html = await buildInteriorHtml(fixtureBook)
-    // Count all <section class="print-page" tags as a proxy for total pages.
     const matches = html.match(/<section class="print-page"/g) ?? []
-    expect(matches.length).toBeGreaterThanOrEqual(24)
+    expect(matches.length).toBeGreaterThanOrEqual(32)
     expect(html).toContain('Notes from your reader')
   })
 

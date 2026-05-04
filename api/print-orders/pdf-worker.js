@@ -111,7 +111,8 @@ export default async function handler(req, res) {
     // the spread dimensions strictly, and they differ a lot between
     // hardcover (~19" wide due to case wrap) and softcover (~17.4"). Query
     // Lulu's cover-dimensions API for the exact size — never compute locally.
-    const interiorPageCount = Math.max(24, upscaled.pages.length + 3) // story + The End/About/Promo
+    // Must match MIN_INTERIOR_PAGES in lib/print/pdf-html.js (32 — softcover floor).
+    const interiorPageCount = Math.max(32, upscaled.pages.length + 3) // story + The End/About/Promo
     const spine = spineWidthInches({ format: order.format, pageCount: interiorPageCount })
     const podPackageId = POD_PACKAGE[order.format]
     if (!podPackageId) throw new Error(`no POD package for format ${order.format}`)

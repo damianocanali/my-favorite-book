@@ -20,6 +20,10 @@ import ResetPasswordPage from './pages/ResetPasswordPage'
 import AuthCallbackPage from './pages/AuthCallbackPage'
 import AccountPage from './pages/AccountPage'
 import AdminPage from './pages/AdminPage'
+import PrintOrderPage from './pages/PrintOrderPage'
+import OrderConfirmPage from './pages/OrderConfirmPage'
+import OrdersListPage from './pages/OrdersListPage'
+import OrderDetailPage from './pages/OrderDetailPage'
 import ProtectedRoute from './components/auth/ProtectedRoute'
 import BadgePopup from './components/ui/BadgePopup'
 import { initCapacitor } from './capacitor'
@@ -83,6 +87,10 @@ export default function App() {
         <Route path="/admin" element={<AdminPage />} />
         <Route path="/gallery" element={<GalleryPage />} />
         <Route path="/view/:slug" element={<ViewBookPage />} />
+        <Route path="/order/:bookId" element={<PrintOrderPage />} />
+        <Route path="/orders" element={<OrdersListPage />} />
+        <Route path="/orders/:id" element={<OrderDetailPage />} />
+        <Route path="/orders/:id/confirm" element={<OrderConfirmPage />} />
         <Route
           path="/teacher"
           element={

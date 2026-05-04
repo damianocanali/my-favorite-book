@@ -3,6 +3,10 @@ PODS:
     - CapacitorCordova
   - CapacitorApp (7.1.2):
     - Capacitor
+  - CapacitorCommunityStripe (7.2.3):
+    - Capacitor
+    - StripeApplePay (~> 25.1.0)
+    - StripePaymentSheet (~> 25.1.0)
   - CapacitorCordova (7.6.2)
   - CapacitorHaptics (7.0.5):
     - Capacitor
@@ -22,10 +26,30 @@ PODS:
   - RevenuecatPurchasesCapacitor (11.3.2):
     - Capacitor
     - PurchasesHybridCommon (= 17.25.0)
+  - StripeApplePay (25.1.1):
+    - StripeCore (= 25.1.1)
+  - StripeCore (25.1.1)
+  - StripePayments (25.1.1):
+    - StripeCore (= 25.1.1)
+    - StripePayments/Stripe3DS2 (= 25.1.1)
+  - StripePayments/Stripe3DS2 (25.1.1):
+    - StripeCore (= 25.1.1)
+  - StripePaymentSheet (25.1.1):
+    - StripeApplePay (= 25.1.1)
+    - StripeCore (= 25.1.1)
+    - StripePayments (= 25.1.1)
+    - StripePaymentsUI (= 25.1.1)
+  - StripePaymentsUI (25.1.1):
+    - StripeCore (= 25.1.1)
+    - StripePayments (= 25.1.1)
+    - StripeUICore (= 25.1.1)
+  - StripeUICore (25.1.1):
+    - StripeCore (= 25.1.1)
 
 DEPENDENCIES:
   - "Capacitor (from `../../node_modules/@capacitor/ios`)"
   - "CapacitorApp (from `../../node_modules/@capacitor/app`)"
+  - "CapacitorCommunityStripe (from `../../node_modules/@capacitor-community/stripe`)"
   - "CapacitorCordova (from `../../node_modules/@capacitor/ios`)"
   - "CapacitorHaptics (from `../../node_modules/@capacitor/haptics`)"
   - "CapacitorKeyboard (from `../../node_modules/@capacitor/keyboard`)"
@@ -39,12 +63,20 @@ SPEC REPOS:
   trunk:
     - PurchasesHybridCommon
     - RevenueCat
+    - StripeApplePay
+    - StripeCore
+    - StripePayments
+    - StripePaymentSheet
+    - StripePaymentsUI
+    - StripeUICore
 
 EXTERNAL SOURCES:
   Capacitor:
     :path: "../../node_modules/@capacitor/ios"
   CapacitorApp:
     :path: "../../node_modules/@capacitor/app"
+  CapacitorCommunityStripe:
+    :path: "../../node_modules/@capacitor-community/stripe"
   CapacitorCordova:
     :path: "../../node_modules/@capacitor/ios"
   CapacitorHaptics:
@@ -65,6 +97,7 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   Capacitor: 5d4e6523047feb0e4755e5e922ded0372c2dde24
   CapacitorApp: f01a913211780e0718dae9750442c3e23f96e106
+  CapacitorCommunityStripe: d836bef61386c9cb087e396bf0cb23fa49f79ec9
   CapacitorCordova: 8214697bed435f6e7c5e3ed86d1632a8c42f7d77
   CapacitorHaptics: 1b145fa83c622e5383a3bac04ea81e2514f0b0f5
   CapacitorKeyboard: a2e0869edd229490ce36aed2549c0d6b95e27ee8
@@ -75,7 +108,13 @@ SPEC CHECKSUMS:
   PurchasesHybridCommon: 6a79a873ab52f777bfa36e9516f3fcd84d3b3428
   RevenueCat: eab035bbab271faccfef5c36eaff2a1ffef14dc0
   RevenuecatPurchasesCapacitor: fa376932f9967c7ab4b5eac477e824d90393b91a
+  StripeApplePay: 4428e5826335017151eeff87e9d36f6688eaa593
+  StripeCore: 76440c9bf61bd84149014414ced3470b8d94eb8e
+  StripePayments: ace6def8949ed33434a5db2f8fdd184388636be5
+  StripePaymentSheet: ec3dadf54b470250a40b3c5f7164641a0f1063c3
+  StripePaymentsUI: 702926af8eae0901821907014ab90c72fc3eabab
+  StripeUICore: c3de64fb6ab7ef376128e862f6bc6817e0a964e9
 
-PODFILE CHECKSUM: 69a69eb1404811f858df24914c8459540566094f
+PODFILE CHECKSUM: 4b9396a35311ba58d6a741d185d5e2ac11d8beb2
 
 COCOAPODS: 1.16.2

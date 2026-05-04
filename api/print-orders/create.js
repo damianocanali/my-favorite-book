@@ -80,6 +80,14 @@ export default async function handler(req) {
   const user = await authUser(tok)
   if (!user?.id) return bad(401, 'Invalid token')
 
+  // Owner-only gate. Interim guard while production env (live Lulu creds,
+  // live Stripe products, VITE_STRIPE_PUBLISHABLE_KEY=pk_live) is being
+  // completed. Without it, any authenticated user could pay through Stripe
+  // live but submission would hit Lulu sandbox — money in, no book out.
+  // Remove or replace with a per-user feature flag once production is ready.
+  const ownerId = process.env.OWNER_USER_ID
+  if (ownerId && user.id !== ownerId) return bad(403, 'Print orders not yet generally available')
+
   const body = await req.json().catch(() => null)
   if (!body) return bad(400, 'Bad JSON')
 
