@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useParams, Link } from 'react-router-dom'
 import { motion } from 'motion/react'
 import { ArrowLeft, Loader2, AlertTriangle } from 'lucide-react'
+import { Capacitor } from '@capacitor/core'
 
 import { useAuthStore } from '../stores/useAuthStore'
 import { useBookshelfStore } from '../stores/useBookshelfStore'
@@ -14,7 +15,11 @@ import { pay } from '../services/printPaymentService'
 import PrintableBook from '../components/print/PrintableBook'
 import FormatCard from '../components/print/FormatCard'
 import QuantityStepper from '../components/print/QuantityStepper'
+import PaymentSheetModal from '../components/print/PaymentSheetModal'
 import ParentalGate from '../components/ui/ParentalGate'
+
+const isNativeIos =
+  Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'ios'
 
 export default function PrintOrderPage() {
   const { bookId } = useParams()
@@ -26,6 +31,7 @@ export default function PrintOrderPage() {
 
   const store = usePrintOrderStore()
   const [showGate, setShowGate] = useState(false)
+  const [showPaymentSheet, setShowPaymentSheet] = useState(false)
   const [error, setError] = useState(null)
 
   // Pre-fill bookId + email once on mount; never overwrite user-edited values.
@@ -88,16 +94,23 @@ export default function PrintOrderPage() {
         totalCents: body.totalCents,
       })
 
-      const returnUrl = `${window.location.origin}/orders/${body.orderId}/confirm?new=1`
-      const result = await pay({ clientSecret: body.clientSecret, returnUrl })
-
-      if (result.ok) {
-        // Web flow has already redirected via Stripe; iOS returns here.
-        navigate(`/orders/${body.orderId}/confirm?new=1`)
-      } else if (result.canceled) {
-        setError(null) // user explicitly canceled — no error banner
+      // iOS uses the native Capacitor payment sheet; web mounts Stripe
+      // PaymentElement in a modal. The native sheet collects card details
+      // itself; the web modal needs a separate render step.
+      if (isNativeIos) {
+        const returnUrl = `${window.location.origin}/orders/${body.orderId}/confirm?new=1`
+        const result = await pay({ clientSecret: body.clientSecret, returnUrl })
+        if (result.ok) {
+          navigate(`/orders/${body.orderId}/confirm?new=1`)
+        } else if (result.canceled) {
+          setError(null)
+        } else {
+          setError(result.error || 'Payment failed')
+        }
       } else {
-        setError(result.error || 'Payment failed')
+        // Web — show PaymentElement modal. confirmPayment inside the modal
+        // redirects to /orders/:id/confirm?new=1 on success.
+        setShowPaymentSheet(true)
       }
     } catch (e) {
       setError(e?.message ?? String(e))
@@ -222,6 +235,13 @@ export default function PrintOrderPage() {
           onClose={() => setShowGate(false)}
         />
       )}
+
+      <PaymentSheetModal
+        open={showPaymentSheet}
+        clientSecret={store.clientSecret}
+        returnUrl={store.orderId ? `${window.location.origin}/orders/${store.orderId}/confirm?new=1` : ''}
+        onClose={() => setShowPaymentSheet(false)}
+      />
     </div>
   )
 }
