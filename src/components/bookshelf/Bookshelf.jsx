@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'motion/react'
 import { useNavigate } from 'react-router-dom'
 import { useBookshelfStore } from '../../stores/useBookshelfStore'
 import { useBookStore } from '../../stores/useBookStore'
+import { usePrintEnabled } from '../../hooks/usePrintEnabled'
 import BookSpine from './BookSpine'
 import EmptyShelf from './EmptyShelf'
 
@@ -46,6 +47,7 @@ export default function Bookshelf() {
   const loadBook = useBookStore((state) => state.loadBook)
   const setStep = useBookStore((state) => state.setStep)
   const navigate = useNavigate()
+  const printEnabled = usePrintEnabled()
   const [pendingDelete, setPendingDelete] = useState(null)
 
   const handleEdit = (book) => {
@@ -72,7 +74,7 @@ export default function Bookshelf() {
               onClick={() => navigate(`/preview/${book.id}`)}
               onEdit={() => handleEdit(book)}
               onDelete={() => setPendingDelete(book)}
-              onOrderPrint={() => navigate(`/order/${book.id}`)}
+              onOrderPrint={printEnabled ? () => navigate(`/order/${book.id}`) : undefined}
             />
           </motion.div>
         ))}
