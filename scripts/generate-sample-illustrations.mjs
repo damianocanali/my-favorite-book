@@ -88,26 +88,61 @@ async function generateOne(filename, prompt) {
   return Buffer.from(b64, 'base64')
 }
 
+async function fileExists(p) {
+  try { await fs.stat(p); return true } catch { return false }
+}
+
+async function generateWithRetry(filename, prompt, maxAttempts = 3) {
+  let lastErr
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      return await generateOne(filename, prompt)
+    } catch (err) {
+      lastErr = err
+      // Backoff before retry: 1s, 3s, 6s
+      if (attempt < maxAttempts) {
+        const delay = attempt * 2000 + 1000
+        process.stdout.write(` (retry in ${delay / 1000}s…)`)
+        await new Promise((r) => setTimeout(r, delay))
+      }
+    }
+  }
+  throw lastErr
+}
+
 async function main() {
   await fs.mkdir(OUT_DIR, { recursive: true })
   const entries = Object.entries(PROMPTS)
-  console.log(`Generating ${entries.length} illustrations into ${OUT_DIR}\n`)
+  const force = process.argv.includes('--force')
+  console.log(`Generating ${entries.length} illustrations into ${OUT_DIR}`)
+  console.log(`(${force ? 'FORCE: re-generating all' : 'Skipping files that already exist; pass --force to regenerate'})\n`)
 
+  let made = 0, skipped = 0, failed = 0
   for (const [filename, prompt] of entries) {
+    const out = path.join(OUT_DIR, filename)
+    if (!force && await fileExists(out)) {
+      console.log(`  ${filename}  ⏭  (exists)`)
+      skipped++
+      continue
+    }
     process.stdout.write(`  ${filename}…`)
     try {
-      const buf = await generateOne(filename, prompt)
-      await fs.writeFile(path.join(OUT_DIR, filename), buf)
+      const buf = await generateWithRetry(filename, prompt)
+      await fs.writeFile(out, buf)
       process.stdout.write(` ✓ ${(buf.length / 1024).toFixed(0)} KB\n`)
+      made++
     } catch (err) {
       process.stdout.write(` ✗ ${err.message}\n`)
-      // Continue with the rest — partial success is fine; you can re-run.
+      failed++
     }
-    // Tiny delay so we don't hammer the rate limit.
-    await new Promise((r) => setTimeout(r, 250))
+    // Tiny delay between calls so we don't hammer the rate limit.
+    await new Promise((r) => setTimeout(r, 500))
   }
 
-  console.log('\nDone. Commit public/sample-book/*.png to bundle the sample book with the app.')
+  console.log(`\nDone. ${made} generated, ${skipped} skipped, ${failed} failed.`)
+  if (failed > 0) {
+    console.log('Re-run the script — failed files will retry; succeeded ones are skipped.')
+  }
 }
 
 main().catch((e) => {
