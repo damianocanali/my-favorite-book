@@ -27,6 +27,14 @@ export default function EmptyShelf() {
       <SparkleButton onClick={() => navigate('/create')} size="large">
         Create Your First Book ✨
       </SparkleButton>
+      <p className="mt-5">
+        <button
+          onClick={() => navigate('/example')}
+          className="text-sm text-galaxy-text-muted hover:text-galaxy-text underline underline-offset-4 transition-colors"
+        >
+          Or see what a finished book looks like →
+        </button>
+      </p>
     </motion.div>
   )
 }
