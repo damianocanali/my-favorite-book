@@ -13,6 +13,7 @@ import { PRINT_PRICES, FLAT_SHIPPING_CENTS, totalCents, formatPriceCents } from 
 import { pay } from '../services/printPaymentService'
 
 import PrintableBook from '../components/print/PrintableBook'
+import BackMatterPreview from '../components/print/BackMatterPreview'
 import FormatCard from '../components/print/FormatCard'
 import QuantityStepper from '../components/print/QuantityStepper'
 import PaymentSheetModal from '../components/print/PaymentSheetModal'
@@ -131,11 +132,17 @@ export default function PrintOrderPage() {
 
         {/* Preview */}
         <section className="mb-8">
-          <h2 className="font-heading text-sm uppercase tracking-wide text-galaxy-text-muted mb-3">Preview</h2>
+          <h2 className="font-heading text-sm uppercase tracking-wide text-galaxy-text-muted mb-3">Your story</h2>
           <div className="rounded-xl border border-galaxy-text-muted/20 bg-white max-h-[60vh] overflow-y-auto">
             <PrintableBook book={book} visible />
           </div>
           <p className="text-xs text-galaxy-text-muted mt-2">Scroll through every page to confirm before printing.</p>
+        </section>
+
+        {/* What else is in the printed book — fixed back matter + padding */}
+        <section className="mb-8">
+          <h2 className="font-heading text-sm uppercase tracking-wide text-galaxy-text-muted mb-3">Back of the book</h2>
+          <BackMatterPreview book={book} />
         </section>
 
         {/* Confirmation checkboxes */}
