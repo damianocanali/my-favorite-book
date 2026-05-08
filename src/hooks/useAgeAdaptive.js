@@ -9,7 +9,7 @@ const youngConfig = {
   },
   touchTarget: 'min-h-16 min-w-16',
   buttonSize: 'px-8 py-4 text-xl',
-  maxPages: 6,
+  maxPages: 12,
   charLimit: 100,
   mode: 'young',
 }
@@ -22,7 +22,7 @@ const olderConfig = {
   },
   touchTarget: 'min-h-10 min-w-10',
   buttonSize: 'px-6 py-3 text-base',
-  maxPages: 20,
+  maxPages: 24,
   charLimit: 500,
   mode: 'older',
 }
