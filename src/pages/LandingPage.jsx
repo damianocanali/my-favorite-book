@@ -133,6 +133,13 @@ export default function LandingPage() {
           >
             ⭐ Browse Featured Books
           </button>
+
+          <button
+            onClick={() => navigate('/example')}
+            className="text-galaxy-text-muted font-body text-sm hover:text-galaxy-primary transition-colors flex items-center gap-1.5"
+          >
+            📖 See an example book
+          </button>
         </motion.div>
       </div>
 

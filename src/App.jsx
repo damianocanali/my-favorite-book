@@ -24,6 +24,7 @@ import PrintOrderPage from './pages/PrintOrderPage'
 import OrderConfirmPage from './pages/OrderConfirmPage'
 import OrdersListPage from './pages/OrdersListPage'
 import OrderDetailPage from './pages/OrderDetailPage'
+import ExampleBookPage from './pages/ExampleBookPage'
 import ProtectedRoute from './components/auth/ProtectedRoute'
 import BadgePopup from './components/ui/BadgePopup'
 import { initCapacitor } from './capacitor'
@@ -91,6 +92,7 @@ export default function App() {
         <Route path="/orders" element={<OrdersListPage />} />
         <Route path="/orders/:id" element={<OrderDetailPage />} />
         <Route path="/orders/:id/confirm" element={<OrderConfirmPage />} />
+        <Route path="/example" element={<ExampleBookPage />} />
         <Route
           path="/teacher"
           element={
