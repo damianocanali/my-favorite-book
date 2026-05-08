@@ -57,15 +57,47 @@ export default async function handler(req) {
   }
 
   try {
-    const { features, artStyle } = await req.json()
+    const { features, artStyle, sourceImage } = await req.json()
 
-    if (!features) {
-      return new Response(JSON.stringify({ error: 'Features are required' }), {
+    // Two modes:
+    //   (a) Photo cartoonify: when sourceImage is present (base64 data URL),
+    //       transform the kid's photo into a cartoon avatar via FLUX Kontext
+    //       image-to-image. The original photo is never persisted — it lives
+    //       only in this request body and Together's transient request cache.
+    //   (b) Text-to-image: original feature-builder flow (skin/hair/clothing
+    //       selectors). Requires `features` object.
+    const isPhotoMode = Boolean(sourceImage)
+    if (!isPhotoMode && !features) {
+      return new Response(JSON.stringify({ error: 'features or sourceImage required' }), {
         status: 400, headers: withCors({ 'Content-Type': 'application/json' }),
       })
     }
 
-    const prompt = buildAvatarPrompt(features, artStyle || 'cartoon')
+    const style = ART_STYLE_PROMPTS[artStyle] || ART_STYLE_PROMPTS.cartoon
+
+    const prompt = isPhotoMode
+      ? `Transform this photograph of a child into a friendly cartoon avatar portrait. Preserve the child's likeness — same hair, same expression, similar clothing — but render in ${style}. Centered circular portrait composition, simple soft background, child-friendly, no text, no watermark, safe for kids.`
+      : buildAvatarPrompt(features, artStyle || 'cartoon')
+
+    const model = isPhotoMode
+      ? 'black-forest-labs/FLUX.1-kontext-dev'
+      : 'black-forest-labs/FLUX.1-schnell'
+
+    const requestBody = isPhotoMode
+      ? {
+          model, prompt,
+          image_url: sourceImage,
+          // 0.0 keeps the photo unchanged; 1.0 ignores the source. ~0.55 keeps
+          // the kid recognizable while applying real cartoon stylization.
+          strength: 0.55,
+          width: 512, height: 512, steps: 12, n: 1,
+          response_format: 'b64_json',
+        }
+      : {
+          model, prompt,
+          width: 512, height: 512, steps: 4, n: 1,
+          response_format: 'b64_json',
+        }
 
     const response = await fetch(TOGETHER_API_URL, {
       method: 'POST',
@@ -73,15 +105,7 @@ export default async function handler(req) {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${apiKey}`,
       },
-      body: JSON.stringify({
-        model: 'black-forest-labs/FLUX.1-schnell',
-        prompt,
-        width: 512,
-        height: 512,
-        steps: 4,
-        n: 1,
-        response_format: 'b64_json',
-      }),
+      body: JSON.stringify(requestBody),
     })
 
     if (!response.ok) {
@@ -100,10 +124,9 @@ export default async function handler(req) {
       })
     }
 
-    const model = 'black-forest-labs/FLUX.1-schnell'
     logUsage({
       service: 'together',
-      feature: 'generate_avatar',
+      feature: isPhotoMode ? 'generate_avatar_photo' : 'generate_avatar',
       model,
       images: 1,
       cost_cents: estimateTogetherImageCostCents({ model, images: 1 }),

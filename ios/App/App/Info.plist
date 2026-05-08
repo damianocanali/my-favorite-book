@@ -33,6 +33,12 @@
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>My Book Lab can use the camera to take a photo and turn it into a fun cartoon avatar. The original photo is never saved.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>My Book Lab can use a photo from your library to turn into a cartoon avatar. The original photo is never saved.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>My Book Lab can save your finished avatar to your photo library so you can share it.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>My Book Lab uses the microphone so you can speak your story using voice input.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>

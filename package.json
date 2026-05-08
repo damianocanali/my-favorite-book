@@ -21,6 +21,7 @@
     "@capacitor-community/stripe": "^7.2.3",
     "@capacitor/android": "^7.6.2",
     "@capacitor/app": "^7.1.2",
+    "@capacitor/camera": "^8.2.0",
     "@capacitor/core": "^7.6.2",
     "@capacitor/haptics": "^7.0.5",
     "@capacitor/ios": "^7.6.2",
