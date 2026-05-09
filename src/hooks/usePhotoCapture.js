@@ -1,11 +1,14 @@
 // Cross-platform photo capture for the photo-avatar flow.
 //
-// On iOS (Capacitor native): uses @capacitor/camera Camera.getPhoto() —
-// opens the native camera UI, returns a base64 data URL.
+// On Capacitor native (iOS + Android): uses @capacitor/camera
+// Camera.getPhoto() — opens the device's native camera UI, returns a
+// base64 data URL. The plugin handles permissions and returns front- or
+// rear-camera photos.
 //
-// On web / Android: opens a hidden file input with `capture="user"` which
-// on mobile browsers triggers the front camera; on desktop falls back to
-// a file picker. Returns a base64 data URL.
+// On web (desktop, mobile Safari, mobile Chrome, etc.): opens a hidden
+// file input with `capture="user"`. On mobile browsers this triggers the
+// front camera; on desktop it falls back to a file picker. Returns a
+// base64 data URL after a canvas resize to keep the request small.
 //
 // Caller is responsible for any parental-gate / consent flow before
 // calling capturePhoto(). The returned image is intended to be sent
@@ -14,8 +17,7 @@
 import { useCallback, useRef } from 'react'
 import { Capacitor } from '@capacitor/core'
 
-const isNativeIos =
-  Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'ios'
+const isCapacitorNative = Capacitor.isNativePlatform()
 
 // Resize an image data URL to a max dimension on a <canvas>, returns a new
 // data URL. Keeps the request body to /api/generate-avatar small —
@@ -97,8 +99,8 @@ export function usePhotoCapture() {
   }, [])
 
   const capturePhoto = useCallback(async () => {
-    return isNativeIos ? captureNative() : captureWeb()
+    return isCapacitorNative ? captureNative() : captureWeb()
   }, [captureNative, captureWeb])
 
-  return { capturePhoto, isNativeIos }
+  return { capturePhoto, isCapacitorNative }
 }
