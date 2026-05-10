@@ -79,8 +79,12 @@ export default async function handler(req) {
       ? `Transform this photograph of a child into a friendly cartoon avatar portrait. Preserve the child's likeness — same hair, same expression, similar clothing — but render in ${style}. Centered circular portrait composition, simple soft background, child-friendly, no text, no watermark, safe for kids.`
       : buildAvatarPrompt(features, artStyle || 'cartoon')
 
+    // FLUX.1-kontext-pro is the serverless image-to-image model on Together.
+    // The -dev variant is dedicated/non-serverless and 403s without an
+    // endpoint provisioned. Pro is fine for kid avatars; -max is the
+    // higher-quality / pricier sibling, deferred unless quality demands it.
     const model = isPhotoMode
-      ? 'black-forest-labs/FLUX.1-kontext-dev'
+      ? 'black-forest-labs/FLUX.1-kontext-pro'
       : 'black-forest-labs/FLUX.1-schnell'
 
     const requestBody = isPhotoMode
