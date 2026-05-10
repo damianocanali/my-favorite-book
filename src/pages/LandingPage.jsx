@@ -101,7 +101,7 @@ export default function LandingPage() {
 
         {/* CTA Buttons */}
         <motion.div
-          className="flex flex-col sm:flex-row items-center justify-center gap-4"
+          className="flex flex-col sm:flex-row sm:flex-wrap items-center justify-center gap-4"
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 1.5, duration: 0.5 }}
@@ -127,19 +127,21 @@ export default function LandingPage() {
             </SparkleButton>
           )}
 
-          <button
+          <SparkleButton
             onClick={() => navigate('/gallery')}
-            className="text-galaxy-text-muted font-body text-sm hover:text-yellow-400 transition-colors flex items-center gap-1.5"
+            size="default"
+            variant="secondary"
           >
-            ⭐ Browse Featured Books
-          </button>
+            ⭐ Featured Books
+          </SparkleButton>
 
-          <button
+          <SparkleButton
             onClick={() => navigate('/example')}
-            className="text-galaxy-text-muted font-body text-sm hover:text-galaxy-primary transition-colors flex items-center gap-1.5"
+            size="default"
+            variant="secondary"
           >
-            📖 See an example book
-          </button>
+            📖 See an Example
+          </SparkleButton>
         </motion.div>
       </div>
 

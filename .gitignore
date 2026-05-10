@@ -17,3 +17,5 @@ android/app/build
 android/build
 
 coverage
+.vercel
+.env*.local
