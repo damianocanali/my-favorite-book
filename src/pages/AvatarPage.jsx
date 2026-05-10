@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'motion/react'
-import { Coins, Lock, Award, Wand2, Loader2, Sparkles, RefreshCw } from 'lucide-react'
+import { Coins, Lock, Award, Wand2, Loader2, Sparkles, RefreshCw, Camera } from 'lucide-react'
 import { apiFetchAuthed } from '../lib/api'
 import { IS_NATIVE, purchaseCoinPack } from '../services/purchaseService'
 import { useAvatarStore } from '../stores/useAvatarStore'
 import { useRewardsStore } from '../stores/useRewardsStore'
 import { useSubscription } from '../hooks/useSubscription'
 import { useAuthStore } from '../stores/useAuthStore'
+import { usePhotoCapture } from '../hooks/usePhotoCapture'
 import AvatarDisplay from '../components/avatar/AvatarDisplay'
 import ParentalGate from '../components/ui/ParentalGate'
 import SparkleButton from '../components/ui/SparkleButton'
@@ -162,6 +163,8 @@ export default function AvatarPage() {
   const [error, setError] = useState(null)
   const [showBadges, setShowBadges] = useState(false)
   const [showParentalGate, setShowParentalGate] = useState(false)
+  const [photoGateOpen, setPhotoGateOpen] = useState(false)
+  const { capturePhoto } = usePhotoCapture()
   const [showCoinShop, setShowCoinShop] = useState(false)
   const [coinBuyLoading, setCoinBuyLoading] = useState(null)
 
@@ -209,6 +212,46 @@ export default function AvatarPage() {
       // Refresh balance so the UI reflects the debit even though the
       // generation failed — we don't refund automatically.
       refreshCoins()
+    } finally {
+      setGenerating(false)
+    }
+  }
+
+  const handlePhotoCartoonify = async () => {
+    setPhotoGateOpen(false)
+    setError(null)
+    setGenerating(true)
+
+    // Photo cartoonify counts as a regen for billing — same coin cost as
+    // a normal regenerate when the daily free quota is used up.
+    if (!canGenerateFree) {
+      const newBalance = await spendCoins(REGEN_COIN_COST)
+      if (newBalance === null) {
+        setError(`Not enough coins! You need ${REGEN_COIN_COST} coins to make a photo avatar.`)
+        setGenerating(false)
+        return
+      }
+    }
+
+    try {
+      const sourceImage = await capturePhoto()
+      const res = await apiFetchAuthed('/api/generate-avatar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sourceImage, artStyle }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed to cartoonify photo')
+      setAvatarImage(data.image)
+      incrementGenerations()
+    } catch (err) {
+      // Camera permission denied / user cancel produces a benign error;
+      // don't show as a payment failure.
+      const msg = err?.message ?? String(err)
+      if (!/cancel/i.test(msg) && !/no photo/i.test(msg) && !/no file/i.test(msg)) {
+        setError(msg)
+        refreshCoins()
+      }
     } finally {
       setGenerating(false)
     }
@@ -312,6 +355,20 @@ export default function AvatarPage() {
               )}
             </span>
           </SparkleButton>
+
+          {/* Photo cartoonify — alternative to feature-builder generation. */}
+          <button
+            type="button"
+            onClick={() => setPhotoGateOpen(true)}
+            disabled={generating}
+            className="w-full max-w-[280px] flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-galaxy-bg-light border border-galaxy-text-muted/20 text-galaxy-text hover:border-galaxy-primary/50 hover:bg-galaxy-primary/5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-body"
+          >
+            <Camera size={16} className="text-galaxy-primary" />
+            <span>Use my photo</span>
+          </button>
+          <p className="text-galaxy-text-muted/70 text-[11px] font-body text-center max-w-[280px]">
+            Take a photo and we'll turn it into a fun cartoon. Your photo isn't saved.
+          </p>
 
           {/* Generation info */}
           {plan.freeAvatarRegen && plan.avatarGenerations !== Infinity && (
@@ -542,6 +599,16 @@ export default function AvatarPage() {
             setShowCoinShop(true)
           }}
           onClose={() => setShowParentalGate(false)}
+        />
+      )}
+
+      {/* Parental gate for camera access (photo cartoonify). Required by App
+          Store kids' app guidelines + COPPA — a parent must explicitly
+          authorize camera access for the child. */}
+      {photoGateOpen && (
+        <ParentalGate
+          onPass={handlePhotoCartoonify}
+          onClose={() => setPhotoGateOpen(false)}
         />
       )}
     </div>

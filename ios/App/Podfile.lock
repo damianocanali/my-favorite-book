@@ -3,6 +3,9 @@ PODS:
     - CapacitorCordova
   - CapacitorApp (7.1.2):
     - Capacitor
+  - CapacitorCamera (8.2.0):
+    - Capacitor
+    - IONCameraLib (~> 1.0.4)
   - CapacitorCommunityStripe (7.2.3):
     - Capacitor
     - StripeApplePay (~> 25.1.0)
@@ -20,6 +23,7 @@ PODS:
     - Capacitor
   - CapacitorStatusBar (7.0.6):
     - Capacitor
+  - IONCameraLib (1.0.4)
   - PurchasesHybridCommon (17.25.0):
     - RevenueCat (= 5.51.1)
   - RevenueCat (5.51.1)
@@ -49,6 +53,7 @@ PODS:
 DEPENDENCIES:
   - "Capacitor (from `../../node_modules/@capacitor/ios`)"
   - "CapacitorApp (from `../../node_modules/@capacitor/app`)"
+  - "CapacitorCamera (from `../../node_modules/@capacitor/camera`)"
   - "CapacitorCommunityStripe (from `../../node_modules/@capacitor-community/stripe`)"
   - "CapacitorCordova (from `../../node_modules/@capacitor/ios`)"
   - "CapacitorHaptics (from `../../node_modules/@capacitor/haptics`)"
@@ -61,6 +66,7 @@ DEPENDENCIES:
 
 SPEC REPOS:
   trunk:
+    - IONCameraLib
     - PurchasesHybridCommon
     - RevenueCat
     - StripeApplePay
@@ -75,6 +81,8 @@ EXTERNAL SOURCES:
     :path: "../../node_modules/@capacitor/ios"
   CapacitorApp:
     :path: "../../node_modules/@capacitor/app"
+  CapacitorCamera:
+    :path: "../../node_modules/@capacitor/camera"
   CapacitorCommunityStripe:
     :path: "../../node_modules/@capacitor-community/stripe"
   CapacitorCordova:
@@ -97,6 +105,7 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   Capacitor: 5d4e6523047feb0e4755e5e922ded0372c2dde24
   CapacitorApp: f01a913211780e0718dae9750442c3e23f96e106
+  CapacitorCamera: 8f6acf83664118321111e76acef86390211ccb08
   CapacitorCommunityStripe: d836bef61386c9cb087e396bf0cb23fa49f79ec9
   CapacitorCordova: 8214697bed435f6e7c5e3ed86d1632a8c42f7d77
   CapacitorHaptics: 1b145fa83c622e5383a3bac04ea81e2514f0b0f5
@@ -105,6 +114,7 @@ SPEC CHECKSUMS:
   CapacitorPreferences: 69d9991307507aeab8ef8019c10b9babfda0e9ca
   CapacitorSplashScreen: 409eeaaeac603d264f209c0fcb718aa22fe1f7bb
   CapacitorStatusBar: 416e9e53fd6397e668d4a181cd2131617d949bd6
+  IONCameraLib: f2349804460bd9e3f892e42109b8d996ab3fa19d
   PurchasesHybridCommon: 6a79a873ab52f777bfa36e9516f3fcd84d3b3428
   RevenueCat: eab035bbab271faccfef5c36eaff2a1ffef14dc0
   RevenuecatPurchasesCapacitor: fa376932f9967c7ab4b5eac477e824d90393b91a
@@ -115,6 +125,6 @@ SPEC CHECKSUMS:
   StripePaymentsUI: 702926af8eae0901821907014ab90c72fc3eabab
   StripeUICore: c3de64fb6ab7ef376128e862f6bc6817e0a964e9
 
-PODFILE CHECKSUM: 4b9396a35311ba58d6a741d185d5e2ac11d8beb2
+PODFILE CHECKSUM: c51de3d5b7a80fe72510c39805cc872a126cb4fc
 
 COCOAPODS: 1.16.2
