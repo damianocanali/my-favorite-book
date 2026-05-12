@@ -26,19 +26,19 @@ export default function ExampleBookPage() {
             What your printed book looks like
           </h1>
           <p className="text-galaxy-text-muted max-w-xl mx-auto">
-            Tap or drag to flip the pages of <span className="font-semibold text-galaxy-text">"Theo and the Star Bear"</span> — a real book made with MyBookLab.
+            Tap or drag to flip through the full printed edition of <span className="font-semibold text-galaxy-text">"Theo and the Star Bear"</span> — story pages, back-of-book extras, and all.
           </p>
         </motion.header>
 
-        {/* Flip-book preview of the story */}
-        <div className="mb-12 flex justify-center">
-          <BookPreview book={SAMPLE_BOOK} />
+        {/* Flip-book preview of the whole book — story + curated back matter */}
+        <div className="mb-10 flex justify-center">
+          <BookPreview book={SAMPLE_BOOK} includeBackMatter />
         </div>
 
         <div className="mb-2 text-center">
-          <h2 className="font-heading text-xl font-semibold">And the back of the book…</h2>
+          <h2 className="font-heading text-xl font-semibold">What's inside, at a glance</h2>
           <p className="text-galaxy-text-muted text-sm mt-1">
-            Every printed book includes these curated pages so it feels like a real keepsake.
+            Every printed book ships with these curated pages after the story.
           </p>
         </div>
 

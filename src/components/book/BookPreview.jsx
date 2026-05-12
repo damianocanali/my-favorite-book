@@ -5,6 +5,7 @@ import React from 'react'
 import BookCover from './BookCover'
 import BookPage from './BookPage'
 import PageFlipControls from './PageFlipControls'
+import { buildBackMatterPages } from './BackMatterPages'
 import { isNative } from '../../capacitor'
 
 const BookPageWrapper = React.forwardRef(({ children }, ref) => (
@@ -78,7 +79,7 @@ function useBookDimensions() {
   return dimensions
 }
 
-export default function BookPreview({ book }) {
+export default function BookPreview({ book, includeBackMatter = false }) {
   const flipBookRef = useRef(null)
   const [currentPage, setCurrentPage] = useState(0)
   const [totalPages, setTotalPages] = useState(0)
@@ -94,6 +95,17 @@ export default function BookPreview({ book }) {
 
   if (!book) return null
 
+  // Back-matter pages mirror the printed book exactly. When shown, the
+  // back-matter promo page closes the book; we skip the simple "The End"
+  // back cover to avoid a duplicate ending.
+  const backMatterPages = includeBackMatter
+    ? buildBackMatterPages(book).map(({ Component, key }) => (
+        <BookPageWrapper key={`bm-${key}`}>
+          <Component book={book} />
+        </BookPageWrapper>
+      ))
+    : []
+
   const allPages = [
     // Cover
     <BookPageWrapper key="cover">
@@ -105,29 +117,34 @@ export default function BookPreview({ book }) {
         <BookPage page={page} book={book} />
       </BookPageWrapper>
     )),
-    // Back cover
-    <BookPageWrapper key="back">
-      <div
-        className="w-full h-full flex items-center justify-center"
-        style={{ backgroundColor: book.colors?.cover ?? '#8B5CF6' }}
-      >
-        <div className="text-center">
-          <p className="text-5xl mb-4">⭐</p>
-          <p
-            className="font-heading text-2xl font-bold"
-            style={{ color: book.colors?.text ?? '#F1F5F9' }}
-          >
-            The End
-          </p>
-          <p
-            className="font-body text-base mt-2 opacity-80"
-            style={{ color: book.colors?.text ?? '#F1F5F9' }}
-          >
-            by {book.authorName}
-          </p>
-        </div>
-      </div>
-    </BookPageWrapper>,
+    ...backMatterPages,
+    // Simple back cover — omitted when full back matter is rendered
+    ...(includeBackMatter
+      ? []
+      : [
+          <BookPageWrapper key="back">
+            <div
+              className="w-full h-full flex items-center justify-center"
+              style={{ backgroundColor: book.colors?.cover ?? '#8B5CF6' }}
+            >
+              <div className="text-center">
+                <p className="text-5xl mb-4">⭐</p>
+                <p
+                  className="font-heading text-2xl font-bold"
+                  style={{ color: book.colors?.text ?? '#F1F5F9' }}
+                >
+                  The End
+                </p>
+                <p
+                  className="font-body text-base mt-2 opacity-80"
+                  style={{ color: book.colors?.text ?? '#F1F5F9' }}
+                >
+                  by {book.authorName}
+                </p>
+              </div>
+            </div>
+          </BookPageWrapper>,
+        ]),
   ]
 
   return (
