@@ -132,17 +132,14 @@ export default function PreviewPage() {
             </button>
           )}
 
-          {/* Order a printed copy — owner-only until production env is ready. */}
-          {printEnabled && (
-            <button
-              onClick={() => navigate(`/order/${book.id}`)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-galaxy-bg-light border border-galaxy-text-muted/20 text-galaxy-text-muted hover:text-galaxy-text hover:border-galaxy-text-muted/40 transition-colors text-sm"
-              title="Order a printed copy"
-            >
-              <Printer size={14} />
-              {!isNative && 'Print'}
-            </button>
-          )}
+          <button
+            onClick={() => navigate(`/order/${book.id}`)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-galaxy-bg-light border border-galaxy-text-muted/20 text-galaxy-text-muted hover:text-galaxy-text hover:border-galaxy-text-muted/40 transition-colors text-sm"
+            title="Order a printed copy"
+          >
+            <Printer size={14} />
+            {!isNative && 'Print'}
+          </button>
 
           {/* Print / Save as PDF */}
           {!isNative && (
