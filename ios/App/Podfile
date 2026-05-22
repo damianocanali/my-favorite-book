@@ -13,6 +13,7 @@ def capacitor_pods
   pod 'CapacitorCordova', :path => '../../node_modules/@capacitor/ios'
   pod 'CapacitorCommunityStripe', :path => '../../node_modules/@capacitor-community/stripe'
   pod 'CapacitorApp', :path => '../../node_modules/@capacitor/app'
+  pod 'CapacitorBrowser', :path => '../../node_modules/@capacitor/browser'
   pod 'CapacitorCamera', :path => '../../node_modules/@capacitor/camera'
   pod 'CapacitorHaptics', :path => '../../node_modules/@capacitor/haptics'
   pod 'CapacitorKeyboard', :path => '../../node_modules/@capacitor/keyboard'
@@ -30,4 +31,33 @@ end
 
 post_install do |installer|
   assertDeploymentTarget(installer)
+
+  # macOS Sequoia tags every fresh file with com.apple.provenance, and
+  # CocoaPods sources arrive with com.apple.FinderInfo / quarantine
+  # baked in. codesign rejects all of these as "detritus" when signing
+  # the built frameworks. Strip them from the Pods tree on install
+  # AND inject a per-target build phase that strips them from the
+  # framework bundle each build, immediately before codesign runs.
+  system('chmod -R u+w Pods 2>/dev/null')
+  system('xattr -rc Pods 2>/dev/null')
+  system('xattr -rd com.apple.provenance Pods 2>/dev/null')
+
+  phase_name = '[CP] Strip xattrs from framework before sign'
+  strip_script = <<~SH
+    set -e
+    F="${TARGET_BUILD_DIR}/${PRODUCT_NAME}.framework"
+    if [ -d "$F" ]; then
+      xattr -rc "$F" 2>/dev/null || true
+      xattr -rd com.apple.provenance "$F" 2>/dev/null || true
+    fi
+  SH
+
+  installer.pods_project.targets.each do |target|
+    next if target.build_phases.any? { |p| p.respond_to?(:name) && p.name == phase_name }
+    phase = target.new_shell_script_build_phase(phase_name)
+    phase.shell_script = strip_script
+    phase.show_env_vars_in_log = '0'
+  end
+
+  installer.pods_project.save
 end
