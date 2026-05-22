@@ -57,6 +57,22 @@ export const useAuthStore = create((set) => ({
     set({ user: null })
   },
 
+  updateDisplayName: async (newName) => {
+    if (!supabase) throw new Error('Auth not configured')
+    const trimmed = (newName ?? '').trim()
+    if (trimmed.length === 0) throw new Error('Name cannot be empty')
+    if (trimmed.length > 60) throw new Error('Name must be 60 characters or less')
+    const { data, error } = await supabase.auth.updateUser({
+      data: { display_name: trimmed },
+    })
+    if (error) throw error
+    // Push the freshly-updated user back into the store immediately;
+    // onAuthStateChange would also fire, but doing it inline keeps the
+    // UI snappy.
+    set({ user: data.user })
+    return data.user
+  },
+
   signInWithProvider: async (provider) => {
     if (!supabase) throw new Error('Auth not configured')
     const redirectTo = Capacitor.isNativePlatform()
@@ -72,8 +88,18 @@ export const useAuthStore = create((set) => ({
 }))
 
 // Selector helpers
-export const selectDisplayName = (s) =>
-  s.user?.user_metadata?.display_name || s.user?.email?.split('@')[0] || null
+export const selectDisplayName = (s) => {
+  const m = s.user?.user_metadata
+  // Prefer the user's own display_name (set via email signup or the
+  // account page editor). OAuth providers (Google in particular) send
+  // `full_name` or `name`; fall back through those before we resort to
+  // the email-prefix slug, which usually looks like a username.
+  return m?.display_name
+    || m?.full_name
+    || m?.name
+    || s.user?.email?.split('@')[0]
+    || null
+}
 
 export const selectRole = (s) =>
   s.user?.user_metadata?.role ?? null

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { motion } from 'motion/react'
-import { Trash2, LogOut, AlertTriangle, Loader2, Sparkles, CreditCard, ExternalLink } from 'lucide-react'
+import { Trash2, LogOut, AlertTriangle, Loader2, Sparkles, CreditCard, ExternalLink, Pencil, Check, X } from 'lucide-react'
 import { useAuthStore, selectDisplayName } from '../stores/useAuthStore'
 import { useSubscription } from '../hooks/useSubscription'
 import { apiFetchAuthed } from '../lib/api'
@@ -12,6 +12,7 @@ export default function AccountPage() {
   const navigate = useNavigate()
   const user = useAuthStore((s) => s.user)
   const signOut = useAuthStore((s) => s.signOut)
+  const updateDisplayName = useAuthStore((s) => s.updateDisplayName)
   const displayName = useAuthStore(selectDisplayName)
 
   const { planKey, isPaid, loading: subLoading } = useSubscription()
@@ -20,6 +21,32 @@ export default function AccountPage() {
   const [error, setError] = useState(null)
   const [portalLoading, setPortalLoading] = useState(false)
   const [portalError, setPortalError] = useState(null)
+  const [editingName, setEditingName] = useState(false)
+  const [nameDraft, setNameDraft] = useState('')
+  const [savingName, setSavingName] = useState(false)
+  const [nameError, setNameError] = useState(null)
+
+  const startEditingName = () => {
+    setNameDraft(displayName ?? '')
+    setNameError(null)
+    setEditingName(true)
+  }
+  const cancelEditingName = () => {
+    setEditingName(false)
+    setNameError(null)
+  }
+  const saveName = async () => {
+    setSavingName(true)
+    setNameError(null)
+    try {
+      await updateDisplayName(nameDraft)
+      setEditingName(false)
+    } catch (e) {
+      setNameError(e?.message || 'Failed to update name')
+    } finally {
+      setSavingName(false)
+    }
+  }
 
   const handleManageSubscription = async () => {
     setPortalError(null)
@@ -80,9 +107,55 @@ export default function AccountPage() {
           {/* Avatar + name */}
           <div className="flex items-center gap-4 mb-8">
             <AvatarDisplay size={56} />
-            <div>
-              <h1 className="font-heading text-2xl font-bold text-galaxy-text">{displayName}</h1>
-              <p className="text-galaxy-text-muted font-body text-sm">{user.email}</p>
+            <div className="min-w-0 flex-1">
+              {editingName ? (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={nameDraft}
+                      onChange={(e) => setNameDraft(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !savingName) saveName()
+                        if (e.key === 'Escape') cancelEditingName()
+                      }}
+                      autoFocus
+                      maxLength={60}
+                      placeholder="Your name"
+                      className="flex-1 min-w-0 px-3 py-2 bg-galaxy-bg border border-galaxy-text-muted/20 rounded-lg text-galaxy-text placeholder:text-galaxy-text-muted/40 focus:border-galaxy-primary focus:outline-none font-heading text-xl font-bold"
+                    />
+                    <button
+                      onClick={saveName}
+                      disabled={savingName || !nameDraft.trim()}
+                      title="Save"
+                      className="p-2 rounded-lg text-green-400 hover:bg-green-400/10 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                    >
+                      {savingName ? <Loader2 size={18} className="animate-spin" /> : <Check size={18} />}
+                    </button>
+                    <button
+                      onClick={cancelEditingName}
+                      disabled={savingName}
+                      title="Cancel"
+                      className="p-2 rounded-lg text-galaxy-text-muted hover:bg-galaxy-text-muted/10 disabled:opacity-40 transition-colors"
+                    >
+                      <X size={18} />
+                    </button>
+                  </div>
+                  {nameError && <p className="text-red-400 text-xs font-body">{nameError}</p>}
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <h1 className="font-heading text-2xl font-bold text-galaxy-text truncate">{displayName}</h1>
+                  <button
+                    onClick={startEditingName}
+                    title="Edit name"
+                    className="p-1.5 rounded-lg text-galaxy-text-muted hover:text-galaxy-text hover:bg-galaxy-text-muted/10 transition-colors flex-shrink-0"
+                  >
+                    <Pencil size={14} />
+                  </button>
+                </div>
+              )}
+              <p className="text-galaxy-text-muted font-body text-sm truncate">{user.email}</p>
             </div>
           </div>
 
