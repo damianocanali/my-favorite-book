@@ -56,6 +56,19 @@ export const useAuthStore = create((set) => ({
     setBookshelfUserId(null)
     set({ user: null })
   },
+
+  signInWithProvider: async (provider) => {
+    if (!supabase) throw new Error('Auth not configured')
+    const redirectTo = Capacitor.isNativePlatform()
+      ? 'com.myfavoritebook.app://auth/callback'
+      : `${window.location.origin}/auth/callback`
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: { redirectTo },
+    })
+    if (error) throw error
+    return data
+  },
 }))
 
 // Selector helpers

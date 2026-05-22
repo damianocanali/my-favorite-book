@@ -3,6 +3,7 @@ import { useNavigate, Link, useSearchParams } from 'react-router-dom'
 import { motion } from 'motion/react'
 import { GraduationCap, Mail, Lock, User, Eye, EyeOff, CheckCircle, BookOpen } from 'lucide-react'
 import { useAuthStore } from '../stores/useAuthStore'
+import OAuthButtons from '../components/auth/OAuthButtons'
 
 export default function SignupPage() {
   const navigate = useNavigate()
@@ -202,6 +203,8 @@ export default function SignupPage() {
           >
             {loading ? 'Creating account…' : 'Create Account'}
           </button>
+
+          <OAuthButtons label="or sign up with" />
         </form>
 
         <div className="text-center mt-4 space-y-2">

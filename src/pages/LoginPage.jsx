@@ -4,6 +4,7 @@ import { motion } from 'motion/react'
 import { Mail, Lock, Eye, EyeOff, ArrowLeft, CheckCircle } from 'lucide-react'
 import { useAuthStore } from '../stores/useAuthStore'
 import { supabase } from '../lib/supabase'
+import OAuthButtons from '../components/auth/OAuthButtons'
 
 export default function LoginPage() {
   const navigate = useNavigate()
@@ -129,6 +130,8 @@ export default function LoginPage() {
           >
             Forgot your password?
           </button>
+
+          <OAuthButtons />
         </form>
 
         {/* Password reset form */}

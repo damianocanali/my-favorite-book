@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { Home, Library, LogOut, GraduationCap, Sparkles, Star, Volume2, VolumeX } from 'lucide-react'
+import { Home, Library, LogOut, GraduationCap, Sparkles, Star, Volume2, VolumeX, Package } from 'lucide-react'
 import { useBookshelfStore } from '../../stores/useBookshelfStore'
 import { useAuthStore, selectDisplayName, selectRole } from '../../stores/useAuthStore'
 import { toggleMute, isMuted } from '../../services/audioService'
@@ -124,6 +124,18 @@ export default function AppShell({ children }) {
             {/* Auth section */}
             {user ? (
               <div className="flex items-center gap-2 pl-2 border-l border-galaxy-text-muted/20">
+                <Link
+                  to="/orders"
+                  title="My orders"
+                  className={`flex items-center gap-2 px-2 sm:px-3 py-2 rounded-full transition-all ${
+                    location.pathname.startsWith('/orders')
+                      ? 'bg-galaxy-primary/20 text-galaxy-primary'
+                      : 'text-galaxy-text-muted hover:text-galaxy-text'
+                  }`}
+                >
+                  <Package size={18} />
+                  <span className="hidden sm:inline text-sm font-body font-semibold">Orders</span>
+                </Link>
                 <Link
                   to="/account"
                   title="Account"
