@@ -1,10 +1,14 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Loader2, CheckCircle, XCircle } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import AppLogo from '../components/ui/AppLogo'
 
 export default function AuthCallbackPage() {
+  const navigate = useNavigate()
+  // 'loading' → 'signed-in' (OAuth or already-active session, auto-redirect)
+  //          → 'email-confirmed' (signup link clicked, user must now sign in)
+  //          → 'error'
   const [status, setStatus] = useState('loading')
 
   useEffect(() => {
@@ -17,6 +21,9 @@ export default function AuthCallbackPage() {
         const accessToken = params.get('access_token') || hash.get('access_token')
         const refreshToken = params.get('refresh_token') || hash.get('refresh_token')
         const errorParam = params.get('error_description') || hash.get('error_description')
+        // Supabase email confirmation links include type=signup. OAuth code
+        // exchanges have no type. We use that to pick the post-success copy.
+        const type = params.get('type') || hash.get('type')
 
         if (errorParam) throw new Error(errorParam)
 
@@ -30,14 +37,23 @@ export default function AuthCallbackPage() {
           throw new Error('No auth tokens found')
         }
 
-        setStatus('success')
+        // After a successful exchange the session is active either way; for
+        // email confirmation we still want to surface "you're all set" copy
+        // briefly, but every other flow (OAuth, magic link, password reset)
+        // should land you straight on the home page.
+        if (type === 'signup') {
+          setStatus('email-confirmed')
+        } else {
+          setStatus('signed-in')
+          navigate('/', { replace: true })
+        }
       } catch {
         setStatus('error')
       }
     }
 
     handleCallback()
-  }, [])
+  }, [navigate])
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4">
@@ -46,14 +62,16 @@ export default function AuthCallbackPage() {
           <AppLogo size={56} />
         </div>
 
-        {status === 'loading' && (
+        {(status === 'loading' || status === 'signed-in') && (
           <>
             <Loader2 size={36} className="text-galaxy-primary animate-spin mx-auto" />
-            <p className="text-galaxy-text font-body">Confirming your account…</p>
+            <p className="text-galaxy-text font-body">
+              {status === 'signed-in' ? 'Signing you in…' : 'Confirming your account…'}
+            </p>
           </>
         )}
 
-        {status === 'success' && (
+        {status === 'email-confirmed' && (
           <>
             <CheckCircle size={48} className="text-green-400 mx-auto" />
             <div>
