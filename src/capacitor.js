@@ -89,8 +89,18 @@ export async function initCapacitor(navigateFn) {
       const refreshToken = parsed.searchParams.get('refresh_token') ||
         new URLSearchParams(parsed.hash.slice(1)).get('refresh_token')
 
+      // Helper: dismiss the @capacitor/browser if it was opened for
+      // OAuth. Import lazily so non-OAuth deep links don't pay the cost.
+      const closeOAuthBrowser = async () => {
+        try {
+          const { Browser } = await import('@capacitor/browser')
+          await Browser.close()
+        } catch {}
+      }
+
       if (code) {
         await supabase.auth.exchangeCodeForSession(code)
+        await closeOAuthBrowser()
         // After exchanging a magic-link / email-confirm code the user is
         // signed in — send them home, not to /login.
         if (navigateFn) navigateFn('/')
@@ -99,6 +109,7 @@ export async function initCapacitor(navigateFn) {
 
       if (accessToken && refreshToken) {
         await supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken })
+        await closeOAuthBrowser()
         if (navigateFn) navigateFn('/')
         return
       }

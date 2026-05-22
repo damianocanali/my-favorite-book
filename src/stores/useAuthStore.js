@@ -75,14 +75,25 @@ export const useAuthStore = create((set) => ({
 
   signInWithProvider: async (provider) => {
     if (!supabase) throw new Error('Auth not configured')
-    const redirectTo = Capacitor.isNativePlatform()
+    const native = Capacitor.isNativePlatform()
+    const redirectTo = native
       ? 'com.myfavoritebook.app://auth/callback'
       : `${window.location.origin}/auth/callback`
+
+    // On native we open the OAuth flow inside @capacitor/browser so the
+    // Capacitor WebView never navigates away from the app. The provider
+    // redirects to the custom URL scheme, which Capacitor's App plugin
+    // catches via the appUrlOpen listener wired up in src/capacitor.js
+    // (it calls supabase.auth.exchangeCodeForSession).
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider,
-      options: { redirectTo },
+      options: { redirectTo, skipBrowserRedirect: native },
     })
     if (error) throw error
+    if (native && data?.url) {
+      const { Browser } = await import('@capacitor/browser')
+      await Browser.open({ url: data.url, presentationStyle: 'popover' })
+    }
     return data
   },
 }))
