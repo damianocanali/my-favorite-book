@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { supabase } from '../lib/supabase'
 import { useBookshelfStore, setBookshelfUserId } from './useBookshelfStore'
+import { useBookStore } from './useBookStore'
 import { useAvatarStore } from './useAvatarStore'
 import { Capacitor } from '@capacitor/core'
 
@@ -54,6 +55,11 @@ export const useAuthStore = create((set) => ({
     if (!supabase) return
     await supabase.auth.signOut()
     setBookshelfUserId(null)
+    // Wipe per-user persisted state. zustand/persist would otherwise
+    // leave the previous user's books and in-progress book sitting in
+    // localStorage, so a signed-out visit to /create would surface them.
+    useBookshelfStore.setState({ books: [], deletedBookIds: [] })
+    useBookStore.getState().resetBook()
     set({ user: null })
   },
 
