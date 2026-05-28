@@ -1,5 +1,10 @@
 export const config = { runtime: 'edge' }
 
+// Lists the authenticated user's print orders. Uses the service-role
+// key and filters by the verified JWT's user id, so it works
+// regardless of RLS configuration on the print_orders table — the
+// same pattern as get.js and create.js.
+
 const SUPABASE = process.env.SUPABASE_URL
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
 
@@ -25,24 +30,30 @@ const PUBLIC_FIELDS = [
 
 export default async function handler(req) {
   if (req.method !== 'GET') {
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405 })
+    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+      status: 405, headers: { 'Content-Type': 'application/json' },
+    })
   }
   const tok = (req.headers.get('authorization') || '').replace(/^Bearer /, '')
   const user = await authUser(tok)
-  if (!user?.id) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 })
+  if (!user?.id) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      status: 401, headers: { 'Content-Type': 'application/json' },
+    })
+  }
 
-  const id = new URL(req.url).searchParams.get('id')
-  if (!id) return new Response(JSON.stringify({ error: 'Missing id' }), {
-    status: 400, headers: { 'Content-Type': 'application/json' },
-  })
   const r = await fetch(
-    `${SUPABASE}/rest/v1/print_orders?id=eq.${id}&user_id=eq.${user.id}&select=${PUBLIC_FIELDS.join(',')}`,
+    `${SUPABASE}/rest/v1/print_orders?user_id=eq.${user.id}&order=created_at.desc&select=${PUBLIC_FIELDS.join(',')}`,
     { headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` } }
   )
+  if (!r.ok) {
+    const detail = await r.text().catch(() => '')
+    return new Response(JSON.stringify({ error: 'Failed to load orders', detail: detail.slice(0, 200) }), {
+      status: 500, headers: { 'Content-Type': 'application/json' },
+    })
+  }
   const rows = await r.json()
-  if (!rows?.[0]) return new Response(JSON.stringify({ error: 'Not found' }), { status: 404 })
-
-  return new Response(JSON.stringify(rows[0]), {
+  return new Response(JSON.stringify(rows || []), {
     status: 200, headers: { 'Content-Type': 'application/json' },
   })
 }
