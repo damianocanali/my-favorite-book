@@ -19,3 +19,7 @@ android/build
 
 coverage
 .vercel
+
+# iOS native — local config + generated Xcode project
+ios-native/Config.local.xcconfig
+ios-native/MyBookLab.xcodeproj

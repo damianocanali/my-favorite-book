@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- App privacy manifest. Satisfies Apple's required-reason API
+	     declaration (ITMS-91053). Third-party SDKs (Supabase, RevenueCat,
+	     Stripe, GoogleSignIn) ship their own manifests, so this file only
+	     covers first-party usage. -->
+
+	<!-- We do not track users across apps/websites (no IDFA, no
+	     cross-app data sharing for advertising). -->
+	<key>NSPrivacyTracking</key>
+	<false/>
+	<key>NSPrivacyTrackingDomains</key>
+	<array/>
+
+	<!-- Required-reason APIs used by first-party code. -->
+	<key>NSPrivacyAccessedAPITypes</key>
+	<array>
+		<dict>
+			<!-- UserDefaults: avatar cache (AuthStore), owned coin
+			     styles/items (CoinsStore), music-muted flag
+			     (AudioService). All read/written only within this app. -->
+			<key>NSPrivacyAccessedAPIType</key>
+			<string>NSPrivacyAccessedAPICategoryUserDefaults</string>
+			<key>NSPrivacyAccessedAPITypeReasons</key>
+			<array>
+				<string>CA92.1</string>
+			</array>
+		</dict>
+	</array>
+
+	<!-- Data collection is declared via the App Store Connect privacy
+	     questionnaire (account email, photos for avatar generation, etc.),
+	     which is the authoritative source. Left empty here to avoid drift
+	     between the two. -->
+	<key>NSPrivacyCollectedDataTypes</key>
+	<array/>
+</dict>
+</plist>

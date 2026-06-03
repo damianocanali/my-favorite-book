@@ -1,0 +1,18 @@
+// Copy this file to Config.local.xcconfig and fill in your values.
+// Config.local.xcconfig is gitignored so secrets stay out of git.
+//
+//   cp Config.local.xcconfig.example Config.local.xcconfig
+//   # edit Config.local.xcconfig with real values
+//   xcodegen
+//   open MyBookLab.xcodeproj
+//
+// After editing values, you do NOT need to re-run xcodegen — Xcode
+// picks up xcconfig changes on every build.
+//
+// NOTE: base URLs (mybooklab.app, supabase.co) are hardcoded in
+// AppConfig.swift, so they are NOT listed here. Only secrets live in
+// this file.
+
+SUPABASE_ANON_KEY = sb_publishable_<paste-from-supabase-dashboard>
+GOOGLE_SIGN_IN_CLIENT_ID = <numeric-id>-<hash>.apps.googleusercontent.com
+REVENUECAT_API_KEY = appl_<paste-from-revenuecat-dashboard>
