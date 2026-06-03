@@ -49,6 +49,11 @@ targets:
       path: MyBookLab/Info.plist
       properties:
         CFBundleDisplayName: My Book Lab
+        # Pull version/build from the MARKETING_VERSION and
+        # CURRENT_PROJECT_VERSION build settings. Without these, XcodeGen
+        # injects its defaults (1.0 / 1) and the build ships as 1.0.
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         # iOS 14+ UILaunchScreen dictionary — declarative launch screen
         # without a separate .storyboard file. We keep it as a solid
         # cosmic-purple color and skip the image — UILaunchScreen
