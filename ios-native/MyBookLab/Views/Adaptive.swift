@@ -15,14 +15,18 @@ enum ContentWidth {
 extension View {
     /// Caps interactive content (forms, primary buttons, lists) to a
     /// comfortable reading width and centers it horizontally. On iPhone the
-    /// cap is wider than the screen, so it behaves like full width; on iPad
-    /// it stops content stretching edge-to-edge and gives natural side
-    /// padding. Kids are mostly on iPad, so this keeps screens looking
-    /// deliberate rather than blown-up.
+    /// cap is wider than the screen, so it behaves like full width — a true
+    /// no-op that leaves the phone layout exactly as it was. On iPad it
+    /// stops content stretching edge-to-edge. Kids are mostly on iPad, so
+    /// this keeps screens looking deliberate rather than blown-up.
+    ///
+    /// Deliberately adds NO padding: a fixed inset would also apply on
+    /// iPhone (breaking the no-op guarantee). Views keep their own padding;
+    /// the wide screen-level margins come for free from centering a capped
+    /// column inside the much larger iPad canvas.
     func contentColumn(maxWidth: CGFloat = ContentWidth.form) -> some View {
         self
             .frame(maxWidth: maxWidth)
             .frame(maxWidth: .infinity, alignment: .center)
-            .padding(.horizontal, 20)
     }
 }
