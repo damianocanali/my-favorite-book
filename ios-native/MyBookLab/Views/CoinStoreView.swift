@@ -87,7 +87,9 @@ struct CoinStoreView: View {
                 .textCase(.uppercase)
                 .padding(.horizontal)
 
-            VStack(spacing: 12) {
+            // Adaptive grid: one column on iPhone, multiple on the wider
+            // iPad screen so the styles aren't a thin single stack.
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 320, maximum: 420), spacing: 12)], spacing: 12) {
                 ForEach(AvatarStyle.purchasable) { style in
                     styleCard(style)
                 }
