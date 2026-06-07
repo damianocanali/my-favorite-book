@@ -87,6 +87,7 @@ struct HeroLanding: View {
                     Text("📖").rotationEffect(.degrees(ctaWiggle))
                 }
             }
+            .frame(maxWidth: 360)
             .padding(.horizontal, 32)
             .padding(.top, 12)
             .onAppear { startWiggle() }

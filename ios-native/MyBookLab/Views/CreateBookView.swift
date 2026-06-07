@@ -252,6 +252,25 @@ private struct CharacterStep: View {
                 }
                 .padding(.top, 16)
 
+                // Name + description first — kids name their hero before
+                // choosing how they look (photo or emoji below).
+                VStack(spacing: 12) {
+                    TextField("", text: $name,
+                              prompt: Text("Character name").foregroundStyle(.white.opacity(0.4)))
+                        .textInputAutocapitalization(.words)
+                        .padding(14)
+                        .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 14))
+                        .foregroundStyle(.white)
+                    TextField("", text: $description,
+                              prompt: Text("Something special about them (optional)").foregroundStyle(.white.opacity(0.4)),
+                              axis: .vertical)
+                        .lineLimit(3...5)
+                        .padding(14)
+                        .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 14))
+                        .foregroundStyle(.white)
+                }
+                .padding(.horizontal)
+
                 // Hero portrait — a kid can turn a photo into a cartoon
                 // hero, or just use an emoji below.
                 heroPortraitSection
@@ -272,23 +291,6 @@ private struct CharacterStep: View {
                                 )
                         }
                     }
-                }
-                .padding(.horizontal)
-
-                VStack(spacing: 12) {
-                    TextField("", text: $name,
-                              prompt: Text("Character name").foregroundStyle(.white.opacity(0.4)))
-                        .textInputAutocapitalization(.words)
-                        .padding(14)
-                        .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 14))
-                        .foregroundStyle(.white)
-                    TextField("", text: $description,
-                              prompt: Text("Something special about them (optional)").foregroundStyle(.white.opacity(0.4)),
-                              axis: .vertical)
-                        .lineLimit(3...5)
-                        .padding(14)
-                        .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 14))
-                        .foregroundStyle(.white)
                 }
                 .padding(.horizontal)
 
