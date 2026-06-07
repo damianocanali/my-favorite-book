@@ -176,6 +176,7 @@ struct BookshelfView: View {
             .buttonStyle(.plain)
             .padding(.horizontal, 32)
         }
+        .contentColumn(maxWidth: ContentWidth.form)
     }
 
     private var exampleCard: some View {
@@ -221,7 +222,8 @@ struct BookshelfView: View {
 /// their titles printed down the spine, like a real library.
 private struct Shelves: View {
     let books: [Book]
-    private let booksPerRow = 5
+    @Environment(\.horizontalSizeClass) private var hSize
+    private var booksPerRow: Int { hSize == .regular ? 9 : 5 }
 
     private var rows: [[Book]] {
         stride(from: 0, to: books.count, by: booksPerRow).map {
@@ -230,15 +232,12 @@ private struct Shelves: View {
     }
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 20) {
-                ForEach(Array(rows.enumerated()), id: \.offset) { rowIndex, row in
-                    ShelfRow(books: row, rowIndex: rowIndex)
-                }
+        VStack(spacing: 20) {
+            ForEach(Array(rows.enumerated()), id: \.offset) { rowIndex, row in
+                ShelfRow(books: row, rowIndex: rowIndex)
             }
-            .padding(.vertical, 12)
         }
-        .scrollContentBackground(.hidden)
+        .padding(.vertical, 12)
     }
 }
 
@@ -309,7 +308,8 @@ private struct BookSpine: View {
     let book: Book
     let indexInRow: Int
 
-    private let spineWidth: CGFloat = 44
+    @Environment(\.horizontalSizeClass) private var hSize
+    private var spineWidth: CGFloat { hSize == .regular ? 56 : 44 }
     private var spineColor: Color { Color(hex: book.colors?.cover) ?? .purple }
     private var accentColor: Color { Color(hex: book.colors?.accent) ?? .pink }
 
@@ -395,14 +395,15 @@ private struct BookSpinePressStyle: ButtonStyle {
 // MARK: - Loading skeleton
 
 private struct ShelfRowSkeleton: View {
+    @Environment(\.horizontalSizeClass) private var hSize
     @State private var shimmer = false
     var body: some View {
         VStack(spacing: 0) {
             HStack(alignment: .bottom, spacing: 6) {
-                ForEach(0..<5, id: \.self) { i in
+                ForEach(0..<(hSize == .regular ? 9 : 5), id: \.self) { i in
                     RoundedRectangle(cornerRadius: 3)
                         .fill(.white.opacity(shimmer ? 0.18 : 0.08))
-                        .frame(width: 44, height: [168, 176, 162, 172, 165][i])
+                        .frame(width: hSize == .regular ? 56 : 44, height: [168, 176, 162, 172, 165][i % 5])
                 }
                 Spacer(minLength: 0)
             }
