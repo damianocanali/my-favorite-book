@@ -16,6 +16,7 @@ struct AvatarEditorView: View {
     @Environment(AuthStore.self) private var auth
     @Environment(CoinsStore.self) private var coins
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.horizontalSizeClass) private var hSize
 
     @State private var selectedPhoto: PhotosPickerItem?
     @State private var sourceImage: UIImage?
@@ -95,11 +96,11 @@ struct AvatarEditorView: View {
             ZStack {
                 Circle()
                     .fill(.white.opacity(0.08))
-                    .frame(width: 160, height: 160)
+                    .frame(width: hSize == .regular ? 200 : 160, height: hSize == .regular ? 200 : 160)
                 if let img = resultImage {
                     Image(uiImage: img)
                         .resizable().aspectRatio(contentMode: .fill)
-                        .frame(width: 160, height: 160)
+                        .frame(width: hSize == .regular ? 200 : 160, height: hSize == .regular ? 200 : 160)
                         .clipShape(Circle())
                 } else {
                     Text("✨").font(.system(size: 64))
@@ -234,7 +235,7 @@ struct AvatarEditorView: View {
             Text("Or pick a fun avatar")
                 .font(.system(.title3, design: .rounded).bold())
                 .foregroundStyle(.white)
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 5), spacing: 12) {
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: hSize == .regular ? 7 : 5), spacing: 12) {
                 ForEach(emojiOptions, id: \.self) { e in
                     Button { selectEmoji(e) } label: {
                         Text(e)
