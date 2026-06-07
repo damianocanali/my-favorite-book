@@ -15,6 +15,7 @@ struct BookDetailView: View {
     @State private var pageIndex = 0
     @State private var speaker = SpeechSpeaker()
     @State private var speakingPage: Int?
+    @Environment(\.horizontalSizeClass) private var hSize
 
     /// Portrait reader: fraction of the card height given to the illustration,
     /// leaving room for the story text and page-number badge below it.
@@ -235,7 +236,10 @@ struct BookDetailView: View {
                     VStack(alignment: .leading, spacing: 12) {
                         pageIllustration(illustration: illustration, isRealImage: isRealImage)
                             .frame(maxWidth: .infinity)
-                            .frame(height: geo.size.height * portraitImageHeightRatio)
+                            // iPad gets a large proportional illustration; iPhone
+                            // keeps its original fixed 240pt so the phone reader
+                            // is unchanged.
+                            .frame(height: hSize == .regular ? geo.size.height * portraitImageHeightRatio : 240)
                             .clipShape(RoundedRectangle(cornerRadius: 12))
                         pageText(page: page)
                         Spacer()
