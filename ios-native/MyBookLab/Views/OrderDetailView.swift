@@ -40,6 +40,7 @@ struct OrderDetailView: View {
                         shippingTo(order)
                     }
                     .padding(.vertical, 16)
+                    .contentColumn(maxWidth: ContentWidth.form)
                 } else if loading {
                     ProgressView().tint(.white)
                         .padding(.top, 40)
