@@ -249,18 +249,3 @@ struct SignInView: View {
         }
     }
 }
-
-extension View {
-    /// Caps interactive content (forms, primary buttons) to a comfortable
-    /// reading width and centers it horizontally. On iPhone the cap is
-    /// wider than the screen, so it behaves like full width; on iPad it
-    /// stops buttons and forms from stretching edge-to-edge and gives the
-    /// layout natural side padding. Kids are mostly on iPad, so this keeps
-    /// those screens looking deliberate rather than blown-up.
-    func contentColumn(maxWidth: CGFloat = 440) -> some View {
-        self
-            .frame(maxWidth: maxWidth)
-            .frame(maxWidth: .infinity, alignment: .center)
-            .padding(.horizontal, 20)
-    }
-}
