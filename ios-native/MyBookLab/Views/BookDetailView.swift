@@ -208,58 +208,90 @@ struct BookDetailView: View {
     private func pageCard(page: BookPage) -> some View {
         let illustration = page.illustrationData ?? ""
         let isRealImage = illustration.hasPrefix("http") || illustration.hasPrefix("data:")
+
         return bookCard {
-            VStack(alignment: .leading, spacing: 12) {
-                Group {
-                    if isRealImage, let url = URL(string: illustration) {
-                        AsyncImage(url: url) { phase in
-                            if let img = phase.image {
-                                img.resizable().scaledToFill()
-                            } else if phase.error != nil {
-                                Image(systemName: "photo").foregroundStyle(.gray)
-                            } else {
-                                ProgressView()
-                            }
+            GeometryReader { geo in
+                let isLandscape = geo.size.width > geo.size.height
+                let illo = pageIllustration(illustration: illustration, isRealImage: isRealImage)
+                let text = pageText(page: page)
+
+                if isLandscape {
+                    // Two-page spread: illustration left, story right.
+                    HStack(spacing: 20) {
+                        illo
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                        VStack(alignment: .leading, spacing: 12) {
+                            text
+                            Spacer()
+                            pageNumberBadge(page: page)
                         }
-                    } else {
-                        // Most synced pages have no illustration here
-                        // (web stripped to '[saved-locally]'). Show a
-                        // friendly emoji placeholder instead of a
-                        // broken-photo icon.
-                        ZStack {
-                            LinearGradient(
-                                colors: [
-                                    (Color(hex: book.colors?.cover) ?? .purple).opacity(0.18),
-                                    (Color(hex: book.colors?.accent) ?? .pink).opacity(0.18)
-                                ],
-                                startPoint: .topLeading, endPoint: .bottomTrailing
-                            )
-                            Text(book.characters.first?.emoji ?? book.setting?.emoji ?? "✨")
-                                .font(.system(size: 56))
-                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
                     }
-                }
-                .frame(maxWidth: .infinity)
-                .frame(height: 240)
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-
-                Text(page.text)
-                    .font(.system(.body, design: .serif))
-                    .foregroundStyle(.black)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-
-                Spacer()
-
-                HStack {
-                    Spacer()
-                    Text("\(page.pageNumber)")
-                        .font(.caption.bold())
-                        .frame(width: 28, height: 28)
-                        .background(Color(hex: book.colors?.cover) ?? .purple, in: Circle())
-                        .foregroundStyle(.white)
+                    .padding()
+                } else {
+                    // Stacked: illustration scales to available width.
+                    VStack(alignment: .leading, spacing: 12) {
+                        illo
+                            .frame(maxWidth: .infinity)
+                            .frame(height: geo.size.height * 0.55)
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                        text
+                        Spacer()
+                        pageNumberBadge(page: page)
+                    }
+                    .padding()
                 }
             }
-            .padding()
+        }
+    }
+
+    @ViewBuilder
+    private func pageIllustration(illustration: String, isRealImage: Bool) -> some View {
+        if isRealImage, let url = URL(string: illustration) {
+            AsyncImage(url: url) { phase in
+                if let img = phase.image {
+                    img.resizable().scaledToFill()
+                } else if phase.error != nil {
+                    Image(systemName: "photo").foregroundStyle(.gray)
+                } else {
+                    ProgressView()
+                }
+            }
+        } else {
+            // Most synced pages have no illustration here
+            // (web stripped to '[saved-locally]'). Show a
+            // friendly emoji placeholder instead of a
+            // broken-photo icon.
+            ZStack {
+                LinearGradient(
+                    colors: [
+                        (Color(hex: book.colors?.cover) ?? .purple).opacity(0.18),
+                        (Color(hex: book.colors?.accent) ?? .pink).opacity(0.18)
+                    ],
+                    startPoint: .topLeading, endPoint: .bottomTrailing
+                )
+                Text(book.characters.first?.emoji ?? book.setting?.emoji ?? "✨")
+                    .font(.system(size: 56))
+            }
+        }
+    }
+
+    private func pageText(page: BookPage) -> some View {
+        Text(page.text)
+            .font(.system(.body, design: .serif))
+            .foregroundStyle(.black)
+            .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func pageNumberBadge(page: BookPage) -> some View {
+        HStack {
+            Spacer()
+            Text("\(page.pageNumber)")
+                .font(.caption.bold())
+                .frame(width: 28, height: 28)
+                .background(Color(hex: book.colors?.cover) ?? .purple, in: Circle())
+                .foregroundStyle(.white)
         }
     }
 
