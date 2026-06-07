@@ -124,16 +124,43 @@ No new error paths. Existing empty/error/loading states (Bookshelf skeleton, Ord
 empty/error, reader empty state, AsyncImage failure placeholders) are preserved and simply
 inherit the new adaptive containers.
 
+## iPhone preservation guarantee (hard requirement)
+
+Keeping the iPhone app exactly as good as it is today is a **non-negotiable gate**, equal
+in priority to the iPad work. The design preserves iPhone *by construction*, not by
+coincidence:
+
+- iPhone **portrait** is always `horizontalSizeClass == .compact`. Every iPad branch is
+  gated on `.regular` width (or a landscape aspect check), so on iPhone portrait each
+  adaptive branch resolves to the **identical code path that ships today**. The goal is a
+  literal no-op on iPhone portrait, verified by screenshot diff.
+- `contentColumn(maxWidth:)` caps width; at iPhone widths the cap is never reached, so it
+  is visually a no-op.
+- Adaptive grids produce today's column counts at iPhone widths.
+
+Two cases that need explicit attention (not assumption):
+
+- **Max/Plus iPhones in landscape** report `regular` width and will therefore adopt the
+  iPad-ish treatment (constrained columns, wider grids). This is generally an improvement,
+  but each such branch must be eyeballed on a Max-phone landscape simulator to confirm it
+  reads well, not broken.
+- The **reader spread** is aspect-driven and will trigger in **iPhone landscape**. A
+  side-by-side spread there must be checked to confirm it isn't cramped; if it is, gate the
+  spread to also require a minimum width so small phones in landscape fall back to stacked.
+
 ## Testing / verification
 
 - Build to the **iPad Pro 13"** and **iPad mini** simulators.
 - Screenshot every tab (Books, Gallery, Create, Orders, Account) plus the reader and hero
   in **both portrait and landscape**. Confirm nothing stretches edge-to-edge, clips, or
   looks sparse.
-- Re-verify **iPhone is unchanged**: the size-class / aspect branches must collapse to the
-  current iPhone layout (compact width → existing behavior). Screenshot key iPhone screens
-  to confirm no regression.
-- Confirm read-aloud, page swiping, sign-in, and the create wizard still function on iPad.
+- **iPhone regression gate:** screenshot key iPhone screens on a standard iPhone (e.g.
+  iPhone 15) in **portrait** and confirm pixel-equivalence with the pre-change build —
+  portrait must be unchanged. Then check a **Max iPhone in landscape** and a standard
+  iPhone in landscape (reader especially) to confirm the `regular`-width / aspect branches
+  read well and nothing regresses.
+- Confirm read-aloud, page swiping, sign-in, and the create wizard still function on both
+  iPad and iPhone.
 
 ## Out of scope (YAGNI)
 
