@@ -16,6 +16,10 @@ struct BookDetailView: View {
     @State private var speaker = SpeechSpeaker()
     @State private var speakingPage: Int?
 
+    /// Portrait reader: fraction of the card height given to the illustration,
+    /// leaving room for the story text and page-number badge below it.
+    private let portraitImageHeightRatio: CGFloat = 0.55
+
     var body: some View {
         ZStack {
             CosmicBackground()
@@ -209,20 +213,17 @@ struct BookDetailView: View {
         let illustration = page.illustrationData ?? ""
         let isRealImage = illustration.hasPrefix("http") || illustration.hasPrefix("data:")
 
-        return bookCard {
-            GeometryReader { geo in
-                let isLandscape = geo.size.width > geo.size.height
-                let illo = pageIllustration(illustration: illustration, isRealImage: isRealImage)
-                let text = pageText(page: page)
-
+        return GeometryReader { geo in
+            let isLandscape = geo.size.width > geo.size.height
+            bookCard {
                 if isLandscape {
                     // Two-page spread: illustration left, story right.
                     HStack(spacing: 20) {
-                        illo
+                        pageIllustration(illustration: illustration, isRealImage: isRealImage)
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                             .clipShape(RoundedRectangle(cornerRadius: 12))
                         VStack(alignment: .leading, spacing: 12) {
-                            text
+                            pageText(page: page)
                             Spacer()
                             pageNumberBadge(page: page)
                         }
@@ -230,13 +231,13 @@ struct BookDetailView: View {
                     }
                     .padding()
                 } else {
-                    // Stacked: illustration scales to available width.
+                    // Stacked: illustration scales to the card height.
                     VStack(alignment: .leading, spacing: 12) {
-                        illo
+                        pageIllustration(illustration: illustration, isRealImage: isRealImage)
                             .frame(maxWidth: .infinity)
-                            .frame(height: geo.size.height * 0.55)
+                            .frame(height: geo.size.height * portraitImageHeightRatio)
                             .clipShape(RoundedRectangle(cornerRadius: 12))
-                        text
+                        pageText(page: page)
                         Spacer()
                         pageNumberBadge(page: page)
                     }
