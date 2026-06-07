@@ -28,13 +28,11 @@ struct SignInView: View {
             CosmicBackground()
                 .ignoresSafeArea()
             ScrollView {
-                VStack(spacing: 24) {
-                    Spacer().frame(height: 24)
-
+                VStack(spacing: 18) {
                     Image("AppLogo")
                         .resizable()
                         .aspectRatio(contentMode: .fit)
-                        .frame(width: 88, height: 88)
+                        .frame(width: 72, height: 72)
                         .clipShape(RoundedRectangle(cornerRadius: 20))
                         .shadow(color: .purple.opacity(0.4), radius: 16, y: 6)
 
@@ -162,8 +160,6 @@ struct SignInView: View {
                             .foregroundStyle(.white.opacity(0.7))
                     }
                     .padding(.top, 8)
-
-                    Spacer()
                 }
                 .padding(.vertical)
                 .contentColumn(maxWidth: 360)
