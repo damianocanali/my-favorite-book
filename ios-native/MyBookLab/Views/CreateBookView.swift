@@ -86,23 +86,22 @@ struct CreateBookView: View {
 
     @ViewBuilder
     private var wizardSteps: some View {
-        // Constrain every wizard step to a readable column so forms and
-        // editors don't stretch edge-to-edge on iPad. No-op on iPhone.
-        Group {
-            switch draft.step {
-            case 1: CharacterStep(draft: $draft)
-            case 2: SettingStep(draft: $draft)
-            case 3: TitleStep(draft: $draft)
-            case 4: PagesStep(draft: $draft)
-            case 5: ReadyStep(draft: $draft, onSave: saveDraft)
-            default: AuthorIntroStep(onContinue: { name, age in
-                withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
-                    draft.setAuthor(name: name, age: age)
-                }
-            })
+        // Each step caps its own scroll *content* to a readable column
+        // (so forms don't stretch on iPad) while keeping its ScrollView
+        // full-width — otherwise the scroll gesture only works in the
+        // middle of the screen. No-op on iPhone.
+        switch draft.step {
+        case 1: CharacterStep(draft: $draft)
+        case 2: SettingStep(draft: $draft)
+        case 3: TitleStep(draft: $draft)
+        case 4: PagesStep(draft: $draft)
+        case 5: ReadyStep(draft: $draft, onSave: saveDraft)
+        default: AuthorIntroStep(onContinue: { name, age in
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+                draft.setAuthor(name: name, age: age)
             }
+        })
         }
-        .contentColumn(maxWidth: ContentWidth.form)
     }
 
     private func saveDraft() {
@@ -138,6 +137,7 @@ struct CreateBookView: View {
             SparkleButton(action: { showingSignIn = true }) {
                 Text("Sign in")
             }
+            .frame(maxWidth: 360)
             .padding(.horizontal, 32)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -195,6 +195,7 @@ private struct AuthorIntroStep: View {
 
                 Spacer(minLength: 40)
             }
+            .contentColumn(maxWidth: ContentWidth.form)
         }
         .onAppear {
             // Pre-fill with the signed-in user's display name on first
@@ -315,6 +316,7 @@ private struct CharacterStep: View {
                 .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty)
                 .padding(.horizontal)
             }
+            .contentColumn(maxWidth: ContentWidth.form)
         }
         .sheet(isPresented: $showParentalGate) {
             HeroParentalGate(
@@ -523,6 +525,7 @@ private struct SettingStep: View {
                 }) { Text("Continue") }
                 .padding(.horizontal)
             }
+            .contentColumn(maxWidth: ContentWidth.form)
         }
     }
 }
@@ -566,6 +569,7 @@ private struct TitleStep: View {
                 .disabled(title.trimmingCharacters(in: .whitespaces).isEmpty)
                 .padding(.horizontal)
             }
+            .contentColumn(maxWidth: ContentWidth.form)
         }
     }
 }
@@ -620,6 +624,7 @@ private struct PagesStep: View {
 
             ScrollView {
                 pageEditor
+                    .contentColumn(maxWidth: ContentWidth.form)
             }
 
             VStack(spacing: 10) {
@@ -914,6 +919,7 @@ private struct ReadyStep: View {
                 .padding(.top, 8)
             }
             .padding(.bottom, 32)
+            .contentColumn(maxWidth: ContentWidth.form)
         }
         .overlay(Confetti(trigger: confettiTrigger))
     }

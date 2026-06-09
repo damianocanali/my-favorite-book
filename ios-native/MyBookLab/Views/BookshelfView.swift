@@ -102,6 +102,7 @@ struct BookshelfView: View {
                     }
                 }
             }) { Text("Try again") }
+            .frame(maxWidth: 360)
             .padding(.horizontal, 60)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -129,6 +130,7 @@ struct BookshelfView: View {
                     SparkleButton(action: { showingSignIn = true }) {
                         Text("Sign in")
                     }
+                    .frame(maxWidth: 360)
                     .padding(.horizontal, 48)
                 }
                 .padding(.top, 40)

@@ -255,6 +255,7 @@ struct AccountView: View {
             SparkleButton(action: { showingSignIn = true }) {
                 Text("Sign in")
             }
+            .frame(maxWidth: 360)
             .padding(.horizontal, 32)
         }
         .contentColumn(maxWidth: ContentWidth.form)
