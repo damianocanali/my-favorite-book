@@ -128,7 +128,9 @@ struct PaywallView: View {
     }
 
     private func plans(packages: [Package]) -> some View {
-        VStack(spacing: 12) {
+        // Adaptive grid: a single column on a narrow sheet (iPhone, or an
+        // iPad form sheet), side-by-side cards if shown at a wider width.
+        LazyVGrid(columns: [GridItem(.adaptive(minimum: 300, maximum: 400), spacing: 12)], spacing: 12) {
             ForEach(packages, id: \.identifier) { pkg in
                 planCard(package: pkg)
             }

@@ -50,6 +50,7 @@ struct OrdersListView: View {
                     }
                 }
                 .padding()
+                .contentColumn(maxWidth: ContentWidth.reading)
             }
             .scrollContentBackground(.hidden)
         }

@@ -15,6 +15,7 @@ struct PrintOrderView: View {
     @Environment(AuthStore.self) private var auth
     @Environment(\.dismiss) private var dismiss
     @Environment(AppRouter.self) private var router
+    @Environment(\.horizontalSizeClass) private var hSize
 
     @State private var format: PrintFormat = .softcover
     @State private var quantity: Int = 1
@@ -65,6 +66,7 @@ struct PrintOrderView: View {
                     .padding(.top, 8)
                 }
                 .padding(.bottom, 32)
+                .contentColumn(maxWidth: ContentWidth.form)
             }
         }
         .navigationTitle("Order printed copy")
@@ -205,10 +207,20 @@ struct PrintOrderView: View {
             field("Address line 2 (optional)", text: $line2)
             HStack {
                 field("City", text: $city)
-                field("State", text: $state).frame(width: 90)
+                // On iPad State flexes to share the row; on iPhone it keeps
+                // its compact fixed width (unchanged from before).
+                field("State", text: $state).frame(width: hSize == .regular ? nil : 90)
             }
-            field("ZIP", text: $postalCode).keyboardType(.numberPad)
-            field("Phone", text: $phone).keyboardType(.phonePad)
+            if hSize == .regular {
+                // iPad has room to pair ZIP + Phone on one row.
+                HStack(spacing: 10) {
+                    field("ZIP", text: $postalCode).keyboardType(.numberPad)
+                    field("Phone", text: $phone).keyboardType(.phonePad)
+                }
+            } else {
+                field("ZIP", text: $postalCode).keyboardType(.numberPad)
+                field("Phone", text: $phone).keyboardType(.phonePad)
+            }
         }
         .padding(.horizontal)
     }

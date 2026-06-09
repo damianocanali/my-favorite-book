@@ -18,40 +18,91 @@ struct HeroLanding: View {
     @State private var ctaWiggle: Double = 0
 
     var body: some View {
-        VStack(spacing: 20) {
-            // Glowing logo
-            ZStack {
-                // Soft outer halo
-                Circle()
-                    .fill(
-                        RadialGradient(
-                            colors: [Color.purple.opacity(0.55), .clear],
-                            center: .center,
-                            startRadius: 10,
-                            endRadius: 200
-                        )
-                    )
-                    .frame(width: 380, height: 380)
-                    .scaleEffect(logoPulse ? 1.05 : 0.95)
-                    .blur(radius: 8)
+        GeometryReader { geo in
+            // Roomy = genuinely an iPad (both dimensions large). iPhones in
+            // landscape are wide but short, so gating on BOTH dimensions
+            // keeps phone-landscape out of the iPad sizing branch.
+            let isRegular = geo.size.width >= 700 && geo.size.height >= 700
+            let isLandscape = geo.size.width > geo.size.height
+            let m = heroMetrics(isRegular: isRegular, isLandscape: isLandscape)
 
-                Image("AppLogo")
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 160, height: 160)
-                    .clipShape(RoundedRectangle(cornerRadius: 32, style: .continuous))
-                    .shadow(color: .purple.opacity(0.7), radius: 28, y: 8)
-                    .scaleEffect(logoPulse ? 1.02 : 1.0)
-            }
-            .onAppear {
-                withAnimation(.easeInOut(duration: 3.0).repeatForever(autoreverses: true)) {
-                    logoPulse = true
+            Group {
+                if isLandscape {
+                    HStack(spacing: 48) {
+                        logoBlock(metrics: m)
+                        textAndCTA(titleSize: m.title)
+                    }
+                } else {
+                    VStack(spacing: 20) {
+                        logoBlock(metrics: m)
+                        textAndCTA(titleSize: m.title)
+                    }
                 }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .padding(.bottom, 40)
+        }
+    }
 
+    private struct HeroMetrics {
+        let halo: CGFloat
+        let haloEndRadius: CGFloat
+        let logo: CGFloat
+        let title: CGFloat
+    }
+
+    /// Sizes for the three layout regimes. iPhone portrait intentionally
+    /// reproduces the pre-change sizes (halo 380 / logo 160 / title 56) so
+    /// that layout is unchanged. iPad scales up; iPhone landscape scales
+    /// down to fit the short screen.
+    private func heroMetrics(isRegular: Bool, isLandscape: Bool) -> HeroMetrics {
+        if isRegular {
+            return HeroMetrics(halo: 480, haloEndRadius: 240, logo: 200, title: 72)
+        } else if isLandscape {
+            return HeroMetrics(halo: 300, haloEndRadius: 160, logo: 130, title: 44)
+        } else {
+            return HeroMetrics(halo: 380, haloEndRadius: 200, logo: 160, title: 56)
+        }
+    }
+
+    @ViewBuilder
+    private func logoBlock(metrics m: HeroMetrics) -> some View {
+        ZStack {
+            // Soft outer halo
+            Circle()
+                .fill(
+                    RadialGradient(
+                        colors: [Color.purple.opacity(0.55), .clear],
+                        center: .center,
+                        startRadius: 10,
+                        endRadius: m.haloEndRadius
+                    )
+                )
+                .frame(width: m.halo, height: m.halo)
+                .scaleEffect(logoPulse ? 1.05 : 0.95)
+                .blur(radius: 8)
+
+            Image("AppLogo")
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: m.logo, height: m.logo)
+                .clipShape(RoundedRectangle(cornerRadius: 32, style: .continuous))
+                .shadow(color: .purple.opacity(0.7), radius: 28, y: 8)
+                .scaleEffect(logoPulse ? 1.02 : 1.0)
+        }
+        .onAppear {
+            withAnimation(.easeInOut(duration: 3.0).repeatForever(autoreverses: true)) {
+                logoPulse = true
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func textAndCTA(titleSize: CGFloat) -> some View {
+        VStack(spacing: 20) {
             // Gradient wordmark
             Text("My Book Lab")
-                .font(.system(size: 56, weight: .heavy, design: .rounded))
+                .font(.system(size: titleSize, weight: .heavy, design: .rounded))
                 .foregroundStyle(
                     LinearGradient(
                         colors: [
@@ -92,8 +143,6 @@ struct HeroLanding: View {
             .padding(.top, 12)
             .onAppear { startWiggle() }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .padding(.bottom, 40)
     }
 
     // Periodic book-emoji wobble to invite a tap. Subtle — every ~3

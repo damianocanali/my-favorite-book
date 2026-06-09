@@ -78,7 +78,7 @@ struct GalleryView: View {
                 .font(.system(.title3, design: .rounded).bold())
                 .foregroundStyle(.white)
                 .padding(.horizontal)
-            LazyVGrid(columns: [GridItem(.adaptive(minimum: 140), spacing: 16)], spacing: 20) {
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 160, maximum: 220), spacing: 16)], spacing: 20) {
                 ForEach(books) { b in
                     NavigationLink {
                         PublishedBookLoader(slug: b.slug)
@@ -88,6 +88,8 @@ struct GalleryView: View {
                     .buttonStyle(.plain)
                 }
             }
+            .frame(maxWidth: ContentWidth.wide)
+            .frame(maxWidth: .infinity)
             .padding(.horizontal)
         }
         .padding(.bottom, 16)

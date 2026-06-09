@@ -86,18 +86,23 @@ struct CreateBookView: View {
 
     @ViewBuilder
     private var wizardSteps: some View {
-        switch draft.step {
-        case 1: CharacterStep(draft: $draft)
-        case 2: SettingStep(draft: $draft)
-        case 3: TitleStep(draft: $draft)
-        case 4: PagesStep(draft: $draft)
-        case 5: ReadyStep(draft: $draft, onSave: saveDraft)
-        default: AuthorIntroStep(onContinue: { name, age in
-            withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
-                draft.setAuthor(name: name, age: age)
+        // Constrain every wizard step to a readable column so forms and
+        // editors don't stretch edge-to-edge on iPad. No-op on iPhone.
+        Group {
+            switch draft.step {
+            case 1: CharacterStep(draft: $draft)
+            case 2: SettingStep(draft: $draft)
+            case 3: TitleStep(draft: $draft)
+            case 4: PagesStep(draft: $draft)
+            case 5: ReadyStep(draft: $draft, onSave: saveDraft)
+            default: AuthorIntroStep(onContinue: { name, age in
+                withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+                    draft.setAuthor(name: name, age: age)
+                }
+            })
             }
-        })
         }
+        .contentColumn(maxWidth: ContentWidth.form)
     }
 
     private func saveDraft() {
@@ -217,6 +222,7 @@ private struct AuthorIntroStep: View {
 private struct CharacterStep: View {
     @Binding var draft: BookDraftStore
     @Environment(AuthStore.self) private var auth
+    @Environment(\.horizontalSizeClass) private var hSize
     @State private var name = ""
     @State private var emoji = "🦊"
     @State private var description = ""
@@ -275,7 +281,7 @@ private struct CharacterStep: View {
                 // hero, or just use an emoji below.
                 heroPortraitSection
 
-                LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 4), spacing: 12) {
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: hSize == .regular ? 6 : 4), spacing: 12) {
                     ForEach(emojiOptions, id: \.self) { e in
                         Button { emoji = e } label: {
                             Text(e)
@@ -442,7 +448,7 @@ private struct HeroParentalGate: View {
             Spacer()
         }
         .padding(.top, 28)
-        .presentationDetents([.medium])
+        .presentationDetents([.medium, .large])
     }
 }
 
@@ -569,6 +575,7 @@ private struct TitleStep: View {
 private struct PagesStep: View {
     @Binding var draft: BookDraftStore
     @Environment(AuthStore.self) private var auth
+    @Environment(\.horizontalSizeClass) private var hSize
     @State private var currentIndex: Int = 0
     @State private var generatingIllustration = false
     @State private var generationError: String?
@@ -708,7 +715,7 @@ private struct PagesStep: View {
                     }
                 }
                 .frame(maxWidth: .infinity)
-                .frame(height: 200)
+                .frame(height: hSize == .regular ? 360 : 200)
                 .background(.white.opacity(0.06), in: RoundedRectangle(cornerRadius: 16))
                 .clipShape(RoundedRectangle(cornerRadius: 16))
 
@@ -719,7 +726,7 @@ private struct PagesStep: View {
                 TextEditor(text: pageTextBinding)
                     .scrollContentBackground(.hidden)
                     .padding(10)
-                    .frame(minHeight: 160)
+                    .frame(minHeight: hSize == .regular ? 260 : 160)
                     .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 14))
                     .foregroundStyle(.white)
 
@@ -836,6 +843,7 @@ private struct ReadyStep: View {
     let onSave: () -> Void
 
     @Environment(AuthStore.self) private var auth
+    @Environment(\.horizontalSizeClass) private var hSize
     @State private var confettiTrigger = 0
     @State private var generatingCover = false
     @State private var coverError: String?
@@ -844,7 +852,7 @@ private struct ReadyStep: View {
         ScrollView {
             VStack(spacing: 20) {
                 coverArt
-                    .frame(width: 200, height: 200)
+                    .frame(width: hSize == .regular ? 320 : 200, height: hSize == .regular ? 320 : 200)
                     .clipShape(RoundedRectangle(cornerRadius: 20))
                     .shadow(color: .purple.opacity(0.6), radius: 18, y: 8)
                     .padding(.top, 24)

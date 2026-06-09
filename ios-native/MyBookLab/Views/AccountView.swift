@@ -49,6 +49,7 @@ struct AccountView: View {
                 signOutCard
             }
             .padding()
+            .contentColumn(maxWidth: ContentWidth.form)
         }
         .scrollContentBackground(.hidden)
     }
@@ -256,6 +257,7 @@ struct AccountView: View {
             }
             .padding(.horizontal, 32)
         }
+        .contentColumn(maxWidth: ContentWidth.form)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }

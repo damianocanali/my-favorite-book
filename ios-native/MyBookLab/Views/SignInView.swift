@@ -28,13 +28,11 @@ struct SignInView: View {
             CosmicBackground()
                 .ignoresSafeArea()
             ScrollView {
-                VStack(spacing: 24) {
-                    Spacer().frame(height: 24)
-
+                VStack(spacing: 18) {
                     Image("AppLogo")
                         .resizable()
                         .aspectRatio(contentMode: .fit)
-                        .frame(width: 88, height: 88)
+                        .frame(width: 72, height: 72)
                         .clipShape(RoundedRectangle(cornerRadius: 20))
                         .shadow(color: .purple.opacity(0.4), radius: 16, y: 6)
 
@@ -162,8 +160,6 @@ struct SignInView: View {
                             .foregroundStyle(.white.opacity(0.7))
                     }
                     .padding(.top, 8)
-
-                    Spacer()
                 }
                 .padding(.vertical)
                 .contentColumn(maxWidth: 360)
@@ -247,20 +243,5 @@ struct SignInView: View {
         catch {
             self.error = "Google sign-in failed: \(error.localizedDescription)"
         }
-    }
-}
-
-extension View {
-    /// Caps interactive content (forms, primary buttons) to a comfortable
-    /// reading width and centers it horizontally. On iPhone the cap is
-    /// wider than the screen, so it behaves like full width; on iPad it
-    /// stops buttons and forms from stretching edge-to-edge and gives the
-    /// layout natural side padding. Kids are mostly on iPad, so this keeps
-    /// those screens looking deliberate rather than blown-up.
-    func contentColumn(maxWidth: CGFloat = 440) -> some View {
-        self
-            .frame(maxWidth: maxWidth)
-            .frame(maxWidth: .infinity, alignment: .center)
-            .padding(.horizontal, 20)
     }
 }
