@@ -250,4 +250,61 @@ actor APIClient {
         try await request(method: "POST", path: "/api/story-buddy",
                           body: body, bearerToken: bearerToken)
     }
+
+    // Intent-based "ideas" helpers (Sentence Starters / Help Me Think).
+    // Reuses the same /api/story-buddy endpoint as the web app, which for
+    // an intent returns the raw Anthropic message; we parse it to a list.
+    private struct StoryBuddyIntentRequest: Encodable {
+        let intent: String
+        let book: SlimBook
+        let page: SlimPage
+
+        struct SlimBook: Encodable {
+            let title: String
+            let authorName: String
+            let authorAge: Int?
+            let characters: [SlimCharacter]
+            let setting: SlimSetting?
+            let pages: [SlimPage]
+        }
+        struct SlimCharacter: Encodable { let name: String }
+        struct SlimSetting: Encodable { let name: String? }
+        struct SlimPage: Encodable { let pageNumber: Int; let text: String }
+    }
+    private struct AnthropicTextResponse: Decodable {
+        struct Block: Decodable { let text: String? }
+        let content: [Block]
+    }
+
+    /// Returns a parsed list of ideas for `intent` ("starters" or
+    /// "questions"). Sends only the text fields the prompt needs (no
+    /// illustration data) to keep the request small.
+    func storyBuddyIdeas(intent: String, book: Book, page: BookPage, bearerToken: String) async throws -> [String] {
+        let body = StoryBuddyIntentRequest(
+            intent: intent,
+            book: .init(
+                title: book.title,
+                authorName: book.authorName,
+                authorAge: book.authorAge,
+                characters: book.characters.map { .init(name: $0.name) },
+                setting: book.setting.map { .init(name: $0.name) },
+                pages: book.pages.map { .init(pageNumber: $0.pageNumber, text: $0.text) }
+            ),
+            page: .init(pageNumber: page.pageNumber, text: page.text)
+        )
+        let res: AnthropicTextResponse = try await request(
+            method: "POST", path: "/api/story-buddy",
+            body: body, bearerToken: bearerToken
+        )
+        return Self.parseIdeaList(res.content.first?.text ?? "")
+    }
+
+    /// Splits Claude's numbered list into clean lines (mirrors the web app).
+    static func parseIdeaList(_ text: String) -> [String] {
+        text.split(separator: "\n", omittingEmptySubsequences: true).map { line in
+            line.trimmingCharacters(in: .whitespaces)
+                .replacingOccurrences(of: "^\\d+[\\.\\)]\\s*", with: "", options: .regularExpression)
+                .trimmingCharacters(in: .whitespaces)
+        }.filter { !$0.isEmpty }
+    }
 }

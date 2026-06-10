@@ -676,10 +676,12 @@ private struct PagesStep: View {
             .padding(.bottom, 16)
         }
         .sheet(isPresented: $showStoryBuddy) {
-            StoryBuddyView(currentPageText: currentPageText) { suggestion in
-                appendToCurrentPage(suggestion)
+            if let book = draft.book, currentIndex < book.pages.count {
+                StoryBuddyView(book: book, page: book.pages[currentIndex]) { suggestion in
+                    appendToCurrentPage(suggestion)
+                }
+                .presentationDetents([.medium, .large])
             }
-            .presentationDetents([.medium, .large])
         }
     }
 

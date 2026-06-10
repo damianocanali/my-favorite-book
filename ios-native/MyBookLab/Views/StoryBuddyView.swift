@@ -1,19 +1,35 @@
-// Story Buddy chat. Friendly AI writing coach — nudges with ideas
-// instead of writing for the kid. Each suggestion can be tapped to
-// append to the current page in the wizard. Backed by /api/story-buddy.
+// Story Buddy. Kid-friendly writing helper. Two big tap buttons —
+// "Give me ideas" (sentence starters) and "Help me think" (guided
+// questions) — backed by /api/story-buddy's intent path. Older kids
+// (author age 9+) also get a free-form "Ask your own question" chat,
+// backed by the same endpoint's chat path. It nudges with ideas and
+// never writes the whole story for the kid.
 import SwiftUI
 
 struct StoryBuddyView: View {
-    let currentPageText: String
+    let book: Book
+    let page: BookPage
     let onInsert: (String) -> Void
 
     @Environment(AuthStore.self) private var auth
     @Environment(\.dismiss) private var dismiss
 
+    // Idea buttons
+    @State private var loading = false
+    @State private var error: String?
+    @State private var ideas: [String] = []
+    @State private var ideaKind: IdeaKind?
+
+    // Age-gated chat
+    @State private var chatRevealed = false
     @State private var messages: [Msg] = []
     @State private var input: String = ""
     @State private var sending = false
-    @State private var error: String?
+
+    enum IdeaKind {
+        case starters, questions
+        var intent: String { self == .starters ? "starters" : "questions" }
+    }
 
     struct Msg: Identifiable {
         let id = UUID()
@@ -22,54 +38,52 @@ struct StoryBuddyView: View {
         enum Role { case user, buddy }
     }
 
+    /// Chat is offered only to older kids. Unknown/blank age stays
+    /// buttons-only.
+    private var allowsChat: Bool { (book.authorAge ?? 0) >= 9 }
+
     var body: some View {
         ZStack {
             CosmicBackground()
             VStack(spacing: 0) {
                 header
-                ScrollViewReader { proxy in
-                    ScrollView {
-                        VStack(spacing: 12) {
-                            if messages.isEmpty {
-                                placeholderBubble
-                            }
-                            ForEach(messages) { m in
-                                bubble(for: m)
-                            }
-                            if sending {
-                                HStack {
-                                    ProgressView().tint(.white)
-                                    Text("Thinking…").font(.caption).foregroundStyle(.white.opacity(0.7))
-                                    Spacer()
-                                }
-                                .padding(.horizontal)
-                            }
-                            if let error {
-                                Text(error)
-                                    .font(.footnote)
-                                    .foregroundStyle(.red.opacity(0.9))
-                                    .padding(.horizontal)
-                            }
-                            Color.clear.frame(height: 1).id("bottom")
+                ScrollView {
+                    VStack(spacing: 16) {
+                        intro
+                        ideaButtons
+
+                        if loading {
+                            thinkingRow
                         }
-                        .padding(.vertical, 12)
+                        if let error {
+                            Text(error)
+                                .font(.footnote)
+                                .foregroundStyle(.red.opacity(0.9))
+                        }
+                        if !ideas.isEmpty {
+                            ideaResults
+                        }
+                        if allowsChat {
+                            chatSection
+                        }
                     }
-                    .onChange(of: messages.count) { _, _ in
-                        withAnimation { proxy.scrollTo("bottom", anchor: .bottom) }
-                    }
+                    .padding()
+                    .frame(maxWidth: 640)
+                    .frame(maxWidth: .infinity)
                 }
-                inputBar
+                if chatRevealed {
+                    inputBar
+                }
             }
         }
     }
 
+    // MARK: - Header / intro
+
     private var header: some View {
         HStack {
-            Image(systemName: "sparkles")
-                .foregroundStyle(.yellow)
-            Text("Story Buddy")
-                .font(.headline)
-                .foregroundStyle(.white)
+            Image(systemName: "sparkles").foregroundStyle(.yellow)
+            Text("Story Buddy").font(.headline).foregroundStyle(.white)
             Spacer()
             Button("Done") { dismiss() }.foregroundStyle(.white)
         }
@@ -77,40 +91,144 @@ struct StoryBuddyView: View {
         .background(.ultraThinMaterial)
     }
 
-    private var placeholderBubble: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 6) {
-                Image(systemName: "sparkles").foregroundStyle(.yellow)
-                Text("Story Buddy").font(.caption).bold().foregroundStyle(.white.opacity(0.7))
-            }
-            Text("Hi! I help you find ideas — I never write the story for you. What's happening in your page so far? Try asking me things like:")
-                .font(.subheadline)
-                .foregroundStyle(.white)
-            VStack(alignment: .leading, spacing: 6) {
-                suggestion("What could happen next?")
-                suggestion("Help me describe what the forest looks like")
-                suggestion("What might my character feel right now?")
-            }
-        }
-        .padding(14)
-        .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 16))
-        .padding(.horizontal)
+    private var intro: some View {
+        Text("Stuck? Tap a button and I'll help with ideas — I never write your story for you. ✨")
+            .font(.subheadline)
+            .foregroundStyle(.white.opacity(0.85))
+            .multilineTextAlignment(.center)
+            .padding(.top, 4)
     }
 
-    private func suggestion(_ text: String) -> some View {
+    // MARK: - Idea buttons
+
+    private var ideaButtons: some View {
+        HStack(spacing: 12) {
+            ideaButton(emoji: "💡", title: "Give me ideas", kind: .starters)
+            ideaButton(emoji: "🤔", title: "Help me think", kind: .questions)
+        }
+    }
+
+    private func ideaButton(emoji: String, title: String, kind: IdeaKind) -> some View {
         Button {
-            input = text
+            Task { await loadIdeas(kind) }
         } label: {
-            HStack(spacing: 6) {
-                Image(systemName: "lightbulb").font(.caption)
-                Text(text)
-                    .font(.footnote)
-                    .multilineTextAlignment(.leading)
+            VStack(spacing: 8) {
+                Text(emoji).font(.system(size: 40))
+                Text(title)
+                    .font(.system(.headline, design: .rounded))
+                    .foregroundStyle(.white)
+                    .multilineTextAlignment(.center)
             }
-            .padding(.vertical, 6)
-            .padding(.horizontal, 10)
-            .background(.purple.opacity(0.3), in: Capsule())
-            .foregroundStyle(.white)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 20)
+            .background(
+                RoundedRectangle(cornerRadius: 18)
+                    .fill(ideaKind == kind ? Color.purple.opacity(0.45) : Color.white.opacity(0.08))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 18)
+                    .strokeBorder(ideaKind == kind ? Color.white.opacity(0.7) : Color.clear, lineWidth: 2)
+            )
+        }
+        .disabled(loading)
+    }
+
+    private var thinkingRow: some View {
+        HStack(spacing: 8) {
+            ProgressView().tint(.white)
+            Text("Thinking…").font(.caption).foregroundStyle(.white.opacity(0.7))
+        }
+    }
+
+    // MARK: - Idea results
+
+    @ViewBuilder
+    private var ideaResults: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            if ideaKind == .starters {
+                Text("Pick one to start writing!")
+                    .font(.caption).foregroundStyle(.white.opacity(0.7))
+                ForEach(ideas, id: \.self) { starter in
+                    Button {
+                        onInsert(starter)
+                        dismiss()
+                    } label: {
+                        starterCard(starter)
+                    }
+                }
+            } else {
+                Text("Think about these, then keep writing!")
+                    .font(.caption).foregroundStyle(.white.opacity(0.7))
+                ForEach(ideas, id: \.self) { question in
+                    questionCard(question)
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func starterCard(_ text: String) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text("\u{201C}\(text)\u{201D}")
+                .font(.system(.subheadline, design: .serif))
+                .foregroundStyle(.white)
+                .multilineTextAlignment(.leading)
+            HStack(spacing: 4) {
+                Image(systemName: "hand.tap").font(.caption2)
+                Text("Tap to use this").font(.caption2)
+            }
+            .foregroundStyle(.cyan.opacity(0.8))
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(14)
+        .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 14))
+        .overlay(
+            RoundedRectangle(cornerRadius: 14)
+                .strokeBorder(.white.opacity(0.12), lineWidth: 1)
+        )
+    }
+
+    private func questionCard(_ text: String) -> some View {
+        HStack(alignment: .top, spacing: 8) {
+            Text("💭")
+            Text(text)
+                .font(.subheadline)
+                .foregroundStyle(.white)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .padding(14)
+        .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 14))
+    }
+
+    // MARK: - Age-gated chat
+
+    @ViewBuilder
+    private var chatSection: some View {
+        if !chatRevealed {
+            Button {
+                withAnimation { chatRevealed = true }
+            } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: "pencil.and.scribble")
+                    Text("Ask your own question")
+                }
+                .font(.footnote.bold())
+                .padding(.vertical, 8)
+                .padding(.horizontal, 14)
+                .background(.white.opacity(0.08), in: Capsule())
+                .foregroundStyle(.white.opacity(0.85))
+            }
+            .padding(.top, 4)
+        } else {
+            VStack(spacing: 12) {
+                ForEach(messages) { m in
+                    bubble(for: m)
+                }
+                if sending {
+                    thinkingRow
+                }
+            }
+            .padding(.top, 4)
         }
     }
 
@@ -149,7 +267,6 @@ struct StoryBuddyView: View {
                     .background(.purple.opacity(0.7), in: RoundedRectangle(cornerRadius: 14))
             }
         }
-        .padding(.horizontal)
     }
 
     private var inputBar: some View {
@@ -176,6 +293,24 @@ struct StoryBuddyView: View {
         .background(.ultraThinMaterial)
     }
 
+    // MARK: - Actions
+
+    private func loadIdeas(_ kind: IdeaKind) async {
+        guard let token = auth.accessToken else { return }
+        ideaKind = kind
+        ideas = []
+        error = nil
+        loading = true
+        defer { loading = false }
+        do {
+            ideas = try await APIClient.shared.storyBuddyIdeas(
+                intent: kind.intent, book: book, page: page, bearerToken: token
+            )
+        } catch {
+            self.error = "Buddy couldn't reply. Try again?"
+        }
+    }
+
     private func send() async {
         let message = input.trimmingCharacters(in: .whitespaces)
         guard !message.isEmpty, let token = auth.accessToken else { return }
@@ -184,10 +319,9 @@ struct StoryBuddyView: View {
         sending = true
         error = nil
         defer { sending = false }
-
         do {
             let res = try await APIClient.shared.askStoryBuddy(
-                .init(message: message, context: currentPageText.isEmpty ? nil : currentPageText),
+                .init(message: message, context: page.text.isEmpty ? nil : page.text),
                 bearerToken: token
             )
             messages.append(Msg(role: .buddy, content: res.reply))
