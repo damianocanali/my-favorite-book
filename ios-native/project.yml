@@ -80,7 +80,7 @@ targets:
         NSCameraUsageDescription: "Used to take a photo for your cartoon avatar. The original photo is never saved — only the cartoon version is kept."
         NSPhotoLibraryUsageDescription: "Used to pick a photo for your cartoon avatar. The original photo is never saved — only the cartoon version is kept."
         NSMicrophoneUsageDescription: "Used to dictate your story when you tap the microphone button."
-        NSFaceIDUsageDescription: "Used to unlock the app when you turn on the optional app lock."
+        NSFaceIDUsageDescription: "Used to securely sign you back in to your account."
         ITSAppUsesNonExemptEncryption: false
         CFBundleURLTypes:
           - CFBundleTypeRole: Editor

@@ -44,7 +44,7 @@
 	<key>NSCameraUsageDescription</key>
 	<string>Used to take a photo for your cartoon avatar. The original photo is never saved — only the cartoon version is kept.</string>
 	<key>NSFaceIDUsageDescription</key>
-	<string>Used to unlock the app when you turn on the optional app lock.</string>
+	<string>Used to securely sign you back in to your account.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Used to dictate your story when you tap the microphone button.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
