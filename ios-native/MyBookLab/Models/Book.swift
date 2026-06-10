@@ -112,6 +112,59 @@ struct BookCharacter: Codable, Identifiable, Hashable, Sendable {
     }
 }
 
+extension BookCharacter {
+    /// Description for image-generation prompts that pins the character's
+    /// species from their chosen emoji — so a dragon named "Neo" is drawn
+    /// as a dragon, not a boy named Neo. Without this the model guesses
+    /// from the name and the kid keeps regenerating (wasting credits).
+    var imagePromptDescription: String {
+        let species = BookCharacter.species(for: emoji)
+        let trimmedName = name.trimmingCharacters(in: .whitespaces)
+        let base: String
+        switch (species, trimmedName.isEmpty) {
+        case let (s?, false): base = "\(s) named \(trimmedName)"
+        case let (s?, true):  base = s
+        case (nil, false):    base = trimmedName
+        case (nil, true):     base = "a friendly character"
+        }
+        if let d = description?.trimmingCharacters(in: .whitespaces), !d.isEmpty {
+            return "\(base), \(d)"
+        }
+        return base
+    }
+
+    static func species(for emoji: String?) -> String? {
+        guard let emoji, !emoji.isEmpty else { return nil }
+        return emojiSpecies[emoji]
+    }
+
+    /// Maps the character-picker emoji set to a plain-language species the
+    /// image model understands.
+    static let emojiSpecies: [String: String] = [
+        // Animals & creatures
+        "🦊": "a fox", "🐻": "a bear", "🐰": "a rabbit", "🦄": "a unicorn",
+        "🐉": "a dragon", "🦁": "a lion", "🐱": "a cat", "🐶": "a puppy",
+        "🐢": "a turtle", "🦉": "an owl", "🐸": "a frog", "🐼": "a panda",
+        "🐨": "a koala", "🐯": "a tiger", "🦒": "a giraffe", "🐘": "an elephant",
+        "🦓": "a zebra", "🦝": "a raccoon", "🐺": "a wolf", "🦔": "a hedgehog",
+        "🐝": "a bee", "🦋": "a butterfly", "🐙": "an octopus", "🦕": "a dinosaur",
+        "🐧": "a penguin", "🦜": "a parrot", "🦢": "a swan", "🦩": "a flamingo",
+        "🐬": "a dolphin", "🐳": "a whale", "🦈": "a shark", "🐠": "a fish",
+        // People & heroes
+        "👦": "a young boy", "👧": "a young girl", "🧒": "a child", "👶": "a baby",
+        "🧑‍🚀": "an astronaut", "🦸": "a superhero", "🦸‍♀️": "a superhero",
+        "🧚": "a fairy", "🧚‍♂️": "a fairy", "🧜‍♀️": "a mermaid", "🧞": "a genie",
+        "🧙": "a wizard", "🧙‍♀️": "a witch", "👸": "a princess", "🤴": "a prince",
+        "🥷": "a ninja", "🤖": "a robot", "👽": "an alien", "🎅": "Santa Claus",
+        "🧝": "an elf",
+        // Fun & magical
+        "🌟": "a friendly star", "⭐️": "a friendly star", "⭐": "a friendly star",
+        "🌈": "a rainbow", "🔮": "a magic crystal ball", "🎈": "a balloon",
+        "🚀": "a rocket", "🏰": "a castle", "👑": "a crown", "🍪": "a cookie",
+        "🦷": "a tooth", "❄️": "a snowflake", "❄": "a snowflake", "🔥": "a flame",
+    ]
+}
+
 struct BookSetting: Codable, Hashable, Sendable {
     var id: String?
     var name: String?

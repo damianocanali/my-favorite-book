@@ -680,7 +680,7 @@ private struct PagesStep: View {
                 StoryBuddyView(book: book, page: book.pages[currentIndex]) { suggestion in
                     appendToCurrentPage(suggestion)
                 }
-                .presentationDetents([.medium, .large])
+                .presentationDetents([.large])
             }
         }
     }
@@ -803,9 +803,7 @@ private struct PagesStep: View {
               let book = draft.book,
               currentIndex < book.pages.count else { return }
         let pageText = book.pages[currentIndex].text
-        let characterDesc = book.characters.first.flatMap { c -> String? in
-            "\(c.name)\(c.description.map { ", " + $0 } ?? "")"
-        } ?? ""
+        let characterDesc = book.characters.first?.imagePromptDescription ?? ""
         let settingDesc = book.setting?.description ?? ""
         let prompt = """
             Children's storybook illustration. Scene: \(pageText)
@@ -968,9 +966,7 @@ private struct ReadyStep: View {
         coverError = nil
         defer { generatingCover = false }
 
-        let character = book.characters.first.map { c in
-            "\(c.name)\(c.description.map { ", " + $0 } ?? "")"
-        } ?? "a friendly hero"
+        let character = book.characters.first?.imagePromptDescription ?? "a friendly hero"
         let setting = book.setting?.description ?? book.setting?.name ?? "a magical place"
         let prompt = """
             Children's storybook front cover illustration for "\(book.title)".
