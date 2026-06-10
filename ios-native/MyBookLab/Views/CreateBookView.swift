@@ -6,6 +6,11 @@ import SwiftUI
 import UIKit
 import PhotosUI
 
+// Shared image-generation style. The trailing "no text, no words, no
+// letters" + "wide scene" framing keeps FLUX from rendering the story
+// sentence as printed text inside the illustration. Mirrors the web app.
+private let storybookImageStyle = "children's storybook illustration, colorful, friendly, whimsical, cute cartoon style, soft colors, safe for kids, no text, no words, no letters"
+
 struct CreateBookView: View {
     @Environment(AuthStore.self) private var auth
     @Environment(BookshelfStore.self) private var bookshelf
@@ -802,14 +807,10 @@ private struct PagesStep: View {
         guard let token = auth.accessToken,
               let book = draft.book,
               currentIndex < book.pages.count else { return }
-        let pageText = book.pages[currentIndex].text
-        let characterDesc = book.characters.first?.imagePromptDescription ?? ""
-        let settingDesc = book.setting?.description ?? ""
-        let prompt = """
-            Children's storybook illustration. Scene: \(pageText)
-            Character: \(characterDesc). Setting: \(settingDesc).
-            Bright friendly cartoon style, vibrant colors, no text in image.
-            """
+        let scene = String(book.pages[currentIndex].text.prefix(200))
+        let character = book.characters.first?.imagePromptDescription ?? "the hero"
+        let setting = book.setting?.name ?? "a magical place"
+        let prompt = "A scene from a children's storybook: \(scene). The main character is \(character), in \(setting). \(storybookImageStyle), wide scene, landscape composition"
 
         generatingIllustration = true
         generationError = nil
@@ -967,13 +968,8 @@ private struct ReadyStep: View {
         defer { generatingCover = false }
 
         let character = book.characters.first?.imagePromptDescription ?? "a friendly hero"
-        let setting = book.setting?.description ?? book.setting?.name ?? "a magical place"
-        let prompt = """
-            Children's storybook front cover illustration for "\(book.title)".
-            Main character: \(character). Setting: \(setting).
-            Whimsical, vibrant, magical, centered composition suitable for a
-            book cover. Bright friendly cartoon style. No text, no words.
-            """
+        let setting = book.setting?.name ?? "a magical place"
+        let prompt = "A children's storybook cover illustration. The scene shows \(character) in \(setting). \(storybookImageStyle), centered composition"
         do {
             let res = try await APIClient.shared.generateImage(
                 .init(prompt: prompt, style: "cartoon"),
