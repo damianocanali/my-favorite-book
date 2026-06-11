@@ -2,6 +2,7 @@ export const config = { maxDuration: 30 }
 
 import { canAdvance } from '../../lib/print/state.js'
 import { getStripeSecretKey } from '../../lib/print/stripe-key.js'
+import { hasWorkerSecret } from '../_workerAuth.js'
 
 const SUPABASE = process.env.SUPABASE_URL
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -44,9 +45,7 @@ async function stripeRefund(paymentIntentId) {
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
-  if ((req.headers['authorization'] || '') !== `Bearer ${WORKER_SECRET}`) {
-    return res.status(401).json({ error: 'Unauthorized' })
-  }
+  if (!hasWorkerSecret(req)) return res.status(401).json({ error: 'Unauthorized' })
   const { orderId, reason } = req.body || {}
   if (!orderId) return res.status(400).json({ error: 'Missing orderId' })
 

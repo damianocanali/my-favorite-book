@@ -94,8 +94,16 @@ export function checkRateLimit(key, limit) {
 }
 
 export function getClientIp(req) {
-  const forwarded = req.headers.get?.('x-forwarded-for') ?? req.headers['x-forwarded-for']
-  return (forwarded ? forwarded.split(',')[0] : '').trim() || 'unknown'
+  const get = (k) => req.headers.get?.(k) ?? req.headers?.[k]
+  // The leftmost x-forwarded-for token is client-controllable, so spraying
+  // a rotating header would mint a fresh bucket per request. On Vercel the
+  // true client IP is in x-real-ip; otherwise take the rightmost XFF entry,
+  // which the platform appends.
+  const real = (get('x-real-ip') || '').trim()
+  if (real) return real
+  const xff = get('x-forwarded-for') || ''
+  const parts = xff.split(',').map((s) => s.trim()).filter(Boolean)
+  return parts.length ? parts[parts.length - 1] : 'unknown'
 }
 
 // Per-request CORS state. Edge handlers are short-lived and single-threaded,

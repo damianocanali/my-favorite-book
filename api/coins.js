@@ -43,7 +43,7 @@ export default async function handler(req) {
       return json(200, { balance: 0, warning: 'user_coins table not found — run migration 004' })
     }
     console.error('[coins] supabase error', res.status, body)
-    return json(500, { error: 'Failed to load balance', detail: body.slice(0, 300) })
+    return json(500, { error: 'Failed to load balance' })
   }
 
   const rows = await res.json()

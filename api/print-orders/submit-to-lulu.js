@@ -4,6 +4,7 @@ export const config = { maxDuration: 60 }
 
 import { LuluClient } from '../../lib/print/lulu.js'
 import { canAdvance } from '../../lib/print/state.js'
+import { hasWorkerSecret } from '../_workerAuth.js'
 
 const SUPABASE = process.env.SUPABASE_URL
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -44,8 +45,7 @@ async function patchOrder(id, patch) {
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
 
-  const auth = req.headers['authorization'] || ''
-  if (auth !== `Bearer ${WORKER_SECRET}`) return res.status(401).json({ error: 'Unauthorized' })
+  if (!hasWorkerSecret(req)) return res.status(401).json({ error: 'Unauthorized' })
 
   const { orderId } = req.body || {}
   if (!orderId) return res.status(400).json({ error: 'Missing orderId' })

@@ -9,6 +9,7 @@ import { renderHtmlToPdf } from '../../lib/print/pdf-render.js'
 import { canAdvance } from '../../lib/print/state.js'
 import { spineWidthInches } from '../../lib/print/spine-width.js'
 import { LuluClient } from '../../lib/print/lulu.js'
+import { hasWorkerSecret } from '../_workerAuth.js'
 
 // pod_package_id values are duplicated here from submit-to-lulu.js because
 // we need to know the SKU at PDF-generation time to query Lulu's exact
@@ -82,8 +83,7 @@ async function signedUrl(key, expiresInSeconds = 60 * 60 * 24 * 7) {
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
 
-  const auth = req.headers['authorization'] || ''
-  if (auth !== `Bearer ${WORKER_SECRET}`) return res.status(401).json({ error: 'Unauthorized' })
+  if (!hasWorkerSecret(req)) return res.status(401).json({ error: 'Unauthorized' })
 
   const { orderId } = req.body || {}
   if (!orderId) return res.status(400).json({ error: 'Missing orderId' })

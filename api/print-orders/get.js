@@ -36,7 +36,7 @@ export default async function handler(req) {
     status: 400, headers: { 'Content-Type': 'application/json' },
   })
   const r = await fetch(
-    `${SUPABASE}/rest/v1/print_orders?id=eq.${id}&user_id=eq.${user.id}&select=${PUBLIC_FIELDS.join(',')}`,
+    `${SUPABASE}/rest/v1/print_orders?id=eq.${encodeURIComponent(id)}&user_id=eq.${user.id}&select=${PUBLIC_FIELDS.join(',')}`,
     { headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` } }
   )
   const rows = await r.json()
