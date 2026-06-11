@@ -26,7 +26,7 @@ export default async function handler(req) {
     method: 'DELETE',
     headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` },
   })
-  if (!res.ok && res.status !== 404) {
+  if (!res.ok) {
     console.error('[cancel-deletion] failed', res.status, await res.text().catch(() => ''))
     return json(500, { error: 'Could not cancel deletion' })
   }

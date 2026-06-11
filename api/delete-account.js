@@ -2,10 +2,10 @@ export const config = { runtime: 'edge' }
 
 import { handleCors, withCors } from './_rateLimit.js'
 import { verifyJwt } from './_auth.js'
+import { GRACE_DAYS } from '../lib/deleteUser.js'
 
 // Recoverable deletion: POST schedules it (idempotent), GET reports status.
 // The actual hard delete happens later in the purge cron (lib/deleteUser.js).
-const GRACE_DAYS = 7
 
 function json(status, obj, req) {
   return new Response(JSON.stringify(obj), {

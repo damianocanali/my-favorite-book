@@ -1,9 +1,8 @@
 export const config = { runtime: 'edge' }
 
-import { purgeUser } from '../../lib/deleteUser.js'
+import { purgeUser, GRACE_DAYS } from '../../lib/deleteUser.js'
 
 const CRON_SECRET = process.env.CRON_SECRET
-const GRACE_DAYS = 7
 
 function safeEqual(a, b) {
   if (typeof a !== 'string' || typeof b !== 'string' || a.length !== b.length) return false
@@ -34,11 +33,18 @@ export default async function handler(req) {
     `${supabaseUrl}/rest/v1/account_deletions?requested_at=lt.${encodeURIComponent(cutoff)}&select=user_id`,
     { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } }
   )
-  const rows = await res.json().catch(() => [])
+  if (!res.ok) {
+    console.error('[purge-deletions] could not list deletions', res.status)
+    return new Response(JSON.stringify({ error: 'Could not list deletions' }), {
+      status: 502, headers: { 'Content-Type': 'application/json' },
+    })
+  }
+  const parsed = await res.json().catch(() => [])
+  const list = Array.isArray(parsed) ? parsed : []
 
   let purged = 0
   let failed = 0
-  for (const row of rows || []) {
+  for (const row of list) {
     try {
       const { ok } = await purgeUser(row.user_id, { supabaseUrl, serviceKey, stripeSecretKey })
       if (ok) purged++
@@ -49,7 +55,7 @@ export default async function handler(req) {
     }
   }
 
-  return new Response(JSON.stringify({ considered: rows?.length ?? 0, purged, failed }), {
+  return new Response(JSON.stringify({ considered: list.length, purged, failed }), {
     status: 200, headers: { 'Content-Type': 'application/json' },
   })
 }
