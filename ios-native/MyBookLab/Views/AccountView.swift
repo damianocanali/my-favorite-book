@@ -47,6 +47,7 @@ struct AccountView: View {
     private var signedInView: some View {
         ScrollView {
             VStack(spacing: 16) {
+                deletionBanner
                 profileCard
                 coinsCard
                 rowsCard
@@ -58,6 +59,7 @@ struct AccountView: View {
             .contentColumn(maxWidth: ContentWidth.form)
         }
         .scrollContentBackground(.hidden)
+        .task { await loadDeletionStatus() }
     }
 
     private var coinsCard: some View {
@@ -239,6 +241,55 @@ struct AccountView: View {
                 .frame(maxWidth: .infinity)
                 .padding(14)
                 .background(.white.opacity(0.06), in: RoundedRectangle(cornerRadius: 18))
+        }
+    }
+
+    @ViewBuilder
+    private var deletionBanner: some View {
+        if let scheduledFor = deletionScheduledFor, !scheduledFor.isEmpty {
+            VStack(spacing: 8) {
+                Text("Your account is scheduled for deletion\(deletionDateText(scheduledFor)).")
+                    .font(.subheadline.bold()).multilineTextAlignment(.center).foregroundStyle(.white)
+                Button {
+                    Task { await cancelDeletion() }
+                } label: {
+                    Text(deleteBusy ? "Cancelling…" : "Keep my account")
+                        .font(.footnote.bold())
+                        .padding(.vertical, 8).padding(.horizontal, 16)
+                        .background(.white.opacity(0.2), in: Capsule())
+                        .foregroundStyle(.white)
+                }
+                .disabled(deleteBusy)
+            }
+            .padding(14).frame(maxWidth: .infinity)
+            .background(.red.opacity(0.7), in: RoundedRectangle(cornerRadius: 16))
+            .padding(.horizontal)
+        }
+    }
+
+    private func deletionDateText(_ iso: String) -> String {
+        let f = ISO8601DateFormatter()
+        guard let date = f.date(from: iso) else { return "" }
+        let out = DateFormatter(); out.dateStyle = .medium
+        return " on " + out.string(from: date)
+    }
+
+    private func cancelDeletion() async {
+        guard let token = auth.accessToken else { return }
+        deleteBusy = true
+        defer { deleteBusy = false }
+        do {
+            try await APIClient.shared.cancelAccountDeletion(bearerToken: token)
+            deletionScheduledFor = nil
+        } catch {
+            deleteError = "Couldn't cancel. Please try again."
+        }
+    }
+
+    private func loadDeletionStatus() async {
+        guard let token = auth.accessToken else { return }
+        if let status = try? await APIClient.shared.deletionStatus(bearerToken: token) {
+            deletionScheduledFor = status.pending ? (status.scheduled_for ?? "") : nil
         }
     }
 
