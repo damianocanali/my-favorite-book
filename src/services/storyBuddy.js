@@ -1,7 +1,7 @@
-import { apiFetch } from '../lib/api'
+import { apiFetchAuthed } from '../lib/api'
 
 async function callStoryBuddy(intent, book, page) {
-  const response = await apiFetch('/api/story-buddy', {
+  const response = await apiFetchAuthed('/api/story-buddy', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ intent, book, page }),

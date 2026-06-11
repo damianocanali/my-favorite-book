@@ -1,7 +1,8 @@
 export const config = { runtime: 'edge' }
 
-import { checkRateLimit, getClientIp, handleCors, withCors } from './_rateLimit.js'
+import { checkRateLimit, handleCors, withCors } from './_rateLimit.js'
 import { logUsage, estimateTogetherImageCostCents } from './_usage.js'
+import { requireUser, validateSourceImage, moderatePrompt } from './_aiGuard.js'
 
 const TOGETHER_API_URL = 'https://api.together.xyz/v1/images/generations'
 const AVATAR_LIMIT = 10 // per hour per IP
@@ -40,8 +41,10 @@ export default async function handler(req) {
     })
   }
 
-  const ip = getClientIp(req)
-  const { allowed } = checkRateLimit(`generate-avatar:${ip}`, AVATAR_LIMIT)
+  const auth = await requireUser(req)
+  if (!auth.ok) return auth.response
+
+  const { allowed } = checkRateLimit(`generate-avatar:${auth.userId}`, AVATAR_LIMIT)
   if (!allowed) {
     return new Response(
       JSON.stringify({ error: 'Too many avatar generations. Try again in an hour.' }),
@@ -58,6 +61,9 @@ export default async function handler(req) {
 
   try {
     const { features, artStyle, sourceImage } = await req.json()
+
+    const imageErr = validateSourceImage(sourceImage, req)
+    if (imageErr) return imageErr
 
     // Two modes:
     //   (a) Photo cartoonify: when sourceImage is present (base64 data URL),
@@ -78,6 +84,9 @@ export default async function handler(req) {
     const prompt = isPhotoMode
       ? `Transform this photograph of a child into a friendly cartoon avatar portrait. Preserve the child's likeness — same hair, same expression, similar clothing — but render in ${style}. Centered circular portrait composition, simple soft background, child-friendly, no text, no watermark, safe for kids.`
       : buildAvatarPrompt(features, artStyle || 'cartoon')
+
+    const modErr = await moderatePrompt(prompt, req)
+    if (modErr) return modErr
 
     // FLUX.1-kontext-pro is the serverless image-to-image model on Together.
     // The -dev variant is dedicated/non-serverless and 403s without an
@@ -113,10 +122,11 @@ export default async function handler(req) {
     })
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({}))
+      const detail = await response.text().catch(() => '')
+      console.error('[generate-avatar] Together error', response.status, detail.slice(0, 500))
       return new Response(
-        JSON.stringify({ error: error?.error?.message || `Image API error: ${response.status}` }),
-        { status: response.status, headers: withCors({ 'Content-Type': 'application/json' }) }
+        JSON.stringify({ error: 'Avatar generation failed. Please try again.' }),
+        { status: 502, headers: withCors({ 'Content-Type': 'application/json' }, req) }
       )
     }
 
@@ -140,8 +150,9 @@ export default async function handler(req) {
       status: 200, headers: withCors({ 'Content-Type': 'application/json' }),
     })
   } catch (err) {
-    return new Response(JSON.stringify({ error: err.message }), {
-      status: 500, headers: withCors({ 'Content-Type': 'application/json' }),
+    console.error('[generate-avatar] error', err?.message)
+    return new Response(JSON.stringify({ error: 'Avatar generation failed.' }), {
+      status: 500, headers: withCors({ 'Content-Type': 'application/json' }, req),
     })
   }
 }

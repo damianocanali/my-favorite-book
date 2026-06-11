@@ -1,5 +1,6 @@
-import { checkRateLimit, getClientIp, handleCors, withCors } from './_rateLimit.js'
+import { checkRateLimit, handleCors, withCors } from './_rateLimit.js'
 import { logUsage, estimateTogetherImageCostCents } from './_usage.js'
+import { requireUser, validatePrompt, validateSourceImage, moderatePrompt } from './_aiGuard.js'
 
 export const config = { runtime: 'edge' }
 
@@ -17,8 +18,10 @@ export default async function handler(req) {
     })
   }
 
-  const ip = getClientIp(req)
-  const { allowed } = checkRateLimit(`generate-image:${ip}`, IMAGE_GEN_LIMIT)
+  const auth = await requireUser(req)
+  if (!auth.ok) return auth.response
+
+  const { allowed } = checkRateLimit(`generate-image:${auth.userId}`, IMAGE_GEN_LIMIT)
   if (!allowed) {
     return new Response(
       JSON.stringify({ error: 'Too many requests. Please try again in an hour.' }),
@@ -37,12 +40,12 @@ export default async function handler(req) {
   try {
     const { prompt, sourceImage, strength } = await req.json()
 
-    if (!prompt) {
-      return new Response(JSON.stringify({ error: 'Missing prompt' }), {
-        status: 400,
-        headers: withCors({ 'Content-Type': 'application/json' }),
-      })
-    }
+    const promptErr = validatePrompt(prompt, req)
+    if (promptErr) return promptErr
+    const imageErr = validateSourceImage(sourceImage, req)
+    if (imageErr) return imageErr
+    const modErr = await moderatePrompt(prompt, req)
+    if (modErr) return modErr
 
     // Image edits go through FLUX.1-Kontext-Dev (purpose-built for editing
     // an existing image with a text instruction). Falls back to FLUX.1-schnell
@@ -86,10 +89,11 @@ export default async function handler(req) {
     })
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({}))
+      const detail = await response.text().catch(() => '')
+      console.error('[generate-image] Together error', response.status, detail.slice(0, 500))
       return new Response(
-        JSON.stringify({ error: error?.error?.message || `Together API error: ${response.status}` }),
-        { status: response.status, headers: withCors({ 'Content-Type': 'application/json' }) }
+        JSON.stringify({ error: 'Image generation failed. Please try again.' }),
+        { status: 502, headers: withCors({ 'Content-Type': 'application/json' }, req) }
       )
     }
 
@@ -115,9 +119,10 @@ export default async function handler(req) {
       headers: withCors({ 'Content-Type': 'application/json' }),
     })
   } catch (err) {
-    return new Response(JSON.stringify({ error: err.message }), {
+    console.error('[generate-image] error', err?.message)
+    return new Response(JSON.stringify({ error: 'Image generation failed.' }), {
       status: 500,
-      headers: withCors({ 'Content-Type': 'application/json' }),
+      headers: withCors({ 'Content-Type': 'application/json' }, req),
     })
   }
 }

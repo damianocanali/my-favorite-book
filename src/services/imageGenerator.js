@@ -1,11 +1,11 @@
-import { apiFetch } from '../lib/api'
+import { apiFetchAuthed } from '../lib/api'
 
 function buildStylePrompt() {
   return `children's storybook illustration, colorful, friendly, whimsical, cute cartoon style, soft colors, safe for kids, no text, no words, no letters`
 }
 
 async function generateImage(prompt, options = {}) {
-  const response = await apiFetch('/api/generate-image', {
+  const response = await apiFetchAuthed('/api/generate-image', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ prompt, ...options }),

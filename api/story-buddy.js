@@ -1,5 +1,6 @@
-import { checkRateLimit, getClientIp, handleCors, withCors } from './_rateLimit.js'
+import { checkRateLimit, handleCors, withCors } from './_rateLimit.js'
 import { logUsage, estimateAnthropicCostCents } from './_usage.js'
+import { requireUser, moderatePrompt } from './_aiGuard.js'
 
 export const config = { runtime: 'edge' }
 
@@ -116,10 +117,11 @@ async function handleChat(payload, apiKey) {
   })
 
   if (!response.ok) {
-    const error = await response.json().catch(() => ({}))
+    const detail = await response.text().catch(() => '')
+    console.error('[story-buddy] chat Anthropic error', response.status, detail.slice(0, 500))
     return new Response(
-      JSON.stringify({ error: error?.error?.message || `Anthropic API error: ${response.status}` }),
-      { status: response.status, headers: withCors({ 'Content-Type': 'application/json' }) }
+      JSON.stringify({ error: 'Story Buddy is unavailable right now. Please try again.' }),
+      { status: 502, headers: withCors({ 'Content-Type': 'application/json' }) }
     )
   }
 
@@ -153,8 +155,10 @@ export default async function handler(req) {
     })
   }
 
-  const ip = getClientIp(req)
-  const { allowed } = checkRateLimit(`story-buddy:${ip}`, STORY_BUDDY_LIMIT)
+  const auth = await requireUser(req)
+  if (!auth.ok) return auth.response
+
+  const { allowed } = checkRateLimit(`story-buddy:${auth.userId}`, STORY_BUDDY_LIMIT)
   if (!allowed) {
     return new Response(
       JSON.stringify({ error: 'Too many requests. Please try again in an hour.' }),
@@ -175,6 +179,8 @@ export default async function handler(req) {
 
     // Native app sends a free-form chat message; web app sends an intent.
     if (typeof payload?.message === 'string' && payload.message.trim()) {
+      const modErr = await moderatePrompt(payload.message, req)
+      if (modErr) return modErr
       return await handleChat(payload, apiKey)
     }
 
@@ -184,8 +190,14 @@ export default async function handler(req) {
     if (!preset || !book || !page) {
       return new Response(JSON.stringify({ error: 'Missing or invalid fields' }), {
         status: 400,
-        headers: withCors({ 'Content-Type': 'application/json' }),
+        headers: withCors({ 'Content-Type': 'application/json' }, req),
       })
+    }
+
+    // Moderate the child's own writing on the page before it informs the model.
+    if (page.text && String(page.text).trim()) {
+      const modErr = await moderatePrompt(String(page.text), req)
+      if (modErr) return modErr
     }
 
     const response = await fetch(ANTHROPIC_API_URL, {
@@ -204,10 +216,11 @@ export default async function handler(req) {
     })
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({}))
+      const detail = await response.text().catch(() => '')
+      console.error('[story-buddy] Anthropic error', response.status, detail.slice(0, 500))
       return new Response(
-        JSON.stringify({ error: error?.error?.message || `Anthropic API error: ${response.status}` }),
-        { status: response.status, headers: withCors({ 'Content-Type': 'application/json' }) }
+        JSON.stringify({ error: 'Story Buddy is unavailable right now. Please try again.' }),
+        { status: 502, headers: withCors({ 'Content-Type': 'application/json' }, req) }
       )
     }
 
@@ -230,9 +243,10 @@ export default async function handler(req) {
       headers: withCors({ 'Content-Type': 'application/json' }),
     })
   } catch (err) {
-    return new Response(JSON.stringify({ error: err.message }), {
+    console.error('[story-buddy] error', err?.message)
+    return new Response(JSON.stringify({ error: 'Story Buddy is unavailable right now.' }), {
       status: 500,
-      headers: withCors({ 'Content-Type': 'application/json' }),
+      headers: withCors({ 'Content-Type': 'application/json' }, req),
     })
   }
 }
