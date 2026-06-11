@@ -19,6 +19,7 @@ export default function AccountPage() {
   const [confirmStep, setConfirmStep] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [error, setError] = useState(null)
+  const [scheduled, setScheduled] = useState(false)
   const [portalLoading, setPortalLoading] = useState(false)
   const [portalError, setPortalError] = useState(null)
   const [editingName, setEditingName] = useState(false)
@@ -78,10 +79,13 @@ export default function AccountPage() {
         headers: { 'Content-Type': 'application/json' },
       }).catch((e) => { throw new Error(`Network error: ${e.message}`) })
       const data = await res.json().catch(() => { throw new Error(`Server error: ${res.status}`) })
-      if (!data.deleted) throw new Error(data.error || 'Deletion failed')
+      if (!data.scheduled) throw new Error(data.error || 'Could not schedule deletion')
 
-      await signOut()
-      navigate('/')
+      // Soft-delete: the account is scheduled, not gone. Keep the user signed
+      // in during the grace window and show a confirmation.
+      setScheduled(true)
+      setConfirmStep(false)
+      setDeleting(false)
     } catch (e) {
       setError(e.message || 'Something went wrong. Please try again.')
       setDeleting(false)
@@ -222,10 +226,16 @@ export default function AccountPage() {
           <div>
             <h2 className="font-heading text-lg font-semibold text-galaxy-text mb-1">Danger Zone</h2>
             <p className="text-galaxy-text-muted font-body text-sm mb-4">
-              Permanently delete your account and all your books. This cannot be undone.
+              Delete your account and all your books. You'll have 7 days to change your mind before it becomes permanent.
             </p>
 
-            {!confirmStep ? (
+            {scheduled ? (
+              <div className="bg-green-500/10 border border-green-500/30 rounded-2xl p-5">
+                <p className="font-body text-green-300 text-sm">
+                  Your account is scheduled for deletion in 7 days. You can still change your mind during that window — nothing is removed until then.
+                </p>
+              </div>
+            ) : !confirmStep ? (
               <button
                 onClick={() => setConfirmStep(true)}
                 className="flex items-center gap-2 px-4 py-2.5 rounded-2xl border border-red-500/40 text-red-400 hover:bg-red-500/10 hover:border-red-500/70 transition-colors font-body text-sm"
@@ -246,7 +256,7 @@ export default function AccountPage() {
                       Are you sure?
                     </p>
                     <p className="font-body text-galaxy-text-muted text-sm">
-                      This will permanently delete your account, all your books, and cancel any active subscription. This action cannot be reversed.
+                      This schedules your account, all your books, and any active subscription for deletion in 7 days. You can change your mind during that window.
                     </p>
                   </div>
                 </div>
@@ -269,9 +279,9 @@ export default function AccountPage() {
                     className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl bg-red-500 hover:bg-red-600 text-white transition-colors font-body text-sm font-semibold disabled:opacity-60"
                   >
                     {deleting ? (
-                      <><Loader2 size={15} className="animate-spin" /> Deleting...</>
+                      <><Loader2 size={15} className="animate-spin" /> Scheduling...</>
                     ) : (
-                      <><Trash2 size={15} /> Yes, delete everything</>
+                      <><Trash2 size={15} /> Schedule deletion</>
                     )}
                   </button>
                 </div>
