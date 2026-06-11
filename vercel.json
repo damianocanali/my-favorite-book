@@ -12,6 +12,9 @@
       ]
     }
   ],
+  "crons": [
+    { "path": "/api/cron/purge-deletions", "schedule": "0 3 * * *" }
+  ],
   "rewrites": [
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ]
