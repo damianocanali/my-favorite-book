@@ -251,6 +251,35 @@ actor APIClient {
                           body: body, bearerToken: bearerToken)
     }
 
+    // MARK: - Account deletion (recoverable)
+
+    struct DeletionStatus: Decodable {
+        let pending: Bool
+        let scheduled_for: String?
+    }
+    private struct DeletionScheduled: Decodable { let scheduled_for: String? }
+    private struct CancelResult: Decodable { let cancelled: Bool? }
+
+    /// Schedules account deletion (7-day grace). Returns the ISO date it's
+    /// scheduled for, if the server provided one.
+    @discardableResult
+    func requestAccountDeletion(bearerToken: String) async throws -> String? {
+        let res: DeletionScheduled = try await request(
+            method: "POST", path: "/api/delete-account", bearerToken: bearerToken)
+        return res.scheduled_for
+    }
+
+    /// Cancels a pending account deletion.
+    func cancelAccountDeletion(bearerToken: String) async throws {
+        let _: CancelResult = try await request(
+            method: "POST", path: "/api/cancel-deletion", bearerToken: bearerToken)
+    }
+
+    /// Returns whether the account is scheduled for deletion (and when).
+    func deletionStatus(bearerToken: String) async throws -> DeletionStatus {
+        try await request(method: "GET", path: "/api/delete-account", bearerToken: bearerToken)
+    }
+
     // Intent-based "ideas" helpers (Sentence Starters / Help Me Think).
     // Reuses the same /api/story-buddy endpoint as the web app, which for
     // an intent returns the raw Anthropic message; we parse it to a list.
