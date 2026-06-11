@@ -70,7 +70,11 @@ export default async function handler(req) {
       )
       rows = await get.json().catch(() => [])
     }
-    const requested_at = rows?.[0]?.requested_at ?? new Date().toISOString()
+    const requested_at = rows?.[0]?.requested_at
+    if (!requested_at) {
+      console.error('[delete-account] scheduled but could not read requested_at')
+      return json(500, { error: 'Could not schedule deletion' }, req)
+    }
     return json(200, { scheduled: true, scheduled_for: scheduledFor(requested_at) }, req)
   }
 
