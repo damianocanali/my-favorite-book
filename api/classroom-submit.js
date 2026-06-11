@@ -2,7 +2,7 @@ export const config = { runtime: 'edge' }
 
 import { checkRateLimit, getClientIp, handleCors, withCors } from './_rateLimit.js'
 
-const CODE_RE = /^[A-Z0-9]{4,8}$/
+const CODE_RE = /^[A-Z0-9]{6,8}$/
 // After stripping illustrations a book should be well under this; we still
 // reject anything much larger to stop someone stuffing MBs into submissions.
 const MAX_BOOK_BYTES = 200_000

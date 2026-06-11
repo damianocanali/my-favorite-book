@@ -5,7 +5,9 @@ import { verifyJwt } from './_auth.js'
 
 // Characters that are unambiguous to read aloud and type.
 const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
-const CODE_RE = /^[A-Z0-9]{4,8}$/
+// 6-8 chars only: a 4-char code over 32 symbols is ~1M combinations and
+// brute-forceable; 6 chars is ~1B.
+const CODE_RE = /^[A-Z0-9]{6,8}$/
 
 function generateCode() {
   return Array.from({ length: 6 }, () =>
@@ -48,7 +50,7 @@ export default async function handler(req) {
     const res = await fetch(`${supabaseUrl}/rest/v1/classrooms`, {
       method: 'POST',
       headers: { ...supabaseHeaders(), Prefer: 'return=representation' },
-      body: JSON.stringify({ code, name: name.trim().slice(0, 60) }),
+      body: JSON.stringify({ code, name: name.trim().slice(0, 60), owner_user_id: auth.userId }),
     })
 
     if (!res.ok) {
@@ -65,6 +67,10 @@ export default async function handler(req) {
   // combinations) can view that classroom's submissions. Teachers share
   // codes with students, so gating this by JWT would block the normal flow.
   if (req.method === 'GET') {
+    // Rate-limit the public read path so the code space can't be enumerated.
+    const { allowed } = checkRateLimit(`classroom-read:${getClientIp(req)}`, 120)
+    if (!allowed) return json(429, { error: 'Too many requests. Try again in an hour.' })
+
     const url = new URL(req.url, 'http://localhost')
     const rawCode = url.searchParams.get('code')?.toUpperCase() ?? ''
     if (!CODE_RE.test(rawCode)) return json(400, { error: 'Invalid code' })
