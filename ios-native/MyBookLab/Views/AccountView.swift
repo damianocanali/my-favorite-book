@@ -10,6 +10,11 @@ struct AccountView: View {
     @State private var showingBuyCoins = false
     @State private var editingName = false
     @State private var nameDraft = ""
+    @State private var showDeleteConfirm = false
+    @State private var deleteConfirmText = ""
+    @State private var deleteBusy = false
+    @State private var deletionScheduledFor: String?   // ISO date when pending
+    @State private var deleteError: String?
 
     var body: some View {
         NavigationStack {
@@ -47,6 +52,7 @@ struct AccountView: View {
                 rowsCard
                 musicCard
                 signOutCard
+                deleteAccountCard
             }
             .padding()
             .contentColumn(maxWidth: ContentWidth.form)
@@ -233,6 +239,68 @@ struct AccountView: View {
                 .frame(maxWidth: .infinity)
                 .padding(14)
                 .background(.white.opacity(0.06), in: RoundedRectangle(cornerRadius: 18))
+        }
+    }
+
+    private var deleteAccountCard: some View {
+        Button(role: .destructive) {
+            deleteConfirmText = ""
+            deleteError = nil
+            showDeleteConfirm = true
+        } label: {
+            Text("Delete account").frame(maxWidth: .infinity)
+        }
+        .padding(.vertical, 6)
+        .sheet(isPresented: $showDeleteConfirm) {
+            deleteConfirmSheet.presentationDetents([.medium])
+        }
+    }
+
+    private var deleteConfirmSheet: some View {
+        VStack(spacing: 16) {
+            Text("Delete your account?")
+                .font(.system(.title3, design: .rounded).bold())
+            Text("Your account and all your books will be scheduled for deletion. You'll have 7 days to change your mind before anything is permanently removed.")
+                .font(.subheadline).multilineTextAlignment(.center).foregroundStyle(.secondary)
+            Text("Type DELETE to confirm").font(.caption).foregroundStyle(.secondary)
+            TextField("DELETE", text: $deleteConfirmText)
+                .textInputAutocapitalization(.characters)
+                .autocorrectionDisabled()
+                .multilineTextAlignment(.center)
+                .padding(12)
+                .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
+            if let deleteError {
+                Text(deleteError).font(.footnote).foregroundStyle(.red)
+            }
+            Button(role: .destructive) {
+                Task { await scheduleDeletion() }
+            } label: {
+                HStack {
+                    if deleteBusy { ProgressView() }
+                    Text("Schedule deletion")
+                }
+                .frame(maxWidth: .infinity).padding(12)
+            }
+            .background(.red.opacity(deleteConfirmText == "DELETE" ? 0.8 : 0.3), in: RoundedRectangle(cornerRadius: 12))
+            .foregroundStyle(.white)
+            .disabled(deleteConfirmText != "DELETE" || deleteBusy)
+
+            Button("Keep my account") { showDeleteConfirm = false }.padding(.top, 4)
+            Spacer()
+        }
+        .padding()
+    }
+
+    private func scheduleDeletion() async {
+        guard let token = auth.accessToken else { return }
+        deleteBusy = true; deleteError = nil
+        defer { deleteBusy = false }
+        do {
+            let scheduledFor = try await APIClient.shared.requestAccountDeletion(bearerToken: token)
+            deletionScheduledFor = scheduledFor ?? ""
+            showDeleteConfirm = false
+        } catch {
+            deleteError = "Couldn't schedule deletion. Please try again."
         }
     }
 
