@@ -56,15 +56,17 @@ async function upsertSubscription(supabaseUrl, serviceKey, data) {
   return res.ok
 }
 
-async function creditCoins(supabaseUrl, serviceKey, userId, amount) {
-  const res = await fetch(`${supabaseUrl}/rest/v1/rpc/add_coins`, {
+async function creditCoins(supabaseUrl, serviceKey, userId, amount, eventId) {
+  // Idempotent per Stripe event id — at-least-once redelivery must not
+  // double-credit. See migration 008 (credit_coins_once).
+  const res = await fetch(`${supabaseUrl}/rest/v1/rpc/credit_coins_once`, {
     method: 'POST',
     headers: {
       apikey: serviceKey,
       Authorization: `Bearer ${serviceKey}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ p_user_id: userId, p_amount: amount }),
+    body: JSON.stringify({ p_user_id: userId, p_amount: amount, p_event_id: eventId, p_provider: 'stripe' }),
   })
   return res.ok
 }
@@ -116,7 +118,7 @@ export default async function handler(req) {
         if (session.metadata?.type === 'coin_pack') {
           const coins = parseInt(session.metadata?.coins ?? '0', 10)
           if (Number.isFinite(coins) && coins > 0 && coins <= 10000) {
-            await creditCoins(supabaseUrl, serviceKey, userId, coins)
+            await creditCoins(supabaseUrl, serviceKey, userId, coins, event.id)
           }
           break
         }
@@ -150,7 +152,9 @@ export default async function handler(req) {
           stripe_subscription_id: sub.id,
           plan: plan || 'family',
           status: sub.status,
-          current_period_end: new Date(sub.current_period_end * 1000).toISOString(),
+          current_period_end: sub.current_period_end
+            ? new Date(sub.current_period_end * 1000).toISOString()
+            : null,
           updated_at: new Date().toISOString(),
         })
         break

@@ -30,15 +30,17 @@ async function upsertSubscription(supabaseUrl, serviceKey, data) {
   return res.ok
 }
 
-async function creditCoins(supabaseUrl, serviceKey, userId, amount) {
-  const res = await fetch(`${supabaseUrl}/rest/v1/rpc/add_coins`, {
+async function creditCoins(supabaseUrl, serviceKey, userId, amount, eventId) {
+  // Idempotent per RevenueCat event id — replays/redelivery must not
+  // double-credit. See migration 008 (credit_coins_once).
+  const res = await fetch(`${supabaseUrl}/rest/v1/rpc/credit_coins_once`, {
     method: 'POST',
     headers: {
       apikey: serviceKey,
       Authorization: `Bearer ${serviceKey}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ p_user_id: userId, p_amount: amount }),
+    body: JSON.stringify({ p_user_id: userId, p_amount: amount, p_event_id: eventId, p_provider: 'revenuecat' }),
   })
   return res.ok
 }
@@ -93,7 +95,10 @@ export default async function handler(req) {
       status: 200, headers: { 'Content-Type': 'application/json' },
     })
   }
-  const { type, app_user_id, product_id, expiration_at_ms, period_type } = event.event
+  const { type, app_user_id, product_id, expiration_at_ms, period_type, id: rcEventId, transaction_id } = event.event
+  // Stable dedup key for coin credits; falls back to a deterministic composite
+  // if RC ever omits the event id.
+  const eventId = rcEventId || transaction_id || `rc:${app_user_id}:${product_id}:${event.event?.purchased_at_ms ?? ''}`
 
   // app_user_id is the Supabase user UUID we passed to RC.logIn()
   const userId = app_user_id
@@ -151,7 +156,7 @@ export default async function handler(req) {
         // consumables, branch on product_id.
         const amount = COIN_PACK_AMOUNTS[product_id]
         if (amount) {
-          await creditCoins(supabaseUrl, serviceKey, userId, amount)
+          await creditCoins(supabaseUrl, serviceKey, userId, amount, eventId)
         }
         break
       }
