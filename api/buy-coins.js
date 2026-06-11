@@ -2,6 +2,7 @@ export const config = { runtime: 'edge' }
 
 import { handleCors, withCors } from './_rateLimit.js'
 import { verifyJwt } from './_auth.js'
+import { checkoutBaseUrl } from './_origin.js'
 
 // Creates a Stripe Checkout session for a one-time coin pack purchase.
 // The user identity comes from the verified JWT. Coins are credited by the
@@ -66,8 +67,7 @@ export default async function handler(req) {
     })
   }
 
-  const origin = req.headers.get('origin') ||
-    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:5173')
+  const origin = checkoutBaseUrl(req)
 
   const session = await stripePost('checkout/sessions', {
     mode: 'payment',
