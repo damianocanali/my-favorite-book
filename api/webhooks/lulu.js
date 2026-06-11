@@ -89,9 +89,11 @@ function logFailedVerification(req, body) {
     if (/authorization|cookie/i.test(k)) continue
     hdrs[k] = v
   }
+  // Log only the header names present and the body length — never the body
+  // itself, which contains shipping PII.
   console.warn('[lulu-webhook] signature verification FAILED', {
-    headers: hdrs,
-    body_prefix: body.slice(0, 400),
+    header_names: Object.keys(hdrs),
+    body_length: body.length,
   })
 }
 

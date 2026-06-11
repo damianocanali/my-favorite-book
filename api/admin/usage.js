@@ -7,11 +7,14 @@ export const config = { runtime: 'edge' }
 
 const SUPABASE = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
+const ANON_KEY = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY
 const OWNER_USER_ID = process.env.OWNER_USER_ID
 
 async function authUser(token) {
+  // Verify the session with the anon key (the public verification path),
+  // not the service-role key.
   const r = await fetch(`${SUPABASE}/auth/v1/user`, {
-    headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${token}` },
+    headers: { apikey: ANON_KEY, Authorization: `Bearer ${token}` },
   })
   if (!r.ok) return null
   return await r.json()
@@ -88,6 +91,7 @@ export default async function handler(req) {
       headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
     })
   } catch (err) {
-    return bad(500, String(err?.message ?? err))
+    console.error('[admin/usage] error', err?.message)
+    return bad(500, 'Failed to load usage')
   }
 }
