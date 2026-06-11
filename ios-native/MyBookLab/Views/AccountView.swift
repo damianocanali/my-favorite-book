@@ -268,8 +268,13 @@ struct AccountView: View {
     }
 
     private func deletionDateText(_ iso: String) -> String {
-        let f = ISO8601DateFormatter()
-        guard let date = f.date(from: iso) else { return "" }
+        // The server formats scheduled_for via toISOString(), which always emits
+        // fractional seconds (…T03:00:00.000Z). A bare ISO8601DateFormatter rejects
+        // those, so parse with fractional seconds first and fall back to without.
+        let withFraction = ISO8601DateFormatter()
+        withFraction.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        let plain = ISO8601DateFormatter()
+        guard let date = withFraction.date(from: iso) ?? plain.date(from: iso) else { return "" }
         let out = DateFormatter(); out.dateStyle = .medium
         return " on " + out.string(from: date)
     }
