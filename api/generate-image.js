@@ -1,6 +1,6 @@
 import { checkRateLimit, handleCors, withCors } from './_rateLimit.js'
 import { logUsage, estimateTogetherImageCostCents } from './_usage.js'
-import { requireUser, validatePrompt, validateSourceImage, moderatePrompt } from './_aiGuard.js'
+import { requireUser, validatePrompt, validateSourceImage, moderatePrompt, enforceDailyCap } from './_aiGuard.js'
 
 export const config = { runtime: 'edge' }
 
@@ -46,6 +46,8 @@ export default async function handler(req) {
     if (imageErr) return imageErr
     const modErr = await moderatePrompt(prompt, req)
     if (modErr) return modErr
+    const capErr = await enforceDailyCap(auth.userId, req)
+    if (capErr) return capErr
 
     // Image edits go through FLUX.1-Kontext-Dev (purpose-built for editing
     // an existing image with a text instruction). Falls back to FLUX.1-schnell

@@ -11,6 +11,10 @@ const MAX_PROMPT_CHARS = 4000
 // base64 data: URI length. ~8MB of base64 ≈ ~6MB binary — plenty for a photo.
 const MAX_SOURCE_IMAGE_CHARS = 8 * 1024 * 1024
 
+const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL
+const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
+const DAILY_IMAGE_LIMIT = Number(process.env.DAILY_IMAGE_LIMIT || 50)
+
 function aiError(status, message, req) {
   return new Response(JSON.stringify({ error: message }), {
     status,
@@ -59,6 +63,42 @@ export function validatePrompt(prompt, req) {
  * var is visible rather than silently disabling protection); on a transient
  * provider error we fail-open and log, to avoid blocking legitimate kids.
  */
+/**
+ * Atomically bump and check the caller's per-day image-generation count.
+ * Returns a 429 Response when the daily limit is exceeded, else null. Fails
+ * open (allows) if the service env is missing — the auth + hourly limiter are
+ * still in front — but logs so the misconfiguration is visible.
+ */
+export async function enforceDailyCap(userId, req, limit = DAILY_IMAGE_LIMIT) {
+  if (!SUPABASE_URL || !SERVICE_KEY) {
+    console.warn('[daily-cap] Supabase service env missing — daily cap DISABLED')
+    return null
+  }
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/bump_generation`, {
+      method: 'POST',
+      headers: {
+        apikey: SERVICE_KEY,
+        Authorization: `Bearer ${SERVICE_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ p_user_id: userId, p_limit: limit }),
+    })
+    if (!res.ok) {
+      console.error('[daily-cap] rpc error', res.status)
+      return null
+    }
+    const allowed = await res.json().catch(() => true)
+    if (allowed === false) {
+      return aiError(429, "You've reached today's creation limit — come back tomorrow!", req)
+    }
+    return null
+  } catch (e) {
+    console.error('[daily-cap] error', e?.message)
+    return null
+  }
+}
+
 export async function moderatePrompt(text, req) {
   const key = process.env.OPENAI_API_KEY
   if (!key) {

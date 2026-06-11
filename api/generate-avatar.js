@@ -2,7 +2,7 @@ export const config = { runtime: 'edge' }
 
 import { checkRateLimit, handleCors, withCors } from './_rateLimit.js'
 import { logUsage, estimateTogetherImageCostCents } from './_usage.js'
-import { requireUser, validateSourceImage, moderatePrompt } from './_aiGuard.js'
+import { requireUser, validateSourceImage, moderatePrompt, enforceDailyCap } from './_aiGuard.js'
 
 const TOGETHER_API_URL = 'https://api.together.xyz/v1/images/generations'
 const AVATAR_LIMIT = 10 // per hour per IP
@@ -87,6 +87,8 @@ export default async function handler(req) {
 
     const modErr = await moderatePrompt(prompt, req)
     if (modErr) return modErr
+    const capErr = await enforceDailyCap(auth.userId, req)
+    if (capErr) return capErr
 
     // FLUX.1-kontext-pro is the serverless image-to-image model on Together.
     // The -dev variant is dedicated/non-serverless and 403s without an
