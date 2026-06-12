@@ -20,6 +20,9 @@ const BADGE_COINS = {
   added_illustration: 15,
   submitted_class: 20,
   five_pages: 20,
+  streak_3: 20,
+  streak_7: 50,
+  streak_30: 150,
 }
 
 export default async function handler(req) {

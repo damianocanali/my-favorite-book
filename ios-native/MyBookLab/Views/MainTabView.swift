@@ -73,6 +73,7 @@ struct MainTabView: View {
             }
         }
         .overlay { StoryIdeaCard(idea: $storyIdea) }
+        .overlay { BadgePopup() }
         .onChange(of: router.selectedTab) { _, newValue in
             // Match the web behavior — different scenes get different
             // moods. Each tab change crossfades to its own track.

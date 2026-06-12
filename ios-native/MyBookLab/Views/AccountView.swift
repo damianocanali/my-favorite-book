@@ -5,6 +5,7 @@ struct AccountView: View {
     @Environment(SubscriptionStore.self) private var subs
     @Environment(AudioService.self) private var audio
     @Environment(CoinsStore.self) private var coins
+    @Environment(RewardsStore.self) private var rewards
     @State private var showingSignIn = false
     @State private var showingPaywall = false
     @State private var showingBuyCoins = false
@@ -50,6 +51,8 @@ struct AccountView: View {
                 deletionBanner
                 profileCard
                 coinsCard
+                rewardsCard
+                appIconCard
                 rowsCard
                 musicCard
                 signOutCard
@@ -96,6 +99,50 @@ struct AccountView: View {
             }
         }
         .padding(16)
+        .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 18))
+    }
+
+    private var rewardsCard: some View {
+        NavigationLink {
+            BadgesView()
+        } label: {
+            HStack(spacing: 14) {
+                Text("🔥").font(.title)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(rewards.currentStreak > 0
+                         ? "\(rewards.currentStreak) day writing streak"
+                         : "Start a writing streak!")
+                        .font(.headline)
+                        .foregroundStyle(.white)
+                    Text("\(rewards.earnedBadges.count) of \(RewardsStore.catalog.count) badges earned")
+                        .font(.caption)
+                        .foregroundStyle(.white.opacity(0.65))
+                }
+                Spacer()
+                Image(systemName: "chevron.right").foregroundStyle(.white.opacity(0.5)).font(.caption)
+            }
+            .padding(16)
+        }
+        .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 18))
+    }
+
+    private var appIconCard: some View {
+        NavigationLink {
+            AppIconPickerView()
+        } label: {
+            HStack(spacing: 14) {
+                Image(systemName: "app.gift.fill").foregroundStyle(.yellow).frame(width: 24)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("App icon").foregroundStyle(.white)
+                    Text("Unlock new looks with coins and streaks")
+                        .font(.caption)
+                        .foregroundStyle(.white.opacity(0.65))
+                }
+                Spacer()
+                Image(systemName: "chevron.right").foregroundStyle(.white.opacity(0.5)).font(.caption)
+            }
+            .padding(16)
+        }
         .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 18))
     }
 

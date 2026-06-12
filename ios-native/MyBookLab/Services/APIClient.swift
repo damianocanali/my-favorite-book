@@ -251,6 +251,39 @@ actor APIClient {
                           body: body, bearerToken: bearerToken)
     }
 
+    // MARK: - Rewards (badges + streak)
+
+    struct ClaimBadgeResponse: Decodable {
+        let alreadyClaimed: Bool
+        let coinsEarned: Int?
+        let balance: Int?
+    }
+    private struct ClaimBadgeBody: Encodable { let badgeId: String }
+
+    /// Claims a badge's coin reward. Idempotent server-side — the
+    /// response says whether this call actually credited.
+    func claimBadge(badgeId: String, bearerToken: String) async throws -> ClaimBadgeResponse {
+        try await request(method: "POST", path: "/api/claim-badge",
+                          body: ClaimBadgeBody(badgeId: badgeId), bearerToken: bearerToken)
+    }
+
+    struct StreakStatus: Decodable {
+        let currentStreak: Int
+        let longestStreak: Int
+        let lastActiveDate: String?
+    }
+    private struct TouchStreakBody: Encodable { let day: String }
+
+    func getStreak(bearerToken: String) async throws -> StreakStatus {
+        try await request(method: "GET", path: "/api/streak", bearerToken: bearerToken)
+    }
+
+    /// Marks a local calendar day (YYYY-MM-DD) as a writing day.
+    func touchStreak(day: String, bearerToken: String) async throws -> StreakStatus {
+        try await request(method: "POST", path: "/api/streak",
+                          body: TouchStreakBody(day: day), bearerToken: bearerToken)
+    }
+
     // MARK: - Account deletion (recoverable)
 
     struct DeletionStatus: Decodable {

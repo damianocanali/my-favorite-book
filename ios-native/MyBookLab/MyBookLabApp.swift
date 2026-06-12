@@ -9,6 +9,7 @@ struct MyBookLabApp: App {
     @State private var subs = SubscriptionStore.shared
     @State private var audio = AudioService.shared
     @State private var coins = CoinsStore.shared
+    @State private var rewards = RewardsStore.shared
 
     init() {
         Purchases.logLevel = .warn
@@ -24,6 +25,7 @@ struct MyBookLabApp: App {
                 .environment(subs)
                 .environment(audio)
                 .environment(coins)
+                .environment(rewards)
                 .task {
                     audio.play(.home)
                     await auth.bootstrap()
@@ -32,6 +34,7 @@ struct MyBookLabApp: App {
                     }
                     await subs.bootstrap()
                     await coins.refresh()
+                    await rewards.refresh()
                 }
                 .onChange(of: auth.user?.id) { _, newValue in
                     Task {
@@ -42,6 +45,7 @@ struct MyBookLabApp: App {
                         } else {
                             bookshelf.clear()
                         }
+                        await rewards.refresh()
                     }
                 }
                 .onOpenURL { url in
