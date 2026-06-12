@@ -102,6 +102,10 @@ targets:
       properties:
         com.apple.developer.applesignin:
           - Default
+        # App Attest (Services/AppAttest.swift). "production" is correct
+        # for both: dev-signed builds are routed to Apple's development
+        # attestation environment by their provisioning profile.
+        com.apple.developer.devicecheck.appattest-environment: production
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.myfavoritebook.app

@@ -1,6 +1,7 @@
 import { checkRateLimit, handleCors, withCors } from './_rateLimit.js'
 import { logUsage, estimateAnthropicCostCents } from './_usage.js'
 import { requireUser, moderatePrompt } from './_aiGuard.js'
+import { classifyAttestation, hourlyLimitFor } from './_appAttest.js'
 
 export const config = { runtime: 'edge' }
 
@@ -158,7 +159,24 @@ export default async function handler(req) {
   const auth = await requireUser(req)
   if (!auth.ok) return auth.response
 
-  const { allowed } = checkRateLimit(`story-buddy:${auth.userId}`, STORY_BUDDY_LIMIT)
+  // Raw body read once: the App Attest assertion signs these exact bytes.
+  let rawBody, parsedPayload
+  try {
+    rawBody = new Uint8Array(await req.arrayBuffer())
+    parsedPayload = JSON.parse(new TextDecoder().decode(rawBody))
+  } catch {
+    return new Response(JSON.stringify({ error: 'Invalid JSON body' }), {
+      status: 400, headers: withCors({ 'Content-Type': 'application/json' }, req),
+    })
+  }
+
+  const attest = await classifyAttestation(req, rawBody, auth.userId)
+  if (attest.reject) return attest.reject
+
+  const { allowed } = checkRateLimit(
+    `story-buddy:${auth.userId}`,
+    hourlyLimitFor(attest.attested, STORY_BUDDY_LIMIT)
+  )
   if (!allowed) {
     return new Response(
       JSON.stringify({ error: 'Too many requests. Please try again in an hour.' }),
@@ -175,7 +193,7 @@ export default async function handler(req) {
   }
 
   try {
-    const payload = await req.json()
+    const payload = parsedPayload
 
     // Native app sends a free-form chat message; web app sends an intent.
     if (typeof payload?.message === 'string' && payload.message.trim()) {
