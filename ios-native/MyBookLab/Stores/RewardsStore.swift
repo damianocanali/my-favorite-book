@@ -65,6 +65,7 @@ final class RewardsStore {
         if let streak = try? await APIClient.shared.getStreak(bearerToken: token) {
             currentStreak = streak.currentStreak
             longestStreak = streak.longestStreak
+            SharedData.updateStreak(currentStreak)
         }
     }
 
@@ -83,6 +84,7 @@ final class RewardsStore {
                 let streak = try await APIClient.shared.touchStreak(day: day, bearerToken: token)
                 currentStreak = streak.currentStreak
                 longestStreak = streak.longestStreak
+                SharedData.updateStreak(currentStreak)
                 for (threshold, badgeId) in [(3, "streak_3"), (7, "streak_7"), (30, "streak_30")]
                 where streak.currentStreak >= threshold {
                     await earn(badgeId)

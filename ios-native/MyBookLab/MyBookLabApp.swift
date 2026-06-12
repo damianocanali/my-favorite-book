@@ -1,3 +1,4 @@
+import CoreSpotlight
 import SwiftUI
 import RevenueCat
 
@@ -28,6 +29,7 @@ struct MyBookLabApp: App {
                 .environment(rewards)
                 .task {
                     audio.play(.home)
+                    PrintOrderActivityManager.cleanup()
                     await auth.bootstrap()
                     if let id = auth.user?.id.uuidString {
                         await bookshelf.load(userId: id)
@@ -49,7 +51,21 @@ struct MyBookLabApp: App {
                     }
                 }
                 .onOpenURL { url in
-                    auth.handleDeepLink(url)
+                    // mybooklab://<tab> comes from the widget; anything
+                    // else is an OAuth callback for Supabase.
+                    if url.scheme == "mybooklab" {
+                        switch url.host() {
+                        case "books": router.selectedTab = .books
+                        case "orders": router.selectedTab = .orders
+                        default: router.selectedTab = .create
+                        }
+                    } else {
+                        auth.handleDeepLink(url)
+                    }
+                }
+                // Spotlight: tapping an indexed book opens the shelf.
+                .onContinueUserActivity(CSSearchableItemActionType) { _ in
+                    router.selectedTab = .books
                 }
                 .preferredColorScheme(.dark)
         }
