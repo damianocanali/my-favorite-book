@@ -20,12 +20,23 @@ final class AudioService {
         case home, wizard, editor, bookshelf, gallery
     }
 
+    /// Short one-shot effects. Files live next to the music tracks in
+    /// Resources/audio/{rawValue}.mp3 — playSFX is a silent no-op when
+    /// an asset hasn't been added yet, so code can ship ahead of audio.
+    enum SFX: String {
+        case pageTurn = "page-turn"
+        case celebrate
+        case sparkle
+    }
+
     private(set) var muted: Bool = UserDefaults.standard.bool(forKey: "music_muted")
     private(set) var currentTrack: Track?
 
     private var player: AVAudioPlayer?
+    private var sfxPlayers: [SFX: AVAudioPlayer] = [:]
     private var fadeTimer: Timer?
     private let targetVolume: Float = 0.25
+    private let sfxVolume: Float = 0.6
     private let fadeDuration: TimeInterval = 0.8
 
     init() {
@@ -90,6 +101,19 @@ final class AudioService {
         currentTrack = nil
     }
 
+    /// Play a one-shot sound effect on top of the music. Respects the
+    /// single "Sounds" mute toggle (one switch for everything keeps the
+    /// settings simple for kids/parents).
+    func playSFX(_ sfx: SFX) {
+        guard !muted else { return }
+        let player = sfxPlayers[sfx] ?? makeSFXPlayer(for: sfx)
+        guard let player else { return }
+        sfxPlayers[sfx] = player
+        player.currentTime = 0
+        player.volume = sfxVolume
+        player.play()
+    }
+
     func setMuted(_ value: Bool) {
         muted = value
         UserDefaults.standard.set(value, forKey: "music_muted")
@@ -116,5 +140,13 @@ final class AudioService {
         } catch {
             return nil
         }
+    }
+
+    private func makeSFXPlayer(for sfx: SFX) -> AVAudioPlayer? {
+        let url = Bundle.main.url(forResource: sfx.rawValue, withExtension: "mp3", subdirectory: "audio")
+            ?? Bundle.main.url(forResource: sfx.rawValue, withExtension: "mp3")
+        guard let url, let p = try? AVAudioPlayer(contentsOf: url) else { return nil }
+        p.prepareToPlay()
+        return p
     }
 }

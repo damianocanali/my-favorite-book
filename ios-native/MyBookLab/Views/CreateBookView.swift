@@ -910,6 +910,8 @@ private struct ReadyStep: View {
 
                 SparkleButton(action: {
                     confettiTrigger &+= 1
+                    AudioService.shared.playSFX(.celebrate)
+                    Haptics.burst()
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
                         onSave()
                     }
@@ -922,7 +924,7 @@ private struct ReadyStep: View {
             .padding(.bottom, 32)
             .contentColumn(maxWidth: ContentWidth.form)
         }
-        .overlay(Confetti(trigger: confettiTrigger))
+        .overlay(Confetti(trigger: confettiTrigger, count: 130))
     }
 
     // Shows the generated cover if present, else an emoji-on-gradient

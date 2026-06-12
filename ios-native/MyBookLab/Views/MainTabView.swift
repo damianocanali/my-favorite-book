@@ -35,6 +35,7 @@ struct MainTabView: View {
 
     @Environment(AppRouter.self) private var router
     @Environment(AudioService.self) private var audio
+    @State private var storyIdea: String?
 
     var body: some View {
         @Bindable var router = router
@@ -61,6 +62,17 @@ struct MainTabView: View {
         }
         .tint(.white)
         .background(Color.clear)
+        // Shake anywhere → a story idea pops up. Attached once here so
+        // every tab gets it without duplicate listeners.
+        .onShake {
+            guard storyIdea == nil else { return }
+            Haptics.bigTap()
+            audio.playSFX(.sparkle)
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.75)) {
+                storyIdea = StoryIdeas.random()
+            }
+        }
+        .overlay { StoryIdeaCard(idea: $storyIdea) }
         .onChange(of: router.selectedTab) { _, newValue in
             // Match the web behavior — different scenes get different
             // moods. Each tab change crossfades to its own track.

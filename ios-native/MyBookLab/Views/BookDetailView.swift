@@ -15,6 +15,8 @@ struct BookDetailView: View {
     @State private var pageIndex = 0
     @State private var speaker = SpeechSpeaker()
     @State private var speakingPage: Int?
+    @State private var endConfetti = 0
+    @State private var celebratedEnd = false
     @Environment(\.horizontalSizeClass) private var hSize
 
     /// Portrait reader: fraction of the card height given to the illustration,
@@ -101,9 +103,18 @@ struct BookDetailView: View {
             speakingPage = nil
             audio.play(.bookshelf)
         }
-        .onChange(of: pageIndex) { _, _ in
+        .onChange(of: pageIndex) { _, newIndex in
             Haptics.tap()
+            audio.playSFX(.pageTurn)
+            // Reaching "The End" earns a little celebration — once per
+            // reading session, and only when there's a real story.
+            if newIndex == book.pages.count, !book.pages.isEmpty, !celebratedEnd {
+                celebratedEnd = true
+                endConfetti += 1
+                audio.playSFX(.celebrate)
+            }
         }
+        .overlay(Confetti(trigger: endConfetti, count: 50))
     }
 
     // Editable only when signed in and this isn't the read-only sample
