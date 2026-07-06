@@ -160,6 +160,13 @@ targets:
       path: MyBookLabWidgets/Info.plist
       properties:
         CFBundleDisplayName: My Book Lab
+        # An app-extension's CFBundleVersion / CFBundleShortVersionString
+        # MUST match the parent app's, or the build is rejected. Track the
+        # same build settings the app target uses so bumping the version
+        # in one place (settings.base below) keeps both in lockstep —
+        # without these, XcodeGen hardcodes the widget to version "1".
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         NSExtension:
           NSExtensionPointIdentifier: com.apple.widgetkit-extension
     settings:
