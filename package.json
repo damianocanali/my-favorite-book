@@ -43,6 +43,7 @@
     "lucide-react": "^0.577.0",
     "motion": "^12.38.0",
     "nanoid": "^5.1.7",
+    "node-app-attest": "^1.0.1",
     "puppeteer-core": "^24.42.0",
     "qrcode": "^1.5.4",
     "react": "^19.2.4",

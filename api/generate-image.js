@@ -1,6 +1,7 @@
 import { checkRateLimit, handleCors, withCors } from './_rateLimit.js'
 import { logUsage, estimateTogetherImageCostCents } from './_usage.js'
 import { requireUser, validatePrompt, validateSourceImage, moderatePrompt, enforceDailyCap } from './_aiGuard.js'
+import { classifyAttestation, dailyCapFor, hourlyLimitFor } from './_appAttest.js'
 
 export const config = { runtime: 'edge' }
 
@@ -21,7 +22,27 @@ export default async function handler(req) {
   const auth = await requireUser(req)
   if (!auth.ok) return auth.response
 
-  const { allowed } = checkRateLimit(`generate-image:${auth.userId}`, IMAGE_GEN_LIMIT)
+  // Read the raw body ONCE — the App Attest assertion signs these exact
+  // bytes, so the same buffer must be hashed and then parsed.
+  let rawBody, payload
+  try {
+    rawBody = new Uint8Array(await req.arrayBuffer())
+    payload = JSON.parse(new TextDecoder().decode(rawBody))
+  } catch {
+    return new Response(JSON.stringify({ error: 'Invalid JSON body' }), {
+      status: 400, headers: withCors({ 'Content-Type': 'application/json' }, req),
+    })
+  }
+
+  // Attested iOS requests get the full caps; unattested (web, older
+  // builds) get reduced ones. Invalid assertions 401 in enforce mode.
+  const attest = await classifyAttestation(req, rawBody, auth.userId)
+  if (attest.reject) return attest.reject
+
+  const { allowed } = checkRateLimit(
+    `generate-image:${auth.userId}`,
+    hourlyLimitFor(attest.attested, IMAGE_GEN_LIMIT)
+  )
   if (!allowed) {
     return new Response(
       JSON.stringify({ error: 'Too many requests. Please try again in an hour.' }),
@@ -38,7 +59,7 @@ export default async function handler(req) {
   }
 
   try {
-    const { prompt, sourceImage, strength } = await req.json()
+    const { prompt, sourceImage, strength } = payload
 
     const promptErr = validatePrompt(prompt, req)
     if (promptErr) return promptErr
@@ -46,7 +67,7 @@ export default async function handler(req) {
     if (imageErr) return imageErr
     const modErr = await moderatePrompt(prompt, req)
     if (modErr) return modErr
-    const capErr = await enforceDailyCap(auth.userId, req)
+    const capErr = await enforceDailyCap(auth.userId, req, dailyCapFor(attest.attested))
     if (capErr) return capErr
 
     // Image edits go through FLUX.1-Kontext-Dev (purpose-built for editing

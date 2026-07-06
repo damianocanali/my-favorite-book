@@ -82,11 +82,20 @@ targets:
         NSMicrophoneUsageDescription: "Used to dictate your story when you tap the microphone button."
         NSFaceIDUsageDescription: "Used to securely sign you back in to your account."
         ITSAppUsesNonExemptEncryption: false
+        # Live Activity (print-order tracking) — see
+        # Services/PrintOrderActivityManager.swift.
+        NSSupportsLiveActivities: true
         CFBundleURLTypes:
           - CFBundleTypeRole: Editor
             CFBundleURLName: com.myfavoritebook.app.oauth
             CFBundleURLSchemes:
               - com.myfavoritebook.app
+          # Short scheme used by the widget + Spotlight to deep-link
+          # into a tab (mybooklab://create, mybooklab://books).
+          - CFBundleTypeRole: Editor
+            CFBundleURLName: com.myfavoritebook.app.deeplink
+            CFBundleURLSchemes:
+              - mybooklab
         # Secrets only — base URLs are hardcoded in AppConfig.swift to
         # avoid the xcconfig "//" escaping trap. These come from
         # Config.local.xcconfig (gitignored). See ios-native/README.md.
@@ -102,10 +111,23 @@ targets:
       properties:
         com.apple.developer.applesignin:
           - Default
+        # App Attest (Services/AppAttest.swift). "production" is correct
+        # for both: dev-signed builds are routed to Apple's development
+        # attestation environment by their provisioning profile.
+        com.apple.developer.devicecheck.appattest-environment: production
+        # Shared storage for the widget (create the App Group with this
+        # exact id in the Apple Developer portal before building).
+        com.apple.security.application-groups:
+          - group.com.myfavoritebook.app
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.myfavoritebook.app
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        # Alternate icons unlockable in-app (AppIconPickerView). Names
+        # match the .appiconset folders in Assets.xcassets; Xcode 13+
+        # wires CFBundleAlternateIcons automatically from these.
+        ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES: AppIconRocket AppIconRainbow AppIconNight
+        ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS: "YES"
         ENABLE_PREVIEWS: "YES"
     dependencies:
       - package: Supabase
@@ -118,3 +140,28 @@ targets:
         product: GoogleSignIn
       - package: GoogleSignIn
         product: GoogleSignInSwift
+      - target: MyBookLabWidgets
+        embed: true
+
+  # Home-screen widget + print-order Live Activity. Shares data with
+  # the app via the App Group (WidgetShared.swift compiles into both).
+  MyBookLabWidgets:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: MyBookLabWidgets
+      - path: MyBookLab/Services/WidgetShared.swift
+    entitlements:
+      path: MyBookLabWidgets/MyBookLabWidgets.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.com.myfavoritebook.app
+    info:
+      path: MyBookLabWidgets/Info.plist
+      properties:
+        CFBundleDisplayName: My Book Lab
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.myfavoritebook.app.widgets

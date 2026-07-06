@@ -17,4 +17,13 @@ enum Haptics {
     @MainActor static func tap()      { lightImpact.impactOccurred() }
     @MainActor static func bigTap()   { mediumImpact.impactOccurred() }
     @MainActor static func celebrate() { success.notificationOccurred(.success) }
+
+    /// A little drumroll of taps after the success buzz — for the big
+    /// moments (finishing a book, earning a badge).
+    @MainActor static func burst() {
+        celebrate()
+        for delay in [0.18, 0.34, 0.48] {
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay) { bigTap() }
+        }
+    }
 }

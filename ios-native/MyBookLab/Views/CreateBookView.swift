@@ -115,6 +115,21 @@ struct CreateBookView: View {
         Task {
             try? await bookshelf.save(book, userId: userId)
             draft.clear()
+
+            // Rewards: finishing a book always counts as writing today,
+            // and may unlock the book-count + long-story badges.
+            let rewards = RewardsStore.shared
+            rewards.recordWritingActivity()
+            await rewards.earn("first_book")
+            let count = bookshelf.books.count
+            if count >= 3 { await rewards.earn("three_books") }
+            if count >= 5 { await rewards.earn("five_books") }
+            if count >= 10 { await rewards.earn("ten_books") }
+            let writtenPages = book.pages.filter {
+                !$0.text.trimmingCharacters(in: .whitespaces).isEmpty
+            }.count
+            if writtenPages >= 5 { await rewards.earn("five_pages") }
+
             // Celebratory paywall: when a non-paying user finishes their
             // FIRST book, surface the paywall at the peak emotional
             // moment as a celebration ("Your first book is done! 🎉")
@@ -688,6 +703,17 @@ private struct PagesStep: View {
                 .presentationDetents([.large])
             }
         }
+        .onChange(of: showStoryBuddy) { _, shown in
+            if shown { Task { await RewardsStore.shared.earn("used_buddy") } }
+        }
+        // Typing counts toward the daily streak + first-page badge. Both
+        // calls are no-ops once today/the badge is already recorded, so
+        // firing per keystroke is fine.
+        .onChange(of: currentPageText) { _, text in
+            guard !text.trimmingCharacters(in: .whitespaces).isEmpty else { return }
+            RewardsStore.shared.recordWritingActivity()
+            Task { await RewardsStore.shared.earn("first_page") }
+        }
     }
 
     @ViewBuilder
@@ -823,6 +849,8 @@ private struct PagesStep: View {
             guard var b = draft.book, currentIndex < b.pages.count else { return }
             b.pages[currentIndex].illustrationData = res.image
             draft.book = b
+            AudioService.shared.playSFX(.sparkle)
+            await RewardsStore.shared.earn("added_illustration")
         } catch {
             generationError = "Couldn't generate illustration: \(error.localizedDescription)"
         }
@@ -910,6 +938,8 @@ private struct ReadyStep: View {
 
                 SparkleButton(action: {
                     confettiTrigger &+= 1
+                    AudioService.shared.playSFX(.celebrate)
+                    Haptics.burst()
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
                         onSave()
                     }
@@ -922,7 +952,7 @@ private struct ReadyStep: View {
             .padding(.bottom, 32)
             .contentColumn(maxWidth: ContentWidth.form)
         }
-        .overlay(Confetti(trigger: confettiTrigger))
+        .overlay(Confetti(trigger: confettiTrigger, count: 130))
     }
 
     // Shows the generated cover if present, else an emoji-on-gradient

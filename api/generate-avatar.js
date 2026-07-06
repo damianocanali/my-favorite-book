@@ -3,6 +3,7 @@ export const config = { runtime: 'edge' }
 import { checkRateLimit, handleCors, withCors } from './_rateLimit.js'
 import { logUsage, estimateTogetherImageCostCents } from './_usage.js'
 import { requireUser, validateSourceImage, moderatePrompt, enforceDailyCap } from './_aiGuard.js'
+import { classifyAttestation, dailyCapFor, hourlyLimitFor } from './_appAttest.js'
 
 const TOGETHER_API_URL = 'https://api.together.xyz/v1/images/generations'
 const AVATAR_LIMIT = 10 // per hour per IP
@@ -44,7 +45,24 @@ export default async function handler(req) {
   const auth = await requireUser(req)
   if (!auth.ok) return auth.response
 
-  const { allowed } = checkRateLimit(`generate-avatar:${auth.userId}`, AVATAR_LIMIT)
+  // Raw body read once: the App Attest assertion signs these exact bytes.
+  let rawBody, payload
+  try {
+    rawBody = new Uint8Array(await req.arrayBuffer())
+    payload = JSON.parse(new TextDecoder().decode(rawBody))
+  } catch {
+    return new Response(JSON.stringify({ error: 'Invalid JSON body' }), {
+      status: 400, headers: withCors({ 'Content-Type': 'application/json' }, req),
+    })
+  }
+
+  const attest = await classifyAttestation(req, rawBody, auth.userId)
+  if (attest.reject) return attest.reject
+
+  const { allowed } = checkRateLimit(
+    `generate-avatar:${auth.userId}`,
+    hourlyLimitFor(attest.attested, AVATAR_LIMIT)
+  )
   if (!allowed) {
     return new Response(
       JSON.stringify({ error: 'Too many avatar generations. Try again in an hour.' }),
@@ -60,7 +78,7 @@ export default async function handler(req) {
   }
 
   try {
-    const { features, artStyle, sourceImage } = await req.json()
+    const { features, artStyle, sourceImage } = payload
 
     const imageErr = validateSourceImage(sourceImage, req)
     if (imageErr) return imageErr
@@ -87,7 +105,7 @@ export default async function handler(req) {
 
     const modErr = await moderatePrompt(prompt, req)
     if (modErr) return modErr
-    const capErr = await enforceDailyCap(auth.userId, req)
+    const capErr = await enforceDailyCap(auth.userId, req, dailyCapFor(attest.attested))
     if (capErr) return capErr
 
     // FLUX.1-kontext-pro is the serverless image-to-image model on Together.

@@ -192,10 +192,11 @@ struct SignInView: View {
         do {
             if mode == .signIn {
                 try await auth.signIn(email: email, password: password)
-                // Offer remembered login: save credentials behind
-                // biometrics so next time is a one-tap Face ID sign-in.
-                if rememberWithBiometrics && BiometricCredentials.isAvailable {
-                    try? BiometricCredentials.save(email: email, password: password)
+                // Offer remembered login: save the session tokens (not
+                // the password) behind biometrics so next time is a
+                // one-tap Face ID sign-in.
+                if rememberWithBiometrics {
+                    auth.saveBiometricLogin()
                 }
             } else {
                 try await auth.signUp(email: email, password: password, displayName: displayName)
@@ -213,9 +214,13 @@ struct SignInView: View {
         defer { loading = false }
         do {
             try await auth.signInWithStoredCredentials()
+        } catch is AuthStore.BiometricLoginError {
+            // Tokens revoked/expired — AuthStore already cleared them.
+            hasStoredCredentials = false
+            self.error = "Saved login is out of date. Please sign in with your password."
         } catch {
-            // If the stored password no longer works (e.g. user changed
-            // it elsewhere), clear it so the prompt stops appearing.
+            // Legacy password items can also stop working (password
+            // changed elsewhere); clear so the prompt stops appearing.
             let msg = error.localizedDescription.lowercased()
             if msg.contains("credential") || msg.contains("password") || msg.contains("invalid") {
                 BiometricCredentials.clear()
@@ -230,8 +235,12 @@ struct SignInView: View {
     private func signInApple() async {
         loading = true; error = nil
         defer { loading = false }
-        do { try await auth.signInWithApple() }
-        catch {
+        do {
+            try await auth.signInWithApple()
+            // Token-based storage means Face ID re-login works for
+            // OAuth accounts too — honor the same remember toggle.
+            if rememberWithBiometrics { auth.saveBiometricLogin() }
+        } catch {
             self.error = "Apple sign-in failed: \(error.localizedDescription)"
         }
     }
@@ -239,8 +248,10 @@ struct SignInView: View {
     private func signInGoogle() async {
         loading = true; error = nil
         defer { loading = false }
-        do { try await auth.signInWithGoogle() }
-        catch {
+        do {
+            try await auth.signInWithGoogle()
+            if rememberWithBiometrics { auth.saveBiometricLogin() }
+        } catch {
             self.error = "Google sign-in failed: \(error.localizedDescription)"
         }
     }

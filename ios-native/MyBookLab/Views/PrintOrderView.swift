@@ -322,9 +322,13 @@ struct PrintOrderView: View {
         guard let result else { return }
         switch result {
         case .completed:
-            // Order is paid. Drop the user on the order detail screen,
+            // Order is paid. Start the lock-screen / Dynamic Island
+            // activity, then drop the user on the order detail screen,
             // which polls Supabase for status updates as the webhook +
             // PDF worker chain runs.
+            if let orderId = createdOrderId {
+                PrintOrderActivityManager.start(orderId: orderId, bookTitle: book.title)
+            }
             router.selectedTab = .orders
             dismiss()
         case .canceled:

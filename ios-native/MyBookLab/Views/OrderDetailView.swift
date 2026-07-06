@@ -203,6 +203,9 @@ struct OrderDetailView: View {
                 .value
             self.order = row
             self.error = nil
+            // Keep the Live Activity in step with the freshest status
+            // (ends it automatically on delivered/failed/refunded).
+            PrintOrderActivityManager.update(orderId: row.id, status: row.status)
         } catch is CancellationError {
             // View went away during the request — ignore.
         } catch let urlError as URLError where urlError.code == .cancelled {

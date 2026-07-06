@@ -18,6 +18,9 @@ const BADGE_DEFINITIONS = [
   { id: 'added_illustration', emoji: '🎨', label: 'Illustrator', description: 'Generated an illustration', coins: 15 },
   { id: 'submitted_class', emoji: '🏫', label: 'Class Star', description: 'Submitted a book to class', coins: 20 },
   { id: 'five_pages', emoji: '✍️', label: 'Long Story', description: 'Wrote a 5+ page story', coins: 20 },
+  { id: 'streak_3', emoji: '🔥', label: 'On a Roll', description: 'Wrote 3 days in a row', coins: 20 },
+  { id: 'streak_7', emoji: '⚡', label: 'Week of Wonders', description: 'Wrote 7 days in a row', coins: 50 },
+  { id: 'streak_30', emoji: '🌈', label: 'Story Legend', description: 'Wrote 30 days in a row', coins: 150 },
 ]
 
 export const useRewardsStore = create(

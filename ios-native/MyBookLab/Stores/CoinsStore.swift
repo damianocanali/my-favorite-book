@@ -93,6 +93,12 @@ final class CoinsStore {
         }
     }
 
+    /// Adopt a balance another endpoint just returned (e.g. claim-badge
+    /// credits coins and reports the new total) without a extra fetch.
+    func applyServerBalance(_ newBalance: Int) {
+        balance = newBalance
+    }
+
     // MARK: - Local inventory
 
     func markStyleOwned(_ id: String) {

@@ -75,9 +75,40 @@ final class AuthStore: NSObject {
                     self.session = change.session
                     self.user = change.session?.user
                     self.loadStoredAvatar()
+                    // Supabase rotates the refresh token on every
+                    // refresh, so a saved biometric login goes stale
+                    // unless we re-save the newest pair. Keychain
+                    // writes don't prompt Face ID, so this is free.
+                    if change.session != nil, BiometricCredentials.hasStoredCredentials {
+                        self.saveBiometricLogin()
+                    }
                 }
             }
         }
+    }
+
+    // MARK: - Biometric (Face ID / Touch ID) login
+
+    /// Thrown when the saved session tokens can no longer mint a
+    /// session (revoked from another device, or expired). The stale
+    /// keychain item has already been cleared.
+    enum BiometricLoginError: LocalizedError {
+        case expired
+        var errorDescription: String? {
+            "Saved login is out of date. Please sign in with your password."
+        }
+    }
+
+    /// Store the current session behind Face ID so the user can sign
+    /// back in with one tap. Works for email AND OAuth accounts — we
+    /// keep tokens, never the password.
+    func saveBiometricLogin() {
+        guard let session, BiometricCredentials.isAvailable else { return }
+        try? BiometricCredentials.save(
+            email: user?.email ?? "",
+            accessToken: session.accessToken,
+            refreshToken: session.refreshToken
+        )
     }
 
     // MARK: - Email + password
@@ -88,13 +119,35 @@ final class AuthStore: NSObject {
         self.user = s.user
     }
 
-    /// Sign in using credentials saved in the biometric Keychain.
-    /// Triggers the Face ID / Touch ID prompt to unlock them.
+    /// Sign in using the login saved in the biometric Keychain.
+    /// Triggers the Face ID / Touch ID prompt to unlock it.
     func signInWithStoredCredentials() async throws {
-        let creds = try await BiometricCredentials.retrieve(
+        let stored = try await BiometricCredentials.retrieve(
             reason: "Sign in to My Book Lab"
         )
-        try await signIn(email: creds.email, password: creds.password)
+        switch stored {
+        case .session(_, let accessToken, let refreshToken):
+            do {
+                // setSession refreshes automatically when the access
+                // token is expired (the usual case at unlock time).
+                let s = try await supabase.auth.setSession(
+                    accessToken: accessToken, refreshToken: refreshToken
+                )
+                self.session = s
+                self.user = s.user
+            } catch {
+                // Refresh token revoked or past its window — the saved
+                // login can never work again, so stop offering it.
+                BiometricCredentials.clear()
+                throw BiometricLoginError.expired
+            }
+        case .password(let email, let password):
+            // Legacy item from builds that stored the raw password.
+            // Sign in once with it, then overwrite with session tokens
+            // so the password stops living on the device.
+            try await signIn(email: email, password: password)
+            saveBiometricLogin()
+        }
     }
 
     func signUp(email: String, password: String, displayName: String?) async throws {
@@ -106,11 +159,18 @@ final class AuthStore: NSObject {
     }
 
     func signOut() async {
-        try? await supabase.auth.signOut()
-        // Keep the saved biometric login so the user can Face-ID back
-        // in after signing out. (Cleared only when they explicitly turn
-        // off "remember me" or a new account signs in with different
-        // credentials.)
+        if BiometricCredentials.hasStoredCredentials {
+            // Keep the saved biometric login so the user can Face-ID
+            // back in. Snapshot the freshest tokens, then sign out
+            // LOCALLY only — a global sign-out would revoke the very
+            // refresh token we just saved. Trade-off: "sign out" leaves
+            // a resurrection token on this device, exactly like the old
+            // password storage did, but revocable server-side.
+            saveBiometricLogin()
+            try? await supabase.auth.signOut(scope: .local)
+        } else {
+            try? await supabase.auth.signOut()
+        }
         session = nil
         user = nil
     }
@@ -229,7 +289,9 @@ final class AuthStore: NSObject {
             session.start()
         }
 
-        try await supabase.auth.session(from: callbackURL)
+        let s = try await supabase.auth.session(from: callbackURL)
+        self.session = s
+        self.user = s.user
     }
 
     /// Handle the deep-link return from any OAuth flow that doesn't go

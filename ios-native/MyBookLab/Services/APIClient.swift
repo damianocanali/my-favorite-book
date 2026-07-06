@@ -62,7 +62,38 @@ actor APIClient {
         if let body = body {
             req.httpBody = try encoder.encode(body)
         }
+        return try await perform(req, url: url)
+    }
 
+    /// Like `request`, but for the paid AI endpoints: attaches an App
+    /// Attest assertion over the exact body bytes (when available) so
+    /// the server grants the attested-tier limits. Requests still go
+    /// out unattested on simulators or before registration completes.
+    private func attestedRequest<Body: Encodable, Response: Decodable>(
+        method: String,
+        path: String,
+        body: Body,
+        bearerToken: String
+    ) async throws -> Response {
+        let url = makeURL(path: path, query: [:])
+        var req = URLRequest(url: url)
+        req.httpMethod = method
+        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        req.setValue("Bearer \(bearerToken)", forHTTPHeaderField: "Authorization")
+        req.setValue("ios", forHTTPHeaderField: "x-client-platform")
+        let data = try encoder.encode(body)
+        req.httpBody = data
+        if let attestHeaders = await AppAttestService.shared.assertionHeaders(
+            for: data, bearerToken: bearerToken
+        ) {
+            for (key, value) in attestHeaders {
+                req.setValue(value, forHTTPHeaderField: key)
+            }
+        }
+        return try await perform(req, url: url)
+    }
+
+    private func perform<Response: Decodable>(_ req: URLRequest, url: URL) async throws -> Response {
         let data: Data
         let response: URLResponse
         do {
@@ -79,6 +110,32 @@ actor APIClient {
     }
 
     private struct EmptyBody: Encodable {}
+
+    // MARK: - App Attest registration
+
+    struct AttestChallenge: Decodable {
+        let challengeId: String
+        let challenge: String
+    }
+    private struct RegisterAttestationBody: Encodable {
+        let challengeId: String
+        let keyId: String
+        let attestation: String
+    }
+    private struct RegisterAttestationResponse: Decodable { let registered: Bool }
+
+    func attestChallenge(bearerToken: String) async throws -> AttestChallenge {
+        try await request(method: "POST", path: "/api/attest/challenge", bearerToken: bearerToken)
+    }
+
+    func registerAttestation(challengeId: String, keyId: String, attestation: String,
+                             bearerToken: String) async throws {
+        let _: RegisterAttestationResponse = try await request(
+            method: "POST", path: "/api/attest/register",
+            body: RegisterAttestationBody(challengeId: challengeId, keyId: keyId, attestation: attestation),
+            bearerToken: bearerToken
+        )
+    }
 
     // MARK: - Print orders
 
@@ -145,8 +202,8 @@ actor APIClient {
         let image: String // data URL or remote URL
     }
     func generateImage(_ body: GenerateImageRequest, bearerToken: String) async throws -> GenerateImageResponse {
-        try await request(method: "POST", path: "/api/generate-image",
-                          body: body, bearerToken: bearerToken)
+        try await attestedRequest(method: "POST", path: "/api/generate-image",
+                                  body: body, bearerToken: bearerToken)
     }
 
     // MARK: - Avatar (photo cartoonify)
@@ -170,8 +227,8 @@ actor APIClient {
         let image: String
     }
     func generateAvatar(_ body: GenerateAvatarRequest, bearerToken: String) async throws -> GenerateAvatarResponse {
-        try await request(method: "POST", path: "/api/generate-avatar",
-                          body: body, bearerToken: bearerToken)
+        try await attestedRequest(method: "POST", path: "/api/generate-avatar",
+                                  body: body, bearerToken: bearerToken)
     }
 
     // MARK: - Gallery (public — no auth required)
@@ -247,8 +304,41 @@ actor APIClient {
         let reply: String
     }
     func askStoryBuddy(_ body: StoryBuddyRequest, bearerToken: String) async throws -> StoryBuddyResponse {
-        try await request(method: "POST", path: "/api/story-buddy",
-                          body: body, bearerToken: bearerToken)
+        try await attestedRequest(method: "POST", path: "/api/story-buddy",
+                                  body: body, bearerToken: bearerToken)
+    }
+
+    // MARK: - Rewards (badges + streak)
+
+    struct ClaimBadgeResponse: Decodable {
+        let alreadyClaimed: Bool
+        let coinsEarned: Int?
+        let balance: Int?
+    }
+    private struct ClaimBadgeBody: Encodable { let badgeId: String }
+
+    /// Claims a badge's coin reward. Idempotent server-side — the
+    /// response says whether this call actually credited.
+    func claimBadge(badgeId: String, bearerToken: String) async throws -> ClaimBadgeResponse {
+        try await request(method: "POST", path: "/api/claim-badge",
+                          body: ClaimBadgeBody(badgeId: badgeId), bearerToken: bearerToken)
+    }
+
+    struct StreakStatus: Decodable {
+        let currentStreak: Int
+        let longestStreak: Int
+        let lastActiveDate: String?
+    }
+    private struct TouchStreakBody: Encodable { let day: String }
+
+    func getStreak(bearerToken: String) async throws -> StreakStatus {
+        try await request(method: "GET", path: "/api/streak", bearerToken: bearerToken)
+    }
+
+    /// Marks a local calendar day (YYYY-MM-DD) as a writing day.
+    func touchStreak(day: String, bearerToken: String) async throws -> StreakStatus {
+        try await request(method: "POST", path: "/api/streak",
+                          body: TouchStreakBody(day: day), bearerToken: bearerToken)
     }
 
     // MARK: - Account deletion (recoverable)
@@ -321,7 +411,7 @@ actor APIClient {
             ),
             page: .init(pageNumber: page.pageNumber, text: page.text)
         )
-        let res: AnthropicTextResponse = try await request(
+        let res: AnthropicTextResponse = try await attestedRequest(
             method: "POST", path: "/api/story-buddy",
             body: body, bearerToken: bearerToken
         )

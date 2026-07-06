@@ -35,6 +35,7 @@ final class BookshelfStore {
                 .execute()
                 .value
             books = rows.compactMap(\.book_data)
+            shelfDidChange()
         } catch is CancellationError {
             // View went away mid-fetch — keep existing books.
         } catch let urlError as URLError where urlError.code == .cancelled {
@@ -75,6 +76,7 @@ final class BookshelfStore {
         } else {
             books.insert(book, at: 0)
         }
+        shelfDidChange()
     }
 
     func delete(_ bookId: String, userId: String) async throws {
@@ -85,6 +87,7 @@ final class BookshelfStore {
             .eq("book_id", value: bookId)
             .execute()
         books.removeAll { $0.id == bookId }
+        shelfDidChange()
     }
 
     /// Reset on sign-out — mirrors the web fix to drop per-user state.
@@ -92,6 +95,13 @@ final class BookshelfStore {
         books = []
         error = nil
         loading = false
+        shelfDidChange()
+    }
+
+    /// Keep the home-screen widget and Spotlight in sync with the shelf.
+    private func shelfDidChange() {
+        SharedData.updateBooks(books)
+        SpotlightIndexer.reindex(books)
     }
 
     private func strippedForCloud(_ b: Book) -> Book {
