@@ -4,8 +4,10 @@
 //
 // Enforcement model (the same /api endpoints serve the web app, which
 // has no attestation primitive, so absence is never fatal):
-//   ATTEST_MODE=off      → everything runs as before
-//   ATTEST_MODE=log      → verify + log; never reject
+//   ATTEST_MODE=off      → kill switch: everything runs as before, with
+//                          the FULL caps (attestation is not consulted)
+//   ATTEST_MODE=log      → verify + log; never reject. Unattested
+//                          callers (web/legacy) get the reduced tier.
 //   ATTEST_MODE=enforce  → an INVALID assertion is rejected with 401;
 //                          an ABSENT one just lands in the unattested
 //                          tier (reduced caps)
@@ -206,7 +208,12 @@ export function hourlyLimitFor(attested, fullLimit) {
  */
 export async function classifyAttestation(req, rawBody, userId) {
   const mode = (process.env.ATTEST_MODE || 'off').toLowerCase()
-  if (mode === 'off') return { attested: false }
+  // Off is a true no-op kill switch: grant the full caps so behavior is
+  // identical to before App Attest existed. (`attested` here only selects
+  // the rate/daily tier — it makes no security claim, and off mode never
+  // rejects.) Returning `false` here would silently drop every caller
+  // into the reduced tier before any attestation rollout.
+  if (mode === 'off') return { attested: true }
 
   const keyId = req.headers.get('x-attest-key-id') || ''
   const assertionB64 = req.headers.get('x-attest-assertion') || ''

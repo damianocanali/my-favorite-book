@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, afterEach } from 'vitest'
 import { createHash, createSign, generateKeyPairSync } from 'node:crypto'
 import {
   decodeCbor,
@@ -8,6 +8,7 @@ import {
   pemToDer,
   dailyCapFor,
   hourlyLimitFor,
+  classifyAttestation,
 } from '../api/_appAttest.js'
 
 const APP_ID = 'G53XBRCRVU.com.myfavoritebook.app'
@@ -166,5 +167,32 @@ describe('tier limits', () => {
     expect(hourlyLimitFor(true, 20)).toBe(20)
     expect(hourlyLimitFor(false, 20)).toBe(10)
     expect(hourlyLimitFor(false, 1)).toBe(1)
+  })
+})
+
+describe('classifyAttestation off-mode is a true no-op kill switch', () => {
+  const req = { headers: { get: () => '' } }
+  const body = new Uint8Array([1, 2, 3])
+  const prev = process.env.ATTEST_MODE
+
+  afterEach(() => {
+    if (prev === undefined) delete process.env.ATTEST_MODE
+    else process.env.ATTEST_MODE = prev
+  })
+
+  it('grants full caps (attested=true) when ATTEST_MODE is unset', async () => {
+    delete process.env.ATTEST_MODE
+    const result = await classifyAttestation(req, body, 'user-1')
+    // attested=true → dailyCapFor/hourlyLimitFor return the FULL limits,
+    // so behavior matches pre-App-Attest. No reject is ever produced.
+    expect(result).toEqual({ attested: true })
+    expect(dailyCapFor(result.attested)).toBe(50)
+    expect(hourlyLimitFor(result.attested, 20)).toBe(20)
+  })
+
+  it('grants full caps when ATTEST_MODE=off explicitly', async () => {
+    process.env.ATTEST_MODE = 'off'
+    const result = await classifyAttestation(req, body, 'user-1')
+    expect(result).toEqual({ attested: true })
   })
 })
