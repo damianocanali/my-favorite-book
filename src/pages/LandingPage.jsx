@@ -6,7 +6,6 @@ import { useBookshelfStore } from '../stores/useBookshelfStore'
 import { useAuthStore } from '../stores/useAuthStore'
 import { PRICES } from '../lib/plans'
 import SparkleButton from '../components/ui/SparkleButton'
-import CosmicBackground from '../components/layout/CosmicBackground'
 import { playTrack } from '../services/audioService'
 
 const titleLetters = 'My Book Lab'.split('')
@@ -39,7 +38,8 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen relative flex flex-col items-center px-4 pb-8 overflow-hidden">
-      <CosmicBackground />
+      {/* CosmicBackground is mounted once by AppShell — rendering a second
+          copy here doubled the starfield and nebula blobs. */}
 
       {/* Floating cosmic elements */}
       <FloatingElement emoji="🚀" className="top-[10%] left-[10%]" delay={0} />
@@ -51,14 +51,29 @@ export default function LandingPage() {
 
       {/* Main content */}
       <div className="relative z-10 text-center max-w-2xl mt-16 sm:mt-24">
-        {/* Logo/icon */}
+        {/* Logo + halo — mirrors HeroLanding.swift: a blurred purple
+            radial halo pulsing 0.95↔1.05 behind a logo breathing 1↔1.02,
+            both on the same 3s ease-in-out loop. */}
         <motion.div
-          className="w-28 h-28 mx-auto mb-8"
+          className="relative w-28 h-28 mx-auto mb-8"
           initial={{ scale: 0, rotate: -180 }}
           animate={{ scale: 1, rotate: 0 }}
           transition={{ type: 'spring', stiffness: 200, damping: 15, delay: 0.2 }}
         >
-          <img src="/logo.png" alt="My Book Lab" className="w-full h-full rounded-2xl shadow-glow-purple" />
+          <div
+            className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-[380px] w-[380px] -translate-x-1/2 -translate-y-1/2 animate-halo-pulse motion-reduce:animate-none"
+            style={{
+              background:
+                'radial-gradient(circle, rgba(191,90,242,0.55) 0%, rgba(191,90,242,0) 70%)',
+              filter: 'blur(8px)',
+            }}
+            aria-hidden="true"
+          />
+          <img
+            src="/logo.png"
+            alt="My Book Lab"
+            className="h-full w-full rounded-logo shadow-glow-logo animate-logo-pulse motion-reduce:animate-none"
+          />
         </motion.div>
 
         {/* Animated title */}
@@ -69,8 +84,10 @@ export default function LandingPage() {
               className="inline-block"
               style={{
                 color: letter === ' ' ? 'transparent' : undefined,
+                // Wordmark gradient from HeroLanding.swift:
+                // sky blue → periwinkle → soft pink-violet
                 background: letter !== ' '
-                  ? 'linear-gradient(135deg, #8B5CF6, #06B6D4, #F472B6)'
+                  ? 'linear-gradient(135deg, #66D9FF, #A68CFF, #D9A6F2)'
                   : undefined,
                 WebkitBackgroundClip: letter !== ' ' ? 'text' : undefined,
                 WebkitTextFillColor: letter !== ' ' ? 'transparent' : undefined,

@@ -14,7 +14,7 @@ export default function ExampleBookPage() {
   const navigate = useNavigate()
 
   return (
-    <div className="min-h-screen bg-galaxy-bg text-galaxy-text font-body">
+    <div className="min-h-screen text-galaxy-text font-body">
       <div className="max-w-3xl mx-auto px-4 py-10">
         <motion.header
           initial={{ opacity: 0, y: -8 }}

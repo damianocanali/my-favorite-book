@@ -22,7 +22,7 @@ export default function OrderConfirmPage() {
   const shortId = (id ?? '').slice(-8).toUpperCase()
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 bg-galaxy-bg text-galaxy-text font-body">
+    <div className="min-h-screen flex items-center justify-center px-4 text-galaxy-text font-body">
       <motion.div
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}

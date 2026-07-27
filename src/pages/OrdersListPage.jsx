@@ -31,7 +31,7 @@ export default function OrdersListPage() {
   }
 
   return (
-    <div className="min-h-screen bg-galaxy-bg text-galaxy-text font-body">
+    <div className="min-h-screen text-galaxy-text font-body">
       <div className="max-w-2xl mx-auto px-4 py-6">
         <h1 className="font-heading text-2xl font-bold mb-6 flex items-center gap-2">
           <Package size={22} /> My print orders

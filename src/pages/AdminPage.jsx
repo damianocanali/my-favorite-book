@@ -80,7 +80,7 @@ export default function AdminPage() {
   }, 0)
 
   return (
-    <div className="min-h-screen bg-galaxy-bg text-galaxy-text font-body">
+    <div className="min-h-screen text-galaxy-text font-body">
       <div className="max-w-5xl mx-auto px-6 py-10">
         <header className="flex items-center justify-between mb-8">
           <div>

@@ -121,7 +121,7 @@ export default function PrintOrderPage() {
   }
 
   return (
-    <div className="min-h-screen bg-galaxy-bg text-galaxy-text font-body">
+    <div className="min-h-screen text-galaxy-text font-body">
       <div className="max-w-2xl mx-auto px-4 py-6">
         <header className="flex items-center gap-3 mb-6">
           <button onClick={() => navigate(-1)} aria-label="Back" className="p-2 -ml-2 hover:bg-galaxy-bg-light rounded-lg transition-colors">
