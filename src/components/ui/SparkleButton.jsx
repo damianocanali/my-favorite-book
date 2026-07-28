@@ -1,23 +1,29 @@
-import { useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 
-function SparkleParticle({ x, y, delay }) {
+// Web port of ios-native/MyBookLab/Views/SparkleButton.swift.
+//
+// Matching the native button:
+//   • capsule with a top→bottom gradient fill and a 1.5px white border
+//   • coloured glow that tightens while pressed, scale(0.95) on press
+//   • a 7-sparkle burst fired on ACTIVATION (the old web version only
+//     sparkled on mouseenter, so touch devices never saw it at all)
+
+const SPARKLE_COLORS = ['#FFD60A', '#FF375F', '#BF5AF2', '#64D2FF', '#FFFFFF']
+
+function SparkleParticle({ x, y, targetY, size, rotation, color, delay }) {
   return (
     <motion.svg
-      className="absolute pointer-events-none"
-      width="16"
-      height="16"
+      className="absolute pointer-events-none left-1/2 top-1/2"
+      width={size}
+      height={size}
       viewBox="0 0 16 16"
-      style={{ left: x, top: y }}
-      initial={{ opacity: 0, scale: 0, rotate: 0 }}
-      animate={{ opacity: [0, 1, 0], scale: [0, 1, 0], rotate: [0, 180] }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.6, delay }}
+      initial={{ x, y, opacity: 1, rotate: rotation }}
+      animate={{ y: targetY, opacity: 0, rotate: rotation + 180 }}
+      transition={{ duration: 0.7, delay, ease: 'easeOut' }}
+      aria-hidden="true"
     >
-      <path
-        d="M8 0L9.5 6.5L16 8L9.5 9.5L8 16L6.5 9.5L0 8L6.5 6.5Z"
-        fill="#F472B6"
-      />
+      <path d="M8 0L9.6 6.4L16 8L9.6 9.6L8 16L6.4 9.6L0 8L6.4 6.4Z" fill={color} />
     </motion.svg>
   )
 }
@@ -29,56 +35,75 @@ export default function SparkleButton({
   variant = 'primary',
   disabled = false,
   size = 'default',
+  type = 'button',
 }) {
   const [sparkles, setSparkles] = useState([])
+  const nextId = useRef(0)
 
   const baseClasses =
-    'relative font-heading font-bold rounded-full transition-all duration-300 overflow-visible cursor-pointer select-none'
+    'relative inline-flex items-center justify-center font-heading font-bold rounded-full ' +
+    'transition-shadow duration-200 overflow-visible cursor-pointer select-none ' +
+    'border-[1.5px] focus-visible:outline-none focus-visible:ring-2 ' +
+    'focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-cosmic-900'
 
+  // iOS: small 16/10 · regular 22/14 · large 28/16 (h/v padding, px)
   const sizeClasses = {
-    small: 'px-4 py-2 text-sm',
-    default: 'px-8 py-3 text-lg',
-    large: 'px-10 py-4 text-xl',
+    small: 'px-4 py-2.5 text-base',
+    default: 'px-[22px] py-3.5 text-[17px]',
+    large: 'px-7 py-4 text-xl',
   }
 
   const variantClasses = {
     primary:
-      'bg-galaxy-primary text-white hover:bg-purple-500 hover:shadow-glow-purple active:scale-95',
+      'bg-gradient-to-b from-btn-primary-from to-btn-primary-to text-white ' +
+      'border-white/30 shadow-glow-purple hover:shadow-[0_8px_34px_rgba(191,90,242,0.7)]',
     secondary:
-      'bg-galaxy-bg-light text-galaxy-text border-2 border-galaxy-primary/50 hover:border-galaxy-primary hover:shadow-glow-purple active:scale-95',
+      'glass text-white border-white/35 hover:bg-white/[0.14]',
     accent:
-      'bg-galaxy-accent text-white hover:bg-pink-400 hover:shadow-glow-pink active:scale-95',
+      'bg-gradient-to-b from-btn-accent-from to-btn-accent-to text-white ' +
+      'border-white/30 shadow-glow-pink hover:shadow-[0_8px_34px_rgba(255,55,95,0.7)]',
   }
 
-  const handleMouseEnter = () => {
-    const newSparkles = Array.from({ length: 6 }, (_, i) => ({
-      id: Date.now() + i,
-      x: Math.random() * 120 - 20,
-      y: Math.random() * 60 - 20,
-      delay: Math.random() * 0.3,
-    }))
-    setSparkles(newSparkles)
-    setTimeout(() => setSparkles([]), 800)
+  const burst = useCallback(() => {
+    const created = Array.from({ length: 7 }, (_, i) => {
+      const id = nextId.current++
+      return {
+        id,
+        x: Math.random() * 120 - 60, // −60…60
+        y: 8,
+        targetY: -(30 + Math.random() * 50), // −80…−30
+        size: 10 + Math.random() * 10, // 10…20
+        rotation: Math.random() * 360,
+        color: SPARKLE_COLORS[Math.floor(Math.random() * SPARKLE_COLORS.length)],
+        delay: i * 0.02,
+      }
+    })
+    setSparkles((prev) => [...prev, ...created])
+    const ids = new Set(created.map((s) => s.id))
+    setTimeout(() => setSparkles((prev) => prev.filter((s) => !ids.has(s.id))), 1000)
+  }, [])
+
+  const handleClick = (event) => {
+    if (disabled) return
+    burst()
+    onClick?.(event)
   }
 
   return (
     <motion.button
-      className={`${baseClasses} ${sizeClasses[size]} ${variantClasses[variant]} ${
-        disabled ? 'opacity-50 cursor-not-allowed' : ''
-      } ${className}`}
-      onClick={disabled ? undefined : onClick}
-      onMouseEnter={handleMouseEnter}
-      whileHover={disabled ? {} : { scale: 1.05 }}
+      type={type}
+      className={`${baseClasses} ${sizeClasses[size] ?? sizeClasses.default} ${
+        variantClasses[variant] ?? variantClasses.primary
+      } ${disabled ? 'opacity-50 cursor-not-allowed' : ''} ${className}`}
+      onClick={handleClick}
+      disabled={disabled}
+      // iOS press: spring(response: 0.25, dampingFraction: 0.55) → scale 0.95
       whileTap={disabled ? {} : { scale: 0.95 }}
+      transition={{ type: 'spring', stiffness: 620, damping: 22 }}
     >
       <AnimatePresence>
-        {sparkles.map((sparkle) => (
-          <SparkleParticle
-            key={sparkle.id}
-            x={sparkle.x}
-            y={sparkle.y}
-            delay={sparkle.delay}
-          />
+        {sparkles.map((s) => (
+          <SparkleParticle key={s.id} {...s} />
         ))}
       </AnimatePresence>
       {children}

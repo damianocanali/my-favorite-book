@@ -20,10 +20,17 @@ enum Haptics {
 
     /// A little drumroll of taps after the success buzz — for the big
     /// moments (finishing a book, earning a badge).
+    ///
+    /// Uses a Task with sleeps rather than DispatchQueue.asyncAfter: the
+    /// escaping closure there isn't actor-isolated, so calling the
+    /// @MainActor bigTap() from it trips strict-concurrency checking.
     @MainActor static func burst() {
         celebrate()
-        for delay in [0.18, 0.34, 0.48] {
-            DispatchQueue.main.asyncAfter(deadline: .now() + delay) { bigTap() }
+        Task { @MainActor in
+            for gap in [0.18, 0.16, 0.14] {
+                try? await Task.sleep(nanoseconds: UInt64(gap * 1_000_000_000))
+                bigTap()
+            }
         }
     }
 }

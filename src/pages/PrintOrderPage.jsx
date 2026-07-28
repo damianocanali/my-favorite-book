@@ -121,10 +121,10 @@ export default function PrintOrderPage() {
   }
 
   return (
-    <div className="min-h-screen bg-galaxy-bg text-galaxy-text font-body">
+    <div className="min-h-screen text-galaxy-text font-body">
       <div className="max-w-2xl mx-auto px-4 py-6">
         <header className="flex items-center gap-3 mb-6">
-          <button onClick={() => navigate(-1)} aria-label="Back" className="p-2 -ml-2 hover:bg-galaxy-bg-light rounded-lg transition-colors">
+          <button onClick={() => navigate(-1)} aria-label="Back" className="p-2 -ml-2 hover:glass rounded-lg transition-colors">
             <ArrowLeft size={20} />
           </button>
           <h1 className="font-heading text-2xl font-bold">Order a print</h1>
@@ -203,7 +203,7 @@ export default function PrintOrderPage() {
         </section>
 
         {/* Totals */}
-        <section className="mb-8 p-4 rounded-xl bg-galaxy-bg-light border border-galaxy-text-muted/10">
+        <section className="mb-8 p-4 rounded-xl glass border border-galaxy-text-muted/10">
           <Row label={`${store.quantity} × ${PRINT_PRICES[store.format].label} ${store.format}`} value={formatPriceCents(subtotal)} />
           <Row label="Shipping" value={formatPriceCents(FLAT_SHIPPING_CENTS)} />
           <Row label="Tax" value="$0.00" />
@@ -225,7 +225,7 @@ export default function PrintOrderPage() {
           className={`w-full py-4 rounded-xl font-heading text-lg font-bold transition-colors ${
             valid && !store.submitting
               ? 'bg-galaxy-primary text-white hover:bg-purple-500'
-              : 'bg-galaxy-bg-light text-galaxy-text-muted cursor-not-allowed'
+              : 'glass text-galaxy-text-muted cursor-not-allowed'
           }`}
         >
           {store.submitting ? (
@@ -273,7 +273,7 @@ function Row({ label, value, bold }) {
 function ShippingFields({ store }) {
   const sh = store.shipping
   const set = (patch) => store.setShipping(patch)
-  const input = 'w-full px-3 py-2.5 rounded-lg bg-galaxy-bg-light border border-galaxy-text-muted/20 text-galaxy-text placeholder:text-galaxy-text-muted/50 focus:outline-none focus:border-galaxy-primary'
+  const input = 'w-full px-3 py-2.5 rounded-lg glass border border-galaxy-text-muted/20 text-galaxy-text placeholder:text-galaxy-text-muted/50 focus:outline-none focus:border-galaxy-primary'
   return (
     <div className="grid grid-cols-2 gap-3">
       <input className={`${input} col-span-2`} placeholder="Full name" value={sh.name} onChange={(e) => set({ name: e.target.value })} />

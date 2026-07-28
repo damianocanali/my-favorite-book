@@ -32,7 +32,7 @@ export default function StatusTimeline({ status }) {
         const done = i <= currentIdx
         return (
           <li key={step.key} className="flex items-center gap-3">
-            <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${done ? 'bg-galaxy-primary text-white' : 'bg-galaxy-bg-light text-galaxy-text-muted'}`}>
+            <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${done ? 'bg-galaxy-primary text-white' : 'glass text-galaxy-text-muted'}`}>
               {done ? <Check size={12} /> : i + 1}
             </span>
             <span className={`text-sm ${done ? 'text-galaxy-text font-semibold' : 'text-galaxy-text-muted'}`}>{step.label}</span>

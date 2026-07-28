@@ -21,7 +21,7 @@ export default function BookFinishedModal({ book, open, onClose }) {
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 100, opacity: 0 }}
             transition={{ type: 'spring', stiffness: 320, damping: 28 }}
-            className="relative w-full max-w-md bg-galaxy-bg-light rounded-2xl p-6 text-center"
+            className="relative w-full max-w-md rounded-modal p-6 text-center bg-gradient-to-br from-[#38246B] to-[#662E80] shadow-glow-modal"
             onClick={(e) => e.stopPropagation()}
           >
             <button onClick={onClose} aria-label="Close" className="absolute top-3 right-3 p-1.5 rounded-lg text-galaxy-text-muted hover:bg-galaxy-bg">
@@ -33,7 +33,7 @@ export default function BookFinishedModal({ book, open, onClose }) {
             <button
               onClick={() => navigate(`/order/${book?.id}`)}
               disabled={!book?.id}
-              className="mt-5 w-full flex items-center justify-center gap-2 py-3.5 rounded-xl bg-galaxy-primary text-white font-heading font-bold hover:bg-purple-500 transition-colors disabled:opacity-50"
+              className="mt-5 w-full flex items-center justify-center gap-2 py-3.5 rounded-xl btn-fill-primary font-heading font-bold transition-colors disabled:opacity-50"
             >
               <Sparkles size={16} /> Order a print →
             </button>

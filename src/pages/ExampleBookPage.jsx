@@ -14,7 +14,7 @@ export default function ExampleBookPage() {
   const navigate = useNavigate()
 
   return (
-    <div className="min-h-screen bg-galaxy-bg text-galaxy-text font-body">
+    <div className="min-h-screen text-galaxy-text font-body">
       <div className="max-w-3xl mx-auto px-4 py-10">
         <motion.header
           initial={{ opacity: 0, y: -8 }}
@@ -62,7 +62,7 @@ export default function ExampleBookPage() {
           </button>
           <button
             onClick={() => navigate('/pricing')}
-            className="flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-galaxy-bg-light border border-galaxy-text-muted/20 text-galaxy-text hover:border-galaxy-text-muted/40 transition-colors"
+            className="flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl glass border border-galaxy-text-muted/20 text-galaxy-text hover:border-galaxy-text-muted/40 transition-colors"
           >
             <Printer size={16} />
             See pricing

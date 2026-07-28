@@ -106,7 +106,7 @@ export default function AccountPage() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-galaxy-bg-light border border-galaxy-text-muted/20 rounded-3xl p-8"
+          className="glass border border-galaxy-text-muted/20 rounded-3xl p-8"
         >
           {/* Avatar + name */}
           <div className="flex items-center gap-4 mb-8">
@@ -126,7 +126,7 @@ export default function AccountPage() {
                       autoFocus
                       maxLength={60}
                       placeholder="Your name"
-                      className="flex-1 min-w-0 px-3 py-2 bg-galaxy-bg border border-galaxy-text-muted/20 rounded-lg text-galaxy-text placeholder:text-galaxy-text-muted/40 focus:border-galaxy-primary focus:outline-none font-heading text-xl font-bold"
+                      className="flex-1 min-w-0 px-3 py-2 glass border border-white/15 rounded-lg text-galaxy-text placeholder:text-galaxy-text-muted/40 focus:border-galaxy-primary focus:outline-none font-heading text-xl font-bold"
                     />
                     <button
                       onClick={saveName}

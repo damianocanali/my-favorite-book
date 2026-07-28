@@ -165,7 +165,7 @@ export default function ViewBookPage() {
               ) : (
                 <button
                   onClick={() => setConfirmRemove(true)}
-                  className="flex items-center gap-2 px-4 py-2 rounded-full bg-galaxy-bg-light border border-galaxy-text-muted/20 text-galaxy-text-muted hover:text-red-400 hover:border-red-400/40 transition-colors text-sm font-body"
+                  className="flex items-center gap-2 px-4 py-2 rounded-full glass border border-galaxy-text-muted/20 text-galaxy-text-muted hover:text-red-400 hover:border-red-400/40 transition-colors text-sm font-body"
                 >
                   <Trash2 size={16} />
                   Remove
@@ -174,7 +174,7 @@ export default function ViewBookPage() {
             )}
             <button
               onClick={handleShare}
-              className="flex items-center gap-2 px-4 py-2 rounded-full bg-galaxy-bg-light border border-galaxy-text-muted/20 text-galaxy-text-muted hover:text-galaxy-text hover:border-galaxy-primary/40 transition-colors text-sm font-body"
+              className="flex items-center gap-2 px-4 py-2 rounded-full glass border border-galaxy-text-muted/20 text-galaxy-text-muted hover:text-galaxy-text hover:border-galaxy-primary/40 transition-colors text-sm font-body"
             >
               <Share2 size={16} />
               {copied ? 'Link Copied!' : 'Share'}
@@ -209,7 +209,7 @@ export default function ViewBookPage() {
             <motion.button
               key={sticker}
               onClick={() => handleReaction(sticker)}
-              className="relative flex flex-col items-center gap-1 px-3 py-2 rounded-xl bg-galaxy-bg-light border border-galaxy-text-muted/10 hover:border-galaxy-primary/40 hover:bg-galaxy-primary/5 transition-colors"
+              className="relative flex flex-col items-center gap-1 px-3 py-2 rounded-xl glass border border-galaxy-text-muted/10 hover:border-galaxy-primary/40 hover:bg-galaxy-primary/5 transition-colors"
               whileHover={{ scale: 1.15, rotate: [0, -10, 10, 0] }}
               whileTap={{ scale: 0.85 }}
               transition={{ type: 'spring', stiffness: 400, damping: 15 }}

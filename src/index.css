@@ -17,14 +17,103 @@ html {
 
 body {
   font-family: 'Nunito', sans-serif;
-  background-color: #0F172A;
-  color: #F1F5F9;
+  /* Matches the first stop of the iOS CosmicBackground gradient so the
+     page never flashes slate-blue before the backdrop paints. */
+  background-color: #0D0A29;
+  color: #FFFFFF;
   min-height: 100vh;
   min-height: 100dvh;
   overflow-x: hidden;
   -webkit-tap-highlight-color: transparent;
   -webkit-touch-callout: none;
   user-select: none;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── iOS-parity surfaces ───────────────────────────────────────────────
+   The native app builds every card from `.white.opacity(0.08)` over the
+   cosmic gradient, so the starfield shows through. `bg-galaxy-bg-light`
+   is the opaque pre-blend (kept so Tailwind opacity modifiers still
+   work); these classes are the real translucent thing. */
+.glass {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+.glass-recessed {
+  background-color: rgba(255, 255, 255, 0.06);
+}
+.glass-raised {
+  background-color: rgba(255, 255, 255, 0.12);
+}
+/* The canonical iOS card: white/8% fill, 18px radius, 16px padding. */
+.ios-card {
+  background-color: rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  padding: 16px;
+}
+
+/* Solid action buttons. iOS fills these with the SparkleButton gradient
+   and a hairline white border (RoundedRectangle(cornerRadius: 12), so
+   pair with rounded-xl — only SparkleButton itself is a capsule). */
+.btn-fill-primary {
+  background-image: linear-gradient(to bottom, #a657f2, #7833d4);
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 6px 28px rgba(191, 90, 242, 0.55);
+  color: #fff;
+  transition: box-shadow 0.2s ease;
+}
+.btn-fill-primary:hover:not(:disabled) {
+  box-shadow: 0 8px 34px rgba(191, 90, 242, 0.7);
+}
+.btn-fill-accent {
+  background-image: linear-gradient(to bottom, #ff9e5c, #f5668c);
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 6px 28px rgba(255, 55, 95, 0.55);
+  color: #fff;
+  transition: box-shadow 0.2s ease;
+}
+.btn-fill-accent:hover:not(:disabled) {
+  box-shadow: 0 8px 34px rgba(255, 55, 95, 0.7);
+}
+
+/* Tab bar / nav bar material — approximates UIBlurEffect
+   .systemUltraThinMaterialDark from MainTabView. */
+.ios-material {
+  background-color: rgba(20, 14, 40, 0.55);
+  backdrop-filter: blur(30px) saturate(180%);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
+}
+
+/* Sparkles drifting bottom → top in CosmicBackground (6–12s). */
+@keyframes cosmicSparkleRise {
+  0% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 0;
+  }
+  12% {
+    opacity: 0.85;
+  }
+  80% {
+    opacity: 0.85;
+  }
+  100% {
+    transform: translateY(calc(-100vh - 40px)) rotate(var(--spin, 180deg));
+    opacity: 0;
+  }
+}
+.cosmic-sparkle {
+  bottom: -20px;
+  animation-name: cosmicSparkleRise;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  opacity: 0;
+}
+
+/* Respect the OS "reduce motion" setting — the backdrop is decorative. */
+@media (prefers-reduced-motion: reduce) {
+  .cosmic-sparkle {
+    display: none;
+  }
 }
 
 /* Allow text selection only in text areas and inputs */
@@ -47,20 +136,20 @@ input, textarea, [contenteditable] {
 }
 
 ::-webkit-scrollbar-track {
-  background: #1E293B;
+  background: #1C0A2E;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #8B5CF6;
+  background: #BF5AF2;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #A78BFA;
+  background: #D08BF5;
 }
 
 ::selection {
-  background: rgba(139, 92, 246, 0.3);
+  background: rgba(191, 90, 242, 0.35);
   color: #F1F5F9;
 }
 

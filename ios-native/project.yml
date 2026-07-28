@@ -160,8 +160,29 @@ targets:
       path: MyBookLabWidgets/Info.plist
       properties:
         CFBundleDisplayName: My Book Lab
+        # An app-extension's version keys MUST match the parent app's or
+        # the build is rejected ("CFBundleVersion of an app extension must
+        # match that of its containing parent app"). Tracking the same
+        # build settings keeps them in lockstep — without these, XcodeGen
+        # hardcodes the widget to version 1 while the app moves ahead.
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         NSExtension:
           NSExtensionPointIdentifier: com.apple.widgetkit-extension
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.myfavoritebook.app.widgets
+    # Running the widget scheme launches ONE widget in preview mode, and
+    # Xcode refuses to start without knowing which kind ("Please specify
+    # the widget kind ... using the key '_XCWidgetKind'"). Bake it in so
+    # the scheme just works. To preview the Live Activity instead, change
+    # this value in Edit Scheme → Run → Arguments.
+    #
+    # Note: for normal testing, run the MyBookLab app scheme and add the
+    # widget from the home screen — this scheme is only for the fast
+    # widget-preview loop.
+    scheme:
+      environmentVariables:
+        - variable: _XCWidgetKind
+          value: LatestBookWidget
+          isEnabled: true

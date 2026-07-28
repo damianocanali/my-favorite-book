@@ -47,7 +47,7 @@ export default function CoverArtGenerator() {
   return (
     <div className="mb-6">
       {/* Cover preview + generate */}
-      <div className="flex items-center gap-4 bg-galaxy-bg-light rounded-xl p-4 border border-galaxy-text-muted/10">
+      <div className="flex items-center gap-4 glass rounded-xl p-4 border border-galaxy-text-muted/10">
         {/* Mini cover preview */}
         <div
           className="w-16 h-20 rounded-lg overflow-hidden flex-shrink-0 shadow-md"
@@ -110,7 +110,7 @@ export default function CoverArtGenerator() {
                   className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-body font-semibold transition-all cursor-pointer ${
                     loading
                       ? 'bg-galaxy-primary/30 text-galaxy-primary'
-                      : 'bg-galaxy-primary text-white hover:bg-purple-500'
+                      : 'btn-fill-primary'
                   } disabled:opacity-50`}
                   whileHover={loading ? {} : { scale: 1.05 }}
                   whileTap={loading ? {} : { scale: 0.95 }}

@@ -13,7 +13,7 @@ function BookCard({ submission, onClick }) {
   return (
     <motion.button
       onClick={onClick}
-      className="text-left bg-galaxy-bg-light rounded-2xl border border-galaxy-text-muted/10 overflow-hidden hover:border-galaxy-primary/40 transition-all hover:scale-[1.02] active:scale-[0.98]"
+      className="text-left glass rounded-2xl border border-galaxy-text-muted/10 overflow-hidden hover:border-galaxy-primary/40 transition-all hover:scale-[1.02] active:scale-[0.98]"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
     >
@@ -47,7 +47,7 @@ function BookModal({ submission, onClose }) {
         </div>
         <button
           onClick={onClose}
-          className="p-2 rounded-xl text-galaxy-text-muted hover:text-galaxy-text hover:bg-galaxy-bg-light transition-colors"
+          className="p-2 rounded-xl text-galaxy-text-muted hover:text-galaxy-text hover:glass transition-colors"
         >
           <X size={22} />
         </button>

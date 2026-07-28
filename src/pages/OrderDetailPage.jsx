@@ -28,10 +28,10 @@ export default function OrderDetailPage() {
   const supportBody = encodeURIComponent(`Order ID: ${order.id}\n\nWhat happened: `)
 
   return (
-    <div className="min-h-screen bg-galaxy-bg text-galaxy-text font-body">
+    <div className="min-h-screen text-galaxy-text font-body">
       <div className="max-w-2xl mx-auto px-4 py-6">
         <header className="flex items-center gap-3 mb-6">
-          <Link to="/orders" aria-label="Back" className="p-2 -ml-2 hover:bg-galaxy-bg-light rounded-lg transition-colors">
+          <Link to="/orders" aria-label="Back" className="p-2 -ml-2 hover:glass rounded-lg transition-colors">
             <ArrowLeft size={20} />
           </Link>
           <div className="min-w-0">
@@ -69,7 +69,7 @@ export default function OrderDetailPage() {
 
         <section className="mb-8">
           <h2 className="font-heading text-sm uppercase tracking-wide text-galaxy-text-muted mb-3">Shipping to</h2>
-          <div className="rounded-xl bg-galaxy-bg-light border border-galaxy-text-muted/10 p-4 text-sm">
+          <div className="rounded-xl glass border border-galaxy-text-muted/10 p-4 text-sm">
             <p className="font-semibold">{order.ship_name}</p>
             <p className="text-galaxy-text-muted">{order.ship_city}, {order.ship_state} {order.ship_postal_code}</p>
           </div>
@@ -77,7 +77,7 @@ export default function OrderDetailPage() {
 
         <a
           href={`mailto:support@mybooklab.app?subject=${supportSubject}&body=${supportBody}`}
-          className="block w-full text-center py-3 rounded-xl bg-galaxy-bg-light border border-galaxy-text-muted/20 text-sm hover:border-galaxy-text-muted/40 transition-colors"
+          className="block w-full text-center py-3 rounded-xl glass border border-galaxy-text-muted/20 text-sm hover:border-galaxy-text-muted/40 transition-colors"
         >
           Report a problem
         </a>

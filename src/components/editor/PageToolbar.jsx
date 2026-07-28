@@ -24,7 +24,7 @@ export default function PageToolbar() {
         className={`flex items-center gap-2 px-4 py-2 rounded-full font-body font-semibold text-sm transition-all cursor-pointer ${
           canAdd
             ? 'bg-galaxy-primary/20 text-galaxy-primary hover:bg-galaxy-primary/30 border border-galaxy-primary/30'
-            : 'bg-galaxy-bg-light text-galaxy-text-muted/50 border border-galaxy-text-muted/10 cursor-not-allowed'
+            : 'glass text-galaxy-text-muted/50 border border-galaxy-text-muted/10 cursor-not-allowed'
         }`}
         whileHover={canAdd ? { scale: 1.05 } : {}}
         whileTap={canAdd ? { scale: 0.95 } : {}}
@@ -39,7 +39,7 @@ export default function PageToolbar() {
         className={`flex items-center gap-2 px-4 py-2 rounded-full font-body font-semibold text-sm transition-all cursor-pointer ${
           canRemove
             ? 'bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20'
-            : 'bg-galaxy-bg-light text-galaxy-text-muted/50 border border-galaxy-text-muted/10 cursor-not-allowed'
+            : 'glass text-galaxy-text-muted/50 border border-galaxy-text-muted/10 cursor-not-allowed'
         }`}
         whileHover={canRemove ? { scale: 1.05 } : {}}
         whileTap={canRemove ? { scale: 0.95 } : {}}

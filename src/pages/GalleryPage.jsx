@@ -82,7 +82,7 @@ function BookCard({ book, index, currentUserId, onRemoved }) {
     >
       <Link to={`/view/${book.slug}`} className="block group">
         <motion.div
-          className="relative bg-galaxy-bg-light rounded-2xl border border-galaxy-text-muted/10 overflow-hidden"
+          className="relative glass rounded-2xl border border-galaxy-text-muted/10 overflow-hidden"
           whileHover={{ scale: 1.03, y: -4 }}
           whileTap={{ scale: 0.97 }}
           transition={{ type: 'spring', stiffness: 300, damping: 20 }}

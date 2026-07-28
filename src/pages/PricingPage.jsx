@@ -45,7 +45,7 @@ function PlanCard({ icon: Icon, iconColor, title, badge, billing, price, monthly
       className={`relative flex flex-col rounded-3xl p-6 sm:p-8 border transition-all ${
         highlight
           ? 'border-galaxy-primary/60 bg-galaxy-primary/10 shadow-glow'
-          : 'border-galaxy-text-muted/20 bg-galaxy-bg-light'
+          : 'border-galaxy-text-muted/20 glass'
       }`}
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}

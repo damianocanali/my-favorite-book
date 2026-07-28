@@ -12,8 +12,8 @@ export default function GlowCard({
       onClick={onClick}
       className={`relative rounded-2xl p-4 text-left transition-all duration-300 cursor-pointer select-none ${
         selected
-          ? 'bg-galaxy-bg-light ring-2'
-          : 'bg-galaxy-bg-light/50 hover:bg-galaxy-bg-light border border-galaxy-text-muted/10 hover:border-transparent'
+          ? 'glass ring-2'
+          : 'bg-galaxy-bg-light/50 hover:glass border border-galaxy-text-muted/10 hover:border-transparent'
       } ${className}`}
       style={
         selected

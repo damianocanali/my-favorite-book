@@ -13,7 +13,10 @@ const STEPS = [
 
 export default function ProgressBar({ currentStep }) {
   return (
-    <div className="flex items-center justify-center gap-1 sm:gap-2 py-4 px-2">
+    // Seven steps don't fit a phone at fixed widths — the first and last
+    // used to be clipped off-screen. Scroll horizontally instead, and
+    // only center once there's room.
+    <div className="flex items-center justify-start sm:justify-center gap-1 sm:gap-2 py-4 px-3 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
       {STEPS.map((label, index) => {
         const isCompleted = index < currentStep
         const isCurrent = index === currentStep
@@ -29,11 +32,11 @@ export default function ProgressBar({ currentStep }) {
                     ? 'bg-galaxy-primary text-white'
                     : isCurrent
                     ? 'bg-galaxy-primary/20 border-2 border-galaxy-primary text-galaxy-primary'
-                    : 'bg-galaxy-bg-light text-galaxy-text-muted border border-galaxy-text-muted/20'
+                    : 'glass text-galaxy-text-muted border border-galaxy-text-muted/20'
                 }`}
                 animate={
                   isCurrent
-                    ? { boxShadow: ['0 0 0px rgba(139,92,246,0.3)', '0 0 20px rgba(139,92,246,0.5)', '0 0 0px rgba(139,92,246,0.3)'] }
+                    ? { boxShadow: ['0 0 0px rgba(191,90,242,0.3)', '0 0 20px rgba(191,90,242,0.5)', '0 0 0px rgba(191,90,242,0.3)'] }
                     : {}
                 }
                 transition={{ duration: 2, repeat: Infinity }}

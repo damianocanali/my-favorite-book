@@ -49,7 +49,7 @@ export default function BadgePopup() {
         >
           <button
             onClick={dismiss}
-            className="relative flex items-center gap-3 px-5 py-3 rounded-2xl bg-galaxy-bg-light border border-yellow-400/50 shadow-lg shadow-yellow-400/20 cursor-pointer hover:scale-105 transition-transform"
+            className="relative flex items-center gap-3 px-5 py-3 rounded-2xl glass border border-yellow-400/50 shadow-lg shadow-yellow-400/20 cursor-pointer hover:scale-105 transition-transform"
           >
             <span className="text-3xl">{newBadge.emoji}</span>
             <div className="text-left">

@@ -17,7 +17,9 @@ enum PrintOrderActivityManager {
         // One activity per order.
         endActivities(matching: orderId)
         let attributes = PrintOrderActivityAttributes(orderId: orderId, bookTitle: bookTitle)
-        _ = try? Activity.request(
+        // Spell out the generic — inferring Attributes from the argument
+        // is fragile and reads as "generic parameter could not be inferred".
+        _ = try? Activity<PrintOrderActivityAttributes>.request(
             attributes: attributes,
             content: content(for: status)
         )
