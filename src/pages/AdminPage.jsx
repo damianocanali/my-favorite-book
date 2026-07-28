@@ -91,7 +91,7 @@ export default function AdminPage() {
             <select
               value={windowDays}
               onChange={(e) => setWindowDays(Number(e.target.value))}
-              className="bg-galaxy-bg-light border border-galaxy-text-muted/20 rounded-lg px-3 py-2 text-sm"
+              className="glass border border-galaxy-text-muted/20 rounded-lg px-3 py-2 text-sm"
             >
               <option value={7}>7 days</option>
               <option value={30}>30 days</option>
@@ -126,17 +126,17 @@ export default function AdminPage() {
           <>
             {/* ── Totals ───────────────── */}
             <section className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-              <div className="bg-galaxy-bg-light rounded-xl p-5 border border-galaxy-text-muted/10">
+              <div className="glass rounded-xl p-5 border border-galaxy-text-muted/10">
                 <p className="text-xs uppercase tracking-wide text-galaxy-text-muted mb-1">Total ({windowDays}d)</p>
                 <p className="font-heading text-3xl font-bold">{fmt(data.totals.all)}</p>
                 <p className="text-xs text-galaxy-text-muted mt-1">{data.total_rows} API calls</p>
               </div>
-              <div className="bg-galaxy-bg-light rounded-xl p-5 border border-galaxy-text-muted/10">
+              <div className="glass rounded-xl p-5 border border-galaxy-text-muted/10">
                 <p className="text-xs uppercase tracking-wide text-galaxy-text-muted mb-1">Anthropic</p>
                 <p className="font-heading text-3xl font-bold">{fmt(data.totals.anthropic ?? 0)}</p>
                 <p className="text-xs text-galaxy-text-muted mt-1">Claude API</p>
               </div>
-              <div className="bg-galaxy-bg-light rounded-xl p-5 border border-galaxy-text-muted/10">
+              <div className="glass rounded-xl p-5 border border-galaxy-text-muted/10">
                 <p className="text-xs uppercase tracking-wide text-galaxy-text-muted mb-1">Together AI</p>
                 <p className="font-heading text-3xl font-bold">{fmt(data.totals.together ?? 0)}</p>
                 <p className="text-xs text-galaxy-text-muted mt-1">FLUX images</p>
@@ -146,7 +146,7 @@ export default function AdminPage() {
             {/* ── By feature ───────────── */}
             <section className="mb-8">
               <h2 className="font-heading text-xl font-semibold mb-3">By feature</h2>
-              <div className="bg-galaxy-bg-light rounded-xl border border-galaxy-text-muted/10 overflow-hidden">
+              <div className="glass rounded-xl border border-galaxy-text-muted/10 overflow-hidden">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="text-galaxy-text-muted text-xs uppercase">
@@ -178,7 +178,7 @@ export default function AdminPage() {
             {/* ── Daily trend ──────────── */}
             <section className="mb-8">
               <h2 className="font-heading text-xl font-semibold mb-3">Daily</h2>
-              <div className="bg-galaxy-bg-light rounded-xl border border-galaxy-text-muted/10 p-4">
+              <div className="glass rounded-xl border border-galaxy-text-muted/10 p-4">
                 {days.length === 0 ? (
                   <p className="text-center py-6 text-galaxy-text-muted text-sm">No usage in this window.</p>
                 ) : (

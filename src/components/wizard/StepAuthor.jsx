@@ -57,7 +57,7 @@ export default function StepAuthor({ onNext, onPrev }) {
             value={authorName}
             onChange={(e) => setAuthor(e.target.value, authorAge)}
             placeholder="What's your name?"
-            className="w-full px-6 py-4 text-xl font-heading text-center bg-galaxy-bg-light border-2 border-galaxy-secondary/30 rounded-2xl text-galaxy-text placeholder:text-galaxy-text-muted/50 focus:border-galaxy-secondary focus:outline-none focus:shadow-glow-cyan transition-all"
+            className="w-full px-6 py-4 text-xl font-heading text-center glass border-2 border-galaxy-secondary/30 rounded-2xl text-galaxy-text placeholder:text-galaxy-text-muted/50 focus:border-galaxy-secondary focus:outline-none focus:shadow-glow-cyan transition-all"
             maxLength={30}
           />
         </div>
@@ -75,7 +75,7 @@ export default function StepAuthor({ onNext, onPrev }) {
                 className={`w-12 h-12 rounded-full font-heading font-bold text-lg transition-all cursor-pointer ${
                   authorAge === age
                     ? 'bg-galaxy-secondary text-white shadow-glow-cyan'
-                    : 'bg-galaxy-bg-light text-galaxy-text-muted border border-galaxy-text-muted/20 hover:border-galaxy-secondary/50'
+                    : 'glass text-galaxy-text-muted border border-galaxy-text-muted/20 hover:border-galaxy-secondary/50'
                 }`}
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
@@ -95,7 +95,7 @@ export default function StepAuthor({ onNext, onPrev }) {
       {/* Preview card */}
       {authorName && (
         <motion.div
-          className="bg-galaxy-bg-light rounded-2xl p-6 border border-galaxy-secondary/20 w-full max-w-sm text-center"
+          className="glass rounded-2xl p-6 border border-galaxy-secondary/20 w-full max-w-sm text-center"
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
         >

@@ -121,7 +121,7 @@ function OptionRow({ label, options, value, onChange, colorKey }) {
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-body transition-all ${
               value === opt.id
                 ? 'bg-galaxy-primary text-white font-bold'
-                : 'bg-galaxy-bg-light border border-galaxy-text-muted/20 text-galaxy-text-muted hover:text-galaxy-text hover:border-galaxy-primary/40'
+                : 'glass border border-galaxy-text-muted/20 text-galaxy-text-muted hover:text-galaxy-text hover:border-galaxy-primary/40'
             }`}
           >
             {colorKey && opt[colorKey] && (
@@ -361,7 +361,7 @@ export default function AvatarPage() {
             type="button"
             onClick={() => setPhotoGateOpen(true)}
             disabled={generating}
-            className="w-full max-w-[280px] flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-galaxy-bg-light border border-galaxy-text-muted/20 text-galaxy-text hover:border-galaxy-primary/50 hover:bg-galaxy-primary/5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-body"
+            className="w-full max-w-[280px] flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl glass border border-galaxy-text-muted/20 text-galaxy-text hover:border-galaxy-primary/50 hover:bg-galaxy-primary/5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-body"
           >
             <Camera size={16} className="text-galaxy-primary" />
             <span>Use my photo</span>
@@ -399,7 +399,7 @@ export default function AvatarPage() {
           <AnimatePresence>
             {showCoinShop && (
               <motion.div
-                className="w-full bg-galaxy-bg-light rounded-2xl p-4 border border-yellow-400/20"
+                className="w-full glass rounded-2xl p-4 border border-yellow-400/20"
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
@@ -440,7 +440,7 @@ export default function AvatarPage() {
           {/* Badges */}
           <button
             onClick={() => setShowBadges(!showBadges)}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-galaxy-bg-light border border-galaxy-text-muted/20 hover:border-galaxy-primary/40 transition-colors w-full max-w-[280px] w-full"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl glass border border-galaxy-text-muted/20 hover:border-galaxy-primary/40 transition-colors w-full max-w-[280px] w-full"
           >
             <Award size={16} className="text-galaxy-primary" />
             <span className="text-galaxy-text font-body text-sm font-semibold">
@@ -451,7 +451,7 @@ export default function AvatarPage() {
           <AnimatePresence>
             {showBadges && (
               <motion.div
-                className="w-full bg-galaxy-bg-light rounded-2xl p-4 border border-galaxy-text-muted/10 max-w-[280px] w-full"
+                className="w-full glass rounded-2xl p-4 border border-galaxy-text-muted/10 max-w-[280px] w-full"
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
@@ -482,7 +482,7 @@ export default function AvatarPage() {
           animate={{ opacity: 1, x: 0 }}
         >
           {/* Art style picker */}
-          <div className="bg-galaxy-bg-light rounded-2xl p-5 border border-galaxy-text-muted/10">
+          <div className="glass rounded-2xl p-5 border border-galaxy-text-muted/10">
             <p className="text-galaxy-text font-body text-sm font-bold mb-3 flex items-center gap-2">
               <Sparkles size={16} className="text-galaxy-primary" /> Art Style
             </p>
@@ -498,7 +498,7 @@ export default function AvatarPage() {
                       active
                         ? 'bg-galaxy-primary text-white font-bold'
                         : owned
-                          ? 'bg-galaxy-bg border border-galaxy-text-muted/20 text-galaxy-text hover:border-galaxy-primary/50'
+                          ? 'glass border border-white/15 text-galaxy-text hover:border-galaxy-primary/50'
                           : 'bg-galaxy-bg border border-yellow-400/30 text-galaxy-text-muted hover:border-yellow-400/60'
                     }`}
                   >
@@ -516,7 +516,7 @@ export default function AvatarPage() {
           </div>
 
           {/* Feature selectors */}
-          <div className="bg-galaxy-bg-light rounded-2xl p-5 border border-galaxy-text-muted/10 space-y-4">
+          <div className="glass rounded-2xl p-5 border border-galaxy-text-muted/10 space-y-4">
             <OptionRow
               label="Skin Tone"
               options={SKIN_TONES}

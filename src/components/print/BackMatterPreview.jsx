@@ -66,7 +66,7 @@ export default function BackMatterPreview({ book }) {
   const totalPages = storyPageCount + curatedCount + padCount
 
   return (
-    <div className="rounded-xl border border-galaxy-text-muted/20 bg-galaxy-bg-light p-4 space-y-4">
+    <div className="rounded-xl border border-galaxy-text-muted/20 glass p-4 space-y-4">
       <div>
         <h3 className="font-heading text-sm font-bold text-galaxy-text">What else is in the printed book</h3>
         <p className="text-xs text-galaxy-text-muted mt-1">

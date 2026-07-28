@@ -65,7 +65,7 @@ export default function PageEditor({ page }) {
 
   return (
     <motion.div
-      className="bg-galaxy-bg-light rounded-2xl border border-galaxy-text-muted/10 overflow-hidden"
+      className="glass rounded-2xl border border-galaxy-text-muted/10 overflow-hidden"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
@@ -128,7 +128,7 @@ export default function PageEditor({ page }) {
         <AnimatePresence>
           {isSpeaking && words.length > 0 && (
             <motion.div
-              className={`w-full p-4 bg-galaxy-bg rounded-xl border border-galaxy-secondary/30 leading-loose ${fontClass} ${adaptive.fontSize.input}`}
+              className={`w-full p-4 glass rounded-card-sm border border-white/15 leading-loose ${fontClass} ${adaptive.fontSize.input}`}
               initial={{ opacity: 0, y: -6 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -6 }}

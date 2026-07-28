@@ -64,7 +64,7 @@ export default function SignupPage() {
           </p>
           <Link
             to="/login"
-            className="inline-block px-6 py-3 rounded-xl font-body font-bold text-white bg-galaxy-primary hover:bg-galaxy-primary/90 transition-colors"
+            className="inline-block px-6 py-3 rounded-xl font-body font-bold text-white btn-fill-primary transition-colors"
           >
             Go to Sign In
           </Link>
@@ -115,7 +115,7 @@ export default function SignupPage() {
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="bg-galaxy-bg-light rounded-2xl p-6 border border-galaxy-text-muted/10 space-y-4">
+        <form onSubmit={handleSubmit} className="glass rounded-2xl p-6 border border-galaxy-text-muted/10 space-y-4">
 
           {/* Display name — students only */}
           {role === 'student' && (
@@ -129,7 +129,7 @@ export default function SignupPage() {
                   onChange={(e) => setDisplayName(e.target.value)}
                   placeholder="What should we call you?"
                   maxLength={30}
-                  className="w-full pl-9 pr-4 py-3 bg-galaxy-bg border border-galaxy-text-muted/20 rounded-xl text-galaxy-text placeholder:text-galaxy-text-muted/40 focus:border-galaxy-primary focus:outline-none font-body"
+                  className="w-full pl-9 pr-4 py-3 glass border border-white/15 rounded-xl text-galaxy-text placeholder:text-galaxy-text-muted/40 focus:border-galaxy-primary focus:outline-none font-body"
                 />
               </div>
               <p className="text-galaxy-text-muted text-xs font-body">This will appear on your books</p>
@@ -148,7 +148,7 @@ export default function SignupPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 placeholder="your@email.com"
-                className="w-full pl-9 pr-4 py-3 bg-galaxy-bg border border-galaxy-text-muted/20 rounded-xl text-galaxy-text placeholder:text-galaxy-text-muted/40 focus:border-galaxy-primary focus:outline-none font-body"
+                className="w-full pl-9 pr-4 py-3 glass border border-white/15 rounded-xl text-galaxy-text placeholder:text-galaxy-text-muted/40 focus:border-galaxy-primary focus:outline-none font-body"
               />
             </div>
           </div>
@@ -163,7 +163,7 @@ export default function SignupPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 placeholder="At least 6 characters"
-                className="w-full pl-9 pr-10 py-3 bg-galaxy-bg border border-galaxy-text-muted/20 rounded-xl text-galaxy-text placeholder:text-galaxy-text-muted/40 focus:border-galaxy-primary focus:outline-none font-body"
+                className="w-full pl-9 pr-10 py-3 glass border border-white/15 rounded-xl text-galaxy-text placeholder:text-galaxy-text-muted/40 focus:border-galaxy-primary focus:outline-none font-body"
               />
               <button
                 type="button"
@@ -185,7 +185,7 @@ export default function SignupPage() {
                 onChange={(e) => setConfirm(e.target.value)}
                 required
                 placeholder="Repeat your password"
-                className="w-full pl-9 pr-4 py-3 bg-galaxy-bg border border-galaxy-text-muted/20 rounded-xl text-galaxy-text placeholder:text-galaxy-text-muted/40 focus:border-galaxy-primary focus:outline-none font-body"
+                className="w-full pl-9 pr-4 py-3 glass border border-white/15 rounded-xl text-galaxy-text placeholder:text-galaxy-text-muted/40 focus:border-galaxy-primary focus:outline-none font-body"
               />
             </div>
           </div>
@@ -198,7 +198,7 @@ export default function SignupPage() {
             className={`w-full py-3 rounded-xl font-body font-bold text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${
               role === 'teacher'
                 ? 'bg-galaxy-secondary hover:bg-galaxy-secondary/90'
-                : 'bg-galaxy-primary hover:bg-galaxy-primary/90'
+                : 'btn-fill-primary'
             }`}
           >
             {loading ? 'Creating account…' : 'Create Account'}

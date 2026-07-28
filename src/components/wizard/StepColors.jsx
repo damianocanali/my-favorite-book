@@ -113,7 +113,7 @@ export default function StepColors({ onNext, onPrev }) {
         {/* Custom color pickers */}
         {showCustom && (
           <motion.div
-            className="mt-4 bg-galaxy-bg-light rounded-2xl p-6 space-y-4"
+            className="mt-4 glass rounded-2xl p-6 space-y-4"
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             transition={{ duration: 0.3 }}

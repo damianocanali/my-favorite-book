@@ -138,7 +138,7 @@ export default function StepCharacters({ onNext, onPrev }) {
       {/* Custom character creator */}
       {showCreate && (
         <motion.div
-          className="w-full max-w-md bg-galaxy-bg-light rounded-2xl p-6 border border-galaxy-secondary/30 space-y-4"
+          className="w-full max-w-md glass rounded-2xl p-6 border border-galaxy-secondary/30 space-y-4"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
         >

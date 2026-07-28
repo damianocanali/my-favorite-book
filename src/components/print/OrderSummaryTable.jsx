@@ -15,7 +15,7 @@ export default function OrderSummaryTable({ order }) {
 
 function Row({ label, value, bold }) {
   return (
-    <div className={`flex justify-between px-4 py-2.5 text-sm border-b border-galaxy-text-muted/10 last:border-b-0 ${bold ? 'font-bold text-galaxy-text bg-galaxy-bg-light' : 'text-galaxy-text-muted'}`}>
+    <div className={`flex justify-between px-4 py-2.5 text-sm border-b border-galaxy-text-muted/10 last:border-b-0 ${bold ? 'font-bold text-galaxy-text glass' : 'text-galaxy-text-muted'}`}>
       <span>{label}</span>
       <span className="tabular-nums text-galaxy-text">{value}</span>
     </div>

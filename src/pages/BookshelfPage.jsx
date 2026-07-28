@@ -39,7 +39,7 @@ export default function BookshelfPage() {
           <div className="flex items-center justify-center gap-4">
             <Link
               to="/signup"
-              className="px-6 py-3 rounded-xl font-body font-bold text-white bg-galaxy-primary hover:bg-galaxy-primary/90 transition-colors"
+              className="px-6 py-3 rounded-xl font-body font-bold text-white btn-fill-primary transition-colors"
             >
               Create free account
             </Link>

@@ -60,13 +60,13 @@ export default function ResetPasswordPage() {
         </div>
 
         {done ? (
-          <div className="bg-galaxy-bg-light rounded-2xl p-6 border border-galaxy-text-muted/10 text-center space-y-3">
+          <div className="glass rounded-2xl p-6 border border-galaxy-text-muted/10 text-center space-y-3">
             <CheckCircle size={40} className="mx-auto text-green-400" />
             <p className="text-galaxy-text font-body font-semibold">Password updated!</p>
             <p className="text-galaxy-text-muted font-body text-sm">Redirecting you to login…</p>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="bg-galaxy-bg-light rounded-2xl p-6 border border-galaxy-text-muted/10 space-y-4">
+          <form onSubmit={handleSubmit} className="glass rounded-2xl p-6 border border-galaxy-text-muted/10 space-y-4">
             <div className="space-y-1">
               <label className="text-galaxy-text-muted text-sm font-body font-semibold">New Password</label>
               <div className="relative">
@@ -77,7 +77,7 @@ export default function ResetPasswordPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   placeholder="••••••••"
-                  className="w-full pl-9 pr-10 py-3 bg-galaxy-bg border border-galaxy-text-muted/20 rounded-xl text-galaxy-text placeholder:text-galaxy-text-muted/40 focus:border-galaxy-primary focus:outline-none font-body"
+                  className="w-full pl-9 pr-10 py-3 glass border border-white/15 rounded-xl text-galaxy-text placeholder:text-galaxy-text-muted/40 focus:border-galaxy-primary focus:outline-none font-body"
                 />
                 <button
                   type="button"
@@ -99,7 +99,7 @@ export default function ResetPasswordPage() {
                   onChange={(e) => setConfirm(e.target.value)}
                   required
                   placeholder="••••••••"
-                  className="w-full pl-9 pr-4 py-3 bg-galaxy-bg border border-galaxy-text-muted/20 rounded-xl text-galaxy-text placeholder:text-galaxy-text-muted/40 focus:border-galaxy-primary focus:outline-none font-body"
+                  className="w-full pl-9 pr-4 py-3 glass border border-white/15 rounded-xl text-galaxy-text placeholder:text-galaxy-text-muted/40 focus:border-galaxy-primary focus:outline-none font-body"
                 />
               </div>
             </div>
@@ -109,7 +109,7 @@ export default function ResetPasswordPage() {
             <button
               type="submit"
               disabled={loading || !ready || !password || !confirm}
-              className="w-full py-3 rounded-xl font-body font-bold text-white bg-galaxy-primary hover:bg-galaxy-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="w-full py-3 rounded-xl font-body font-bold text-white btn-fill-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {loading ? 'Updating…' : 'Update Password'}
             </button>

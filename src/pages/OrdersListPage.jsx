@@ -52,7 +52,7 @@ export default function OrdersListPage() {
           <ul className="space-y-3">
             {orders.map((o) => (
               <li key={o.id}>
-                <Link to={`/orders/${o.id}`} className="block p-4 rounded-xl bg-galaxy-bg-light border border-galaxy-text-muted/10 hover:border-galaxy-text-muted/30 transition-colors">
+                <Link to={`/orders/${o.id}`} className="block p-4 rounded-xl glass border border-galaxy-text-muted/10 hover:border-galaxy-text-muted/30 transition-colors">
                   <div className="flex justify-between items-start gap-3">
                     <div className="min-w-0">
                       <p className="font-body font-semibold truncate">{o.ship_name || 'Print order'}</p>

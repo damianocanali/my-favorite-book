@@ -73,7 +73,7 @@ export default function StepReview({ onPrev, onFinish }) {
         {sections.map((section, i) => (
           <motion.div
             key={section.label}
-            className="flex items-center gap-4 bg-galaxy-bg-light rounded-xl p-4 border border-galaxy-text-muted/10"
+            className="flex items-center gap-4 glass rounded-xl p-4 border border-galaxy-text-muted/10"
             initial={{ x: -20, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             transition={{ delay: 0.1 * i }}

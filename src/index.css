@@ -52,6 +52,30 @@ body {
   padding: 16px;
 }
 
+/* Solid action buttons. iOS fills these with the SparkleButton gradient
+   and a hairline white border (RoundedRectangle(cornerRadius: 12), so
+   pair with rounded-xl — only SparkleButton itself is a capsule). */
+.btn-fill-primary {
+  background-image: linear-gradient(to bottom, #a657f2, #7833d4);
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 6px 28px rgba(191, 90, 242, 0.55);
+  color: #fff;
+  transition: box-shadow 0.2s ease;
+}
+.btn-fill-primary:hover:not(:disabled) {
+  box-shadow: 0 8px 34px rgba(191, 90, 242, 0.7);
+}
+.btn-fill-accent {
+  background-image: linear-gradient(to bottom, #ff9e5c, #f5668c);
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 6px 28px rgba(255, 55, 95, 0.55);
+  color: #fff;
+  transition: box-shadow 0.2s ease;
+}
+.btn-fill-accent:hover:not(:disabled) {
+  box-shadow: 0 8px 34px rgba(255, 55, 95, 0.7);
+}
+
 /* Tab bar / nav bar material — approximates UIBlurEffect
    .systemUltraThinMaterialDark from MainTabView. */
 .ios-material {
@@ -125,7 +149,7 @@ input, textarea, [contenteditable] {
 }
 
 ::selection {
-  background: rgba(139, 92, 246, 0.3);
+  background: rgba(191, 90, 242, 0.35);
   color: #F1F5F9;
 }
 

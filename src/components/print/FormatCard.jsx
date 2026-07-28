@@ -10,7 +10,7 @@ export default function FormatCard({ format, label, price, deliveryDays, selecte
       className={`relative w-full p-4 rounded-xl border text-left transition-colors ${
         selected
           ? 'bg-galaxy-primary/15 border-galaxy-primary text-galaxy-text'
-          : 'bg-galaxy-bg-light border-galaxy-text-muted/20 text-galaxy-text-muted hover:border-galaxy-text-muted/40'
+          : 'glass border-galaxy-text-muted/20 text-galaxy-text-muted hover:border-galaxy-text-muted/40'
       }`}
     >
       {selected && (

@@ -32,7 +32,7 @@ export default function AvatarDisplay({ size = 120, mini = false, className = ''
 
   return (
     <div
-      className={`rounded-full overflow-hidden shrink-0 flex items-center justify-center bg-galaxy-bg-light border-2 border-galaxy-text-muted/20 ${className}`}
+      className={`rounded-full overflow-hidden shrink-0 flex items-center justify-center glass border-2 border-galaxy-text-muted/20 ${className}`}
       style={{ width: size, height: size }}
     >
       <svg viewBox="0 0 100 100" width={size * 0.75} height={size * 0.75}>

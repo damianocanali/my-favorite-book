@@ -4,7 +4,7 @@ export default function QuantityStepper({ value, onChange, min = 1, max = 10 }) 
   const dec = () => onChange(Math.max(min, value - 1))
   const inc = () => onChange(Math.min(max, value + 1))
   return (
-    <div className="inline-flex items-center gap-3 bg-galaxy-bg-light border border-galaxy-text-muted/20 rounded-xl p-1">
+    <div className="inline-flex items-center gap-3 glass border border-galaxy-text-muted/20 rounded-xl p-1">
       <button
         type="button"
         onClick={dec}

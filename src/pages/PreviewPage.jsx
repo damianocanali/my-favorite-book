@@ -134,7 +134,7 @@ export default function PreviewPage() {
 
           <button
             onClick={() => navigate(`/order/${book.id}`)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-galaxy-bg-light border border-galaxy-text-muted/20 text-galaxy-text-muted hover:text-galaxy-text hover:border-galaxy-text-muted/40 transition-colors text-sm"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg glass border border-galaxy-text-muted/20 text-galaxy-text-muted hover:text-galaxy-text hover:border-galaxy-text-muted/40 transition-colors text-sm"
             title="Order a printed copy"
           >
             <Printer size={14} />
@@ -252,7 +252,7 @@ export default function PreviewPage() {
             exit={{ opacity: 0, y: 40 }}
             transition={{ delay: 1.2, type: 'spring', stiffness: 200, damping: 20 }}
           >
-            <div className="bg-galaxy-bg-light border border-galaxy-primary/40 rounded-2xl px-5 py-4 shadow-glow flex items-start gap-3">
+            <div className="glass border border-galaxy-primary/40 rounded-2xl px-5 py-4 shadow-glow flex items-start gap-3">
               <Shield size={20} className="text-galaxy-primary shrink-0 mt-0.5" />
               <div className="flex-1 min-w-0">
                 <p className="text-galaxy-text font-body text-sm font-semibold mb-0.5">

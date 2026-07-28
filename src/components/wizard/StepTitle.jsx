@@ -38,7 +38,7 @@ export default function StepTitle({ onNext }) {
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="My Amazing Adventure..."
-          className="w-full px-6 py-4 text-xl font-heading text-center bg-galaxy-bg-light border-2 border-galaxy-primary/30 rounded-2xl text-galaxy-text placeholder:text-galaxy-text-muted/50 focus:border-galaxy-primary focus:outline-none focus:shadow-glow-purple transition-all"
+          className="w-full px-6 py-4 text-xl font-heading text-center glass border-2 border-galaxy-primary/30 rounded-2xl text-galaxy-text placeholder:text-galaxy-text-muted/50 focus:border-galaxy-primary focus:outline-none focus:shadow-glow-purple transition-all"
           maxLength={60}
           autoFocus
         />
@@ -50,7 +50,7 @@ export default function StepTitle({ onNext }) {
       {/* Live preview */}
       {title && (
         <motion.div
-          className="relative bg-galaxy-bg-light rounded-2xl p-8 border border-galaxy-primary/20 w-full max-w-sm"
+          className="relative glass rounded-2xl p-8 border border-galaxy-primary/20 w-full max-w-sm"
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
         >

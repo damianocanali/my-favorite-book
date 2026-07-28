@@ -63,7 +63,7 @@ export default function StoryBuddy({ page, onInsertText }) {
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            className="mt-3 bg-galaxy-bg-light rounded-2xl border border-galaxy-secondary/20 overflow-hidden"
+            className="mt-3 glass rounded-2xl border border-galaxy-secondary/20 overflow-hidden"
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
@@ -196,7 +196,7 @@ export default function StoryBuddy({ page, onInsertText }) {
                             </button>
                             <button
                               onClick={handleGenerate}
-                              className="px-3 py-1.5 bg-galaxy-bg-light text-galaxy-text-muted rounded-lg text-xs font-body font-semibold cursor-pointer hover:text-galaxy-text transition-colors"
+                              className="px-3 py-1.5 glass text-galaxy-text-muted rounded-lg text-xs font-body font-semibold cursor-pointer hover:text-galaxy-text transition-colors"
                             >
                               Try Another
                             </button>

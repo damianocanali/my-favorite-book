@@ -39,26 +39,43 @@ export default function PaymentSheetModal({ open, clientSecret, returnUrl, onClo
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 80, opacity: 0 }}
           transition={{ type: 'spring', stiffness: 300, damping: 28 }}
-          className="relative w-full max-w-md bg-white rounded-2xl p-6 max-h-[90vh] overflow-y-auto text-gray-900"
+          // Was the one light surface in an otherwise dark app. Now the
+          // iOS modal recipe: 24px radius, purple-gradient fill, purple glow.
+          className="relative w-full max-w-md rounded-modal p-6 max-h-[90vh] overflow-y-auto text-white bg-gradient-to-br from-[#38246B] to-[#662E80] shadow-glow-modal"
           onClick={(e) => e.stopPropagation()}
         >
           <button
             onClick={onClose}
             aria-label="Close"
-            className="absolute top-3 right-3 p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100"
+            className="absolute top-3 right-3 p-1.5 rounded-lg text-white/50 hover:text-white hover:bg-white/10 transition-colors"
           >
             <X size={18} />
           </button>
           <h2 className="font-heading text-xl font-bold mb-4">Payment</h2>
 
           {!stripe || !clientSecret ? (
-            <div className="flex items-center justify-center py-12 text-gray-500">
+            <div className="flex items-center justify-center py-12 text-white/60">
               <Loader2 className="animate-spin" />
             </div>
           ) : (
             <Elements
               stripe={stripe}
-              options={{ clientSecret, appearance: { theme: 'stripe' } }}
+              options={{
+                clientSecret,
+                // Match the surrounding dark modal so Stripe's iframe
+                // doesn't punch a white rectangle through it.
+                appearance: {
+                  theme: 'night',
+                  variables: {
+                    colorPrimary: '#BF5AF2',
+                    colorBackground: '#2C204C',
+                    colorText: '#FFFFFF',
+                    colorDanger: '#FF453A',
+                    borderRadius: '12px',
+                    fontFamily: 'Nunito, system-ui, sans-serif',
+                  },
+                },
+              }}
             >
               <PaymentForm returnUrl={returnUrl} />
             </Elements>
@@ -101,7 +118,7 @@ function PaymentForm({ returnUrl }) {
       <button
         type="submit"
         disabled={!stripe || submitting}
-        className="mt-4 w-full py-3 rounded-xl bg-purple-600 text-white font-heading font-bold hover:bg-purple-700 transition-colors disabled:opacity-50"
+        className="mt-4 w-full py-3 rounded-full border-[1.5px] border-white/30 bg-gradient-to-b from-btn-primary-from to-btn-primary-to text-white font-heading font-bold shadow-glow-purple transition-shadow hover:shadow-[0_8px_34px_rgba(191,90,242,0.7)] disabled:opacity-50"
       >
         {submitting ? (
           <span className="flex items-center justify-center gap-2">

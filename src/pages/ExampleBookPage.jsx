@@ -62,7 +62,7 @@ export default function ExampleBookPage() {
           </button>
           <button
             onClick={() => navigate('/pricing')}
-            className="flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-galaxy-bg-light border border-galaxy-text-muted/20 text-galaxy-text hover:border-galaxy-text-muted/40 transition-colors"
+            className="flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl glass border border-galaxy-text-muted/20 text-galaxy-text hover:border-galaxy-text-muted/40 transition-colors"
           >
             <Printer size={16} />
             See pricing

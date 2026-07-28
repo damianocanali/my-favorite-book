@@ -40,7 +40,7 @@ export default function StoryProgressMap() {
                   ? 'w-9 h-9 border-2 border-galaxy-primary bg-galaxy-primary/20'
                   : hasText
                     ? 'w-7 h-7 border-2 border-galaxy-secondary/60 bg-galaxy-secondary/15'
-                    : 'w-7 h-7 border-2 border-galaxy-text-muted/20 bg-galaxy-bg-light'
+                    : 'w-7 h-7 border-2 border-galaxy-text-muted/20 glass'
               }`}
               whileHover={{ scale: 1.15 }}
               whileTap={{ scale: 0.9 }}

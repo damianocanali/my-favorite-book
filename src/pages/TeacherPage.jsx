@@ -90,7 +90,7 @@ export default function TeacherPage() {
 
       {/* Create class form */}
       <motion.div
-        className="bg-galaxy-bg-light rounded-2xl p-6 border border-galaxy-secondary/20 mb-8"
+        className="glass rounded-2xl p-6 border border-galaxy-secondary/20 mb-8"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
@@ -130,7 +130,7 @@ export default function TeacherPage() {
             {savedClasses.map((cls) => (
               <div
                 key={cls.code}
-                className="bg-galaxy-bg-light rounded-xl p-4 border border-galaxy-text-muted/10 flex items-center justify-between gap-3"
+                className="glass rounded-xl p-4 border border-galaxy-text-muted/10 flex items-center justify-between gap-3"
               >
                 <div>
                   <p className="font-heading font-semibold text-galaxy-text">{cls.name}</p>

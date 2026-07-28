@@ -11,7 +11,7 @@ function DeleteConfirmModal({ title, onConfirm, onCancel }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/60" onClick={onCancel} />
       <motion.div
-        className="relative bg-galaxy-bg-light rounded-2xl p-6 max-w-sm w-full border border-galaxy-text-muted/20 shadow-2xl text-center space-y-4"
+        className="relative glass rounded-2xl p-6 max-w-sm w-full border border-galaxy-text-muted/20 shadow-2xl text-center space-y-4"
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.9, opacity: 0 }}
@@ -24,7 +24,7 @@ function DeleteConfirmModal({ title, onConfirm, onCancel }) {
         <div className="flex gap-3 justify-center">
           <button
             onClick={onCancel}
-            className="px-5 py-2 rounded-xl font-body font-semibold text-galaxy-text bg-galaxy-bg border border-galaxy-text-muted/30 hover:border-galaxy-text-muted/60 transition-colors"
+            className="px-5 py-2 rounded-xl font-body font-semibold text-galaxy-text glass border border-white/15 hover:border-galaxy-text-muted/60 transition-colors"
           >
             Cancel
           </button>
