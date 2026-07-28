@@ -21,7 +21,7 @@ export default function BookFinishedModal({ book, open, onClose }) {
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 100, opacity: 0 }}
             transition={{ type: 'spring', stiffness: 320, damping: 28 }}
-            className="relative w-full max-w-md glass rounded-2xl p-6 text-center"
+            className="relative w-full max-w-md rounded-modal p-6 text-center bg-gradient-to-br from-[#38246B] to-[#662E80] shadow-glow-modal"
             onClick={(e) => e.stopPropagation()}
           >
             <button onClick={onClose} aria-label="Close" className="absolute top-3 right-3 p-1.5 rounded-lg text-galaxy-text-muted hover:bg-galaxy-bg">

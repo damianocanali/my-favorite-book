@@ -29,7 +29,7 @@ export default function ParentalGate({ onPass, onClose }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/60" onClick={onClose} />
       <motion.div
-        className="relative glass rounded-2xl p-6 max-w-sm w-full border border-galaxy-primary/30 shadow-2xl"
+        className="relative rounded-modal p-6 max-w-sm w-full bg-gradient-to-br from-[#38246B] to-[#662E80] shadow-glow-modal"
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ duration: 0.15 }}
