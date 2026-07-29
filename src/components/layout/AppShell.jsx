@@ -7,6 +7,7 @@ import AvatarDisplay from '../avatar/AvatarDisplay'
 import AppLogo from '../ui/AppLogo'
 import CosmicBackground from './CosmicBackground'
 import TabBar from './TabBar'
+import { PAGE_ACTIONS_ID } from './PageActions'
 
 // Shell mirrors the native app: a translucent bottom tab bar for the five
 // primary destinations (see TabBar.jsx), and a slim, mostly-transparent
@@ -55,6 +56,13 @@ export default function AppShell({ children }) {
             My Book Lab
           </span>
         </Link>
+
+        {/* Per-page actions (back / publish / print / edit …) live here
+            rather than in a row inside the page — see PageActions. */}
+        <div
+          id={PAGE_ACTIONS_ID}
+          className="flex min-w-0 flex-1 items-center justify-end gap-1.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        />
 
         <div className="flex flex-shrink-0 items-center gap-1 sm:gap-2">
           <Link to="/pricing" className={headerLink(location.pathname === '/pricing')}>
