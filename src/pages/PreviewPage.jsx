@@ -1,12 +1,13 @@
 import { useState } from 'react'
 import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom'
 import { motion, AnimatePresence } from 'motion/react'
-import { ArrowLeft, Edit3, Printer, Send, X, Shield, Globe, Check, Loader2 } from 'lucide-react'
+import { ArrowLeft, Edit3, Printer, FileDown, Send, X, Shield, Globe, Check, Loader2 } from 'lucide-react'
 import { useBookshelfStore } from '../stores/useBookshelfStore'
 import { useBookStore } from '../stores/useBookStore'
 import { useSubscription } from '../hooks/useSubscription'
 import { useAuthStore } from '../stores/useAuthStore'
 import BookPreview from '../components/book/BookPreview'
+import PageActions from '../components/layout/PageActions'
 import PrintableBook from '../components/print/PrintableBook'
 import SubmitToClassModal from '../components/classroom/SubmitToClassModal'
 import BookFinishedModal from '../components/print/BookFinishedModal'
@@ -83,97 +84,95 @@ export default function PreviewPage() {
   }
 
   return (
-    <div className={isNative ? 'py-2 px-2 flex flex-col h-[calc(100dvh-60px)]' : 'py-6 px-4'}>
-      {/* Header */}
-      <motion.div
-        className={`mx-auto flex items-center justify-between gap-2 ${isNative ? 'w-full mb-2 px-2' : 'max-w-3xl mb-6'}`}
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-      >
+    <div className={isNative ? 'py-2 px-2 flex flex-col h-[calc(100dvh-60px)]' : 'py-3 px-4'}>
+      {/* Actions live in the nav bar so the book gets the vertical space.
+          Every button shares .toolbar-btn, so they're all the same height
+          and radius — Edit used to be a SparkleButton and stood out. */}
+      <PageActions>
         <button
           onClick={() => navigate('/bookshelf')}
-          className="flex items-center gap-2 text-galaxy-text-muted hover:text-galaxy-text transition-colors cursor-pointer font-body"
+          className="toolbar-btn"
+          title="Back to bookshelf"
         >
-          <ArrowLeft size={18} />
-          {!isNative && 'Back to Bookshelf'}
+          <ArrowLeft size={15} />
+          <span className="toolbar-btn__label">Bookshelf</span>
         </button>
 
-        <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap justify-end">
-          {/* Submit to class */}
+        <button
+          onClick={() => setShowSubmitModal(true)}
+          className="toolbar-btn toolbar-btn--cyan"
+          title="Submit to class"
+        >
+          <Send size={15} />
+          <span className="toolbar-btn__label">Submit to Class</span>
+        </button>
+
+        {user && !publishedUrl && (
           <button
-            onClick={() => setShowSubmitModal(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-body font-semibold text-galaxy-secondary border border-galaxy-secondary/40 hover:bg-galaxy-secondary/10 transition-colors"
+            onClick={handlePublish}
+            disabled={publishing}
+            className="toolbar-btn toolbar-btn--primary"
+            title="Publish to the gallery"
           >
-            <Send size={14} />
-            {!isNative && 'Submit to Class'}
+            {publishing ? <Loader2 size={15} className="animate-spin" /> : <Globe size={15} />}
+            <span className="toolbar-btn__label">{publishing ? 'Publishing…' : 'Publish'}</span>
           </button>
-
-          {/* Publish / Share */}
-          {user && !publishedUrl && (
-            <button
-              onClick={handlePublish}
-              disabled={publishing}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-body font-semibold text-galaxy-primary border border-galaxy-primary/40 hover:bg-galaxy-primary/10 transition-colors"
-            >
-              {publishing ? <Loader2 size={14} className="animate-spin" /> : <Globe size={14} />}
-              {!isNative && (publishing ? 'Publishing...' : 'Publish')}
-            </button>
-          )}
-          {publishedUrl && (
-            <button
-              onClick={() => {
-                navigator.clipboard.writeText(publishedUrl)
-                if (navigator.share) navigator.share({ title: book.title, url: publishedUrl })
-              }}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-body font-semibold text-green-400 border border-green-400/40 bg-green-400/5"
-            >
-              <Check size={14} />
-              {!isNative && 'Share Link'}
-            </button>
-          )}
-
+        )}
+        {publishedUrl && (
           <button
-            onClick={() => navigate(`/order/${book.id}`)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg glass border border-galaxy-text-muted/20 text-galaxy-text-muted hover:text-galaxy-text hover:border-galaxy-text-muted/40 transition-colors text-sm"
-            title="Order a printed copy"
+            onClick={() => {
+              navigator.clipboard.writeText(publishedUrl)
+              if (navigator.share) navigator.share({ title: book.title, url: publishedUrl })
+            }}
+            className="toolbar-btn toolbar-btn--green"
+            title="Copy share link"
           >
-            <Printer size={14} />
-            {!isNative && 'Print'}
+            <Check size={15} />
+            <span className="toolbar-btn__label">Share Link</span>
           </button>
+        )}
 
-          {/* Print / Save as PDF */}
-          {!isNative && (
-            <button
-              onClick={handlePrint}
-              title={plan.pdfExport ? 'Print or save as PDF' : 'Upgrade to export PDF'}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-body font-semibold text-galaxy-text-muted border border-galaxy-text-muted/30 hover:text-galaxy-text hover:border-galaxy-text-muted/60 transition-colors"
-            >
-              <Printer size={14} />
-              {plan.pdfExport ? 'Print / PDF' : '🔒 Print / PDF'}
-            </button>
-          )}
+        <button
+          onClick={() => navigate(`/order/${book.id}`)}
+          className="toolbar-btn"
+          title="Order a printed copy"
+        >
+          <Printer size={15} />
+          <span className="toolbar-btn__label">Print</span>
+        </button>
 
-          <SparkleButton onClick={handleEdit} variant="secondary" size="small">
-            <span className="flex items-center gap-2">
-              <Edit3 size={16} /> Edit
+        {!isNative && (
+          <button
+            onClick={handlePrint}
+            className="toolbar-btn"
+            title={plan.pdfExport ? 'Print or save as PDF' : 'Upgrade to export PDF'}
+          >
+            <FileDown size={15} />
+            <span className="toolbar-btn__label">
+              {plan.pdfExport ? 'PDF' : '🔒 PDF'}
             </span>
-          </SparkleButton>
-        </div>
-      </motion.div>
+          </button>
+        )}
 
-      {/* Book title */}
+        <button onClick={handleEdit} className="toolbar-btn toolbar-btn--primary" title="Edit book">
+          <Edit3 size={15} />
+          <span className="toolbar-btn__label">Edit</span>
+        </button>
+      </PageActions>
+
+      {/* Title — one compact line so it costs the book as little as possible */}
       <motion.div
-        className={`text-center ${isNative ? 'mb-2' : 'mb-6'}`}
+        className={`text-center ${isNative ? 'mb-2' : 'mb-3'}`}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.2 }}
       >
-        <h1 className={`font-heading font-bold text-galaxy-text mb-0.5 ${isNative ? 'text-xl' : 'text-3xl'}`}>
+        <h1 className={`font-heading font-bold text-galaxy-text ${isNative ? 'text-lg' : 'text-xl'}`}>
           {book.title}
+          <span className="ml-2 font-body text-sm font-normal text-galaxy-text-muted">
+            by {book.authorName}
+          </span>
         </h1>
-        <p className={`text-galaxy-text-muted font-body ${isNative ? 'text-sm' : ''}`}>
-          by {book.authorName}
-        </p>
       </motion.div>
 
       {/* Book preview */}
@@ -246,7 +245,9 @@ export default function PreviewPage() {
       <AnimatePresence>
         {!user && !nudgeDismissed && !isNative && (
           <motion.div
-            className="fixed bottom-[calc(1.5rem+var(--sab,0px))] left-1/2 -translate-x-1/2 z-50 w-full max-w-md px-4"
+            // Sits above the tab bar AND the flip controls — at the old
+            // 1.5rem it landed right on top of the page arrows.
+            className="fixed bottom-[calc(9rem+var(--sab,0px))] left-1/2 -translate-x-1/2 z-50 w-full max-w-md px-4"
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 40 }}

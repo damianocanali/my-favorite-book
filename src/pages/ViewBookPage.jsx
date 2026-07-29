@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'motion/react'
-import { BookOpen, Share2, Loader2, ArrowLeft, Trash2 } from 'lucide-react'
+import { BookOpen, Share2, Loader2, ArrowLeft, Trash2, X } from 'lucide-react'
 import { apiFetch, apiFetchAuthed } from '../lib/api'
 import BookPreview from '../components/book/BookPreview'
+import PageActions from '../components/layout/PageActions'
 import { useAuthStore } from '../stores/useAuthStore'
 
 const STICKERS = ['❤️', '⭐', '😍', '🎉', '👏', '🦄', '🌈', '🔥', '💎', '🫶']
@@ -123,64 +124,63 @@ export default function ViewBookPage() {
 
   return (
     <div className="min-h-screen px-4 py-3 sm:py-6">
-      {/* Header */}
-      <div className="max-w-3xl mx-auto mb-3 sm:mb-6">
-        <div className="flex items-center justify-between gap-4 flex-wrap">
-          <div className="flex items-center gap-3 min-w-0">
-            <Link
-              to="/gallery"
-              className="text-galaxy-text-muted hover:text-galaxy-text transition-colors shrink-0"
-            >
-              <ArrowLeft size={20} />
-            </Link>
-            <div className="min-w-0">
-              <h1 className="font-heading text-xl sm:text-2xl font-bold text-galaxy-text truncate">
-                {book.title}
-              </h1>
-              <p className="text-galaxy-text-muted font-body text-sm">
-                by {book.authorName}{book.authorAge ? `, age ${book.authorAge}` : ''}
-              </p>
-            </div>
-          </div>
+      {/* Actions go in the nav bar (same treatment as PreviewPage) so the
+          book keeps the vertical space; every button is one .toolbar-btn
+          box so they line up. */}
+      <PageActions>
+        <Link to="/gallery" className="toolbar-btn" title="Back to gallery">
+          <ArrowLeft size={15} />
+          <span className="toolbar-btn__label">Gallery</span>
+        </Link>
 
-          <div className="flex items-center gap-2 shrink-0">
-            {user && publishedUserId === user.id && (
-              confirmRemove ? (
-                <div className="flex items-center gap-2">
-                  <span className="text-galaxy-text-muted font-body text-xs">Remove from gallery?</span>
-                  <button
-                    onClick={handleRemove}
-                    disabled={removing}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-red-500/10 border border-red-500/40 text-red-400 hover:bg-red-500/20 transition-colors text-sm font-body font-semibold"
-                  >
-                    {removing ? <Loader2 size={14} className="animate-spin" /> : 'Yes, remove'}
-                  </button>
-                  <button
-                    onClick={() => setConfirmRemove(false)}
-                    className="text-galaxy-text-muted hover:text-galaxy-text transition-colors text-sm font-body"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              ) : (
-                <button
-                  onClick={() => setConfirmRemove(true)}
-                  className="flex items-center gap-2 px-4 py-2 rounded-full glass border border-galaxy-text-muted/20 text-galaxy-text-muted hover:text-red-400 hover:border-red-400/40 transition-colors text-sm font-body"
-                >
-                  <Trash2 size={16} />
-                  Remove
-                </button>
-              )
-            )}
+        {user && publishedUserId === user.id && (
+          confirmRemove ? (
+            <>
+              <button
+                onClick={handleRemove}
+                disabled={removing}
+                className="toolbar-btn toolbar-btn--danger"
+                title="Confirm removal from the gallery"
+              >
+                {removing ? <Loader2 size={15} className="animate-spin" /> : <Trash2 size={15} />}
+                <span className="toolbar-btn__label">Yes, remove</span>
+              </button>
+              <button
+                onClick={() => setConfirmRemove(false)}
+                className="toolbar-btn"
+                title="Keep in gallery"
+              >
+                <span className="toolbar-btn__label">Cancel</span>
+                <X size={15} className="lg:hidden" />
+              </button>
+            </>
+          ) : (
             <button
-              onClick={handleShare}
-              className="flex items-center gap-2 px-4 py-2 rounded-full glass border border-galaxy-text-muted/20 text-galaxy-text-muted hover:text-galaxy-text hover:border-galaxy-primary/40 transition-colors text-sm font-body"
+              onClick={() => setConfirmRemove(true)}
+              className="toolbar-btn"
+              title="Remove from gallery"
             >
-              <Share2 size={16} />
-              {copied ? 'Link Copied!' : 'Share'}
+              <Trash2 size={15} />
+              <span className="toolbar-btn__label">Remove</span>
             </button>
-          </div>
-        </div>
+          )
+        )}
+
+        <button onClick={handleShare} className="toolbar-btn toolbar-btn--primary" title="Share this book">
+          <Share2 size={15} />
+          <span className="toolbar-btn__label">{copied ? 'Link Copied!' : 'Share'}</span>
+        </button>
+      </PageActions>
+
+      {/* Title — one compact line, as on the preview screen */}
+      <div className="text-center mb-3">
+        <h1 className="font-heading text-xl font-bold text-galaxy-text">
+          {book.title}
+          <span className="ml-2 font-body text-sm font-normal text-galaxy-text-muted">
+            by {book.authorName}
+            {book.authorAge ? `, age ${book.authorAge}` : ''}
+          </span>
+        </h1>
       </div>
 
       {/* Book Viewer */}
