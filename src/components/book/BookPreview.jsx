@@ -15,75 +15,116 @@ const BookPageWrapper = React.forwardRef(({ children }, ref) => (
 ))
 BookPageWrapper.displayName = 'BookPageWrapper'
 
-function useBookDimensions() {
-  const [dimensions, setDimensions] = useState(() => calcDimensions())
+const PAGE_ASPECT = 3 / 4 // width / height
 
-  function calcDimensions() {
-    const w = window.innerWidth
-    const h = window.innerHeight
+// Everything between the measuring probe and the bottom of the safe area:
+// the probe→book gap (12), the book→controls gap (12), the 48px control
+// buttons, and the fixed tab bar plus home indicator, with a few px spare.
+const CONTROLS_H = 76
+const TABBAR_H = 84
+// Floor for very short screens. Below this the book is unreadable, so we
+// let the page scroll instead of shrinking further.
+const MIN_BOOK_H = 240
 
-    if (isNative) {
-      // Fullscreen on mobile — use nearly all available space
-      const maxW = w - 16
-      const maxH = h - 120 // leave room for controls
-      const aspect = 3 / 4
-      let bookW = maxW
-      let bookH = bookW / aspect
-      if (bookH > maxH) {
-        bookH = maxH
-        bookW = bookH * aspect
-      }
-      return {
-        width: Math.floor(bookW),
-        height: Math.floor(bookH),
-        minWidth: Math.floor(bookW * 0.9),
-        maxWidth: Math.floor(bookW),
-        minHeight: Math.floor(bookH * 0.9),
-        maxHeight: Math.floor(bookH),
-      }
-    }
-
-    // Web — much bigger than before, responsive to viewport
-    if (w >= 1280) {
-      return { width: 520, height: 690, minWidth: 460, maxWidth: 600, minHeight: 610, maxHeight: 800 }
-    }
-    if (w >= 768) {
-      return { width: 440, height: 580, minWidth: 380, maxWidth: 540, minHeight: 500, maxHeight: 720 }
-    }
-    // Small screens (mobile web)
-    const maxW = w - 32
-    const maxH = h - 160
-    const aspect = 3 / 4
-    let bookW = Math.min(maxW, 400)
-    let bookH = bookW / aspect
-    if (bookH > maxH) {
-      bookH = maxH
-      bookW = bookH * aspect
-    }
-    return {
-      width: Math.floor(bookW),
-      height: Math.floor(bookH),
-      minWidth: Math.floor(bookW * 0.85),
-      maxWidth: Math.floor(bookW),
-      minHeight: Math.floor(bookH * 0.85),
-      maxHeight: Math.floor(bookH),
-    }
+/**
+ * Sizes the book so the book AND its flip controls fit on screen together.
+ *
+ * The old version subtracted a fixed 160px from the window height, which
+ * ignored both the page's own heading block and the bottom tab bar — so
+ * the controls ended up below the fold and you had to scroll down to
+ * flip, then back up to read. Instead we measure where the reader
+ * actually starts in the viewport, so it adapts to whatever sits above
+ * it on any given page.
+ */
+function sizeFrom(bookW, bookH) {
+  const w = Math.floor(bookW)
+  const h = Math.floor(bookH)
+  return {
+    width: w,
+    height: h,
+    minWidth: w,
+    maxWidth: w,
+    minHeight: h,
+    maxHeight: h,
   }
+}
+
+function useFittedBookSize(containerRef) {
+  // Seeded synchronously so the first render already has usable numbers —
+  // react-pageflip needs real dimensions, it can't take null.
+  const [dimensions, setDimensions] = useState(() => {
+    if (typeof window === 'undefined') return sizeFrom(300, 400)
+    const viewportH = window.visualViewport?.height ?? window.innerHeight
+    const h = Math.max(MIN_BOOK_H, viewportH - 200 - CONTROLS_H - TABBAR_H)
+    const w = Math.min(h * PAGE_ASPECT, Math.max(200, window.innerWidth - 40))
+    return sizeFrom(w, w / PAGE_ASPECT > h ? h : w / PAGE_ASPECT)
+  })
+
+  // `containerRef` points at a zero-height, full-width sentinel sitting
+  // exactly where the book starts. Measuring THAT (rather than the book's
+  // own wrapper, which shrinks to fit its content) gives a stable read of
+  // both the available width and the reader's offset — measuring the
+  // wrapper fed the book's size back into itself and pinned it at the
+  // minimum.
+  const measure = useCallback(() => {
+    const el = containerRef.current
+    if (!el) return
+    const viewportH = window.visualViewport?.height ?? window.innerHeight
+    const topInViewport = el.getBoundingClientRect().top
+    const available = viewportH - topInViewport - CONTROLS_H - TABBAR_H
+
+    let bookH = Math.max(MIN_BOOK_H, available)
+    let bookW = bookH * PAGE_ASPECT
+
+    const maxW = Math.max(200, el.clientWidth - 16)
+    if (bookW > maxW) {
+      bookW = maxW
+      bookH = bookW / PAGE_ASPECT
+    }
+    // Desktop: don't blow the book up to full-screen height.
+    if (window.innerWidth >= 1024) {
+      bookH = Math.min(bookH, 720)
+      bookW = bookH * PAGE_ASPECT
+    }
+
+    const next = sizeFrom(bookW, bookH)
+    setDimensions((prev) =>
+      prev && prev.width === next.width && prev.height === next.height ? prev : next
+    )
+  }, [containerRef])
 
   useEffect(() => {
-    const onResize = () => setDimensions(calcDimensions())
-    window.addEventListener('resize', onResize)
-    return () => window.removeEventListener('resize', onResize)
-  }, [])
+    // Re-measure across a few frames: the first paint happens before
+    // webfonts and the hero image settle, and the reader's offset moves
+    // when they do.
+    measure()
+    const raf = requestAnimationFrame(measure)
+    const t1 = setTimeout(measure, 150)
+    const t2 = setTimeout(measure, 600)
+
+    const ro = new ResizeObserver(measure)
+    if (containerRef.current) ro.observe(containerRef.current)
+    window.addEventListener('resize', measure)
+    window.visualViewport?.addEventListener('resize', measure)
+    return () => {
+      cancelAnimationFrame(raf)
+      clearTimeout(t1)
+      clearTimeout(t2)
+      ro.disconnect()
+      window.removeEventListener('resize', measure)
+      window.visualViewport?.removeEventListener('resize', measure)
+    }
+  }, [measure, containerRef])
 
   return dimensions
 }
 
 export default function BookPreview({ book, includeBackMatter = false }) {
   const flipBookRef = useRef(null)
+  const containerRef = useRef(null)
   const [currentPage, setCurrentPage] = useState(0)
   const [totalPages, setTotalPages] = useState(0)
-  const dims = useBookDimensions()
+  const dims = useFittedBookSize(containerRef)
 
   const onFlip = useCallback((e) => {
     setCurrentPage(e.data)
@@ -91,6 +132,18 @@ export default function BookPreview({ book, includeBackMatter = false }) {
 
   const onInit = useCallback((e) => {
     setTotalPages(e.data.pages)
+  }, [])
+
+  // Arrow keys turn pages on desktop, matching the on-screen controls.
+  useEffect(() => {
+    const onKey = (e) => {
+      const t = e.target
+      if (t instanceof HTMLElement && /^(INPUT|TEXTAREA)$/.test(t.tagName)) return
+      if (e.key === 'ArrowLeft') flipBookRef.current?.pageFlip()?.flipPrev()
+      if (e.key === 'ArrowRight') flipBookRef.current?.pageFlip()?.flipNext()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
   }, [])
 
   if (!book) return null
@@ -149,13 +202,18 @@ export default function BookPreview({ book, includeBackMatter = false }) {
 
   return (
     <motion.div
-      className="flex flex-col items-center gap-4"
+      className="flex w-full flex-col items-center gap-3"
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.5 }}
     >
-      {/* Book container with decorative shadow */}
-      <div className="relative">
+      {/* Zero-height, full-width probe: see useFittedBookSize. */}
+      <div ref={containerRef} className="h-0 w-full" aria-hidden="true" />
+
+      {/* Explicit size here stops react-pageflip's size="stretch" from
+          resolving width:100% against a shrink-to-fit parent and
+          collapsing the book to its minimum. */}
+      <div className="relative" style={{ width: dims.width, height: dims.height }}>
         {/* Cosmic glow behind book */}
         <div
           className="absolute -inset-8 rounded-3xl blur-2xl opacity-20"

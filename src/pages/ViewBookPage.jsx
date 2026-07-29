@@ -122,9 +122,9 @@ export default function ViewBookPage() {
   }
 
   return (
-    <div className="min-h-screen px-4 py-6">
+    <div className="min-h-screen px-4 py-3 sm:py-6">
       {/* Header */}
-      <div className="max-w-3xl mx-auto mb-6">
+      <div className="max-w-3xl mx-auto mb-3 sm:mb-6">
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div className="flex items-center gap-3 min-w-0">
             <Link
@@ -184,7 +184,7 @@ export default function ViewBookPage() {
       </div>
 
       {/* Book Viewer */}
-      <div className="flex justify-center mb-8">
+      <div className="flex justify-center mb-6 sm:mb-8">
         <BookPreview book={book} />
       </div>
 
