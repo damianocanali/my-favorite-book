@@ -3,7 +3,7 @@ import { motion } from 'motion/react'
 import HTMLFlipBook from 'react-pageflip'
 import React from 'react'
 import BookCover from './BookCover'
-import BookPage from './BookPage'
+import BookPage, { BookPageIllustration, BookPageText } from './BookPage'
 import PageFlipControls from './PageFlipControls'
 import { buildBackMatterPages } from './BackMatterPages'
 import { isNative } from '../../capacitor'
@@ -20,8 +20,8 @@ const PAGE_ASPECT = 3 / 4 // width / height
 // Everything between the measuring probe and the bottom of the safe area:
 // the probe→book gap (12), the book→controls gap (12), the 48px control
 // buttons, and the fixed tab bar plus home indicator, with a few px spare.
-const CONTROLS_H = 76
-const TABBAR_H = 84
+const CONTROLS_H = 68
+const TABBAR_H = 78
 // Floor for very short screens. Below this the book is unreadable, so we
 // let the page scroll instead of shrinking further.
 const MIN_BOOK_H = 240
@@ -49,7 +49,17 @@ function sizeFrom(bookW, bookH) {
   }
 }
 
-function useFittedBookSize(containerRef) {
+/**
+ * Two-up (illustration | text) only when there's genuinely room for it —
+ * a spread is twice as wide as a single page, so on a phone it would make
+ * both halves tiny. Below this the reader falls back to one combined page.
+ */
+function canSpread() {
+  if (typeof window === 'undefined') return false
+  return window.innerWidth >= 820
+}
+
+function useFittedBookSize(containerRef, spread) {
   // Seeded synchronously so the first render already has usable numbers —
   // react-pageflip needs real dimensions, it can't take null.
   const [dimensions, setDimensions] = useState(() => {
@@ -76,22 +86,28 @@ function useFittedBookSize(containerRef) {
     let bookH = Math.max(MIN_BOOK_H, available)
     let bookW = bookH * PAGE_ASPECT
 
-    const maxW = Math.max(200, el.clientWidth - 16)
-    if (bookW > maxW) {
-      bookW = maxW
+    // A spread is two pages wide, so it needs 2x the width budget. It's
+    // also allowed to break out of the page's narrow text column (the
+    // book is centred, so overflowing that column reads as intentional)
+    // — otherwise max-w-3xl would squeeze the spread back down.
+    const pagesWide = spread ? 2 : 1
+    const maxW = spread
+      ? Math.max(320, Math.min(window.innerWidth - 32, 1180))
+      : Math.max(200, el.clientWidth - 16)
+
+    if (bookW * pagesWide > maxW) {
+      bookW = maxW / pagesWide
       bookH = bookW / PAGE_ASPECT
     }
-    // Desktop: don't blow the book up to full-screen height.
-    if (window.innerWidth >= 1024) {
-      bookH = Math.min(bookH, 720)
-      bookW = bookH * PAGE_ASPECT
-    }
+    // Don't let the book grow past a comfortable reading height.
+    bookH = Math.min(bookH, 760)
+    bookW = bookH * PAGE_ASPECT
 
     const next = sizeFrom(bookW, bookH)
     setDimensions((prev) =>
       prev && prev.width === next.width && prev.height === next.height ? prev : next
     )
-  }, [containerRef])
+  }, [containerRef, spread])
 
   useEffect(() => {
     // Re-measure across a few frames: the first paint happens before
@@ -124,7 +140,14 @@ export default function BookPreview({ book, includeBackMatter = false }) {
   const containerRef = useRef(null)
   const [currentPage, setCurrentPage] = useState(0)
   const [totalPages, setTotalPages] = useState(0)
-  const dims = useFittedBookSize(containerRef)
+  const [spread, setSpread] = useState(canSpread)
+  const dims = useFittedBookSize(containerRef, spread)
+
+  useEffect(() => {
+    const onResize = () => setSpread(canSpread())
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
 
   const onFlip = useCallback((e) => {
     setCurrentPage(e.data)
@@ -164,12 +187,27 @@ export default function BookPreview({ book, includeBackMatter = false }) {
     <BookPageWrapper key="cover">
       <BookCover book={book} />
     </BookPageWrapper>,
-    // Story pages
-    ...book.pages.map((page) => (
-      <BookPageWrapper key={page.id}>
-        <BookPage page={page} book={book} />
-      </BookPageWrapper>
-    )),
+    // Story pages. In spread mode each story page becomes TWO flip pages
+    // so the open book reads illustration-left / text-right, the way a
+    // printed picture book does. showCover puts the cover alone on the
+    // right, so pages 1&2, 3&4 … pair up — keeping each illustration
+    // beside its own text.
+    ...book.pages.flatMap((page) =>
+      spread
+        ? [
+            <BookPageWrapper key={`${page.id}-art`}>
+              <BookPageIllustration page={page} book={book} />
+            </BookPageWrapper>,
+            <BookPageWrapper key={`${page.id}-text`}>
+              <BookPageText page={page} book={book} />
+            </BookPageWrapper>,
+          ]
+        : [
+            <BookPageWrapper key={page.id}>
+              <BookPage page={page} book={book} />
+            </BookPageWrapper>,
+          ]
+    ),
     ...backMatterPages,
     // Simple back cover — omitted when full back matter is rendered
     ...(includeBackMatter
@@ -213,7 +251,10 @@ export default function BookPreview({ book, includeBackMatter = false }) {
       {/* Explicit size here stops react-pageflip's size="stretch" from
           resolving width:100% against a shrink-to-fit parent and
           collapsing the book to its minimum. */}
-      <div className="relative" style={{ width: dims.width, height: dims.height }}>
+      <div
+        className="relative"
+        style={{ width: dims.width * (spread ? 2 : 1), height: dims.height }}
+      >
         {/* Cosmic glow behind book */}
         <div
           className="absolute -inset-8 rounded-3xl blur-2xl opacity-20"
@@ -224,6 +265,10 @@ export default function BookPreview({ book, includeBackMatter = false }) {
 
         <div className="relative shadow-2xl rounded-lg overflow-hidden">
           <HTMLFlipBook
+            // Switching between spread and single changes both the page
+            // count and portrait mode; react-pageflip only reads those at
+            // init, so remount it rather than leave a stale layout.
+            key={spread ? 'spread' : 'single'}
             ref={flipBookRef}
             width={dims.width}
             height={dims.height}
@@ -234,7 +279,7 @@ export default function BookPreview({ book, includeBackMatter = false }) {
             maxHeight={dims.maxHeight}
             showCover={true}
             flippingTime={800}
-            usePortrait={true}
+            usePortrait={!spread}
             startPage={0}
             drawShadow={true}
             maxShadowOpacity={0.3}

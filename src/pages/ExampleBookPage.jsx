@@ -15,14 +15,14 @@ export default function ExampleBookPage() {
 
   return (
     <div className="min-h-screen text-galaxy-text font-body">
-      <div className="max-w-3xl mx-auto px-4 py-4 sm:py-10">
+      <div className="max-w-3xl mx-auto px-4 py-4 sm:py-6">
         <motion.header
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-4 sm:mb-8"
         >
           <p className="text-galaxy-text-muted text-sm uppercase tracking-wide mb-2">A printed example</p>
-          <h1 className="font-heading text-2xl sm:text-3xl md:text-4xl font-bold mb-2 sm:mb-3">
+          <h1 className="font-heading text-2xl sm:text-3xl font-bold mb-2">
             What your printed book looks like
           </h1>
           <p className="text-galaxy-text-muted max-w-xl mx-auto">
@@ -31,7 +31,7 @@ export default function ExampleBookPage() {
         </motion.header>
 
         {/* Flip-book preview of the whole book — story + curated back matter */}
-        <div className="mb-6 sm:mb-10 flex justify-center">
+        <div className="mb-5 sm:mb-6 flex justify-center">
           <BookPreview book={SAMPLE_BOOK} includeBackMatter />
         </div>
 
