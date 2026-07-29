@@ -1,3 +1,92 @@
+const DEFAULT_COLORS = { cover: '#8B5CF6', accent: '#06B6D4', text: '#1E293B' }
+
+/** Shared paper background + decorative rules used by both half pages. */
+function Paper({ colors, children }) {
+  return (
+    <div className="w-full h-full bg-[#FFF8F0] flex flex-col relative overflow-hidden">
+      <div className="h-1.5 shrink-0" style={{ backgroundColor: colors.accent + '40' }} />
+      {children}
+      <div className="h-1 shrink-0" style={{ backgroundColor: colors.accent + '20' }} />
+    </div>
+  )
+}
+
+function PageNumber({ page, colors }) {
+  return (
+    <div className="pb-3 pt-1 text-center shrink-0">
+      <span
+        className="font-heading text-xs font-bold px-3 py-1 rounded-full"
+        style={{ backgroundColor: colors.cover + '15', color: colors.cover }}
+      >
+        {page.pageNumber}
+      </span>
+    </div>
+  )
+}
+
+/**
+ * Left half of a two-page spread: the illustration, full bleed.
+ * Only used by the on-screen reader in spread mode — the printed book
+ * (PrintableBook) keeps its own single-page layout.
+ */
+export function BookPageIllustration({ page, book }) {
+  const colors = book.colors ?? DEFAULT_COLORS
+  return (
+    <Paper colors={colors}>
+      <div
+        className="flex-1 flex items-center justify-center relative overflow-hidden"
+        style={
+          page.illustrationData
+            ? undefined
+            : { background: `linear-gradient(135deg, ${colors.cover}10, ${colors.accent}10)` }
+        }
+      >
+        {page.illustrationData ? (
+          <img
+            src={page.illustrationData}
+            alt={`Page ${page.pageNumber} illustration`}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="text-center">
+            {book.setting && (
+              <span className="text-5xl sm:text-7xl block mb-3">{book.setting.emoji}</span>
+            )}
+            <div className="flex justify-center gap-2">
+              {book.characters?.slice(0, 3).map((char) => (
+                <span key={char.id} className="text-3xl sm:text-4xl">
+                  {char.emoji}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </Paper>
+  )
+}
+
+/**
+ * Right half of a two-page spread: the story text, given the whole page
+ * so it can breathe at a comfortable reading size.
+ */
+export function BookPageText({ page, book }) {
+  const colors = book.colors ?? DEFAULT_COLORS
+  return (
+    <Paper colors={colors}>
+      <div className="flex-1 flex items-center px-7 py-6 overflow-auto">
+        <p
+          className="font-body text-lg sm:text-xl leading-relaxed"
+          style={{ color: '#2D3748' }}
+        >
+          {page.text || <span className="italic opacity-40">This page is blank...</span>}
+        </p>
+      </div>
+      <PageNumber page={page} colors={colors} />
+    </Paper>
+  )
+}
+
 export default function BookPage({ page, book }) {
   const colors = book.colors ?? { cover: '#8B5CF6', accent: '#06B6D4', text: '#1E293B' }
 
