@@ -184,13 +184,17 @@ export default function ViewBookPage() {
       </div>
 
       {/* Book Viewer */}
-      <div className="flex justify-center mb-6 sm:mb-8">
+      <div className="flex justify-center">
         <BookPreview book={book} />
       </div>
 
-      {/* Sticker Reactions */}
+      {/* Sticker Reactions. The reader is sized to fill the screen down to
+          the tab bar, so anything after it starts exactly at the fold —
+          without this margin the sticker row rendered underneath the fixed
+          tab bar. Pushing it clear puts it just below the fold, where a
+          short scroll reveals it properly. */}
       <motion.div
-        className="max-w-lg mx-auto"
+        className="max-w-lg mx-auto mt-28 sm:mt-32"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
