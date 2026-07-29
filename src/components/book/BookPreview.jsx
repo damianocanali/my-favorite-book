@@ -21,7 +21,10 @@ const PAGE_ASPECT = 3 / 4 // width / height
 // the probe→book gap (12), the book→controls gap (12), the 48px control
 // buttons, and the fixed tab bar plus home indicator, with a few px spare.
 const CONTROLS_H = 68
-const TABBAR_H = 78
+// Tab bar (72) + home indicator + real breathing room. At a tighter
+// value the arrows ended up flush against the tab bar — 2px of clearance
+// on a 694px-tall window, and clipped entirely on slightly shorter ones.
+const TABBAR_H = 96
 // Floor for very short screens. Below this the book is unreadable, so we
 // let the page scroll instead of shrinking further.
 const MIN_BOOK_H = 240
@@ -251,8 +254,13 @@ export default function BookPreview({ book, includeBackMatter = false }) {
       {/* Explicit size here stops react-pageflip's size="stretch" from
           resolving width:100% against a shrink-to-fit parent and
           collapsing the book to its minimum. */}
+      {/* The explicit size stops react-pageflip's size="stretch" from
+          collapsing against a shrink-to-fit parent. react-pageflip rounds
+          its own block width, so it can come out a little narrower than
+          this box — centre it, or that difference shows up as the whole
+          book sitting off to the left. */}
       <div
-        className="relative"
+        className="relative flex items-center justify-center"
         style={{ width: dims.width * (spread ? 2 : 1), height: dims.height }}
       >
         {/* Cosmic glow behind book */}
