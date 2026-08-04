@@ -150,12 +150,33 @@ final class AuthStore: NSObject {
         }
     }
 
-    func signUp(email: String, password: String, displayName: String?) async throws {
+    /// What actually happened, so the UI doesn't promise an email that was
+    /// never sent.
+    enum SignUpOutcome {
+        /// A confirmation email is genuinely on its way.
+        case confirmationSent
+        /// Confirmations are off — the account is active immediately.
+        case active
+        /// The address already has an account. Supabase returns success and
+        /// sends NOTHING (it won't confirm whether an account exists), so
+        /// telling the user to check their inbox leaves them waiting
+        /// forever. The tell is an empty `identities` array.
+        case alreadyRegistered
+    }
+
+    @discardableResult
+    func signUp(email: String, password: String, displayName: String?) async throws -> SignUpOutcome {
         var data: [String: AnyJSON] = [:]
         if let displayName, !displayName.isEmpty {
             data["display_name"] = .string(displayName)
         }
-        _ = try await supabase.auth.signUp(email: email, password: password, data: data.isEmpty ? nil : data)
+        let response = try await supabase.auth.signUp(
+            email: email, password: password, data: data.isEmpty ? nil : data
+        )
+        if response.user.identities?.isEmpty == true {
+            return .alreadyRegistered
+        }
+        return response.session != nil ? .active : .confirmationSent
     }
 
     func signOut() async {

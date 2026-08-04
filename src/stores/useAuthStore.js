@@ -41,7 +41,20 @@ export const useAuthStore = create((set) => ({
       options: { data: metadata, emailRedirectTo: redirectTo },
     })
     if (error) throw error
-    return data
+
+    // Supabase deliberately returns 200 with NO email sent when the address
+    // is already registered — it refuses to confirm whether an account
+    // exists (user-enumeration defence), logging `user_repeated_signup`
+    // server-side. The only tell in the response is an empty `identities`
+    // array. Without checking it we told people to go looking for a
+    // confirmation email that was never sent.
+    const identities = data?.user?.identities
+    if (Array.isArray(identities) && identities.length === 0) {
+      return { status: 'already_registered', data }
+    }
+    // A session means confirmations are off and they're signed in already;
+    // otherwise a confirmation email really is on its way.
+    return { status: data?.session ? 'active' : 'confirm_email', data }
   },
 
   signIn: async (email, password) => {

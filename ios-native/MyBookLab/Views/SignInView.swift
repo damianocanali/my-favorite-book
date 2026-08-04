@@ -199,8 +199,19 @@ struct SignInView: View {
                     auth.saveBiometricLogin()
                 }
             } else {
-                try await auth.signUp(email: email, password: password, displayName: displayName)
-                error = "Check your email to confirm your account."
+                let outcome = try await auth.signUp(
+                    email: email, password: password, displayName: displayName
+                )
+                switch outcome {
+                case .confirmationSent:
+                    error = "Check your email to confirm your account."
+                case .active:
+                    error = nil
+                case .alreadyRegistered:
+                    // No email was sent, so don't send them to their inbox.
+                    mode = .signIn
+                    error = "That email already has an account — sign in instead."
+                }
             }
         } catch {
             self.error = mode == .signIn
