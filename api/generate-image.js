@@ -2,6 +2,7 @@ import { checkRateLimit, handleCors, withCors } from './_rateLimit.js'
 import { logUsage, estimateTogetherImageCostCents } from './_usage.js'
 import { requireUser, validatePrompt, validateSourceImage, moderatePrompt, enforceDailyCap } from './_aiGuard.js'
 import { classifyAttestation, dailyCapFor, hourlyLimitFor } from './_appAttest.js'
+import { storeIllustration } from './_imageStore.js'
 
 export const config = { runtime: 'edge' }
 
@@ -137,7 +138,14 @@ export default async function handler(req) {
       cost_cents: estimateTogetherImageCostCents({ model, images: 1 }),
     })
 
-    return new Response(JSON.stringify({ image: `data:image/png;base64,${b64}` }), {
+    // Park the art in Storage and hand back a URL. Books sync with a URL
+    // intact, so the print pipeline can actually fetch the image — a
+    // base64 data URL got stripped to '[saved-locally]' on sync and
+    // printed as a broken image. Falls back to the data URL if Storage is
+    // unavailable, so a paid generation is never lost to a storage blip.
+    const stored = await storeIllustration(b64, auth.userId, isEdit ? 'edit' : 'page')
+
+    return new Response(JSON.stringify({ image: stored ?? `data:image/png;base64,${b64}` }), {
       status: 200,
       headers: withCors({ 'Content-Type': 'application/json' }),
     })
