@@ -68,14 +68,15 @@ ios-native/
 
 ## What's implemented today (feature-complete for 2.0.0)
 
-All phases of the original launch plan are built. The app compiles clean
-(`xcodebuild` → BUILD SUCCEEDED) and covers feature parity with the
-Capacitor build:
+All phases of the original launch plan are built, and this is the build
+shipping on the App Store:
 
 - ✅ Project structure + SwiftPM dependencies wired
 - ✅ Supabase client + session bootstrap on launch
 - ✅ Email + password sign-in
-- ✅ Sign in with Apple (native ASAuthorizationController flow)
+- ✅ Sign in with Apple (native ASAuthorizationController flow) — needs the
+  app's bundle id listed under the Supabase Apple provider's Client IDs,
+  or every attempt fails with "Unacceptable audience in id_token"
 - ✅ Sign in with Google (via Supabase OAuth + ASWebAuthenticationSession)
 - ✅ Face ID app lock (BiometricCredentials + Keychain)
 - ✅ Account screen with display-name edit + sign out
@@ -133,12 +134,18 @@ Code is ready; the open items are operational (see `LAUNCH-2.0.0.md` and
   else the buy flow shows "Unavailable"
 - Archive on a physical-device destination, upload to App Store Connect
 
-## Coexistence with the Capacitor build
+## This is the shipped iOS app
 
-While this native app is being built out, `../ios/` (the Capacitor build) remains the shipped iOS app. When the native build hits feature parity:
+**This native app is what ships on the App Store.** The Capacitor build in
+`../ios/` is retired — it is kept only for reference and is no longer
+released.
 
-1. Bump `MARKETING_VERSION` in `project.yml` to `2.0.0`
-2. Archive the native target in Xcode
-3. Upload to App Store Connect as a normal version update
-4. The same bundle ID + signing identity means existing users update in place — they keep their books (lives in Supabase), subscription (lives in RevenueCat), and account
-5. Once 2.0.0 is in production and stable for a release or two, the `ios/` Capacitor folder can be archived
+That matters when triaging production issues:
+
+- Anything wrong in `ios-native/` is affecting **live App Store users**,
+  not just local test builds.
+- Fixes here only reach users through an App Store release. Server-side
+  fixes (Supabase config, Vercel `api/` endpoints) reach them immediately.
+- `src/` is the web app at mybooklab.app. It shares the same Supabase
+  project and `api/` endpoints, but it is a separate surface — a fix in
+  one does not fix the other.
