@@ -604,6 +604,8 @@ private struct PagesStep: View {
     @State private var generatingIllustration = false
     @State private var generationError: String?
     @State private var showStoryBuddy = false
+    @State private var showDrawing = false
+    @State private var savingDrawing = false
 
     var body: some View {
         VStack(spacing: 12) {
@@ -658,13 +660,31 @@ private struct PagesStep: View {
                     Button { showStoryBuddy = true } label: {
                         HStack(spacing: 6) {
                             Image(systemName: "bubble.left.and.bubble.right.fill")
-                            Text("Story Buddy")
+                            Text("Buddy")
                         }
                         .frame(maxWidth: .infinity)
                         .padding(12)
                         .background(.white.opacity(0.12), in: RoundedRectangle(cornerRadius: 12))
                         .foregroundStyle(.white)
                     }
+
+                    // Draw it yourself — no AI, no waiting, and the child's
+                    // own artwork ends up in the printed book.
+                    Button { showDrawing = true } label: {
+                        HStack(spacing: 6) {
+                            if savingDrawing {
+                                ProgressView().tint(.white)
+                            } else {
+                                Image(systemName: "pencil.and.outline")
+                            }
+                            Text(savingDrawing ? "Saving…" : "Draw")
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(12)
+                        .background(.cyan.opacity(0.75), in: RoundedRectangle(cornerRadius: 12))
+                        .foregroundStyle(.white)
+                    }
+                    .disabled(savingDrawing || generatingIllustration)
 
                     Button {
                         Task { await generateIllustration() }
@@ -675,14 +695,14 @@ private struct PagesStep: View {
                             } else {
                                 Image(systemName: "wand.and.stars")
                             }
-                            Text(generatingIllustration ? "Drawing…" : "Illustrate")
+                            Text(generatingIllustration ? "Making…" : "Illustrate")
                         }
                         .frame(maxWidth: .infinity)
                         .padding(12)
                         .background(.purple.opacity(0.85), in: RoundedRectangle(cornerRadius: 12))
                         .foregroundStyle(.white)
                     }
-                    .disabled(generatingIllustration || currentPageText.isEmpty)
+                    .disabled(generatingIllustration || savingDrawing || currentPageText.isEmpty)
                 }
 
                 SparkleButton(action: {
@@ -702,6 +722,15 @@ private struct PagesStep: View {
                 }
                 .presentationDetents([.large])
             }
+        }
+        .fullScreenCover(isPresented: $showDrawing) {
+            DrawingCanvasView(
+                onCancel: { showDrawing = false },
+                onSave: { image in
+                    showDrawing = false
+                    Task { await saveDrawing(image) }
+                }
+            )
         }
         .onChange(of: showStoryBuddy) { _, shown in
             if shown { Task { await RewardsStore.shared.earn("used_buddy") } }
@@ -827,6 +856,27 @@ private struct PagesStep: View {
         let separator = existing.isEmpty ? "" : "\n\n"
         b.pages[currentIndex].text = existing + separator + text
         draft.book = b
+    }
+
+    /// Uploads the drawing and points the page at it. We store the URL,
+    /// not the bytes: only a real URL survives the sync to Supabase, and
+    /// that is what the print pipeline reads.
+    private func saveDrawing(_ image: UIImage) async {
+        guard draft.book != nil else { return }
+        savingDrawing = true
+        generationError = nil
+        defer { savingDrawing = false }
+        do {
+            let url = try await IllustrationUploader.upload(image)
+            guard var b = draft.book, currentIndex < b.pages.count else { return }
+            b.pages[currentIndex].illustrationData = url
+            draft.book = b
+            AudioService.shared.playSFX(.sparkle)
+            Haptics.celebrate()
+            await RewardsStore.shared.earn("added_illustration")
+        } catch {
+            generationError = "Couldn't save your drawing: \(error.localizedDescription)"
+        }
     }
 
     private func generateIllustration() async {

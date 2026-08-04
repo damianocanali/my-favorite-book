@@ -2,6 +2,7 @@ export const config = { runtime: 'edge' }
 
 import { handleCors, withCors } from './_rateLimit.js'
 import { verifyJwt } from './_auth.js'
+import { isFetchableImage } from './_imageStore.js'
 
 function supabaseHeaders(key) {
   return {
@@ -63,14 +64,22 @@ export default async function handler(req) {
     const { book } = body
     if (!book?.id) return json(400, { error: 'book required' })
 
-    // Strip large base64 images to keep DB payload reasonable
-    // Store a lightweight version — images stay in localStorage
+    // Keep real image URLs; only strip on-device base64, which would
+    // bloat the row. This distinction is what makes printing work: the
+    // print pipeline reads THIS stored copy, so a blanket
+    // '[saved-locally]' meant every printed page rendered a broken
+    // <img src="[saved-locally]">. A Storage URL is small and fetchable.
+    const keepOrStrip = (value) => {
+      if (!value) return null
+      return isFetchableImage(value) ? value : '[saved-locally]'
+    }
+
     const lightBook = {
       ...book,
-      coverImage: book.coverImage ? '[saved-locally]' : null,
+      coverImage: keepOrStrip(book.coverImage),
       pages: book.pages?.map((p) => ({
         ...p,
-        illustrationData: p.illustrationData ? '[saved-locally]' : null,
+        illustrationData: keepOrStrip(p.illustrationData),
       })) ?? [],
     }
 

@@ -4,6 +4,7 @@ import { checkRateLimit, handleCors, withCors } from './_rateLimit.js'
 import { logUsage, estimateTogetherImageCostCents } from './_usage.js'
 import { requireUser, validateSourceImage, moderatePrompt, enforceDailyCap } from './_aiGuard.js'
 import { classifyAttestation, dailyCapFor, hourlyLimitFor } from './_appAttest.js'
+import { storeIllustration } from './_imageStore.js'
 
 const TOGETHER_API_URL = 'https://api.together.xyz/v1/images/generations'
 const AVATAR_LIMIT = 10 // per hour per IP
@@ -166,7 +167,12 @@ export default async function handler(req) {
       cost_cents: estimateTogetherImageCostCents({ model, images: 1 }),
     })
 
-    return new Response(JSON.stringify({ image: `data:image/png;base64,${b64}` }), {
+    // Same treatment as book art: park it in Storage and return a URL, so
+    // the avatar can follow the account across devices instead of living
+    // as a ~20KB base64 blob in UserDefaults / localStorage.
+    const stored = await storeIllustration(b64, auth.userId, 'avatar')
+
+    return new Response(JSON.stringify({ image: stored ?? `data:image/png;base64,${b64}` }), {
       status: 200, headers: withCors({ 'Content-Type': 'application/json' }),
     })
   } catch (err) {

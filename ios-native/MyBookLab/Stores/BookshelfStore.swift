@@ -104,11 +104,28 @@ final class BookshelfStore {
         SpotlightIndexer.reindex(books)
     }
 
+    /// A real image URL is small enough to sync AND fetchable by the print
+    /// pipeline, so keep it. Only on-device base64 gets replaced, since
+    /// that would bloat the row.
+    ///
+    /// This distinction is what makes printing work: the PDF is built from
+    /// the SYNCED copy, so blanket-stripping meant every printed page
+    /// rendered a broken `<img src="[saved-locally]">`.
+    private func isFetchableImage(_ value: String?) -> Bool {
+        guard let value else { return false }
+        return value.hasPrefix("http://") || value.hasPrefix("https://")
+    }
+
     private func strippedForCloud(_ b: Book) -> Book {
         var copy = b
+        if let cover = b.coverImage, !isFetchableImage(cover) {
+            copy.coverImage = "[saved-locally]"
+        }
         copy.pages = b.pages.map { p in
             var pp = p
-            if pp.illustrationData != nil { pp.illustrationData = "[saved-locally]" }
+            if pp.illustrationData != nil && !isFetchableImage(pp.illustrationData) {
+                pp.illustrationData = "[saved-locally]"
+            }
             return pp
         }
         return copy

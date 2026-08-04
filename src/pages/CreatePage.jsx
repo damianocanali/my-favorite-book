@@ -26,6 +26,7 @@ export default function CreatePage() {
   const bookCount = useBookshelfStore((state) => state.books.length)
   const { plan, loading: subLoading } = useSubscription()
   const earnBadge = useRewardsStore((s) => s.earnBadge)
+  const recordWritingActivity = useRewardsStore((s) => s.recordWritingActivity)
   const user = useAuthStore((s) => s.user)
 
   // If currentStep is beyond wizard steps, go straight to editor
@@ -63,6 +64,9 @@ export default function CreatePage() {
 
         // Effort-based badges
         const pagesWritten = book.pages.filter((p) => p.text.trim()).length
+        // Finishing a book counts as writing today — keeps the web streak
+        // in step with the iOS app, which has recorded this since 2.1.
+        recordWritingActivity()
         if (pagesWritten >= 1) earnBadge('first_page')
         if (pagesWritten >= 5) earnBadge('five_pages')
         earnBadge('first_book')
