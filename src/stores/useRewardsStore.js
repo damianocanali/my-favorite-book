@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { useAvatarStore } from './useAvatarStore'
 import { useAuthStore } from './useAuthStore'
+import { supabase } from '../lib/supabase'
 import { apiFetchAuthed } from '../lib/api'
 
 // Effort-based badges — earned by completing steps, not quality. Coin
@@ -29,6 +30,25 @@ export const useRewardsStore = create(
       earnedBadges: [],
       totalPages: 0,
       newBadge: null,
+
+      /**
+       * Pull the authoritative badge list from Supabase.
+       *
+       * `earnedBadges` is persisted to localStorage, which makes it
+       * per-browser rather than per-account: a badge earned on the iOS app
+       * (which reads user_badges directly) never showed up on the web, and
+       * clearing site data appeared to wipe them. The row-level policy
+       * already restricts this to the caller's own badges.
+       */
+      loadBadges: async () => {
+        if (!supabase || !useAuthStore.getState().user) return
+        const { data, error } = await supabase.from('user_badges').select('badge_id')
+        if (error || !Array.isArray(data)) return
+        const server = data.map((r) => r.badge_id)
+        // Union rather than replace: a badge claimed moments ago locally
+        // shouldn't blink out if this read raced the write.
+        set((state) => ({ earnedBadges: [...new Set([...state.earnedBadges, ...server])] }))
+      },
 
       earnBadge: async (badgeId) => {
         // Only logged-in users can earn badges.

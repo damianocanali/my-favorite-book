@@ -37,6 +37,14 @@ describe('what sync keeps vs strips', () => {
 })
 
 describe('printed page rendering', () => {
+  it("keeps the sample book's site-relative artwork — it prints correctly today", async () => {
+    // src/data/sampleBook.js ships art as /sample-book/*.png. An earlier
+    // version of the guard below only accepted http(s)/data URLs, which
+    // would have started printing the one verified-good book blank.
+    const html = await buildInteriorHtml(bookWith('/sample-book/page-01.png'))
+    expect(imgSrcs(html)).toContain('/sample-book/page-01.png')
+  })
+
   it('renders a real Storage URL as the page image', async () => {
     const url = 'https://x.supabase.co/storage/v1/object/public/book-illustrations/u/page-1.png'
     const html = await buildInteriorHtml(bookWith(url))

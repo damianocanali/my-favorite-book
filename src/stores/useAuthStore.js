@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase'
 import { useBookshelfStore, setBookshelfUserId } from './useBookshelfStore'
 import { useBookStore } from './useBookStore'
 import { useAvatarStore } from './useAvatarStore'
+import { useRewardsStore } from './useRewardsStore'
 import { Capacitor } from '@capacitor/core'
 
 export const useAuthStore = create((set) => ({
@@ -18,6 +19,7 @@ export const useAuthStore = create((set) => ({
       setBookshelfUserId(user.id)
       useBookshelfStore.getState().loadCloudBooks(user.id)
       useAvatarStore.getState().refreshCoins()
+      useRewardsStore.getState().loadBadges()
     }
     supabase.auth.onAuthStateChange((_event, session) => {
       const newUser = session?.user ?? null
@@ -26,6 +28,7 @@ export const useAuthStore = create((set) => ({
       if (newUser) {
         useBookshelfStore.getState().loadCloudBooks(newUser.id)
         useAvatarStore.getState().refreshCoins()
+        useRewardsStore.getState().loadBadges()
       }
     })
   },
