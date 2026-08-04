@@ -283,8 +283,11 @@ final class AuthStore: NSObject {
     /// Save a new avatar. Stored on-device (UserDefaults) as a base64
     /// data URL — NOT in Supabase user_metadata. The auth user record
     /// isn't a blob store; pushing a ~20KB image there fails with a
-    /// bearer-token error. The web keeps the avatar in localStorage for
-    /// the same reason. Cross-device sync can come later via Storage.
+    /// bearer-token error. It now ALSO uploads to Storage and records the
+    /// URL on `user_inventory`, so the avatar follows the account to the
+    /// web and to a second device instead of being stuck on this one.
+    /// The local copy is kept so the picture appears instantly and still
+    /// shows if the upload fails.
     func updateAvatar(_ image: UIImage) async throws {
         let resized = image.resizedSquare(to: 256)
         guard let jpeg = resized.jpegData(compressionQuality: 0.85) else {
@@ -294,6 +297,38 @@ final class AuthStore: NSObject {
         let dataURL = "data:image/jpeg;base64,\(jpeg.base64EncodedString())"
         UserDefaults.standard.set(dataURL, forKey: avatarDefaultsKey)
         storedAvatar = dataURL   // observable → views refresh instantly
+
+        // Best-effort: a storage or network blip must not lose the avatar
+        // the user just picked, which is already saved locally above.
+        if let url = try? await IllustrationUploader.upload(resized, kind: "avatar") {
+            try? await saveRemoteAvatar(url)
+            UserDefaults.standard.set(url, forKey: avatarDefaultsKey)
+            storedAvatar = url
+        }
+    }
+
+    /// Writes the avatar URL to `user_inventory`. Column privileges let a
+    /// client set only this field — owned styles/items stay server-owned.
+    private func saveRemoteAvatar(_ url: String) async throws {
+        guard let userId = user?.id else { return }
+        struct InventoryUpsert: Encodable {
+            let user_id: String
+            let avatar_url: String
+        }
+        try await supabase
+            .from("user_inventory")
+            .upsert(
+                InventoryUpsert(user_id: userId.uuidString.lowercased(), avatar_url: url),
+                onConflict: "user_id"
+            )
+            .execute()
+    }
+
+    /// Adopt an avatar URL discovered on another device.
+    func adoptRemoteAvatar(_ url: String) {
+        guard storedAvatar != url else { return }
+        UserDefaults.standard.set(url, forKey: avatarDefaultsKey)
+        storedAvatar = url
     }
 
     // MARK: - OAuth (Apple uses the native SDK; Google uses Supabase OAuth via system browser)

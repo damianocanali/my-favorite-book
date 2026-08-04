@@ -143,7 +143,7 @@ struct AppIconPickerView: View {
         if !isOwned(option) {
             busyId = option.id
             defer { busyId = nil }
-            switch await coins.spend(option.price) {
+            switch await coins.spend(option.price, kind: "item", id: option.id) {
             case .ok:
                 coins.markItemOwned(option.id)
             case .insufficient:

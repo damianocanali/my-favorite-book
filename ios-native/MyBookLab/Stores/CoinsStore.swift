@@ -74,13 +74,19 @@ final class CoinsStore {
         case error(String)
     }
 
-    func spend(_ amount: Int) async -> SpendResult {
+    /// Spend coins, optionally recording what was bought. Passing the item
+    /// lets the server grant ownership in the same transaction — ownership
+    /// used to be marked only on-device, so it was both forgeable and
+    /// invisible on the user's other devices.
+    func spend(_ amount: Int, kind: String? = nil, id: String? = nil) async -> SpendResult {
         guard amount > 0 else { return .ok(balance: balance) }
         guard let token = AuthStore.shared.accessToken else {
             return .error("Sign in to spend coins")
         }
         do {
-            let result = try await CoinsAPI.spend(amount: amount, bearerToken: token)
+            let result = try await CoinsAPI.spend(
+                amount: amount, kind: kind, id: id, bearerToken: token
+            )
             switch result {
             case .ok(let newBalance):
                 balance = newBalance
@@ -97,6 +103,38 @@ final class CoinsStore {
     /// credits coins and reports the new total) without a extra fetch.
     func applyServerBalance(_ newBalance: Int) {
         balance = newBalance
+    }
+
+    /// Pull owned styles/items from `user_inventory`.
+    ///
+    /// These used to live only in UserDefaults, so a style bought on the
+    /// phone was missing on the web and vice versa. The local sets are
+    /// kept as a cache and unioned with the server's, so nothing a user
+    /// already paid for disappears if this read fails or races a purchase.
+    func loadInventory() async {
+        guard AuthStore.shared.user != nil else { return }
+        struct InventoryRow: Decodable {
+            let owned_styles: [String]?
+            let owned_items: [String]?
+            let avatar_url: String?
+        }
+        guard let rows: [InventoryRow] = try? await AuthStore.shared.supabase
+            .from("user_inventory")
+            .select("owned_styles,owned_items,avatar_url")
+            .limit(1)
+            .execute()
+            .value,
+            let row = rows.first
+        else { return }
+
+        ownedStyles.formUnion(row.owned_styles ?? [])
+        ownedItems.formUnion(row.owned_items ?? [])
+        UserDefaults.standard.set(Array(ownedStyles), forKey: ownedStylesKey)
+        UserDefaults.standard.set(Array(ownedItems), forKey: ownedItemsKey)
+
+        if let avatar = row.avatar_url, !avatar.isEmpty {
+            AuthStore.shared.adoptRemoteAvatar(avatar)
+        }
     }
 
     // MARK: - Local inventory
@@ -188,14 +226,20 @@ private enum CoinsAPI {
         return (try? JSONDecoder().decode(Response.self, from: data).balance) ?? 0
     }
 
-    static func spend(amount: Int, bearerToken: String) async throws -> SpendResult {
+    static func spend(
+        amount: Int, kind: String?, id: String?, bearerToken: String
+    ) async throws -> SpendResult {
         let url = AppConfig.shared.apiBase.appendingPathComponent("/api/spend-coins")
         var req = URLRequest(url: url)
         req.httpMethod = "POST"
         req.setValue("application/json", forHTTPHeaderField: "Content-Type")
         req.setValue("Bearer \(bearerToken)", forHTTPHeaderField: "Authorization")
-        struct Body: Encodable { let amount: Int }
-        req.httpBody = try JSONEncoder().encode(Body(amount: amount))
+        struct Body: Encodable {
+            let amount: Int
+            let kind: String?
+            let id: String?
+        }
+        req.httpBody = try JSONEncoder().encode(Body(amount: amount, kind: kind, id: id))
 
         let (data, response) = try await URLSession.shared.data(for: req)
         guard let http = response as? HTTPURLResponse else {

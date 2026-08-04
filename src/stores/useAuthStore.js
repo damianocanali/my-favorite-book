@@ -19,6 +19,7 @@ export const useAuthStore = create((set) => ({
       setBookshelfUserId(user.id)
       useBookshelfStore.getState().loadCloudBooks(user.id)
       useAvatarStore.getState().refreshCoins()
+      useAvatarStore.getState().loadInventory()
       useRewardsStore.getState().loadBadges()
     }
     supabase.auth.onAuthStateChange((_event, session) => {
@@ -28,6 +29,7 @@ export const useAuthStore = create((set) => ({
       if (newUser) {
         useBookshelfStore.getState().loadCloudBooks(newUser.id)
         useAvatarStore.getState().refreshCoins()
+        useAvatarStore.getState().loadInventory()
         useRewardsStore.getState().loadBadges()
       }
     })

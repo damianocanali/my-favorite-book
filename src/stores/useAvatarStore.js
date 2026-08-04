@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { apiFetchAuthed } from '../lib/api'
+import { supabase } from '../lib/supabase'
 
 // The coin balance is authoritative on the server. We mirror it in the store
 // so the UI can read it synchronously, but every mutation goes through the
@@ -8,11 +9,14 @@ import { apiFetchAuthed } from '../lib/api'
 // persisted value is only a warm-start hint; fetchCoins reconciles it on
 // load.
 
-async function serverSpend(amount) {
+async function serverSpend(amount, kind, id) {
   const res = await apiFetchAuthed('/api/spend-coins', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ amount }),
+    // kind/id let the server grant ownership in the same transaction as
+    // the debit — ownership used to be recorded only in localStorage, so
+    // it was forgeable and invisible on the user's other devices.
+    body: JSON.stringify({ amount, kind, id }),
   })
   if (res.status === 402) return { ok: false, insufficient: true }
   if (!res.ok) return { ok: false, error: true }
@@ -48,7 +52,27 @@ export const useAvatarStore = create(
         set((s) => ({ features: { ...s.features, [key]: value } })),
 
       setArtStyle: (style) => set({ artStyle: style }),
-      setAvatarImage: (image) => set({ avatarImage: image }),
+
+      /**
+       * Generated avatars now come back as a Storage URL, so persist it to
+       * `user_inventory` and the picture follows the account to the phone.
+       * A base64 data URL (the fallback when Storage is unavailable) stays
+       * local — it's too big for the row and can't be shared anyway.
+       */
+      setAvatarImage: (image) => {
+        set({ avatarImage: image })
+        if (!supabase || typeof image !== 'string' || !/^https?:\/\//i.test(image)) return
+        supabase.auth.getUser().then(({ data }) => {
+          const userId = data?.user?.id
+          if (!userId) return
+          // Column privileges allow a client to write avatar_url only —
+          // owned styles/items remain server-owned.
+          supabase
+            .from('user_inventory')
+            .upsert({ user_id: userId, avatar_url: image }, { onConflict: 'user_id' })
+            .then(() => {})
+        })
+      },
 
       incrementGenerations: () => {
         const today = new Date().toDateString()
@@ -68,6 +92,29 @@ export const useAvatarStore = create(
 
       // Fetch the server-side balance. Safe to call whenever we land on a
       // coin-aware screen or after a purchase redirect.
+      /**
+       * Pull owned styles/items and the avatar from `user_inventory`.
+       *
+       * These were localStorage-only, so the same account showed a
+       * different avatar and different purchases on each device, and
+       * clearing site data looked like losing things the user paid for.
+       * Local values are unioned with the server's rather than replaced,
+       * so a purchase made moments ago can't blink out on a racing read.
+       */
+      loadInventory: async () => {
+        if (!supabase) return
+        const { data, error } = await supabase
+          .from('user_inventory')
+          .select('avatar_url,owned_styles,owned_items')
+          .maybeSingle()
+        if (error || !data) return
+        set((state) => ({
+          ownedStyles: [...new Set([...state.ownedStyles, ...(data.owned_styles ?? [])])],
+          ownedItems: [...new Set([...state.ownedItems, ...(data.owned_items ?? [])])],
+          avatarImage: data.avatar_url || state.avatarImage,
+        }))
+      },
+
       refreshCoins: async () => {
         try {
           const res = await apiFetchAuthed('/api/coins')
@@ -85,7 +132,7 @@ export const useAvatarStore = create(
         const state = get()
         if (state.ownedStyles.includes(styleId)) return false
         if (price > 0) {
-          const result = await serverSpend(price)
+          const result = await serverSpend(price, 'style', styleId)
           if (!result.ok) return false
           set({
             coins: result.balance,
@@ -101,7 +148,7 @@ export const useAvatarStore = create(
         const state = get()
         if (state.ownedItems.includes(itemId)) return false
         if (price > 0) {
-          const result = await serverSpend(price)
+          const result = await serverSpend(price, 'item', itemId)
           if (!result.ok) return false
           set({
             coins: result.balance,

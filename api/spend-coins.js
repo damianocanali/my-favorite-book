@@ -29,20 +29,35 @@ export default async function handler(req) {
   const { allowed } = checkRateLimit(`spend-coins:${auth.userId}`, 120)
   if (!allowed) return json(429, { error: 'Too many requests' })
 
-  const { amount } = await req.json().catch(() => ({}))
+  const { amount, kind, id } = await req.json().catch(() => ({}))
   const n = Number(amount)
   if (!Number.isInteger(n) || n < 1 || n > MAX_SPEND) {
     return json(400, { error: 'Invalid amount' })
   }
 
-  const rpc = await fetch(`${supabaseUrl}/rest/v1/rpc/spend_coins`, {
+  // Optionally record WHAT was bought, in the same transaction as the
+  // spend. Previously the client marked ownership locally, so anything
+  // could be granted free by editing local storage.
+  const purchaseKind = kind === 'style' || kind === 'item' ? kind : null
+  const purchaseId =
+    purchaseKind && typeof id === 'string' && id.length > 0 && id.length <= 64 ? id : null
+  if (purchaseKind && !purchaseId) {
+    return json(400, { error: 'Invalid item id' })
+  }
+
+  const rpc = await fetch(`${supabaseUrl}/rest/v1/rpc/spend_coins_for`, {
     method: 'POST',
     headers: {
       apikey: serviceKey,
       Authorization: `Bearer ${serviceKey}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ p_user_id: auth.userId, p_amount: n }),
+    body: JSON.stringify({
+      p_user_id: auth.userId,
+      p_amount: n,
+      p_kind: purchaseKind,
+      p_id: purchaseId,
+    }),
   })
   if (!rpc.ok) return json(500, { error: 'Failed to spend coins' })
 

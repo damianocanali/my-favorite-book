@@ -151,7 +151,7 @@ struct CoinStoreView: View {
         purchasing = style.id
         error = nil
         defer { purchasing = nil }
-        switch await coins.spend(style.price) {
+        switch await coins.spend(style.price, kind: "style", id: style.id) {
         case .ok:
             coins.markStyleOwned(style.id)
             Haptics.celebrate()

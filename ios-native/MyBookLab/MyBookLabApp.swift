@@ -36,6 +36,7 @@ struct MyBookLabApp: App {
                     }
                     await subs.bootstrap()
                     await coins.refresh()
+                    await coins.loadInventory()
                     await rewards.refresh()
                 }
                 .onChange(of: auth.user?.id) { _, newValue in
@@ -44,6 +45,7 @@ struct MyBookLabApp: App {
                             await bookshelf.load(userId: id)
                             await subs.bootstrap()
                             await coins.refresh()
+                            await coins.loadInventory()
                         } else {
                             bookshelf.clear()
                         }
