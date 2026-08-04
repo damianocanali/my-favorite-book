@@ -273,11 +273,40 @@ final class AuthStore: NSObject {
             throw NSError(domain: "AuthStore", code: -2,
                           userInfo: [NSLocalizedDescriptionKey: "No Apple identity token"])
         }
-        let session = try await supabase.auth.signInWithIdToken(
-            credentials: .init(provider: .apple, idToken: identityToken, nonce: nonce)
-        )
+
+        let session: Session
+        do {
+            session = try await supabase.auth.signInWithIdToken(
+                credentials: .init(provider: .apple, idToken: identityToken, nonce: nonce)
+            )
+        } catch {
+            // Apple sets the token's `aud` to this app's bundle id. Supabase
+            // rejects it unless that id is listed under the Apple provider's
+            // Client IDs, and the raw message ("Unacceptable audience in
+            // id_token") means nothing to a parent staring at a phone.
+            if error.localizedDescription.localizedCaseInsensitiveContains("audience") {
+                throw NSError(domain: "AuthStore", code: -4, userInfo: [
+                    NSLocalizedDescriptionKey:
+                        "Sign in with Apple isn't set up yet. Please use email or Google for now.",
+                ])
+            }
+            throw error
+        }
+
         self.session = session
         self.user = session.user
+
+        // Apple sends the user's name ONLY on the very first authorization
+        // and never again, so if we don't persist it here it's lost for
+        // good and the account shows no display name.
+        if let name = credential.fullName {
+            let parts = [name.givenName, name.familyName].compactMap { $0 }
+            let full = parts.joined(separator: " ").trimmingCharacters(in: .whitespaces)
+            let existing = session.user.userMetadata["display_name"]?.stringValue ?? ""
+            if !full.isEmpty && existing.isEmpty {
+                try? await updateDisplayName(full)
+            }
+        }
     }
 
     /// Sign in with Google. We fetch the OAuth URL from Supabase,
