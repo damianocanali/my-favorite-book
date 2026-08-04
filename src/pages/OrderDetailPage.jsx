@@ -13,7 +13,11 @@ export default function OrderDetailPage() {
   if (loading) {
     return <Centered><Loader2 className="animate-spin text-galaxy-text-muted" /></Centered>
   }
-  if (error || !order) {
+  // Guard on the id, not just on `order`. An endpoint that answers with a
+  // truthy but empty object — a stale order id, or a response shape we
+  // didn't expect — used to sail past a plain `!order` check and then
+  // throw on order.id.slice(), white-screening the page.
+  if (error || !order?.id) {
     return (
       <Centered>
         <AlertTriangle className="text-red-400 mb-2" />

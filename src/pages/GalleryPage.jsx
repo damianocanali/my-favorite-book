@@ -196,7 +196,13 @@ export default function GalleryPage() {
     async function fetchBooks() {
       try {
         const res = await apiFetch('/api/publish-book?recent=true')
-        if (res.ok) setBooks(await res.json())
+        // A 200 carrying anything other than a list — an error body, a
+        // proxy's HTML — used to land in `books` and then blow up on the
+        // .filter calls below, taking the whole gallery down.
+        if (res.ok) {
+          const data = await res.json()
+          setBooks(Array.isArray(data) ? data : [])
+        }
       } catch {
         // Silent fail
       } finally {

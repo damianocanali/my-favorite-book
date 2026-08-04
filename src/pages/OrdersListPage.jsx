@@ -21,7 +21,9 @@ export default function OrdersListPage() {
         .order('created_at', { ascending: false })
       if (cancelled) return
       if (error) setError(error.message)
-      else setOrders(data ?? [])
+      // `?? []` only covers null. Anything else non-list that comes back on
+      // a 200 sailed through and crashed the orders.map below.
+      else setOrders(Array.isArray(data) ? data : [])
     })()
     return () => { cancelled = true }
   }, [user?.id])

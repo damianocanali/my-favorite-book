@@ -25,6 +25,7 @@ import OrderConfirmPage from './pages/OrderConfirmPage'
 import OrdersListPage from './pages/OrdersListPage'
 import OrderDetailPage from './pages/OrderDetailPage'
 import ExampleBookPage from './pages/ExampleBookPage'
+import NotFoundPage from './pages/NotFoundPage'
 import ProtectedRoute from './components/auth/ProtectedRoute'
 import BadgePopup from './components/ui/BadgePopup'
 import WelcomeBackMoment from './components/ui/WelcomeBackMoment'
@@ -103,6 +104,7 @@ export default function App() {
             </ProtectedRoute>
           }
         />
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </AppShell>
   )
