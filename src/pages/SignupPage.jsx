@@ -4,6 +4,7 @@ import { motion } from 'motion/react'
 import { GraduationCap, Mail, Lock, User, Eye, EyeOff, CheckCircle, BookOpen } from 'lucide-react'
 import { useAuthStore } from '../stores/useAuthStore'
 import OAuthButtons from '../components/auth/OAuthButtons'
+import { friendlyAuthMessage } from '../lib/authErrors'
 
 export default function SignupPage() {
   const navigate = useNavigate()
@@ -46,7 +47,7 @@ export default function SignupPage() {
       }
       setSuccess(true)
     } catch (err) {
-      setError(err.message || 'Registration failed. Please try again.')
+      setError(friendlyAuthMessage(err, { signingUp: true }))
     } finally {
       setLoading(false)
     }

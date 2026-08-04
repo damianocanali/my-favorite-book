@@ -179,6 +179,53 @@ final class AuthStore: NSObject {
         return response.session != nil ? .active : .confirmationSent
     }
 
+    /// Emails a password-reset link. The link opens the web reset page
+    /// rather than deep-linking back into the app: mybooklab.app already
+    /// handles recovery tokens, and pushing that flow through the custom
+    /// URL scheme would be a second place to get token handling wrong.
+    func sendPasswordReset(email: String) async throws {
+        let trimmed = email.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard trimmed.contains("@") else {
+            throw NSError(domain: "AuthStore", code: -5, userInfo: [
+                NSLocalizedDescriptionKey: "Enter your email address first.",
+            ])
+        }
+        try await supabase.auth.resetPasswordForEmail(
+            trimmed,
+            redirectTo: URL(string: "https://mybooklab.app/reset-password")
+        )
+    }
+
+    /// Turns Supabase's raw auth errors into something a parent can act on.
+    /// The catch-all used to be "Check your credentials", which is simply
+    /// wrong for an unconfirmed account — that user's password is fine,
+    /// they just never clicked the link, and telling them otherwise sends
+    /// them round in circles.
+    static func friendlyAuthMessage(_ error: Error, signingUp: Bool) -> String {
+        let msg = error.localizedDescription.lowercased()
+
+        if msg.contains("not confirmed") || msg.contains("email_not_confirmed") {
+            return "Please confirm your email first — check your inbox for the link we sent."
+        }
+        if msg.contains("invalid login") || msg.contains("invalid_credentials") {
+            return "That email and password don't match. Try again, or reset your password."
+        }
+        if msg.contains("rate limit") || msg.contains("only request this after")
+            || msg.contains("too many") {
+            return "Too many attempts just now. Please wait a minute and try again."
+        }
+        if msg.contains("password") && msg.contains("6") {
+            return "Passwords need to be at least 6 characters."
+        }
+        if msg.contains("network") || msg.contains("offline")
+            || msg.contains("internet connection") {
+            return "Can't reach the internet. Check your connection and try again."
+        }
+        return signingUp
+            ? "Couldn't create your account. Please try again."
+            : "Couldn't sign in. Please try again."
+    }
+
     func signOut() async {
         if BiometricCredentials.hasStoredCredentials {
             // Keep the saved biometric login so the user can Face-ID

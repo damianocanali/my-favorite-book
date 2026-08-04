@@ -5,6 +5,7 @@ import { Mail, Lock, Eye, EyeOff, ArrowLeft, CheckCircle } from 'lucide-react'
 import { useAuthStore } from '../stores/useAuthStore'
 import { supabase } from '../lib/supabase'
 import OAuthButtons from '../components/auth/OAuthButtons'
+import { friendlyAuthMessage } from '../lib/authErrors'
 
 export default function LoginPage() {
   const navigate = useNavigate()
@@ -30,7 +31,7 @@ export default function LoginPage() {
       const role = user?.user_metadata?.role
       navigate(role === 'teacher' ? '/teacher' : '/', { replace: true })
     } catch (err) {
-      setError('Incorrect email or password. Please try again.')
+      setError(friendlyAuthMessage(err))
     } finally {
       setLoading(false)
     }
