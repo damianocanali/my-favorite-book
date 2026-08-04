@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { motion } from 'motion/react'
 import { Trash2, LogOut, AlertTriangle, Loader2, Sparkles, CreditCard, ExternalLink, Pencil, Check, X } from 'lucide-react'
@@ -7,15 +7,23 @@ import { useSubscription } from '../hooks/useSubscription'
 import { apiFetchAuthed } from '../lib/api'
 import { IS_NATIVE } from '../services/purchaseService'
 import AvatarDisplay from '../components/avatar/AvatarDisplay'
-import { useRewardsStore } from '../stores/useRewardsStore'
+import { useRewardsStore, BADGE_DEFINITIONS } from '../stores/useRewardsStore'
 
 export default function AccountPage() {
   const navigate = useNavigate()
   const user = useAuthStore((s) => s.user)
+  const authLoading = useAuthStore((s) => s.loading)
   const currentStreak = useRewardsStore((s) => s.currentStreak)
   const longestStreak = useRewardsStore((s) => s.longestStreak)
-  const badges = useRewardsStore((s) => s.getBadges())
-  const earnedCount = badges.filter((b) => b.earned).length
+  // Select the stored array, then derive. Calling s.getBadges() inside the
+  // selector built a fresh array of fresh objects on every store read, so
+  // zustand's Object.is check never matched and the component re-rendered
+  // forever — which is what crashed this page into the error boundary.
+  const earnedBadges = useRewardsStore((s) => s.earnedBadges)
+  const earnedList = useMemo(
+    () => BADGE_DEFINITIONS.filter((b) => earnedBadges.includes(b.id)),
+    [earnedBadges]
+  )
   const signOut = useAuthStore((s) => s.signOut)
   const updateDisplayName = useAuthStore((s) => s.updateDisplayName)
   const displayName = useAuthStore(selectDisplayName)
@@ -100,9 +108,13 @@ export default function AccountPage() {
   // Redirect unauthenticated visitors. navigate() must run after render —
   // calling it inline logs a React warning about updating during render.
   useEffect(() => {
-    if (!user) navigate('/login', { replace: true })
-  }, [user, navigate])
+    // Wait for the session to hydrate. On a fresh load `user` is null for
+    // a moment, and redirecting on that sent already-signed-in people to
+    // the sign-in page after every refresh.
+    if (!authLoading && !user) navigate('/login', { replace: true })
+  }, [authLoading, user, navigate])
 
+  if (authLoading) return null
   if (!user) return null
 
   return (
@@ -188,10 +200,9 @@ export default function AccountPage() {
               </div>
             </div>
 
-            {earnedCount > 0 && (
+            {earnedList.length > 0 && (
               <div className="mt-4 flex flex-wrap gap-2">
-                {badges
-                  .filter((b) => b.earned)
+                {earnedList
                   .map((b) => (
                     <span
                       key={b.id}
