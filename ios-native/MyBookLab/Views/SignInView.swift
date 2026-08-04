@@ -20,6 +20,7 @@ struct SignInView: View {
     @State private var error: String?
     @State private var rememberWithBiometrics = true
     @State private var hasStoredCredentials = BiometricCredentials.hasStoredCredentials
+    @State private var resetSent = false
 
     enum Mode { case signIn, signUp }
 
@@ -139,19 +140,43 @@ struct SignInView: View {
                             }
                         }
                         .disabled(loading || email.isEmpty || password.isEmpty)
+
+                        // There was no way to recover an account from the
+                        // app at all — the only route was the website.
+                        if mode == .signIn {
+                            Button {
+                                Task { await sendPasswordReset() }
+                            } label: {
+                                Text("Forgot your password?")
+                                    .font(.footnote)
+                                    .foregroundStyle(.white.opacity(0.7))
+                            }
+                            .disabled(loading)
+                            .padding(.top, 2)
+                        }
                     }
                     .padding(.horizontal)
+
+                    if resetSent {
+                        Text("Check your email for a link to reset your password.")
+                            .font(.footnote)
+                            .foregroundStyle(.green.opacity(0.9))
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal)
+                    }
 
                     if let error {
                         Text(error)
                             .font(.footnote)
                             .foregroundStyle(.red.opacity(0.9))
+                            .multilineTextAlignment(.center)
                             .padding(.horizontal)
                     }
 
                     Button {
                         mode = (mode == .signIn) ? .signUp : .signIn
                         self.error = nil
+                        self.resetSent = false
                     } label: {
                         Text(mode == .signIn
                              ? "New here? Create an account"
@@ -214,9 +239,19 @@ struct SignInView: View {
                 }
             }
         } catch {
-            self.error = mode == .signIn
-                ? "Couldn't sign in. Check your credentials."
-                : "Couldn't create account: \(error.localizedDescription)"
+            self.error = AuthStore.friendlyAuthMessage(error, signingUp: mode == .signUp)
+        }
+    }
+
+    private func sendPasswordReset() async {
+        loading = true; error = nil; resetSent = false
+        defer { loading = false }
+        do {
+            try await auth.sendPasswordReset(email: email)
+            resetSent = true
+            error = nil
+        } catch {
+            self.error = AuthStore.friendlyAuthMessage(error, signingUp: false)
         }
     }
 
