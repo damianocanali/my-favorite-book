@@ -24,6 +24,7 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
+  const [existingAccount, setExistingAccount] = useState(false)
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -33,16 +34,67 @@ export default function SignupPage() {
     setLoading(true)
     setError('')
     try {
-      await signUp(email.trim(), password, {
+      const result = await signUp(email.trim(), password, {
         role,
         display_name: role === 'student' ? displayName.trim() : '',
       })
+      if (result?.status === 'already_registered') {
+        // No email was sent — telling them to check their inbox would
+        // leave them waiting for something that will never arrive.
+        setExistingAccount(true)
+        return
+      }
       setSuccess(true)
     } catch (err) {
       setError(err.message || 'Registration failed. Please try again.')
     } finally {
       setLoading(false)
     }
+  }
+
+  // Supabase silently declines to re-send for an address that already has
+  // an account, so send them where they can actually get in rather than
+  // leaving them staring at an inbox.
+  if (existingAccount) {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-4">
+        <motion.div
+          className="text-center max-w-sm"
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+        >
+          <Mail size={56} className="text-galaxy-primary mx-auto mb-4" />
+          <h2 className="font-heading text-2xl font-bold text-galaxy-text mb-2">
+            You already have an account
+          </h2>
+          <p className="text-galaxy-text-muted font-body mb-6">
+            {email} is already registered, so we didn&apos;t send a new
+            confirmation email. Sign in instead — or reset your password if you
+            can&apos;t remember it.
+          </p>
+          <div className="flex flex-col gap-3">
+            <Link
+              to="/login"
+              className="inline-block px-6 py-3 rounded-xl font-body font-bold text-white btn-fill-primary transition-colors"
+            >
+              Sign in
+            </Link>
+            <Link
+              to="/login?reset=1"
+              className="font-body text-sm text-galaxy-text-muted hover:text-galaxy-text transition-colors"
+            >
+              Forgot your password?
+            </Link>
+            <button
+              onClick={() => { setExistingAccount(false); setEmail('') }}
+              className="font-body text-sm text-galaxy-text-muted hover:text-galaxy-text transition-colors"
+            >
+              Use a different email
+            </button>
+          </div>
+        </motion.div>
+      </div>
+    )
   }
 
   if (success) {
