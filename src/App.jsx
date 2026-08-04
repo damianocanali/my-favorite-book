@@ -27,6 +27,7 @@ import OrderDetailPage from './pages/OrderDetailPage'
 import ExampleBookPage from './pages/ExampleBookPage'
 import ProtectedRoute from './components/auth/ProtectedRoute'
 import BadgePopup from './components/ui/BadgePopup'
+import WelcomeBackMoment from './components/ui/WelcomeBackMoment'
 import { initCapacitor } from './capacitor'
 import { useAuthStore } from './stores/useAuthStore'
 import { resumeOnGesture } from './services/audioService'
@@ -69,6 +70,7 @@ export default function App() {
     <AppShell>
       <ScrollToTop />
       <BadgePopup />
+      <WelcomeBackMoment />
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/create" element={<CreatePage />} />
