@@ -30,6 +30,56 @@ export const useRewardsStore = create(
       earnedBadges: [],
       totalPages: 0,
       newBadge: null,
+      currentStreak: 0,
+      longestStreak: 0,
+      lastStreakDay: null,
+
+      /** Current streak from the server. iOS has shown this since 2.1. */
+      loadStreak: async () => {
+        if (!useAuthStore.getState().user) return
+        try {
+          const res = await apiFetchAuthed('/api/streak')
+          if (!res.ok) return
+          const data = await res.json().catch(() => null)
+          if (!data) return
+          set({
+            currentStreak: data.currentStreak ?? 0,
+            longestStreak: data.longestStreak ?? 0,
+          })
+        } catch {
+          // Offline — keep whatever we last showed.
+        }
+      },
+
+      /**
+       * Tell the server the child wrote today. Debounced to one call per
+       * local day, the same rule the iOS app uses, so this is safe to fire
+       * on every keystroke. Claims streak badges as thresholds are passed.
+       */
+      recordWritingActivity: async () => {
+        if (!useAuthStore.getState().user) return
+        // Local calendar day; /api/streak accepts UTC ±1 day.
+        const day = new Date().toLocaleDateString('en-CA')
+        if (get().lastStreakDay === day) return
+        set({ lastStreakDay: day })
+        try {
+          const res = await apiFetchAuthed('/api/streak', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ day }),
+          })
+          if (!res.ok) throw new Error('streak failed')
+          const data = await res.json().catch(() => null)
+          const streak = data?.currentStreak ?? 0
+          set({ currentStreak: streak, longestStreak: data?.longestStreak ?? 0 })
+          for (const [threshold, badgeId] of [[3, 'streak_3'], [7, 'streak_7'], [30, 'streak_30']]) {
+            if (streak >= threshold) await get().earnBadge(badgeId)
+          }
+        } catch {
+          // Let a later edit retry today.
+          set({ lastStreakDay: null })
+        }
+      },
 
       /**
        * Pull the authoritative badge list from Supabase.

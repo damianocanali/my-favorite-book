@@ -7,10 +7,15 @@ import { useSubscription } from '../hooks/useSubscription'
 import { apiFetchAuthed } from '../lib/api'
 import { IS_NATIVE } from '../services/purchaseService'
 import AvatarDisplay from '../components/avatar/AvatarDisplay'
+import { useRewardsStore } from '../stores/useRewardsStore'
 
 export default function AccountPage() {
   const navigate = useNavigate()
   const user = useAuthStore((s) => s.user)
+  const currentStreak = useRewardsStore((s) => s.currentStreak)
+  const longestStreak = useRewardsStore((s) => s.longestStreak)
+  const badges = useRewardsStore((s) => s.getBadges())
+  const earnedCount = badges.filter((b) => b.earned).length
   const signOut = useAuthStore((s) => s.signOut)
   const updateDisplayName = useAuthStore((s) => s.updateDisplayName)
   const displayName = useAuthStore(selectDisplayName)
@@ -161,6 +166,44 @@ export default function AccountPage() {
               )}
               <p className="text-galaxy-text-muted font-body text-sm truncate">{user.email}</p>
             </div>
+          </div>
+
+          {/* Writing streak + badges — the iOS app has shown these since
+              2.1, so the same account looked emptier on the web. */}
+          <div className="border-b border-galaxy-text-muted/20 pb-6 mb-6">
+            <h2 className="font-heading text-lg font-semibold text-galaxy-text mb-3">
+              Writing streak
+            </h2>
+            <div className="flex items-center gap-4">
+              <span className="text-4xl" aria-hidden>🔥</span>
+              <div className="min-w-0">
+                <p className="font-heading text-xl font-bold text-galaxy-text">
+                  {currentStreak === 1 ? '1 day' : `${currentStreak} days`} in a row
+                </p>
+                <p className="text-galaxy-text-muted font-body text-sm">
+                  {currentStreak > 0
+                    ? `Write a little every day to keep it going! Best: ${longestStreak}`
+                    : 'Write something today to start a streak!'}
+                </p>
+              </div>
+            </div>
+
+            {earnedCount > 0 && (
+              <div className="mt-4 flex flex-wrap gap-2">
+                {badges
+                  .filter((b) => b.earned)
+                  .map((b) => (
+                    <span
+                      key={b.id}
+                      title={`${b.label} — ${b.description}`}
+                      className="inline-flex items-center gap-1.5 rounded-full glass border border-galaxy-text-muted/20 px-3 py-1.5 text-sm font-body"
+                    >
+                      <span aria-hidden>{b.emoji}</span>
+                      <span className="text-galaxy-text">{b.label}</span>
+                    </span>
+                  ))}
+              </div>
+            )}
           </div>
 
           {/* Avatar customization */}

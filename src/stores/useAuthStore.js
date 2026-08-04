@@ -21,6 +21,7 @@ export const useAuthStore = create((set) => ({
       useAvatarStore.getState().refreshCoins()
       useAvatarStore.getState().loadInventory()
       useRewardsStore.getState().loadBadges()
+      useRewardsStore.getState().loadStreak()
     }
     supabase.auth.onAuthStateChange((_event, session) => {
       const newUser = session?.user ?? null
@@ -31,6 +32,7 @@ export const useAuthStore = create((set) => ({
         useAvatarStore.getState().refreshCoins()
         useAvatarStore.getState().loadInventory()
         useRewardsStore.getState().loadBadges()
+        useRewardsStore.getState().loadStreak()
       }
     })
   },
