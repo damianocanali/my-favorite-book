@@ -286,6 +286,7 @@ struct StoryBuddyView: View {
                     .background(.purple, in: Circle())
                     .foregroundStyle(.white)
             }
+            .accessibilityLabel("Send message")
             .disabled(sending || input.trimmingCharacters(in: .whitespaces).isEmpty)
         }
         .padding(.horizontal)

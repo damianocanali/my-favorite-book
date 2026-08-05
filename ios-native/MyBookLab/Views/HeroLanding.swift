@@ -90,10 +90,8 @@ struct HeroLanding: View {
                 .shadow(color: .purple.opacity(0.7), radius: 28, y: 8)
                 .scaleEffect(logoPulse ? 1.02 : 1.0)
         }
-        .onAppear {
-            withAnimation(.easeInOut(duration: 3.0).repeatForever(autoreverses: true)) {
-                logoPulse = true
-            }
+        .loopingAnimation(.easeInOut(duration: 3.0).repeatForever(autoreverses: true)) {
+            logoPulse = true
         }
     }
 
@@ -150,11 +148,11 @@ struct HeroLanding: View {
     private func startWiggle() {
         Task { @MainActor in
             while true {
-                try? await Task.sleep(nanoseconds: 3_500_000_000)
+                try? await Task.sleep(for: .seconds(3.5))
                 withAnimation(.interpolatingSpring(stiffness: 250, damping: 6)) {
                     ctaWiggle = 18
                 }
-                try? await Task.sleep(nanoseconds: 250_000_000)
+                try? await Task.sleep(for: .milliseconds(250))
                 withAnimation(.interpolatingSpring(stiffness: 250, damping: 8)) {
                     ctaWiggle = 0
                 }

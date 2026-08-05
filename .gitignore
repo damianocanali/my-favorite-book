@@ -7,6 +7,13 @@ dist
 !.env.example
 .claude
 
+# Agent skills are installed with `npx skills add`, which drops the
+# skill's own files here. That payload is third-party and reinstallable,
+# so it's ignored the way node_modules is — but skills-lock.json IS
+# committed, since it pins the source and content hash and is what makes
+# the install reproducible.
+.agents
+
 # Capacitor native build artifacts
 ios/App/Pods
 ios/App/App/public

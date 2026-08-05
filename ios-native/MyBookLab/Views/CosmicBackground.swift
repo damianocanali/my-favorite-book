@@ -180,7 +180,8 @@ private struct DriftingSparklesLayer: View {
                 sparkles[idx].opacity = 0
             }
         }
-        DispatchQueue.main.asyncAfter(deadline: .now() + duration + 0.5) {
+        Task {
+            try? await Task.sleep(for: .seconds(duration + 0.5))
             sparkles.removeAll { $0.id == id }
         }
     }
@@ -217,10 +218,8 @@ private struct NebulaBlob: View {
             .frame(width: size, height: size)
             .blur(radius: 40)
             .offset(x: offset.width + drift.width, y: offset.height + drift.height)
-            .onAppear {
-                withAnimation(.easeInOut(duration: speed).repeatForever(autoreverses: true)) {
-                    drift = CGSize(width: 40, height: -30)
-                }
+            .loopingAnimation(.easeInOut(duration: speed).repeatForever(autoreverses: true)) {
+                drift = CGSize(width: 40, height: -30)
             }
     }
 }

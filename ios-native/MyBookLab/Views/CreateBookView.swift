@@ -136,7 +136,7 @@ struct CreateBookView: View {
             // rather than a wall. Strong conversion lift, no friction
             // for paying users (skipped).
             if wasFirstBook && !subs.isPaid {
-                try? await Task.sleep(nanoseconds: 600_000_000) // wait for navigation
+                try? await Task.sleep(for: .milliseconds(600)) // wait for navigation
                 showingCelebrationPaywall = true
             }
         }
@@ -638,6 +638,7 @@ private struct PagesStep: View {
                                 .background(Circle().fill(Color.white.opacity(0.12)))
                                 .foregroundStyle(.white)
                         }
+                        .accessibilityLabel("Add page")
                     }
                 }
                 .padding(.horizontal)
@@ -990,7 +991,8 @@ private struct ReadyStep: View {
                     confettiTrigger &+= 1
                     AudioService.shared.playSFX(.celebrate)
                     Haptics.burst()
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                    Task {
+                        try? await Task.sleep(for: .milliseconds(150))
                         onSave()
                     }
                 }) {

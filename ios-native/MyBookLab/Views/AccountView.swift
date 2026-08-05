@@ -96,6 +96,7 @@ struct AccountView: View {
                         .font(.title2)
                         .foregroundStyle(.yellow)
                 }
+                .accessibilityLabel("Buy coins")
             }
         }
         .padding(16)
@@ -212,11 +213,13 @@ struct AccountView: View {
                                 .font(.title3)
                                 .foregroundStyle(.green)
                         }
+                        .accessibilityLabel("Save name")
                         Button { editingName = false } label: {
                             Image(systemName: "xmark.circle.fill")
                                 .font(.title3)
                                 .foregroundStyle(.white.opacity(0.5))
                         }
+                        .accessibilityLabel("Cancel editing name")
                     }
                 } else {
                     HStack(spacing: 8) {

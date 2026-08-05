@@ -28,6 +28,14 @@ enum IllustrationUploader {
     }
 
     /// Uploads a PNG and returns the public URL to store on the page.
+    ///
+    /// @MainActor because this reads AuthStore, which is main-actor
+    /// isolated — without it the `AuthStore.shared` accesses below are
+    /// cross-actor and the compiler demands `await` on each one. Every
+    /// other service that touches AuthStore (CoinsStore, RewardsStore,
+    /// BookshelfStore) is isolated the same way, and both callers are
+    /// already on the main actor, so this costs nothing at the call site.
+    @MainActor
     static func upload(_ image: UIImage, kind: String = "drawing") async throws -> String {
         guard let userId = AuthStore.shared.user?.id.uuidString.lowercased() else {
             throw UploadError.notSignedIn

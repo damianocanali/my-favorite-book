@@ -12,6 +12,7 @@ struct Confetti: View {
     /// How long each piece falls before disappearing.
     var duration: Double = 2.6
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var pieces: [Piece] = []
 
     var body: some View {
@@ -38,24 +39,39 @@ struct Confetti: View {
         let palette: [Color] = [.yellow, .pink, .purple, .cyan, .green, .orange, .white]
         var new: [Piece] = []
         for _ in 0..<count {
+            // Under Reduce Motion the pieces still appear, in colour, and
+            // still fade — they just don't fall or spin. The celebration
+            // survives; the vestibular trigger doesn't.
+            let startY: CGFloat = reduceMotion
+                ? CGFloat.random(in: 0...max(size.height, 1))
+                : -20
             new.append(Piece(
-                x: CGFloat.random(in: 0...size.width),
-                y: -20,
-                targetY: size.height + 40,
+                x: CGFloat.random(in: 0...max(size.width, 1)),
+                y: startY,
+                targetY: reduceMotion ? startY : size.height + 40,
                 width: CGFloat.random(in: 6...12),
                 height: CGFloat.random(in: 10...18),
                 rotation: Double.random(in: 0...360),
-                spin: Double.random(in: -540...540),
-                color: palette.randomElement()!,
-                opacity: 1
+                spin: reduceMotion ? 0 : Double.random(in: -540...540),
+                color: palette.randomElement() ?? .yellow,
+                opacity: reduceMotion ? 0 : 1
             ))
         }
         pieces.append(contentsOf: new)
+
         for piece in new {
-            withAnimation(.easeIn(duration: duration + Double.random(in: -0.4...0.4))) {
-                if let i = pieces.firstIndex(where: { $0.id == piece.id }) {
-                    pieces[i].y = piece.targetY
-                    pieces[i].rotation += piece.spin
+            if reduceMotion {
+                withAnimation(.easeOut(duration: 0.4)) {
+                    if let i = pieces.firstIndex(where: { $0.id == piece.id }) {
+                        pieces[i].opacity = 1
+                    }
+                }
+            } else {
+                withAnimation(.easeIn(duration: duration + Double.random(in: -0.4...0.4))) {
+                    if let i = pieces.firstIndex(where: { $0.id == piece.id }) {
+                        pieces[i].y = piece.targetY
+                        pieces[i].rotation += piece.spin
+                    }
                 }
             }
             withAnimation(.easeIn(duration: 0.6).delay(duration - 0.6)) {
@@ -64,8 +80,10 @@ struct Confetti: View {
                 }
             }
         }
+
         let ids = new.map(\.id)
-        DispatchQueue.main.asyncAfter(deadline: .now() + duration + 1.0) {
+        Task {
+            try? await Task.sleep(for: .seconds(duration + 1.0))
             pieces.removeAll { ids.contains($0.id) }
         }
     }

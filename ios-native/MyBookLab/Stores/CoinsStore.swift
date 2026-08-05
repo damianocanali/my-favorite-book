@@ -191,7 +191,7 @@ final class CoinsStore {
             // Poll for the webhook to credit. RC usually fires it
             // within a couple of seconds; give it up to 12.
             for attempt in 0..<12 {
-                try? await Task.sleep(nanoseconds: 1_000_000_000)  // 1s
+                try? await Task.sleep(for: .seconds(1))
                 await refresh()
                 if balance >= before + expectedCoins {
                     return .success(newBalance: balance)

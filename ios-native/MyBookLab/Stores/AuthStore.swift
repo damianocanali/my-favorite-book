@@ -501,13 +501,20 @@ import CommonCrypto
 import UIKit
 
 // Lets ASWebAuthenticationSession find the window to present from.
+//
+// This must NOT be `nonisolated` with a DispatchQueue.main.sync hop.
+// signInWithGoogle() starts the session from the main actor, and
+// ASWebAuthenticationSession calls back for its anchor on the main
+// thread — so dispatching *synchronously* to main from main deadlocked
+// the app the moment anyone tapped Sign in with Google.
+//
+// AuthStore is already @MainActor, so this satisfies the (main-actor
+// bound) protocol requirement directly, with no hop at all.
 extension AuthStore: ASWebAuthenticationPresentationContextProviding {
-    nonisolated func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
-        DispatchQueue.main.sync {
-            UIApplication.shared.connectedScenes
-                .compactMap { $0 as? UIWindowScene }
-                .flatMap { $0.windows }
-                .first { $0.isKeyWindow } ?? UIWindow()
-        }
+    func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
+        UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .flatMap(\.windows)
+            .first { $0.isKeyWindow } ?? UIWindow()
     }
 }

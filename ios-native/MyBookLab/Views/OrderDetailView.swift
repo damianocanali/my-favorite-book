@@ -134,10 +134,10 @@ struct OrderDetailView: View {
         VStack(alignment: .leading, spacing: 10) {
             sectionHeader("Summary")
             row("Format", "\(o.format.rawValue.capitalized) × \(o.quantity)")
-            row("Subtotal", formattedTotal(o.unitPriceCents * o.quantity))
-            row("Shipping", formattedTotal(o.shippingCents))
+            row("Subtotal", (o.unitPriceCents * o.quantity).asPrice)
+            row("Shipping", (o.shippingCents).asPrice)
             Divider().background(.white.opacity(0.15))
-            row("Total", formattedTotal(o.totalCents), emphasized: true)
+            row("Total", (o.totalCents).asPrice, emphasized: true)
         }
         .padding(16)
         .background(.white.opacity(0.06), in: RoundedRectangle(cornerRadius: 16))
@@ -185,7 +185,7 @@ struct OrderDetailView: View {
             // Poll while the order is in a non-terminal state.
             while !Task.isCancelled, let o = self.order,
                   ![PrintOrderStatus.delivered, .failed, .refunded].contains(o.status) {
-                try? await Task.sleep(nanoseconds: 30_000_000_000) // 30s
+                try? await Task.sleep(for: .seconds(30))
                 if Task.isCancelled { break }
                 await fetchOnce()
             }
@@ -217,7 +217,4 @@ struct OrderDetailView: View {
         self.loading = false
     }
 
-    private func formattedTotal(_ cents: Int) -> String {
-        String(format: "$%.2f", Double(cents) / 100)
-    }
 }
