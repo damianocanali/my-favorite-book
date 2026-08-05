@@ -92,16 +92,23 @@ export default function ClassroomPage() {
     )
   }
 
-  if (error) {
+  // A 200 that isn't the classroom we asked for — a deleted code, or a
+  // response shape we didn't expect — used to slip past the error branch
+  // and then throw on classroom.name, white-screening the teacher.
+  if (error || !classroom?.code) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4 px-4 text-center">
-        <p className="text-galaxy-text-muted font-body text-xl">{error}</p>
+        <p className="text-galaxy-text-muted font-body text-xl">{error || 'Classroom not found'}</p>
         <SparkleButton onClick={() => navigate('/teacher')} variant="secondary">
           Back to Teacher Dashboard
         </SparkleButton>
       </div>
     )
   }
+
+  // The API omits `submissions` entirely for an empty classroom, so the
+  // `=== 0` check below fell through to .map on undefined.
+  const submissions = classroom.submissions ?? []
 
   return (
     <>
@@ -128,7 +135,7 @@ export default function ClassroomPage() {
                 <h1 className="font-heading text-2xl font-bold text-galaxy-text">{classroom.name}</h1>
                 <p className="text-galaxy-text-muted font-body text-sm">
                   Code: <span className="font-mono text-galaxy-secondary font-bold tracking-widest">{classroom.code}</span>
-                  {' · '}{classroom.submissions?.length ?? 0} book{classroom.submissions?.length !== 1 ? 's' : ''} submitted
+                  {' · '}{submissions.length} book{submissions.length !== 1 ? 's' : ''} submitted
                 </p>
               </div>
             </div>
@@ -142,7 +149,7 @@ export default function ClassroomPage() {
         </motion.div>
 
         {/* Book grid */}
-        {classroom.submissions?.length === 0 ? (
+        {submissions.length === 0 ? (
           <div className="text-center py-20">
             <BookOpen size={48} className="text-galaxy-text-muted mx-auto mb-4 opacity-40" />
             <p className="text-galaxy-text-muted font-body text-lg">No books yet.</p>
@@ -152,7 +159,7 @@ export default function ClassroomPage() {
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-            {classroom.submissions.map((sub) => (
+            {submissions.map((sub) => (
               <BookCard key={sub.id} submission={sub} onClick={() => setSelectedSubmission(sub)} />
             ))}
           </div>

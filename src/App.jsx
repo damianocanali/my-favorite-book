@@ -25,8 +25,10 @@ import OrderConfirmPage from './pages/OrderConfirmPage'
 import OrdersListPage from './pages/OrdersListPage'
 import OrderDetailPage from './pages/OrderDetailPage'
 import ExampleBookPage from './pages/ExampleBookPage'
+import NotFoundPage from './pages/NotFoundPage'
 import ProtectedRoute from './components/auth/ProtectedRoute'
 import BadgePopup from './components/ui/BadgePopup'
+import WelcomeBackMoment from './components/ui/WelcomeBackMoment'
 import { initCapacitor } from './capacitor'
 import { useAuthStore } from './stores/useAuthStore'
 import { resumeOnGesture } from './services/audioService'
@@ -69,6 +71,7 @@ export default function App() {
     <AppShell>
       <ScrollToTop />
       <BadgePopup />
+      <WelcomeBackMoment />
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/create" element={<CreatePage />} />
@@ -101,6 +104,7 @@ export default function App() {
             </ProtectedRoute>
           }
         />
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </AppShell>
   )
