@@ -367,18 +367,3 @@ struct BookDetailView: View {
         }
     }
 }
-
-@Observable
-final class SpeechSpeaker {
-    private let synth = AVSpeechSynthesizer()
-    func speak(_ text: String) {
-        stop()
-        let utter = AVSpeechUtterance(string: text)
-        utter.rate = 0.45
-        utter.voice = AVSpeechSynthesisVoice(language: "en-US")
-        synth.speak(utter)
-    }
-    func stop() {
-        if synth.isSpeaking { synth.stopSpeaking(at: .immediate) }
-    }
-}

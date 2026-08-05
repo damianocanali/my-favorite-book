@@ -28,7 +28,7 @@ enum Haptics {
         celebrate()
         Task { @MainActor in
             for gap in [0.18, 0.16, 0.14] {
-                try? await Task.sleep(nanoseconds: UInt64(gap * 1_000_000_000))
+                try? await Task.sleep(for: .seconds(gap))
                 bigTap()
             }
         }

@@ -11,6 +11,7 @@ import SwiftUI
 /// Mascot art is optional — falls back to a star until the asset exists,
 /// so this ships ahead of the artwork exactly as the web version does.
 private struct Mascot: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var floating = false
 
     private var artwork: Image? {
@@ -26,16 +27,22 @@ private struct Mascot: View {
                     .frame(width: 112, height: 112)
                     .shadow(color: Color(red: 0.75, green: 0.35, blue: 0.95).opacity(0.6), radius: 24, y: 8)
                     .offset(y: floating ? -8 : 0)
-                    .animation(.easeInOut(duration: 1.3).repeatForever(autoreverses: true), value: floating)
+                    .animation(loop(1.3), value: floating)
             } else {
                 Text("⭐")
                     .font(.system(size: 72))
                     .rotationEffect(.degrees(floating ? 6 : -6))
-                    .animation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true), value: floating)
+                    .animation(loop(1.5), value: floating)
             }
         }
         .onAppear { floating = true }
         .accessibilityHidden(true)
+    }
+
+    /// nil animation under Reduce Motion, so `floating` still flips to
+    /// its resting value but the mascot simply sits there.
+    private func loop(_ duration: TimeInterval) -> Animation? {
+        reduceMotion ? nil : .easeInOut(duration: duration).repeatForever(autoreverses: true)
     }
 }
 

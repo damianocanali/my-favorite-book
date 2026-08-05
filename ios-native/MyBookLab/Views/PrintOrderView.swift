@@ -240,7 +240,7 @@ struct PrintOrderView: View {
                 .font(.title3.bold())
                 .foregroundStyle(.white)
             Spacer()
-            Text(formattedTotal(totalCents))
+            Text((totalCents).asPrice)
                 .font(.system(.title3, design: .rounded).bold())
                 .foregroundStyle(.white)
         }
@@ -338,9 +338,6 @@ struct PrintOrderView: View {
         }
     }
 
-    private func formattedTotal(_ cents: Int) -> String {
-        String(format: "$%.2f", Double(cents) / 100)
-    }
 }
 
 extension PaymentSheetResult: @retroactive Equatable {

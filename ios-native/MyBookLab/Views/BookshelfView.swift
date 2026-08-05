@@ -415,10 +415,8 @@ private struct ShelfRowSkeleton: View {
                 .frame(height: 12)
                 .padding(.horizontal, 12)
         }
-        .onAppear {
-            withAnimation(.easeInOut(duration: 1.2).repeatForever(autoreverses: true)) {
-                shimmer = true
-            }
+        .loopingAnimation(.easeInOut(duration: 1.2).repeatForever(autoreverses: true)) {
+            shimmer = true
         }
         .accessibilityHidden(true)
     }

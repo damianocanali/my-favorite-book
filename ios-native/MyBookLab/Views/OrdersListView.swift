@@ -102,7 +102,7 @@ struct OrdersListView: View {
                 Spacer()
                 statusPill(o.status)
             }
-            Text("\(o.quantity) × \(o.format.rawValue.capitalized) · \(formattedTotal(o.totalCents))")
+            Text("\(o.quantity) × \(o.format.rawValue.capitalized) · \((o.totalCents).asPrice)")
                 .font(.caption).foregroundStyle(.white.opacity(0.7))
             Text(formattedDate(o.createdAt))
                 .font(.caption2).foregroundStyle(.white.opacity(0.5))
@@ -160,9 +160,6 @@ struct OrdersListView: View {
         }
     }
 
-    private func formattedTotal(_ cents: Int) -> String {
-        String(format: "$%.2f", Double(cents) / 100)
-    }
 
     private func formattedDate(_ iso: String) -> String {
         let formatter = ISO8601DateFormatter()
