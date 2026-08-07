@@ -26,6 +26,7 @@ import OrdersListPage from './pages/OrdersListPage'
 import OrderDetailPage from './pages/OrderDetailPage'
 import ExampleBookPage from './pages/ExampleBookPage'
 import NotFoundPage from './pages/NotFoundPage'
+import StoryBlanksPage from './pages/StoryBlanksPage'
 import ProtectedRoute from './components/auth/ProtectedRoute'
 import BadgePopup from './components/ui/BadgePopup'
 import WelcomeBackMoment from './components/ui/WelcomeBackMoment'
@@ -98,6 +99,7 @@ export default function App() {
         <Route path="/orders/:id" element={<OrderDetailPage />} />
         <Route path="/orders/:id/confirm" element={<OrderConfirmPage />} />
         <Route path="/example" element={<ExampleBookPage />} />
+        <Route path="/blanks" element={<StoryBlanksPage />} />
         <Route
           path="/teacher"
           element={
