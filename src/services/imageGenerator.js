@@ -43,7 +43,14 @@ export async function generatePageIllustration(page, book) {
   const setting = book.setting?.name || 'a magical place'
   const pageText = page.text || 'the beginning of an adventure'
 
-  const prompt = `A scene from a children's storybook: ${pageText.substring(0, 200)}. The characters ${chars} are in ${setting}. ${buildStylePrompt()}, wide scene, landscape composition`
+  // Story Builder pages carry the cards the child actually chose. Naming
+  // them explicitly keeps the picture faithful to the pictures they picked
+  // — re-guessing from the prose alone tends to drop one of them.
+  const chosen = page.illustrationHint
+    ? ` The picture must include: ${page.illustrationHint}.`
+    : ''
+
+  const prompt = `A scene from a children's storybook: ${pageText.substring(0, 200)}.${chosen} The characters ${chars} are in ${setting}. ${buildStylePrompt()}, wide scene, landscape composition`
 
   return generateImage(prompt)
 }
