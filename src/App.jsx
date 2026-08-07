@@ -27,6 +27,7 @@ import OrderDetailPage from './pages/OrderDetailPage'
 import ExampleBookPage from './pages/ExampleBookPage'
 import NotFoundPage from './pages/NotFoundPage'
 import StoryBlanksPage from './pages/StoryBlanksPage'
+import StoryBuilderPage from './pages/StoryBuilderPage'
 import ProtectedRoute from './components/auth/ProtectedRoute'
 import BadgePopup from './components/ui/BadgePopup'
 import WelcomeBackMoment from './components/ui/WelcomeBackMoment'
@@ -99,7 +100,25 @@ export default function App() {
         <Route path="/orders/:id" element={<OrderDetailPage />} />
         <Route path="/orders/:id/confirm" element={<OrderConfirmPage />} />
         <Route path="/example" element={<ExampleBookPage />} />
-        <Route path="/blanks" element={<StoryBlanksPage />} />
+        {/* Story Blanks writes a real book to the shelf and claims
+            badges, both of which need an account — an anonymous player
+            would finish a story and watch it vanish. */}
+        <Route
+          path="/blanks"
+          element={
+            <ProtectedRoute>
+              <StoryBlanksPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/build"
+          element={
+            <ProtectedRoute>
+              <StoryBuilderPage />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/teacher"
           element={

@@ -168,6 +168,14 @@ export default function LandingPage() {
           >
             🧩 Story Blanks
           </SparkleButton>
+
+          <SparkleButton
+            onClick={() => navigate('/build')}
+            size="default"
+            variant="secondary"
+          >
+            🧲 Story Builder
+          </SparkleButton>
         </motion.div>
       </div>
 
