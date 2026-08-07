@@ -8,44 +8,6 @@
 // to welcome anyone back to.
 import SwiftUI
 
-/// Mascot art is optional — falls back to a star until the asset exists,
-/// so this ships ahead of the artwork exactly as the web version does.
-private struct Mascot: View {
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var floating = false
-
-    private var artwork: Image? {
-        UIImage(named: "Mascot").map { Image(uiImage: $0) }
-    }
-
-    var body: some View {
-        Group {
-            if let artwork {
-                artwork
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 112, height: 112)
-                    .shadow(color: Color(red: 0.75, green: 0.35, blue: 0.95).opacity(0.6), radius: 24, y: 8)
-                    .offset(y: floating ? -8 : 0)
-                    .animation(loop(1.3), value: floating)
-            } else {
-                Text("⭐")
-                    .font(.system(size: 72))
-                    .rotationEffect(.degrees(floating ? 6 : -6))
-                    .animation(loop(1.5), value: floating)
-            }
-        }
-        .onAppear { floating = true }
-        .accessibilityHidden(true)
-    }
-
-    /// nil animation under Reduce Motion, so `floating` still flips to
-    /// its resting value but the mascot simply sits there.
-    private func loop(_ duration: TimeInterval) -> Animation? {
-        reduceMotion ? nil : .easeInOut(duration: duration).repeatForever(autoreverses: true)
-    }
-}
-
 struct WelcomeBackMoment: View {
     @Environment(AuthStore.self) private var auth
     @Environment(RewardsStore.self) private var rewards
@@ -80,7 +42,7 @@ struct WelcomeBackMoment: View {
                     .onTapGesture { dismiss() }
 
                 VStack(spacing: 20) {
-                    Mascot()
+                    Mascot(mood: .welcome, size: 128)
 
                     HStack(spacing: 12) {
                         StatPill(icon: "🔥", value: rewards.currentStreak, label: "Day streak", tone: .flame)

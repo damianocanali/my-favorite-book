@@ -5,6 +5,7 @@ import { useRewardsStore } from '../../stores/useRewardsStore'
 import { useAvatarStore } from '../../stores/useAvatarStore'
 import GameBanner from './GameBanner'
 import StatPill from './StatPill'
+import Mascot from './Mascot'
 
 // The launch beat. Streak and coins existed but only surfaced on a
 // settings screen, so a child never saw the numbers they were earning.
@@ -16,33 +17,6 @@ import StatPill from './StatPill'
 
 const SESSION_KEY = 'mbl-welcomed-this-session'
 const HOLD_MS = 4200
-
-/** Mascot art is optional — falls back to a star until the asset exists. */
-function Mascot() {
-  const [failed, setFailed] = useState(false)
-  if (failed) {
-    return (
-      <motion.div
-        className="text-7xl"
-        animate={{ rotate: [-6, 6, -6] }}
-        transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-        aria-hidden
-      >
-        ⭐
-      </motion.div>
-    )
-  }
-  return (
-    <motion.img
-      src="/mascot.png"
-      alt=""
-      onError={() => setFailed(true)}
-      className="h-28 w-28 object-contain drop-shadow-[0_8px_24px_rgba(191,90,242,0.6)]"
-      animate={{ y: [0, -8, 0] }}
-      transition={{ duration: 2.6, repeat: Infinity, ease: 'easeInOut' }}
-    />
-  )
-}
 
 export default function WelcomeBackMoment() {
   const user = useAuthStore((s) => s.user)
@@ -122,7 +96,7 @@ export default function WelcomeBackMoment() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            <Mascot />
+            <Mascot mood="welcome" size={128} />
 
             <div className="flex items-center gap-3">
               <StatPill icon="🔥" value={currentStreak} label="Day streak" tone="flame" />

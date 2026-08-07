@@ -1,38 +1,70 @@
 # Adding the mascot artwork
 
-`WelcomeBackMoment` (both platforms) shows a mascot. The art is **not in
-the repo yet** — both copies fall back to an animated ⭐, so everything
-builds and behaves correctly without it. This is a placeholder, not a
-broken asset.
+The mascot has **five drawn poses**, each mapped to a mood with its own
+motion. Until the files exist, every pose falls back to an emoji, so the
+app builds and behaves correctly with no artwork present.
 
-## What's needed
+## Slicing the pose sheet
 
-One square PNG of the mascot on a transparent background. Export at
-**336×336 px** if you can only produce one size — it renders at 112×112
-points, so that covers 3x and scales down cleanly.
+The art arrives as one sheet with all five poses and a caption under each.
+Do not cut it by hand — run:
 
-## Where it goes
+```bash
+pip install Pillow
+python3 scripts/slice-mascot.py path/to/sheet.png
+```
 
-**iOS.** Open `MyBookLab.xcodeproj`, select `Assets.xcassets` → **Mascot**
-in the navigator, and drag the PNGs onto the wells:
+It finds the poses by connected transparent regions (so it survives being
+re-exported at any size), drops the captions, trims each to its own
+bounds, and writes:
 
-- 1x → 112×112 px
-- 2x → 224×224 px
-- 3x → 336×336 px
+```
+public/mascot/welcoming.png      → moods: wave, idle, think
+public/mascot/cheering.png       → mood:  cheer
+public/mascot/welcome-back.png   → mood:  welcome
+public/mascot/badge.png          → moods: badge, proud
+public/mascot/badge-glow.png     → lit second frame, cross-faded to glow
+public/mascot/head.png           → optional small head sprite
+public/mascot.png                → generic fallback
+```
 
-Dropping files into `Assets.xcassets/Mascot.imageset/` in Finder is *not*
-enough — `Contents.json` has to name them, and Xcode writes that entry
-for you when you use the catalog editor. The slots are intentionally
-empty right now, so `UIImage(named: "Mascot")` returns nil and the star
-renders instead. One file in the 3x well is fine; iOS scales it down.
+That is the whole web job. No code change.
 
-**Web.** Save the same art as `public/mascot.png` in the repo root.
-`src/components/ui/WelcomeBackMoment.jsx` requests it as `/mascot.png`
-and swaps to the star via `onError` if it 404s. One file, no build step,
-no code change.
+## iOS
 
-## Verifying
+Open `Assets.xcassets` in Xcode and drag each sliced PNG onto the 1x/2x/3x
+wells of its imageset:
 
-Sign in and relaunch. The moment fires ~0.9s after launch, once per
-session. On iOS, force-quit and reopen to see it again; on web, open a
-new tab — it's keyed to `sessionStorage`.
+| File | Imageset |
+|---|---|
+| `welcoming.png` | `MascotWelcoming` |
+| `cheering.png` | `MascotCheering` |
+| `welcome-back.png` | `MascotWelcomeBack` |
+| `badge.png` | `MascotBadge` |
+| `badge-glow.png` | `MascotBadgeGlow` |
+
+The imagesets already exist with empty slots. Dropping files into the
+folders in Finder is *not* enough — `Contents.json` has to name them, and
+only the catalog editor writes that. Export around 336x336 px for 3x; one
+file in the 3x well is fine and iOS scales it down.
+
+## How each pose is animated
+
+| Mood | Pose | Motion |
+|---|---|---|
+| `wave` | Welcoming | rocks side to side, looping |
+| `welcome` | Welcoming Back | slow breath + float, looping |
+| `cheer` | Cheering | bounces with a slight squash, **twice then stops** |
+| `badge` / `proud` | Presenting Badge | gentle float, with the glow frame cross-fading over it |
+| `think` | Welcoming (reused) | slight tilt and hover |
+| `idle` | Welcoming (reused) | gentle float |
+
+A cheer that loops forever stops reading as a cheer, which is why that one
+is a burst. All motion is skipped under Reduce Motion on both platforms.
+
+## Where each pose shows up
+
+- **Welcoming Back** — the welcome-back moment after sign-in
+- **Welcoming** — the Story Blanks intro
+- **Cheering** — milestone beats (first page, halfway)
+- **Presenting Badge** — the badge popup, and the "every page done" beat

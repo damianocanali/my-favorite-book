@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { useRewardsStore } from '../../stores/useRewardsStore'
 import { celebrateAt } from '../../lib/celebrate'
+import Mascot from './Mascot'
 
 // How many coin particles to spray when a badge grants coins. Scales
 // gently with reward size so a 100-coin badge feels bigger than a 10.
@@ -51,7 +52,16 @@ export default function BadgePopup() {
             onClick={dismiss}
             className="relative flex items-center gap-3 px-5 py-3 rounded-2xl glass border border-yellow-400/50 shadow-lg shadow-yellow-400/20 cursor-pointer hover:scale-105 transition-transform"
           >
-            <span className="text-3xl">{newBadge.emoji}</span>
+            {/* The mascot has a pose drawn specifically for this moment —
+                holding up a badge, with a lit-up second frame that
+                cross-fades to make it glow. The badge's own emoji rides on
+                its shoulder so the specific award is still identifiable. */}
+            <span className="relative shrink-0">
+              <Mascot mood="badge" size={64} />
+              <span className="absolute -right-1 -top-1 text-2xl drop-shadow" aria-hidden>
+                {newBadge.emoji}
+              </span>
+            </span>
             <div className="text-left">
               <p className="text-yellow-300 text-xs font-body font-bold uppercase tracking-wider">
                 Badge earned!
