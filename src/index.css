@@ -183,11 +183,53 @@ body {
   opacity: 0;
 }
 
-/* Respect the OS "reduce motion" setting — the backdrop is decorative. */
+/* Respect the OS "reduce motion" setting — the backdrop is decorative.
+   This only reaches CSS animations; the JS-driven motion/react ones are
+   handled globally by <MotionConfig reducedMotion="user"> in main.jsx. */
 @media (prefers-reduced-motion: reduce) {
   .cosmic-sparkle {
     display: none;
   }
+  /* Anything still animating in CSS settles immediately rather than
+     looping, so no decorative motion survives the setting. */
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ── Keyboard focus ────────────────────────────────────────────────────
+   Only SparkleButton carried a focus ring, so tabbing through the rest of
+   the app — the tab bar, every icon button, every link — gave no visible
+   indication of position. One global :focus-visible rule covers the lot
+   and, unlike :focus, it stays invisible for mouse and touch users so the
+   kid-facing look is unchanged. */
+:focus-visible {
+  outline: 3px solid #FFD60A;
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+/* Skip link: first tab stop on every page, hidden until focused. */
+.skip-to-content {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  transform: translate(-50%, -120%);
+  z-index: 100;
+  padding: 0.75rem 1.25rem;
+  border-radius: 0 0 0.75rem 0.75rem;
+  background: #FFD60A;
+  color: #2A1055;
+  font-weight: 800;
+  transition: transform 180ms ease-out;
+}
+.skip-to-content:focus {
+  transform: translate(-50%, 0);
 }
 
 /* Allow text selection only in text areas and inputs */
