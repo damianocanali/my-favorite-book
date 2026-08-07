@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { LogOut, GraduationCap, Sparkles, Volume2, VolumeX } from 'lucide-react'
 import { useAuthStore, selectDisplayName, selectRole } from '../../stores/useAuthStore'
 import { toggleMute, isMuted } from '../../services/audioService'
+import PlayMenu from './PlayMenu'
 import AvatarDisplay from '../avatar/AvatarDisplay'
 import AppLogo from '../ui/AppLogo'
 import CosmicBackground from './CosmicBackground'
@@ -70,6 +71,8 @@ export default function AppShell({ children }) {
         />
 
         <div className="flex flex-shrink-0 items-center gap-1 sm:gap-2">
+          <PlayMenu linkClass={headerLink} />
+
           <Link to="/pricing" className={headerLink(location.pathname === '/pricing')}>
             <Sparkles size={18} />
             <span className="hidden font-body text-sm font-semibold sm:inline">Pricing</span>
