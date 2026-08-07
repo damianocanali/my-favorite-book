@@ -14,6 +14,7 @@ import BookFinishedModal from '../components/print/BookFinishedModal'
 import SparkleButton from '../components/ui/SparkleButton'
 import { isNative } from '../capacitor'
 import { apiFetchAuthed } from '../lib/api'
+import { useRewardsStore } from '../stores/useRewardsStore'
 import { celebrateBig } from '../lib/celebrate'
 
 export default function PreviewPage() {
@@ -25,6 +26,7 @@ export default function PreviewPage() {
   const [searchParams] = useSearchParams()
   const [showSubmitModal, setShowSubmitModal] = useState(false)
   const [nudgeDismissed, setNudgeDismissed] = useState(false)
+  const earnBadge = useRewardsStore((s) => s.earnBadge)
   const [publishing, setPublishing] = useState(false)
   const [publishedUrl, setPublishedUrl] = useState(null)
   const [finishedOpen, setFinishedOpen] = useState(searchParams.get('celebrate') === '1')
@@ -63,6 +65,7 @@ export default function PreviewPage() {
       if (navigator.clipboard) navigator.clipboard.writeText(fullUrl)
       // Shipping a book is the headline moment — blast confetti.
       celebrateBig()
+      earnBadge('published_book')
     } catch {
       alert('Failed to publish. Please try again.')
     } finally {

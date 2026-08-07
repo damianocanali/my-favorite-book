@@ -2,22 +2,29 @@ import { useEffect } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { motion } from 'motion/react'
 import { CheckCircle2 } from 'lucide-react'
+import { useRewardsStore } from '../stores/useRewardsStore'
 
 export default function OrderConfirmPage() {
   const { id } = useParams()
   const [params] = useSearchParams()
   const isNew = params.get('new') === '1'
+  const earnBadge = useRewardsStore((s) => s.earnBadge)
 
   useEffect(() => {
     if (!isNew) return
     let canceled = false
+    // Ordering a real printed copy is the biggest thing a child completes
+    // in this app, and it went unrewarded. `?new=1` is only set on the
+    // redirect straight after a successful order, and earnBadge is
+    // idempotent server-side, so this credits exactly once.
+    earnBadge('printed_book')
     import('canvas-confetti').then((mod) => {
       if (canceled) return
       const confetti = mod.default ?? mod
       confetti({ particleCount: 80, spread: 80, origin: { y: 0.5 } })
     }).catch(() => {})
     return () => { canceled = true }
-  }, [isNew])
+  }, [isNew, earnBadge])
 
   const shortId = (id ?? '').slice(-8).toUpperCase()
 

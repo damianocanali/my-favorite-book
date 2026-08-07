@@ -159,6 +159,15 @@ export default function LandingPage() {
           >
             📖 See an Example
           </SparkleButton>
+
+          {/* The gentlest way in: no blank page, no typing required. */}
+          <SparkleButton
+            onClick={() => navigate('/blanks')}
+            size="default"
+            variant="secondary"
+          >
+            🧩 Story Blanks
+          </SparkleButton>
         </motion.div>
       </div>
 

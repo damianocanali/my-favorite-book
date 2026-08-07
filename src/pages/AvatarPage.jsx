@@ -147,6 +147,7 @@ export default function AvatarPage() {
   const setArtStyle = useAvatarStore((s) => s.setArtStyle)
   const avatarImage = useAvatarStore((s) => s.avatarImage)
   const setAvatarImage = useAvatarStore((s) => s.setAvatarImage)
+  const earnBadge = useRewardsStore((s) => s.earnBadge)
   const coins = useAvatarStore((s) => s.coins)
   const spendCoins = useAvatarStore((s) => s.spendCoins)
   const refreshCoins = useAvatarStore((s) => s.refreshCoins)
@@ -206,6 +207,7 @@ export default function AvatarPage() {
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Failed to generate avatar')
       setAvatarImage(data.image)
+      earnBadge('made_avatar')
       incrementGenerations()
     } catch (err) {
       setError(err.message)
@@ -243,6 +245,7 @@ export default function AvatarPage() {
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Failed to cartoonify photo')
       setAvatarImage(data.image)
+      earnBadge('made_avatar')
       incrementGenerations()
     } catch (err) {
       // Camera permission denied / user cancel produces a benign error;

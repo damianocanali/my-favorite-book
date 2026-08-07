@@ -69,7 +69,13 @@ export default function CreatePage() {
         recordWritingActivity()
         if (pagesWritten >= 1) earnBadge('first_page')
         if (pagesWritten >= 5) earnBadge('five_pages')
+        if (pagesWritten >= 10) earnBadge('ten_pages')
         earnBadge('first_book')
+
+        // Illustrating a book right through is a completion worth its own
+        // badge — added_illustration only ever fired for the first picture.
+        const illustrated = book.pages.filter((p) => p.illustrationData).length
+        if (illustrated >= 3) earnBadge('three_illustrations')
 
         const newTotal = bookCount + 1
         if (newTotal >= 3) earnBadge('three_books')

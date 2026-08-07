@@ -23,6 +23,17 @@ const BADGE_COINS = {
   streak_3: 20,
   streak_7: 50,
   streak_30: 150,
+  // Completion badges. Keep in sync with BADGE_DEFINITIONS in
+  // src/stores/useRewardsStore.js and RewardsStore.catalog on iOS — this
+  // table is the authority for how many coins are actually credited, and
+  // an id missing here is rejected as an unknown badge.
+  ten_pages: 40,
+  three_illustrations: 25,
+  published_book: 30,
+  printed_book: 50,
+  drew_illustration: 25,
+  made_avatar: 10,
+  finished_blanks: 15,
 }
 
 export default async function handler(req) {
