@@ -22,6 +22,19 @@ const BADGE_DEFINITIONS = [
   { id: 'streak_3', emoji: '🔥', label: 'On a Roll', description: 'Wrote 3 days in a row', coins: 20 },
   { id: 'streak_7', emoji: '⚡', label: 'Week of Wonders', description: 'Wrote 7 days in a row', coins: 50 },
   { id: 'streak_30', emoji: '🌈', label: 'Story Legend', description: 'Wrote 30 days in a row', coins: 150 },
+
+  // Completion badges. Everything above rewards *starting* things — pages
+  // written, books created, days in a row. Nothing rewarded finishing one
+  // properly: publishing it, printing it, illustrating it right through.
+  // These do, and they carry the biggest coin values in the set because
+  // they are the hardest things a child actually completes.
+  { id: 'ten_pages', emoji: '📜', label: 'Epic Tale', description: 'Wrote a 10-page story', coins: 40 },
+  { id: 'three_illustrations', emoji: '🖼️', label: 'Picture Book', description: 'Put 3 pictures in one book', coins: 25 },
+  { id: 'published_book', emoji: '🌍', label: 'Shared It', description: 'Published a book to the gallery', coins: 30 },
+  { id: 'printed_book', emoji: '📦', label: 'Real Book', description: 'Ordered a printed copy', coins: 50 },
+  { id: 'drew_illustration', emoji: '✏️', label: 'Own Two Hands', description: 'Drew your own picture', coins: 25 },
+  { id: 'made_avatar', emoji: '🦸', label: "That's Me", description: 'Made your own avatar', coins: 10 },
+  { id: 'finished_blanks', emoji: '🧩', label: 'Puzzle Author', description: 'Finished a fill-in-the-blanks story', coins: 15 },
 ]
 
 export const useRewardsStore = create(

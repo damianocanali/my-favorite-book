@@ -27,12 +27,27 @@ final class RewardsStore {
         Badge(id: "three_books", emoji: "📚", label: "Bookworm", description: "Created 3 books", coins: 30),
         Badge(id: "five_books", emoji: "🏆", label: "Super Author", description: "Created 5 books", coins: 50),
         Badge(id: "ten_books", emoji: "🌟", label: "Writing Star", description: "Created 10 books", coins: 100),
+        Badge(id: "used_voice", emoji: "🎤", label: "Voice Writer", description: "Used voice input", coins: 10),
         Badge(id: "used_buddy", emoji: "🤖", label: "AI Friend", description: "Asked Story Buddy for help", coins: 10),
+        Badge(id: "submitted_class", emoji: "🏫", label: "Class Star", description: "Submitted a book to class", coins: 20),
         Badge(id: "added_illustration", emoji: "🎨", label: "Illustrator", description: "Generated an illustration", coins: 15),
         Badge(id: "five_pages", emoji: "✍️", label: "Long Story", description: "Wrote a 5+ page story", coins: 20),
         Badge(id: "streak_3", emoji: "🔥", label: "On a Roll", description: "Wrote 3 days in a row", coins: 20),
         Badge(id: "streak_7", emoji: "⚡", label: "Week of Wonders", description: "Wrote 7 days in a row", coins: 50),
         Badge(id: "streak_30", emoji: "🌈", label: "Story Legend", description: "Wrote 30 days in a row", coins: 150),
+
+        // Completion badges. Everything above rewards *starting* things —
+        // pages written, books created, days in a row. Nothing rewarded
+        // finishing one properly: publishing it, printing it, illustrating
+        // it right through. These do, and they carry the biggest coin
+        // values because they are the hardest things a child completes.
+        Badge(id: "ten_pages", emoji: "📜", label: "Epic Tale", description: "Wrote a 10-page story", coins: 40),
+        Badge(id: "three_illustrations", emoji: "🖼️", label: "Picture Book", description: "Put 3 pictures in one book", coins: 25),
+        Badge(id: "published_book", emoji: "🌍", label: "Shared It", description: "Published a book to the gallery", coins: 30),
+        Badge(id: "printed_book", emoji: "📦", label: "Real Book", description: "Ordered a printed copy", coins: 50),
+        Badge(id: "drew_illustration", emoji: "✏️", label: "Own Two Hands", description: "Drew your own picture", coins: 25),
+        Badge(id: "made_avatar", emoji: "🦸", label: "That's Me", description: "Made your own avatar", coins: 10),
+        Badge(id: "finished_blanks", emoji: "🧩", label: "Puzzle Author", description: "Finished a fill-in-the-blanks story", coins: 15),
     ]
 
     private(set) var earnedBadges: Set<String> = []

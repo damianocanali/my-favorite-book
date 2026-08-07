@@ -29,6 +29,7 @@ import NotFoundPage from './pages/NotFoundPage'
 import ProtectedRoute from './components/auth/ProtectedRoute'
 import BadgePopup from './components/ui/BadgePopup'
 import WelcomeBackMoment from './components/ui/WelcomeBackMoment'
+import MilestoneHost from './components/ui/MilestoneHost'
 import { initCapacitor } from './capacitor'
 import { useAuthStore } from './stores/useAuthStore'
 import { resumeOnGesture } from './services/audioService'
@@ -72,6 +73,7 @@ export default function App() {
       <ScrollToTop />
       <BadgePopup />
       <WelcomeBackMoment />
+      <MilestoneHost />
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/create" element={<CreatePage />} />

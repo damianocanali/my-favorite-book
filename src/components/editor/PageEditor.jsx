@@ -10,10 +10,12 @@ import IllustrationGenerator from './IllustrationGenerator'
 import AccessibilityToolbar from './AccessibilityToolbar'
 import WritingScaffold from './WritingScaffold'
 import { useRewardsStore } from '../../stores/useRewardsStore'
+import { useMilestoneStore, milestoneForProgress } from '../../stores/useMilestoneStore'
 
 export default function PageEditor({ page }) {
   const updatePageText = useBookStore((state) => state.updatePageText)
   const book = useBookStore((state) => state.book)
+  const fireMilestone = useMilestoneStore((s) => s.fire)
   const adaptive = useAgeAdaptive()
   const dyslexiaFont = useAccessibilityStore((s) => s.dyslexiaFont)
 
@@ -43,6 +45,20 @@ export default function PageEditor({ page }) {
   }, [page.text, page.id, updatePageText, earnBadge])
 
   const { start: startVoice, stop: stopVoice, isListening, interimText, isSupported: voiceSupported } = useSpeechRecognition({ onResult: handleVoiceResult })
+
+  // Milestone beats. Writing a book used to be silent between "start" and
+  // "save" — a child could fill five pages and get no signal that anything
+  // had happened. The store dedupes by id, so re-editing page 3 doesn't
+  // congratulate them twice, and milestoneForProgress returns null for
+  // almost every edit: a beat on every keystroke would be noise.
+  //
+  // Keyed off the count of written pages rather than the text itself, so
+  // this runs when a page crosses empty→written, not on each character.
+  const writtenCount = (book?.pages ?? []).filter((p) => (p.text ?? '').trim()).length
+  useEffect(() => {
+    const beat = milestoneForProgress({ bookId: book?.id, pages: book?.pages ?? [] })
+    if (beat) fireMilestone(beat)
+  }, [writtenCount, book?.id, book?.pages, fireMilestone])
 
   // Font class based on dyslexia toggle
   const fontClass = dyslexiaFont ? 'font-dyslexic' : 'font-body'
