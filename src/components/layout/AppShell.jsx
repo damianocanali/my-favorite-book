@@ -43,6 +43,11 @@ export default function AppShell({ children }) {
 
   return (
     <div className="min-h-screen relative">
+      {/* First tab stop on every page. Invisible until focused, so it
+          costs the kid-facing design nothing but saves a keyboard user
+          from tabbing the whole header and tab bar to reach content. */}
+      <a href="#main-content" className="skip-to-content">Skip to content</a>
+
       <CosmicBackground />
 
       <header className="relative z-20 flex items-center justify-between gap-2 px-3 sm:px-6 py-3">
@@ -127,7 +132,7 @@ export default function AppShell({ children }) {
       </header>
 
       {/* pb clears the fixed tab bar (56px bar + label) plus the home indicator */}
-      <main className="relative z-10 pb-[calc(72px+var(--sab,0px))]">{children}</main>
+      <main id="main-content" className="relative z-10 pb-[calc(72px+var(--sab,0px))]">{children}</main>
 
       <TabBar />
     </div>

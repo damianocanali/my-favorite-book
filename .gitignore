@@ -7,6 +7,18 @@ dist
 !.env.example
 .claude
 
+# graphify writes its knowledge graph here. Never commit it: graphify
+# has no secret-redaction pass, and docstrings plus NOTE/TODO/FIXME
+# comments are copied verbatim into graph.json node labels and inlined
+# into graph.html. A key sitting in a comment anywhere under api/ or
+# supabase-migrations/ would land in these files in cleartext.
+#
+# It also closes a real attack path: graphify's own skill files run
+# `$(cat graphify-out/.graphify_python)` unquoted in command position,
+# so a committed graphify-out/ is an execution vector for anyone who
+# checks the repo out.
+graphify-out/
+
 # Agent skills are installed with `npx skills add`, which drops the
 # skill's own files here. That payload is third-party and reinstallable,
 # so it's ignored the way node_modules is — but skills-lock.json IS
