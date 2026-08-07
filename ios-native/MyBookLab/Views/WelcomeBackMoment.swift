@@ -116,6 +116,20 @@ struct WelcomeBackMoment: View {
             text: "Welcome back!",
             sub: auth.displayName.map { "Good to see you, \($0)" }
         )
+        // Showing and hiding are two SEPARATE tasks on purpose.
+        //
+        // They used to be one, and that could strand the overlay on screen
+        // permanently: `.task(id:)` cancels when its id changes or the view
+        // disappears, and right after sign-in `auth.user?.id` settles as the
+        // session refreshes. If that landed inside the hold sleep, the
+        // `guard !Task.isCancelled` bailed out with `open` still true — a
+        // dark, full-screen, hit-testing overlay with nothing left running
+        // to take it down.
+        //
+        // Split apart, the hide task keys off `open` alone. If it is ever
+        // cancelled it simply restarts when the view reappears, sees the
+        // overlay is still up, and closes it. It self-heals instead of
+        // stranding.
         .task(id: auth.user?.id) {
             guard auth.isSignedIn, !Self.shownThisLaunch else { return }
             try? await Task.sleep(for: appearDelay)
@@ -125,8 +139,12 @@ struct WelcomeBackMoment: View {
             audio.playSFX(.sparkle)
             Haptics.bigTap()
             withAnimation(.spring(response: 0.42, dampingFraction: 0.7)) { open = true }
-
+        }
+        .task(id: open) {
+            guard open else { return }
             try? await Task.sleep(for: holdDuration)
+            // Cancellation here is safe to ignore: this task re-runs on the
+            // next appearance and closes it then.
             guard !Task.isCancelled else { return }
             withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) { open = false }
         }
