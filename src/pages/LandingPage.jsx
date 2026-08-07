@@ -116,9 +116,13 @@ export default function LandingPage() {
           Create your own story in the stars ✨
         </motion.p>
 
-        {/* CTA Buttons */}
+        {/* One hero action. Creating a book is what this app is for, and a
+            row of six equal-weight buttons made it just one option among
+            many. The games and the example moved to the Play menu in the
+            header; Featured Books was already the Gallery tab in the
+            bottom bar and is gone rather than duplicated. */}
         <motion.div
-          className="flex flex-col sm:flex-row sm:flex-wrap items-center justify-center gap-4"
+          className="flex flex-col items-center gap-5"
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 1.5, duration: 0.5 }}
@@ -127,55 +131,24 @@ export default function LandingPage() {
             onClick={() => navigate('/create')}
             size="large"
             variant="primary"
+            className="w-full max-w-xs sm:max-w-sm"
           >
             Create a Book 📖
           </SparkleButton>
 
+          {/* Deliberately a quiet text link, not a second large button —
+              anything of equal weight beside the hero competes with it.
+              This is also the Books tab, so it's a shortcut, not a route
+              a child could otherwise miss. */}
           {user && bookCount > 0 && (
-            <SparkleButton
+            <button
               onClick={() => navigate('/bookshelf')}
-              size="large"
-              variant="secondary"
+              className="flex items-center gap-2 rounded-full px-4 py-2 font-body text-sm font-semibold text-galaxy-text-muted transition-colors hover:text-galaxy-text"
             >
-              <span className="flex items-center gap-2">
-                <Library size={20} />
-                My Bookshelf ({bookCount})
-              </span>
-            </SparkleButton>
+              <Library size={18} />
+              My Bookshelf ({bookCount})
+            </button>
           )}
-
-          <SparkleButton
-            onClick={() => navigate('/gallery')}
-            size="default"
-            variant="secondary"
-          >
-            ⭐ Featured Books
-          </SparkleButton>
-
-          <SparkleButton
-            onClick={() => navigate('/example')}
-            size="default"
-            variant="secondary"
-          >
-            📖 See an Example
-          </SparkleButton>
-
-          {/* The gentlest way in: no blank page, no typing required. */}
-          <SparkleButton
-            onClick={() => navigate('/blanks')}
-            size="default"
-            variant="secondary"
-          >
-            🧩 Story Blanks
-          </SparkleButton>
-
-          <SparkleButton
-            onClick={() => navigate('/build')}
-            size="default"
-            variant="secondary"
-          >
-            🧲 Story Builder
-          </SparkleButton>
         </motion.div>
       </div>
 
