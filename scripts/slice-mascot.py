@@ -23,6 +23,7 @@ regions far shorter than the tallest one.
 """
 
 import sys
+from collections import deque
 from pathlib import Path
 
 try:
@@ -33,6 +34,58 @@ except ImportError:
 OUT_DIR = Path("public/mascot")
 ALPHA_FLOOR = 24        # below this a pixel counts as background
 MIN_CAPTION_RATIO = 0.35  # a region under this fraction of the tallest is a caption
+
+# Flattened exports lose the alpha channel and bake the editor's
+# transparency checkerboard in as real pixels. Those squares are light and
+# neutral-grey; so is plain white. The artwork is either saturated or dark,
+# so "light AND near-neutral" separates them cleanly.
+BG_MIN_CHANNEL = 175   # all channels above this = light
+BG_MAX_SPREAD = 38     # max-min below this = neutral, not a colour
+
+
+def looks_like_background(px):
+    r, g, b = px[0], px[1], px[2]
+    return min(r, g, b) >= BG_MIN_CHANNEL and (max(r, g, b) - min(r, g, b)) <= BG_MAX_SPREAD
+
+
+def strip_flat_background(img):
+    """Knock out a baked-in white/checkerboard background.
+
+    Flood-fills inward from the borders rather than testing every pixel, so
+    light pixels *inside* the character — eyes, teeth, the badge's shine —
+    survive. A blanket colour test would punch holes straight through them.
+    """
+    w, h = img.size
+    px = img.load()
+    seen = bytearray(w * h)
+    q = deque()
+
+    def consider(x, y):
+        i = y * w + x
+        if seen[i]:
+            return
+        seen[i] = 1
+        if looks_like_background(px[x, y]):
+            q.append((x, y))
+
+    for x in range(w):
+        consider(x, 0)
+        consider(x, h - 1)
+    for y in range(h):
+        consider(0, y)
+        consider(w - 1, y)
+
+    cleared = 0
+    while q:
+        x, y = q.popleft()
+        px[x, y] = (255, 255, 255, 0)
+        cleared += 1
+        if x > 0: consider(x - 1, y)
+        if x < w - 1: consider(x + 1, y)
+        if y > 0: consider(x, y - 1)
+        if y < h - 1: consider(x, y + 1)
+
+    return cleared
 
 
 def columns_with_ink(mask, x0, x1, y0, y1):
@@ -68,6 +121,22 @@ def main(sheet_path):
 
     img = Image.open(sheet_path).convert("RGBA")
     w, h = img.size
+
+    # A flattened export has essentially no transparency. Detect that from
+    # the corners and the overall alpha range rather than trusting the file
+    # extension — a .png can be either.
+    extrema = img.getchannel("A").getextrema()
+    corners = [img.getpixel(p) for p in ((0, 0), (w - 1, 0), (0, h - 1), (w - 1, h - 1))]
+    opaque_corners = sum(1 for c in corners if c[3] > 200)
+    if extrema[0] > 200 or opaque_corners >= 3:
+        cleared = strip_flat_background(img)
+        pct = 100 * cleared / (w * h)
+        print(f"background was flattened — removed {cleared} px ({pct:.0f}% of the sheet)")
+        if pct < 5:
+            print("WARNING: barely anything was removed. If the background is a "
+                  "dark or coloured fill rather than white/checkerboard, this "
+                  "script cannot separate it — re-export with transparency.")
+
     alpha = img.getchannel("A").load()
     mask = [[alpha[x, y] > ALPHA_FLOOR for x in range(w)] for y in range(h)]
 
