@@ -55,6 +55,17 @@ def runs(flags, offset=0):
 
 
 def main(sheet_path):
+    # Output paths are repo-relative, so running this from anywhere else
+    # would quietly scatter PNGs into the wrong directory.
+    if not Path("public").is_dir() or not Path("package.json").is_file():
+        sys.exit(
+            "Run this from the repo root (the folder containing package.json "
+            "and public/).\n  cd /path/to/my-favorite-book\n"
+            "  python3 scripts/slice-mascot.py <sheet.png>"
+        )
+    if not Path(sheet_path).is_file():
+        sys.exit(f"No such file: {sheet_path}")
+
     img = Image.open(sheet_path).convert("RGBA")
     w, h = img.size
     alpha = img.getchannel("A").load()
