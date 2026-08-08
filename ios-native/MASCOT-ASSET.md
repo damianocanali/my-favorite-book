@@ -104,8 +104,24 @@ pose for these moods. The frames are portable, so wiring
 
 ### A note on sourcing
 
-`cheering.mp4` was removed: it was a Lovepik stock preview with the
-watermark still tiled across it. Stripping that watermark would have been
-circumventing a licensing control on a commercial product. If an animated
-cheer is wanted, license the clip and re-download it clean; the still
-`cheering.png` works in the meantime.
+The first `cheering.mp4` was a Lovepik stock preview with the watermark
+still tiled across it, and was deleted rather than keyed — stripping it
+would have been circumventing a licensing control on a commercial
+product. The replacement clip is clean and is what ships.
+
+The replacement did carry a small static generator glyph in the
+bottom-right corner. It is not part of the animation (identical pixels in
+every frame) and sits far from the figure, so `drop_islands` removes it as
+a stray blob. If the generating tool's terms require its mark to stay on
+free-tier output, check that before shipping.
+
+### Picking the right segment
+
+A supplied clip is often a montage. The replacement cheer is 10s of three
+shots, and sampling evenly across all of it produced frames from different
+poses that flickered rather than animated. `--range=1.1-2.0` selects the
+fist-pump beat.
+
+Its last frame is also nowhere near its first, so a straight loop snapped.
+The `cheer` pose sets `pingPong: true`, which plays 0->15->0 — seamless by
+construction, and an arm pump reversing is what a real cheer does.

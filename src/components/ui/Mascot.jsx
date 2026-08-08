@@ -33,7 +33,14 @@ export const POSES = {
     src: `${BASE}/welcome-back.png`, emoji: '🤗', motion: 'breathe',
     frames: 'welcome-back', frameCount: 16, fps: 12,
   },
-  cheer: { src: `${BASE}/cheering.png`, emoji: '🎉', motion: 'bounce' },
+  cheer: {
+    src: `${BASE}/cheering.png`, emoji: '🎉', motion: 'bounce',
+    // pingPong because this clip's last frame is nowhere near its first —
+    // played as a straight loop the arm snaps back and reads as a glitch.
+    // Bouncing 0->15->0 is seamless by construction, and an arm pump
+    // reversing is exactly what a real cheer does anyway.
+    frames: 'cheering', frameCount: 16, fps: 14, pingPong: true,
+  },
   think: { src: `${BASE}/welcoming.png`, emoji: '🤔', motion: 'tilt' },
   proud: {
     src: `${BASE}/badge.png`, glow: `${BASE}/badge-glow.png`, emoji: '🏅', motion: 'present',
@@ -75,12 +82,16 @@ export default function Mascot({ mood = 'idle', size = 112, className = '' }) {
 
   useEffect(() => {
     if (!playFrames) return
-    const id = setInterval(
-      () => setFrame((f) => (f + 1) % pose.frameCount),
-      1000 / (pose.fps ?? 12)
-    )
+    // Tick a monotonic counter and map it to a frame, so ping-pong is a
+    // pure function of the tick rather than direction state to keep in sync.
+    let tick = 0
+    const period = pose.pingPong ? Math.max(1, 2 * (pose.frameCount - 1)) : pose.frameCount
+    const id = setInterval(() => {
+      tick = (tick + 1) % period
+      setFrame(pose.pingPong && tick >= pose.frameCount ? period - tick : tick)
+    }, 1000 / (pose.fps ?? 12))
     return () => clearInterval(id)
-  }, [playFrames, pose.frameCount, pose.fps])
+  }, [playFrames, pose.frameCount, pose.fps, pose.pingPong])
 
   // Warm the whole sequence before it plays, or the first loop stutters as
   // each frame is fetched on the tick it is first shown.

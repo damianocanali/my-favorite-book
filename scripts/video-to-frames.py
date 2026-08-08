@@ -2,6 +2,7 @@
 """Turn a mascot animation clip into transparent PNG frames.
 
     python3 scripts/video-to-frames.py public/mascot/Welcome.mp4 welcome-back
+    python3 scripts/video-to-frames.py public/mascot/cheering.mp4 cheering 16 --range=1.1-2.5
 
 Writes public/mascot/frames/<name>/frame-00.png ... and a manifest.json.
 
@@ -42,10 +43,20 @@ DEFAULT_MAX_PX = 256
 # smaller than truecolour: 92 KB -> 18 KB per frame at render size, with
 # no visible difference once composited. Worth it at 16 frames a clip.
 PALETTE_COLOURS = 128
-# The clips sit on a near-white backdrop; h264 adds a few units of noise,
-# so the light threshold is looser than the still-image slicer's.
-BG_MIN_CHANNEL = 168
-BG_MAX_SPREAD = 42
+# Clips arrive on either a near-white or a pure-black backdrop, so the
+# polarity is detected per clip from the corners rather than assumed.
+# h264 adds a few units of noise, hence the tolerances.
+BG_MIN_CHANNEL = 168   # light backdrop: all channels at least this
+BG_MAX_SPREAD = 42     # ...and near-neutral, not a colour
+BG_DARK_MAX = 18       # dark backdrop: no channel above this
+# Deliberately tight. These characters are drawn with near-black outlines,
+# so a loose dark threshold eats the outline and then leaks inside. 18
+# keeps the linework; 60 strips most of it away.
+
+# A generator can park a static logo in a corner. It survives the key as a
+# small island far from the figure, so anything under this fraction of the
+# largest blob is dropped.
+MIN_BLOB_FRACTION = 0.02
 
 
 def ffmpeg_bin():
@@ -60,12 +71,68 @@ def ffmpeg_bin():
     return found
 
 
-def looks_like_background(px):
+def probe_fps(ff, src):
+    """Frame rate from ffmpeg's own report, so --range is in real seconds."""
+    out = subprocess.run([ff, "-hide_banner", "-i", str(src)],
+                         capture_output=True, text=True).stderr
+    for tok in out.split(","):
+        tok = tok.strip()
+        if tok.endswith(" fps"):
+            try:
+                return float(tok[:-4])
+            except ValueError:
+                pass
+    return 30.0
+
+
+def detect_polarity(img):
+    """'dark' or 'light', from the corners."""
+    w, h = img.size
+    corners = [img.getpixel(p) for p in ((0, 0), (w - 1, 0), (0, h - 1), (w - 1, h - 1))]
+    darkish = sum(1 for c in corners if max(c[0], c[1], c[2]) <= BG_DARK_MAX * 3)
+    return "dark" if darkish >= 3 else "light"
+
+
+def is_background(px, polarity):
     r, g, b = px[0], px[1], px[2]
+    if polarity == "dark":
+        return max(r, g, b) <= BG_DARK_MAX
     return min(r, g, b) >= BG_MIN_CHANNEL and (max(r, g, b) - min(r, g, b)) <= BG_MAX_SPREAD
 
 
-def strip_background(img):
+def drop_islands(img):
+    """Zero out opaque blobs far smaller than the main figure."""
+    w, h = img.size
+    px = img.load()
+    seen = bytearray(w * h)
+    blobs = []
+    for sy in range(h):
+        for sx in range(w):
+            if seen[sy * w + sx] or px[sx, sy][3] <= 8:
+                continue
+            comp, q = [], deque([(sx, sy)])
+            seen[sy * w + sx] = 1
+            while q:
+                x, y = q.popleft()
+                comp.append((x, y))
+                for nx, ny in ((x-1, y), (x+1, y), (x, y-1), (x, y+1)):
+                    if 0 <= nx < w and 0 <= ny < h and not seen[ny * w + nx] and px[nx, ny][3] > 8:
+                        seen[ny * w + nx] = 1
+                        q.append((nx, ny))
+            blobs.append(comp)
+    if not blobs:
+        return img, 0
+    biggest = max(len(b) for b in blobs)
+    dropped = 0
+    for comp in blobs:
+        if len(comp) < biggest * MIN_BLOB_FRACTION:
+            for x, y in comp:
+                px[x, y] = (0, 0, 0, 0)
+            dropped += 1
+    return img, dropped
+
+
+def strip_background(img, polarity="light"):
     """Flood-fill the backdrop away from the borders inward."""
     w, h = img.size
     px = img.load()
@@ -77,7 +144,7 @@ def strip_background(img):
         if seen[i]:
             return
         seen[i] = 1
-        if looks_like_background(px[x, y]):
+        if is_background(px[x, y], polarity):
             q.append((x, y))
 
     for x in range(w):
@@ -106,7 +173,7 @@ def union(a, b):
     return (min(a[0], b[0]), min(a[1], b[1]), max(a[2], b[2]), max(a[3], b[3]))
 
 
-def main(video, name, count=DEFAULT_FRAMES, max_px=DEFAULT_MAX_PX):
+def main(video, name, count=DEFAULT_FRAMES, max_px=DEFAULT_MAX_PX, window=None):
     if not Path("public").is_dir() or not Path("package.json").is_file():
         sys.exit("Run this from the repo root (the folder with package.json).")
     src = Path(video)
@@ -135,16 +202,37 @@ def main(video, name, count=DEFAULT_FRAMES, max_px=DEFAULT_MAX_PX):
     if not raw:
         sys.exit("ffmpeg produced no frames.")
 
-    step = max(1, len(raw) // count)
-    picked = raw[::step][:count]
+    # A supplied clip is often a montage of several shots rather than one
+    # loopable beat. Sampling evenly across the whole thing then picks
+    # frames from different shots and the result flickers between poses
+    # instead of animating. --range selects the one beat worth keeping.
+    lo, hi = 0, len(raw)
+    if window:
+        fps = probe_fps(ff, src)
+        lo = max(0, int(window[0] * fps))
+        hi = min(len(raw), int(window[1] * fps))
+        if hi - lo < 2:
+            sys.exit(f"--range {window[0]}-{window[1]}s is empty at {fps:g}fps.")
+        print(f"  using {window[0]:g}s-{window[1]:g}s = frames {lo}-{hi} of {len(raw)}")
+    span = raw[lo:hi]
+
+    step = max(1, len(span) // count)
+    picked = span[::step][:count]
     print(f"{src.name}: {len(raw)} frames -> sampling {len(picked)}")
 
     # Pass 1: key out the backdrop and find the shared crop box.
-    keyed, box = [], None
+    polarity = detect_polarity(Image.open(picked[0]).convert("RGBA"))
+    print(f"  backdrop looks {polarity}")
+
+    keyed, box, islands = [], None, 0
     for p in picked:
-        img = strip_background(Image.open(p).convert("RGBA"))
+        img = strip_background(Image.open(p).convert("RGBA"), polarity)
+        img, n = drop_islands(img)
+        islands += n
         keyed.append(img)
         box = union(box, img.getbbox())
+    if islands:
+        print(f"  dropped {islands} stray island(s) (corner logos, specks)")
 
     if box is None:
         sys.exit("Every frame came out empty — the backdrop may not be light.")
@@ -172,7 +260,8 @@ def main(video, name, count=DEFAULT_FRAMES, max_px=DEFAULT_MAX_PX):
         "width": size[0],
         "height": size[1],
         "source": src.name,
-        "sourceFps": 30,
+        "sourceFps": None,
+        "range": list(window) if window else None,
         "suggestedFps": 12,
     }
     (out_dir / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
@@ -182,7 +271,14 @@ def main(video, name, count=DEFAULT_FRAMES, max_px=DEFAULT_MAX_PX):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 3:
+    args = [a for a in sys.argv[1:] if not a.startswith("--")]
+    flags = [a for a in sys.argv[1:] if a.startswith("--")]
+    if len(args) < 2:
         sys.exit(__doc__)
-    n = int(sys.argv[3]) if len(sys.argv) > 3 else DEFAULT_FRAMES
-    main(sys.argv[1], sys.argv[2], n)
+    win = None
+    for f in flags:
+        if f.startswith("--range="):
+            a, _, b = f.split("=", 1)[1].partition("-")
+            win = (float(a), float(b))
+    n = int(args[2]) if len(args) > 2 else DEFAULT_FRAMES
+    main(args[0], args[1], n, window=win)
