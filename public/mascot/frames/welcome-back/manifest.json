@@ -1,0 +1,9 @@
+{
+  "name": "welcome-back",
+  "frames": 16,
+  "width": 256,
+  "height": 253,
+  "source": "Welcome.mp4",
+  "sourceFps": 30,
+  "suggestedFps": 12
+}

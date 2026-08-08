@@ -1,42 +1,122 @@
 import { useEffect, useState } from 'react'
 import { motion, useReducedMotion } from 'motion/react'
 
-// The mascot, extracted from WelcomeBackMoment so every celebration can
-// use the same character rather than each inventing its own.
+// The mascot, one component for every celebration so the character is
+// consistent wherever it appears.
 //
-// The artwork is still missing, so this falls back to an animated star.
-// That is deliberate: the reactions ship and work today, and upgrade the
-// moment /mascot.png lands, with no code change.
+// Each mood maps to its own drawn pose plus a motion preset chosen to suit
+// that pose — a waving pose wants a rocking wave, a mid-jump pose wants a
+// bounce, an arms-open pose wants a slow breath. Animating every pose the
+// same way would waste the fact that they are drawn differently.
 //
-// Reactions are poses, not separate art. With one image the difference has
-// to come from motion — a cheer jumps, a think tilts and hovers, a wave
-// rocks. When real art arrives with per-pose frames, swap `src` per mood
-// and keep these transforms as the secondary motion.
+// Art is optional at every level. A missing pose file falls back to a
+// generic /mascot.png, and a missing mascot falls back to an emoji, so the
+// app never renders a broken image and shipped fine before the art existed.
 
-export const MOODS = {
-  idle: { emoji: '⭐', y: [0, -8, 0], rotate: [-4, 4, -4], duration: 2.8 },
-  cheer: { emoji: '🎉', y: [0, -26, 0], rotate: [-12, 12, -12], duration: 0.6 },
-  think: { emoji: '🤔', y: [0, -4, 0], rotate: [-8, -8, -8], duration: 2.2 },
-  wave: { emoji: '👋', y: [0, -6, 0], rotate: [-14, 14, -14], duration: 1.1 },
-  proud: { emoji: '🌟', y: [0, -14, 0], rotate: [0, 0, 0], duration: 1.4 },
+const BASE = '/mascot'
+
+/**
+ * `glow` is a second frame of the same pose with the badge lit up. When
+ * present it is cross-faded over the base frame, which turns two stills
+ * into a pulsing glow without a sprite sheet or a video.
+ */
+/**
+ * `frames` names a folder under /mascot/frames holding a drawn animation
+ * (see scripts/video-to-frames.py). Where one exists it replaces the
+ * code-driven motion entirely — real animation beats a still being
+ * translated around, and doubling the two up just looks seasick.
+ */
+export const POSES = {
+  idle: { src: `${BASE}/welcoming.png`, emoji: '⭐', motion: 'float' },
+  wave: { src: `${BASE}/welcoming.png`, emoji: '👋', motion: 'wave' },
+  welcome: {
+    src: `${BASE}/welcome-back.png`, emoji: '🤗', motion: 'breathe',
+    frames: 'welcome-back', frameCount: 16, fps: 12,
+  },
+  cheer: {
+    src: `${BASE}/cheering.png`, emoji: '🎉', motion: 'bounce',
+    // pingPong because this clip's last frame is nowhere near its first —
+    // played as a straight loop the arm snaps back and reads as a glitch.
+    // Bouncing 0->15->0 is seamless by construction, and an arm pump
+    // reversing is exactly what a real cheer does anyway.
+    frames: 'cheering', frameCount: 16, fps: 14, pingPong: true,
+  },
+  think: { src: `${BASE}/welcoming.png`, emoji: '🤔', motion: 'tilt' },
+  proud: {
+    src: `${BASE}/badge.png`, glow: `${BASE}/badge-glow.png`, emoji: '🏅', motion: 'present',
+    frames: 'badge', frameCount: 16, fps: 12,
+  },
+  badge: {
+    src: `${BASE}/badge.png`, glow: `${BASE}/badge-glow.png`, emoji: '🏅', motion: 'present',
+    frames: 'badge', frameCount: 16, fps: 12,
+  },
+}
+
+const framePath = (folder, i) =>
+  `${BASE}/frames/${folder}/frame-${String(i).padStart(2, '0')}.png`
+
+// Motion presets. `loop: false` means a burst that settles — a cheer that
+// never stops stops reading as a cheer.
+const MOTIONS = {
+  float: { animate: { y: [0, -8, 0] }, duration: 2.8, loop: true },
+  wave: { animate: { rotate: [-5, 5, -5] }, duration: 1.4, loop: true },
+  breathe: { animate: { scale: [1, 1.04, 1], y: [0, -5, 0] }, duration: 3.2, loop: true },
+  bounce: { animate: { y: [0, -28, 0], scale: [1, 1.06, 1] }, duration: 0.62, loop: false, repeat: 2 },
+  tilt: { animate: { rotate: [-6, -2, -6], y: [0, -4, 0] }, duration: 2.6, loop: true },
+  present: { animate: { y: [0, -6, 0] }, duration: 2.4, loop: true },
 }
 
 export default function Mascot({ mood = 'idle', size = 112, className = '' }) {
-  const [failed, setFailed] = useState(false)
+  const pose = POSES[mood] ?? POSES.idle
+  const preset = MOTIONS[pose.motion] ?? MOTIONS.float
   const reduceMotion = useReducedMotion()
-  const pose = MOODS[mood] ?? MOODS.idle
 
-  // A cheer is a burst, not a loop — it would be exhausting on repeat.
-  const isBurst = mood === 'cheer' || mood === 'proud'
+  const [failed, setFailed] = useState(false)
+  const [glowFailed, setGlowFailed] = useState(false)
+  const [framesFailed, setFramesFailed] = useState(false)
+  const [frame, setFrame] = useState(0)
 
-  const animate = reduceMotion
-    ? {}
-    : { y: pose.y, rotate: pose.rotate }
+  // Under Reduce Motion a frame animation is exactly the thing to stop, so
+  // it holds on frame 0 rather than playing.
+  const playFrames = !!pose.frames && !framesFailed && !failed && !reduceMotion
+
+  useEffect(() => {
+    if (!playFrames) return
+    // Tick a monotonic counter and map it to a frame, so ping-pong is a
+    // pure function of the tick rather than direction state to keep in sync.
+    let tick = 0
+    const period = pose.pingPong ? Math.max(1, 2 * (pose.frameCount - 1)) : pose.frameCount
+    const id = setInterval(() => {
+      tick = (tick + 1) % period
+      setFrame(pose.pingPong && tick >= pose.frameCount ? period - tick : tick)
+    }, 1000 / (pose.fps ?? 12))
+    return () => clearInterval(id)
+  }, [playFrames, pose.frameCount, pose.fps, pose.pingPong])
+
+  // Warm the whole sequence before it plays, or the first loop stutters as
+  // each frame is fetched on the tick it is first shown.
+  useEffect(() => {
+    if (!pose.frames || framesFailed) return
+    let cancelled = false
+    Promise.all(
+      Array.from({ length: pose.frameCount }, (_, i) => new Promise((resolve, reject) => {
+        const img = new Image()
+        img.onload = resolve
+        img.onerror = reject
+        img.src = framePath(pose.frames, i)
+      }))
+    ).catch(() => { if (!cancelled) setFramesFailed(true) })
+    return () => { cancelled = true }
+  }, [pose.frames, pose.frameCount, framesFailed])
+
+  // A drawn animation already carries the movement; layering the code
+  // preset on top would translate the whole clip around as it plays.
+  const animate = reduceMotion || playFrames ? {} : preset.animate
   const transition = reduceMotion
     ? { duration: 0 }
     : {
-        duration: pose.duration,
-        repeat: isBurst ? 2 : Infinity,
+        duration: preset.duration,
+        repeat: preset.loop ? Infinity : (preset.repeat ?? 1),
         ease: 'easeInOut',
       }
 
@@ -54,32 +134,48 @@ export default function Mascot({ mood = 'idle', size = 112, className = '' }) {
     )
   }
 
+  const showGlow = pose.glow && !glowFailed && !reduceMotion && !playFrames
+
   return (
-    <motion.img
-      src="/mascot.png"
-      alt=""
-      onError={() => setFailed(true)}
+    <motion.div
+      className={`relative select-none ${className}`}
       style={{ height: size, width: size }}
-      className={`object-contain drop-shadow-[0_8px_24px_rgba(191,90,242,0.6)] ${className}`}
       animate={animate}
       transition={transition}
-    />
+      aria-hidden
+    >
+      {playFrames ? (
+        <img
+          src={framePath(pose.frames, frame)}
+          alt=""
+          onError={() => setFramesFailed(true)}
+          className="absolute inset-0 h-full w-full object-contain drop-shadow-[0_8px_24px_rgba(191,90,242,0.45)]"
+        />
+      ) : (
+      <img
+        src={pose.src}
+        alt=""
+        // One retry at the generic mascot before giving up to the emoji, so
+        // a single shared image still works if the poses aren't sliced yet.
+        onError={(e) => {
+          if (e.currentTarget.dataset.retried) { setFailed(true); return }
+          e.currentTarget.dataset.retried = '1'
+          e.currentTarget.src = '/mascot.png'
+        }}
+        className="absolute inset-0 h-full w-full object-contain drop-shadow-[0_8px_24px_rgba(191,90,242,0.45)]"
+      />
+      )}
+
+      {showGlow && (
+        <motion.img
+          src={pose.glow}
+          alt=""
+          onError={() => setGlowFailed(true)}
+          className="absolute inset-0 h-full w-full object-contain"
+          animate={{ opacity: [0, 1, 0] }}
+          transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
+        />
+      )}
+    </motion.div>
   )
-}
-
-/**
- * Shows the mascot briefly in a given mood, then hides it. Used for the
- * inline reactions while a child is writing — it must never sit on screen
- * long enough to become something they tap past.
- */
-export function useMascotReaction(durationMs = 2600) {
-  const [mood, setMood] = useState(null)
-
-  useEffect(() => {
-    if (!mood) return
-    const t = setTimeout(() => setMood(null), durationMs)
-    return () => clearTimeout(t)
-  }, [mood, durationMs])
-
-  return [mood, setMood]
 }
