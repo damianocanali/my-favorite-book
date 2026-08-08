@@ -1,0 +1,9 @@
+{
+  "name": "badge",
+  "frames": 16,
+  "width": 169,
+  "height": 256,
+  "source": "badge_achieved.mp4",
+  "sourceFps": 30,
+  "suggestedFps": 12
+}
