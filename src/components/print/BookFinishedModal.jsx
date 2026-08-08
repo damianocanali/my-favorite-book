@@ -2,17 +2,24 @@
 // Celebratory overlay shown after a book is "finished". Primary action is
 // Order a print →, secondary is Maybe later. Stays out of the way unless
 // `open` is true.
-import { motion, AnimatePresence } from 'motion/react'
+import { createPortal } from 'react-dom'
+import { motion } from 'motion/react'
 import { Sparkles, X } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
 export default function BookFinishedModal({ book, open, onClose }) {
   const navigate = useNavigate()
-  return (
-    <AnimatePresence>
-      {open && (
+  // Portalled and unmounted synchronously, for the same reason as
+  // WelcomeBackMoment: gating removal of a screen-covering,
+  // pointer-eating layer on an exit animation strands it permanently if
+  // that animation is ever interrupted. PaymentSheetModal already got
+  // this right with an early `if (!open) return null`.
+  if (!open) return null
+
+  return createPortal(
+    <>
         <motion.div
-          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }}
           className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-4"
           onClick={onClose}
         >
@@ -42,7 +49,7 @@ export default function BookFinishedModal({ book, open, onClose }) {
             </button>
           </motion.div>
         </motion.div>
-      )}
-    </AnimatePresence>
+    </>,
+    document.body
   )
 }

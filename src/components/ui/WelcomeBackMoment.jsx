@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { motion, AnimatePresence } from 'motion/react'
+import { createPortal } from 'react-dom'
+import { motion } from 'motion/react'
 import { useAuthStore, selectDisplayName } from '../../stores/useAuthStore'
 import { useRewardsStore } from '../../stores/useRewardsStore'
 import { useAvatarStore } from '../../stores/useAvatarStore'
@@ -85,8 +86,22 @@ export default function WelcomeBackMoment() {
         sub={displayName ? `Good to see you, ${displayName}` : undefined}
       />
 
-      <AnimatePresence>
-        {open && (
+      {/* Portalled into <body>, and removed synchronously with `open`.
+          Both matter, and both were the bug:
+
+          AppShell puts page content inside `<main className="relative
+          z-10">`, a stacking context — so z-[65] here could never beat
+          the header (z-20) or tab bar (z-40). The film darkened the page
+          while the bars stayed bright above it.
+
+          And removal used to be delegated to AnimatePresence waiting on
+          `exit={{opacity:0}}`. If that exit was ever interrupted the
+          element stayed mounted forever, and every escape hatch was a
+          no-op: they all call setOpen(false) on state that is ALREADY
+          false, so React bails out and AnimatePresence is never
+          re-notified. Losing the 300ms fade-out is the price of a layer
+          that cannot strand. */}
+      {open && createPortal(
           <motion.button
             type="button"
             aria-label="Dismiss"
@@ -94,7 +109,6 @@ export default function WelcomeBackMoment() {
             className="fixed inset-0 z-[65] flex cursor-pointer flex-col items-center justify-center gap-5 bg-black/55 px-6 pt-40 backdrop-blur-sm"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
           >
             <Mascot mood="welcome" size={128} />
 
@@ -117,9 +131,9 @@ export default function WelcomeBackMoment() {
             <span className="mt-1 rounded-full border-2 border-white/30 px-5 py-2 font-heading text-sm font-bold text-white/90">
               Let's go
             </span>
-          </motion.button>
-        )}
-      </AnimatePresence>
+          </motion.button>,
+        document.body
+      )}
     </>
   )
 }
