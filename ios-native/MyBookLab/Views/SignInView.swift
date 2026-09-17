@@ -261,20 +261,20 @@ struct SignInView: View {
         do {
             try await auth.signInWithStoredCredentials()
         } catch is AuthStore.BiometricLoginError {
-            // Tokens revoked/expired — AuthStore already cleared them.
+            // Tokens revoked/expired, or a legacy password item that no
+            // longer works — AuthStore already cleared the Keychain.
+            hasStoredCredentials = false
+            self.error = "Saved login is out of date. Please sign in with your password."
+        } catch BiometricCredentials.RetrieveError.cancelled {
+            // They dismissed the prompt on purpose. Not an error.
+            self.error = nil
+        } catch BiometricCredentials.RetrieveError.notFound {
+            // Nothing stored, or the item was invalidated because the
+            // device's enrolled biometrics changed. Stop offering it.
             hasStoredCredentials = false
             self.error = "Saved login is out of date. Please sign in with your password."
         } catch {
-            // Legacy password items can also stop working (password
-            // changed elsewhere); clear so the prompt stops appearing.
-            let msg = error.localizedDescription.lowercased()
-            if msg.contains("credential") || msg.contains("password") || msg.contains("invalid") {
-                BiometricCredentials.clear()
-                hasStoredCredentials = false
-                self.error = "Saved login is out of date. Please sign in with your password."
-            } else {
-                self.error = "\(BiometricCredentials.biometryLabel) sign-in failed."
-            }
+            self.error = "\(BiometricCredentials.biometryLabel) sign-in failed."
         }
     }
 

@@ -339,7 +339,7 @@ private struct CharacterStep: View {
             .contentColumn(maxWidth: ContentWidth.form)
         }
         .sheet(isPresented: $showParentalGate) {
-            HeroParentalGate(
+            ParentalGate(
                 onSuccess: { showParentalGate = false; showPhotoPicker = true },
                 onCancel: { showParentalGate = false }
             )
@@ -367,11 +367,12 @@ private struct CharacterStep: View {
         VStack(spacing: 10) {
             ZStack {
                 Circle().fill(.white.opacity(0.08)).frame(width: 120, height: 120)
-                if let data = heroImage, let img = decodeImage(data) {
-                    Image(uiImage: img)
-                        .resizable().scaledToFill()
-                        .frame(width: 120, height: 120)
-                        .clipShape(Circle())
+                if heroImage != nil {
+                    GeneratedImageView(source: heroImage) {
+                        Text(emoji).font(.system(size: 56))
+                    }
+                    .frame(width: 120, height: 120)
+                    .clipShape(Circle())
                 } else {
                     Text(emoji).font(.system(size: 56))
                 }
@@ -435,42 +436,6 @@ private struct CharacterStep: View {
         let parts = dataUrl.split(separator: ",", maxSplits: 1)
         guard parts.count == 2, let data = Data(base64Encoded: String(parts[1])) else { return nil }
         return UIImage(data: data)
-    }
-}
-
-// Parental gate shown before the photo picker for the hero flow.
-private struct HeroParentalGate: View {
-    let onSuccess: () -> Void
-    let onCancel: () -> Void
-    @State private var a = Int.random(in: 11...19)
-    @State private var b = Int.random(in: 11...19)
-    @State private var answer = ""
-    @State private var wrong = false
-
-    var body: some View {
-        VStack(spacing: 20) {
-            Text("👋 Grown-up check").font(.system(.title3, design: .rounded).bold())
-            Text("Ask a grown-up to solve this before adding a photo.")
-                .font(.subheadline).foregroundStyle(.secondary).multilineTextAlignment(.center)
-            Text("\(a) + \(b) = ?").font(.system(.largeTitle, design: .rounded).bold())
-            TextField("Answer", text: $answer)
-                .keyboardType(.numberPad).multilineTextAlignment(.center)
-                .padding().background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 12))
-                .padding(.horizontal, 32)
-            if wrong { Text("Try again.").foregroundStyle(.red).font(.footnote) }
-            HStack(spacing: 12) {
-                Button("Cancel", role: .cancel) { onCancel() }.frame(maxWidth: .infinity).padding(12)
-                Button("Continue") {
-                    if Int(answer) == a + b { onSuccess() } else { wrong = true; answer = "" }
-                }
-                .frame(maxWidth: .infinity).padding(12)
-                .background(.purple, in: RoundedRectangle(cornerRadius: 12)).foregroundStyle(.white)
-            }
-            .padding(.horizontal, 32)
-            Spacer()
-        }
-        .padding(.top, 28)
-        .presentationDetents([.medium, .large])
     }
 }
 
@@ -953,11 +918,12 @@ private struct ReadyStep: View {
 
                     if let c = b.characters.first {
                         HStack(spacing: 10) {
-                            if let data = c.imageData, let img = heroThumb(data) {
-                                Image(uiImage: img)
-                                    .resizable().scaledToFill()
-                                    .frame(width: 32, height: 32)
-                                    .clipShape(Circle())
+                            if c.imageData != nil {
+                                GeneratedImageView(source: c.imageData) {
+                                    Text(c.emoji ?? "✨").font(.title)
+                                }
+                                .frame(width: 32, height: 32)
+                                .clipShape(Circle())
                             } else {
                                 Text(c.emoji ?? "✨").font(.title)
                             }

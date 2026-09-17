@@ -2,6 +2,7 @@ export const config = { runtime: 'edge' }
 
 import { checkRateLimit, getClientIp, handleCors, withCors } from './_rateLimit.js'
 import { verifyJwt } from './_auth.js'
+import { moderatePrompt } from './_aiGuard.js'
 
 function supabaseHeaders(serviceKey) {
   return {
@@ -36,7 +37,7 @@ export default async function handler(req) {
 
     if (slug) {
       const res = await fetch(
-        `${supabaseUrl}/rest/v1/published_books?slug=eq.${encodeURIComponent(slug)}&select=*`,
+        `${supabaseUrl}/rest/v1/published_books?slug=eq.${encodeURIComponent(slug)}&hidden=is.false&select=*`,
         { headers }
       )
       const rows = await res.json()
@@ -48,7 +49,7 @@ export default async function handler(req) {
     // Fetch featured books
     if (featured !== null) {
       const res = await fetch(
-        `${supabaseUrl}/rest/v1/published_books?featured=eq.true&order=featured_at.desc&limit=20&select=slug,title,author_name,author_age,cover_emoji,cover_color,reaction_counts,published_at`,
+        `${supabaseUrl}/rest/v1/published_books?featured=eq.true&hidden=is.false&order=featured_at.desc&limit=20&select=slug,title,author_name,author_age,cover_emoji,cover_color,reaction_counts,published_at`,
         { headers }
       )
       const rows = await res.json()
@@ -59,7 +60,7 @@ export default async function handler(req) {
     const recent = url.searchParams.get('recent')
     if (recent !== null) {
       const res = await fetch(
-        `${supabaseUrl}/rest/v1/published_books?order=published_at.desc&limit=30&select=slug,user_id,title,author_name,author_age,cover_emoji,cover_color,reaction_counts,published_at,featured`,
+        `${supabaseUrl}/rest/v1/published_books?hidden=is.false&order=published_at.desc&limit=30&select=slug,user_id,title,author_name,author_age,cover_emoji,cover_color,reaction_counts,published_at,featured`,
         { headers }
       )
       const rows = await res.json()
@@ -127,6 +128,28 @@ export default async function handler(req) {
   if (!book || !book.title || !book.pages?.length) {
     return json(400, { error: 'A valid book is required' })
   }
+
+  // Screen everything that would become publicly readable before it
+  // reaches a gallery browsed by children (Guideline 1.2 "filter
+  // objectionable material"). Unlike the generation endpoints, this one
+  // fails CLOSED: if moderation can't run we refuse to publish rather
+  // than let unscreened text through to other people's kids.
+  if (!process.env.OPENAI_API_KEY) {
+    console.error('[publish-book] OPENAI_API_KEY unset — refusing to publish unmoderated content')
+    return json(503, {
+      error: 'Publishing is temporarily unavailable. Your book is safe on your shelf — please try again later.',
+    })
+  }
+  const publicText = [
+    book.title,
+    book.authorName,
+    ...(book.characters ?? []).map((c) => c?.name).filter(Boolean),
+    ...(book.pages ?? []).map((p) => p?.text).filter(Boolean),
+  ]
+    .filter(Boolean)
+    .join('\n')
+  const flagged = await moderatePrompt(publicText, req)
+  if (flagged) return flagged
 
   // Generate a unique slug
   const baseSlug = book.title

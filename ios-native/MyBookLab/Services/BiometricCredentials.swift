@@ -125,6 +125,31 @@ enum BiometricCredentials {
 
     // MARK: - Retrieve (triggers biometric prompt)
 
+    /// Why a retrieve failed, as a value rather than a message.
+    ///
+    /// Callers used to branch on `error.localizedDescription.contains("credential")`,
+    /// which only works while the app is English — iOS localizes system error
+    /// text, so on an Italian device no branch matched and the user could get
+    /// stuck in a Face ID loop. Branch on these cases instead.
+    enum RetrieveError: LocalizedError {
+        /// The person dismissed the Face ID / Touch ID prompt. Not an error
+        /// worth showing — they chose this.
+        case cancelled
+        /// Nothing is stored, or the item was invalidated because the
+        /// device's enrolled biometrics changed (`.biometryCurrentSet`).
+        case notFound
+        /// Anything else the Keychain reported.
+        case keychain(OSStatus)
+
+        var errorDescription: String? {
+            switch self {
+            case .cancelled: return "Cancelled"
+            case .notFound: return "No saved login found."
+            case .keychain(let status): return "Couldn't read saved login (\(status))."
+            }
+        }
+    }
+
     static func retrieve(reason: String) async throws -> StoredLogin {
         let context = LAContext()
         context.localizedReason = reason
@@ -144,13 +169,15 @@ enum BiometricCredentials {
                    let login = (try? JSONDecoder().decode(StoredLoginPayload.self, from: data))?.login {
                     continuation.resume(returning: login)
                 } else if status == errSecUserCanceled {
-                    continuation.resume(throwing: NSError(domain: "BiometricCredentials",
-                        code: Int(status),
-                        userInfo: [NSLocalizedDescriptionKey: "Cancelled"]))
+                    continuation.resume(throwing: RetrieveError.cancelled)
+                } else if status == errSecItemNotFound {
+                    continuation.resume(throwing: RetrieveError.notFound)
+                } else if status == errSecSuccess {
+                    // Item read but the payload no longer decodes — a stored
+                    // login we can't use is the same as not having one.
+                    continuation.resume(throwing: RetrieveError.notFound)
                 } else {
-                    continuation.resume(throwing: NSError(domain: "BiometricCredentials",
-                        code: Int(status),
-                        userInfo: [NSLocalizedDescriptionKey: "Couldn't read saved login (\(status))"]))
+                    continuation.resume(throwing: RetrieveError.keychain(status))
                 }
             }
         }

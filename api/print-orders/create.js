@@ -1,7 +1,7 @@
 export const config = { runtime: 'edge' }
 
 import { unitPriceCents, totalCents } from '../../lib/print/pricing.js'
-import { getStripeSecretKey } from '../../lib/print/stripe-key.js'
+import { getStripeSecretKey, getStripePublishableKey } from '../../lib/print/stripe-key.js'
 
 const SUPABASE = process.env.SUPABASE_URL
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -147,7 +147,15 @@ export default async function handler(req) {
   })
 
   return new Response(
-    JSON.stringify({ orderId: inserted.id, clientSecret: pi.client_secret, totalCents: total }),
+    JSON.stringify({
+      orderId: inserted.id,
+      clientSecret: pi.client_secret,
+      totalCents: total,
+      // Native clients configure Stripe from this. It is a publishable
+      // key — safe to return — and it is guaranteed to be in the same
+      // live/test mode as the PaymentIntent above.
+      publishableKey: getStripePublishableKey() ?? null,
+    }),
     { status: 200, headers: { 'Content-Type': 'application/json' } }
   )
 }
