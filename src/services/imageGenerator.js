@@ -1,5 +1,17 @@
 import { apiFetchAuthed } from '../lib/api'
+import { promptName, promptDescription, promptLabel } from '../i18n/contentCatalog'
 
+// EVERYTHING IN THIS FILE IS ENGLISH ON PURPOSE AND MUST STAY ENGLISH.
+//
+// The style tokens and the carrier sentences below are sent verbatim to
+// FLUX.1-schnell / FLUX.1-kontext-dev via /api/generate-image. Those models
+// are trained overwhelmingly on English captions, so translating any of this
+// degrades the illustration a child gets.
+//
+// Catalogue terms come through promptName()/promptDescription(), which read
+// the frozen `promptEn` fields rather than the display text. The one thing
+// that is unavoidably in the child's own language is `page.text` — their
+// prose — which is exactly why everything around it stays English.
 function buildStylePrompt() {
   return `children's storybook illustration, colorful, friendly, whimsical, cute cartoon style, soft colors, safe for kids, no text, no words, no letters`
 }
@@ -21,9 +33,9 @@ async function generateImage(prompt, options = {}) {
 }
 
 export async function generateCoverArt(book) {
-  const chars = book.characters?.map((c) => c.name).join(' and ') || 'a hero'
-  const setting = book.setting?.name || 'a magical place'
-  const time = book.timePeriod?.label || 'once upon a time'
+  const chars = book.characters?.map((c) => promptName(c)).join(' and ') || 'a hero'
+  const setting = promptName(book.setting, 'a magical place')
+  const time = promptLabel(book.timePeriod, 'once upon a time')
 
   const prompt = `A beautiful children's book cover illustration for a story called "${book.title}". The scene shows ${chars} in ${setting} during ${time}. ${buildStylePrompt()}`
 
@@ -31,16 +43,16 @@ export async function generateCoverArt(book) {
 }
 
 export async function generateCharacterPortrait(character, book) {
-  const setting = book?.setting?.name || 'a magical world'
+  const setting = promptName(book?.setting, 'a magical world')
 
-  const prompt = `A cute character portrait of ${character.name}, ${character.description || 'a friendly character'}. Standing in ${setting}. ${buildStylePrompt()}, character portrait, centered, full body`
+  const prompt = `A cute character portrait of ${promptName(character)}, ${promptDescription(character, 'a friendly character')}. Standing in ${setting}. ${buildStylePrompt()}, character portrait, centered, full body`
 
   return generateImage(prompt)
 }
 
 export async function generatePageIllustration(page, book) {
-  const chars = book.characters?.map((c) => c.name).join(' and ') || 'the hero'
-  const setting = book.setting?.name || 'a magical place'
+  const chars = book.characters?.map((c) => promptName(c)).join(' and ') || 'the hero'
+  const setting = promptName(book.setting, 'a magical place')
   const pageText = page.text || 'the beginning of an adventure'
 
   // Story Builder pages carry the cards the child actually chose. Naming
@@ -60,8 +72,8 @@ export async function generatePageIllustration(page, book) {
 // same as a regular generation — counts toward the same caps.
 export async function editPageIllustration(page, book, instruction) {
   if (!page.illustrationData) throw new Error('No illustration to edit')
-  const chars = book.characters?.map((c) => c.name).join(' and ') || 'the hero'
-  const setting = book.setting?.name || 'a magical place'
+  const chars = book.characters?.map((c) => promptName(c)).join(' and ') || 'the hero'
+  const setting = promptName(book.setting, 'a magical place')
   const pageText = page.text || ''
 
   const prompt = `A scene from a children's storybook: ${pageText.substring(0, 200)}. ${instruction}. The characters ${chars} are in ${setting}. ${buildStylePrompt()}, wide scene, landscape composition`

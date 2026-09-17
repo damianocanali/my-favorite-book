@@ -1,6 +1,15 @@
+// `promptEn` is FROZEN ENGLISH and must never be translated or localised.
+// It is concatenated into the FLUX image prompt (src/services/imageGenerator.js),
+// and those models are trained overwhelmingly on English captions — an Italian
+// prompt term measurably degrades the illustration.
+//
+// The `name`/`label`/`description` fields below are the English DISPLAY text and
+// the fallback for books saved before the split. Translations live in
+// src/i18n/locales/<locale>/content.json, keyed by the entry's `id`.
 export const characters = [
   {
     id: 'astronaut',
+    promptEn: { name: 'Astro the Explorer', description: 'A brave space explorer who discovers new planets' },
     name: 'Astro the Explorer',
     emoji: '👨‍🚀',
     description: 'A brave space explorer who discovers new planets',
@@ -8,6 +17,7 @@ export const characters = [
   },
   {
     id: 'princess',
+    promptEn: { name: 'Princess Luna', description: 'A magical princess who rules the moonlight kingdom' },
     name: 'Princess Luna',
     emoji: '👸',
     description: 'A magical princess who rules the moonlight kingdom',
@@ -15,6 +25,7 @@ export const characters = [
   },
   {
     id: 'dragon',
+    promptEn: { name: 'Spark the Dragon', description: 'A friendly dragon who breathes colorful fire' },
     name: 'Spark the Dragon',
     emoji: '🐉',
     description: 'A friendly dragon who breathes colorful fire',
@@ -22,6 +33,7 @@ export const characters = [
   },
   {
     id: 'robot',
+    promptEn: { name: 'Beeper Bot', description: 'A clever robot who loves solving puzzles' },
     name: 'Beeper Bot',
     emoji: '🤖',
     description: 'A clever robot who loves solving puzzles',
@@ -29,6 +41,7 @@ export const characters = [
   },
   {
     id: 'pirate',
+    promptEn: { name: 'Captain Waves', description: 'A fearless pirate sailing the seven seas' },
     name: 'Captain Waves',
     emoji: '🏴‍☠️',
     description: 'A fearless pirate sailing the seven seas',
@@ -36,6 +49,7 @@ export const characters = [
   },
   {
     id: 'unicorn',
+    promptEn: { name: 'Shimmer', description: 'A magical unicorn with a rainbow mane' },
     name: 'Shimmer',
     emoji: '🦄',
     description: 'A magical unicorn with a rainbow mane',
@@ -43,6 +57,7 @@ export const characters = [
   },
   {
     id: 'wizard',
+    promptEn: { name: 'Merlo the Wise', description: 'An ancient wizard with powerful spells' },
     name: 'Merlo the Wise',
     emoji: '🧙',
     description: 'An ancient wizard with powerful spells',
@@ -50,6 +65,7 @@ export const characters = [
   },
   {
     id: 'fairy',
+    promptEn: { name: 'Twinkle', description: 'A tiny fairy who grants wishes' },
     name: 'Twinkle',
     emoji: '🧚',
     description: 'A tiny fairy who grants wishes',
@@ -57,6 +73,7 @@ export const characters = [
   },
   {
     id: 'ninja',
+    promptEn: { name: 'Shadow', description: 'A stealthy ninja with incredible speed' },
     name: 'Shadow',
     emoji: '🥷',
     description: 'A stealthy ninja with incredible speed',
@@ -64,6 +81,7 @@ export const characters = [
   },
   {
     id: 'mermaid',
+    promptEn: { name: 'Coral', description: 'A mermaid who sings to the ocean creatures' },
     name: 'Coral',
     emoji: '🧜‍♀️',
     description: 'A mermaid who sings to the ocean creatures',
@@ -71,6 +89,7 @@ export const characters = [
   },
   {
     id: 'superhero',
+    promptEn: { name: 'Captain Blaze', description: 'A superhero with the power of the sun' },
     name: 'Captain Blaze',
     emoji: '🦸',
     description: 'A superhero with the power of the sun',
@@ -78,6 +97,7 @@ export const characters = [
   },
   {
     id: 'alien',
+    promptEn: { name: 'Zorp', description: 'A friendly alien from the Andromeda galaxy' },
     name: 'Zorp',
     emoji: '👽',
     description: 'A friendly alien from the Andromeda galaxy',
