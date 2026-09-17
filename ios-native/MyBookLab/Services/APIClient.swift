@@ -322,11 +322,6 @@ actor APIClient {
     struct StoryBuddyRequest: Encodable {
         let message: String
         let context: String?
-        /// The language Story Buddy should reply in. Defaulted so every
-        /// existing call site sends it — without this an Italian child gets
-        /// English writing help inside an Italian app, which is the most
-        /// visible way a half-finished localization shows up.
-        var locale: String = AppLanguage.apiLocale
     }
     struct StoryBuddyResponse: Decodable {
         let reply: String
@@ -405,8 +400,6 @@ actor APIClient {
         let intent: String
         let book: SlimBook
         let page: SlimPage
-        /// See StoryBuddyRequest.locale.
-        var locale: String = AppLanguage.apiLocale
 
         struct SlimBook: Encodable {
             let title: String

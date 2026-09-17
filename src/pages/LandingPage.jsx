@@ -303,7 +303,7 @@ export default function LandingPage() {
             Privacy Policy
           </Link>
           <span>·</span>
-          <Link to="/privacy" className="hover:text-galaxy-text-muted transition-colors">
+          <Link to="/terms" className="hover:text-galaxy-text-muted transition-colors">
             Terms of Service
           </Link>
           <span>·</span>
