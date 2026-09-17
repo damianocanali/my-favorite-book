@@ -6,7 +6,7 @@
     "title": "Privacy Policy",
     "commitment": {
       "title": "Our Commitment to Children's Privacy",
-      "body": "{{app}} (\"we\", \"our\", \"us\") is designed for children and families. Accounts are created and controlled by a parent, guardian, or teacher, who is responsible for the account and for any purchases made through it. We do not knowingly allow a child under 13 to create their own account, and we do not knowingly collect personal information directly from a child under 13 without their parent's or guardian's involvement. If you believe a child has provided us with personal information without that involvement, contact us at <email>{{email}}</email> and we will delete it."
+      "body": "{{app}} (\"we\", \"our\", \"us\") is designed for children and families. An account is created and controlled by an adult — a parent, guardian, or teacher — who provides the child’s details, is responsible for the account, and authorises any purchase. A child does not create their own account. Most of what we do with this data is what we need in order to provide the service you asked for; where we rely on your consent instead — publishing a book to the public gallery, or turning a photo into a cartoon — we ask for it separately and you can withdraw it at any time. If you believe a child’s personal information reached us without an adult’s involvement, contact us at <email>{{email}}</email> and we will delete it."
     },
     "collect": {
       "title": "Information We Collect",
@@ -87,7 +87,7 @@
     },
     "printed": {
       "title": "Printed Books",
-      "body": "Printed books are physical goods, printed and shipped by our print partner and paid for by card through {{stripe}}. Prices shown at checkout include the book and shipping. Because every book is printed to order with your child's own content, orders cannot be cancelled once printing has begun. If a book arrives damaged, misprinted, or does not arrive, contact us and we will reprint or refund it."
+      "body": "Printed books are physical goods, printed and shipped by our print partner and paid for by card through {{stripe}}. Prices shown at checkout include the book and shipping. For most goods bought at a distance you would have 14 days to withdraw. A printed book is made to your specifications and clearly personalised with your child’s own story, illustrations and name, so the right of withdrawal does not apply to it — you agree to this when you place the order, and we tell you again at checkout before you pay. Your statutory two-year guarantee is unaffected: if a book arrives damaged, defective, or not matching the order, contact us and we will reprint or refund it."
     },
     "ai_content": {
       "title": "AI-Generated Content",
