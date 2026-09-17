@@ -1,11 +1,19 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
+import { useTranslation } from 'react-i18next'
 import { Lightbulb, ChevronDown, ChevronUp, Sparkles } from 'lucide-react'
 import { getPromptsForPage, getIdleNudge } from '../../lib/sentenceStarters'
 
 const IDLE_TIMEOUT_MS = 15000
 
+// The starters, word-bank words and idle nudges are NOT translated here: they
+// are child-facing content rather than chrome, and sentenceStarters.js already
+// resolves them through the `games` namespace. Their trailing space is
+// load-bearing (each starter is concatenated onto what the child types next),
+// so this component keeps passing the value through untouched and only trims
+// for display.
 export default function WritingScaffold({ page, totalPages, characterName, onInsertText }) {
+  const { t } = useTranslation()
   const [expanded, setExpanded] = useState(false)
   const [idleNudge, setIdleNudge] = useState(null)
   const [showWordBank, setShowWordBank] = useState(false)
@@ -59,7 +67,7 @@ export default function WritingScaffold({ page, totalPages, characterName, onIns
         className="flex items-center gap-1.5 text-galaxy-secondary text-xs font-body font-semibold hover:text-galaxy-secondary/80 transition-colors"
       >
         <Sparkles size={13} />
-        Need a spark? Tap a sentence starter
+        {t('editor:scaffold.toggle')}
         {expanded ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
       </button>
 
@@ -91,7 +99,7 @@ export default function WritingScaffold({ page, totalPages, characterName, onIns
               onClick={() => setShowWordBank(!showWordBank)}
               className="text-galaxy-text-muted text-xs font-body hover:text-galaxy-text transition-colors"
             >
-              {showWordBank ? 'Hide word bank' : 'Show word bank (feelings & actions)'}
+              {showWordBank ? t('editor:scaffold.hide_word_bank') : t('editor:scaffold.show_word_bank')}
             </button>
 
             {/* Word bank */}
@@ -104,7 +112,7 @@ export default function WritingScaffold({ page, totalPages, characterName, onIns
                   exit={{ opacity: 0, height: 0 }}
                 >
                   <div>
-                    <p className="text-galaxy-text-muted text-xs font-body mb-1">Feelings:</p>
+                    <p className="text-galaxy-text-muted text-xs font-body mb-1">{t('editor:scaffold.feelings_label')}</p>
                     <div className="flex flex-wrap gap-1">
                       {prompts.feelings.map((w) => (
                         <button
@@ -118,7 +126,7 @@ export default function WritingScaffold({ page, totalPages, characterName, onIns
                     </div>
                   </div>
                   <div>
-                    <p className="text-galaxy-text-muted text-xs font-body mb-1">Actions:</p>
+                    <p className="text-galaxy-text-muted text-xs font-body mb-1">{t('editor:scaffold.actions_label')}</p>
                     <div className="flex flex-wrap gap-1">
                       {prompts.actions.map((w) => (
                         <button

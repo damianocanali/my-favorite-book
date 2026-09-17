@@ -13,6 +13,7 @@
 // is mandatory per guideline 4.8 — both buttons here ship together for
 // that reason.
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '../../stores/useAuthStore'
 
 function GoogleIcon({ size = 18 }) {
@@ -46,7 +47,11 @@ function AppleIcon({ size = 18 }) {
   )
 }
 
-export default function OAuthButtons({ label = 'or continue with' }) {
+// `label` is already-translated text when a caller overrides it; when it is
+// omitted we fall back to the default divider copy for this locale.
+export default function OAuthButtons({ label }) {
+  const { t } = useTranslation()
+  const dividerLabel = label ?? t('auth:oauth.divider_continue')
   const signInWithProvider = useAuthStore((s) => s.signInWithProvider)
   const [busy, setBusy] = useState(null)
   const [error, setError] = useState('')
@@ -59,7 +64,7 @@ export default function OAuthButtons({ label = 'or continue with' }) {
       // OAuth redirects out of the SPA; the auth callback page handles
       // the rest. We stay in `busy` until the navigation occurs.
     } catch (err) {
-      setError(err.message || 'Sign-in failed. Please try again.')
+      setError(err.message || t('errors:auth.oauth_failed'))
       setBusy(null)
     }
   }
@@ -68,7 +73,7 @@ export default function OAuthButtons({ label = 'or continue with' }) {
     <div className="space-y-3">
       <div className="flex items-center gap-3">
         <div className="flex-1 h-px bg-galaxy-text-muted/15" />
-        <p className="text-galaxy-text-muted text-xs font-body uppercase tracking-wide">{label}</p>
+        <p className="text-galaxy-text-muted text-xs font-body uppercase tracking-wide">{dividerLabel}</p>
         <div className="flex-1 h-px bg-galaxy-text-muted/15" />
       </div>
       <div className="grid grid-cols-2 gap-2">
@@ -79,7 +84,7 @@ export default function OAuthButtons({ label = 'or continue with' }) {
           className="flex items-center justify-center gap-2 py-2.5 rounded-xl bg-white text-slate-800 font-body font-semibold text-sm hover:bg-slate-100 disabled:opacity-50 transition-colors"
         >
           <GoogleIcon />
-          {busy === 'google' ? 'Opening…' : 'Google'}
+          {busy === 'google' ? t('auth:oauth.opening') : 'Google'}
         </button>
         <button
           type="button"
@@ -88,7 +93,7 @@ export default function OAuthButtons({ label = 'or continue with' }) {
           className="flex items-center justify-center gap-2 py-2.5 rounded-xl bg-black text-white font-body font-semibold text-sm hover:bg-slate-900 disabled:opacity-50 transition-colors"
         >
           <AppleIcon />
-          {busy === 'apple' ? 'Opening…' : 'Apple'}
+          {busy === 'apple' ? t('auth:oauth.opening') : 'Apple'}
         </button>
       </div>
       {error && <p className="text-red-400 text-xs text-center">{error}</p>}

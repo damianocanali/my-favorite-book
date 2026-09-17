@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import { motion } from 'motion/react'
 import { Palette, ChevronLeft } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { useBookStore } from '../../stores/useBookStore'
 import { colorPalettes } from '../../data/colorPalettes'
+import { displayName } from '../../i18n/contentCatalog'
 import GlowCard from '../ui/GlowCard'
 import SparkleButton from '../ui/SparkleButton'
 
@@ -28,6 +30,7 @@ function MiniBookPreview({ colors }) {
 }
 
 export default function StepColors({ onNext, onPrev }) {
+  const { t } = useTranslation()
   const book = useBookStore((state) => state.book)
   const setColors = useBookStore((state) => state.setColors)
   const [showCustom, setShowCustom] = useState(false)
@@ -56,10 +59,10 @@ export default function StepColors({ onNext, onPrev }) {
           <Palette size={40} className="text-galaxy-accent" />
         </div>
         <h2 className="font-heading text-3xl sm:text-4xl font-bold text-galaxy-text mb-2">
-          Pick Your Colors
+          {t('wizard:colors.heading')}
         </h2>
         <p className="text-galaxy-text-muted font-body text-lg">
-          Choose the colors for your book!
+          {t('wizard:colors.subtitle')}
         </p>
       </motion.div>
 
@@ -90,7 +93,7 @@ export default function StepColors({ onNext, onPrev }) {
             >
               <span className="text-2xl">{palette.emoji}</span>
               <span className="font-heading font-semibold text-sm text-galaxy-text">
-                {palette.name}
+                {displayName(palette, t, 'color_palettes')}
               </span>
               <div className="flex gap-1">
                 <div className="w-5 h-5 rounded-full border border-white/20" style={{ backgroundColor: palette.cover }} />
@@ -106,7 +109,7 @@ export default function StepColors({ onNext, onPrev }) {
             onClick={() => setShowCustom(!showCustom)}
             className="text-galaxy-secondary font-body font-semibold text-sm hover:text-galaxy-primary transition-colors cursor-pointer"
           >
-            {showCustom ? 'Use a preset instead' : '🎨 Or pick your own colors!'}
+            {showCustom ? t('wizard:colors.use_preset') : t('wizard:colors.use_custom')}
           </button>
         </div>
 
@@ -119,7 +122,7 @@ export default function StepColors({ onNext, onPrev }) {
             transition={{ duration: 0.3 }}
           >
             <div className="flex items-center gap-4">
-              <label className="font-body font-semibold text-sm text-galaxy-text w-24">Cover</label>
+              <label className="font-body font-semibold text-sm text-galaxy-text w-24">{t('wizard:colors.cover_label')}</label>
               <input
                 type="color"
                 value={currentColors.cover}
@@ -129,7 +132,7 @@ export default function StepColors({ onNext, onPrev }) {
               <span className="text-galaxy-text-muted text-sm font-mono">{currentColors.cover}</span>
             </div>
             <div className="flex items-center gap-4">
-              <label className="font-body font-semibold text-sm text-galaxy-text w-24">Accent</label>
+              <label className="font-body font-semibold text-sm text-galaxy-text w-24">{t('wizard:colors.accent_label')}</label>
               <input
                 type="color"
                 value={currentColors.accent}
@@ -139,7 +142,7 @@ export default function StepColors({ onNext, onPrev }) {
               <span className="text-galaxy-text-muted text-sm font-mono">{currentColors.accent}</span>
             </div>
             <div className="flex items-center gap-4">
-              <label className="font-body font-semibold text-sm text-galaxy-text w-24">Text</label>
+              <label className="font-body font-semibold text-sm text-galaxy-text w-24">{t('wizard:colors.text_label')}</label>
               <input
                 type="color"
                 value={currentColors.text}
@@ -155,11 +158,11 @@ export default function StepColors({ onNext, onPrev }) {
       <div className="flex gap-4">
         <SparkleButton onClick={onPrev} variant="secondary">
           <span className="flex items-center gap-1">
-            <ChevronLeft size={18} /> Back
+            <ChevronLeft size={18} /> {t('common:actions.back')}
           </span>
         </SparkleButton>
         <SparkleButton onClick={onNext}>
-          Next Step →
+          {t('wizard:actions.next_step')}
         </SparkleButton>
       </div>
     </div>

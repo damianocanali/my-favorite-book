@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Loader2, CheckCircle, XCircle } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { supabase } from '../lib/supabase'
 import AppLogo from '../components/ui/AppLogo'
 
 export default function AuthCallbackPage() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   // 'loading' → 'signed-in' (OAuth or already-active session, auto-redirect)
   //          → 'email-confirmed' (signup link clicked, user must now sign in)
@@ -66,7 +68,7 @@ export default function AuthCallbackPage() {
           <>
             <Loader2 size={36} className="text-galaxy-primary animate-spin mx-auto" />
             <p className="text-galaxy-text font-body">
-              {status === 'signed-in' ? 'Signing you in…' : 'Confirming your account…'}
+              {status === 'signed-in' ? t('auth:callback.signing_in') : t('auth:callback.confirming')}
             </p>
           </>
         )}
@@ -76,17 +78,17 @@ export default function AuthCallbackPage() {
             <CheckCircle size={48} className="text-green-400 mx-auto" />
             <div>
               <h1 className="font-heading text-2xl font-bold text-galaxy-text mb-2">
-                You're all set!
+                {t('auth:callback.confirmed_title')}
               </h1>
               <p className="text-galaxy-text-muted font-body text-sm leading-relaxed">
-                Your email has been confirmed. You can now open My Book Lab on any of your devices and sign in.
+                {t('auth:callback.confirmed_body')}
               </p>
             </div>
             <Link
               to="/login"
               className="inline-block px-6 py-3 rounded-2xl bg-galaxy-primary text-white font-body font-semibold text-sm hover:bg-galaxy-primary/80 transition-colors"
             >
-              Sign in
+              {t('auth:shared.sign_in')}
             </Link>
           </>
         )}
@@ -96,17 +98,17 @@ export default function AuthCallbackPage() {
             <XCircle size={48} className="text-red-400 mx-auto" />
             <div>
               <h1 className="font-heading text-2xl font-bold text-galaxy-text mb-2">
-                Something went wrong
+                {t('auth:callback.error_title')}
               </h1>
               <p className="text-galaxy-text-muted font-body text-sm">
-                The confirmation link may have expired. Please try signing up again.
+                {t('auth:callback.error_body')}
               </p>
             </div>
             <Link
               to="/signup"
               className="inline-block px-6 py-3 rounded-2xl bg-galaxy-primary text-white font-body font-semibold text-sm hover:bg-galaxy-primary/80 transition-colors"
             >
-              Back to sign up
+              {t('auth:callback.back_to_sign_up')}
             </Link>
           </>
         )}

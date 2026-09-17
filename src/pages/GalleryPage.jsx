@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'motion/react'
+import { useTranslation, Trans } from 'react-i18next'
 import { BookOpen, Star, Loader2, Sparkles, Trash2 } from 'lucide-react'
 import { apiFetch, apiFetchAuthed } from '../lib/api'
 import { useAuthStore } from '../stores/useAuthStore'
@@ -39,6 +40,7 @@ function FloatingEmoji({ emoji, x, y, delay, duration }) {
 }
 
 function BookCard({ book, index, currentUserId, onRemoved }) {
+  const { t } = useTranslation()
   const [confirmRemove, setConfirmRemove] = useState(false)
   const [removing, setRemoving] = useState(false)
   const isOwner = currentUserId && book.user_id === currentUserId
@@ -56,7 +58,7 @@ function BookCard({ book, index, currentUserId, onRemoved }) {
       if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`)
       onRemoved(book.slug)
     } catch (err) {
-      alert(`Could not remove book: ${err.message}`)
+      alert(t('gallery:card.remove_failed', { message: err.message }))
     } finally {
       setRemoving(false)
       setConfirmRemove(false)
@@ -118,7 +120,7 @@ function BookCard({ book, index, currentUserId, onRemoved }) {
                 transition={{ duration: 2, repeat: Infinity }}
               >
                 <Star size={12} className="text-yellow-400 fill-yellow-400" />
-                <span className="text-yellow-400 text-[10px] font-bold font-body">FEATURED</span>
+                <span className="text-yellow-400 text-[10px] font-bold font-body">{t('gallery:card.featured_badge')}</span>
               </motion.div>
             )}
           </div>
@@ -126,8 +128,25 @@ function BookCard({ book, index, currentUserId, onRemoved }) {
           {/* Book info */}
           <div className="p-4">
             <p className="text-galaxy-text-muted font-body text-sm">
-              by <span className="text-galaxy-text font-semibold">{book.author_name}</span>
-              {book.author_age && <span className="text-galaxy-text-muted">, age {book.author_age}</span>}
+              {/* One key per variant rather than "by X" + ", age N": Italian
+                  puts the age clause differently and it cannot be appended
+                  as a translated fragment. */}
+              {book.author_age ? (
+                <Trans
+                  i18nKey="gallery:byline.rich_with_age"
+                  values={{ name: book.author_name, age: book.author_age }}
+                  components={{
+                    name: <span className="text-galaxy-text font-semibold" />,
+                    age: <span className="text-galaxy-text-muted" />,
+                  }}
+                />
+              ) : (
+                <Trans
+                  i18nKey="gallery:byline.rich"
+                  values={{ name: book.author_name }}
+                  components={{ name: <span className="text-galaxy-text font-semibold" /> }}
+                />
+              )}
             </p>
 
             {totalReactions > 0 && (
@@ -143,7 +162,7 @@ function BookCard({ book, index, currentUserId, onRemoved }) {
                   ))}
                 </div>
                 <span className="text-galaxy-text-muted font-body text-xs">
-                  {totalReactions} sticker{totalReactions === 1 ? '' : 's'}
+                  {t('gallery:card.stickers', { count: totalReactions })}
                 </span>
               </motion.div>
             )}
@@ -153,19 +172,19 @@ function BookCard({ book, index, currentUserId, onRemoved }) {
               <div className="mt-3 pt-3 border-t border-galaxy-text-muted/10">
                 {confirmRemove ? (
                   <div className="flex items-center gap-2">
-                    <span className="text-galaxy-text-muted font-body text-xs">Remove?</span>
+                    <span className="text-galaxy-text-muted font-body text-xs">{t('gallery:card.remove_confirm')}</span>
                     <button
                       onClick={handleRemove}
                       disabled={removing}
                       className="flex items-center gap-1 px-2 py-1 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-xs font-body font-semibold hover:bg-red-500/20 transition-colors"
                     >
-                      {removing ? <Loader2 size={10} className="animate-spin" /> : 'Yes'}
+                      {removing ? <Loader2 size={10} className="animate-spin" /> : t('gallery:card.remove_yes')}
                     </button>
                     <button
                       onClick={(e) => { e.preventDefault(); setConfirmRemove(false) }}
                       className="text-galaxy-text-muted text-xs font-body hover:text-galaxy-text transition-colors"
                     >
-                      Cancel
+                      {t('common:actions.cancel')}
                     </button>
                   </div>
                 ) : (
@@ -173,7 +192,7 @@ function BookCard({ book, index, currentUserId, onRemoved }) {
                     onClick={(e) => { e.preventDefault(); setConfirmRemove(true) }}
                     className="flex items-center gap-1.5 text-galaxy-text-muted hover:text-red-400 transition-colors text-xs font-body"
                   >
-                    <Trash2 size={12} /> Remove from gallery
+                    <Trash2 size={12} /> {t('gallery:actions.remove_from_gallery')}
                   </button>
                 )}
               </div>
@@ -186,6 +205,7 @@ function BookCard({ book, index, currentUserId, onRemoved }) {
 }
 
 export default function GalleryPage() {
+  const { t } = useTranslation()
   const [books, setBooks] = useState([])
   const [loading, setLoading] = useState(true)
   const user = useAuthStore((s) => s.user)
@@ -239,7 +259,7 @@ export default function GalleryPage() {
           <Sparkles size={36} className="text-yellow-400" />
         </motion.div>
         <h1 className="font-heading text-3xl sm:text-4xl font-bold text-galaxy-text mb-2">
-          Book Gallery
+          {t('gallery:index.title')}
         </h1>
         <motion.p
           className="text-galaxy-text-muted font-body text-lg max-w-md mx-auto"
@@ -247,7 +267,7 @@ export default function GalleryPage() {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
         >
-          Amazing stories written by young authors just like you!
+          {t('gallery:index.subtitle')}
         </motion.p>
       </motion.div>
 
@@ -265,7 +285,7 @@ export default function GalleryPage() {
               <Loader2 size={36} className="text-galaxy-primary" />
             </motion.div>
             <p className="text-galaxy-text-muted font-body text-sm animate-pulse">
-              Loading amazing stories...
+              {t('gallery:index.loading')}
             </p>
           </motion.div>
         )}
@@ -287,17 +307,17 @@ export default function GalleryPage() {
             📚
           </motion.p>
           <h2 className="font-heading text-xl font-bold text-galaxy-text mb-2">
-            The gallery is getting ready!
+            {t('gallery:index.empty_title')}
           </h2>
           <p className="text-galaxy-text-muted font-body mb-6">
-            Be the first to publish a book and share it with the world!
+            {t('gallery:index.empty_body')}
           </p>
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <Link
               to="/create"
               className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-galaxy-primary text-white font-body font-semibold hover:bg-galaxy-primary/80 transition-colors text-lg"
             >
-              <BookOpen size={20} /> Start Writing
+              <BookOpen size={20} /> {t('gallery:actions.start_writing')}
             </Link>
           </motion.div>
         </motion.div>
@@ -318,7 +338,7 @@ export default function GalleryPage() {
             >
               <Star size={22} className="text-yellow-400 fill-yellow-400" />
             </motion.div>
-            <h2 className="font-heading text-xl font-bold text-galaxy-text">Featured Stories</h2>
+            <h2 className="font-heading text-xl font-bold text-galaxy-text">{t('gallery:index.featured_heading')}</h2>
             <motion.span
               className="text-lg"
               animate={{ scale: [1, 1.3, 1] }}
@@ -345,7 +365,7 @@ export default function GalleryPage() {
         >
           <div className="flex items-center gap-2 mb-5">
             <BookOpen size={20} className="text-galaxy-primary" />
-            <h2 className="font-heading text-xl font-bold text-galaxy-text">Recently Published</h2>
+            <h2 className="font-heading text-xl font-bold text-galaxy-text">{t('gallery:index.recent_heading')}</h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {recent.map((book, i) => (
@@ -368,14 +388,14 @@ export default function GalleryPage() {
             animate={{ opacity: [0.6, 1, 0.6] }}
             transition={{ duration: 3, repeat: Infinity }}
           >
-            Want your book in the gallery? Publish it from your preview page!
+            {t('gallery:index.publish_hint')}
           </motion.p>
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <Link
               to="/create"
               className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-galaxy-primary text-white font-body font-semibold hover:bg-galaxy-primary/80 transition-colors"
             >
-              <BookOpen size={18} /> Write Your Story
+              <BookOpen size={18} /> {t('gallery:actions.write_your_story')}
             </Link>
           </motion.div>
         </motion.div>

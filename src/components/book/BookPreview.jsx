@@ -1,5 +1,6 @@
 import { useRef, useState, useCallback, useEffect } from 'react'
 import { motion } from 'motion/react'
+import { useTranslation } from 'react-i18next'
 import HTMLFlipBook from 'react-pageflip'
 import React from 'react'
 import BookCover from './BookCover'
@@ -139,6 +140,7 @@ function useFittedBookSize(containerRef, spread) {
 }
 
 export default function BookPreview({ book, includeBackMatter = false }) {
+  const { t } = useTranslation()
   const flipBookRef = useRef(null)
   const containerRef = useRef(null)
   const [currentPage, setCurrentPage] = useState(0)
@@ -163,8 +165,9 @@ export default function BookPreview({ book, includeBackMatter = false }) {
   // Arrow keys turn pages on desktop, matching the on-screen controls.
   useEffect(() => {
     const onKey = (e) => {
-      const t = e.target
-      if (t instanceof HTMLElement && /^(INPUT|TEXTAREA)$/.test(t.tagName)) return
+      // Named `target`, not `t` — `t` is the translation function here.
+      const target = e.target
+      if (target instanceof HTMLElement && /^(INPUT|TEXTAREA)$/.test(target.tagName)) return
       if (e.key === 'ArrowLeft') flipBookRef.current?.pageFlip()?.flipPrev()
       if (e.key === 'ArrowRight') flipBookRef.current?.pageFlip()?.flipNext()
     }
@@ -227,13 +230,13 @@ export default function BookPreview({ book, includeBackMatter = false }) {
                   className="font-heading text-2xl font-bold"
                   style={{ color: book.colors?.text ?? '#F1F5F9' }}
                 >
-                  The End
+                  {t('editor:book.the_end')}
                 </p>
                 <p
                   className="font-body text-base mt-2 opacity-80"
                   style={{ color: book.colors?.text ?? '#F1F5F9' }}
                 >
-                  by {book.authorName}
+                  {t('editor:book.by_author', { author: book.authorName })}
                 </p>
               </div>
             </div>

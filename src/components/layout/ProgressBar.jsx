@@ -1,29 +1,35 @@
 import { motion } from 'motion/react'
+import { useTranslation } from 'react-i18next'
 import { Star } from 'lucide-react'
+import { formatNumber } from '../../i18n/formats'
 
+// Stable ids, not labels: the React key must not change when the locale does,
+// and the label has to be resolved at render time.
 const STEPS = [
-  'Title',
-  'Author',
-  'Colors',
-  'Characters',
-  'Setting',
-  'Time',
-  'Review',
+  'title',
+  'author',
+  'colors',
+  'characters',
+  'setting',
+  'time',
+  'review',
 ]
 
 export default function ProgressBar({ currentStep }) {
+  const { t } = useTranslation()
+
   return (
     // Seven steps don't fit a phone at fixed widths — the first and last
     // used to be clipped off-screen. Scroll horizontally instead, and
     // only center once there's room.
     <div className="flex items-center justify-start sm:justify-center gap-1 sm:gap-2 py-4 px-3 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-      {STEPS.map((label, index) => {
+      {STEPS.map((step, index) => {
         const isCompleted = index < currentStep
         const isCurrent = index === currentStep
         const isUpcoming = index > currentStep
 
         return (
-          <div key={label} className="flex items-center">
+          <div key={step} className="flex items-center">
             {/* Step indicator */}
             <div className="flex flex-col items-center">
               <motion.div
@@ -44,7 +50,7 @@ export default function ProgressBar({ currentStep }) {
                 {isCompleted ? (
                   <Star size={16} fill="currentColor" />
                 ) : (
-                  <span className="text-xs font-bold font-body">{index + 1}</span>
+                  <span className="text-xs font-bold font-body">{formatNumber(index + 1)}</span>
                 )}
               </motion.div>
               <span
@@ -52,7 +58,7 @@ export default function ProgressBar({ currentStep }) {
                   isCurrent ? 'text-galaxy-primary' : isCompleted ? 'text-galaxy-text' : 'text-galaxy-text-muted'
                 }`}
               >
-                {label}
+                {t(`wizard:progress.${step}`)}
               </span>
             </div>
 

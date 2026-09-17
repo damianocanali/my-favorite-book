@@ -11,10 +11,12 @@ import {
 } from '@stripe/react-stripe-js'
 import { motion, AnimatePresence } from 'motion/react'
 import { Loader2, X, AlertTriangle } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { getStripe } from '../../lib/stripe'
 
 export default function PaymentSheetModal({ open, clientSecret, returnUrl, onClose }) {
   const [stripe, setStripe] = useState(null)
+  const { t } = useTranslation()
 
   useEffect(() => {
     if (!open) return
@@ -46,12 +48,12 @@ export default function PaymentSheetModal({ open, clientSecret, returnUrl, onClo
         >
           <button
             onClick={onClose}
-            aria-label="Close"
+            aria-label={t('common:actions.close')}
             className="absolute top-3 right-3 p-1.5 rounded-lg text-white/50 hover:text-white hover:bg-white/10 transition-colors"
           >
             <X size={18} />
           </button>
-          <h2 className="font-heading text-xl font-bold mb-4">Payment</h2>
+          <h2 className="font-heading text-xl font-bold mb-4">{t('print:payment.title')}</h2>
 
           {!stripe || !clientSecret ? (
             <div className="flex items-center justify-center py-12 text-white/60">
@@ -87,6 +89,7 @@ export default function PaymentSheetModal({ open, clientSecret, returnUrl, onClo
 }
 
 function PaymentForm({ returnUrl }) {
+  const { t } = useTranslation()
   const stripe = useStripe()
   const elements = useElements()
   const [submitting, setSubmitting] = useState(false)
@@ -102,7 +105,9 @@ function PaymentForm({ returnUrl }) {
       confirmParams: { return_url: returnUrl },
     })
     // Stripe redirects on success — code below only runs on failure.
-    if (error) setError(error.message ?? 'Payment failed')
+    // Stripe's own message is already localized by Elements' locale; the
+    // fallback is ours.
+    if (error) setError(error.message ?? t('print:payment.failed'))
     setSubmitting(false)
   }
 
@@ -123,10 +128,10 @@ function PaymentForm({ returnUrl }) {
         {submitting ? (
           <span className="flex items-center justify-center gap-2">
             <Loader2 size={16} className="animate-spin" />
-            Processing…
+            {t('print:payment.processing')}
           </span>
         ) : (
-          'Pay'
+          t('print:payment.pay')
         )}
       </button>
     </form>

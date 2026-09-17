@@ -1,4 +1,5 @@
 import { Volume2, VolumeX, Mic, MicOff, Type, Maximize2, Minimize2 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { useAccessibilityStore } from '../../stores/useAccessibilityStore'
 
 function ToolButton({ onClick, active, activeColor = 'galaxy-secondary', icon: Icon, activeIcon: ActiveIcon, label, disabled }) {
@@ -27,6 +28,7 @@ function ToolButton({ onClick, active, activeColor = 'galaxy-secondary', icon: I
 }
 
 export default function AccessibilityToolbar({ onReadAloud, onStopReading, onStartVoice, onStopVoice, isSpeaking, isListening, ttsSupported, voiceSupported }) {
+  const { t } = useTranslation()
   const dyslexiaFont = useAccessibilityStore((s) => s.dyslexiaFont)
   const focusMode = useAccessibilityStore((s) => s.focusMode)
   const toggleDyslexiaFont = useAccessibilityStore((s) => s.toggleDyslexiaFont)
@@ -34,7 +36,7 @@ export default function AccessibilityToolbar({ onReadAloud, onStopReading, onSta
 
   return (
     <div className="flex items-center gap-1 p-2 bg-galaxy-bg rounded-xl border border-galaxy-text-muted/10 flex-wrap">
-      <span className="text-galaxy-text-muted text-xs font-body px-1 mr-1 hidden sm:block">Accessibility</span>
+      <span className="text-galaxy-text-muted text-xs font-body px-1 mr-1 hidden sm:block">{t('editor:a11y.label')}</span>
 
       <ToolButton
         onClick={isSpeaking ? onStopReading : onReadAloud}
@@ -42,7 +44,7 @@ export default function AccessibilityToolbar({ onReadAloud, onStopReading, onSta
         activeColor="galaxy-secondary"
         icon={Volume2}
         activeIcon={VolumeX}
-        label={isSpeaking ? 'Stop' : 'Read Aloud'}
+        label={isSpeaking ? t('editor:a11y.stop_reading') : t('editor:a11y.read_aloud')}
         disabled={!ttsSupported}
       />
 
@@ -52,7 +54,7 @@ export default function AccessibilityToolbar({ onReadAloud, onStopReading, onSta
         activeColor="galaxy-accent"
         icon={Mic}
         activeIcon={MicOff}
-        label={isListening ? 'Stop' : 'Voice Input'}
+        label={isListening ? t('editor:a11y.stop_voice') : t('editor:a11y.voice_input')}
         disabled={!voiceSupported}
       />
 
@@ -61,7 +63,7 @@ export default function AccessibilityToolbar({ onReadAloud, onStopReading, onSta
         active={dyslexiaFont}
         activeColor="galaxy-primary"
         icon={Type}
-        label="Dyslexia Font"
+        label={t('editor:a11y.dyslexia_font')}
       />
 
       <ToolButton
@@ -70,7 +72,7 @@ export default function AccessibilityToolbar({ onReadAloud, onStopReading, onSta
         activeColor="galaxy-primary"
         icon={Maximize2}
         activeIcon={Minimize2}
-        label={focusMode ? 'Exit Focus' : 'Focus Mode'}
+        label={focusMode ? t('editor:a11y.exit_focus') : t('editor:a11y.focus_mode')}
       />
     </div>
   )

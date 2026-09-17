@@ -1,5 +1,6 @@
 import { useMemo, useCallback, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
+import { useTranslation } from 'react-i18next'
 import { useBookStore } from '../../stores/useBookStore'
 import { useAccessibilityStore } from '../../stores/useAccessibilityStore'
 import { useAgeAdaptive } from '../../hooks/useAgeAdaptive'
@@ -11,8 +12,11 @@ import AccessibilityToolbar from './AccessibilityToolbar'
 import WritingScaffold from './WritingScaffold'
 import { useRewardsStore } from '../../stores/useRewardsStore'
 import { useMilestoneStore, milestoneForProgress } from '../../stores/useMilestoneStore'
+import { formatNumber } from '../../i18n/formats'
+import { displayName } from '../../i18n/contentCatalog'
 
 export default function PageEditor({ page }) {
+  const { t } = useTranslation()
   const updatePageText = useBookStore((state) => state.updatePageText)
   const book = useBookStore((state) => state.book)
   const fireMilestone = useMilestoneStore((s) => s.fire)
@@ -99,11 +103,11 @@ export default function PageEditor({ page }) {
           <>
             <img
               src={page.illustrationData}
-              alt={`Illustration for page ${page.pageNumber}`}
+              alt={t('editor:illustration.alt', { number: formatNumber(page.pageNumber) })}
               className="w-full h-full object-cover"
             />
             <span className="absolute bottom-1 left-2 text-[9px] font-body text-white/40 drop-shadow-sm pointer-events-none">
-              AI-generated — may not be perfect
+              {t('editor:illustration.ai_disclaimer')}
             </span>
           </>
         ) : (
@@ -150,7 +154,7 @@ export default function PageEditor({ page }) {
               exit={{ opacity: 0, y: -6 }}
               transition={{ duration: 0.2 }}
               aria-live="polite"
-              aria-label="Reading aloud"
+              aria-label={t('editor:a11y.reading_aloud_region')}
             >
               {words.map((word, i) => (
                 <span
@@ -177,8 +181,8 @@ export default function PageEditor({ page }) {
             onFocus={handleTextareaFocus}
             placeholder={
               page.pageNumber === 1
-                ? 'Once upon a time...'
-                : 'Continue your story...'
+                ? t('editor:text.placeholder_first')
+                : t('editor:text.placeholder_next')
             }
             className={`w-full bg-transparent border-none outline-none resize-none text-galaxy-text placeholder:text-galaxy-text-muted/40 leading-relaxed ${fontClass} ${adaptive.fontSize.input}`}
             rows={adaptive.mode === 'young' ? 4 : 6}
@@ -197,7 +201,7 @@ export default function PageEditor({ page }) {
               exit={{ opacity: 0 }}
             >
               <span className="w-2 h-2 rounded-full bg-galaxy-accent animate-pulse" />
-              <span>{interimText || 'Listening...'}</span>
+              <span>{interimText || t('editor:voice.listening')}</span>
             </motion.div>
           )}
         </AnimatePresence>
@@ -213,11 +217,15 @@ export default function PageEditor({ page }) {
         {/* Character counter */}
         <div className="flex justify-between items-center">
           <p className="text-galaxy-text-muted text-xs font-body">
-            {page.text.length}/{adaptive.charLimit} characters
+            {t('editor:text.char_count', {
+              count: page.text.length,
+              used: formatNumber(page.text.length),
+              max: formatNumber(adaptive.charLimit),
+            })}
           </p>
           {book?.timePeriod && (
             <p className="text-galaxy-text-muted text-xs font-body">
-              {book.timePeriod.emoji} {book.timePeriod.label}
+              {book.timePeriod.emoji} {displayName(book.timePeriod, t, 'time_periods')}
             </p>
           )}
         </div>

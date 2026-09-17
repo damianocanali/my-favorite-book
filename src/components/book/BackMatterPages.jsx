@@ -6,8 +6,16 @@
 // Visual style mirrors the print HTML. Page count + ordering also mirror
 // buildClosingPages() so what the user flips through here matches what
 // ships. If you change one, change both.
+//
+// LOCALISATION NOTE: these pages are PRINTED INTO A PHYSICAL BOOK. Once the
+// order ships there is no patching them — a wrong date format or a broken
+// byline is permanent. Every date goes through formatDate() and every
+// concatenated sentence is one interpolated key.
 import { useEffect, useState } from 'react'
+import { useTranslation, Trans } from 'react-i18next'
 import QRCode from 'qrcode'
+import { formatDate, formatNumber } from '../../i18n/formats'
+import { displayName, displayDescription } from '../../i18n/contentCatalog'
 
 const APP_INSTAGRAM_HANDLE = '@mybooklab.app'
 const APP_STORE_URL = 'https://apps.apple.com/us/app/my-book-lab/id6761641708'
@@ -16,6 +24,7 @@ const APP_PLATFORMS = 'iPhone · iPad · Mac'
 const MIN_INTERIOR_PAGES = 32
 
 export function TheEndPage({ book }) {
+  const { t } = useTranslation()
   const cover = book.colors?.cover ?? '#8B5CF6'
   const accent = book.colors?.accent ?? '#06B6D4'
   const textColor = book.colors?.text ?? '#F1F5F9'
@@ -27,16 +36,17 @@ export function TheEndPage({ book }) {
         color: textColor,
       }}
     >
-      <p className="font-heading font-bold text-5xl sm:text-6xl mb-3">The End</p>
+      <p className="font-heading font-bold text-5xl sm:text-6xl mb-3">{t('editor:book.the_end')}</p>
       <p className="font-body text-lg opacity-90">{book.title}</p>
       <p className="font-body text-sm opacity-75 mt-1">
-        Written and illustrated by {book.authorName}
+        {t('editor:back_matter.written_illustrated_by', { author: book.authorName })}
       </p>
     </div>
   )
 }
 
 export function DedicationPage({ book }) {
+  const { t } = useTranslation()
   const cover = book.colors?.cover ?? '#8B5CF6'
   return (
     <div
@@ -44,31 +54,29 @@ export function DedicationPage({ book }) {
       style={{ background: 'linear-gradient(180deg, white, #FFF8F0)' }}
     >
       <p className="font-heading font-bold text-2xl mb-1" style={{ color: cover }}>
-        Dedication
+        {t('editor:back_matter.dedication_title')}
       </p>
-      <p className="font-body text-sm opacity-75 mb-4">This book is for…</p>
+      <p className="font-body text-sm opacity-75 mb-4">{t('editor:back_matter.dedication_subtitle')}</p>
       <div className="w-full max-w-xs space-y-4">
         {Array.from({ length: 4 }).map((_, i) => (
           <div key={i} className="border-b border-slate-400 h-4" />
         ))}
       </div>
       <p className="font-body italic text-xs opacity-50 mt-4">
-        (write the name of someone special)
+        {t('editor:back_matter.dedication_hint')}
       </p>
     </div>
   )
 }
 
 export function AboutAuthorPage({ book }) {
+  const { t } = useTranslation()
   const cover = book.colors?.cover ?? '#8B5CF6'
-  const dateStr = new Date(book.createdAt ?? Date.now()).toLocaleDateString('en-US', {
-    year: 'numeric', month: 'long', day: 'numeric',
-  })
-  const ageLine = book.authorAge ? `, age ${book.authorAge}` : ''
+  const dateStr = formatDate(book.createdAt ?? Date.now(), 'long')
   return (
     <div className="w-full h-full bg-white flex flex-col items-center justify-center text-center px-6 gap-3">
       <p className="font-heading font-bold text-xl" style={{ color: cover }}>
-        About the Author
+        {t('editor:back_matter.author_title')}
       </p>
       {book.authorAvatar ? (
         <img
@@ -85,17 +93,25 @@ export function AboutAuthorPage({ book }) {
         </div>
       )}
       <p className="font-body font-bold text-lg">
-        {book.authorName}{ageLine}
+        {book.authorAge
+          ? t('editor:back_matter.author_name_age', {
+              name: book.authorName,
+              age: formatNumber(Number(book.authorAge)),
+            })
+          : book.authorName}
       </p>
-      <p className="font-body text-xs opacity-70">Created on {dateStr}</p>
+      <p className="font-body text-xs opacity-70">
+        {t('editor:back_matter.created_on', { date: dateStr })}
+      </p>
       <p className="font-body text-xs opacity-60 mt-3 max-w-xs">
-        Every great storyteller starts somewhere. Thank you for sharing your imagination.
+        {t('editor:back_matter.author_note')}
       </p>
     </div>
   )
 }
 
 export function CharacterGalleryPage({ book }) {
+  const { t } = useTranslation()
   const cover = book.colors?.cover ?? '#8B5CF6'
   const accent = book.colors?.accent ?? '#06B6D4'
   const characters = book.characters ?? []
@@ -103,11 +119,11 @@ export function CharacterGalleryPage({ book }) {
     return (
       <div className="w-full h-full bg-white flex flex-col items-center justify-center text-center px-6">
         <p className="font-heading font-bold text-xl" style={{ color: cover }}>
-          Characters
+          {t('editor:back_matter.characters_title_empty')}
         </p>
         <p className="text-6xl my-3">📖</p>
         <p className="font-body text-sm opacity-70">
-          Meet the brave heroes of this story.
+          {t('editor:back_matter.characters_empty')}
         </p>
       </div>
     )
@@ -119,7 +135,7 @@ export function CharacterGalleryPage({ book }) {
         className="font-heading font-bold text-xl text-center mb-4"
         style={{ color: cover }}
       >
-        Meet the Characters
+        {t('editor:back_matter.characters_title')}
       </p>
       <div
         className={
@@ -135,10 +151,12 @@ export function CharacterGalleryPage({ book }) {
             style={{ background: `${accent}1A` }}
           >
             <div className="text-4xl">{c.emoji ?? '✨'}</div>
-            <p className="font-body font-bold text-sm">{c.name ?? 'A hero'}</p>
+            <p className="font-body font-bold text-sm">
+              {displayName(c, t, 'characters') || t('editor:back_matter.character_fallback_name')}
+            </p>
             {c.description && (
               <p className="font-body text-xs opacity-70 text-center">
-                {c.description.slice(0, 80)}
+                {displayDescription(c, t, 'characters').slice(0, 80)}
               </p>
             )}
           </div>
@@ -149,6 +167,7 @@ export function CharacterGalleryPage({ book }) {
 }
 
 export function AboutSettingPage({ book }) {
+  const { t } = useTranslation()
   const cover = book.colors?.cover ?? '#8B5CF6'
   const accent = book.colors?.accent ?? '#06B6D4'
   const setting = book.setting
@@ -159,15 +178,15 @@ export function AboutSettingPage({ book }) {
       style={{ background: `linear-gradient(135deg, ${accent}10, ${cover}10)` }}
     >
       <p className="font-heading font-bold text-xl" style={{ color: cover }}>
-        Where the story happens
+        {t('editor:back_matter.setting_title')}
       </p>
       <div className="text-7xl my-4">{setting.emoji ?? '🌍'}</div>
       <p className="font-body font-bold text-lg">
-        {setting.name ?? setting.label ?? 'A magical place'}
+        {displayName(setting, t, 'scenes') || t('editor:back_matter.setting_fallback_name')}
       </p>
       {setting.description && (
         <p className="font-body text-sm opacity-75 max-w-xs mt-3">
-          {setting.description}
+          {displayDescription(setting, t, 'scenes')}
         </p>
       )}
     </div>
@@ -175,12 +194,13 @@ export function AboutSettingPage({ book }) {
 }
 
 export function ReflectionPage({ book }) {
+  const { t } = useTranslation()
   const cover = book.colors?.cover ?? '#8B5CF6'
   const questions = [
-    'Who was your favorite character, and why?',
-    'What was the funniest moment in the story?',
-    'If you could change one thing in the story, what would it be?',
-    'What do you think happens after the story ends?',
+    t('editor:back_matter.reflection.favorite_character'),
+    t('editor:back_matter.reflection.funniest_moment'),
+    t('editor:back_matter.reflection.change_one_thing'),
+    t('editor:back_matter.reflection.what_happens_after'),
   ]
   return (
     <div className="w-full h-full bg-white flex flex-col px-4 py-6 overflow-hidden">
@@ -188,10 +208,10 @@ export function ReflectionPage({ book }) {
         className="font-heading font-bold text-xl text-center mb-1"
         style={{ color: cover }}
       >
-        Story Reflection
+        {t('editor:back_matter.reflection_title')}
       </p>
       <p className="font-body text-xs opacity-65 text-center mb-3">
-        For the reader to think about, talk about, or write about.
+        {t('editor:back_matter.reflection_subtitle')}
       </p>
       <div className="flex flex-col gap-2 max-w-md mx-auto w-full">
         {questions.map((q, i) => (
@@ -201,7 +221,11 @@ export function ReflectionPage({ book }) {
             style={{ background: `${cover}10`, borderLeft: `3px solid ${cover}` }}
           >
             <p className="font-body text-sm">
-              <strong>{i + 1}.</strong> {q}
+              <Trans
+                i18nKey="editor:back_matter.reflection_item"
+                values={{ number: formatNumber(i + 1), question: q }}
+                components={{ b: <strong /> }}
+              />
             </p>
           </div>
         ))}
@@ -211,6 +235,7 @@ export function ReflectionPage({ book }) {
 }
 
 export function PromoPage() {
+  const { t } = useTranslation()
   const [qrUrl, setQrUrl] = useState(null)
   useEffect(() => {
     let cancelled = false
@@ -236,18 +261,17 @@ export function PromoPage() {
         className="font-heading font-bold text-2xl mb-1"
         style={{ color: '#8B5CF6' }}
       >
-        Make your own magical book
+        {t('editor:promo.title')}
       </p>
       <p className="font-body text-sm opacity-80 max-w-xs mb-4">
-        MyBookLab lets kids dream up stories, illustrate them with AI, and order them as
-        real, printed books.
+        {t('editor:promo.body')}
       </p>
       {qrUrl ? (
         <img src={qrUrl} alt="" className="w-28 h-28 bg-white p-1 rounded shadow" />
       ) : (
         <div className="w-28 h-28 bg-slate-100 rounded shadow" />
       )}
-      <p className="font-body text-xs opacity-65 mt-2">Scan to download</p>
+      <p className="font-body text-xs opacity-65 mt-2">{t('editor:promo.scan')}</p>
       <p className="font-body text-xs opacity-60 tracking-wide mt-1">{APP_PLATFORMS}</p>
       <div className="flex gap-4 items-center justify-center mt-4">
         <p
@@ -269,13 +293,14 @@ export function PromoPage() {
 }
 
 export function NotesFromReaderPage() {
+  const { t } = useTranslation()
   return (
     <div className="w-full h-full bg-white flex flex-col px-4 py-6">
       <p
         className="font-heading font-bold text-lg text-center mb-3"
         style={{ color: '#8B5CF6' }}
       >
-        Notes from your reader
+        {t('editor:back_matter.notes_title')}
       </p>
       <div className="flex-1 flex flex-col justify-center gap-5 max-w-md mx-auto w-full">
         {Array.from({ length: 8 }).map((_, i) => (
@@ -287,13 +312,14 @@ export function NotesFromReaderPage() {
 }
 
 export function DoodlePage() {
+  const { t } = useTranslation()
   return (
     <div className="w-full h-full bg-white flex flex-col items-center px-4 py-6">
       <p
         className="font-heading font-bold text-lg text-center mb-3"
         style={{ color: '#8B5CF6' }}
       >
-        Draw your own scene
+        {t('editor:back_matter.doodle_title')}
       </p>
       <div className="flex-1 w-full max-w-md border-2 border-dashed border-slate-300 rounded-2xl" />
     </div>

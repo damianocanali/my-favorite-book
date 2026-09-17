@@ -1,7 +1,9 @@
 import { motion } from 'motion/react'
 import { Check } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 export default function FormatCard({ format, label, price, deliveryDays, selected, onSelect }) {
+  const { t } = useTranslation()
   return (
     <motion.button
       type="button"
@@ -20,7 +22,7 @@ export default function FormatCard({ format, label, price, deliveryDays, selecte
       )}
       <p className="font-heading text-lg font-bold">{label}</p>
       <p className="font-body text-2xl font-bold mt-1">{price}</p>
-      <p className="font-body text-xs opacity-70 mt-1">{deliveryDays} business days</p>
+      <p className="font-body text-xs opacity-70 mt-1">{t('print:format.delivery_days', { days: deliveryDays })}</p>
     </motion.button>
   )
 }

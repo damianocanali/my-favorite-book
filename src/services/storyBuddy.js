@@ -1,10 +1,14 @@
 import { apiFetchAuthed } from '../lib/api'
+import i18next from '../i18n'
 
 async function callStoryBuddy(intent, book, page) {
   const response = await apiFetchAuthed('/api/story-buddy', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ intent, book, page }),
+    // `locale` tells the server which language to reply in. Without it an
+    // Italian child gets English suggestions inside an Italian app — the
+    // most visible way a half-finished localization shows.
+    body: JSON.stringify({ intent, book, page, locale: i18next.language || 'en' }),
   })
 
   if (!response.ok) {

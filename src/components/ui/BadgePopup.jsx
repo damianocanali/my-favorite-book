@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
+import { useTranslation } from 'react-i18next'
 import { useRewardsStore } from '../../stores/useRewardsStore'
 import { celebrateAt } from '../../lib/celebrate'
 import Mascot from './Mascot'
@@ -14,6 +15,7 @@ function coinParticleCount(coins) {
 }
 
 export default function BadgePopup() {
+  const { t } = useTranslation()
   const newBadge = useRewardsStore((s) => s.newBadge)
   const dismiss = useRewardsStore((s) => s.dismissBadge)
   const popupRef = useRef(null)
@@ -64,7 +66,7 @@ export default function BadgePopup() {
             </span>
             <div className="text-left">
               <p className="text-yellow-300 text-xs font-body font-bold uppercase tracking-wider">
-                Badge earned!
+                {t('common:badge_popup.earned')}
               </p>
               <p className="text-galaxy-text font-heading font-bold text-sm">
                 {newBadge.label}
@@ -74,7 +76,7 @@ export default function BadgePopup() {
               </p>
               {newBadge.coins > 0 && (
                 <p className="text-yellow-400 text-xs font-body font-semibold mt-0.5">
-                  +{newBadge.coins} coins earned!
+                  {t('common:badge_popup.coins_earned', { count: newBadge.coins })}
                 </p>
               )}
             </div>

@@ -13,6 +13,7 @@ import PricingPage from './pages/PricingPage'
 import SuccessPage from './pages/SuccessPage'
 import AvatarPage from './pages/AvatarPage'
 import PrivacyPage from './pages/PrivacyPage'
+import TermsPage from './pages/TermsPage'
 import SupportPage from './pages/SupportPage'
 import GalleryPage from './pages/GalleryPage'
 import ViewBookPage from './pages/ViewBookPage'
@@ -88,6 +89,7 @@ export default function App() {
         <Route path="/success" element={<SuccessPage />} />
         <Route path="/avatar" element={<AvatarPage />} />
         <Route path="/privacy" element={<PrivacyPage />} />
+        <Route path="/terms" element={<TermsPage />} />
         <Route path="/support" element={<SupportPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/auth/callback" element={<AuthCallbackPage />} />

@@ -1,11 +1,16 @@
 import { useEffect } from 'react'
 import { motion } from 'motion/react'
 import { User, ChevronLeft } from 'lucide-react'
+import { useTranslation, Trans } from 'react-i18next'
 import { useBookStore } from '../../stores/useBookStore'
 import { useAuthStore, selectDisplayName } from '../../stores/useAuthStore'
+import { formatNumber } from '../../i18n/formats'
 import SparkleButton from '../ui/SparkleButton'
 
+const LITTLE_STAR_MAX_AGE = 7
+
 export default function StepAuthor({ onNext, onPrev }) {
+  const { t } = useTranslation()
   const book = useBookStore((state) => state.book)
   const setAuthor = useBookStore((state) => state.setAuthor)
   const displayName = useAuthStore(selectDisplayName)
@@ -34,10 +39,10 @@ export default function StepAuthor({ onNext, onPrev }) {
           <User size={40} className="text-galaxy-secondary" />
         </div>
         <h2 className="font-heading text-3xl sm:text-4xl font-bold text-galaxy-text mb-2">
-          Who's the Author?
+          {t('wizard:author.heading')}
         </h2>
         <p className="text-galaxy-text-muted font-body text-lg">
-          That's YOU! Tell us about yourself.
+          {t('wizard:author.subtitle')}
         </p>
       </motion.div>
 
@@ -50,13 +55,13 @@ export default function StepAuthor({ onNext, onPrev }) {
         {/* Name input */}
         <div>
           <label className="block text-galaxy-text font-body font-semibold mb-2 text-sm">
-            Your Name
+            {t('wizard:author.name_label')}
           </label>
           <input
             type="text"
             value={authorName}
             onChange={(e) => setAuthor(e.target.value, authorAge)}
-            placeholder="What's your name?"
+            placeholder={t('wizard:author.name_placeholder')}
             className="w-full px-6 py-4 text-xl font-heading text-center glass border-2 border-galaxy-secondary/30 rounded-2xl text-galaxy-text placeholder:text-galaxy-text-muted/50 focus:border-galaxy-secondary focus:outline-none focus:shadow-glow-cyan transition-all"
             maxLength={30}
           />
@@ -65,7 +70,11 @@ export default function StepAuthor({ onNext, onPrev }) {
         {/* Age selector */}
         <div>
           <label className="block text-galaxy-text font-body font-semibold mb-3 text-sm">
-            Your Age: <span className="text-galaxy-secondary text-lg">{authorAge}</span>
+            <Trans
+              i18nKey="wizard:author.age_label"
+              values={{ age: formatNumber(authorAge) }}
+              components={{ v: <span className="text-galaxy-secondary text-lg" /> }}
+            />
           </label>
           <div className="flex flex-wrap justify-center gap-2">
             {[5, 6, 7, 8, 9, 10, 11, 12].map((age) => (
@@ -80,14 +89,14 @@ export default function StepAuthor({ onNext, onPrev }) {
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
               >
-                {age}
+                {formatNumber(age)}
               </motion.button>
             ))}
           </div>
           <p className="text-center text-galaxy-text-muted text-xs mt-2 font-body">
-            {authorAge <= 7
-              ? '✨ Little Star Mode — bigger text, simpler choices!'
-              : '🌟 Big Star Mode — more writing freedom!'}
+            {authorAge <= LITTLE_STAR_MAX_AGE
+              ? t('wizard:author.mode_little_star')
+              : t('wizard:author.mode_big_star')}
           </p>
         </div>
       </motion.div>
@@ -100,10 +109,10 @@ export default function StepAuthor({ onNext, onPrev }) {
           animate={{ opacity: 1, scale: 1 }}
         >
           <p className="text-galaxy-text-muted text-xs font-body uppercase tracking-widest mb-1">
-            Written by
+            {t('wizard:author.written_by_label')}
           </p>
           <p className="font-heading text-xl font-bold text-galaxy-text">
-            {authorName}, age {authorAge}
+            {t('wizard:author.byline', { name: authorName, age: formatNumber(authorAge) })}
           </p>
         </motion.div>
       )}
@@ -111,7 +120,7 @@ export default function StepAuthor({ onNext, onPrev }) {
       <div className="flex gap-4">
         <SparkleButton onClick={onPrev} variant="secondary" size="default">
           <span className="flex items-center gap-1">
-            <ChevronLeft size={18} /> Back
+            <ChevronLeft size={18} /> {t('common:actions.back')}
           </span>
         </SparkleButton>
         <SparkleButton
@@ -119,7 +128,7 @@ export default function StepAuthor({ onNext, onPrev }) {
           disabled={!authorName.trim()}
           size="default"
         >
-          Next Step →
+          {t('wizard:actions.next_step')}
         </SparkleButton>
       </div>
     </div>

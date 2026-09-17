@@ -1,14 +1,51 @@
 import { useEffect } from 'react'
 import { motion } from 'motion/react'
 import { useNavigate, Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { BookOpen, Library, GraduationCap, Check, Sparkles, Mic, Brain, Palette, Users, Volume2, Wand2 } from 'lucide-react'
 import { useBookshelfStore } from '../stores/useBookshelfStore'
 import { useAuthStore } from '../stores/useAuthStore'
-import { PRICES } from '../lib/plans'
+import { PRICES, PLAN_CURRENCY, formatPlanPrice, formatMonthlyEquivalent } from '../lib/plans'
+import { formatMoneyCents } from '../i18n/formats'
 import SparkleButton from '../components/ui/SparkleButton'
 import { playTrack } from '../services/audioService'
 
+// Deliberately NOT translated. Each letter is animated with its own stagger
+// delay, so the wordmark is an animation timeline as much as a string — and
+// it is the brand name besides.
 const titleLetters = 'My Book Lab'.split('')
+
+// Feature cards keyed by a stable id rather than by their English title:
+// `key={title}` remounts every card the moment the copy changes language.
+const FEATURES = [
+  { id: 'story_buddy', icon: Wand2, color: 'text-galaxy-primary' },
+  { id: 'illustrations', icon: Palette, color: 'text-pink-400' },
+  { id: 'voice', icon: Mic, color: 'text-green-400' },
+  { id: 'focus', icon: Brain, color: 'text-yellow-400' },
+  { id: 'classroom', icon: Users, color: 'text-galaxy-secondary' },
+  { id: 'accessibility', icon: Volume2, color: 'text-cyan-400' },
+]
+
+const FREE_BULLETS = [
+  'marketing:pricing.free_features.books',
+  'marketing:pricing.free_features.story_buddy',
+  'marketing:pricing.free_features.illustrations',
+  'marketing:pricing.free_features.read_aloud',
+]
+
+const FAMILY_BULLETS = [
+  'marketing:pricing.family_features.unlimited_books',
+  'marketing:pricing.family_features.unlimited_story_buddy',
+  'marketing:pricing.family_features.unlimited_illustrations',
+  'marketing:pricing.family_features.pdf_export',
+]
+
+const TEACHER_BULLETS = [
+  'marketing:pricing.teacher_features.everything_in_family',
+  'marketing:pricing.teacher_features.manage_classrooms',
+  'marketing:pricing.teacher_features.submissions',
+  'marketing:pricing.teacher_features.dashboard',
+]
 
 function FloatingElement({ emoji, className, delay = 0 }) {
   return (
@@ -31,6 +68,7 @@ function FloatingElement({ emoji, className, delay = 0 }) {
 
 export default function LandingPage() {
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const bookCount = useBookshelfStore((state) => state.books.length)
   const user = useAuthStore((s) => s.user)
 
@@ -113,7 +151,7 @@ export default function LandingPage() {
           animate={{ opacity: 1 }}
           transition={{ delay: 1.2, duration: 0.8 }}
         >
-          Create your own story in the stars ✨
+          {t('marketing:hero.tagline')}
         </motion.p>
 
         {/* One hero action. Creating a book is what this app is for, and a
@@ -133,7 +171,7 @@ export default function LandingPage() {
             variant="primary"
             className="w-full max-w-xs sm:max-w-sm"
           >
-            Create a Book 📖
+            {t('marketing:hero.cta_create')}
           </SparkleButton>
 
           {/* Deliberately a quiet text link, not a second large button —
@@ -146,7 +184,7 @@ export default function LandingPage() {
               className="flex items-center gap-2 rounded-full px-4 py-2 font-body text-sm font-semibold text-galaxy-text-muted transition-colors hover:text-galaxy-text"
             >
               <Library size={18} />
-              My Bookshelf ({bookCount})
+              {t('marketing:hero.bookshelf_link', { count: bookCount })}
             </button>
           )}
         </motion.div>
@@ -160,32 +198,24 @@ export default function LandingPage() {
         transition={{ delay: 1.7, duration: 0.6 }}
       >
         <h2 className="font-heading text-2xl sm:text-3xl font-bold text-galaxy-text text-center mb-3">
-          Every child has a story to tell
+          {t('marketing:about.title')}
         </h2>
         <p className="text-galaxy-text-muted font-body text-sm sm:text-base text-center max-w-2xl mx-auto mb-10">
-          My Book Lab helps kids write, illustrate, and share their own stories — with built-in tools
-          that make reading and writing fun and accessible for every learner.
+          {t('marketing:about.body')}
         </p>
 
         {/* Feature grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-10">
-          {[
-            { icon: Wand2, color: 'text-galaxy-primary', title: 'AI Story Buddy', desc: 'A friendly writing assistant that gives ideas, not answers — encouraging kids to build their own stories.' },
-            { icon: Palette, color: 'text-pink-400', title: 'AI Illustrations', desc: 'Turn any page into art with one tap. Kids see their words come to life as unique illustrations.' },
-            { icon: Mic, color: 'text-green-400', title: 'Voice Input & Read Aloud', desc: 'Speak your story or listen to it read back. Great for early writers and auditory learners.' },
-            { icon: Brain, color: 'text-yellow-400', title: 'ADHD & Dyslexia Friendly', desc: 'Sentence starters, word banks, visual progress maps, and gentle nudges keep kids focused without pressure.' },
-            { icon: Users, color: 'text-galaxy-secondary', title: 'Classroom Ready', desc: 'Teachers can create classrooms, collect student stories, and track writing progress.' },
-            { icon: Volume2, color: 'text-cyan-400', title: 'Built for All Learners', desc: 'Adjustable fonts, high contrast mode, text-to-speech, and scaffolding tools support UDL and WCAG standards.' },
-          ].map(({ icon: Icon, color, title, desc }) => (
+          {FEATURES.map(({ id, icon: Icon, color }) => (
             <div
-              key={title}
+              key={id}
               className="rounded-2xl p-5 border border-galaxy-text-muted/10 bg-galaxy-bg-light/60 backdrop-blur-sm"
             >
               <div className={`w-10 h-10 rounded-xl flex items-center justify-center bg-galaxy-bg mb-3`}>
                 <Icon size={20} className={color} />
               </div>
-              <h3 className="font-heading text-sm font-bold text-galaxy-text mb-1">{title}</h3>
-              <p className="text-galaxy-text-muted font-body text-xs leading-relaxed">{desc}</p>
+              <h3 className="font-heading text-sm font-bold text-galaxy-text mb-1">{t(`marketing:features.${id}.title`)}</h3>
+              <p className="text-galaxy-text-muted font-body text-xs leading-relaxed">{t(`marketing:features.${id}.desc`)}</p>
             </div>
           ))}
         </div>
@@ -193,13 +223,10 @@ export default function LandingPage() {
         {/* Accessibility callout */}
         <div className="rounded-2xl p-5 sm:p-6 border border-galaxy-secondary/30 bg-galaxy-secondary/5 backdrop-blur-sm text-center max-w-2xl mx-auto">
           <p className="font-heading text-base sm:text-lg font-bold text-galaxy-text mb-2">
-            Designed with every child in mind
+            {t('marketing:callout.title')}
           </p>
           <p className="text-galaxy-text-muted font-body text-xs sm:text-sm leading-relaxed">
-            My Book Lab follows Universal Design for Learning (UDL) principles and WCAG/COGA accessibility
-            guidelines. Features like sentence starters, visual progress tracking, effort-based rewards, and
-            multi-modal input are specifically designed to support children with ADHD, dyslexia, and other
-            learning differences — making creative writing achievable and fun for everyone.
+            {t('marketing:callout.body')}
           </p>
         </div>
       </motion.div>
@@ -213,10 +240,10 @@ export default function LandingPage() {
           transition={{ delay: 1.8, duration: 0.6 }}
         >
           <h2 className="font-heading text-2xl sm:text-3xl font-bold text-galaxy-text text-center mb-2">
-            Plans & Pricing
+            {t('marketing:pricing.title')}
           </h2>
           <p className="text-galaxy-text-muted font-body text-sm text-center mb-8">
-            Start free. Upgrade when you're ready.
+            {t('marketing:pricing.subtitle')}
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -224,14 +251,14 @@ export default function LandingPage() {
             <div className="rounded-2xl p-5 border border-galaxy-text-muted/20 bg-galaxy-bg-light/60 backdrop-blur-sm">
               <div className="flex items-center gap-2 mb-3">
                 <BookOpen size={20} className="text-galaxy-text-muted" />
-                <h3 className="font-heading text-lg font-bold text-galaxy-text">Free</h3>
+                <h3 className="font-heading text-lg font-bold text-galaxy-text">{t('pricing:plans.free.name')}</h3>
               </div>
-              <p className="font-heading text-2xl font-bold text-galaxy-text mb-3">$0</p>
+              <p className="font-heading text-2xl font-bold text-galaxy-text mb-3">{formatMoneyCents(0, PLAN_CURRENCY)}</p>
               <ul className="space-y-1.5">
-                {['2 books', '3 Story Buddy chats/day', '2 AI illustrations per day', 'Read aloud & voice input'].map((f) => (
-                  <li key={f} className="flex items-start gap-1.5 text-galaxy-text-muted font-body text-xs">
+                {FREE_BULLETS.map((bulletKey) => (
+                  <li key={bulletKey} className="flex items-start gap-1.5 text-galaxy-text-muted font-body text-xs">
                     <Check size={13} className="mt-0.5 shrink-0 text-galaxy-secondary" />
-                    {f}
+                    {t(bulletKey)}
                   </li>
                 ))}
               </ul>
@@ -240,23 +267,26 @@ export default function LandingPage() {
             {/* Family */}
             <div className="relative rounded-2xl p-5 border border-galaxy-primary/50 bg-galaxy-primary/10 backdrop-blur-sm shadow-glow">
               <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-galaxy-primary text-white text-[10px] font-body font-bold uppercase tracking-wider">
-                Most Popular
+                {t('pricing:plans.family.badge')}
               </div>
               <div className="flex items-center gap-2 mb-3">
                 <Sparkles size={20} className="text-galaxy-primary" />
-                <h3 className="font-heading text-lg font-bold text-galaxy-text">Family</h3>
+                <h3 className="font-heading text-lg font-bold text-galaxy-text">{t('pricing:plans.family.name')}</h3>
               </div>
               <p className="font-heading text-2xl font-bold text-galaxy-text mb-0.5">
-                {PRICES.family.monthly.amount}<span className="text-sm font-body text-galaxy-text-muted">/mo</span>
+                {formatPlanPrice(PRICES.family.monthly)}<span className="text-sm font-body text-galaxy-text-muted">{t('marketing:pricing.per_month_short')}</span>
               </p>
               <p className="text-galaxy-secondary font-body text-xs mb-3">
-                or {PRICES.family.annual.amount}/yr ({PRICES.family.annual.monthlyEquivalent})
+                {t('marketing:pricing.family_annual_note', {
+                  price: formatPlanPrice(PRICES.family.annual),
+                  monthly: formatMonthlyEquivalent(PRICES.family.annual),
+                })}
               </p>
               <ul className="space-y-1.5">
-                {['Unlimited books', 'Unlimited Story Buddy', 'Unlimited illustrations', 'PDF & print export'].map((f) => (
-                  <li key={f} className="flex items-start gap-1.5 text-galaxy-text font-body text-xs">
+                {FAMILY_BULLETS.map((bulletKey) => (
+                  <li key={bulletKey} className="flex items-start gap-1.5 text-galaxy-text font-body text-xs">
                     <Check size={13} className="mt-0.5 shrink-0 text-galaxy-primary" />
-                    {f}
+                    {t(bulletKey)}
                   </li>
                 ))}
               </ul>
@@ -266,19 +296,21 @@ export default function LandingPage() {
             <div className="rounded-2xl p-5 border border-galaxy-text-muted/20 bg-galaxy-bg-light/60 backdrop-blur-sm">
               <div className="flex items-center gap-2 mb-3">
                 <GraduationCap size={20} className="text-galaxy-secondary" />
-                <h3 className="font-heading text-lg font-bold text-galaxy-text">Teacher</h3>
+                <h3 className="font-heading text-lg font-bold text-galaxy-text">{t('pricing:plans.teacher.name')}</h3>
               </div>
               <p className="font-heading text-2xl font-bold text-galaxy-text mb-0.5">
-                {PRICES.teacher.monthly.amount}<span className="text-sm font-body text-galaxy-text-muted">/mo</span>
+                {formatPlanPrice(PRICES.teacher.monthly)}<span className="text-sm font-body text-galaxy-text-muted">{t('marketing:pricing.per_month_short')}</span>
               </p>
               <p className="text-galaxy-secondary font-body text-xs mb-3">
-                or {PRICES.teacher.annual.amount}/yr · 14-day free trial
+                {t('marketing:pricing.teacher_annual_note', {
+                  price: formatPlanPrice(PRICES.teacher.annual),
+                })}
               </p>
               <ul className="space-y-1.5">
-                {['Everything in Family', 'Create & manage classrooms', 'Student submissions', 'Classroom dashboard'].map((f) => (
-                  <li key={f} className="flex items-start gap-1.5 text-galaxy-text-muted font-body text-xs">
+                {TEACHER_BULLETS.map((bulletKey) => (
+                  <li key={bulletKey} className="flex items-start gap-1.5 text-galaxy-text-muted font-body text-xs">
                     <Check size={13} className="mt-0.5 shrink-0 text-galaxy-secondary" />
-                    {f}
+                    {t(bulletKey)}
                   </li>
                 ))}
               </ul>
@@ -290,7 +322,7 @@ export default function LandingPage() {
               to="/pricing"
               className="text-galaxy-primary font-body text-sm font-semibold hover:underline"
             >
-              View full plan details →
+              {t('marketing:pricing.view_details')}
             </Link>
           </div>
         </motion.div>
@@ -300,14 +332,16 @@ export default function LandingPage() {
       <div className="relative z-10 w-full max-w-4xl mt-12 mb-8 px-2 text-center">
         <div className="flex items-center justify-center gap-4 text-galaxy-text-muted/50 font-body text-xs">
           <Link to="/privacy" className="hover:text-galaxy-text-muted transition-colors">
-            Privacy Policy
+            {t('marketing:footer.privacy')}
           </Link>
           <span>·</span>
-          <Link to="/privacy" className="hover:text-galaxy-text-muted transition-colors">
-            Terms of Service
+          <Link to="/terms" className="hover:text-galaxy-text-muted transition-colors">
+            {t('marketing:footer.terms')}
           </Link>
           <span>·</span>
-          <span>© {new Date().getFullYear()} My Book Lab</span>
+          {/* The year is deliberately NOT run through formatNumber — Intl
+              would group it as "2.026" in Italian. */}
+          <span>{t('marketing:footer.copyright', { year: String(new Date().getFullYear()) })}</span>
         </div>
       </div>
 

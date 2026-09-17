@@ -1,11 +1,14 @@
 import { motion } from 'motion/react'
 import { Clock, ChevronLeft } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { useBookStore } from '../../stores/useBookStore'
 import { timePeriods } from '../../data/timePeriods'
+import { displayName, displayDescription } from '../../i18n/contentCatalog'
 import GlowCard from '../ui/GlowCard'
 import SparkleButton from '../ui/SparkleButton'
 
 export default function StepTimePeriod({ onNext, onPrev }) {
+  const { t } = useTranslation()
   const timePeriod = useBookStore((state) => state.book?.timePeriod)
   const setTimePeriod = useBookStore((state) => state.setTimePeriod)
 
@@ -21,10 +24,10 @@ export default function StepTimePeriod({ onNext, onPrev }) {
           <Clock size={40} className="text-amber-400" />
         </div>
         <h2 className="font-heading text-3xl sm:text-4xl font-bold text-galaxy-text mb-2">
-          When Does It Happen?
+          {t('wizard:time_period.heading')}
         </h2>
         <p className="text-galaxy-text-muted font-body text-lg">
-          Choose the time for your adventure!
+          {t('wizard:time_period.subtitle')}
         </p>
       </motion.div>
 
@@ -45,10 +48,10 @@ export default function StepTimePeriod({ onNext, onPrev }) {
             >
               <span className="text-5xl">{period.emoji}</span>
               <span className="font-heading font-bold text-lg text-galaxy-text text-center">
-                {period.label}
+                {displayName(period, t, 'time_periods')}
               </span>
               <span className="text-galaxy-text-muted text-xs text-center font-body">
-                {period.description}
+                {displayDescription(period, t, 'time_periods')}
               </span>
             </GlowCard>
           ))}
@@ -58,11 +61,11 @@ export default function StepTimePeriod({ onNext, onPrev }) {
       <div className="flex gap-4">
         <SparkleButton onClick={onPrev} variant="secondary">
           <span className="flex items-center gap-1">
-            <ChevronLeft size={18} /> Back
+            <ChevronLeft size={18} /> {t('common:actions.back')}
           </span>
         </SparkleButton>
         <SparkleButton onClick={onNext} disabled={!timePeriod}>
-          Next Step →
+          {t('wizard:actions.next_step')}
         </SparkleButton>
       </div>
     </div>

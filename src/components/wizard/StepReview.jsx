@@ -1,20 +1,39 @@
 import { motion } from 'motion/react'
 import { Sparkles, ChevronLeft, Edit3 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { useBookStore } from '../../stores/useBookStore'
+import { displayName } from '../../i18n/contentCatalog'
+import { formatNumber } from '../../i18n/formats'
 import SparkleButton from '../ui/SparkleButton'
 
 export default function StepReview({ onPrev, onFinish }) {
+  const { t } = useTranslation()
   const book = useBookStore((state) => state.book)
   const setStep = useBookStore((state) => state.setStep)
 
   if (!book) return null
 
+  // `${emoji} ${name}` is one interpolated key so a translation can reorder it.
+  const entry = (emoji, name) => t('wizard:review.entry', { emoji, name })
+
   const sections = [
-    { label: 'Title', value: book.title, step: 0, emoji: '📖' },
-    { label: 'Author', value: `${book.authorName}, age ${book.authorAge}`, step: 1, emoji: '✍️' },
+    { id: 'title', label: t('wizard:progress.title'), value: book.title, step: 0, emoji: '📖' },
     {
-      label: 'Colors',
-      value: book.colors?.palette === 'custom' ? 'Custom Colors' : book.colors?.palette,
+      id: 'author',
+      label: t('wizard:progress.author'),
+      value: t('wizard:author.byline', {
+        name: book.authorName,
+        age: formatNumber(book.authorAge),
+      }),
+      step: 1,
+      emoji: '✍️',
+    },
+    {
+      id: 'colors',
+      label: t('wizard:progress.colors'),
+      value: book.colors?.palette === 'custom'
+        ? t('wizard:review.custom_colors')
+        : book.colors?.palette,
       step: 2,
       emoji: '🎨',
       render: () => (
@@ -25,20 +44,29 @@ export default function StepReview({ onPrev, onFinish }) {
       ),
     },
     {
-      label: 'Characters',
-      value: book.characters?.map((c) => `${c.emoji} ${c.name}`).join(', '),
+      id: 'characters',
+      label: t('wizard:progress.characters'),
+      value: book.characters
+        ?.map((c) => entry(c.emoji, displayName(c, t, 'characters')))
+        .join(', '),
       step: 3,
       emoji: '👥',
     },
     {
-      label: 'Setting',
-      value: book.setting ? `${book.setting.emoji} ${book.setting.name}` : 'None',
+      id: 'setting',
+      label: t('wizard:progress.setting'),
+      value: book.setting
+        ? entry(book.setting.emoji, displayName(book.setting, t, 'scenes'))
+        : t('wizard:review.none'),
       step: 4,
       emoji: '🗺️',
     },
     {
-      label: 'Time',
-      value: book.timePeriod ? `${book.timePeriod.emoji} ${book.timePeriod.label}` : 'None',
+      id: 'time',
+      label: t('wizard:progress.time'),
+      value: book.timePeriod
+        ? entry(book.timePeriod.emoji, displayName(book.timePeriod, t, 'time_periods'))
+        : t('wizard:review.none'),
       step: 5,
       emoji: '⏰',
     },
@@ -56,10 +84,10 @@ export default function StepReview({ onPrev, onFinish }) {
           <Sparkles size={40} className="text-galaxy-accent" />
         </div>
         <h2 className="font-heading text-3xl sm:text-4xl font-bold text-galaxy-text mb-2">
-          Your Story Awaits!
+          {t('wizard:review.heading')}
         </h2>
         <p className="text-galaxy-text-muted font-body text-lg">
-          Here's everything you've chosen. Ready to start writing?
+          {t('wizard:review.subtitle')}
         </p>
       </motion.div>
 
@@ -72,7 +100,7 @@ export default function StepReview({ onPrev, onFinish }) {
       >
         {sections.map((section, i) => (
           <motion.div
-            key={section.label}
+            key={section.id}
             className="flex items-center gap-4 glass rounded-xl p-4 border border-galaxy-text-muted/10"
             initial={{ x: -20, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
@@ -91,7 +119,7 @@ export default function StepReview({ onPrev, onFinish }) {
             <button
               onClick={() => setStep(section.step)}
               className="text-galaxy-text-muted hover:text-galaxy-secondary transition-colors cursor-pointer p-1"
-              title={`Edit ${section.label}`}
+              title={t('wizard:review.edit_aria', { section: section.label })}
             >
               <Edit3 size={16} />
             </button>
@@ -102,12 +130,12 @@ export default function StepReview({ onPrev, onFinish }) {
       <div className="flex gap-4">
         <SparkleButton onClick={onPrev} variant="secondary">
           <span className="flex items-center gap-1">
-            <ChevronLeft size={18} /> Back
+            <ChevronLeft size={18} /> {t('common:actions.back')}
           </span>
         </SparkleButton>
         <SparkleButton onClick={onFinish} variant="accent" size="large">
           <span className="flex items-center gap-2">
-            <Sparkles size={20} /> Start Writing!
+            <Sparkles size={20} /> {t('wizard:review.start_writing')}
           </span>
         </SparkleButton>
       </div>

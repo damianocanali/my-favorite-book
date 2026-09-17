@@ -1,7 +1,9 @@
 import { motion } from 'motion/react'
+import { useTranslation } from 'react-i18next'
 import { Trash2, Pencil, Printer } from 'lucide-react'
 
 export default function BookSpine({ book, onClick, onEdit, onDelete, onOrderPrint }) {
+  const { t } = useTranslation()
   const colors = book.colors ?? { cover: '#8B5CF6', accent: '#06B6D4', text: '#F1F5F9' }
 
   return (
@@ -61,7 +63,7 @@ export default function BookSpine({ book, onClick, onEdit, onDelete, onOrderPrin
               className="font-body text-[10px] mt-2 opacity-50"
               style={{ color: colors.text }}
             >
-              {book.pages?.length ?? 0} pages
+              {t('gallery:spine.pages', { count: book.pages?.length ?? 0 })}
             </p>
           </div>
 
@@ -109,8 +111,8 @@ export default function BookSpine({ book, onClick, onEdit, onDelete, onOrderPrin
           className="absolute -bottom-2 -right-2 w-7 h-7 bg-galaxy-primary text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer shadow-lg z-10"
           whileHover={{ scale: 1.2 }}
           whileTap={{ scale: 0.9 }}
-          aria-label="Order a printed copy of this book"
-          title="Order a printed copy"
+          aria-label={t('gallery:spine.order_print_aria')}
+          title={t('gallery:spine.order_print_title')}
         >
           <Printer size={12} />
         </motion.button>

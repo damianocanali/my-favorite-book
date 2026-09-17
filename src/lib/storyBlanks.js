@@ -1,4 +1,4 @@
-import { WORD_BANKS, slotsForTemplate } from '../data/storyTemplates'
+import { WORD_BANKS, slotsForTemplate, bankLabel, bankWord, tr } from '../data/storyTemplates'
 
 // Pure logic for the fill-in-the-blanks game, kept out of the component so
 // it can be tested without a React tree — the sentence assembly is the part
@@ -50,12 +50,16 @@ function capitalise(word) {
  */
 export function validateCustomWord(raw) {
   const word = String(raw ?? '').trim()
-  if (!word) return { ok: false, reason: 'Type a word first.' }
-  if (word.length > 24) return { ok: false, reason: 'That word is a bit too long.' }
-  if (!/^[\p{L}\p{M}][\p{L}\p{M}'\- ]*$/u.test(word)) {
-    return { ok: false, reason: 'Letters only, please.' }
+  if (!word) return { ok: false, reason: tr('games:blanks.error_empty', 'Type a word first.') }
+  if (word.length > 24) {
+    return { ok: false, reason: tr('games:blanks.error_too_long', 'That word is a bit too long.') }
   }
-  if (/(.)\1{4,}/.test(word)) return { ok: false, reason: 'Too many repeats.' }
+  if (!/^[\p{L}\p{M}][\p{L}\p{M}'\- ]*$/u.test(word)) {
+    return { ok: false, reason: tr('games:blanks.error_letters_only', 'Letters only, please.') }
+  }
+  if (/(.)\1{4,}/.test(word)) {
+    return { ok: false, reason: tr('games:blanks.error_repeats', 'Too many repeats.') }
+  }
   return { ok: true, value: word }
 }
 
@@ -70,6 +74,24 @@ export function bankFor(slotKey, { authorName } = {}) {
   const mine = authorName.trim().split(/\s+/)[0]
   const rest = bank.words.filter((w) => w.toLowerCase() !== mine.toLowerCase())
   return { ...bank, words: [mine, ...rest].slice(0, bank.words.length) }
+}
+
+/**
+ * The bank the UI actually renders: `bankFor` seeded with the child's name,
+ * then label and words taken from the catalogue.
+ *
+ * The localised word is also the value stored in `picks`, so it is what ends
+ * up in the child's prose. In Italian that value may be a whole phrase
+ * carrying its own article ("un orso"); nothing here assumes a bare noun.
+ */
+export function localizedBank(slotKey, { authorName } = {}) {
+  const bank = bankFor(slotKey, { authorName })
+  if (!bank) return null
+  return {
+    ...bank,
+    label: bankLabel(slotKey),
+    words: bank.words.map((w) => bankWord(slotKey, w)),
+  }
 }
 
 /**

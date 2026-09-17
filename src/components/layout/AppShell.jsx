@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { LogOut, GraduationCap, Sparkles, Volume2, VolumeX } from 'lucide-react'
 import { useAuthStore, selectDisplayName, selectRole } from '../../stores/useAuthStore'
 import { toggleMute, isMuted } from '../../services/audioService'
@@ -20,6 +21,7 @@ import { PAGE_ACTIONS_ID } from './PageActions'
 // The header keeps the destinations iOS doesn't have a tab for (Pricing,
 // the teacher dashboard) plus the mute toggle and signed-out auth CTAs.
 export default function AppShell({ children }) {
+  const { t } = useTranslation()
   const location = useLocation()
   const navigate = useNavigate()
 
@@ -47,7 +49,7 @@ export default function AppShell({ children }) {
       {/* First tab stop on every page. Invisible until focused, so it
           costs the kid-facing design nothing but saves a keyboard user
           from tabbing the whole header and tab bar to reach content. */}
-      <a href="#main-content" className="skip-to-content">Skip to content</a>
+      <a href="#main-content" className="skip-to-content">{t('nav:a11y.skip_to_content')}</a>
 
       <CosmicBackground />
 
@@ -75,20 +77,20 @@ export default function AppShell({ children }) {
 
           <Link to="/pricing" className={headerLink(location.pathname === '/pricing')}>
             <Sparkles size={18} />
-            <span className="hidden font-body text-sm font-semibold sm:inline">Pricing</span>
+            <span className="hidden font-body text-sm font-semibold sm:inline">{t('nav:header.pricing')}</span>
           </Link>
 
           {role === 'teacher' && (
             <Link to="/teacher" className={headerLink(location.pathname === '/teacher')}>
               <GraduationCap size={18} />
-              <span className="hidden font-body text-sm font-semibold sm:inline">Classroom</span>
+              <span className="hidden font-body text-sm font-semibold sm:inline">{t('nav:header.classroom')}</span>
             </Link>
           )}
 
           <button
             onClick={handleToggleMute}
-            title={muted ? 'Unmute music' : 'Mute music'}
-            aria-label={muted ? 'Unmute music' : 'Mute music'}
+            title={muted ? t('nav:header.unmute') : t('nav:header.mute')}
+            aria-label={muted ? t('nav:header.unmute') : t('nav:header.mute')}
             className="flex items-center rounded-full p-2 text-white/60 transition-colors hover:text-white"
           >
             {muted ? <VolumeX size={18} /> : <Volume2 size={18} />}
@@ -96,20 +98,20 @@ export default function AppShell({ children }) {
 
           {user ? (
             <div className="flex items-center gap-2 border-l border-white/15 pl-2">
-              <Link to="/account" title="Account" className="transition-opacity hover:opacity-80">
+              <Link to="/account" title={t('nav:header.account')} className="transition-opacity hover:opacity-80">
                 <AvatarDisplay size={32} mini />
               </Link>
               <Link
                 to="/account"
-                title="Account"
+                title={t('nav:header.account')}
                 className="hidden max-w-[100px] truncate font-body text-xs text-white/60 transition-colors hover:text-white sm:block"
               >
                 {displayName}
               </Link>
               <button
                 onClick={handleSignOut}
-                title="Sign out"
-                aria-label="Sign out"
+                title={t('common:actions.sign_out')}
+                aria-label={t('common:actions.sign_out')}
                 className="flex items-center rounded-full p-2 text-white/60 transition-colors hover:text-white"
               >
                 <LogOut size={16} />
@@ -121,13 +123,13 @@ export default function AppShell({ children }) {
                 to="/login"
                 className="rounded-full border border-white/30 px-3 py-2 font-body text-sm font-semibold text-white/70 transition-colors hover:border-white/60 hover:text-white"
               >
-                Sign In
+                {t('nav:header.sign_in')}
               </Link>
               <Link
                 to="/signup"
                 className="rounded-full border-[1.5px] border-white/30 bg-gradient-to-b from-btn-primary-from to-btn-primary-to px-3 py-2 font-body text-sm font-semibold text-white shadow-glow-purple transition-shadow hover:shadow-[0_8px_34px_rgba(191,90,242,0.7)]"
               >
-                Sign Up
+                {t('nav:header.sign_up')}
               </Link>
             </div>
           )}

@@ -1,4 +1,7 @@
+import { useTranslation } from 'react-i18next'
+
 export default function BookCover({ book }) {
+  const { t } = useTranslation()
   const colors = book.colors ?? { cover: '#8B5CF6', accent: '#06B6D4', text: '#F1F5F9' }
 
   return (
@@ -10,7 +13,7 @@ export default function BookCover({ book }) {
       {book.coverImage && (
         <img
           src={book.coverImage}
-          alt="Book cover"
+          alt={t('editor:book.cover_alt')}
           className="absolute inset-0 w-full h-full object-cover"
         />
       )}
@@ -74,7 +77,7 @@ export default function BookCover({ book }) {
           className="font-body text-sm opacity-80 drop-shadow"
           style={{ color: book.coverImage ? '#fff' : colors.text }}
         >
-          Written by
+          {t('editor:book.written_by')}
         </p>
         <p
           className="font-heading text-lg font-bold drop-shadow-lg"

@@ -2,10 +2,12 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { ImageIcon, Loader2, RefreshCw, Trash2, Lock, Wand2, X } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useBookStore } from '../../stores/useBookStore'
 import { useRewardsStore } from '../../stores/useRewardsStore'
 import { useSubscription } from '../../hooks/useSubscription'
 import { generatePageIllustration, editPageIllustration } from '../../services/imageGenerator'
+import { formatNumber } from '../../i18n/formats'
 
 // Hard cap on regenerations per page across all users. Cost-protection
 // safety net: a page is a small artifact and 5 retries is far more than
@@ -14,6 +16,7 @@ import { generatePageIllustration, editPageIllustration } from '../../services/i
 const MAX_REGENS_PER_PAGE = 5
 
 export default function IllustrationGenerator({ page }) {
+  const { t } = useTranslation()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [tweakOpen, setTweakOpen] = useState(false)
@@ -101,7 +104,7 @@ export default function IllustrationGenerator({ page }) {
               value={tweakText}
               onChange={(e) => setTweakText(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter') handleTweak() }}
-              placeholder="What to change? e.g. add stars"
+              placeholder={t('editor:tweak.placeholder')}
               className="bg-transparent text-galaxy-text text-[11px] font-body flex-1 min-w-0 outline-none placeholder:text-galaxy-text-muted/60"
               maxLength={120}
               disabled={loading}
@@ -110,14 +113,14 @@ export default function IllustrationGenerator({ page }) {
               onClick={handleTweak}
               disabled={loading || !tweakText.trim()}
               className="flex items-center justify-center w-6 h-6 rounded-md bg-galaxy-primary text-white disabled:opacity-40 disabled:cursor-not-allowed"
-              title="Apply tweak"
+              title={t('editor:tweak.apply')}
             >
               {loading ? <Loader2 size={11} className="animate-spin" /> : <Wand2 size={11} />}
             </button>
             <button
               onClick={() => { setTweakOpen(false); setTweakText('') }}
               className="flex items-center justify-center w-6 h-6 rounded-md text-galaxy-text-muted hover:text-galaxy-text"
-              title="Close"
+              title={t('common:actions.close')}
             >
               <X size={11} />
             </button>
@@ -132,7 +135,7 @@ export default function IllustrationGenerator({ page }) {
           className="flex items-center gap-1 px-2 py-1 rounded-lg bg-red-500/20 text-red-400 text-[10px] font-body font-semibold hover:bg-red-500/30 transition-colors cursor-pointer backdrop-blur-sm"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          title="Remove illustration"
+          title={t('editor:illustration.remove')}
         >
           <Trash2 size={10} />
         </motion.button>
@@ -144,7 +147,7 @@ export default function IllustrationGenerator({ page }) {
           className="flex items-center gap-1 px-2 py-1 rounded-lg bg-cyan-500/20 text-cyan-300 text-[10px] font-body font-semibold hover:bg-cyan-500/30 transition-colors cursor-pointer backdrop-blur-sm"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          title="Tweak this image (small change, keeps composition)"
+          title={t('editor:tweak.open')}
         >
           <Wand2 size={10} />
         </motion.button>
@@ -156,18 +159,18 @@ export default function IllustrationGenerator({ page }) {
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-body font-semibold bg-galaxy-text-muted/20 text-galaxy-text-muted border border-galaxy-text-muted/20 backdrop-blur-sm cursor-pointer"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          title="Daily limit reached — upgrade for unlimited"
+          title={t('editor:limits.daily_title')}
         >
           <Lock size={12} />
-          Limit reached today
+          {t('editor:limits.daily_label')}
         </motion.button>
       ) : atPageRegenLimit ? (
         <div
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-body font-semibold bg-galaxy-text-muted/20 text-galaxy-text-muted border border-galaxy-text-muted/20 backdrop-blur-sm"
-          title={`Max ${MAX_REGENS_PER_PAGE} redraws per page. Clear and try again to start over.`}
+          title={t('editor:limits.page_regen_title', { max: formatNumber(MAX_REGENS_PER_PAGE) })}
         >
           <Lock size={12} />
-          Max redraws — clear to retry
+          {t('editor:limits.regen_label')}
         </div>
       ) : (
         <motion.button
@@ -180,22 +183,22 @@ export default function IllustrationGenerator({ page }) {
           } disabled:opacity-40 disabled:cursor-not-allowed`}
           whileHover={loading ? {} : { scale: 1.05 }}
           whileTap={loading ? {} : { scale: 0.95 }}
-          title={hasIllustration ? 'Regenerate illustration' : 'Generate illustration'}
+          title={hasIllustration ? t('editor:illustration.regenerate_title') : t('editor:illustration.generate_title')}
         >
           {loading ? (
             <>
               <Loader2 size={12} className="animate-spin" />
-              Drawing...
+              {t('editor:illustration.drawing')}
             </>
           ) : hasIllustration ? (
             <>
               <RefreshCw size={12} />
-              Redraw
+              {t('editor:illustration.redraw')}
             </>
           ) : (
             <>
               <ImageIcon size={12} />
-              Draw This Page
+              {t('editor:illustration.draw_page')}
             </>
           )}
         </motion.button>

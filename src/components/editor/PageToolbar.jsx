@@ -1,9 +1,12 @@
 import { motion } from 'motion/react'
 import { Plus, Trash2 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { useBookStore } from '../../stores/useBookStore'
 import { useAgeAdaptive } from '../../hooks/useAgeAdaptive'
+import { formatNumber } from '../../i18n/formats'
 
 export default function PageToolbar() {
+  const { t } = useTranslation()
   const book = useBookStore((state) => state.book)
   const addPage = useBookStore((state) => state.addPage)
   const removePage = useBookStore((state) => state.removePage)
@@ -30,7 +33,7 @@ export default function PageToolbar() {
         whileTap={canAdd ? { scale: 0.95 } : {}}
       >
         <Plus size={16} />
-        Add Page
+        {t('editor:pages.add')}
       </motion.button>
 
       <motion.button
@@ -45,11 +48,15 @@ export default function PageToolbar() {
         whileTap={canRemove ? { scale: 0.95 } : {}}
       >
         <Trash2 size={16} />
-        Remove Page
+        {t('editor:pages.remove')}
       </motion.button>
 
       <span className="text-galaxy-text-muted text-xs font-body">
-        {book.pages.length}/{adaptive.maxPages} pages
+        {t('editor:pages.count_of_max', {
+          count: book.pages.length,
+          used: formatNumber(book.pages.length),
+          max: formatNumber(adaptive.maxPages),
+        })}
       </span>
     </div>
   )

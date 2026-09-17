@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { motion } from 'motion/react'
 import { useNavigate, Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { Library, Plus, LogIn } from 'lucide-react'
 import Bookshelf from '../components/bookshelf/Bookshelf'
 import SparkleButton from '../components/ui/SparkleButton'
@@ -9,6 +10,7 @@ import { useAuthStore } from '../stores/useAuthStore'
 
 export default function BookshelfPage() {
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const user = useAuthStore((s) => s.user)
   const loading = useAuthStore((s) => s.loading)
 
@@ -31,23 +33,23 @@ export default function BookshelfPage() {
         >
           <Library size={48} className="text-galaxy-primary mx-auto mb-4" />
           <h2 className="font-heading text-2xl font-bold text-galaxy-text mb-2">
-            Sign in to see your bookshelf
+            {t('gallery:signed_out.title')}
           </h2>
           <p className="text-galaxy-text-muted font-body mb-6 max-w-sm">
-            Create a free account to save your books and access them from any device.
+            {t('gallery:signed_out.body')}
           </p>
           <div className="flex items-center justify-center gap-4">
             <Link
               to="/signup"
               className="px-6 py-3 rounded-xl font-body font-bold text-white btn-fill-primary transition-colors"
             >
-              Create free account
+              {t('gallery:signed_out.create_account')}
             </Link>
             <Link
               to="/login"
               className="flex items-center gap-1.5 px-6 py-3 rounded-xl font-body font-semibold text-galaxy-text-muted border border-galaxy-text-muted/30 hover:text-galaxy-text hover:border-galaxy-text-muted/60 transition-colors"
             >
-              <LogIn size={16} /> Sign in
+              <LogIn size={16} /> {t('gallery:signed_out.sign_in')}
             </Link>
           </div>
         </motion.div>
@@ -66,7 +68,7 @@ export default function BookshelfPage() {
         <div className="flex items-center gap-2 sm:gap-3 min-w-0">
           <Library size={24} className="text-galaxy-primary shrink-0" />
           <h1 className="font-heading text-2xl sm:text-3xl font-bold text-galaxy-text truncate">
-            My Bookshelf
+            {t('gallery:shelf.title')}
           </h1>
         </div>
         <SparkleButton
@@ -74,7 +76,7 @@ export default function BookshelfPage() {
           size="small"
         >
           <span className="flex items-center gap-2">
-            <Plus size={16} /> New Book
+            <Plus size={16} /> {t('gallery:shelf.new_book')}
           </span>
         </SparkleButton>
       </motion.div>

@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import { motion } from 'motion/react'
 import { Users, ChevronLeft, Plus } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { useBookStore } from '../../stores/useBookStore'
 import { characters } from '../../data/characters'
+import { displayName, displayDescription } from '../../i18n/contentCatalog'
 import GlowCard from '../ui/GlowCard'
 import SparkleButton from '../ui/SparkleButton'
 
@@ -15,6 +17,7 @@ const CHARACTER_EMOJIS = [
 ]
 
 export default function StepCharacters({ onNext, onPrev }) {
+  const { t } = useTranslation()
   const book = useBookStore((state) => state.book)
   const toggleCharacter = useBookStore((state) => state.toggleCharacter)
   const addCharacter = useBookStore((state) => state.addCharacter)
@@ -32,6 +35,9 @@ export default function StepCharacters({ onNext, onPrev }) {
       id: `custom-${Date.now()}`,
       name: customName,
       emoji: customEmoji,
+      // FROZEN ENGLISH, deliberately not routed through t(): a custom
+      // character has no `promptEn`, so promptDescription() falls back to
+      // this exact string and concatenates it into the FLUX prompt.
       description: customDesc || 'A mysterious character...',
       color: '#8B5CF6',
       isCustom: true,
@@ -55,10 +61,10 @@ export default function StepCharacters({ onNext, onPrev }) {
           <Users size={40} className="text-galaxy-primary" />
         </div>
         <h2 className="font-heading text-3xl sm:text-4xl font-bold text-galaxy-text mb-2">
-          Choose Your Characters
+          {t('wizard:characters.heading')}
         </h2>
         <p className="text-galaxy-text-muted font-body text-lg">
-          Pick the heroes of your story! Select as many as you like.
+          {t('wizard:characters.subtitle')}
         </p>
       </motion.div>
 
@@ -69,7 +75,7 @@ export default function StepCharacters({ onNext, onPrev }) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
         >
-          {selectedIds.size} character{selectedIds.size !== 1 ? 's' : ''} selected
+          {t('wizard:characters.selected_count', { count: selectedIds.size })}
         </motion.p>
       )}
 
@@ -89,7 +95,7 @@ export default function StepCharacters({ onNext, onPrev }) {
           >
             <Plus size={28} className="text-galaxy-secondary" />
             <span className="font-heading font-semibold text-sm text-galaxy-secondary text-center">
-              Create Your Own!
+              {t('wizard:characters.create_card')}
             </span>
           </GlowCard>
 
@@ -103,10 +109,10 @@ export default function StepCharacters({ onNext, onPrev }) {
             >
               <span className="text-3xl">{char.emoji}</span>
               <span className="font-heading font-semibold text-sm text-galaxy-text text-center">
-                {char.name}
+                {displayName(char, t, 'characters')}
               </span>
               <span className="text-galaxy-text-muted text-xs text-center font-body line-clamp-2">
-                {char.description}
+                {displayDescription(char, t, 'characters')}
               </span>
             </GlowCard>
           ))}
@@ -124,10 +130,10 @@ export default function StepCharacters({ onNext, onPrev }) {
               >
                 <span className="text-3xl">{char.emoji}</span>
                 <span className="font-heading font-semibold text-sm text-galaxy-text text-center">
-                  {char.name}
+                  {displayName(char, t, 'characters')}
                 </span>
                 <span className="text-galaxy-text-muted text-xs text-center font-body line-clamp-2">
-                  {char.description}
+                  {displayDescription(char, t, 'characters')}
                 </span>
               </GlowCard>
             ))}
@@ -143,16 +149,16 @@ export default function StepCharacters({ onNext, onPrev }) {
           animate={{ opacity: 1, y: 0 }}
         >
           <h3 className="font-heading text-lg font-bold text-galaxy-text text-center">
-            Create a Character
+            {t('wizard:characters.create_title')}
           </h3>
 
           {/* Emoji selector */}
           <div className="flex flex-col items-center gap-2">
-            <p className="text-galaxy-text-muted text-sm font-body">Choose an emoji</p>
+            <p className="text-galaxy-text-muted text-sm font-body">{t('wizard:characters.emoji_label')}</p>
             <button
               onClick={() => setShowEmojiPicker((v) => !v)}
               className="text-5xl leading-none hover:scale-110 transition-transform"
-              aria-label="Pick emoji"
+              aria-label={t('wizard:characters.emoji_aria')}
             >
               {customEmoji}
             </button>
@@ -179,7 +185,7 @@ export default function StepCharacters({ onNext, onPrev }) {
             type="text"
             value={customName}
             onChange={(e) => setCustomName(e.target.value)}
-            placeholder="Character name..."
+            placeholder={t('wizard:characters.name_placeholder')}
             className="w-full px-4 py-3 bg-galaxy-bg border border-galaxy-secondary/30 rounded-xl text-galaxy-text placeholder:text-galaxy-text-muted/50 focus:border-galaxy-secondary focus:outline-none font-body"
             maxLength={30}
           />
@@ -187,16 +193,16 @@ export default function StepCharacters({ onNext, onPrev }) {
             type="text"
             value={customDesc}
             onChange={(e) => setCustomDesc(e.target.value)}
-            placeholder="Describe your character..."
+            placeholder={t('wizard:characters.description_placeholder')}
             className="w-full px-4 py-3 bg-galaxy-bg border border-galaxy-secondary/30 rounded-xl text-galaxy-text placeholder:text-galaxy-text-muted/50 focus:border-galaxy-secondary focus:outline-none font-body"
             maxLength={80}
           />
           <div className="flex gap-3 justify-center">
             <SparkleButton onClick={() => { setShowCreate(false); setShowEmojiPicker(false) }} variant="secondary" size="small">
-              Cancel
+              {t('common:actions.cancel')}
             </SparkleButton>
             <SparkleButton onClick={handleCreateCustom} disabled={!customName.trim()} size="small" variant="accent">
-              Add Character
+              {t('wizard:characters.add_button')}
             </SparkleButton>
           </div>
         </motion.div>
@@ -205,14 +211,14 @@ export default function StepCharacters({ onNext, onPrev }) {
       <div className="flex gap-4">
         <SparkleButton onClick={onPrev} variant="secondary">
           <span className="flex items-center gap-1">
-            <ChevronLeft size={18} /> Back
+            <ChevronLeft size={18} /> {t('common:actions.back')}
           </span>
         </SparkleButton>
         <SparkleButton
           onClick={onNext}
           disabled={selectedIds.size === 0}
         >
-          Next Step →
+          {t('wizard:actions.next_step')}
         </SparkleButton>
       </div>
     </div>

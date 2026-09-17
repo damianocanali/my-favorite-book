@@ -1,9 +1,14 @@
 import { motion } from 'motion/react'
 import { BookOpen } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { useBookStore } from '../../stores/useBookStore'
+import { formatNumber } from '../../i18n/formats'
 import SparkleButton from '../ui/SparkleButton'
 
+const TITLE_MAX_LENGTH = 60
+
 export default function StepTitle({ onNext }) {
+  const { t } = useTranslation()
   const title = useBookStore((state) => state.book?.title ?? '')
   const setTitle = useBookStore((state) => state.setTitle)
 
@@ -19,10 +24,10 @@ export default function StepTitle({ onNext }) {
           <BookOpen size={40} className="text-galaxy-primary" />
         </div>
         <h2 className="font-heading text-3xl sm:text-4xl font-bold text-galaxy-text mb-2">
-          Name Your Book
+          {t('wizard:title.heading')}
         </h2>
         <p className="text-galaxy-text-muted font-body text-lg">
-          Every great story starts with a great title!
+          {t('wizard:title.subtitle')}
         </p>
       </motion.div>
 
@@ -37,13 +42,17 @@ export default function StepTitle({ onNext }) {
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="My Amazing Adventure..."
+          placeholder={t('wizard:title.placeholder')}
           className="w-full px-6 py-4 text-xl font-heading text-center glass border-2 border-galaxy-primary/30 rounded-2xl text-galaxy-text placeholder:text-galaxy-text-muted/50 focus:border-galaxy-primary focus:outline-none focus:shadow-glow-purple transition-all"
-          maxLength={60}
+          maxLength={TITLE_MAX_LENGTH}
           autoFocus
         />
         <p className="text-center text-galaxy-text-muted text-sm mt-2 font-body">
-          {title.length}/60 characters
+          {t('wizard:title.char_count', {
+            count: title.length,
+            current: formatNumber(title.length),
+            max: formatNumber(TITLE_MAX_LENGTH),
+          })}
         </p>
       </motion.div>
 
@@ -57,7 +66,7 @@ export default function StepTitle({ onNext }) {
           <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-galaxy-primary/5 to-galaxy-accent/5" />
           <div className="relative text-center">
             <p className="text-galaxy-text-muted text-xs font-body uppercase tracking-widest mb-2">
-              Preview
+              {t('wizard:title.preview_label')}
             </p>
             <h3 className="font-heading text-2xl font-bold text-galaxy-text">
               {title}
@@ -72,7 +81,7 @@ export default function StepTitle({ onNext }) {
         disabled={!title.trim()}
         size="large"
       >
-        Next Step →
+        {t('wizard:actions.next_step')}
       </SparkleButton>
     </div>
   )

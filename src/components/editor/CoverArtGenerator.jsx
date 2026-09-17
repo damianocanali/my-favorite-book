@@ -1,16 +1,19 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'motion/react'
+import { useTranslation } from 'react-i18next'
 import { ImageIcon, Loader2, RefreshCw, Trash2, Lock, Sparkles } from 'lucide-react'
 import { useBookStore } from '../../stores/useBookStore'
 import { useSubscription } from '../../hooks/useSubscription'
 import { generateCoverArt } from '../../services/imageGenerator'
+import { formatNumber } from '../../i18n/formats'
 
 // Cost-protection cap: a paid user can regenerate the cover at most this many
 // times per book. Clearing the cover resets the counter.
 const MAX_COVER_REGENS = 5
 
 export default function CoverArtGenerator() {
+  const { t } = useTranslation()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const navigate = useNavigate()
@@ -54,7 +57,7 @@ export default function CoverArtGenerator() {
           style={{ backgroundColor: book.colors?.cover ?? '#8B5CF6' }}
         >
           {book.coverImage ? (
-            <img src={book.coverImage} alt="Cover" className="w-full h-full object-cover" />
+            <img src={book.coverImage} alt={t('editor:cover.image_alt')} className="w-full h-full object-cover" />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
               <span className="text-2xl">{book.characters?.[0]?.emoji ?? '📖'}</span>
@@ -63,9 +66,13 @@ export default function CoverArtGenerator() {
         </div>
 
         <div className="flex-1 min-w-0">
-          <p className="text-galaxy-text font-body font-semibold text-sm">Book Cover Art</p>
+          <p className="text-galaxy-text font-body font-semibold text-sm">{t('editor:cover.title')}</p>
           <p className="text-galaxy-text-muted text-xs font-body">
-            {book.coverImage ? 'AI-generated cover' : isPaid ? 'Generate a custom cover illustration' : 'Upgrade to generate AI covers'}
+            {book.coverImage
+              ? t('editor:cover.status_generated')
+              : isPaid
+                ? t('editor:cover.status_ready')
+                : t('editor:cover.status_locked')}
           </p>
           {error && <p className="text-red-400 text-xs font-body mt-1">{error}</p>}
         </div>
@@ -79,7 +86,7 @@ export default function CoverArtGenerator() {
                   className="p-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors cursor-pointer"
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
-                  title="Remove cover"
+                  title={t('editor:cover.remove')}
                 >
                   <Trash2 size={14} />
                 </motion.button>
@@ -87,10 +94,10 @@ export default function CoverArtGenerator() {
               {atCoverRegenLimit ? (
                 <div
                   className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-body font-semibold bg-galaxy-text-muted/20 text-galaxy-text-muted border border-galaxy-text-muted/20"
-                  title={`Max ${MAX_COVER_REGENS} regenerations per book. Clear the cover to start over.`}
+                  title={t('editor:limits.cover_regen_title', { max: formatNumber(MAX_COVER_REGENS) })}
                 >
                   <Lock size={12} />
-                  Max redraws — clear to retry
+                  {t('editor:limits.regen_label')}
                 </div>
               ) : atDailyLimit ? (
                 <motion.button
@@ -98,10 +105,10 @@ export default function CoverArtGenerator() {
                   className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-body font-semibold bg-galaxy-text-muted/20 text-galaxy-text-muted border border-galaxy-text-muted/20 cursor-pointer"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  title={`Daily image limit reached (${plan.imagesPerDay}/day). Resets at midnight.`}
+                  title={t('editor:limits.daily_images_title', { max: formatNumber(plan.imagesPerDay) })}
                 >
                   <Lock size={12} />
-                  Daily limit reached
+                  {t('editor:limits.daily_reached')}
                 </motion.button>
               ) : (
                 <motion.button
@@ -118,17 +125,17 @@ export default function CoverArtGenerator() {
                   {loading ? (
                     <>
                       <Loader2 size={12} className="animate-spin" />
-                      Creating...
+                      {t('editor:cover.creating')}
                     </>
                   ) : book.coverImage ? (
                     <>
                       <RefreshCw size={12} />
-                      New Cover
+                      {t('editor:cover.new')}
                     </>
                   ) : (
                     <>
                       <ImageIcon size={12} />
-                      Generate Cover
+                      {t('editor:cover.generate')}
                     </>
                   )}
                 </motion.button>
@@ -143,13 +150,13 @@ export default function CoverArtGenerator() {
             >
               <Lock size={12} />
               <Sparkles size={12} className="text-galaxy-primary" />
-              Upgrade for AI Covers
+              {t('editor:cover.upgrade')}
             </motion.button>
           )}
         </div>
       </div>
       <p className="text-galaxy-text-muted/50 text-[10px] font-body mt-1.5 px-1">
-        AI images may not be perfect — you can always redraw or remove them.
+        {t('editor:cover.disclaimer')}
       </p>
     </div>
   )

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'motion/react'
 import { Lock, LogIn } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { useBookStore } from '../stores/useBookStore'
 import { useBookshelfStore } from '../stores/useBookshelfStore'
 import { useSubscription } from '../hooks/useSubscription'
@@ -11,10 +12,12 @@ import WizardContainer from '../components/wizard/WizardContainer'
 import StoryEditor from '../components/editor/StoryEditor'
 import SparkleButton from '../components/ui/SparkleButton'
 import { playTrack } from '../services/audioService'
+import { formatNumber } from '../i18n/formats'
 
 const TOTAL_WIZARD_STEPS = 7
 
 export default function CreatePage() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const book = useBookStore((state) => state.book)
   const currentStep = useBookStore((state) => state.currentStep)
@@ -106,7 +109,7 @@ export default function CreatePage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          Sign in to save your book
+          {t('wizard:gate.sign_in_title')}
         </motion.h2>
         <motion.p
           className="text-galaxy-text-muted font-body text-lg mb-8 max-w-md"
@@ -114,7 +117,7 @@ export default function CreatePage() {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
         >
-          Create a free account to save your story and access it from any device!
+          {t('wizard:gate.sign_in_body')}
         </motion.p>
         <motion.div
           className="flex gap-4"
@@ -123,10 +126,10 @@ export default function CreatePage() {
           transition={{ delay: 0.4 }}
         >
           <SparkleButton onClick={() => navigate('/signup')} size="large" variant="primary">
-            Create free account ✨
+            {t('wizard:gate.create_account')}
           </SparkleButton>
           <SparkleButton onClick={() => navigate('/login')} size="large" variant="secondary">
-            Sign in
+            {t('wizard:gate.sign_in')}
           </SparkleButton>
         </motion.div>
       </div>
@@ -154,7 +157,7 @@ export default function CreatePage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          You've reached your book limit
+          {t('wizard:gate.limit_title')}
         </motion.h2>
         <motion.p
           className="text-galaxy-text-muted font-body text-lg mb-8 max-w-md"
@@ -162,7 +165,10 @@ export default function CreatePage() {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
         >
-          Free accounts can save up to {plan.maxBooks} books. Upgrade to Family for unlimited books, more AI illustrations, and PDF export!
+          {t('wizard:gate.limit_body', {
+            count: plan.maxBooks,
+            max: formatNumber(plan.maxBooks),
+          })}
         </motion.p>
         <motion.div
           className="flex gap-4"
@@ -171,10 +177,10 @@ export default function CreatePage() {
           transition={{ delay: 0.4 }}
         >
           <SparkleButton onClick={() => navigate('/pricing')} size="large" variant="primary">
-            Upgrade Plan ✨
+            {t('wizard:gate.upgrade')}
           </SparkleButton>
           <SparkleButton onClick={() => navigate('/bookshelf')} size="large" variant="secondary">
-            My Bookshelf
+            {t('wizard:gate.bookshelf')}
           </SparkleButton>
         </motion.div>
       </div>

@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import { motion } from 'motion/react'
 import { MapPin, ChevronLeft, Plus } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { useBookStore } from '../../stores/useBookStore'
 import { scenes } from '../../data/scenes'
+import { displayName, displayDescription } from '../../i18n/contentCatalog'
 import GlowCard from '../ui/GlowCard'
 import SparkleButton from '../ui/SparkleButton'
 
@@ -13,6 +15,7 @@ const WORLD_EMOJIS = [
 ]
 
 export default function StepSetting({ onNext, onPrev }) {
+  const { t } = useTranslation()
   const setting = useBookStore((state) => state.book?.setting)
   const setSetting = useBookStore((state) => state.setSetting)
 
@@ -28,6 +31,9 @@ export default function StepSetting({ onNext, onPrev }) {
       id: `custom-${Date.now()}`,
       name: customName,
       emoji: customEmoji,
+      // FROZEN ENGLISH for the same reason as StepCharacters: a custom world
+      // carries no `promptEn`, so this literal is what reaches the image
+      // prompt via the promptName()/promptDescription() fallback chain.
       description: customDesc || 'A mysterious world...',
       color: '#06B6D4',
       gradient: 'from-cyan-900 to-teal-800',
@@ -52,10 +58,10 @@ export default function StepSetting({ onNext, onPrev }) {
           <MapPin size={40} className="text-green-400" />
         </div>
         <h2 className="font-heading text-3xl sm:text-4xl font-bold text-galaxy-text mb-2">
-          Where Does It Happen?
+          {t('wizard:setting.heading')}
         </h2>
         <p className="text-galaxy-text-muted font-body text-lg">
-          Pick the world for your story!
+          {t('wizard:setting.subtitle')}
         </p>
       </motion.div>
 
@@ -74,7 +80,7 @@ export default function StepSetting({ onNext, onPrev }) {
           >
             <Plus size={28} className="text-galaxy-secondary" />
             <span className="font-heading font-semibold text-sm text-galaxy-secondary text-center">
-              Create Your Own World!
+              {t('wizard:setting.create_card')}
             </span>
           </GlowCard>
 
@@ -88,10 +94,10 @@ export default function StepSetting({ onNext, onPrev }) {
             >
               <span className="text-4xl">{scene.emoji}</span>
               <span className="font-heading font-semibold text-sm text-galaxy-text text-center">
-                {scene.name}
+                {displayName(scene, t, 'scenes')}
               </span>
               <span className="text-galaxy-text-muted text-xs text-center font-body line-clamp-2">
-                {scene.description}
+                {displayDescription(scene, t, 'scenes')}
               </span>
             </GlowCard>
           ))}
@@ -106,10 +112,10 @@ export default function StepSetting({ onNext, onPrev }) {
             >
               <span className="text-4xl">{setting.emoji}</span>
               <span className="font-heading font-semibold text-sm text-galaxy-text text-center">
-                {setting.name}
+                {displayName(setting, t, 'scenes')}
               </span>
               <span className="text-galaxy-text-muted text-xs text-center font-body line-clamp-2">
-                {setting.description}
+                {displayDescription(setting, t, 'scenes')}
               </span>
             </GlowCard>
           )}
@@ -124,16 +130,16 @@ export default function StepSetting({ onNext, onPrev }) {
           animate={{ opacity: 1, y: 0 }}
         >
           <h3 className="font-heading text-lg font-bold text-galaxy-text text-center">
-            Create a World
+            {t('wizard:setting.create_title')}
           </h3>
 
           {/* Emoji selector */}
           <div className="flex flex-col items-center gap-2">
-            <p className="text-galaxy-text-muted text-sm font-body">Choose an emoji</p>
+            <p className="text-galaxy-text-muted text-sm font-body">{t('wizard:setting.emoji_label')}</p>
             <button
               onClick={() => setShowEmojiPicker((v) => !v)}
               className="text-5xl leading-none hover:scale-110 transition-transform"
-              aria-label="Pick emoji"
+              aria-label={t('wizard:setting.emoji_aria')}
             >
               {customEmoji}
             </button>
@@ -160,7 +166,7 @@ export default function StepSetting({ onNext, onPrev }) {
             type="text"
             value={customName}
             onChange={(e) => setCustomName(e.target.value)}
-            placeholder="World name..."
+            placeholder={t('wizard:setting.name_placeholder')}
             className="w-full px-4 py-3 bg-galaxy-bg border border-galaxy-secondary/30 rounded-xl text-galaxy-text placeholder:text-galaxy-text-muted/50 focus:border-galaxy-secondary focus:outline-none font-body"
             maxLength={30}
           />
@@ -168,16 +174,16 @@ export default function StepSetting({ onNext, onPrev }) {
             type="text"
             value={customDesc}
             onChange={(e) => setCustomDesc(e.target.value)}
-            placeholder="Describe your world..."
+            placeholder={t('wizard:setting.description_placeholder')}
             className="w-full px-4 py-3 bg-galaxy-bg border border-galaxy-secondary/30 rounded-xl text-galaxy-text placeholder:text-galaxy-text-muted/50 focus:border-galaxy-secondary focus:outline-none font-body"
             maxLength={80}
           />
           <div className="flex gap-3 justify-center">
             <SparkleButton onClick={() => { setShowCreate(false); setShowEmojiPicker(false) }} variant="secondary" size="small">
-              Cancel
+              {t('common:actions.cancel')}
             </SparkleButton>
             <SparkleButton onClick={handleCreateCustomWorld} disabled={!customName.trim()} size="small" variant="accent">
-              Create World
+              {t('wizard:setting.create_button')}
             </SparkleButton>
           </div>
         </motion.div>
@@ -186,11 +192,11 @@ export default function StepSetting({ onNext, onPrev }) {
       <div className="flex gap-4">
         <SparkleButton onClick={onPrev} variant="secondary">
           <span className="flex items-center gap-1">
-            <ChevronLeft size={18} /> Back
+            <ChevronLeft size={18} /> {t('common:actions.back')}
           </span>
         </SparkleButton>
         <SparkleButton onClick={onNext} disabled={!setting}>
-          Next Step →
+          {t('wizard:actions.next_step')}
         </SparkleButton>
       </div>
     </div>
