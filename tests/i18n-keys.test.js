@@ -42,7 +42,10 @@ function loadLocale(locale) {
 }
 
 const en = loadLocale('en')
-const it = loadLocale('it')
+// NOT named `it` — that is vitest's test function, and inside a test body the
+// import wins, so `itLocale[ns]` silently resolves to undefined on a function object
+// and every parity assertion passes vacuously.
+const itLocale = loadLocale('it')
 
 // i18next resolves `t('key', {count})` against key_one / key_other rather than
 // `key` itself, so a plural key is present if either suffixed form exists.
@@ -84,11 +87,54 @@ describe('Italian catalogue parity', () => {
   it('every namespace that has Italian has no extra keys', () => {
     const extra = []
     for (const ns of namespaces) {
-      for (const key of Object.keys(it[ns] ?? {})) {
+      for (const key of Object.keys(itLocale[ns] ?? {})) {
         if (!(key in (en[ns] ?? {}))) extra.push(`${ns}:${key}`)
       }
     }
     expect(extra, `Italian keys with no English source:\n${extra.join('\n')}`).toEqual([])
+  })
+
+  it('Italian covers every English key', () => {
+    // Italian is complete, so a gap is now a real regression rather than
+    // work-in-progress. A missing key silently renders English forever —
+    // it looks fine in review and wrong to the user.
+    const missing = []
+    for (const ns of namespaces) {
+      for (const key of Object.keys(en[ns] ?? {})) {
+        if (!(key in (itLocale[ns] ?? {}))) missing.push(`${ns}:${key}`)
+      }
+    }
+    expect(missing, `Italian is missing:\n${missing.join('\n')}`).toEqual([])
+  })
+
+  it('no Italian value is left as the English source', () => {
+    // Catches copy-paste leftovers. Skips values that are legitimately
+    // identical in both languages: brand names, vendor names, emails, and
+    // short tokens like "OK" / "Email" that Italian genuinely shares.
+    const KEEP = /^(My Book Lab|Story Buddy|mybooklab\.app|Supabase|Together AI|Anthropic|OpenAI|Stripe|RevenueCat|Apple|Lulu|OK|Email|PDF|AI)$/
+    const suspicious = []
+    for (const ns of namespaces) {
+      for (const [key, value] of Object.entries(en[ns] ?? {})) {
+        const itValue = itLocale[ns]?.[key]
+        if (typeof value !== 'string' || typeof itValue !== 'string') continue
+        if (value.length < 12) continue
+        if (KEEP.test(value.trim())) continue
+        // A value that is only placeholders, tags and punctuation has no words
+        // to translate — "{{question}} = ?", "© {{year}} My Book Lab",
+        // "{{emoji}} {{name}}". Identical is correct for these.
+        const words = value
+          .replace(/\{\{[^}]*\}\}/g, ' ')
+          .replace(/<[^>]*>/g, ' ')
+          // Brand and vendor names are deliberately identical in both
+          // languages, so they don't count as translatable words.
+          .replace(/My Book Lab|Story Buddy|mybooklab\.app|Supabase|Together AI|Anthropic|OpenAI|Stripe|RevenueCat|Apple|Lulu/g, ' ')
+          .replace(/[^\p{L}]+/gu, ' ')
+          .trim()
+        if (words.length < 6) continue
+        if (value === itValue) suspicious.push(`${ns}:${key} — "${value.slice(0, 60)}"`)
+      }
+    }
+    expect(suspicious, `Italian identical to English:\n${suspicious.join('\n')}`).toEqual([])
   })
 
   it('interpolation placeholders match between locales', () => {
@@ -96,7 +142,7 @@ describe('Italian catalogue parity', () => {
     const vars = (s) => (String(s).match(/\{\{\s*[a-zA-Z0-9_]+\s*\}\}/g) ?? []).sort().join(',')
     for (const ns of namespaces) {
       for (const [key, value] of Object.entries(en[ns] ?? {})) {
-        const itValue = it[ns]?.[key]
+        const itValue = itLocale[ns]?.[key]
         if (itValue == null) continue // untranslated yet — falls back to English
         if (vars(value) !== vars(itValue)) {
           mismatched.push(`${ns}:${key}\n  en: ${vars(value) || '(none)'}\n  it: ${vars(itValue) || '(none)'}`)
@@ -113,7 +159,7 @@ describe('Italian catalogue parity', () => {
     for (const ns of Object.keys(en)) {
       for (const [key, value] of Object.entries(en[ns])) {
         if (typeof value !== 'string' || !value.endsWith(' ')) continue
-        const itValue = it[ns]?.[key]
+        const itValue = itLocale[ns]?.[key]
         if (typeof itValue === 'string' && !itValue.endsWith(' ')) {
           offenders.push(`${ns}:${key}`)
         }

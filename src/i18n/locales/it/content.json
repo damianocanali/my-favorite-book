@@ -1,1 +1,325 @@
-{}
+{
+  "characters": {
+    "astronaut": {
+      "name": "Astro l'Esploratore",
+      "description": "Un esploratore coraggioso che scopre pianeti nuovi"
+    },
+    "princess": {
+      "name": "Principessa Luna",
+      "description": "Una principessa magica che governa il regno del chiaro di luna"
+    },
+    "dragon": {
+      "name": "Scintilla il Drago",
+      "description": "Un drago amico che sputa fiamme colorate"
+    },
+    "robot": {
+      "name": "Bip Bip il Robot",
+      "description": "Un robot sveglio che adora risolvere i rompicapo"
+    },
+    "pirate": {
+      "name": "Capitan Onda",
+      "description": "Un pirata senza paura che naviga per i sette mari"
+    },
+    "unicorn": {
+      "name": "Brillina",
+      "description": "Un unicorno magico con la criniera arcobaleno"
+    },
+    "wizard": {
+      "name": "Merlino il Saggio",
+      "description": "Un mago antichissimo con incantesimi potenti"
+    },
+    "fairy": {
+      "name": "Lucilla",
+      "description": "Una fatina piccolissima che esaudisce i desideri"
+    },
+    "ninja": {
+      "name": "Ombra",
+      "description": "Un ninja silenzioso e velocissimo"
+    },
+    "mermaid": {
+      "name": "Corallina",
+      "description": "Una sirena che canta per le creature del mare"
+    },
+    "superhero": {
+      "name": "Capitan Fiamma",
+      "description": "Un supereroe con il potere del sole"
+    },
+    "alien": {
+      "name": "Zorp",
+      "description": "Un alieno simpatico che arriva dalla galassia di Andromeda"
+    }
+  },
+  "scenes": {
+    "enchanted-forest": {
+      "name": "Bosco Incantato",
+      "description": "Un bosco magico pieno di alberi luminosi e sentieri nascosti"
+    },
+    "outer-space": {
+      "name": "Lo Spazio",
+      "description": "Il cosmo infinito, con stelle, pianeti e nebulose"
+    },
+    "underwater": {
+      "name": "Fondo del Mare",
+      "description": "Un mondo sottomarino pieno di colori, con barriere coralline e animali marini"
+    },
+    "castle": {
+      "name": "Castello Reale",
+      "description": "Un castello enorme con torri altissime e passaggi segreti"
+    },
+    "future-city": {
+      "name": "Città del Futuro",
+      "description": "Una città di auto volanti, ologrammi e grattacieli altissimi"
+    },
+    "pirate-ship": {
+      "name": "Nave dei Pirati",
+      "description": "Una nave possente tra mari in tempesta e isole del tesoro"
+    },
+    "candy-land": {
+      "name": "Paese dei Dolci",
+      "description": "Un mondo dolcissimo con fiumi di cioccolato e montagne di caramelle"
+    },
+    "dinosaur-valley": {
+      "name": "Valle dei Dinosauri",
+      "description": "Una valle preistorica dove i dinosauri vivono ancora liberi"
+    }
+  },
+  "time_periods": {
+    "past": {
+      "name": "Tanto, Tanto Tempo Fa",
+      "description": "Nei tempi antichi, tra castelli, cavalieri e leggende"
+    },
+    "present": {
+      "name": "Proprio Adesso",
+      "description": "Nel mondo di oggi, proprio come dove viviamo noi"
+    },
+    "future": {
+      "name": "Nel Futuro",
+      "description": "In un mondo di scoperte e tecnologie straordinarie"
+    },
+    "fantasy": {
+      "name": "Un Regno Magico",
+      "description": "In un mondo dove tutto è possibile e la magia è vera"
+    }
+  },
+  "color_palettes": {
+    "ocean-breeze": {
+      "name": "Brezza Marina"
+    },
+    "lava-burst": {
+      "name": "Lava Bollente"
+    },
+    "cotton-candy": {
+      "name": "Zucchero Filato"
+    },
+    "jungle-vibes": {
+      "name": "Giungla Selvaggia"
+    },
+    "starlight": {
+      "name": "Luce Stellare"
+    },
+    "sunset-glow": {
+      "name": "Tramonto Dorato"
+    }
+  },
+  "avatar": {
+    "skin_tone": {
+      "light": {
+        "label": "Chiara"
+      },
+      "fair": {
+        "label": "Chiarissima"
+      },
+      "medium": {
+        "label": "Media"
+      },
+      "dark": {
+        "label": "Scura"
+      },
+      "peach": {
+        "label": "Pesca"
+      },
+      "tan": {
+        "label": "Ambrata"
+      }
+    },
+    "hair_style": {
+      "none": {
+        "label": "Nessuno"
+      },
+      "short": {
+        "label": "Corti"
+      },
+      "long": {
+        "label": "Lunghi"
+      },
+      "curly": {
+        "label": "Ricci"
+      },
+      "braids": {
+        "label": "Trecce"
+      },
+      "ponytail": {
+        "label": "Coda"
+      },
+      "mohawk": {
+        "label": "Cresta"
+      },
+      "afro": {
+        "label": "Afro"
+      }
+    },
+    "hair_color": {
+      "brown": {
+        "label": "Castani"
+      },
+      "black": {
+        "label": "Neri"
+      },
+      "blonde": {
+        "label": "Biondi"
+      },
+      "red": {
+        "label": "Rossi"
+      },
+      "pink": {
+        "label": "Rosa"
+      },
+      "blue": {
+        "label": "Blu"
+      },
+      "purple": {
+        "label": "Viola"
+      }
+    },
+    "clothing": {
+      "blue_t_shirt": {
+        "label": "Maglietta blu"
+      },
+      "red_hoodie": {
+        "label": "Felpa rossa"
+      },
+      "green_jacket": {
+        "label": "Giacca verde"
+      },
+      "pink_dress": {
+        "label": "Vestito rosa"
+      },
+      "yellow_sweater": {
+        "label": "Maglione giallo"
+      },
+      "purple_overalls": {
+        "label": "Salopette viola"
+      },
+      "superhero_cape": {
+        "label": "Supermantello"
+      },
+      "wizard_robe": {
+        "label": "Tunica da mago"
+      },
+      "sports_jersey": {
+        "label": "Maglia sportiva"
+      },
+      "astronaut_suit": {
+        "label": "Tuta spaziale"
+      }
+    },
+    "hat": {
+      "none": {
+        "label": "Nessuno"
+      },
+      "baseball_cap": {
+        "label": "Cappellino"
+      },
+      "beanie": {
+        "label": "Berretto"
+      },
+      "cowboy_hat": {
+        "label": "Cowboy"
+      },
+      "crown": {
+        "label": "Corona"
+      },
+      "wizard_hat": {
+        "label": "Mago"
+      },
+      "party_hat": {
+        "label": "Festa"
+      },
+      "flower_crown": {
+        "label": "Fiori"
+      },
+      "headphones": {
+        "label": "Cuffie"
+      },
+      "pirate_hat": {
+        "label": "Pirata"
+      }
+    },
+    "accessory": {
+      "none": {
+        "label": "Nessuno"
+      },
+      "round_glasses": {
+        "label": "Occhiali"
+      },
+      "cool_sunglasses": {
+        "label": "Occhiali da sole"
+      },
+      "star_shaped_glasses": {
+        "label": "Occhiali a stella"
+      },
+      "a_red_scarf": {
+        "label": "Sciarpa"
+      },
+      "a_magic_wand": {
+        "label": "Bacchetta"
+      },
+      "a_backpack": {
+        "label": "Zaino"
+      },
+      "butterfly_wings": {
+        "label": "Ali"
+      }
+    },
+    "expression": {
+      "happy_smiling": {
+        "label": "Felice"
+      },
+      "excited_laughing": {
+        "label": "Entusiasta"
+      },
+      "cool_confident": {
+        "label": "Cool"
+      },
+      "silly_tongue_out": {
+        "label": "Linguaccia"
+      },
+      "brave_determined": {
+        "label": "Coraggio"
+      },
+      "curious_wondering": {
+        "label": "Curiosità"
+      },
+      "peaceful_calm": {
+        "label": "Calma"
+      }
+    },
+    "art_style": {
+      "cartoon": {
+        "label": "Cartoni"
+      },
+      "pixar": {
+        "label": "Pixar 3D"
+      },
+      "anime": {
+        "label": "Anime"
+      },
+      "watercolor": {
+        "label": "Acquerello"
+      },
+      "pixel": {
+        "label": "Pixel Art"
+      }
+    }
+  }
+}

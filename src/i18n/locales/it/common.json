@@ -1,1 +1,91 @@
-{}
+{
+  "actions": {
+    "sign_out": "Esci",
+    "cancel": "Annulla",
+    "close": "Chiudi",
+    "save": "Salva",
+    "back": "Indietro",
+    "next": "Avanti",
+    "done": "Fatto",
+    "retry": "Riprova",
+    "delete": "Elimina",
+    "confirm": "Conferma",
+    "continue": "Continua",
+    "dismiss": "Nascondi",
+    "edit": "Modifica",
+    "add": "Aggiungi",
+    "remove": "Togli",
+    "start": "Inizia",
+    "skip": "Salta",
+    "submit": "Invia",
+    "share": "Condividi",
+    "download": "Scarica",
+    "print": "Stampa",
+    "copy": "Copia",
+    "search": "Cerca",
+    "refresh": "Aggiorna",
+    "view": "Guarda",
+    "select": "Scegli",
+    "ok": "OK",
+    "yes": "Sì",
+    "no": "No",
+    "got_it": "Ho capito",
+    "try_again": "Prova ancora",
+    "lets_go": "Andiamo!"
+  },
+  "state": {
+    "loading": "Caricamento…",
+    "saving": "Salvataggio…",
+    "saved": "Salvato",
+    "deleting": "Eliminazione…",
+    "empty": "Qui non c'è ancora niente",
+    "error": "Qualcosa è andato storto",
+    "no_results": "Nessun risultato",
+    "offline": "Sei offline",
+    "not_found": "Non trovato."
+  },
+  "units": {
+    "coins": "Monete",
+    "day_streak": "Giorni di fila",
+    "coins_count_one": "{{count}} moneta",
+    "coins_count_other": "{{count}} monete",
+    "days_one": "{{count}} giorno",
+    "days_other": "{{count}} giorni",
+    "pages_one": "{{count}} pagina",
+    "pages_other": "{{count}} pagine",
+    "words_one": "{{count}} parola",
+    "words_other": "{{count}} parole",
+    "minutes_one": "{{count}} minuto",
+    "minutes_other": "{{count}} minuti"
+  },
+  "language": {
+    "label": "Lingua",
+    "aria_label": "Scegli la lingua"
+  },
+  "parental_gate": {
+    "title": "Solo per grandi!",
+    "subtitle": "Chiedi aiuto a un genitore o a un adulto",
+    "instruction": "Per andare alla pagina di pagamento, risolvi questo calcolo:",
+    "problem": "{{question}} = ?",
+    "answer_placeholder": "La tua risposta",
+    "wrong_answer": "Non è giusto — prova ancora!"
+  },
+  "badge_popup": {
+    "earned": "Medaglia conquistata!",
+    "coins_earned_one": "+{{count}} moneta guadagnata!",
+    "coins_earned_other": "+{{count}} monete guadagnate!"
+  },
+  "welcome_back": {
+    "banner": "Che bello rivederti!",
+    "greeting": "Ciao {{name}}, che piacere vederti!",
+    "streak_next": "Scrivi oggi e arrivi al giorno {{day}}!",
+    "streak_start": "Scrivi qualcosa oggi e inizia la tua serie!",
+    "tap_hint": "Tocca lo schermo per continuare"
+  },
+  "not_found": {
+    "title": "Persi nello spazio",
+    "body": "Non troviamo questa pagina. Forse è volata via, oppure nel link c'è qualche lettera sbagliata.",
+    "go_home": "Torna alla home",
+    "bookshelf": "La mia libreria"
+  }
+}

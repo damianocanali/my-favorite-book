@@ -1,1 +1,83 @@
-{}
+{
+  "hero": {
+    "tagline": "Scrivi la tua storia tra le stelle ✨",
+    "cta_create": "Crea un libro 📖",
+    "bookshelf_link_one": "La mia libreria ({{count}})",
+    "bookshelf_link_other": "La mia libreria ({{count}})"
+  },
+  "about": {
+    "title": "Ogni bambino ha una storia da raccontare",
+    "body": "Con My Book Lab i bambini scrivono, illustrano e condividono le loro storie, grazie a strumenti che rendono la lettura e la scrittura divertenti e alla portata di tutti."
+  },
+  "features": {
+    "story_buddy": {
+      "title": "Story Buddy AI",
+      "desc": "Un aiutante gentile che dà idee, non risposte: la storia la costruiscono i bambini."
+    },
+    "illustrations": {
+      "title": "Illustrazioni AI",
+      "desc": "Con un tocco ogni pagina diventa un disegno. Le parole dei bambini prendono vita in illustrazioni uniche."
+    },
+    "voice": {
+      "title": "Detta e ascolta",
+      "desc": "Puoi raccontare la storia a voce o farti leggere quello che hai scritto. Ottimo per chi inizia a scrivere e per chi impara meglio ascoltando."
+    },
+    "focus": {
+      "title": "Pensato per ADHD e dislessia",
+      "desc": "Inizi di frase, banche di parole, mappe dei progressi e piccoli incoraggiamenti aiutano a restare concentrati, senza mettere fretta."
+    },
+    "classroom": {
+      "title": "Pronto per la classe",
+      "desc": "Gli insegnanti possono creare classi, raccogliere le storie degli alunni e seguirne i progressi nella scrittura."
+    },
+    "accessibility": {
+      "title": "Fatto per tutti",
+      "desc": "Caratteri regolabili, modalità ad alto contrasto, sintesi vocale e strumenti di supporto, in linea con i principi UDL e gli standard WCAG."
+    }
+  },
+  "callout": {
+    "title": "Pensato per ogni bambino",
+    "body": "My Book Lab segue i principi dell'Universal Design for Learning (UDL) e le linee guida di accessibilità WCAG/COGA. Inizi di frase, mappe visive dei progressi, premi legati all'impegno e modi diversi per scrivere — a voce o con la tastiera — nascono proprio per accompagnare i bambini con ADHD, dislessia e altre differenze di apprendimento, e rendere la scrittura creativa possibile e divertente per tutti."
+  },
+  "pricing": {
+    "title": "Piani e prezzi",
+    "subtitle": "Inizia gratis. Passa a un piano più grande quando vuoi.",
+    "per_month_short": "/mese",
+    "family_annual_note": "o {{price}}/anno ({{monthly}}/mese)",
+    "teacher_annual_note": "o {{price}}/anno · 14 giorni di prova gratis",
+    "view_details": "Tutti i dettagli dei piani →",
+    "free_features": {
+      "books": "2 libri",
+      "story_buddy": "3 chat/giorno con Story Buddy",
+      "illustrations": "2 illustrazioni AI al giorno",
+      "read_aloud": "Lettura ad alta voce e dettatura"
+    },
+    "family_features": {
+      "unlimited_books": "Libri illimitati",
+      "unlimited_story_buddy": "Story Buddy illimitato",
+      "unlimited_illustrations": "Illustrazioni illimitate",
+      "pdf_export": "Esporta in PDF e stampa"
+    },
+    "teacher_features": {
+      "everything_in_family": "Tutto il piano Famiglia",
+      "manage_classrooms": "Crea e gestisci le classi",
+      "submissions": "Consegne degli alunni",
+      "dashboard": "Pannello della classe"
+    }
+  },
+  "example": {
+    "eyebrow": "Un esempio stampato",
+    "title": "Ecco com'è il tuo libro stampato",
+    "intro": "Tocca o trascina per sfogliare tutta l'edizione stampata di <title>\"{{bookTitle}}\"</title>: le pagine della storia, gli extra finali e tutto il resto.",
+    "backmatter_title": "Cosa c'è dentro, in breve",
+    "backmatter_subtitle": "Ogni libro stampato contiene queste pagine speciali dopo la storia.",
+    "cta_create": "Crea il tuo libro",
+    "cta_pricing": "Vedi i prezzi",
+    "disclaimer": "Questa storia di esempio è stata creata con MyBookLab. Di ogni libro che crei puoi ordinare una vera copia stampata, con copertina rigida o morbida, spedita ovunque negli Stati Uniti."
+  },
+  "footer": {
+    "privacy": "Informativa sulla privacy",
+    "terms": "Termini di servizio",
+    "copyright": "© {{year}} My Book Lab"
+  }
+}

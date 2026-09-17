@@ -1,1 +1,90 @@
-{}
+{
+  "progress": {
+    "title": "Titolo",
+    "author": "Nome",
+    "colors": "Colori",
+    "characters": "Personaggi",
+    "setting": "Luogo",
+    "time": "Tempo",
+    "review": "Riepilogo"
+  },
+  "actions": {
+    "next_step": "Avanti →"
+  },
+  "title": {
+    "heading": "Dai un nome al tuo libro",
+    "subtitle": "Ogni grande storia inizia con un bel titolo!",
+    "placeholder": "La mia avventura fantastica...",
+    "char_count_one": "{{current}}/{{max}} carattere",
+    "char_count_other": "{{current}}/{{max}} caratteri",
+    "preview_label": "Anteprima"
+  },
+  "author": {
+    "heading": "Chi scrive questo libro?",
+    "subtitle": "Sei TU! Raccontaci qualcosa di te.",
+    "name_label": "Il tuo nome",
+    "name_placeholder": "Come ti chiami?",
+    "age_label": "La tua età: <v>{{age}}</v>",
+    "mode_little_star": "✨ Modalità Piccola Stella — testo più grande e scelte più semplici!",
+    "mode_big_star": "🌟 Modalità Grande Stella — più libertà di scrivere!",
+    "written_by_label": "Scritto da",
+    "byline": "{{name}}, {{age}} anni"
+  },
+  "colors": {
+    "heading": "Scegli i tuoi colori",
+    "subtitle": "Scegli i colori del tuo libro!",
+    "use_preset": "Usa una combinazione pronta",
+    "use_custom": "🎨 Oppure scegli i colori che vuoi!",
+    "cover_label": "Copertina",
+    "accent_label": "Dettagli",
+    "text_label": "Testo"
+  },
+  "characters": {
+    "heading": "Scegli i tuoi personaggi",
+    "subtitle": "Scegli gli eroi della tua storia! Puoi sceglierne quanti vuoi.",
+    "selected_count_one": "{{count}} personaggio scelto",
+    "selected_count_other": "{{count}} personaggi scelti",
+    "create_card": "Crea il tuo!",
+    "create_title": "Crea un personaggio",
+    "emoji_label": "Scegli un'emoji",
+    "emoji_aria": "Scegli emoji",
+    "name_placeholder": "Nome del personaggio...",
+    "description_placeholder": "Descrivi il tuo personaggio...",
+    "add_button": "Aggiungi personaggio"
+  },
+  "setting": {
+    "heading": "Dove succede la storia?",
+    "subtitle": "Scegli il mondo della tua storia!",
+    "create_card": "Crea il tuo mondo!",
+    "create_title": "Crea un mondo",
+    "emoji_label": "Scegli un'emoji",
+    "emoji_aria": "Scegli emoji",
+    "name_placeholder": "Nome del mondo...",
+    "description_placeholder": "Descrivi il tuo mondo...",
+    "create_button": "Crea mondo"
+  },
+  "time_period": {
+    "heading": "Quando succede la storia?",
+    "subtitle": "Scegli il tempo della tua avventura!"
+  },
+  "review": {
+    "heading": "La tua storia ti aspetta!",
+    "subtitle": "Ecco tutto quello che hai scelto. Vuoi iniziare a scrivere?",
+    "entry": "{{emoji}} {{name}}",
+    "custom_colors": "Colori personalizzati",
+    "none": "Niente",
+    "edit_aria": "Modifica {{section}}",
+    "start_writing": "Inizia a scrivere!"
+  },
+  "gate": {
+    "sign_in_title": "Accedi per salvare il tuo libro",
+    "sign_in_body": "Crea un account gratuito per salvare la tua storia e ritrovarla su qualsiasi dispositivo!",
+    "create_account": "Crea un account gratuito ✨",
+    "sign_in": "Accedi",
+    "limit_title": "Hai raggiunto il numero massimo di libri",
+    "limit_body_one": "Con l'account gratuito puoi salvare fino a {{max}} libro. Passa a Famiglia per avere libri illimitati, più illustrazioni AI e l'esportazione in PDF!",
+    "limit_body_other": "Con l'account gratuito puoi salvare fino a {{max}} libri. Passa a Famiglia per avere libri illimitati, più illustrazioni AI e l'esportazione in PDF!",
+    "upgrade": "Passa a Famiglia ✨",
+    "bookshelf": "La mia libreria"
+  }
+}

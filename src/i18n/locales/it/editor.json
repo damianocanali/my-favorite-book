@@ -1,1 +1,185 @@
-{}
+{
+  "a11y": {
+    "label": "Accessibilità",
+    "read_aloud": "Leggi ad alta voce",
+    "stop_reading": "Ferma",
+    "voice_input": "Scrivi con la voce",
+    "stop_voice": "Ferma",
+    "dyslexia_font": "Font per dislessia",
+    "focus_mode": "Concentrazione",
+    "exit_focus": "Esci",
+    "reading_aloud_region": "Lettura ad alta voce"
+  },
+  "thumbnails": {
+    "hint": "Tocca una pagina per modificarla"
+  },
+  "pages": {
+    "add": "Aggiungi pagina",
+    "remove": "Togli pagina",
+    "count_of_max_one": "{{used}}/{{max}} pagina",
+    "count_of_max_other": "{{used}}/{{max}} pagine"
+  },
+  "progress": {
+    "label": "I progressi della tua storia",
+    "written_of_total_one": "{{done}} di {{total}} pagina scritta",
+    "written_of_total_other": "{{done}} di {{total}} pagine scritte",
+    "page_written": "Pagina {{number}} (scritta)",
+    "page_empty": "Pagina {{number}} (vuota)"
+  },
+  "header": {
+    "byline_page": "di {{author}} — Pagina {{page}} di {{total}}"
+  },
+  "actions": {
+    "preview_book": "Anteprima libro",
+    "save_and_preview": "✨ Salva e guarda il mio libro!",
+    "finish_and_preview": "✨ Finisci e guarda il mio libro!"
+  },
+  "focus": {
+    "page_label": "Pagina {{page}} — Concentrazione",
+    "exit": "Esci (Esc)"
+  },
+  "illustration": {
+    "alt": "Illustrazione della pagina {{number}}",
+    "ai_disclaimer": "Creata dall'AI — potrebbe non essere perfetta",
+    "remove": "Togli l'illustrazione",
+    "regenerate_title": "Rifai l'illustrazione",
+    "generate_title": "Crea l'illustrazione",
+    "drawing": "Sto disegnando...",
+    "redraw": "Rifai",
+    "draw_page": "Disegna questa pagina"
+  },
+  "text": {
+    "placeholder_first": "C'era una volta...",
+    "placeholder_next": "Continua la tua storia...",
+    "char_count_one": "{{used}}/{{max}} carattere",
+    "char_count_other": "{{used}}/{{max}} caratteri"
+  },
+  "voice": {
+    "listening": "Ti ascolto..."
+  },
+  "scaffold": {
+    "toggle": "Non sai come iniziare? Tocca un inizio di frase",
+    "hide_word_bank": "Nascondi le parole utili",
+    "show_word_bank": "Mostra le parole utili (emozioni e azioni)",
+    "feelings_label": "Emozioni:",
+    "actions_label": "Azioni:"
+  },
+  "buddy": {
+    "title": "Story Buddy",
+    "subtitle": "Il tuo aiutante AI per scrivere!",
+    "mode_starters": "Inizi di frase",
+    "mode_starters_hint": "Idee per iniziare a scrivere",
+    "mode_paragraph": "Scrivi tu per me",
+    "mode_paragraph_hint": "Un pezzo di storia già scritto per te",
+    "mode_questions": "Aiutami a pensare",
+    "mode_questions_hint": "Rispondi a domande divertenti per costruire la storia",
+    "thinking": "Sto pensando...",
+    "cta_starters": "Dammi degli inizi di frase",
+    "cta_paragraph": "Scrivi un pezzo di storia",
+    "cta_questions": "Fammi delle domande",
+    "starters_intro": "Scegli un inizio e continua tu!",
+    "quoted": "«{{text}}»",
+    "click_to_use": "Tocca per usare questo inizio",
+    "paragraph_intro": "Ecco un'idea! Usala, cambiala oppure prova di nuovo.",
+    "use_this": "Usa questo",
+    "add_to_existing": "Aggiungi al testo",
+    "try_another": "Un'altra idea",
+    "questions_intro": "Pensa a queste domande e poi scrivi la tua storia!"
+  },
+  "tweak": {
+    "placeholder": "Cosa vuoi cambiare? Es. aggiungi le stelle",
+    "apply": "Applica la modifica",
+    "open": "Ritocca questa immagine (piccola modifica, mantiene la scena)"
+  },
+  "limits": {
+    "daily_title": "Limite di oggi raggiunto — cambia piano per averne illimitate",
+    "daily_label": "Limite di oggi raggiunto",
+    "page_regen_title": "Puoi rifare il disegno {{max}} volte per pagina. Cancella e riprova per ricominciare.",
+    "regen_label": "Disegni finiti — cancella per riprovare",
+    "cover_regen_title": "Puoi rifare la copertina {{max}} volte per libro. Cancella la copertina per ricominciare.",
+    "daily_images_title": "Hai finito le immagini di oggi ({{max}} al giorno). Si ricomincia a mezzanotte.",
+    "daily_reached": "Limite di oggi raggiunto"
+  },
+  "cover": {
+    "image_alt": "Copertina",
+    "title": "Disegno di copertina",
+    "status_generated": "Copertina creata dall'AI",
+    "status_ready": "Crea un'illustrazione per la copertina",
+    "status_locked": "Cambia piano per creare copertine AI",
+    "remove": "Togli la copertina",
+    "creating": "Sto creando...",
+    "new": "Nuova copertina",
+    "generate": "Crea la copertina",
+    "upgrade": "Sblocca le copertine AI",
+    "disclaimer": "Le immagini AI non sono sempre perfette: puoi sempre rifarle o toglierle."
+  },
+  "book": {
+    "cover_alt": "Copertina del libro",
+    "written_by": "Scritto da",
+    "page_illustration_alt": "Illustrazione della pagina {{number}}",
+    "blank_page": "Questa pagina è vuota...",
+    "the_end": "Fine",
+    "by_author": "di {{author}}"
+  },
+  "reader": {
+    "page_of": "{{current}} / {{total}}"
+  },
+  "back_matter": {
+    "written_illustrated_by": "Scritto e illustrato da {{author}}",
+    "dedication_title": "Dedica",
+    "dedication_subtitle": "Questo libro è per…",
+    "dedication_hint": "(scrivi il nome di una persona speciale)",
+    "author_title": "Chi ha scritto questo libro",
+    "author_name_age": "{{name}}, {{age}} anni",
+    "created_on": "Creato il {{date}}",
+    "author_note": "Tutte le grandi storie iniziano da un'idea. Grazie per aver condiviso la tua fantasia.",
+    "characters_title_empty": "Personaggi",
+    "characters_empty": "Ecco i coraggiosi eroi di questa storia.",
+    "characters_title": "Ecco i personaggi",
+    "character_fallback_name": "Un eroe",
+    "setting_title": "Dove succede la storia",
+    "setting_fallback_name": "Un luogo magico",
+    "reflection_title": "Pensa alla storia",
+    "reflection_subtitle": "Domande per pensare, per parlarne insieme o per scrivere le tue risposte.",
+    "reflection_item": "<b>{{number}}.</b> {{question}}",
+    "reflection": {
+      "favorite_character": "Qual è il personaggio che ti è piaciuto di più? Perché?",
+      "funniest_moment": "Qual è stato il momento più divertente della storia?",
+      "change_one_thing": "Se potessi cambiare una cosa della storia, quale sarebbe?",
+      "what_happens_after": "Secondo te, cosa succede dopo la fine della storia?"
+    },
+    "notes_title": "Le note di chi ti legge",
+    "doodle_title": "Disegna la tua scena"
+  },
+  "promo": {
+    "title": "Crea il tuo libro magico",
+    "body": "Con MyBookLab i bambini inventano storie, le illustrano con l'AI e possono ordinarle come veri libri stampati.",
+    "scan": "Inquadra per scaricare"
+  },
+  "preview": {
+    "not_found": "Libro non trovato",
+    "back_to_bookshelf": "Torna alla libreria",
+    "bookshelf": "Libreria",
+    "bookshelf_title": "Torna alla libreria",
+    "submit": "Consegna alla classe",
+    "submit_title": "Consegna alla classe",
+    "publish": "Pubblica",
+    "publishing": "Pubblicazione…",
+    "publish_title": "Pubblica nella galleria",
+    "publish_failed": "Pubblicazione non riuscita. Riprova.",
+    "share_link": "Condividi",
+    "copy_link_title": "Copia il link da condividere",
+    "order_print_title": "Ordina una copia stampata",
+    "pdf": "PDF",
+    "pdf_locked": "🔒 PDF",
+    "pdf_title": "Stampa o salva in PDF",
+    "pdf_locked_title": "Cambia piano per esportare in PDF",
+    "edit_title": "Modifica il libro",
+    "published_title": "Il tuo libro è online! 🎉",
+    "published_body": "Condividi questo link con la famiglia e con gli amici: possono leggere il tuo libro e lasciare degli adesivi!",
+    "flip_hint": "Tocca o scorri le pagine per sfogliare il tuo libro!",
+    "guest_nudge_title": "Metti al sicuro il tuo libro!",
+    "guest_nudge_body": "Questo libro è salvato solo su questo dispositivo. Crea un account gratuito per ritrovarlo ovunque.",
+    "guest_nudge_signup": "Crea un account gratuito"
+  }
+}

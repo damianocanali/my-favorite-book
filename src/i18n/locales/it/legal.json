@@ -1,1 +1,146 @@
-{}
+{
+  "meta": {
+    "last_updated": "Ultimo aggiornamento: {{date}}"
+  },
+  "privacy": {
+    "title": "Informativa sulla privacy",
+    "commitment": {
+      "title": "Il nostro impegno per la privacy dei bambini",
+      "body": "{{app}} (\"noi\", \"nostro\", \"ci\") è pensato per bambini e famiglie. L'account viene creato e gestito da un adulto — un genitore, un tutore o un insegnante — che inserisce i dati del bambino, è responsabile dell'account e autorizza ogni acquisto. I bambini non creano un account da soli. Gran parte di ciò che facciamo con questi dati è quanto ci serve per fornire il servizio che ci hai chiesto; quando invece ci basiamo sul tuo consenso — per pubblicare un libro nella galleria pubblica oppure per trasformare una foto in un cartone animato — te lo chiediamo separatamente e puoi revocarlo in qualsiasi momento. Se pensi che i dati personali di un bambino ci siano arrivati senza il coinvolgimento di un adulto, scrivici a <email>{{email}}</email> e li cancelleremo."
+    },
+    "collect": {
+      "title": "Informazioni che raccogliamo",
+      "item_account": "<b>Informazioni sull'account:</b> l'indirizzo email e il nome visualizzato indicati al momento della registrazione. Gli insegnanti indicano anche il proprio ruolo.",
+      "item_author": "<b>Dati dell'autore:</b> il nome e l'età che il bambino inserisce quando crea un libro. Vengono salvati insieme al libro e compaiono sul libro stesso.",
+      "item_story": "<b>Contenuti delle storie:</b> storie, testo delle pagine, illustrazioni e copertine dei libri vengono salvati nel tuo account sui nostri server, così sono disponibili su ogni dispositivo da cui accedi. Restano privati, visibili solo dal tuo account, a meno che tu non scelga di pubblicare un libro nella galleria pubblica.",
+      "item_photos": "<b>Foto:</b> se usi la funzione \"crea il tuo eroe\", la foto che scegli viene inviata al nostro fornitore di AI per essere trasformata in un cartone animato. Non conserviamo la foto originale: nel tuo account viene salvato solo il risultato in versione cartone.",
+      "item_ai_text": "<b>Testo della storia inviato per l'aiuto dell'AI:</b> quando un bambino chiede aiuto a Story Buddy, il testo della storia e la domanda vengono inviati al nostro fornitore di AI per generare una risposta. I prompt e il testo della storia vengono inviati anche a un servizio di moderazione, per controllare che non contengano contenuti inadatti.",
+      "item_payment": "<b>Informazioni di pagamento:</b> gli abbonamenti e i pacchetti di monete acquistati su iPhone o iPad sono gestiti da {{apple}}; gli abbonamenti sul web e gli ordini di libri stampati sono gestiti da {{stripe}}. Non vediamo, non conserviamo e non abbiamo accesso ai numeri delle carte.",
+      "item_shipping": "<b>Informazioni di spedizione:</b> quando ordini un libro stampato, il nome del destinatario, l'indirizzo postale, l'email e il numero di telefono che inserisci vengono inviati al nostro partner di stampa, perché il libro possa essere stampato e consegnato.",
+      "item_usage": "<b>Dati di utilizzo:</b> registriamo il numero di generazioni AI per ogni account, per far rispettare i limiti di utilizzo corretto ed evitare abusi. Non usiamo tracker pubblicitari né di analisi."
+    },
+    "use": {
+      "title": "Come usiamo le informazioni",
+      "item_provide": "Per fornire l'app e mantenere i tuoi libri disponibili su tutti i tuoi dispositivi",
+      "item_generate": "Per generare le illustrazioni, le copertine e gli avatar che ci chiedi",
+      "item_moderate": "Per controllare la sicurezza dei contenuti prima che vengano generati o pubblicati",
+      "item_classroom": "Per rendere disponibili le funzioni di classe a insegnanti e alunni",
+      "item_payments": "Per gestire i pagamenti e consegnare i libri stampati",
+      "item_limits": "Per far rispettare i limiti di utilizzo e proteggere dagli abusi le funzioni AI a pagamento",
+      "no_sale": "Non vendiamo dati personali e non li usiamo per pubblicità comportamentale."
+    },
+    "gallery": {
+      "title": "Pubblicare nella galleria",
+      "body": "Pubblicare un libro è facoltativo ed è disattivato di base. Se pubblichi un libro, il titolo, le illustrazioni, il testo della storia e il nome e l'età dell'autore diventano leggibili pubblicamente nell'app e su {{domain}}, anche da chi non ha effettuato l'accesso. Non inserire mai nome e cognome completi, scuola, indirizzo o altri dettagli che permettano di identificare qualcuno in un libro che pubblichi. Puoi togliere un libro dalla pubblicazione in qualsiasi momento e puoi segnalare qualsiasi libro pubblicato che ti sembri inappropriato."
+    },
+    "storage": {
+      "title": "Conservazione e sicurezza dei dati",
+      "body": "Account, libri, ordini e progressi sono conservati nel nostro database, ospitato da {{supabase}}, e protetti da criteri di sicurezza a livello di riga, così un account non può leggere i dati di un altro. Tutti i dati viaggiano su connessioni HTTPS crittografate. Le credenziali di accesso su iPhone e iPad sono custodite nel Portachiavi del dispositivo."
+    },
+    "third_parties": {
+      "title": "Servizi di terze parti",
+      "desc_supabase": "autenticazione, database e archiviazione dei file",
+      "desc_together": "genera illustrazioni, copertine e avatar in stile cartone animato. Riceve il prompt dell'illustrazione e, per la funzione \"crea il tuo eroe\", la foto che fornisci.",
+      "desc_anthropic": "fa funzionare l'assistente Story Buddy. Riceve il testo della storia e la domanda del bambino.",
+      "desc_openai": "solo moderazione dei contenuti. Riceve i prompt e il testo della storia per controllare che non contengano contenuti inadatti.",
+      "desc_stripe": "gestione dei pagamenti per gli abbonamenti sul web e i libri stampati",
+      "desc_apple_iap": "gestione degli abbonamenti e degli acquisti di monete effettuati nell'app iOS",
+      "desc_lulu": "il nostro partner di stampa. Riceve il file del libro e i dati di spedizione per gli ordini stampati.",
+      "no_trackers": "Non usiamo reti pubblicitarie né tracker di analisi e non vendiamo dati a terze parti."
+    },
+    "parental_controls": {
+      "title": "Controlli per i genitori",
+      "body": "Prima che vengano usate la fotocamera e la libreria foto, e prima di ogni acquisto, compare una verifica per adulti: un'operazione matematica che i bambini più piccoli non sanno risolvere. Sono i genitori a controllare l'account e possono rivedere, togliere dalla pubblicazione o eliminare i libri del proprio bambino in qualsiasi momento."
+    },
+    "deletion": {
+      "title": "Eliminazione dei dati",
+      "body": "Puoi eliminare il tuo account e tutti i dati collegati dall'interno dell'app, nella schermata Account, sia sul web sia su iOS. L'eliminazione rimuove i tuoi libri, gli ordini, i progressi e la registrazione dell'account. Puoi anche scriverci a <email>{{email}}</email> e cancelleremo i tuoi dati su richiesta."
+    },
+    "contact": {
+      "title": "Contattaci",
+      "body": "Se hai domande su questa informativa sulla privacy o vuoi esercitare i tuoi diritti sui dati, scrivici a <email>{{email}}</email>. I nostri <terms>Termini di utilizzo</terms> riguardano abbonamenti, acquisti e libri stampati."
+    }
+  },
+  "terms": {
+    "title": "Termini di utilizzo",
+    "acceptance": {
+      "title": "Accettazione dei termini",
+      "body": "Usando {{app}} accetti questi termini di utilizzo. Se sei un genitore o un tutore, sei responsabile dell'uso che il tuo bambino fa dell'app e di qualsiasi acquisto effettuato tramite il tuo account."
+    },
+    "user_content": {
+      "title": "Contenuti degli utenti",
+      "body": "Gli utenti restano proprietari di tutte le storie, i testi e i contenuti creativi che producono. Inviando un contenuto a una classe, l'utente autorizza il proprio insegnante a vederlo. Pubblicando un libro nella galleria pubblica, l'utente rende il titolo, le illustrazioni e il testo della storia leggibili pubblicamente e ci autorizza a mostrarli nell'app e su {{domain}}. I libri pubblicati possono essere tolti dalla pubblicazione in qualsiasi momento. Le illustrazioni generate dall'AI sono create per l'uso personale ed educativo dell'utente."
+    },
+    "subscriptions": {
+      "title": "Abbonamenti a rinnovo automatico",
+      "intro": "{{app}} offre abbonamenti a rinnovo automatico che sbloccano libri e illustrazioni illimitati e altre funzioni a pagamento. Il prezzo e la durata di ogni periodo di abbonamento sono indicati nell'app prima dell'acquisto, nella tua valuta locale.",
+      "item_charge": "Il pagamento viene addebitato sul tuo ID Apple alla conferma dell'acquisto se ti abboni da iPhone o iPad, oppure sul tuo metodo di pagamento tramite {{stripe}} se ti abboni dal web.",
+      "item_renewal": "L'abbonamento si rinnova automaticamente, a meno che il rinnovo automatico non venga disattivato almeno 24 ore prima della fine del periodo in corso.",
+      "item_renewal_charge": "L'addebito del rinnovo avviene entro le 24 ore precedenti la fine del periodo in corso, al prezzo del piano che hai scelto.",
+      "item_manage": "Dopo l'acquisto puoi gestire o disdire l'abbonamento sul tuo dispositivo in Impostazioni → [nome] → Abbonamenti oppure, per gli abbonamenti sul web, dal portale di fatturazione collegato alla pagina del tuo account.",
+      "item_cancel": "La disdetta blocca il rinnovo successivo. L'accesso continua fino alla fine del periodo già pagato. I periodi parziali non vengono rimborsati.",
+      "item_trial": "Se è prevista una prova gratuita, la parte non utilizzata viene persa nel momento in cui acquisti un abbonamento."
+    },
+    "coins": {
+      "title": "Monete e acquisti una tantum",
+      "body": "Le monete sono un oggetto virtuale che si usa dentro l'app per sbloccare stili grafici e oggetti estetici. Si possono guadagnare gratuitamente usando l'app oppure acquistare in pacchetti. I pacchetti di monete sono acquisti consumabili: vengono accreditati sull'account una sola volta e non sono rimborsabili, non scadono, non hanno valore in denaro e non possono essere trasferiti tra account né convertiti in denaro."
+    },
+    "printed": {
+      "title": "Libri stampati",
+      "body": "I libri stampati sono beni fisici, stampati e spediti dal nostro partner di stampa e pagati con carta tramite {{stripe}}. I prezzi mostrati al momento dell'ordine comprendono il libro e la spedizione. Per la maggior parte dei beni acquistati a distanza avresti 14 giorni di tempo per esercitare il diritto di recesso. Un libro stampato è però un bene confezionato su misura secondo le tue indicazioni e chiaramente personalizzato con la storia, le illustrazioni e il nome del tuo bambino, quindi il diritto di recesso non si applica: lo accetti quando effettui l'ordine e te lo ricordiamo di nuovo prima che tu paghi. La garanzia legale di conformità di due anni resta valida: se un libro arriva danneggiato, difettoso o non conforme all'ordine, contattaci e lo ristamperemo o lo rimborseremo."
+    },
+    "ai_content": {
+      "title": "Contenuti generati dall'AI",
+      "body": "Le illustrazioni e gli avatar sono generati dall'AI e a volte possono contenere imperfezioni. Non garantiamo l'accuratezza o la qualità delle immagini generate dall'AI. Gli utenti possono rigenerare o rimuovere qualsiasi contenuto AI che non li soddisfa. L'assistente Story Buddy è progettato per suggerire idee e fare domande, non per scrivere le storie al posto dei bambini."
+    },
+    "prohibited": {
+      "title": "Usi vietati",
+      "body": "Gli utenti non possono usare l'app per generare o pubblicare contenuti inappropriati, dannosi o offensivi, per fingersi altre persone o per molestare qualcuno. Ci riserviamo il diritto di rimuovere i contenuti e di sospendere gli account che violano questi termini. Segnala i contenuti discutibili nell'app o scrivendo a <email>{{email}}</email>; esaminiamo le segnalazioni e interveniamo entro 24 ore."
+    },
+    "changes": {
+      "title": "Modifiche ai termini",
+      "body": "Possiamo aggiornare questi termini di tanto in tanto. Continuare a usare l'app dopo le modifiche significa accettare i termini aggiornati."
+    },
+    "contact": {
+      "title": "Contatti",
+      "body": "Hai domande su questi termini? Scrivici a <email>{{email}}</email>. Vedi anche la nostra <privacy>Informativa sulla privacy</privacy>."
+    }
+  },
+  "support": {
+    "title": "Assistenza",
+    "intro": "Ti serve aiuto con <app>{{app}}</app>? Ecco come contattarci e come risolvere le domande più comuni.",
+    "contact": {
+      "title": "Contattaci",
+      "body": "Scrivici un'email e ti rispondiamo entro due giorni lavorativi."
+    },
+    "subscription": {
+      "title": "Gestire o disdire un abbonamento",
+      "intro": "Gli abbonamenti acquistati su iPhone o iPad si gestiscono dal tuo ID Apple. Per disdire o cambiare piano:",
+      "step_settings": "Apri <ui>Impostazioni</ui> sul tuo dispositivo",
+      "step_subscriptions": "Tocca il tuo nome in alto, poi <ui>Abbonamenti</ui>",
+      "step_select_app": "Seleziona <ui>{{app}}</ui> e scegli Annulla abbonamento o cambia piano",
+      "web": "Gli abbonamenti acquistati sul web si gestiscono dalla tua <account>pagina Account</account>, con il pulsante \"Gestisci abbonamento\"."
+    },
+    "refund": {
+      "title": "Chiedere un rimborso",
+      "app_store": "Per gli acquisti effettuati tramite l'App Store (iPhone / iPad), i rimborsi sono gestiti direttamente da {{apple}}:",
+      "web": "Per gli acquisti sul web, scrivici a {{email}} e ce ne occupiamo insieme a te."
+    },
+    "delete": {
+      "title": "Eliminare l'account",
+      "intro": "Puoi eliminare per sempre il tuo account e tutti i dati collegati (libri, abbonamenti, profilo) dall'interno dell'app:",
+      "step_open_account": "Accedi e apri la <account>pagina Account</account>",
+      "step_danger_zone": "Scorri fino alla sezione <ui>Zona pericolosa</ui>",
+      "step_confirm": "Tocca <ui>Elimina il mio account</ui> e conferma",
+      "note": "L'eliminazione è immediata e non si può annullare. Gli abbonamenti App Store attivi vanno disdetti separatamente da Impostazioni → Abbonamenti (eliminare l'account non comporta il rimborso degli addebiti di {{apple}})."
+    },
+    "password": {
+      "title": "Password dimenticata",
+      "body": "Nella <login>schermata di accesso</login>, tocca \"Hai dimenticato la password?\" e segui il link che ti inviamo per email."
+    },
+    "links": {
+      "title": "Privacy e termini",
+      "eula": "Termini di utilizzo (EULA)"
+    }
+  }
+}

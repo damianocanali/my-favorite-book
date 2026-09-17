@@ -1,1 +1,33 @@
-{}
+{
+  "a11y": {
+    "skip_to_content": "Vai al contenuto"
+  },
+  "header": {
+    "pricing": "Prezzi",
+    "classroom": "Scuola",
+    "mute": "Disattiva musica",
+    "unmute": "Attiva musica",
+    "account": "Account",
+    "sign_in": "Accedi",
+    "sign_up": "Registrati"
+  },
+  "tabs": {
+    "aria_label": "Principale",
+    "books": "Libri",
+    "gallery": "Galleria",
+    "create": "Crea",
+    "orders": "Ordini",
+    "account": "Account"
+  },
+  "play": {
+    "trigger": "Gioca",
+    "trigger_label": "Gioca: giochi e libro di esempio",
+    "menu_label": "Giochi",
+    "blanks_title": "Riempi la storia",
+    "blanks_hint": "Riempi gli spazi vuoti",
+    "builder_title": "Costruisci la storia",
+    "builder_hint": "Trascina le figure dentro una storia",
+    "example_title": "Guarda un esempio",
+    "example_hint": "Un libro finito"
+  }
+}

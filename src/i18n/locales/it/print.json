@@ -1,1 +1,149 @@
-{}
+{
+  "status": {
+    "pending": "Ordine ricevuto",
+    "paid": "Pagato",
+    "pdf_ready": "Preparazione file",
+    "submitted": "Inviato in stampa",
+    "in_production": "In stampa",
+    "shipped": "Spedito!",
+    "delivered": "Consegnato",
+    "failed": "Problema",
+    "refunded": "Rimborsato",
+    "unknown": "Aggiornamento"
+  },
+  "timeline": {
+    "paid": "Pagamento ricevuto",
+    "pdf_ready": "File pronti",
+    "submitted": "Inviato in stampa",
+    "in_production": "In stampa",
+    "shipped": "Spedito",
+    "delivered": "Consegnato",
+    "failed_title": "C'è stato un problema con il tuo ordine",
+    "refunded_title": "Ordine rimborsato",
+    "problem_help": "Se hai domande, tocca \"Segnala un problema\" qui sotto."
+  },
+  "format": {
+    "hardcover": "Copertina rigida",
+    "softcover": "Copertina morbida",
+    "unknown": "Libro stampato",
+    "delivery_days": "{{days}} giorni lavorativi"
+  },
+  "summary": {
+    "format": "Formato",
+    "quantity": "Quantità",
+    "subtotal": "Subtotale",
+    "shipping": "Spedizione",
+    "tax": "Tasse",
+    "total": "Totale"
+  },
+  "quantity": {
+    "decrease": "Diminuisci la quantità",
+    "increase": "Aumenta la quantità"
+  },
+  "payment": {
+    "title": "Pagamento",
+    "processing": "Elaborazione…",
+    "pay": "Paga",
+    "failed": "Pagamento non riuscito"
+  },
+  "finished": {
+    "title": "Il tuo libro è finito!",
+    "subtitle": "Puoi ordinare una copia stampata vera e tenerla tra le mani.",
+    "order_cta": "Ordina la stampa →",
+    "later": "Forse più tardi"
+  },
+  "book": {
+    "cover_alt": "Copertina del libro",
+    "page_alt": "Illustrazione della pagina {{number}}",
+    "by_author": "di {{name}}",
+    "the_end": "Fine",
+    "written_by": "Scritto e illustrato da {{name}}",
+    "created_with": "Creato con My Book Lab ✨"
+  },
+  "back_matter": {
+    "title": "Cos'altro c'è nel libro stampato",
+    "subtitle": "Ogni libro stampato contiene queste pagine speciali dopo la tua storia.",
+    "subtitle_with_total_one": "Ogni libro stampato contiene queste pagine speciali dopo la tua storia: {{count}} pagina in tutto.",
+    "subtitle_with_total_other": "Ogni libro stampato contiene queste pagine speciali dopo la tua storia: {{count}} pagine in tutto.",
+    "the_end_desc": "Una doppia pagina che chiude la storia.",
+    "dedication_title": "Dedica",
+    "dedication_desc": "Una pagina vuota con \"Questo libro è per…\" da completare con un nome.",
+    "about_author_title": "Chi ha scritto il libro",
+    "about_author_desc": "Una pagina dedicata a {{name}}, che ha inventato la storia.",
+    "about_author_desc_generic": "Una pagina dedicata a chi ha scritto il libro.",
+    "characters_title": "Ecco i personaggi",
+    "characters_desc_one": "{{count}} personaggio, con nome, emoji e una breve descrizione.",
+    "characters_desc_other": "{{count}} personaggi, ognuno con nome, emoji e una breve descrizione.",
+    "characters_desc_generic": "Una pagina che presenta gli eroi della storia.",
+    "setting_title": "Dove succede la storia",
+    "setting_desc": "Mostra {{name}}.",
+    "setting_desc_generic": "Mostra il luogo della storia.",
+    "reflection_title": "Pensa alla storia",
+    "reflection_desc": "4 domande aperte su cui far riflettere chi legge.",
+    "share_title": "Crea anche tu il tuo libro magico",
+    "share_desc": "Una pagina con un codice da inquadrare per scoprire MyBookLab, per chi avrà il libro tra le mani dopo di te.",
+    "padding_title_one": "{{count}} pagina in più per note e scarabocchi",
+    "padding_title_other": "{{count}} pagine in più per note e scarabocchi",
+    "padding_desc": "Pagine a righe \"Le note di chi ti legge\" e riquadri vuoti \"Disegna la tua scena\", alternati. Lulu richiede almeno {{min}} pagine interne: queste riempiono il libro e lo rendono più corposo."
+  },
+  "order": {
+    "title": "Ordina la stampa",
+    "section_preview": "La tua storia",
+    "preview_hint": "Scorri tutte le pagine e controlla bene prima di stampare.",
+    "section_back_matter": "In fondo al libro",
+    "check_reviewed": "Ho controllato tutte le pagine",
+    "check_finished": "Questo libro è finito e pronto da stampare",
+    "section_format": "Formato",
+    "section_quantity": "Quantità",
+    "section_shipping": "Spedizione",
+    "line_item": "{{quantity}} × {{price}} {{format}}",
+    "continue_to_payment": "Vai al pagamento · {{price}}"
+  },
+  "gate": {
+    "login_required": "Accedi per continuare.",
+    "book_not_found": "Libro non trovato.",
+    "back_to_bookshelf": "Torna alla libreria"
+  },
+  "shipping": {
+    "name": "Nome e cognome",
+    "address_line1": "Indirizzo",
+    "address_line2": "Interno, scala, ecc. (facoltativo)",
+    "city": "Città",
+    "state": "Stato (USA)",
+    "state_placeholder": "es. TX",
+    "postal_code": "CAP",
+    "phone": "Telefono",
+    "email": "Email"
+  },
+  "orders": {
+    "title": "I miei ordini di stampa",
+    "login_required": "Accedi per vedere i tuoi ordini.",
+    "empty": "Ancora nessun ordine.",
+    "empty_cta": "Scegli un libro da stampare →",
+    "fallback_name": "Ordine di stampa",
+    "line": "{{quantity}} × {{format}} · {{date}}"
+  },
+  "detail": {
+    "title": "Ordine n. {{id}}",
+    "not_found": "Ordine non trovato",
+    "all_orders": "Tutti gli ordini",
+    "section_progress": "Avanzamento",
+    "section_summary": "Riepilogo",
+    "section_shipping_to": "Spedizione a",
+    "shipping_title": "Il tuo libro è in viaggio!",
+    "tracking_line": "{{carrier}} · {{number}}",
+    "track_cta": "Segui la spedizione",
+    "address_line": "{{city}}, {{state}} {{postal_code}}",
+    "report_problem": "Segnala un problema",
+    "support_subject": "Aiuto per l'ordine di stampa {{id}}",
+    "support_body": "ID ordine: {{id}}\n\nCosa è successo: "
+  },
+  "confirm": {
+    "title": "Ordine inviato! 🎉",
+    "order_number": "Ordine n. {{id}}",
+    "eta": "Di solito arriva in <b>10–14 giorni lavorativi</b>.",
+    "email_note": "Ti mandiamo un'email quando il libro parte.",
+    "back_to_shelf": "Torna alla mia libreria",
+    "view_status": "Vedi lo stato dell'ordine"
+  }
+}
