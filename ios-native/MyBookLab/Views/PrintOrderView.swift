@@ -34,9 +34,17 @@ struct PrintOrderView: View {
     @State private var paymentSheet: PaymentSheet?
     @State private var paymentResult: PaymentSheetResult?
     @State private var createdOrderId: String?
+    // Grown-up check before the Stripe sheet — this spends real money.
+    @State private var showParentalGate = false
 
-    private var unitCents: Int { format == .hardcover ? 3499 : 1999 }
-    private var shippingCents: Int { 499 }
+    // These MUST match the server, which is what actually charges the
+    // card: PRICES in lib/print/pricing.js and FLAT_SHIPPING_CENTS in
+    // api/print-orders/create.js. (The web reads the same numbers from
+    // src/lib/printPricing.js.) Hardcover previously read 3499 here
+    // while the server charged 3999, so every hardcover order was
+    // billed $5 more than the app quoted.
+    private var unitCents: Int { PrintPricing.unitCents(for: format) }
+    private var shippingCents: Int { PrintPricing.flatShippingCents }
     private var totalCents: Int { unitCents * quantity + shippingCents }
 
     var body: some View {
@@ -55,7 +63,7 @@ struct PrintOrderView: View {
                             .foregroundStyle(.red.opacity(0.9))
                             .padding(.horizontal)
                     }
-                    SparkleButton(action: { Task { await placeOrder() } }) {
+                    SparkleButton(action: { showParentalGate = true }) {
                         HStack {
                             if loading { ProgressView().tint(.white) }
                             Text(loading ? "Setting up payment…" : "Pay & order")
@@ -72,6 +80,9 @@ struct PrintOrderView: View {
         .navigationTitle("Order printed copy")
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(.hidden, for: .navigationBar)
+        .parentalGate(isPresented: $showParentalGate) {
+            Task { await placeOrder() }
+        }
         .onChange(of: paymentResult) { _, result in
             handlePaymentResult(result)
         }
@@ -113,8 +124,10 @@ struct PrintOrderView: View {
         VStack(alignment: .leading, spacing: 10) {
             sectionTitle("Format")
             HStack(spacing: 10) {
-                formatCard(.softcover, label: "Softcover", subtitle: "Everyday read", price: "$19.99", recommended: false)
-                formatCard(.hardcover, label: "Hardcover", subtitle: "Keepsake quality", price: "$34.99", recommended: true)
+                formatCard(.softcover, label: "Softcover", subtitle: "Everyday read",
+                           price: PrintPricing.priceLabel(for: .softcover), recommended: false)
+                formatCard(.hardcover, label: "Hardcover", subtitle: "Keepsake quality",
+                           price: PrintPricing.priceLabel(for: .hardcover), recommended: true)
             }
         }
         .padding(.horizontal)
@@ -288,6 +301,16 @@ struct PrintOrderView: View {
             )
             let res = try await APIClient.shared.createPrintOrder(body, bearerToken: token)
             createdOrderId = res.orderId
+
+            // PaymentSheet refuses to present without a publishable key.
+            // The server sends the one matching this PaymentIntent's
+            // live/test mode — using a key from the wrong mode fails at
+            // confirmation with "No such payment_intent".
+            guard let pk = res.publishableKey, !pk.isEmpty else {
+                self.error = "Payments are temporarily unavailable. Please try again later."
+                return
+            }
+            STPAPIClient.shared.publishableKey = pk
 
             // Configure native Stripe PaymentSheet.
             var config = PaymentSheet.Configuration()
