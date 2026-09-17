@@ -10,6 +10,12 @@ struct GalleryView: View {
     @State private var books: [PublishedBookSummary] = []
     @State private var loading = true
     @State private var error: String?
+    /// Guideline 1.2 reporting. `reportTarget` drives the sheet;
+    /// `locallyHidden` drops a book from this session's list the moment
+    /// it's reported, so the child stops seeing it immediately rather
+    /// than waiting for the server's threshold.
+    @State private var reportTarget: PublishedBookSummary?
+    @State private var locallyHidden: Set<String> = []
 
     var body: some View {
         NavigationStack {
@@ -22,6 +28,11 @@ struct GalleryView: View {
             .toolbarBackground(.hidden, for: .navigationBar)
             .task { await load() }
             .refreshable { await load() }
+            .sheet(item: $reportTarget) { book in
+                ReportBookSheet(book: book) {
+                    locallyHidden.insert(book.slug)
+                }
+            }
         }
     }
 
@@ -79,13 +90,23 @@ struct GalleryView: View {
                 .foregroundStyle(.white)
                 .padding(.horizontal)
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 160, maximum: 220), spacing: 16)], spacing: 20) {
-                ForEach(books) { b in
+                ForEach(books.filter { !locallyHidden.contains($0.slug) }) { b in
                     NavigationLink {
-                        PublishedBookLoader(slug: b.slug)
+                        PublishedBookLoader(slug: b.slug, summary: b)
                     } label: {
                         galleryCard(b)
                     }
                     .buttonStyle(.plain)
+                    // Long-press to report. Also reachable from the
+                    // reader itself, so a child who only notices a
+                    // problem once they're reading can still flag it.
+                    .contextMenu {
+                        Button(role: .destructive) {
+                            reportTarget = b
+                        } label: {
+                            Label("Report this book", systemImage: "flag")
+                        }
+                    }
                 }
             }
             .frame(maxWidth: ContentWidth.wide)
@@ -148,9 +169,13 @@ struct GalleryView: View {
 
 private struct PublishedBookLoader: View {
     let slug: String
+    /// Carried through from the gallery card so the reader can offer
+    /// the same report action (Guideline 1.2) without refetching.
+    var summary: PublishedBookSummary?
     @State private var book: Book?
     @State private var loading = true
     @State private var error: String?
+    @State private var reporting = false
 
     var body: some View {
         ZStack {
@@ -170,6 +195,22 @@ private struct PublishedBookLoader: View {
             }
         }
         .task { await load() }
+        .toolbar {
+            if summary != nil {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        reporting = true
+                    } label: {
+                        Label("Report", systemImage: "flag")
+                    }
+                    .tint(.white)
+                    .accessibilityLabel("Report this book")
+                }
+            }
+        }
+        .sheet(isPresented: $reporting) {
+            if let summary { ReportBookSheet(book: summary) }
+        }
     }
 
     private func load() async {

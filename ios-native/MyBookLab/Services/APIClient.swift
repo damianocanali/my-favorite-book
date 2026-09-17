@@ -239,6 +239,29 @@ actor APIClient {
         return try await rawGet(url: url)
     }
 
+    /// Reports a published book so it can be reviewed and, once enough
+    /// people flag it, auto-hidden. Required by App Store Guideline 1.2
+    /// for an app that shows other users' content.
+    @discardableResult
+    func reportBook(slug: String, reason: String, details: String? = nil,
+                    bearerToken: String) async throws -> ReportBookResponse {
+        try await request(
+            method: "POST", path: "/api/report-book",
+            body: ReportBookRequest(slug: slug, reason: reason, details: details),
+            bearerToken: bearerToken
+        )
+    }
+
+    /// Hides everything by a given author for this user.
+    @discardableResult
+    func blockAuthor(userId: String, bearerToken: String) async throws -> ReportBookResponse {
+        try await request(
+            method: "POST", path: "/api/report-book",
+            body: BlockAuthorRequest(action: "block", userId: userId),
+            bearerToken: bearerToken
+        )
+    }
+
     /// Fetches a single published book's full payload as raw bytes;
     /// caller decodes the parts they need.
     func fetchPublishedBook(slug: String) async throws -> Data {
@@ -299,6 +322,11 @@ actor APIClient {
     struct StoryBuddyRequest: Encodable {
         let message: String
         let context: String?
+        /// The language Story Buddy should reply in. Defaulted so every
+        /// existing call site sends it — without this an Italian child gets
+        /// English writing help inside an Italian app, which is the most
+        /// visible way a half-finished localization shows up.
+        var locale: String = AppLanguage.apiLocale
     }
     struct StoryBuddyResponse: Decodable {
         let reply: String
@@ -377,6 +405,8 @@ actor APIClient {
         let intent: String
         let book: SlimBook
         let page: SlimPage
+        /// See StoryBuddyRequest.locale.
+        var locale: String = AppLanguage.apiLocale
 
         struct SlimBook: Encodable {
             let title: String
