@@ -34,7 +34,9 @@ final class BookshelfStore {
                 .order("updated_at", ascending: false)
                 .execute()
                 .value
-            books = rows.compactMap(\.book_data)
+            // Merge the real on-device images back over the "[saved-locally]"
+            // markers the cloud row carries.
+            books = rows.compactMap(\.book_data).map(IllustrationStore.restore)
             shelfDidChange()
         } catch is CancellationError {
             // View went away mid-fetch — keep existing books.
@@ -57,6 +59,10 @@ final class BookshelfStore {
     /// row stays small (full images live on-device); same convention as
     /// the web sync.
     func save(_ book: Book, userId: String) async throws {
+        // Persist the full images on-device first, then send only the stripped
+        // (marker) copy to the cloud so the row stays small. Without the local
+        // save the images would be unrecoverable after a reload.
+        IllustrationStore.save(book)
         let stripped = strippedForCloud(book)
         try await supabase
             .from("user_books")
@@ -87,6 +93,7 @@ final class BookshelfStore {
             .eq("book_id", value: bookId)
             .execute()
         books.removeAll { $0.id == bookId }
+        IllustrationStore.remove(bookId: bookId)
         shelfDidChange()
     }
 
@@ -118,13 +125,17 @@ final class BookshelfStore {
 
     private func strippedForCloud(_ b: Book) -> Book {
         var copy = b
+        // Only on-device base64 is replaced. A real URL is small enough to
+        // sync AND fetchable by the print pipeline, so it must survive —
+        // blanket-stripping is what made every printed page render a broken
+        // <img src="[saved-locally]">.
         if let cover = b.coverImage, !isFetchableImage(cover) {
-            copy.coverImage = "[saved-locally]"
+            copy.coverImage = IllustrationStore.marker
         }
         copy.pages = b.pages.map { p in
             var pp = p
             if pp.illustrationData != nil && !isFetchableImage(pp.illustrationData) {
-                pp.illustrationData = "[saved-locally]"
+                pp.illustrationData = IllustrationStore.marker
             }
             return pp
         }
