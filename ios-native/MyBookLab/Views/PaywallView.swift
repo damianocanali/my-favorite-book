@@ -20,6 +20,10 @@ struct PaywallView: View {
     @State private var purchasing: String?
     @State private var error: String?
     @State private var confettiTrigger = 0
+    // Grown-up check before a subscription purchase. `pendingPackage`
+    // holds the tapped plan until the gate is solved.
+    @State private var showParentalGate = false
+    @State private var pendingPackage: Package?
 
     var body: some View {
         ZStack {
@@ -65,6 +69,11 @@ struct PaywallView: View {
             }
         }
         .toolbarBackground(.hidden, for: .navigationBar)
+        .parentalGate(isPresented: $showParentalGate) {
+            guard let pkg = pendingPackage else { return }
+            pendingPackage = nil
+            Task { await purchase(pkg) }
+        }
         .task { await subs.refresh() }
         .onChange(of: subs.isPaid) { _, paid in
             if paid { dismiss() }
@@ -143,7 +152,8 @@ struct PaywallView: View {
         let savings = isBest ? "Best value" : nil
 
         return Button {
-            Task { await purchase(package) }
+            pendingPackage = package
+            showParentalGate = true
         } label: {
             VStack(alignment: .leading, spacing: 6) {
                 HStack {
