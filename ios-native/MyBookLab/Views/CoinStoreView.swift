@@ -209,6 +209,11 @@ struct BuyCoinsSheet: View {
     @State private var purchasing: String?
     @State private var error: String?
     @State private var pendingMessage: String?
+    // Grown-up check before spending real money on a coin pack.
+    // (Spending already-earned coins on an art style isn't gated —
+    // no money changes hands there.)
+    @State private var showParentalGate = false
+    @State private var pendingPack: CoinPack?
 
     var body: some View {
         ZStack {
@@ -268,6 +273,11 @@ struct BuyCoinsSheet: View {
             }
         }
         .toolbarBackground(.hidden, for: .navigationBar)
+        .parentalGate(isPresented: $showParentalGate) {
+            guard let pack = pendingPack else { return }
+            pendingPack = nil
+            Task { await buy(pack) }
+        }
     }
 
     private func packCard(_ pack: CoinPack) -> some View {
@@ -278,7 +288,8 @@ struct BuyCoinsSheet: View {
         let priceText = product?.localizedPriceString ?? pack.price
 
         return Button {
-            Task { await buy(pack) }
+            pendingPack = pack
+            showParentalGate = true
         } label: {
             HStack(spacing: 14) {
                 Text(pack.emoji).font(.system(size: 40))
