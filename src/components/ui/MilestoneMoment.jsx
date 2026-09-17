@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom'
 import { AnimatePresence, motion } from 'motion/react'
 import GameBanner from './GameBanner'
 import Mascot from './Mascot'
@@ -14,7 +15,13 @@ import Mascot from './Mascot'
 // dismiss anything.
 
 export default function MilestoneMoment({ milestone, onDone }) {
-  return (
+  // Portalled for the same stacking-context reason as the other overlays:
+  // inside `<main className="relative z-10">` this would render beneath
+  // the z-40 tab bar. It keeps its exit animation, unlike the blocking
+  // layers — it is pointer-events-none, so a stranded one is a cosmetic
+  // annoyance rather than a locked app.
+  if (typeof document === 'undefined') return null
+  return createPortal(
     <AnimatePresence onExitComplete={onDone}>
       {milestone && (
         <motion.div
@@ -36,7 +43,8 @@ export default function MilestoneMoment({ milestone, onDone }) {
           </div>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   )
 }
 

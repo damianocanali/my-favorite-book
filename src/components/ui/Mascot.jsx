@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { motion, useReducedMotion } from 'motion/react'
 
 // The mascot, one component for every celebration so the character is
@@ -20,15 +20,40 @@ const BASE = '/mascot'
  * present it is cross-faded over the base frame, which turns two stills
  * into a pulsing glow without a sprite sheet or a video.
  */
+/**
+ * `frames` names a folder under /mascot/frames holding a drawn animation
+ * (see scripts/video-to-frames.py). Where one exists it replaces the
+ * code-driven motion entirely — real animation beats a still being
+ * translated around, and doubling the two up just looks seasick.
+ */
 export const POSES = {
   idle: { src: `${BASE}/welcoming.png`, emoji: '⭐', motion: 'float' },
   wave: { src: `${BASE}/welcoming.png`, emoji: '👋', motion: 'wave' },
-  welcome: { src: `${BASE}/welcome-back.png`, emoji: '🤗', motion: 'breathe' },
-  cheer: { src: `${BASE}/cheering.png`, emoji: '🎉', motion: 'bounce' },
+  welcome: {
+    src: `${BASE}/welcome-back.png`, emoji: '🤗', motion: 'breathe',
+    frames: 'welcome-back', frameCount: 16, fps: 12,
+  },
+  cheer: {
+    src: `${BASE}/cheering.png`, emoji: '🎉', motion: 'bounce',
+    // pingPong because this clip's last frame is nowhere near its first —
+    // played as a straight loop the arm snaps back and reads as a glitch.
+    // Bouncing 0->15->0 is seamless by construction, and an arm pump
+    // reversing is exactly what a real cheer does anyway.
+    frames: 'cheering', frameCount: 16, fps: 14, pingPong: true,
+  },
   think: { src: `${BASE}/welcoming.png`, emoji: '🤔', motion: 'tilt' },
-  proud: { src: `${BASE}/badge.png`, glow: `${BASE}/badge-glow.png`, emoji: '🏅', motion: 'present' },
-  badge: { src: `${BASE}/badge.png`, glow: `${BASE}/badge-glow.png`, emoji: '🏅', motion: 'present' },
+  proud: {
+    src: `${BASE}/badge.png`, glow: `${BASE}/badge-glow.png`, emoji: '🏅', motion: 'present',
+    frames: 'badge', frameCount: 16, fps: 12,
+  },
+  badge: {
+    src: `${BASE}/badge.png`, glow: `${BASE}/badge-glow.png`, emoji: '🏅', motion: 'present',
+    frames: 'badge', frameCount: 16, fps: 12,
+  },
 }
+
+const framePath = (folder, i) =>
+  `${BASE}/frames/${folder}/frame-${String(i).padStart(2, '0')}.png`
 
 // Motion presets. `loop: false` means a burst that settles — a cheer that
 // never stops stops reading as a cheer.
@@ -48,8 +73,45 @@ export default function Mascot({ mood = 'idle', size = 112, className = '' }) {
 
   const [failed, setFailed] = useState(false)
   const [glowFailed, setGlowFailed] = useState(false)
+  const [framesFailed, setFramesFailed] = useState(false)
+  const [frame, setFrame] = useState(0)
 
-  const animate = reduceMotion ? {} : preset.animate
+  // Under Reduce Motion a frame animation is exactly the thing to stop, so
+  // it holds on frame 0 rather than playing.
+  const playFrames = !!pose.frames && !framesFailed && !failed && !reduceMotion
+
+  useEffect(() => {
+    if (!playFrames) return
+    // Tick a monotonic counter and map it to a frame, so ping-pong is a
+    // pure function of the tick rather than direction state to keep in sync.
+    let tick = 0
+    const period = pose.pingPong ? Math.max(1, 2 * (pose.frameCount - 1)) : pose.frameCount
+    const id = setInterval(() => {
+      tick = (tick + 1) % period
+      setFrame(pose.pingPong && tick >= pose.frameCount ? period - tick : tick)
+    }, 1000 / (pose.fps ?? 12))
+    return () => clearInterval(id)
+  }, [playFrames, pose.frameCount, pose.fps, pose.pingPong])
+
+  // Warm the whole sequence before it plays, or the first loop stutters as
+  // each frame is fetched on the tick it is first shown.
+  useEffect(() => {
+    if (!pose.frames || framesFailed) return
+    let cancelled = false
+    Promise.all(
+      Array.from({ length: pose.frameCount }, (_, i) => new Promise((resolve, reject) => {
+        const img = new Image()
+        img.onload = resolve
+        img.onerror = reject
+        img.src = framePath(pose.frames, i)
+      }))
+    ).catch(() => { if (!cancelled) setFramesFailed(true) })
+    return () => { cancelled = true }
+  }, [pose.frames, pose.frameCount, framesFailed])
+
+  // A drawn animation already carries the movement; layering the code
+  // preset on top would translate the whole clip around as it plays.
+  const animate = reduceMotion || playFrames ? {} : preset.animate
   const transition = reduceMotion
     ? { duration: 0 }
     : {
@@ -72,7 +134,7 @@ export default function Mascot({ mood = 'idle', size = 112, className = '' }) {
     )
   }
 
-  const showGlow = pose.glow && !glowFailed && !reduceMotion
+  const showGlow = pose.glow && !glowFailed && !reduceMotion && !playFrames
 
   return (
     <motion.div
@@ -82,6 +144,14 @@ export default function Mascot({ mood = 'idle', size = 112, className = '' }) {
       transition={transition}
       aria-hidden
     >
+      {playFrames ? (
+        <img
+          src={framePath(pose.frames, frame)}
+          alt=""
+          onError={() => setFramesFailed(true)}
+          className="absolute inset-0 h-full w-full object-contain drop-shadow-[0_8px_24px_rgba(191,90,242,0.45)]"
+        />
+      ) : (
       <img
         src={pose.src}
         alt=""
@@ -94,6 +164,7 @@ export default function Mascot({ mood = 'idle', size = 112, className = '' }) {
         }}
         className="absolute inset-0 h-full w-full object-contain drop-shadow-[0_8px_24px_rgba(191,90,242,0.45)]"
       />
+      )}
 
       {showGlow && (
         <motion.img
