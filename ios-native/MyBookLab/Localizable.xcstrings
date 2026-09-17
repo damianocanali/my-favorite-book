@@ -1,0 +1,772 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "" : {
+
+    },
+    "%@, %@ %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@, %2$@ %3$@"
+          }
+        }
+      }
+    },
+    "%@, by %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@, by %2$@"
+          }
+        }
+      }
+    },
+    "%@, by %@%@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@, by %2$@%3$@"
+          }
+        }
+      }
+    },
+    "%lld" : {
+
+    },
+    "%lld + %lld = ?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld + %2$lld = ?"
+          }
+        }
+      }
+    },
+    "%lld book%@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld book%2$@"
+          }
+        }
+      }
+    },
+    "%lld coins" : {
+
+    },
+    "%lld day streak" : {
+
+    },
+    "%lld day writing streak" : {
+
+    },
+    "%lld of %lld badges earned" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld of %2$lld badges earned"
+          }
+        }
+      }
+    },
+    "%lld × %@ · %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld × %2$@ · %3$@"
+          }
+        }
+      }
+    },
+    "+%lld coins" : {
+
+    },
+    "1 day streak" : {
+
+    },
+    "12 pages · Tap to flip through" : {
+
+    },
+    "A grown-up from our team will look at this book. We review every report within 24 hours." : {
+
+    },
+    "Account" : {
+
+    },
+    "Add page" : {
+
+    },
+    "Add to my page" : {
+
+    },
+    "Already have an account? Sign in" : {
+
+    },
+    "Also hide everything by this author" : {
+
+    },
+    "Amazing work! Keep the magic going with unlimited books, illustrations, and printing." : {
+
+    },
+    "Answer" : {
+
+    },
+    "Anything else? (optional)" : {
+
+    },
+    "App Icon" : {
+
+    },
+    "App icon" : {
+
+    },
+    "Art style" : {
+
+    },
+    "Art styles" : {
+
+    },
+    "Ask Buddy…" : {
+
+    },
+    "Ask your own question" : {
+
+    },
+    "Background music" : {
+
+    },
+    "Badge earned!" : {
+
+    },
+    "Badges" : {
+
+    },
+    "Best value" : {
+
+    },
+    "Books" : {
+
+    },
+    "Buddy" : {
+
+    },
+    "Buy coins" : {
+
+    },
+    "Cancel" : {
+
+    },
+    "Cancel editing name" : {
+
+    },
+    "Cancelling…" : {
+
+    },
+    "Change hero photo" : {
+
+    },
+    "Character name" : {
+
+    },
+    "Check your email for a link to reset your password." : {
+
+    },
+    "Clear drawing" : {
+
+    },
+    "Close" : {
+
+    },
+    "Coins unlock magical art styles, accessories, and extra avatar regenerations." : {
+
+    },
+    "Continue" : {
+
+    },
+    "Continue with Apple" : {
+
+    },
+    "Continue with Google" : {
+
+    },
+    "Couldn't load your books" : {
+
+    },
+    "Create" : {
+
+    },
+    "Create Account" : {
+
+    },
+    "Create a Book" : {
+
+    },
+    "Create an Account" : {
+
+    },
+    "Create your hero" : {
+
+    },
+    "Creating account…" : {
+
+    },
+    "Current plan: %@" : {
+
+    },
+    "Customize avatar" : {
+
+    },
+    "DELETE" : {
+
+    },
+    "Delete account" : {
+
+    },
+    "Delete page" : {
+
+    },
+    "Delete your account?" : {
+
+    },
+    "Done" : {
+
+    },
+    "Draw" : {
+
+    },
+    "Draw your picture!" : {
+
+    },
+    "Drawing your cartoon…" : {
+
+    },
+    "Edit book" : {
+
+    },
+    "Email" : {
+
+    },
+    "Every great book needs a name." : {
+
+    },
+    "Featured Books" : {
+
+    },
+    "Forgot your password?" : {
+
+    },
+    "G" : {
+
+    },
+    "Gallery" : {
+
+    },
+    "Gallery is just getting started" : {
+
+    },
+    "Generate AI cover" : {
+
+    },
+    "Get more coins" : {
+
+    },
+    "I'm done writing" : {
+
+    },
+    "Illustrate" : {
+
+    },
+    "In use" : {
+
+    },
+    "Jumps straight into creating a new book." : {
+
+    },
+    "Keep my account" : {
+
+    },
+    "Let's begin" : {
+
+    },
+    "Make your story shine" : {
+
+    },
+    "Making…" : {
+
+    },
+    "Manage subscription" : {
+
+    },
+    "More stories, more illustrations, more pages — and the same parent-safe Story Buddy." : {
+
+    },
+    "My Book Lab" : {
+
+    },
+    "My Books" : {
+
+    },
+    "New Story" : {
+
+    },
+    "New here? Create an account" : {
+
+    },
+    "Next page" : {
+
+    },
+    "No orders yet" : {
+
+    },
+    "No pages yet" : {
+
+    },
+    "No plans available right now. Try again in a moment." : {
+
+    },
+    "Off" : {
+
+    },
+    "On" : {
+
+    },
+    "Open My Books" : {
+
+    },
+    "Open this book in Create to add pages." : {
+
+    },
+    "Opening Apple Pay…" : {
+
+    },
+    "Opens the book" : {
+
+    },
+    "Opens your bookshelf in My Book Lab." : {
+
+    },
+    "Or pick a fun avatar" : {
+
+    },
+    "Or pick an emoji hero below 👇" : {
+
+    },
+    "Order" : {
+
+    },
+    "Order printed copy" : {
+
+    },
+    "Orders" : {
+
+    },
+    "Owned" : {
+
+    },
+    "Page %lld" : {
+
+    },
+    "Painting cover…" : {
+
+    },
+    "Password" : {
+
+    },
+    "Pay & order" : {
+
+    },
+    "Pick a look for your app icon. Earn more with coins and streaks!" : {
+
+    },
+    "Pick a photo" : {
+
+    },
+    "Pick one to start writing!" : {
+
+    },
+    "Pick the world your story lives in." : {
+
+    },
+    "Previous page" : {
+
+    },
+    "Privacy Policy" : {
+
+    },
+    "Publish your finished book to share it here!" : {
+
+    },
+    "Purchases go through the App Store. Coins are added to your account once payment confirms." : {
+
+    },
+    "Read this page aloud" : {
+
+    },
+    "Regenerate cover" : {
+
+    },
+    "Remember me with %@" : {
+
+    },
+    "Report" : {
+
+    },
+    "Report this book" : {
+
+    },
+    "Restore purchases" : {
+
+    },
+    "Save and sync across devices" : {
+
+    },
+    "Save avatar" : {
+
+    },
+    "Save name" : {
+
+    },
+    "Save to bookshelf" : {
+
+    },
+    "Saving…" : {
+
+    },
+    "Schedule deletion" : {
+
+    },
+    "See a finished book" : {
+
+    },
+    "Send message" : {
+
+    },
+    "Send report" : {
+
+    },
+    "Sending…" : {
+
+    },
+    "Setting up payment…" : {
+
+    },
+    "Shake again" : {
+
+    },
+    "Shake your %@ anytime for a new idea ✨" : {
+
+    },
+    "Sign In" : {
+
+    },
+    "Sign in" : {
+
+    },
+    "Sign in to save your books and bring them to life with AI illustrations." : {
+
+    },
+    "Sign in to save your stories" : {
+
+    },
+    "Sign in to see your printed book orders." : {
+
+    },
+    "Sign in to see your saved books and order printed copies." : {
+
+    },
+    "Sign in to sync your stories" : {
+
+    },
+    "Sign in with %@" : {
+
+    },
+    "Sign out" : {
+
+    },
+    "Signing in…" : {
+
+    },
+    "Solve this so we know a grown-up is here." : {
+
+    },
+    "Something special about them (optional)" : {
+
+    },
+    "Spend on magical art styles and items" : {
+
+    },
+    "Start a New Story" : {
+
+    },
+    "Start a writing streak!" : {
+
+    },
+    "Start writing" : {
+
+    },
+    "Stop reading aloud" : {
+
+    },
+    "Store" : {
+
+    },
+    "Story Buddy" : {
+
+    },
+    "Stuck? Tap a button and I'll help with ideas — I never write your story for you. ✨" : {
+
+    },
+    "Subscribe for unlimited stories" : {
+
+    },
+    "Subscription auto-renews unless canceled at least 24 hours before the end of the period. Manage or cancel in Settings → Apple ID → Subscriptions." : {
+
+    },
+    "Sync books across devices, order printed copies, and pick up where you left off." : {
+
+    },
+    "Tap **Create** to make your first story — or peek at the example below." : {
+
+    },
+    "Tap Illustrate to add a picture" : {
+
+    },
+    "Tap anywhere to continue" : {
+
+    },
+    "Tap to use" : {
+
+    },
+    "Tap to use this" : {
+
+    },
+    "Terms of Use" : {
+
+    },
+    "Thanks" : {
+
+    },
+    "Thanks for telling us" : {
+
+    },
+    "The End" : {
+
+    },
+    "Think about these, then keep writing!" : {
+
+    },
+    "Thinking…" : {
+
+    },
+    "Total" : {
+
+    },
+    "Track package" : {
+
+    },
+    "Try again" : {
+
+    },
+    "Try again." : {
+
+    },
+    "Turn a photo into your hero" : {
+
+    },
+    "Turn your photo into a cartoon" : {
+
+    },
+    "Type DELETE to confirm" : {
+
+    },
+    "Unavailable" : {
+
+    },
+    "Unlock magical art styles for your avatar." : {
+
+    },
+    "Unlock more →" : {
+
+    },
+    "Unlock new looks with coins and streaks" : {
+
+    },
+    "Unlock the full magic" : {
+
+    },
+    "Unlock: %@" : {
+
+    },
+    "Use it" : {
+
+    },
+    "Use your finger or Apple Pencil ✏️" : {
+
+    },
+    "Welcome Back!" : {
+
+    },
+    "What is %lld plus %lld?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "What is %1$lld plus %2$lld?"
+          }
+        }
+      }
+    },
+    "What's the title?" : {
+
+    },
+    "What's wrong with it?" : {
+
+    },
+    "When you order a printed book, it'll show up here." : {
+
+    },
+    "Where does it happen?" : {
+
+    },
+    "Who is the main character of your story?" : {
+
+    },
+    "Who's the author of this story?" : {
+
+    },
+    "Write a little every day to keep it alive! Best: %lld" : {
+
+    },
+    "Write it!" : {
+
+    },
+    "Write something today to start a streak!" : {
+
+    },
+    "Write today to reach day %lld!" : {
+
+    },
+    "Written by %@" : {
+
+    },
+    "Yay!" : {
+
+    },
+    "You can also email support@mybooklab.app." : {
+
+    },
+    "Your account and all your books will be scheduled for deletion. You'll have 7 days to change your mind before anything is permanently removed." : {
+
+    },
+    "Your account is scheduled for deletion%@." : {
+
+    },
+    "Your age (optional)" : {
+
+    },
+    "Your bookshelf" : {
+
+    },
+    "Your bookshelf is empty" : {
+
+    },
+    "Your first book is done!" : {
+
+    },
+    "Your name" : {
+
+    },
+    "Your orders" : {
+
+    },
+    "Your original photo is never saved. Only the cartoon stays." : {
+
+    },
+    "by %@" : {
+
+    },
+    "by %@%@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "by %1$@%2$@"
+          }
+        }
+      }
+    },
+    "e.g. The Brave Star Bear" : {
+
+    },
+    "or" : {
+
+    },
+    "“%@”" : {
+
+    },
+    "“%@” by %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "“%1$@” by %2$@"
+          }
+        }
+      }
+    },
+    "✨" : {
+
+    },
+    "✨ Coin Store" : {
+
+    },
+    "⭐️ Recommended" : {
+
+    },
+    "🌟" : {
+
+    },
+    "🎉" : {
+
+    },
+    "👋 Grown-up check" : {
+
+    },
+    "💫 Story idea!" : {
+
+    },
+    "💭" : {
+
+    },
+    "💰" : {
+
+    },
+    "📖" : {
+
+    },
+    "📦" : {
+
+    },
+    "📭" : {
+
+    },
+    "🔥" : {
+
+    },
+    "🛡️" : {
+
+    },
+    "🪙" : {
+
+    }
+  },
+  "version" : "1.0"
+}

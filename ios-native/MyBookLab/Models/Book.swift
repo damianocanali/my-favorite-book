@@ -20,6 +20,13 @@ struct Book: Codable, Identifiable, Hashable, Sendable {
     var characters: [BookCharacter]
     var setting: BookSetting?
     var pages: [BookPage]
+    /// BCP-47 tag for the language the story was WRITTEN in ("it", "en").
+    ///
+    /// Distinct from the UI language: a child in an Italian household can
+    /// write in English, and this is what decides which voice reads the book
+    /// aloud. Optional because every book created before 2.1 predates the
+    /// field — SpeechSpeaker falls back to the UI language for those.
+    var language: String?
 
     init(
         id: String,
@@ -33,7 +40,8 @@ struct Book: Codable, Identifiable, Hashable, Sendable {
         coverImage: String? = nil,
         characters: [BookCharacter] = [],
         setting: BookSetting? = nil,
-        pages: [BookPage] = []
+        pages: [BookPage] = [],
+        language: String? = nil
     ) {
         self.id = id
         self.title = title
@@ -47,11 +55,13 @@ struct Book: Codable, Identifiable, Hashable, Sendable {
         self.characters = characters
         self.setting = setting
         self.pages = pages
+        self.language = language
     }
 
     enum CodingKeys: String, CodingKey {
         case id, title, authorName, authorAge, authorAvatar
         case createdAt, updatedAt, colors, coverImage, characters, setting, pages
+        case language
     }
 
     init(from decoder: Decoder) throws {
@@ -75,6 +85,7 @@ struct Book: Codable, Identifiable, Hashable, Sendable {
         self.characters = (try? c.decode([BookCharacter].self, forKey: .characters)) ?? []
         self.setting = try? c.decode(BookSetting.self, forKey: .setting)
         self.pages = (try? c.decode([BookPage].self, forKey: .pages)) ?? []
+        self.language = try? c.decode(String.self, forKey: .language)
     }
 }
 

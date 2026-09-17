@@ -27,7 +27,10 @@ final class BookDraftStore {
             coverImage: nil,
             characters: [],
             setting: nil,
-            pages: []
+            pages: [],
+            // Stamp the language the child is writing in, so read-aloud picks
+            // the right voice later even if they change the app's language.
+            language: AppLanguage.uiLanguage
         )
         step = 0
     }
