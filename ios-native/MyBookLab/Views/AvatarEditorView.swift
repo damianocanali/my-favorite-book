@@ -320,12 +320,13 @@ struct AvatarEditorView: View {
                 .init(features: nil, artStyle: selectedStyle, sourceImage: dataUrl),
                 bearerToken: token
             )
-            // Backend returns a data URL — decode and display.
-            if let img = decodeDataURL(res.image) {
+            // Backend returns a Storage URL normally, a data URL as a
+            // fallback — GeneratedImage handles both.
+            if let img = await GeneratedImage.load(res.image) {
                 resultImage = img
                 // TODO: sync to user_metadata avatar field
             } else {
-                self.error = "Couldn't decode cartoon."
+                self.error = "Couldn't load your cartoon."
             }
         } catch {
             self.error = "Couldn't make your cartoon: \(error.localizedDescription)"
@@ -361,51 +362,5 @@ struct AvatarEditorView: View {
     }
 }
 
-// MARK: - Parental gate
-
-private struct ParentalGate: View {
-    let onSuccess: () -> Void
-    let onCancel: () -> Void
-
-    @State private var a: Int = Int.random(in: 11...19)
-    @State private var b: Int = Int.random(in: 11...19)
-    @State private var answer: String = ""
-    @State private var wrong = false
-
-    var body: some View {
-        VStack(spacing: 20) {
-            Text("👋 Grown-up check")
-                .font(.system(.title3, design: .rounded).bold())
-            Text("Solve this so we know a grown-up is here.")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-            Text("\(a) + \(b) = ?")
-                .font(.system(.largeTitle, design: .rounded).bold())
-            TextField("Answer", text: $answer)
-                .keyboardType(.numberPad)
-                .multilineTextAlignment(.center)
-                .padding()
-                .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 12))
-                .padding(.horizontal, 32)
-            if wrong {
-                Text("Try again.").foregroundStyle(.red).font(.footnote)
-            }
-            HStack(spacing: 12) {
-                Button("Cancel", role: .cancel) { onCancel() }
-                    .frame(maxWidth: .infinity).padding(12)
-                Button("Continue") {
-                    if Int(answer) == a + b { onSuccess() }
-                    else { wrong = true; answer = "" }
-                }
-                .frame(maxWidth: .infinity).padding(12)
-                .background(.purple, in: RoundedRectangle(cornerRadius: 12))
-                .foregroundStyle(.white)
-            }
-            .padding(.horizontal, 32)
-            Spacer()
-        }
-        .padding(.top, 28)
-        .presentationDetents([.medium])
-    }
-}
+// The grown-up check now lives in ParentalGate.swift and is shared
+// with the purchase flows.
