@@ -115,7 +115,14 @@ final class RewardsStore {
     /// around UTC, so any real timezone is fine.
     static func localDayString(now: Date = Date()) -> String {
         let fmt = DateFormatter()
-        fmt.calendar = Calendar.current
+        // en_US_POSIX is REQUIRED with a fixed dateFormat. Without it the
+        // formatter follows the device's calendar and locale, so on a device
+        // set to a Japanese or Buddhist calendar "yyyy" emits an era year
+        // ("0007-09-16", "2568-09-16") and the day key sent to /api/streak is
+        // garbage — every streak silently breaks. The wire format is
+        // Gregorian YYYY-MM-DD and must never be localized.
+        fmt.locale = Locale(identifier: "en_US_POSIX")
+        fmt.calendar = Calendar(identifier: .gregorian)
         fmt.timeZone = TimeZone.current
         fmt.dateFormat = "yyyy-MM-dd"
         return fmt.string(from: now)
