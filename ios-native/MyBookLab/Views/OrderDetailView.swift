@@ -10,7 +10,10 @@ struct OrderDetailView: View {
     @Environment(AuthStore.self) private var auth
     @State private var order: PrintOrder?
     @State private var loading = true
-    @State private var error: String?
+    // App-authored copy rendered in the view, so it must be a
+    // LocalizedStringResource — `Text(String)` opts out of localization
+    // and out of String Catalog extraction.
+    @State private var error: LocalizedStringResource?
     @State private var pollTask: Task<Void, Never>?
 
     var body: some View {
@@ -61,10 +64,15 @@ struct OrderDetailView: View {
 
     private func header(_ o: PrintOrder) -> some View {
         VStack(spacing: 6) {
-            Text("Order #" + String(o.id.suffix(8)).uppercased())
+            // One format string rather than "Order #" + id: the literal
+            // concatenation was invisible to string extraction and forced
+            // the "#" to sit on the left in every language.
+            Text("Order #\(String(o.id.suffix(8)).uppercased())")
                 .font(.system(.title3, design: .rounded).bold())
                 .foregroundStyle(.white)
-            Text(o.status.rawValue.replacingOccurrences(of: "_", with: " ").capitalized)
+            // Was `status.rawValue.capitalized` — a wire value leaking
+            // into the UI, untranslatable by construction.
+            Text(o.status.displayName)
                 .font(.caption.bold())
                 .padding(.horizontal, 10).padding(.vertical, 4)
                 .background(.purple.opacity(0.35), in: Capsule())
@@ -87,7 +95,7 @@ struct OrderDetailView: View {
         .padding(.horizontal)
     }
 
-    private func timelineStep(label: String, reached: Bool, current: Bool, last: Bool = false) -> some View {
+    private func timelineStep(label: LocalizedStringKey, reached: Bool, current: Bool, last: Bool = false) -> some View {
         HStack(alignment: .top, spacing: 12) {
             VStack(spacing: 0) {
                 ZStack {
@@ -133,7 +141,12 @@ struct OrderDetailView: View {
     private func summary(_ o: PrintOrder) -> some View {
         VStack(alignment: .leading, spacing: 10) {
             sectionHeader("Summary")
-            row("Format", "\(o.format.rawValue.capitalized) × \(o.quantity)")
+            // Single format string with positional arguments instead of
+            // interpolating a capitalized rawValue into an ad-hoc sentence.
+            row("Format", String(localized: LocalizedStringResource(
+                "order.summary.format_quantity",
+                defaultValue: "\(String(localized: o.format.displayName)) × \(o.quantity)",
+                comment: "Order summary value, e.g. \"Hardcover × 2\"")))
             row("Subtotal", (o.unitPriceCents * o.quantity).asPrice)
             row("Shipping", (o.shippingCents).asPrice)
             Divider().background(.white.opacity(0.15))
@@ -162,11 +175,14 @@ struct OrderDetailView: View {
         .padding(.horizontal)
     }
 
-    private func sectionHeader(_ s: String) -> some View {
+    private func sectionHeader(_ s: LocalizedStringKey) -> some View {
         Text(s).font(.caption.bold()).foregroundStyle(.white.opacity(0.7)).textCase(.uppercase)
     }
 
-    private func row(_ label: String, _ value: String, emphasized: Bool = false) -> some View {
+    // `label` is copy and becomes a LocalizedStringKey; `value` stays a
+    // String because every caller passes an already-formatted price or an
+    // already-localized phrase.
+    private func row(_ label: LocalizedStringKey, _ value: String, emphasized: Bool = false) -> some View {
         HStack {
             Text(label).foregroundStyle(.white.opacity(0.75))
             Spacer()
@@ -212,7 +228,12 @@ struct OrderDetailView: View {
             // Same — silently abort.
         } catch {
             // Don't blow away an existing order on a transient network blip.
-            if self.order == nil { self.error = "Couldn't load this order." }
+            if self.order == nil {
+                self.error = LocalizedStringResource(
+                    "order.detail.error.load_failed",
+                    defaultValue: "Couldn't load this order.",
+                    comment: "Shown when the order row cannot be fetched")
+            }
         }
         self.loading = false
     }

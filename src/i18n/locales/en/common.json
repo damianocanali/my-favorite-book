@@ -41,7 +41,8 @@
     "empty": "Nothing here yet",
     "error": "Something went wrong",
     "no_results": "No results",
-    "offline": "You're offline"
+    "offline": "You're offline",
+    "not_found": "Not found."
   },
   "units": {
     "coins": "Coins",
@@ -80,5 +81,11 @@
     "streak_next": "Write today to reach day {{day}}!",
     "streak_start": "Write something today to start a streak!",
     "tap_hint": "Tap anywhere to continue"
+  },
+  "not_found": {
+    "title": "Lost in space",
+    "body": "We couldn't find that page. It may have drifted off, or the link might have a typo in it.",
+    "go_home": "Go home",
+    "bookshelf": "My bookshelf"
   }
 }

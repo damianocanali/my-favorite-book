@@ -137,13 +137,28 @@ struct GalleryView: View {
                 .font(.subheadline.bold())
                 .lineLimit(2)
                 .foregroundStyle(.white)
-            Text("by \(book.authorName)\(book.authorAge.map { ", age \($0)" } ?? "")")
+            // Two COMPLETE sentences rather than a base plus an appended
+            // ", age N" fragment. Italian puts the age differently and needs
+            // its own preposition, so a translator must be able to move the
+            // whole clause — and a concatenation extracts as the untranslatable
+            // key "by %@%@".
+            Group {
+                if let age = book.authorAge {
+                    Text("gallery.byline.with_age \(book.authorName) \(age)")
+                } else {
+                    Text("gallery.byline \(book.authorName)")
+                }
+            }
                 .font(.caption)
                 .foregroundStyle(.white.opacity(0.7))
                 .lineLimit(1)
         }
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("\(book.title), by \(book.authorName)\(book.authorAge.map { ", age \($0)" } ?? "")")
+        .accessibilityLabel(
+            book.authorAge.map {
+                Text("gallery.card.a11y.with_age \(book.title) \(book.authorName) \($0)")
+            } ?? Text("gallery.card.a11y \(book.title) \(book.authorName)")
+        )
         .accessibilityHint("Opens the book")
     }
 

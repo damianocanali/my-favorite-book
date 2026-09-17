@@ -8,7 +8,9 @@ struct OrdersListView: View {
     @Environment(AuthStore.self) private var auth
     @State private var orders: [PrintOrder] = []
     @State private var loading = false
-    @State private var error: String?
+    // App-authored copy, so LocalizedStringResource rather than String —
+    // the `Text(String)` initializer neither localizes nor is extracted.
+    @State private var error: LocalizedStringResource?
 
     var body: some View {
         NavigationStack {
@@ -84,7 +86,7 @@ struct OrdersListView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
-    private func errorState(_ msg: String) -> some View {
+    private func errorState(_ msg: LocalizedStringResource) -> some View {
         VStack(spacing: 12) {
             Image(systemName: "exclamationmark.triangle")
                 .font(.system(size: 40))
@@ -102,7 +104,14 @@ struct OrdersListView: View {
                 Spacer()
                 statusPill(o.status)
             }
-            Text("\(o.quantity) × \(o.format.rawValue.capitalized) · \((o.totalCents).asPrice)")
+            // One keyed format string with three positional arguments.
+            // It used to splice a capitalized rawValue straight into the
+            // sentence, which both leaked a wire value into the UI and
+            // left the order of the parts frozen in English.
+            Text(LocalizedStringResource(
+                "orders.card.quantity_line",
+                defaultValue: "\(o.quantity) × \(String(localized: o.format.displayName)) · \(o.totalCents.asPrice)",
+                comment: "Order card subtitle, e.g. \"2 × Hardcover · $44.98\""))
                 .font(.caption).foregroundStyle(.white.opacity(0.7))
             Text(formattedDate(o.createdAt))
                 .font(.caption2).foregroundStyle(.white.opacity(0.5))
@@ -113,26 +122,25 @@ struct OrdersListView: View {
     }
 
     private func statusPill(_ status: PrintOrderStatus) -> some View {
-        let (color, label) = pillStyle(for: status)
-        return Text(label)
+        // The label now comes from PrintOrderStatus.displayName so the
+        // wording lives in one translatable place; only the colour is
+        // presentation and stays here.
+        Text(status.displayName)
             .font(.caption.bold())
             .padding(.horizontal, 10).padding(.vertical, 4)
-            .background(color.opacity(0.35), in: Capsule())
+            .background(pillColor(for: status).opacity(0.35), in: Capsule())
             .foregroundStyle(.white)
     }
 
-    private func pillStyle(for status: PrintOrderStatus) -> (Color, String) {
+    private func pillColor(for status: PrintOrderStatus) -> Color {
         switch status {
-        case .pending: return (.gray, "Waiting on payment")
-        case .paid: return (.blue, "Preparing files")
-        case .pdfReady: return (.purple, "Sent to printer")
-        case .submitted: return (.purple, "Sent to printer")
-        case .inProduction: return (.purple, "Printing")
-        case .shipped: return (.green, "On the way")
-        case .delivered: return (.green, "Delivered")
-        case .failed: return (.red, "Failed")
-        case .refunded: return (.orange, "Refunded")
-        case .unknown: return (.gray, "Processing")
+        case .pending: return .gray
+        case .paid: return .blue
+        case .pdfReady, .submitted, .inProduction: return .purple
+        case .shipped, .delivered: return .green
+        case .failed: return .red
+        case .refunded: return .orange
+        case .unknown: return .gray
         }
     }
 
@@ -156,7 +164,10 @@ struct OrdersListView: View {
         } catch let urlError as URLError where urlError.code == .cancelled {
             // Same.
         } catch {
-            self.error = "Couldn't load orders: \(error.localizedDescription)"
+            self.error = LocalizedStringResource(
+                "orders.list.error.load_failed",
+                defaultValue: "Couldn't load orders: \(error.localizedDescription)",
+                comment: "%@ is the underlying network/server error, already localized by iOS")
         }
     }
 

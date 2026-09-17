@@ -15,7 +15,10 @@ struct AccountView: View {
     @State private var deleteConfirmText = ""
     @State private var deleteBusy = false
     @State private var deletionScheduledFor: String?   // ISO date when pending
-    @State private var deleteError: String?
+    // App-authored copy, so it must be localizable. (Contrast with the
+    // stores' `.error(String)` channels, which pass through OS/URLSession
+    // text that iOS has already localized.)
+    @State private var deleteError: LocalizedStringResource?
 
     var body: some View {
         NavigationStack {
@@ -258,7 +261,7 @@ struct AccountView: View {
                         Text(subs.isPaid ? "Manage subscription" : "Unlock the full magic")
                             .foregroundStyle(.white)
                         Text(subs.isPaid
-                             ? "Current plan: \(subs.planKey.capitalized)"
+                             ? "Current plan: \(planDisplayName)"
                              : "Subscribe for unlimited stories")
                             .font(.caption)
                             .foregroundStyle(.white.opacity(0.65))
@@ -272,7 +275,25 @@ struct AccountView: View {
         .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 18))
     }
 
-    private func row(icon: String, label: String) -> some View {
+    /// `planKey` is the RevenueCat / Stripe entitlement identifier — a
+    /// wire value. `.capitalized` on it happened to read as English;
+    /// in any other language it just prints the raw key. Map it to a
+    /// translatable display name instead.
+    private var planDisplayName: String {
+        switch subs.planKey {
+        case "family":
+            return String(localized: "plan.family.name", defaultValue: "Family")
+        case "classroom":
+            return String(localized: "plan.classroom.name", defaultValue: "Classroom")
+        case "free":
+            return String(localized: "plan.free.name", defaultValue: "Free")
+        default:
+            // Unknown/new server plan: a neutral word beats a raw key.
+            return String(localized: "plan.unknown.name", defaultValue: "Premium")
+        }
+    }
+
+    private func row(icon: String, label: LocalizedStringKey) -> some View {
         HStack(spacing: 14) {
             Image(systemName: icon).foregroundStyle(.yellow).frame(width: 24)
             Text(label).foregroundStyle(.white)
@@ -298,7 +319,10 @@ struct AccountView: View {
     private var deletionBanner: some View {
         if let scheduledFor = deletionScheduledFor, !scheduledFor.isEmpty {
             VStack(spacing: 8) {
-                Text("Your account is scheduled for deletion\(deletionDateText(scheduledFor)).")
+                // One sentence, one key, the date as an argument. Gluing
+                // " on " + date made the preposition and the word order
+                // untranslatable — Italian wants "…il 3 marzo 2026".
+                deletionSentence(scheduledFor)
                     .font(.subheadline.bold()).multilineTextAlignment(.center).foregroundStyle(.white)
                 Button {
                     Task { await cancelDeletion() }
@@ -317,16 +341,24 @@ struct AccountView: View {
         }
     }
 
-    private func deletionDateText(_ iso: String) -> String {
+    /// The dated and undated sentences are two separate keys rather than
+    /// one key with an optional fragment, because a translator has to be
+    /// able to rewrite each whole sentence.
+    private func deletionSentence(_ iso: String) -> Text {
+        guard let date = Self.parseISODate(iso) else {
+            return Text("Your account is scheduled for deletion.")
+        }
+        return Text("Your account is scheduled for deletion on \(date, format: .dateTime.day().month(.abbreviated).year()).")
+    }
+
+    private static func parseISODate(_ iso: String) -> Date? {
         // The server formats scheduled_for via toISOString(), which always emits
         // fractional seconds (…T03:00:00.000Z). A bare ISO8601DateFormatter rejects
         // those, so parse with fractional seconds first and fall back to without.
         let withFraction = ISO8601DateFormatter()
         withFraction.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         let plain = ISO8601DateFormatter()
-        guard let date = withFraction.date(from: iso) ?? plain.date(from: iso) else { return "" }
-        let out = DateFormatter(); out.dateStyle = .medium
-        return " on " + out.string(from: date)
+        return withFraction.date(from: iso) ?? plain.date(from: iso)
     }
 
     private func cancelDeletion() async {
@@ -337,7 +369,9 @@ struct AccountView: View {
             try await APIClient.shared.cancelAccountDeletion(bearerToken: token)
             deletionScheduledFor = nil
         } catch {
-            deleteError = "Couldn't cancel. Please try again."
+            deleteError = LocalizedStringResource(
+                "account.delete.cancel_failed",
+                defaultValue: "Couldn't cancel. Please try again.")
         }
     }
 
@@ -406,7 +440,9 @@ struct AccountView: View {
             deletionScheduledFor = scheduledFor ?? ""
             showDeleteConfirm = false
         } catch {
-            deleteError = "Couldn't schedule deletion. Please try again."
+            deleteError = LocalizedStringResource(
+                "account.delete.schedule_failed",
+                defaultValue: "Couldn't schedule deletion. Please try again.")
         }
     }
 

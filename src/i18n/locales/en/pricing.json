@@ -78,5 +78,14 @@
     "upgrade_failed": "Upgrade failed. Please try again.",
     "restore_failed": "Restore failed. Please try again.",
     "dismiss_aria": "Dismiss error"
+  },
+  "success": {
+    "title": "You're all set! 🎉",
+    "subtitle": "Your subscription is active. Time to create something amazing!",
+    "order_confirmed": "Order confirmed · {{code}}",
+    "cta_create": "Create a Book",
+    "cta_bookshelf": "My Bookshelf",
+    "redirecting_one": "Redirecting in {{count}}s…",
+    "redirecting_other": "Redirecting in {{count}}s…"
   }
 }

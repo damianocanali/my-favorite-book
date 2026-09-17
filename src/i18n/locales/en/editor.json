@@ -155,5 +155,31 @@
     "title": "Make your own magical book",
     "body": "MyBookLab lets kids dream up stories, illustrate them with AI, and order them as real, printed books.",
     "scan": "Scan to download"
+  },
+  "preview": {
+    "not_found": "Book not found",
+    "back_to_bookshelf": "Back to Bookshelf",
+    "bookshelf": "Bookshelf",
+    "bookshelf_title": "Back to bookshelf",
+    "submit": "Submit to Class",
+    "submit_title": "Submit to class",
+    "publish": "Publish",
+    "publishing": "Publishing…",
+    "publish_title": "Publish to the gallery",
+    "publish_failed": "Failed to publish. Please try again.",
+    "share_link": "Share Link",
+    "copy_link_title": "Copy share link",
+    "order_print_title": "Order a printed copy",
+    "pdf": "PDF",
+    "pdf_locked": "🔒 PDF",
+    "pdf_title": "Print or save as PDF",
+    "pdf_locked_title": "Upgrade to export PDF",
+    "edit_title": "Edit book",
+    "published_title": "Your book is live! 🎉",
+    "published_body": "Share this link with family and friends — they can read your book and leave stickers!",
+    "flip_hint": "Click or swipe the pages to flip through your book!",
+    "guest_nudge_title": "Keep your book safe!",
+    "guest_nudge_body": "This book is saved on this device only. Create a free account to access it anywhere.",
+    "guest_nudge_signup": "Create free account"
   }
 }

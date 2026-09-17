@@ -6,9 +6,16 @@
 import SwiftUI
 
 struct StatPill: View {
+    /// The emoji glyph. Not copy — an emoji is the same in every
+    /// language, so it stays a plain `String`.
     let icon: String
     let value: Int
-    let label: String
+    /// The VoiceOver name for this counter, and the only copy the pill
+    /// carries. `String` here would pick `accessibilityLabel`'s
+    /// non-localizing overload and leave VoiceOver reading English over
+    /// an Italian screen, so it is a `LocalizedStringKey`: every call
+    /// site passes a literal, which is what the catalog extracts.
+    let label: LocalizedStringKey
     var tone: Tone = .gold
 
     enum Tone {

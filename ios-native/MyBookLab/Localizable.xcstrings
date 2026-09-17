@@ -24,16 +24,6 @@
         }
       }
     },
-    "%@, by %@%@" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "%1$@, by %2$@%3$@"
-          }
-        }
-      }
-    },
     "%lld" : {
 
     },
@@ -43,16 +33,6 @@
           "stringUnit" : {
             "state" : "new",
             "value" : "%1$lld + %2$lld = ?"
-          }
-        }
-      }
-    },
-    "%lld book%@" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "%1$lld book%2$@"
           }
         }
       }
@@ -76,20 +56,7 @@
         }
       }
     },
-    "%lld × %@ · %@" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "%1$lld × %2$@ · %3$@"
-          }
-        }
-      }
-    },
     "+%lld coins" : {
-
-    },
-    "1 day streak" : {
 
     },
     "12 pages · Tap to flip through" : {
@@ -105,6 +72,15 @@
 
     },
     "Add to my page" : {
+
+    },
+    "Address line 1" : {
+
+    },
+    "Address line 2 (optional)" : {
+
+    },
+    "All set" : {
 
     },
     "Already have an account? Sign in" : {
@@ -179,10 +155,19 @@
     "Check your email for a link to reset your password." : {
 
     },
+    "City" : {
+
+    },
+    "Class set" : {
+
+    },
     "Clear drawing" : {
 
     },
     "Close" : {
+
+    },
+    "Coins" : {
 
     },
     "Coins unlock magical art styles, accessories, and extra avatar regenerations." : {
@@ -215,6 +200,9 @@
     "Create your hero" : {
 
     },
+    "Create your own story in the stars ✨" : {
+
+    },
     "Creating account…" : {
 
     },
@@ -227,6 +215,9 @@
     "DELETE" : {
 
     },
+    "Day streak" : {
+
+    },
     "Delete account" : {
 
     },
@@ -234,6 +225,9 @@
 
     },
     "Delete your account?" : {
+
+    },
+    "Delivered" : {
 
     },
     "Done" : {
@@ -257,10 +251,22 @@
     "Every great book needs a name." : {
 
     },
+    "Everyday read" : {
+
+    },
+    "Family pack" : {
+
+    },
     "Featured Books" : {
 
     },
     "Forgot your password?" : {
+
+    },
+    "Format" : {
+
+    },
+    "Full name" : {
 
     },
     "G" : {
@@ -278,10 +284,25 @@
     "Get more coins" : {
 
     },
+    "Gift pair" : {
+
+    },
+    "Hardcover" : {
+
+    },
+    "Hi, %@!" : {
+
+    },
+    "Hi, storyteller!" : {
+
+    },
     "I'm done writing" : {
 
     },
     "Illustrate" : {
+
+    },
+    "In production" : {
 
     },
     "In use" : {
@@ -290,10 +311,19 @@
     "Jumps straight into creating a new book." : {
 
     },
+    "Just one" : {
+
+    },
     "Keep my account" : {
 
     },
+    "Keepsake quality" : {
+
+    },
     "Let's begin" : {
+
+    },
+    "Loading price" : {
 
     },
     "Make your story shine" : {
@@ -362,6 +392,12 @@
     "Order" : {
 
     },
+    "Order #%@" : {
+
+    },
+    "Order placed" : {
+
+    },
     "Order printed copy" : {
 
     },
@@ -381,6 +417,12 @@
 
     },
     "Pay & order" : {
+
+    },
+    "Payment confirmed" : {
+
+    },
+    "Phone" : {
 
     },
     "Pick a look for your app icon. Earn more with coins and streaks!" : {
@@ -405,6 +447,9 @@
 
     },
     "Purchases go through the App Store. Coins are added to your account once payment confirms." : {
+
+    },
+    "Quantity" : {
 
     },
     "Read this page aloud" : {
@@ -455,13 +500,22 @@
     "Sending…" : {
 
     },
+    "Sent to printer" : {
+
+    },
     "Setting up payment…" : {
 
     },
     "Shake again" : {
 
     },
-    "Shake your %@ anytime for a new idea ✨" : {
+    "Shipped" : {
+
+    },
+    "Shipping" : {
+
+    },
+    "Shipping to" : {
 
     },
     "Sign In" : {
@@ -494,6 +548,9 @@
     "Signing in…" : {
 
     },
+    "Softcover" : {
+
+    },
     "Solve this so we know a grown-up is here." : {
 
     },
@@ -510,6 +567,9 @@
 
     },
     "Start writing" : {
+
+    },
+    "State" : {
 
     },
     "Stop reading aloud" : {
@@ -530,11 +590,17 @@
     "Subscription auto-renews unless canceled at least 24 hours before the end of the period. Manage or cancel in Settings → Apple ID → Subscriptions." : {
 
     },
+    "Subtotal" : {
+
+    },
+    "Summary" : {
+
+    },
     "Sync books across devices, order printed copies, and pick up where you left off." : {
 
     },
     "Tap **Create** to make your first story — or peek at the example below." : {
-
+      "comment" : "Empty-shelf nudge. **Create** is Markdown bold naming the Create tab — keep the ** ** around the translated tab name, and translate the tab name the same way it is translated in the tab bar."
     },
     "Tap Illustrate to add a picture" : {
 
@@ -564,6 +630,9 @@
 
     },
     "Thinking…" : {
+
+    },
+    "Title your book" : {
 
     },
     "Total" : {
@@ -614,6 +683,9 @@
     "Welcome Back!" : {
 
     },
+    "Welcome back!" : {
+
+    },
     "What is %lld plus %lld?" : {
       "localizations" : {
         "en" : {
@@ -636,6 +708,9 @@
     "Where does it happen?" : {
 
     },
+    "Where it happens" : {
+
+    },
     "Who is the main character of your story?" : {
 
     },
@@ -651,7 +726,7 @@
     "Write something today to start a streak!" : {
 
     },
-    "Write today to reach day %lld!" : {
+    "Write your story" : {
 
     },
     "Written by %@" : {
@@ -666,7 +741,10 @@
     "Your account and all your books will be scheduled for deletion. You'll have 7 days to change your mind before anything is permanently removed." : {
 
     },
-    "Your account is scheduled for deletion%@." : {
+    "Your account is scheduled for deletion on %@." : {
+
+    },
+    "Your account is scheduled for deletion." : {
 
     },
     "Your age (optional)" : {
@@ -676,6 +754,9 @@
 
     },
     "Your bookshelf is empty" : {
+
+    },
+    "Your character" : {
 
     },
     "Your first book is done!" : {
@@ -690,15 +771,940 @@
     "Your original photo is never saved. Only the cartoon stays." : {
 
     },
-    "by %@" : {
+    "ZIP" : {
 
     },
-    "by %@%@" : {
+    "account.delete.cancel_failed" : {
+      "extractionState" : "extracted_with_value",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "by %1$@%2$@"
+            "value" : "Couldn't cancel. Please try again."
+          }
+        }
+      }
+    },
+    "account.delete.schedule_failed" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Couldn't schedule deletion. Please try again."
+          }
+        }
+      }
+    },
+    "app_icon.change_failed" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Couldn't change the icon. Please try again."
+          }
+        }
+      }
+    },
+    "app_icon.classic.label" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Classic"
+          }
+        }
+      }
+    },
+    "app_icon.locked_by_badge" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Keep your streak going to earn %@ first!"
+          }
+        }
+      }
+    },
+    "app_icon.night.label" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Night Owl"
+          }
+        }
+      }
+    },
+    "app_icon.rainbow.label" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Rainbow"
+          }
+        }
+      }
+    },
+    "app_icon.rocket.label" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Rocket"
+          }
+        }
+      }
+    },
+    "app_icon.unsupported_device" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "This device doesn't support changing the icon."
+          }
+        }
+      }
+    },
+    "avatar_style.anime.description" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Vivid colors, expressive lines, Ghibli-inspired."
+          }
+        }
+      }
+    },
+    "avatar_style.anime.label" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Anime"
+          }
+        }
+      }
+    },
+    "avatar_style.pixar.description" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Polished 3D render. Big eyes, soft lighting."
+          }
+        }
+      }
+    },
+    "avatar_style.pixar.label" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Pixar 3D"
+          }
+        }
+      }
+    },
+    "avatar_style.pixel.description" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "16-bit retro game character vibes."
+          }
+        }
+      }
+    },
+    "avatar_style.pixel.label" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Pixel Art"
+          }
+        }
+      }
+    },
+    "avatar_style.watercolor.description" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Soft painted brushstrokes, storybook look."
+          }
+        }
+      }
+    },
+    "avatar_style.watercolor.label" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Watercolor"
+          }
+        }
+      }
+    },
+    "badge.added_illustration.description" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Generated an illustration"
+          }
+        }
+      }
+    },
+    "badge.added_illustration.label" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Picture Magic"
+          }
+        }
+      }
+    },
+    "badge.drew_illustration.description" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Drew your own picture"
+          }
+        }
+      }
+    },
+    "badge.drew_illustration.label" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Own Two Hands"
+          }
+        }
+      }
+    },
+    "badge.finished_blanks.description" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Finished a fill-in-the-blanks story"
+          }
+        }
+      }
+    },
+    "badge.finished_blanks.label" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Puzzle Solved"
+          }
+        }
+      }
+    },
+    "badge.first_book.description" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Finished your first book"
+          }
+        }
+      }
+    },
+    "badge.first_book.label" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "The End"
+          }
+        }
+      }
+    },
+    "badge.first_page.description" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Wrote your first page"
+          }
+        }
+      }
+    },
+    "badge.first_page.label" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "First Page"
+          }
+        }
+      }
+    },
+    "badge.five_books.description" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Created 5 books"
+          }
+        }
+      }
+    },
+    "badge.five_books.label" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Super Shelf"
+          }
+        }
+      }
+    },
+    "badge.five_pages.description" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Wrote a 5+ page story"
+          }
+        }
+      }
+    },
+    "badge.five_pages.label" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Long Story"
+          }
+        }
+      }
+    },
+    "badge.generic.name" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "this badge"
+          }
+        }
+      }
+    },
+    "badge.made_avatar.description" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Made your own avatar"
+          }
+        }
+      }
+    },
+    "badge.made_avatar.label" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "That's Me"
+          }
+        }
+      }
+    },
+    "badge.printed_book.description" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Ordered a printed copy"
+          }
+        }
+      }
+    },
+    "badge.printed_book.label" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Real Book"
+          }
+        }
+      }
+    },
+    "badge.published_book.description" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Published a book to the gallery"
+          }
+        }
+      }
+    },
+    "badge.published_book.label" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Shared It"
+          }
+        }
+      }
+    },
+    "badge.streak_3.description" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Wrote 3 days in a row"
+          }
+        }
+      }
+    },
+    "badge.streak_3.label" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "On a Roll"
+          }
+        }
+      }
+    },
+    "badge.streak_30.description" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Wrote 30 days in a row"
+          }
+        }
+      }
+    },
+    "badge.streak_30.label" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Story Legend"
+          }
+        }
+      }
+    },
+    "badge.streak_7.description" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Wrote 7 days in a row"
+          }
+        }
+      }
+    },
+    "badge.streak_7.label" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Week of Wonders"
+          }
+        }
+      }
+    },
+    "badge.submitted_class.description" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Submitted a book to class"
+          }
+        }
+      }
+    },
+    "badge.submitted_class.label" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Class Star"
+          }
+        }
+      }
+    },
+    "badge.ten_books.description" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Created 10 books"
+          }
+        }
+      }
+    },
+    "badge.ten_books.label" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Writing Star"
+          }
+        }
+      }
+    },
+    "badge.ten_pages.description" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Wrote a 10-page story"
+          }
+        }
+      }
+    },
+    "badge.ten_pages.label" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Epic Tale"
+          }
+        }
+      }
+    },
+    "badge.three_books.description" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Created 3 books"
+          }
+        }
+      }
+    },
+    "badge.three_books.label" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Bookworm"
+          }
+        }
+      }
+    },
+    "badge.three_illustrations.description" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Put 3 pictures in one book"
+          }
+        }
+      }
+    },
+    "badge.three_illustrations.label" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Picture Book"
+          }
+        }
+      }
+    },
+    "badge.used_buddy.description" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Asked Story Buddy for help"
+          }
+        }
+      }
+    },
+    "badge.used_buddy.label" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "AI Friend"
+          }
+        }
+      }
+    },
+    "badge.used_voice.description" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Used voice input"
+          }
+        }
+      }
+    },
+    "badge.used_voice.label" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Magic Voice"
+          }
+        }
+      }
+    },
+    "bookshelf.book_count" : {
+      "comment" : "Count of books on the shelf. MUST be varied by plural: one = \"1 book\", other = \"%lld books\".",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%lld books"
+          }
+        }
+      }
+    },
+    "by %@" : {
+
+    },
+    "coin_pack.large.label" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Large pack"
+          }
+        }
+      }
+    },
+    "coin_pack.medium.label" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Medium pack"
+          }
+        }
+      }
+    },
+    "coin_pack.small.label" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Small pack"
+          }
+        }
+      }
+    },
+    "coins.insufficient" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Not enough coins yet — keep creating to earn more!"
+          }
+        }
+      }
+    },
+    "coins.purchase.failed" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Purchase failed: %@"
+          }
+        }
+      }
+    },
+    "coins.purchase.pending" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Payment confirmed. Your coins will appear in a moment — pull to refresh if they don't show up."
+          }
+        }
+      }
+    },
+    "create.cover.error.generation_failed" : {
+      "comment" : "%@ is the underlying network/server error, already localized by iOS",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Couldn't paint the cover: %@"
+          }
+        }
+      }
+    },
+    "create.hero.error.generation_failed" : {
+      "comment" : "%@ is the underlying network/server error, already localized by iOS",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Couldn't create your hero: %@"
+          }
+        }
+      }
+    },
+    "create.hero.error.unprocessable_photo" : {
+      "comment" : "Shown when the picked photo can't be re-encoded for upload",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Couldn't process that photo."
+          }
+        }
+      }
+    },
+    "create.hero.error.unreadable_photo" : {
+      "comment" : "Shown when the picked photo can't be decoded",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Couldn't read that photo."
+          }
+        }
+      }
+    },
+    "create.page.error.drawing_save_failed" : {
+      "comment" : "%@ is the underlying upload error, already localized by iOS",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Couldn't save your drawing: %@"
+          }
+        }
+      }
+    },
+    "create.page.error.illustration_failed" : {
+      "comment" : "%@ is the underlying network/server error, already localized by iOS",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Couldn't generate illustration: %@"
+          }
+        }
+      }
+    },
+    "create.setting.cloud_kingdom.blurb" : {
+      "comment" : "One-line description of the Cloud Kingdom world",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "A floating land high above the world."
+          }
+        }
+      }
+    },
+    "create.setting.cloud_kingdom.title" : {
+      "comment" : "Name of a story world a child can pick",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "The Cloud Kingdom"
+          }
+        }
+      }
+    },
+    "create.setting.cookie_planet.blurb" : {
+      "comment" : "One-line description of the Cookie Planet world",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "A planet made of every dessert imaginable."
+          }
+        }
+      }
+    },
+    "create.setting.cookie_planet.title" : {
+      "comment" : "Name of a story world a child can pick",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "The Cookie Planet"
+          }
+        }
+      }
+    },
+    "create.setting.coral_city.blurb" : {
+      "comment" : "One-line description of the Coral City world",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "An underwater city of bright coral towers."
+          }
+        }
+      }
+    },
+    "create.setting.coral_city.title" : {
+      "comment" : "Name of a story world a child can pick",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "The Coral City"
+          }
+        }
+      }
+    },
+    "create.setting.dinosaur_valley.blurb" : {
+      "comment" : "One-line description of the Dinosaur Valley world",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "A hidden valley where dinosaurs still play."
+          }
+        }
+      }
+    },
+    "create.setting.dinosaur_valley.title" : {
+      "comment" : "Name of a story world a child can pick",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "The Dinosaur Valley"
+          }
+        }
+      }
+    },
+    "create.setting.glowing_forest.blurb" : {
+      "comment" : "One-line description of the Glowing Forest world",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "A magical forest where stars come down at night."
+          }
+        }
+      }
+    },
+    "create.setting.glowing_forest.title" : {
+      "comment" : "Name of a story world a child can pick",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "The Glowing Forest"
+          }
+        }
+      }
+    },
+    "create.setting.snow_castle.blurb" : {
+      "comment" : "One-line description of the Snow Castle world",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "A castle of ice and silver moonlight."
+          }
+        }
+      }
+    },
+    "create.setting.snow_castle.title" : {
+      "comment" : "Name of a story world a child can pick",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "The Snow Castle"
           }
         }
       }
@@ -706,8 +1712,756 @@
     "e.g. The Brave Star Bear" : {
 
     },
+    "gallery.byline %@" : {
+
+    },
+    "gallery.byline.with_age %@ %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "gallery.byline.with_age %1$@ %2$lld"
+          }
+        }
+      }
+    },
+    "gallery.card.a11y %@ %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "gallery.card.a11y %1$@ %2$@"
+          }
+        }
+      }
+    },
+    "gallery.card.a11y.with_age %@ %@ %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "gallery.card.a11y.with_age %1$@ %2$@ %3$lld"
+          }
+        }
+      }
+    },
     "or" : {
 
+    },
+    "order.detail.error.load_failed" : {
+      "comment" : "Shown when the order row cannot be fetched",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Couldn't load this order."
+          }
+        }
+      }
+    },
+    "order.status.delivered" : {
+      "comment" : "Print order status: arrived",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Delivered"
+          }
+        }
+      }
+    },
+    "order.status.failed" : {
+      "comment" : "Print order status: the order could not be completed",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Failed"
+          }
+        }
+      }
+    },
+    "order.status.in_production" : {
+      "comment" : "Print order status: the book is being printed",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Printing"
+          }
+        }
+      }
+    },
+    "order.status.paid" : {
+      "comment" : "Print order status: paid, building the print PDF",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Preparing files"
+          }
+        }
+      }
+    },
+    "order.status.pdf_ready" : {
+      "comment" : "Print order status: PDF built, handed to the print partner",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Sent to printer"
+          }
+        }
+      }
+    },
+    "order.status.pending" : {
+      "comment" : "Print order status: payment not completed yet",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Waiting on payment"
+          }
+        }
+      }
+    },
+    "order.status.refunded" : {
+      "comment" : "Print order status: money returned to the customer",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Refunded"
+          }
+        }
+      }
+    },
+    "order.status.shipped" : {
+      "comment" : "Print order status: shipped, in transit",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "On the way"
+          }
+        }
+      }
+    },
+    "order.status.submitted" : {
+      "comment" : "Print order status: accepted by the print partner",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Sent to printer"
+          }
+        }
+      }
+    },
+    "order.status.unknown" : {
+      "comment" : "Print order status the app doesn't recognize yet",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Processing"
+          }
+        }
+      }
+    },
+    "order.summary.format_quantity" : {
+      "comment" : "Order summary value, e.g. \"Hardcover × 2\"",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ × %2$lld"
+          }
+        }
+      }
+    },
+    "orders.card.quantity_line" : {
+      "comment" : "Order card subtitle, e.g. \"2 × Hardcover · $44.98\"",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld × %2$@ · %3$@"
+          }
+        }
+      }
+    },
+    "orders.list.error.load_failed" : {
+      "comment" : "%@ is the underlying network/server error, already localized by iOS",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Couldn't load orders: %@"
+          }
+        }
+      }
+    },
+    "plan.classroom.name" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Classroom"
+          }
+        }
+      }
+    },
+    "plan.family.name" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Family"
+          }
+        }
+      }
+    },
+    "plan.free.name" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Free"
+          }
+        }
+      }
+    },
+    "plan.unknown.name" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Premium"
+          }
+        }
+      }
+    },
+    "print.format.hardcover" : {
+      "comment" : "Print format: a book with a rigid cover",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Hardcover"
+          }
+        }
+      }
+    },
+    "print.format.softcover" : {
+      "comment" : "Print format: a book with a flexible paper cover",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Softcover"
+          }
+        }
+      }
+    },
+    "print.format.unknown" : {
+      "comment" : "Print format the app doesn't recognize yet",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Unknown"
+          }
+        }
+      }
+    },
+    "print.order.error.create_failed" : {
+      "comment" : "%@ is the underlying network/server error, already localized by iOS",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Couldn't create order: %@"
+          }
+        }
+      }
+    },
+    "print.order.error.payment_failed" : {
+      "comment" : "%@ is Stripe's decline/failure reason, already localized by the SDK",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Payment failed: %@"
+          }
+        }
+      }
+    },
+    "print.order.error.payments_unavailable" : {
+      "comment" : "Shown when the server did not return a Stripe publishable key",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Payments are temporarily unavailable. Please try again later."
+          }
+        }
+      }
+    },
+    "store.style.insufficient_coins" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "You need %lld coins for this. Earn more coins by creating books and using features!"
+          }
+        }
+      }
+    },
+    "story.idea.01" : {
+      "comment" : "Shake-for-an-idea story starter shown to children aged 4-8",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "A dragon who is afraid of the dark finds a glowing friend."
+          }
+        }
+      }
+    },
+    "story.idea.02" : {
+      "comment" : "Shake-for-an-idea story starter shown to children aged 4-8",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Your sneakers can suddenly jump over houses. Where do you go first?"
+          }
+        }
+      }
+    },
+    "story.idea.03" : {
+      "comment" : "Shake-for-an-idea story starter shown to children aged 4-8",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "A tiny mouse opens the world's smallest bakery."
+          }
+        }
+      }
+    },
+    "story.idea.04" : {
+      "comment" : "Shake-for-an-idea story starter shown to children aged 4-8",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "The moon gets lost and knocks on your window for directions."
+          }
+        }
+      }
+    },
+    "story.idea.05" : {
+      "comment" : "Shake-for-an-idea story starter shown to children aged 4-8",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "A robot learns how to giggle."
+          }
+        }
+      }
+    },
+    "story.idea.06" : {
+      "comment" : "Shake-for-an-idea story starter shown to children aged 4-8",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Your pet goldfish becomes the captain of a pirate ship."
+          }
+        }
+      }
+    },
+    "story.idea.07" : {
+      "comment" : "Shake-for-an-idea story starter shown to children aged 4-8",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "A rainbow falls asleep across your street."
+          }
+        }
+      }
+    },
+    "story.idea.08" : {
+      "comment" : "Shake-for-an-idea story starter shown to children aged 4-8",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "The letters of the alphabet throw a birthday party."
+          }
+        }
+      }
+    },
+    "story.idea.09" : {
+      "comment" : "Shake-for-an-idea story starter shown to children aged 4-8",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "A snowman wishes for a warm hug that won't melt him."
+          }
+        }
+      }
+    },
+    "story.idea.10" : {
+      "comment" : "Shake-for-an-idea story starter shown to children aged 4-8",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Your crayons sneak out at night to draw on the sky."
+          }
+        }
+      }
+    },
+    "story.idea.11" : {
+      "comment" : "Shake-for-an-idea story starter shown to children aged 4-8",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "A baby dinosaur hatches in your backyard."
+          }
+        }
+      }
+    },
+    "story.idea.12" : {
+      "comment" : "Shake-for-an-idea story starter shown to children aged 4-8",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "The school bus grows wings on the way to school."
+          }
+        }
+      }
+    },
+    "story.idea.13" : {
+      "comment" : "Shake-for-an-idea story starter shown to children aged 4-8",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "A cloud rains lemonade on the town fair."
+          }
+        }
+      }
+    },
+    "story.idea.14" : {
+      "comment" : "Shake-for-an-idea story starter shown to children aged 4-8",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Your shadow wants to swap places with you for a day."
+          }
+        }
+      }
+    },
+    "story.idea.15" : {
+      "comment" : "Shake-for-an-idea story starter shown to children aged 4-8",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "A unicorn loses its sparkle and goes looking for it."
+          }
+        }
+      }
+    },
+    "story.idea.16" : {
+      "comment" : "Shake-for-an-idea story starter shown to children aged 4-8",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "The library books start whispering their stories at midnight."
+          }
+        }
+      }
+    },
+    "story.idea.17" : {
+      "comment" : "Shake-for-an-idea story starter shown to children aged 4-8",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "A penguin moves to the jungle and opens an ice-cream stand."
+          }
+        }
+      }
+    },
+    "story.idea.18" : {
+      "comment" : "Shake-for-an-idea story starter shown to children aged 4-8",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Your grandma's old key opens a door in a tree."
+          }
+        }
+      }
+    },
+    "story.idea.19" : {
+      "comment" : "Shake-for-an-idea story starter shown to children aged 4-8",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "A star falls into your soup. Now your spoon can fly."
+          }
+        }
+      }
+    },
+    "story.idea.20" : {
+      "comment" : "Shake-for-an-idea story starter shown to children aged 4-8",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "The vegetables in the garden form a band."
+          }
+        }
+      }
+    },
+    "story.idea.21" : {
+      "comment" : "Shake-for-an-idea story starter; the shouted YOU is the joke, keep the emphasis",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "A friendly monster is hiding under the bed — and it's scared of YOU."
+          }
+        }
+      }
+    },
+    "story.idea.22" : {
+      "comment" : "Shake-for-an-idea story starter shown to children aged 4-8",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Your bicycle can talk, but only on Tuesdays."
+          }
+        }
+      }
+    },
+    "story.idea.23" : {
+      "comment" : "Shake-for-an-idea story starter shown to children aged 4-8",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "A whale dreams of seeing the mountains."
+          }
+        }
+      }
+    },
+    "story.idea.24" : {
+      "comment" : "Shake-for-an-idea story starter shown to children aged 4-8",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "The playground slide is secretly a portal to the clouds."
+          }
+        }
+      }
+    },
+    "story.idea.25" : {
+      "comment" : "Shake-for-an-idea story starter shown to children aged 4-8",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "A firefly teaches the lighthouse how to blink hello."
+          }
+        }
+      }
+    },
+    "story.idea.26" : {
+      "comment" : "Shake-for-an-idea story starter shown to children aged 4-8",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Your mittens are magic: everything you touch turns fuzzy."
+          }
+        }
+      }
+    },
+    "story.idea.27" : {
+      "comment" : "Shake-for-an-idea story starter shown to children aged 4-8",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "A little ghost just wants to be invited to the sleepover."
+          }
+        }
+      }
+    },
+    "story.idea.28" : {
+      "comment" : "Shake-for-an-idea story starter shown to children aged 4-8",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "The last cookie in the jar makes a daring escape."
+          }
+        }
+      }
+    },
+    "story.idea.29" : {
+      "comment" : "Shake-for-an-idea story starter shown to children aged 4-8",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "A turtle enters the city's fastest race."
+          }
+        }
+      }
+    },
+    "story.idea.30" : {
+      "comment" : "Shake-for-an-idea story starter shown to children aged 4-8",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Your treehouse lifts off like a rocket at bedtime."
+          }
+        }
+      }
+    },
+    "story.idea.hint.pad" : {
+      "comment" : "Footnote on the story-idea popup, iPad wording",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Shake your iPad anytime for a new idea ✨"
+          }
+        }
+      }
+    },
+    "story.idea.hint.phone" : {
+      "comment" : "Footnote on the story-idea popup, iPhone wording",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Shake your phone anytime for a new idea ✨"
+          }
+        }
+      }
+    },
+    "welcome.banner.subtitle" : {
+      "comment" : "Launch banner subtitle; %@ is the signed-in person's display name",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Good to see you, %@"
+          }
+        }
+      }
+    },
+    "welcome.streak.continue" : {
+      "comment" : "Nudge on the launch celebration; %lld is tomorrow's streak day number",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Write today to reach day %lld!"
+          }
+        }
+      }
+    },
+    "welcome.streak.start" : {
+      "comment" : "Nudge on the launch celebration when the streak is at zero",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Write something today to start a streak!"
+          }
+        }
+      }
     },
     "“%@”" : {
 

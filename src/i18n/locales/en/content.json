@@ -120,5 +120,206 @@
     "sunset-glow": {
       "name": "Sunset Glow"
     }
+  },
+  "avatar": {
+    "skin_tone": {
+      "light": {
+        "label": "Light"
+      },
+      "fair": {
+        "label": "Fair"
+      },
+      "medium": {
+        "label": "Medium"
+      },
+      "dark": {
+        "label": "Dark"
+      },
+      "peach": {
+        "label": "Peach"
+      },
+      "tan": {
+        "label": "Tan"
+      }
+    },
+    "hair_style": {
+      "none": {
+        "label": "None"
+      },
+      "short": {
+        "label": "Short"
+      },
+      "long": {
+        "label": "Long"
+      },
+      "curly": {
+        "label": "Curly"
+      },
+      "braids": {
+        "label": "Braids"
+      },
+      "ponytail": {
+        "label": "Ponytail"
+      },
+      "mohawk": {
+        "label": "Mohawk"
+      },
+      "afro": {
+        "label": "Afro"
+      }
+    },
+    "hair_color": {
+      "brown": {
+        "label": "Brown"
+      },
+      "black": {
+        "label": "Black"
+      },
+      "blonde": {
+        "label": "Blonde"
+      },
+      "red": {
+        "label": "Red"
+      },
+      "pink": {
+        "label": "Pink"
+      },
+      "blue": {
+        "label": "Blue"
+      },
+      "purple": {
+        "label": "Purple"
+      }
+    },
+    "clothing": {
+      "blue_t_shirt": {
+        "label": "Blue T-Shirt"
+      },
+      "red_hoodie": {
+        "label": "Red Hoodie"
+      },
+      "green_jacket": {
+        "label": "Green Jacket"
+      },
+      "pink_dress": {
+        "label": "Pink Dress"
+      },
+      "yellow_sweater": {
+        "label": "Yellow Sweater"
+      },
+      "purple_overalls": {
+        "label": "Purple Overalls"
+      },
+      "superhero_cape": {
+        "label": "Super Cape"
+      },
+      "wizard_robe": {
+        "label": "Wizard Robe"
+      },
+      "sports_jersey": {
+        "label": "Sports Jersey"
+      },
+      "astronaut_suit": {
+        "label": "Space Suit"
+      }
+    },
+    "hat": {
+      "none": {
+        "label": "None"
+      },
+      "baseball_cap": {
+        "label": "Cap"
+      },
+      "beanie": {
+        "label": "Beanie"
+      },
+      "cowboy_hat": {
+        "label": "Cowboy"
+      },
+      "crown": {
+        "label": "Crown"
+      },
+      "wizard_hat": {
+        "label": "Wizard"
+      },
+      "party_hat": {
+        "label": "Party"
+      },
+      "flower_crown": {
+        "label": "Flowers"
+      },
+      "headphones": {
+        "label": "Headphones"
+      },
+      "pirate_hat": {
+        "label": "Pirate"
+      }
+    },
+    "accessory": {
+      "none": {
+        "label": "None"
+      },
+      "round_glasses": {
+        "label": "Glasses"
+      },
+      "cool_sunglasses": {
+        "label": "Sunglasses"
+      },
+      "star_shaped_glasses": {
+        "label": "Star Glasses"
+      },
+      "a_red_scarf": {
+        "label": "Scarf"
+      },
+      "a_magic_wand": {
+        "label": "Wand"
+      },
+      "a_backpack": {
+        "label": "Backpack"
+      },
+      "butterfly_wings": {
+        "label": "Wings"
+      }
+    },
+    "expression": {
+      "happy_smiling": {
+        "label": "Happy"
+      },
+      "excited_laughing": {
+        "label": "Excited"
+      },
+      "cool_confident": {
+        "label": "Cool"
+      },
+      "silly_tongue_out": {
+        "label": "Silly"
+      },
+      "brave_determined": {
+        "label": "Brave"
+      },
+      "curious_wondering": {
+        "label": "Curious"
+      },
+      "peaceful_calm": {
+        "label": "Peaceful"
+      }
+    },
+    "art_style": {
+      "cartoon": {
+        "label": "Cartoon"
+      },
+      "pixar": {
+        "label": "Pixar 3D"
+      },
+      "anime": {
+        "label": "Anime"
+      },
+      "watercolor": {
+        "label": "Watercolor"
+      },
+      "pixel": {
+        "label": "Pixel Art"
+      }
+    }
   }
 }

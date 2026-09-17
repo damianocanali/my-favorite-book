@@ -73,5 +73,41 @@
     "sticker_count_other": "{{count}} stickers so far — keep them coming!",
     "sticker_empty": "Tap a sticker to show this author some love!",
     "own_book_cta": "Want to create your own book?"
+  },
+  "teacher": {
+    "title": "Teacher Dashboard",
+    "subtitle": "Create a class code and share it with your students. When they finish a book, they'll submit it here.",
+    "create_heading": "Create a New Class",
+    "name_placeholder": "e.g. Mrs. Rivera's 3rd Grade",
+    "create": "Create",
+    "creating": "Creating…",
+    "create_failed": "Failed to create class",
+    "your_classes": "Your Classes",
+    "copy_code": "Copy code",
+    "view_books": "View Books",
+    "empty": "No classes yet — create one above to get started."
+  },
+  "classroom": {
+    "meta_one": "Code: <code>{{code}}</code> · {{count}} book submitted",
+    "meta_other": "Code: <code>{{code}}</code> · {{count}} books submitted",
+    "card_byline_one": "by {{name}} · {{count}} page",
+    "card_byline_other": "by {{name}} · {{count}} pages",
+    "load_failed": "Could not load classroom",
+    "not_found": "Classroom not found",
+    "back_to_dashboard": "Back to Teacher Dashboard",
+    "empty_title": "No books yet.",
+    "empty_body": "Share the code <code>{{code}}</code> with your students."
+  },
+  "submit_to_class": {
+    "title": "Submit to Class",
+    "subtitle": "Share your book with your teacher",
+    "instruction": "Ask your teacher for the class code and enter it below.",
+    "code_placeholder": "CLASS CODE",
+    "error_missing_code": "Enter your class code.",
+    "submit": "Submit Book",
+    "submitting": "Submitting…",
+    "submit_failed": "Could not submit book",
+    "success_title": "Book Submitted!",
+    "success_body": "Your teacher can now read <title>\"{{title}}\"</title> in the class gallery."
   }
 }

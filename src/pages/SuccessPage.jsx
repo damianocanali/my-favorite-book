@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { motion } from 'motion/react'
+import { useTranslation } from 'react-i18next'
 import { CheckCircle, BookOpen, Sparkles } from 'lucide-react'
 import SparkleButton from '../components/ui/SparkleButton'
 
 export default function SuccessPage() {
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const [searchParams] = useSearchParams()
   const sessionId = searchParams.get('session_id')
   const [countdown, setCountdown] = useState(5)
@@ -37,7 +39,7 @@ export default function SuccessPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
       >
-        You're all set! 🎉
+        {t('pricing:success.title')}
       </motion.h1>
 
       <motion.p
@@ -46,7 +48,7 @@ export default function SuccessPage() {
         animate={{ opacity: 1 }}
         transition={{ delay: 0.5 }}
       >
-        Your subscription is active. Time to create something amazing!
+        {t('pricing:success.subtitle')}
       </motion.p>
 
       {sessionId && (
@@ -56,7 +58,7 @@ export default function SuccessPage() {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.7 }}
         >
-          Order confirmed · {sessionId.slice(-8).toUpperCase()}
+          {t('pricing:success.order_confirmed', { code: sessionId.slice(-8).toUpperCase() })}
         </motion.p>
       )}
 
@@ -68,13 +70,13 @@ export default function SuccessPage() {
       >
         <SparkleButton onClick={() => navigate('/create')} size="large" variant="primary">
           <span className="flex items-center gap-2">
-            <BookOpen size={20} /> Create a Book
+            <BookOpen size={20} /> {t('pricing:success.cta_create')}
           </span>
         </SparkleButton>
 
         <SparkleButton onClick={() => navigate('/bookshelf')} size="large" variant="secondary">
           <span className="flex items-center gap-2">
-            <Sparkles size={20} /> My Bookshelf
+            <Sparkles size={20} /> {t('pricing:success.cta_bookshelf')}
           </span>
         </SparkleButton>
       </motion.div>
@@ -85,7 +87,7 @@ export default function SuccessPage() {
         animate={{ opacity: 1 }}
         transition={{ delay: 1 }}
       >
-        Redirecting in {countdown}s…
+        {t('pricing:success.redirecting', { count: countdown })}
       </motion.p>
     </div>
   )

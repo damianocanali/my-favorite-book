@@ -9,8 +9,16 @@
 import SwiftUI
 
 struct GameBanner: View {
-    let text: String
-    var sub: String?
+    // Both of these are copy. As `String` they selected the verbatim
+    // `Text` initializer, so nothing here ever reached the catalog and
+    // the banner stayed English on an Italian device.
+    //
+    // `LocalizedStringResource` rather than `LocalizedStringKey` because
+    // the lettering has to be uppercased in Swift (see `lettering`), and
+    // only a resource can be resolved to a `String` first. Callers still
+    // pass plain literals.
+    let text: LocalizedStringResource
+    var sub: LocalizedStringResource?
 
     // The stroke is drawn by stacking offset copies behind the fill.
     // SwiftUI has no text-stroke, and the obvious alternative — an
@@ -56,7 +64,9 @@ struct GameBanner: View {
                     )
             }
             .accessibilityElement()
-            .accessibilityLabel(text)
+            // VoiceOver gets the sentence-case original, not the
+            // shouted display form.
+            .accessibilityLabel(Text(text))
 
             if let sub {
                 Text(sub)
@@ -83,7 +93,11 @@ struct GameBanner: View {
     }
 
     private var lettering: some View {
-        Text(text.uppercased())
+        // Resolve first, then uppercase: the translated banner shouts in
+        // its own language. `Text(verbatim:)` is correct here precisely
+        // *because* the string has already been localized — it says so
+        // out loud instead of looking like an accidental opt-out.
+        Text(verbatim: String(localized: text).uppercased())
             .font(.system(size: 34, weight: .heavy, design: .rounded))
             .tracking(1.5)
             .lineLimit(1)
@@ -102,7 +116,9 @@ struct GameBanner: View {
 extension View {
     /// Presents a GameBanner over the receiver with the shared spring.
     /// Kept as a modifier so every caller gets identical motion.
-    func gameBanner(show: Bool, text: String, sub: String? = nil) -> some View {
+    func gameBanner(show: Bool,
+                    text: LocalizedStringResource,
+                    sub: LocalizedStringResource? = nil) -> some View {
         overlay(alignment: .top) {
             if show {
                 GameBanner(text: text, sub: sub)
@@ -123,6 +139,17 @@ extension View {
 #Preview {
     ZStack {
         CosmicBackground()
-        GameBanner(text: "Welcome back!", sub: "Good to see you, Theo")
+        // The subtitle reuses the real key rather than a bare preview
+        // literal. A literal here would extract as its own entry and put
+        // "Good to see you, Theo" in front of a translator as if it were
+        // shipping copy; this way the preview exercises the same format
+        // string the app uses and supplies its own name for the argument.
+        GameBanner(
+            text: "Welcome back!",
+            sub: LocalizedStringResource(
+                "welcome.banner.subtitle",
+                defaultValue: "Good to see you, \("Theo")",
+                comment: "Launch banner subtitle; %@ is the signed-in person's display name")
+        )
     }
 }

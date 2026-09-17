@@ -30,7 +30,11 @@ struct BookshelfView: View {
                     }
                 }
             }
-            .navigationTitle(auth.isSignedIn && !bookshelf.books.isEmpty ? "My Books" : "")
+            // Built as two `Text`s rather than a ternary between two bare
+            // literals: the literal has to sit directly in a localizing
+            // initializer for extraction to find it.
+            .navigationTitle(auth.isSignedIn && !bookshelf.books.isEmpty
+                             ? Text("My Books") : Text(verbatim: ""))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 if !auth.isSignedIn {
@@ -55,7 +59,21 @@ struct BookshelfView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 12) {
                 HStack {
-                    Text("\(bookshelf.books.count) book\(bookshelf.books.count == 1 ? "" : "s")")
+                    // One key carrying the count as an argument, replacing
+                    // the hand-rolled "s". Pluralization is not a suffix
+                    // in most languages, and the ternary also split the
+                    // sentence into fragments no translator could act on.
+                    //
+                    // NOTE FOR THE CATALOG: this entry must be varied by
+                    // plural in Xcode (Localizable.xcstrings → this key →
+                    // "Vary by Plural"). English wants "1 book" / "%lld
+                    // books"; Italian wants "1 libro" / "%lld libri".
+                    // Until those variations are filled in, English reads
+                    // "1 books" for a single book.
+                    Text(LocalizedStringResource(
+                        "bookshelf.book_count",
+                        defaultValue: "\(bookshelf.books.count) books",
+                        comment: "Count of books on the shelf. MUST be varied by plural: one = \"1 book\", other = \"%lld books\"."))
                         .font(.caption)
                         .foregroundStyle(.white.opacity(0.6))
                     Spacer()
@@ -82,6 +100,11 @@ struct BookshelfView: View {
         .scrollContentBackground(.hidden)
     }
 
+    // `message` stays a `String`: it is `BookshelfStore.error`, which is
+    // assembled in the store (outside this file) and already carries an
+    // iOS-localized `error.localizedDescription`. Retyping the parameter
+    // here would only move the problem — the store's own message needs
+    // to become a `LocalizedStringResource` first.
     private func errorState(_ message: String) -> some View {
         VStack(spacing: 14) {
             Image(systemName: "exclamationmark.triangle")
@@ -90,7 +113,7 @@ struct BookshelfView: View {
             Text("Couldn't load your books")
                 .font(.title3.bold())
                 .foregroundStyle(.white)
-            Text(message)
+            Text(verbatim: message)
                 .font(.caption)
                 .foregroundStyle(.white.opacity(0.7))
                 .multilineTextAlignment(.center)
@@ -150,7 +173,8 @@ struct BookshelfView: View {
                     Text("Your bookshelf is empty")
                         .font(.system(.title2, design: .rounded).bold())
                         .foregroundStyle(.white)
-                    Text("Tap **Create** to make your first story — or peek at the example below.")
+                    Text("Tap **Create** to make your first story — or peek at the example below.",
+                         comment: "Empty-shelf nudge. **Create** is Markdown bold naming the Create tab — keep the ** ** around the translated tab name, and translate the tab name the same way it is translated in the tab bar.")
                         .font(.subheadline)
                         .foregroundStyle(.white.opacity(0.75))
                         .multilineTextAlignment(.center)

@@ -1,5 +1,189 @@
 {
   "sourceLanguage" : "en",
-  "strings" : {},
+  "strings" : {
+    "My Books" : {
+      "comment" : "Widget title fallback when the latest book has no title"
+    },
+    "My Latest Book" : {
+      "comment" : "Widget name in the widget gallery"
+    },
+    "Start your first story!" : {
+      "comment" : "Widget empty state, no books yet"
+    },
+    "Tap to write today! ✨" : {
+      "comment" : "Widget call to action"
+    },
+    "Your newest story and writing streak." : {
+      "comment" : "Widget description in the widget gallery"
+    },
+    "order.live.headline" : {
+      "comment" : "Live Activity lock-screen headline; %@ is the book title",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "\"%@\" in print"
+          }
+        }
+      }
+    },
+    "order.live.progress" : {
+      "comment" : "Compact Dynamic Island progress out of four stages, e.g. \"2/4\"",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%lld/4"
+          }
+        }
+      }
+    },
+    "order.status.delivered" : {
+      "comment" : "Live Activity stage: the book arrived",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Delivered!"
+          }
+        }
+      }
+    },
+    "order.status.failed" : {
+      "comment" : "Live Activity stage: the order could not be completed",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Something went wrong"
+          }
+        }
+      }
+    },
+    "order.status.in_production" : {
+      "comment" : "Live Activity stage: the book is on the press",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Being printed"
+          }
+        }
+      }
+    },
+    "order.status.paid" : {
+      "comment" : "Live Activity stage: payment went through",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Payment confirmed"
+          }
+        }
+      }
+    },
+    "order.status.pdf_ready" : {
+      "comment" : "Live Activity stage: print PDF built and handed over",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Sent to printer"
+          }
+        }
+      }
+    },
+    "order.status.pending" : {
+      "comment" : "Live Activity stage: order created, awaiting payment",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Order placed"
+          }
+        }
+      }
+    },
+    "order.status.refunded" : {
+      "comment" : "Live Activity stage: money returned to the customer",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Refunded"
+          }
+        }
+      }
+    },
+    "order.status.shipped" : {
+      "comment" : "Live Activity stage: shipped, in transit",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "On its way!"
+          }
+        }
+      }
+    },
+    "order.status.submitted" : {
+      "comment" : "Live Activity stage: accepted by the print partner",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Sent to printer"
+          }
+        }
+      }
+    },
+    "order.status.unknown" : {
+      "comment" : "Live Activity stage for a status the app doesn't recognize yet",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Processing"
+          }
+        }
+      }
+    },
+    "widget.shelf.book_count" : {
+      "comment" : "Widget subtitle counting the books on the shelf, e.g. \"3 books on your shelf\"",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "^[%lld book](inflect: true) on your shelf"
+          }
+        }
+      }
+    },
+    "widget.streak.days" : {
+      "comment" : "Widget writing-streak line, e.g. \"🔥 4 day streak\"",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "🔥 %lld day streak"
+          }
+        }
+      }
+    }
+  },
   "version" : "1.0"
 }

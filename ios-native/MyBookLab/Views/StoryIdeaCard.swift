@@ -3,6 +3,10 @@
 import SwiftUI
 
 struct StoryIdeaCard: View {
+    /// The prompt currently on screen, already resolved through the
+    /// String Catalog by `StoryIdeas.random(excluding:)`. It stays a
+    /// `String` because that is what the binding's owner holds; the
+    /// localization happens upstream, at the point the idea is picked.
     @Binding var idea: String?
 
     @Environment(AppRouter.self) private var router
@@ -20,7 +24,10 @@ struct StoryIdeaCard: View {
                         .font(.system(.title3, design: .rounded).bold())
                         .foregroundStyle(.white)
 
-                    Text(current)
+                    // Verbatim on purpose: `current` came out of the
+                    // catalog already translated, so looking it up a
+                    // second time would only find nothing.
+                    Text(verbatim: current)
                         .font(.system(.body, design: .rounded))
                         .foregroundStyle(.white.opacity(0.92))
                         .multilineTextAlignment(.center)
@@ -56,7 +63,21 @@ struct StoryIdeaCard: View {
                         }
                     }
 
-                    Text("Shake your \(UIDevice.current.userInterfaceIdiom == .pad ? "iPad" : "phone") anytime for a new idea ✨")
+                    // Two whole sentences, not one sentence with the
+                    // device noun spliced in. Italian inflects the
+                    // article and the possessive to match the noun's
+                    // gender ("il tuo iPad" vs "il tuo telefono"), so a
+                    // shared "Shake your %@…" frame cannot be translated
+                    // correctly no matter what goes in the blank.
+                    Text(UIDevice.current.userInterfaceIdiom == .pad
+                         ? LocalizedStringResource(
+                            "story.idea.hint.pad",
+                            defaultValue: "Shake your iPad anytime for a new idea ✨",
+                            comment: "Footnote on the story-idea popup, iPad wording")
+                         : LocalizedStringResource(
+                            "story.idea.hint.phone",
+                            defaultValue: "Shake your phone anytime for a new idea ✨",
+                            comment: "Footnote on the story-idea popup, iPhone wording"))
                         .font(.caption2)
                         .foregroundStyle(.white.opacity(0.5))
                 }

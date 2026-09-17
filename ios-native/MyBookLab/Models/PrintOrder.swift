@@ -11,6 +11,26 @@ enum PrintFormat: String, Codable, Sendable {
         let raw = (try? decoder.singleValueContainer().decode(String.self)) ?? ""
         self = PrintFormat(rawValue: raw) ?? .unknown
     }
+
+    /// Human-readable, translatable name for this format.
+    ///
+    /// The `rawValue` ("hardcover" / "softcover") is the API contract with
+    /// the server and the print partner — it must never be shown to a
+    /// user, capitalized or otherwise, because it can't be translated.
+    /// Views render this instead.
+    var displayName: LocalizedStringResource {
+        switch self {
+        case .hardcover:
+            LocalizedStringResource("print.format.hardcover", defaultValue: "Hardcover",
+                                    comment: "Print format: a book with a rigid cover")
+        case .softcover:
+            LocalizedStringResource("print.format.softcover", defaultValue: "Softcover",
+                                    comment: "Print format: a book with a flexible paper cover")
+        case .unknown:
+            LocalizedStringResource("print.format.unknown", defaultValue: "Unknown",
+                                    comment: "Print format the app doesn't recognize yet")
+        }
+    }
 }
 
 /// Print pricing, mirrored from the server so the quote the app shows
@@ -34,9 +54,13 @@ enum PrintPricing {
 
     /// "$39.99" — derived from the cents above so a display string can
     /// never drift away from the number used in the total.
+    ///
+    /// Formatting goes through `Int.asPrice` (see Models/PriceFormatting.swift):
+    /// the currency stays USD because that is what Lulu actually bills, but
+    /// the grouping and decimal separator follow the reader's locale, so an
+    /// Italian device sees "39,99 USD" instead of a mangled "$39.99".
     static func priceLabel(for format: PrintFormat) -> String {
-        let cents = unitCents(for: format)
-        return String(format: "$%.2f", Double(cents) / 100)
+        unitCents(for: format).asPrice
     }
 }
 
@@ -58,6 +82,48 @@ enum PrintOrderStatus: String, Codable, Sendable {
     init(from decoder: Decoder) throws {
         let raw = (try? decoder.singleValueContainer().decode(String.self)) ?? ""
         self = PrintOrderStatus(rawValue: raw) ?? .unknown
+    }
+
+    /// The label a customer sees for this status.
+    ///
+    /// The `rawValue` is the wire contract shared with lib/print/state.js
+    /// and with the Live Activity content state — never render it. Two
+    /// views used to derive their own text from it (one by capitalizing
+    /// the raw string, one with a hand-written switch); both now read
+    /// this single translatable mapping.
+    var displayName: LocalizedStringResource {
+        switch self {
+        case .pending:
+            LocalizedStringResource("order.status.pending", defaultValue: "Waiting on payment",
+                                    comment: "Print order status: payment not completed yet")
+        case .paid:
+            LocalizedStringResource("order.status.paid", defaultValue: "Preparing files",
+                                    comment: "Print order status: paid, building the print PDF")
+        case .pdfReady:
+            LocalizedStringResource("order.status.pdf_ready", defaultValue: "Sent to printer",
+                                    comment: "Print order status: PDF built, handed to the print partner")
+        case .submitted:
+            LocalizedStringResource("order.status.submitted", defaultValue: "Sent to printer",
+                                    comment: "Print order status: accepted by the print partner")
+        case .inProduction:
+            LocalizedStringResource("order.status.in_production", defaultValue: "Printing",
+                                    comment: "Print order status: the book is being printed")
+        case .shipped:
+            LocalizedStringResource("order.status.shipped", defaultValue: "On the way",
+                                    comment: "Print order status: shipped, in transit")
+        case .delivered:
+            LocalizedStringResource("order.status.delivered", defaultValue: "Delivered",
+                                    comment: "Print order status: arrived")
+        case .failed:
+            LocalizedStringResource("order.status.failed", defaultValue: "Failed",
+                                    comment: "Print order status: the order could not be completed")
+        case .refunded:
+            LocalizedStringResource("order.status.refunded", defaultValue: "Refunded",
+                                    comment: "Print order status: money returned to the customer")
+        case .unknown:
+            LocalizedStringResource("order.status.unknown", defaultValue: "Processing",
+                                    comment: "Print order status the app doesn't recognize yet")
+        }
     }
 }
 

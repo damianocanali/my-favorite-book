@@ -32,9 +32,10 @@ struct BadgesView: View {
         HStack(spacing: 14) {
             Text("🔥").font(.system(size: 40))
             VStack(alignment: .leading, spacing: 2) {
-                Text(rewards.currentStreak == 1
-                     ? "1 day streak"
-                     : "\(rewards.currentStreak) day streak")
+                // One key with the count as an argument — the catalog
+                // carries the plural variations. A `== 1` ternary only
+                // ever models English's two forms.
+                Text("\(rewards.currentStreak) day streak")
                     .font(.system(.title3, design: .rounded).bold())
                     .foregroundStyle(.white)
                 Text(rewards.currentStreak > 0
@@ -65,9 +66,14 @@ struct BadgesView: View {
                 .foregroundStyle(.white.opacity(0.55))
                 .multilineTextAlignment(.center)
             if badge.coins > 0 {
-                Label("\(badge.coins)", systemImage: "star.circle.fill")
-                    .font(.caption2.bold())
-                    .foregroundStyle(earned ? .yellow : .white.opacity(0.4))
+                // A bare count: locale-formatted number, no catalog key.
+                Label {
+                    Text(badge.coins, format: .number)
+                } icon: {
+                    Image(systemName: "star.circle.fill")
+                }
+                .font(.caption2.bold())
+                .foregroundStyle(earned ? .yellow : .white.opacity(0.4))
             }
         }
         .frame(maxWidth: .infinity)

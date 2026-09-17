@@ -55,5 +55,57 @@
   "errors": {
     "network": "Network error: {{message}}",
     "server": "Server error: {{status}}"
+  },
+  "avatar": {
+    "title": "My Avatar",
+    "subtitle": "Design your look, then bring it to life with AI!",
+    "image_alt": "My avatar",
+    "generating": "Creating...",
+    "regenerate": "Regenerate",
+    "regenerate_cost_one": "Regenerate ({{count}} coin)",
+    "regenerate_cost_other": "Regenerate ({{count}} coins)",
+    "create_cta": "Create My Avatar!",
+    "free_generations_left_one": "{{count}} free generation left today",
+    "free_generations_left_other": "{{count}} free generations left today",
+    "coins_suffix": "coins",
+    "get_more_coins": "Get more coins",
+    "badges_button": "My Badges ({{earned}}/{{total}})",
+    "photo": {
+      "cta": "Use my photo",
+      "hint": "Take a photo and we'll turn it into a fun cartoon. Your photo isn't saved."
+    },
+    "art_style": {
+      "title": "Art Style"
+    },
+    "features": {
+      "skin_tone": "Skin Tone",
+      "hair_style": "Hair Style",
+      "hair_color": "Hair Color",
+      "clothing": "Clothing",
+      "hat": "Hat",
+      "accessory": "Accessories",
+      "expression": "Expression"
+    },
+    "coin_shop": {
+      "title": "Coin Packs",
+      "pack_one": "{{count}} Coin",
+      "pack_other": "{{count}} Coins",
+      "best_value": "BEST VALUE",
+      "loading": "Loading...",
+      "earn_hint": "Earn free coins by completing badges!"
+    },
+    "upgrade": {
+      "title": "Want unlimited avatars?",
+      "body": "Family plan includes 5 free generations per day, unlimited books, and PDF export.",
+      "cta": "View Plans"
+    },
+    "errors": {
+      "not_enough_coins_regen_one": "Not enough coins! You need {{count}} coin to regenerate.",
+      "not_enough_coins_regen_other": "Not enough coins! You need {{count}} coins to regenerate.",
+      "not_enough_coins_photo_one": "Not enough coins! You need {{count}} coin to make a photo avatar.",
+      "not_enough_coins_photo_other": "Not enough coins! You need {{count}} coins to make a photo avatar.",
+      "generate_failed": "Failed to generate avatar",
+      "cartoonify_failed": "Failed to cartoonify photo"
+    }
   }
 }

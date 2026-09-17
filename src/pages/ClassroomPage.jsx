@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import { useTranslation, Trans } from 'react-i18next'
 import { motion, AnimatePresence } from 'motion/react'
 import { GraduationCap, ArrowLeft, BookOpen, X, RefreshCw } from 'lucide-react'
 import BookPreview from '../components/book/BookPreview'
 import SparkleButton from '../components/ui/SparkleButton'
+import { formatDate } from '../i18n/formats'
 
 function BookCard({ submission, onClick }) {
+  const { t } = useTranslation()
   const { book } = submission
   const cover = book?.colors?.cover ?? '#8B5CF6'
   const accent = book?.colors?.accent ?? '#06B6D4'
@@ -27,10 +30,13 @@ function BookCard({ submission, onClick }) {
       <div className="p-3">
         <p className="font-heading font-bold text-galaxy-text text-sm line-clamp-1">{book?.title}</p>
         <p className="text-galaxy-text-muted text-xs font-body mt-0.5">
-          by {book?.authorName} · {book?.pages?.length ?? 0} pages
+          {t('gallery:classroom.card_byline', {
+            name: book?.authorName ?? '',
+            count: book?.pages?.length ?? 0,
+          })}
         </p>
         <p className="text-galaxy-text-muted text-xs font-body mt-0.5 opacity-60">
-          {new Date(submission.submitted_at).toLocaleDateString()}
+          {formatDate(submission.submitted_at, 'short')}
         </p>
       </div>
     </motion.button>
@@ -38,12 +44,16 @@ function BookCard({ submission, onClick }) {
 }
 
 function BookModal({ submission, onClose }) {
+  const { t } = useTranslation()
+
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-galaxy-bg overflow-y-auto" style={{ paddingTop: 'var(--sat, 0px)', paddingBottom: 'var(--sab, 0px)' }}>
       <div className="flex items-center justify-between p-4 max-w-3xl mx-auto w-full gap-3">
         <div>
           <h2 className="font-heading text-xl font-bold text-galaxy-text">{submission.book?.title}</h2>
-          <p className="text-galaxy-text-muted text-sm font-body">by {submission.book?.authorName}</p>
+          <p className="text-galaxy-text-muted text-sm font-body">
+            {t('gallery:byline.plain', { name: submission.book?.authorName ?? '' })}
+          </p>
         </div>
         <button
           onClick={onClose}
@@ -62,6 +72,7 @@ function BookModal({ submission, onClose }) {
 export default function ClassroomPage() {
   const { code } = useParams()
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const [classroom, setClassroom] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -73,7 +84,7 @@ export default function ClassroomPage() {
     try {
       const res = await fetch(`/api/classroom?code=${code}`)
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Could not load classroom')
+      if (!res.ok) throw new Error(data.error || t('gallery:classroom.load_failed'))
       setClassroom(data)
     } catch (e) {
       setError(e.message)
@@ -98,9 +109,11 @@ export default function ClassroomPage() {
   if (error || !classroom?.code) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4 px-4 text-center">
-        <p className="text-galaxy-text-muted font-body text-xl">{error || 'Classroom not found'}</p>
+        <p className="text-galaxy-text-muted font-body text-xl">
+          {error || t('gallery:classroom.not_found')}
+        </p>
         <SparkleButton onClick={() => navigate('/teacher')} variant="secondary">
-          Back to Teacher Dashboard
+          {t('gallery:classroom.back_to_dashboard')}
         </SparkleButton>
       </div>
     )
@@ -123,7 +136,7 @@ export default function ClassroomPage() {
             onClick={() => navigate('/teacher')}
             className="flex items-center gap-2 text-galaxy-text-muted hover:text-galaxy-text transition-colors font-body text-sm mb-4"
           >
-            <ArrowLeft size={16} /> Teacher Dashboard
+            <ArrowLeft size={16} /> {t('gallery:teacher.title')}
           </button>
 
           <div className="flex items-start justify-between gap-4 flex-wrap">
@@ -134,8 +147,14 @@ export default function ClassroomPage() {
               <div>
                 <h1 className="font-heading text-2xl font-bold text-galaxy-text">{classroom.name}</h1>
                 <p className="text-galaxy-text-muted font-body text-sm">
-                  Code: <span className="font-mono text-galaxy-secondary font-bold tracking-widest">{classroom.code}</span>
-                  {' · '}{submissions.length} book{submissions.length !== 1 ? 's' : ''} submitted
+                  <Trans
+                    i18nKey="gallery:classroom.meta"
+                    count={submissions.length}
+                    values={{ code: classroom.code }}
+                    components={{
+                      code: <span className="font-mono text-galaxy-secondary font-bold tracking-widest" />,
+                    }}
+                  />
                 </p>
               </div>
             </div>
@@ -143,7 +162,7 @@ export default function ClassroomPage() {
               onClick={fetchClassroom}
               className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-body text-galaxy-text-muted border border-galaxy-text-muted/20 hover:text-galaxy-text hover:border-galaxy-text-muted/40 transition-colors"
             >
-              <RefreshCw size={14} /> Refresh
+              <RefreshCw size={14} /> {t('common:actions.refresh')}
             </button>
           </div>
         </motion.div>
@@ -152,9 +171,15 @@ export default function ClassroomPage() {
         {submissions.length === 0 ? (
           <div className="text-center py-20">
             <BookOpen size={48} className="text-galaxy-text-muted mx-auto mb-4 opacity-40" />
-            <p className="text-galaxy-text-muted font-body text-lg">No books yet.</p>
+            <p className="text-galaxy-text-muted font-body text-lg">{t('gallery:classroom.empty_title')}</p>
             <p className="text-galaxy-text-muted font-body text-sm mt-1">
-              Share the code <span className="font-mono text-galaxy-secondary font-bold">{classroom.code}</span> with your students.
+              <Trans
+                i18nKey="gallery:classroom.empty_body"
+                values={{ code: classroom.code }}
+                components={{
+                  code: <span className="font-mono text-galaxy-secondary font-bold" />,
+                }}
+              />
             </p>
           </div>
         ) : (
