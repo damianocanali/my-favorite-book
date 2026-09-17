@@ -145,7 +145,16 @@ final class AuthStore: NSObject {
             // Legacy item from builds that stored the raw password.
             // Sign in once with it, then overwrite with session tokens
             // so the password stops living on the device.
-            try await signIn(email: email, password: password)
+            do {
+                try await signIn(email: email, password: password)
+            } catch {
+                // The password changed elsewhere, so this item can never
+                // work again. Report it as expired rather than letting the
+                // caller guess from the error text — that guess only worked
+                // in English.
+                BiometricCredentials.clear()
+                throw BiometricLoginError.expired
+            }
             saveBiometricLogin()
         }
     }
