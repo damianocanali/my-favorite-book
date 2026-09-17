@@ -4,11 +4,11 @@ import { PRINT_PRICES, FLAT_SHIPPING_CENTS, totalCents, formatPriceCents } from 
 describe('PRINT_PRICES', () => {
   it('hardcover is $39.99', () => {
     expect(PRINT_PRICES.hardcover.cents).toBe(3999)
-    expect(PRINT_PRICES.hardcover.label).toBe('$39.99')
+    expect(formatPriceCents(PRINT_PRICES.hardcover.cents)).toBe('$39.99')
   })
   it('softcover is $19.99', () => {
     expect(PRINT_PRICES.softcover.cents).toBe(1999)
-    expect(PRINT_PRICES.softcover.label).toBe('$19.99')
+    expect(formatPriceCents(PRINT_PRICES.softcover.cents)).toBe('$19.99')
   })
 })
 
@@ -37,7 +37,7 @@ describe('totalCents', () => {
 })
 
 describe('formatPriceCents', () => {
-  it('formats whole-dollar amounts without trailing zeros after decimal point', () => {
+  it('formats USD amounts using the active locale (en by default)', () => {
     expect(formatPriceCents(0)).toBe('$0.00')
     expect(formatPriceCents(499)).toBe('$4.99')
     expect(formatPriceCents(4498)).toBe('$44.98')
