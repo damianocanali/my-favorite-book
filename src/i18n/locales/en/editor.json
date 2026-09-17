@@ -1,0 +1,159 @@
+{
+  "a11y": {
+    "label": "Accessibility",
+    "read_aloud": "Read Aloud",
+    "stop_reading": "Stop",
+    "voice_input": "Voice Input",
+    "stop_voice": "Stop",
+    "dyslexia_font": "Dyslexia Font",
+    "focus_mode": "Focus Mode",
+    "exit_focus": "Exit Focus",
+    "reading_aloud_region": "Reading aloud"
+  },
+  "thumbnails": {
+    "hint": "Click a page to edit it"
+  },
+  "pages": {
+    "add": "Add Page",
+    "remove": "Remove Page",
+    "count_of_max_one": "{{used}}/{{max}} page",
+    "count_of_max_other": "{{used}}/{{max}} pages"
+  },
+  "progress": {
+    "label": "Your story progress",
+    "written_of_total_one": "{{done}} of {{total}} page written",
+    "written_of_total_other": "{{done}} of {{total}} pages written",
+    "page_written": "Page {{number}} (written)",
+    "page_empty": "Page {{number}} (empty)"
+  },
+  "header": {
+    "byline_page": "by {{author}} — Page {{page}} of {{total}}"
+  },
+  "actions": {
+    "preview_book": "Preview Book",
+    "save_and_preview": "✨ Save & Preview My Book!",
+    "finish_and_preview": "✨ Finish & Preview My Book!"
+  },
+  "focus": {
+    "page_label": "Page {{page}} — Focus Mode",
+    "exit": "Exit (Esc)"
+  },
+  "illustration": {
+    "alt": "Illustration for page {{number}}",
+    "ai_disclaimer": "AI-generated — may not be perfect",
+    "remove": "Remove illustration",
+    "regenerate_title": "Regenerate illustration",
+    "generate_title": "Generate illustration",
+    "drawing": "Drawing...",
+    "redraw": "Redraw",
+    "draw_page": "Draw This Page"
+  },
+  "text": {
+    "placeholder_first": "Once upon a time...",
+    "placeholder_next": "Continue your story...",
+    "char_count_one": "{{used}}/{{max}} character",
+    "char_count_other": "{{used}}/{{max}} characters"
+  },
+  "voice": {
+    "listening": "Listening..."
+  },
+  "scaffold": {
+    "toggle": "Need a spark? Tap a sentence starter",
+    "hide_word_bank": "Hide word bank",
+    "show_word_bank": "Show word bank (feelings & actions)",
+    "feelings_label": "Feelings:",
+    "actions_label": "Actions:"
+  },
+  "buddy": {
+    "title": "Story Buddy",
+    "subtitle": "Your AI writing helper!",
+    "mode_starters": "Sentence Starters",
+    "mode_starters_hint": "Get ideas to start writing",
+    "mode_paragraph": "Write for Me",
+    "mode_paragraph_hint": "Get a full paragraph suggestion",
+    "mode_questions": "Help Me Think",
+    "mode_questions_hint": "Answer fun questions to build your story",
+    "thinking": "Thinking...",
+    "cta_starters": "Get Sentence Starters",
+    "cta_paragraph": "Write a Paragraph",
+    "cta_questions": "Ask Me Questions",
+    "starters_intro": "Pick a starter and keep writing!",
+    "quoted": "\"{{text}}\"",
+    "click_to_use": "Click to use this starter",
+    "paragraph_intro": "Here's a suggestion! Use it, edit it, or try again.",
+    "use_this": "Use This",
+    "add_to_existing": "Add to Existing",
+    "try_another": "Try Another",
+    "questions_intro": "Think about these questions, then write your story!"
+  },
+  "tweak": {
+    "placeholder": "What to change? e.g. add stars",
+    "apply": "Apply tweak",
+    "open": "Tweak this image (small change, keeps composition)"
+  },
+  "limits": {
+    "daily_title": "Daily limit reached — upgrade for unlimited",
+    "daily_label": "Limit reached today",
+    "page_regen_title": "Max {{max}} redraws per page. Clear and try again to start over.",
+    "regen_label": "Max redraws — clear to retry",
+    "cover_regen_title": "Max {{max}} regenerations per book. Clear the cover to start over.",
+    "daily_images_title": "Daily image limit reached ({{max}}/day). Resets at midnight.",
+    "daily_reached": "Daily limit reached"
+  },
+  "cover": {
+    "image_alt": "Cover",
+    "title": "Book Cover Art",
+    "status_generated": "AI-generated cover",
+    "status_ready": "Generate a custom cover illustration",
+    "status_locked": "Upgrade to generate AI covers",
+    "remove": "Remove cover",
+    "creating": "Creating...",
+    "new": "New Cover",
+    "generate": "Generate Cover",
+    "upgrade": "Upgrade for AI Covers",
+    "disclaimer": "AI images may not be perfect — you can always redraw or remove them."
+  },
+  "book": {
+    "cover_alt": "Book cover",
+    "written_by": "Written by",
+    "page_illustration_alt": "Page {{number}} illustration",
+    "blank_page": "This page is blank...",
+    "the_end": "The End",
+    "by_author": "by {{author}}"
+  },
+  "reader": {
+    "page_of": "{{current}} / {{total}}"
+  },
+  "back_matter": {
+    "written_illustrated_by": "Written and illustrated by {{author}}",
+    "dedication_title": "Dedication",
+    "dedication_subtitle": "This book is for…",
+    "dedication_hint": "(write the name of someone special)",
+    "author_title": "About the Author",
+    "author_name_age": "{{name}}, age {{age}}",
+    "created_on": "Created on {{date}}",
+    "author_note": "Every great storyteller starts somewhere. Thank you for sharing your imagination.",
+    "characters_title_empty": "Characters",
+    "characters_empty": "Meet the brave heroes of this story.",
+    "characters_title": "Meet the Characters",
+    "character_fallback_name": "A hero",
+    "setting_title": "Where the story happens",
+    "setting_fallback_name": "A magical place",
+    "reflection_title": "Story Reflection",
+    "reflection_subtitle": "For the reader to think about, talk about, or write about.",
+    "reflection_item": "<b>{{number}}.</b> {{question}}",
+    "reflection": {
+      "favorite_character": "Who was your favorite character, and why?",
+      "funniest_moment": "What was the funniest moment in the story?",
+      "change_one_thing": "If you could change one thing in the story, what would it be?",
+      "what_happens_after": "What do you think happens after the story ends?"
+    },
+    "notes_title": "Notes from your reader",
+    "doodle_title": "Draw your own scene"
+  },
+  "promo": {
+    "title": "Make your own magical book",
+    "body": "MyBookLab lets kids dream up stories, illustrate them with AI, and order them as real, printed books.",
+    "scan": "Scan to download"
+  }
+}

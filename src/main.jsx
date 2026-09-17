@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom'
 import { MotionConfig } from 'motion/react'
 import App from './App'
 import ErrorBoundary from './components/ErrorBoundary'
+import { bootI18n } from './i18n'
 import './index.css'
 
 // reducedMotion="user" makes every motion component in the app honour the
@@ -16,14 +17,26 @@ import './index.css'
 //
 // One switch at the root rather than 16 call-site edits, so nothing can
 // drift back out of compliance when someone adds the 17th animation.
-ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
-    <ErrorBoundary>
-      <MotionConfig reducedMotion="user">
-        <BrowserRouter>
-          <App />
-        </BrowserRouter>
-      </MotionConfig>
-    </ErrorBoundary>
-  </React.StrictMode>
-)
+function mount() {
+  ReactDOM.createRoot(document.getElementById('root')).render(
+    <React.StrictMode>
+      <ErrorBoundary>
+        <MotionConfig reducedMotion="user">
+          <BrowserRouter>
+            <App />
+          </BrowserRouter>
+        </MotionConfig>
+      </ErrorBoundary>
+    </React.StrictMode>
+  )
+}
+
+// Resolve the locale and pull its catalogue in BEFORE the first render, so an
+// Italian user never sees a frame of English. bootI18n only awaits a network
+// chunk when the locale isn't English; English is bundled.
+//
+// Mount regardless of the outcome — a catalogue that fails to load should
+// degrade to English, never to a blank page.
+bootI18n().catch((err) => {
+  console.error('[i18n] boot failed, continuing in English', err)
+}).finally(mount)

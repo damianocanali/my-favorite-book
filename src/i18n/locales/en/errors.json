@@ -1,0 +1,19 @@
+{
+  "auth": {
+    "email_not_confirmed": "Please confirm your email first — check your inbox for the link we sent.",
+    "invalid_credentials": "That email and password don't match. Try again, or reset your password below.",
+    "rate_limited": "Too many attempts just now. Please wait a minute and try again.",
+    "weak_password": "Passwords need to be at least 6 characters.",
+    "offline": "Can't reach the internet. Check your connection and try again.",
+    "sign_up_failed": "Couldn't create your account. Please try again.",
+    "sign_in_failed": "Couldn't sign in. Please try again.",
+    "oauth_failed": "Sign-in failed. Please try again.",
+    "passwords_mismatch": "Passwords do not match.",
+    "password_too_short": "Password must be at least 6 characters.",
+    "name_required": "Please enter your name.",
+    "email_required": "Please enter your email.",
+    "not_configured": "Auth not configured.",
+    "reset_link_invalid": "Invalid or expired reset link. Please request a new one.",
+    "generic_retry": "Something went wrong. Please try again."
+  }
+}

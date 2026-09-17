@@ -1,0 +1,59 @@
+{
+  "name": {
+    "placeholder": "Your name",
+    "edit": "Edit name",
+    "error_generic": "Failed to update name"
+  },
+  "streak": {
+    "title": "Writing streak",
+    "days_one": "{{count}} day in a row",
+    "days_other": "{{count}} days in a row",
+    "keep_going_one": "Write a little every day to keep it going! Best: {{best}}",
+    "keep_going_other": "Write a little every day to keep it going! Best: {{best}}",
+    "empty": "Write something today to start a streak!"
+  },
+  "badges": {
+    "tooltip": "{{label}} — {{description}}"
+  },
+  "profile": {
+    "title": "Profile",
+    "customize_avatar": "Customize my avatar"
+  },
+  "language": {
+    "title": "Language"
+  },
+  "subscription": {
+    "title": "Subscription",
+    "current_plan": "Current plan: <plan>{{name}}</plan>",
+    "native_manage": "Manage or cancel your subscription in <path>Settings → Apple ID → Subscriptions</path>.",
+    "opening_portal": "Opening portal…",
+    "manage": "Manage subscription",
+    "portal_hint": "Update payment method, change plan, or cancel anytime via Stripe's secure portal.",
+    "portal_open_failed": "Couldn't open billing portal ({{status}})",
+    "portal_error_generic": "Failed to open billing portal. Please try again."
+  },
+  "session": {
+    "title": "Session",
+    "sign_out": "Sign out"
+  },
+  "danger": {
+    "title": "Danger Zone",
+    "description_one": "Delete your account and all your books. You'll have {{count}} day to change your mind before it becomes permanent.",
+    "description_other": "Delete your account and all your books. You'll have {{count}} days to change your mind before it becomes permanent.",
+    "delete_button": "Delete my account",
+    "confirm_title": "Are you sure?",
+    "confirm_body_one": "This schedules your account, all your books, and any active subscription for deletion in {{count}} day. You can change your mind during that window.",
+    "confirm_body_other": "This schedules your account, all your books, and any active subscription for deletion in {{count}} days. You can change your mind during that window.",
+    "scheduling": "Scheduling...",
+    "confirm_button": "Schedule deletion",
+    "scheduled_on": "Your account is scheduled for deletion on {{date}}. You can still change your mind until then — nothing is removed before that.",
+    "scheduled_in_days_one": "Your account is scheduled for deletion in {{count}} day. You can still change your mind during that window — nothing is removed until then.",
+    "scheduled_in_days_other": "Your account is scheduled for deletion in {{count}} days. You can still change your mind during that window — nothing is removed until then.",
+    "schedule_failed": "Could not schedule deletion",
+    "error_generic": "Something went wrong. Please try again."
+  },
+  "errors": {
+    "network": "Network error: {{message}}",
+    "server": "Server error: {{status}}"
+  }
+}

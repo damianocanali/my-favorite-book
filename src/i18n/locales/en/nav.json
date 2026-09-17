@@ -1,0 +1,33 @@
+{
+  "a11y": {
+    "skip_to_content": "Skip to content"
+  },
+  "header": {
+    "pricing": "Pricing",
+    "classroom": "Classroom",
+    "mute": "Mute music",
+    "unmute": "Unmute music",
+    "account": "Account",
+    "sign_in": "Sign In",
+    "sign_up": "Sign Up"
+  },
+  "tabs": {
+    "aria_label": "Main",
+    "books": "Books",
+    "gallery": "Gallery",
+    "create": "Create",
+    "orders": "Orders",
+    "account": "Account"
+  },
+  "play": {
+    "trigger": "Play",
+    "trigger_label": "Play: games and example book",
+    "menu_label": "Games",
+    "blanks_title": "Story Blanks",
+    "blanks_hint": "Fill in the gaps",
+    "builder_title": "Story Builder",
+    "builder_hint": "Drag pictures into a story",
+    "example_title": "See an Example",
+    "example_hint": "A finished book"
+  }
+}

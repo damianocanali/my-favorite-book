@@ -1,0 +1,374 @@
+{
+  "actions": {
+    "go_back": "Go back",
+    "stories": "Stories",
+    "stories_aria": "Back to stories",
+    "surprise_me": "Surprise me",
+    "make_my_book": "Make my book"
+  },
+  "builder": {
+    "title": "Story Builder",
+    "subtitle": "Drag pictures into the story. Or tap a card, then tap a gap.",
+    "frame_meta": "{{pages}} pages · {{gaps}} gaps",
+    "surprise_me_aria": "Surprise me: fill every gap at random",
+    "all_filled": "Every gap filled!",
+    "gaps_left_one": "{{count}} gap to go",
+    "gaps_left_other": "{{count}} gaps to go",
+    "finish_hint": "Fill every gap to finish",
+    "card_kinds_aria": "Card kinds",
+    "card_aria": "{{card}}, a {{kind}} card. Drag it to a gap, or tap to select it.",
+    "remove_card": "Remove {{card}}",
+    "empty_slot_aria": "Empty {{kind}} gap. {{hint}}",
+    "milestone_title": "Story built!",
+    "milestone_sub": "Now make it yours",
+    "tap_hint": {
+      "who": "Now tap a <b>who</b> gap to put it there.",
+      "what": "Now tap a <b>what</b> gap to put it there.",
+      "where": "Now tap a <b>where</b> gap to put it there.",
+      "feeling": "Now tap a <b>feeling</b> gap to put it there."
+    },
+    "announce": {
+      "a_card": "card",
+      "picked_up": "Picked up {{card}}.",
+      "over_gap": "Over a {{kind}} gap.",
+      "not_over_gap": "Not over a gap.",
+      "placed": "Placed {{card}} in the {{kind}} gap.",
+      "returned": "Put {{card}} back.",
+      "cancelled": "Cancelled."
+    }
+  },
+  "blanks": {
+    "title": "Story Blanks",
+    "subtitle": "Pick a story. Fill in the gaps. It becomes a real book.",
+    "template_meta": "{{pages}} pages · {{blanks}} blanks",
+    "surprise_me_aria": "Surprise me: fill every blank at random",
+    "all_filled": "All blanks filled!",
+    "blanks_left_one": "{{count}} blank to go",
+    "blanks_left_other": "{{count}} blanks to go",
+    "finish_hint": "Fill every blank to finish",
+    "choose": "Choose {{bank}}",
+    "type_your_own": "…or type your own",
+    "your_word_placeholder": "Your word",
+    "use_this_word": "Use this word",
+    "blank_filled_aria": "{{slot}}: {{value}}. Change it",
+    "blank_empty_aria": "Empty blank for {{slot}}. Choose a word",
+    "milestone_title": "Story complete!",
+    "milestone_sub": "Now make it yours",
+    "error_empty": "Type a word first.",
+    "error_too_long": "That word is a bit too long.",
+    "error_letters_only": "Letters only, please.",
+    "error_repeats": "Too many repeats."
+  },
+  "cards": {
+    "w_bear": {
+      "word": "the bear"
+    },
+    "w_fox": {
+      "word": "the fox"
+    },
+    "w_robot": {
+      "word": "the robot"
+    },
+    "w_dragon": {
+      "word": "the dragon"
+    },
+    "w_astronaut": {
+      "word": "the astronaut"
+    },
+    "w_owl": {
+      "word": "the owl"
+    },
+    "t_key": {
+      "word": "a golden key"
+    },
+    "t_map": {
+      "word": "an old map"
+    },
+    "t_egg": {
+      "word": "a giant egg"
+    },
+    "t_star": {
+      "word": "a fallen star"
+    },
+    "t_book": {
+      "word": "a talking book"
+    },
+    "t_cake": {
+      "word": "an enormous cake"
+    },
+    "p_forest": {
+      "word": "the deep forest"
+    },
+    "p_moon": {
+      "word": "the moon"
+    },
+    "p_castle": {
+      "word": "an old castle"
+    },
+    "p_sea": {
+      "word": "under the sea"
+    },
+    "p_cave": {
+      "word": "a dark cave"
+    },
+    "p_garden": {
+      "word": "the garden"
+    },
+    "f_brave": {
+      "word": "brave"
+    },
+    "f_curious": {
+      "word": "curious"
+    },
+    "f_sleepy": {
+      "word": "sleepy"
+    },
+    "f_excited": {
+      "word": "excited"
+    },
+    "f_worried": {
+      "word": "worried"
+    },
+    "f_proud": {
+      "word": "proud"
+    }
+  },
+  "card_kinds": {
+    "who": {
+      "label": "who",
+      "hint": "a character"
+    },
+    "what": {
+      "label": "what",
+      "hint": "a thing"
+    },
+    "where": {
+      "label": "where",
+      "hint": "a place"
+    },
+    "feeling": {
+      "label": "feeling",
+      "hint": "how they felt"
+    }
+  },
+  "frames": {
+    "discovery": {
+      "title": "The Big Discovery",
+      "blurb": "Somebody finds something they were not looking for.",
+      "page_1": "One morning {who} was walking through {where}.",
+      "page_2": "Hidden under the leaves was {what}.",
+      "page_3": "{who} felt {feeling} and picked it up very carefully.",
+      "page_4": "Nothing was ever quite the same again."
+    },
+    "rescue": {
+      "title": "The Rescue",
+      "blurb": "Someone needs help. Someone shows up.",
+      "page_1": "{who} heard a small cry coming from {where}.",
+      "page_2": "Stuck in the mud was {what}, and it needed help.",
+      "page_3": "It was hard work, but {who} was {feeling} enough to try.",
+      "page_4": "They walked home together as the sun went down."
+    },
+    "journey": {
+      "title": "The Long Way Home",
+      "blurb": "A trip that does not go to plan.",
+      "page_1": "{who} set off for {where} with {what} in a backpack.",
+      "page_2": "The path disappeared, and the sky turned dark.",
+      "page_3": "Feeling {feeling}, {who} kept going anyway.",
+      "page_4": "Home was closer than it had looked all along."
+    }
+  },
+  "templates": {
+    "space_friend": {
+      "title": "My Space Friend",
+      "blurb": "Someone lands in your garden.",
+      "page_1": "One quiet morning, {name} heard a loud {sound} outside the window.",
+      "page_2": "In the garden sat a {colour} {animal} from the {place}, looking very lost.",
+      "page_3": "It was hungry, so {name} shared some {food} until it stopped shaking.",
+      "page_4": "They played all afternoon, and the {silly} {animal} promised to come back."
+    },
+    "lost_thing": {
+      "title": "The Lost Thing",
+      "blurb": "Something goes missing. You find it.",
+      "page_1": "{name} looked everywhere, but the {colour} key was gone.",
+      "page_2": "A {silly} {animal} said it had seen something shiny down by the {place}.",
+      "page_3": "They searched together until they heard a small {sound} under a rock.",
+      "page_4": "There it was. {name} said thank you and shared the last of the {food}."
+    },
+    "brave_night": {
+      "title": "The Bravest Night",
+      "blurb": "It is dark. You are braver than you think.",
+      "page_1": "The lights went out, and {name} did not feel brave at all.",
+      "page_2": "Then a {colour} {animal} appeared and whispered, \"Follow me to the {place}.\"",
+      "page_3": "Every time {name} felt scared, they said the magic word: {sound}!",
+      "page_4": "By morning {name} knew something new: being {silly} and scared can happen at once."
+    }
+  },
+  "banks": {
+    "name": {
+      "label": "a name"
+    },
+    "animal": {
+      "label": "an animal"
+    },
+    "colour": {
+      "label": "a colour"
+    },
+    "place": {
+      "label": "a place"
+    },
+    "silly": {
+      "label": "a silly word"
+    },
+    "food": {
+      "label": "something tasty"
+    },
+    "sound": {
+      "label": "a sound"
+    }
+  },
+  "bank_words": {
+    "name": {
+      "theo": "Theo",
+      "mia": "Mia",
+      "ada": "Ada",
+      "sam": "Sam",
+      "nia": "Nia",
+      "leo": "Leo",
+      "iris": "Iris",
+      "kai": "Kai"
+    },
+    "animal": {
+      "bear": "bear",
+      "fox": "fox",
+      "penguin": "penguin",
+      "dragon": "dragon",
+      "turtle": "turtle",
+      "owl": "owl",
+      "whale": "whale",
+      "rabbit": "rabbit",
+      "tiger": "tiger",
+      "dinosaur": "dinosaur"
+    },
+    "colour": {
+      "red": "red",
+      "blue": "blue",
+      "golden": "golden",
+      "purple": "purple",
+      "green": "green",
+      "silver": "silver",
+      "orange": "orange",
+      "pink": "pink"
+    },
+    "place": {
+      "forest": "forest",
+      "moon": "moon",
+      "castle": "castle",
+      "beach": "beach",
+      "cave": "cave",
+      "garden": "garden",
+      "mountain": "mountain",
+      "island": "island"
+    },
+    "silly": {
+      "wobbly": "wobbly",
+      "sparkly": "sparkly",
+      "enormous": "enormous",
+      "tiny": "tiny",
+      "bouncy": "bouncy",
+      "fuzzy": "fuzzy",
+      "upside_down": "upside-down",
+      "giggly": "giggly"
+    },
+    "food": {
+      "pancakes": "pancakes",
+      "apples": "apples",
+      "soup": "soup",
+      "honey": "honey",
+      "berries": "berries",
+      "cake": "cake",
+      "noodles": "noodles",
+      "ice_cream": "ice cream"
+    },
+    "sound": {
+      "whoosh": "WHOOSH",
+      "ping": "ping",
+      "rumble": "rumble",
+      "squeak": "squeak",
+      "ta_da": "ta-da",
+      "boing": "boing",
+      "shhh": "shhh",
+      "kaboom": "kaboom"
+    }
+  },
+  "starters": {
+    "opening": {
+      "s1": "Once upon a time, ",
+      "s2": "One sunny morning, ",
+      "s3": "In a land far, far away, ",
+      "s4": "Long ago, there lived ",
+      "s5": "It was a dark and stormy night when ",
+      "s6": "Nobody expected what happened when ",
+      "s7": "The adventure began when ",
+      "s8": "Everything changed the day "
+    },
+    "middle": {
+      "s1": "Suddenly, ",
+      "s2": "Then something amazing happened — ",
+      "s3": "But there was a problem: ",
+      "s4": "Just when things seemed hopeless, ",
+      "s5": "Meanwhile, ",
+      "s6": "Without warning, ",
+      "s7": "The next thing they knew, ",
+      "s8": "That gave them an idea! ",
+      "s9": "They decided to ",
+      "s10": "To their surprise, ",
+      "s11": "After a while, ",
+      "s12": "Together, they "
+    },
+    "ending": {
+      "s1": "Finally, ",
+      "s2": "And from that day on, ",
+      "s3": "In the end, ",
+      "s4": "They learned that ",
+      "s5": "And so, ",
+      "s6": "The best part was ",
+      "s7": "Everyone cheered because ",
+      "s8": "And they all lived happily ever after."
+    }
+  },
+  "feeling_words": {
+    "happy": "happy",
+    "excited": "excited",
+    "nervous": "nervous",
+    "brave": "brave",
+    "curious": "curious",
+    "surprised": "surprised",
+    "proud": "proud",
+    "worried": "worried",
+    "determined": "determined",
+    "amazed": "amazed"
+  },
+  "action_words": {
+    "ran": "ran",
+    "jumped": "jumped",
+    "whispered": "whispered",
+    "discovered": "discovered",
+    "built": "built",
+    "flew": "flew",
+    "climbed": "climbed",
+    "painted": "painted",
+    "sang": "sang",
+    "explored": "explored"
+  },
+  "nudges": {
+    "default_character": "your character",
+    "n1": "Need an idea? Try one of the sentence starters above!",
+    "n2": "What happens next to {{name}}?",
+    "n3": "How is your character feeling right now?",
+    "n4": "Try describing what your character can see around them.",
+    "n5": "What sound does your character hear?",
+    "n6": "What does {{name}} decide to do?",
+    "n7": "Close your eyes and imagine the scene — then describe it!",
+    "n8": "What would YOU do if you were in this story?"
+  }
+}

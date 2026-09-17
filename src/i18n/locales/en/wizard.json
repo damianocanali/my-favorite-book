@@ -1,0 +1,90 @@
+{
+  "progress": {
+    "title": "Title",
+    "author": "Author",
+    "colors": "Colors",
+    "characters": "Characters",
+    "setting": "Setting",
+    "time": "Time",
+    "review": "Review"
+  },
+  "actions": {
+    "next_step": "Next Step →"
+  },
+  "title": {
+    "heading": "Name Your Book",
+    "subtitle": "Every great story starts with a great title!",
+    "placeholder": "My Amazing Adventure...",
+    "char_count_one": "{{current}}/{{max}} character",
+    "char_count_other": "{{current}}/{{max}} characters",
+    "preview_label": "Preview"
+  },
+  "author": {
+    "heading": "Who's the Author?",
+    "subtitle": "That's YOU! Tell us about yourself.",
+    "name_label": "Your Name",
+    "name_placeholder": "What's your name?",
+    "age_label": "Your Age: <v>{{age}}</v>",
+    "mode_little_star": "✨ Little Star Mode — bigger text, simpler choices!",
+    "mode_big_star": "🌟 Big Star Mode — more writing freedom!",
+    "written_by_label": "Written by",
+    "byline": "{{name}}, age {{age}}"
+  },
+  "colors": {
+    "heading": "Pick Your Colors",
+    "subtitle": "Choose the colors for your book!",
+    "use_preset": "Use a preset instead",
+    "use_custom": "🎨 Or pick your own colors!",
+    "cover_label": "Cover",
+    "accent_label": "Accent",
+    "text_label": "Text"
+  },
+  "characters": {
+    "heading": "Choose Your Characters",
+    "subtitle": "Pick the heroes of your story! Select as many as you like.",
+    "selected_count_one": "{{count}} character selected",
+    "selected_count_other": "{{count}} characters selected",
+    "create_card": "Create Your Own!",
+    "create_title": "Create a Character",
+    "emoji_label": "Choose an emoji",
+    "emoji_aria": "Pick emoji",
+    "name_placeholder": "Character name...",
+    "description_placeholder": "Describe your character...",
+    "add_button": "Add Character"
+  },
+  "setting": {
+    "heading": "Where Does It Happen?",
+    "subtitle": "Pick the world for your story!",
+    "create_card": "Create Your Own World!",
+    "create_title": "Create a World",
+    "emoji_label": "Choose an emoji",
+    "emoji_aria": "Pick emoji",
+    "name_placeholder": "World name...",
+    "description_placeholder": "Describe your world...",
+    "create_button": "Create World"
+  },
+  "time_period": {
+    "heading": "When Does It Happen?",
+    "subtitle": "Choose the time for your adventure!"
+  },
+  "review": {
+    "heading": "Your Story Awaits!",
+    "subtitle": "Here's everything you've chosen. Ready to start writing?",
+    "entry": "{{emoji}} {{name}}",
+    "custom_colors": "Custom Colors",
+    "none": "None",
+    "edit_aria": "Edit {{section}}",
+    "start_writing": "Start Writing!"
+  },
+  "gate": {
+    "sign_in_title": "Sign in to save your book",
+    "sign_in_body": "Create a free account to save your story and access it from any device!",
+    "create_account": "Create free account ✨",
+    "sign_in": "Sign in",
+    "limit_title": "You've reached your book limit",
+    "limit_body_one": "Free accounts can save up to {{max}} book. Upgrade to Family for unlimited books, more AI illustrations, and PDF export!",
+    "limit_body_other": "Free accounts can save up to {{max}} books. Upgrade to Family for unlimited books, more AI illustrations, and PDF export!",
+    "upgrade": "Upgrade Plan ✨",
+    "bookshelf": "My Bookshelf"
+  }
+}
