@@ -9,6 +9,7 @@ import AvatarDisplay from '../avatar/AvatarDisplay'
 import AppLogo from '../ui/AppLogo'
 import CosmicBackground from './CosmicBackground'
 import TabBar from './TabBar'
+import LanguageToggle from '../ui/LanguageToggle'
 import { PAGE_ACTIONS_ID } from './PageActions'
 
 // Shell mirrors the native app: a translucent bottom tab bar for the five
@@ -86,6 +87,10 @@ export default function AppShell({ children }) {
               <span className="hidden font-body text-sm font-semibold sm:inline">{t('nav:header.classroom')}</span>
             </Link>
           )}
+
+          {/* Sits with the mute button: both are small global preferences
+              rather than destinations, and both stay reachable signed-out. */}
+          <LanguageToggle />
 
           <button
             onClick={handleToggleMute}
