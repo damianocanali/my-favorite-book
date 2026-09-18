@@ -1,2526 +1,5265 @@
 {
-  "sourceLanguage" : "en",
-  "strings" : {
-    "" : {
-
-    },
-    "%@, %@ %@" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "%1$@, %2$@ %3$@"
+  "sourceLanguage": "en",
+  "strings": {
+    "": {},
+    "%@, %@ %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "%1$@, %2$@ %3$@"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, %2$@ %3$@"
           }
         }
       }
     },
-    "%@, by %@" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "%1$@, by %2$@"
+    "%@, by %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "%1$@, by %2$@"
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, di %2$@"
+          }
         }
       }
     },
-    "%lld" : {
-
+    "%lld": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld"
+          }
+        }
+      }
     },
-    "%lld + %lld = ?" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "%1$lld + %2$lld = ?"
+    "%lld + %lld = ?": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "%1$lld + %2$lld = ?"
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld + %2$lld = ?"
+          }
         }
       }
     },
-    "%lld coins" : {
-
+    "%lld coins": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld monete"
+          }
+        }
+      }
     },
-    "%lld day streak" : {
-
+    "%lld day streak": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "^[%lld giorno](inflect: true) di fila"
+          }
+        }
+      }
     },
-    "%lld day writing streak" : {
-
+    "%lld day writing streak": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Serie di scrittura di ^[%lld giorno](inflect: true)"
+          }
+        }
+      }
     },
-    "%lld of %lld badges earned" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "%1$lld of %2$lld badges earned"
+    "%lld of %lld badges earned": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "%1$lld of %2$lld badges earned"
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Medaglie conquistate: %1$lld su %2$lld"
+          }
         }
       }
     },
-    "+%lld coins" : {
-
+    "+%lld coins": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "+%lld monete"
+          }
+        }
+      }
     },
-    "12 pages · Tap to flip through" : {
-
+    "12 pages · Tap to flip through": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "12 pagine · Tocca per sfogliare"
+          }
+        }
+      }
     },
-    "A grown-up from our team will look at this book. We review every report within 24 hours." : {
-
+    "A grown-up from our team will look at this book. We review every report within 24 hours.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un adulto del nostro team guarderà questo libro. Controlliamo ogni segnalazione entro 24 ore."
+          }
+        }
+      }
     },
-    "Account" : {
-
+    "Account": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Account"
+          }
+        }
+      }
     },
-    "Add page" : {
-
+    "Add page": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aggiungi pagina"
+          }
+        }
+      }
     },
-    "Add to my page" : {
-
+    "Add to my page": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aggiungi alla mia pagina"
+          }
+        }
+      }
     },
-    "Address line 1" : {
-
+    "Address line 1": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Indirizzo riga 1"
+          }
+        }
+      }
     },
-    "Address line 2 (optional)" : {
-
+    "Address line 2 (optional)": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Indirizzo riga 2 (facoltativo)"
+          }
+        }
+      }
     },
-    "All set" : {
-
+    "All set": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tutto pronto"
+          }
+        }
+      }
     },
-    "Already have an account? Sign in" : {
-
+    "Already have an account? Sign in": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hai già un account? Accedi"
+          }
+        }
+      }
     },
-    "Also hide everything by this author" : {
-
+    "Also hide everything by this author": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nascondi anche tutto di chi ha scritto questo libro"
+          }
+        }
+      }
     },
-    "Amazing work! Keep the magic going with unlimited books, illustrations, and printing." : {
-
+    "Amazing work! Keep the magic going with unlimited books, illustrations, and printing.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Che bel lavoro! Continua la magia con libri, illustrazioni e stampe senza limiti."
+          }
+        }
+      }
     },
-    "Answer" : {
-
+    "Answer": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Risposta"
+          }
+        }
+      }
     },
-    "Anything else? (optional)" : {
-
+    "Anything else? (optional)": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vuoi dire altro? (facoltativo)"
+          }
+        }
+      }
     },
-    "App Icon" : {
-
+    "App Icon": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Icona dell'app"
+          }
+        }
+      }
     },
-    "App icon" : {
-
+    "App icon": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Icona dell'app"
+          }
+        }
+      }
     },
-    "Art style" : {
-
+    "Art style": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stile"
+          }
+        }
+      }
     },
-    "Art styles" : {
-
+    "Art styles": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stili"
+          }
+        }
+      }
     },
-    "Ask Buddy…" : {
-
+    "Ask Buddy…": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chiedi a Buddy…"
+          }
+        }
+      }
     },
-    "Ask your own question" : {
-
+    "Ask your own question": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fai la tua domanda"
+          }
+        }
+      }
     },
-    "Background music" : {
-
+    "Background music": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Musica di sottofondo"
+          }
+        }
+      }
     },
-    "Badge earned!" : {
-
+    "Badge earned!": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Medaglia conquistata!"
+          }
+        }
+      }
     },
-    "Badges" : {
-
+    "Badges": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Medaglie"
+          }
+        }
+      }
     },
-    "Best value" : {
-
+    "Best value": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Più conveniente"
+          }
+        }
+      }
     },
-    "Books" : {
-
+    "Books": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Libri"
+          }
+        }
+      }
     },
-    "Buddy" : {
-
+    "Buddy": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buddy"
+          }
+        }
+      }
     },
-    "Buy coins" : {
-
+    "Buy coins": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compra monete"
+          }
+        }
+      }
     },
-    "Cancel" : {
-
+    "Cancel": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annulla"
+          }
+        }
+      }
     },
-    "Cancel editing name" : {
-
+    "Cancel editing name": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annulla la modifica del nome"
+          }
+        }
+      }
     },
-    "Cancelling…" : {
-
+    "Cancelling…": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annullamento…"
+          }
+        }
+      }
     },
-    "Change hero photo" : {
-
+    "Change hero photo": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cambia la foto dell'eroe"
+          }
+        }
+      }
     },
-    "Character name" : {
-
+    "Character name": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nome del personaggio"
+          }
+        }
+      }
     },
-    "Check your email for a link to reset your password." : {
-
+    "Check your email for a link to reset your password.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Controlla la tua email: c'è un link per reimpostare la password."
+          }
+        }
+      }
     },
-    "City" : {
-
+    "City": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Città"
+          }
+        }
+      }
     },
-    "Class set" : {
-
+    "Class set": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Set per la classe"
+          }
+        }
+      }
     },
-    "Clear drawing" : {
-
+    "Clear drawing": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancella il disegno"
+          }
+        }
+      }
     },
-    "Close" : {
-
+    "Close": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chiudi"
+          }
+        }
+      }
     },
-    "Coins" : {
-
+    "Coins": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Monete"
+          }
+        }
+      }
     },
-    "Coins unlock magical art styles, accessories, and extra avatar regenerations." : {
-
+    "Coins unlock magical art styles, accessories, and extra avatar regenerations.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Con le monete sblocchi stili magici, accessori e la possibilità di rifare l'avatar."
+          }
+        }
+      }
     },
-    "Continue" : {
-
+    "Continue": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continua"
+          }
+        }
+      }
     },
-    "Continue with Apple" : {
-
+    "Continue with Apple": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continua con Apple"
+          }
+        }
+      }
     },
-    "Continue with Google" : {
-
+    "Continue with Google": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continua con Google"
+          }
+        }
+      }
     },
-    "Couldn't load your books" : {
-
+    "Couldn't load your books": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non riusciamo a caricare i tuoi libri"
+          }
+        }
+      }
     },
-    "Create" : {
-
+    "Create": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Crea"
+          }
+        }
+      }
     },
-    "Create Account" : {
-
+    "Create Account": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Crea account"
+          }
+        }
+      }
     },
-    "Create a Book" : {
-
+    "Create a Book": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Crea un libro"
+          }
+        }
+      }
     },
-    "Create an Account" : {
-
+    "Create an Account": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Crea un account"
+          }
+        }
+      }
     },
-    "Create your hero" : {
-
+    "Create your hero": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Crea il tuo eroe"
+          }
+        }
+      }
     },
-    "Create your own story in the stars ✨" : {
-
+    "Create your own story in the stars ✨": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scrivi la tua storia tra le stelle ✨"
+          }
+        }
+      }
     },
-    "Creating account…" : {
-
+    "Creating account…": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Creazione account…"
+          }
+        }
+      }
     },
-    "Current plan: %@" : {
-
+    "Current plan: %@": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Piano attuale: %@"
+          }
+        }
+      }
     },
-    "Customize avatar" : {
-
+    "Customize avatar": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Personalizza l'avatar"
+          }
+        }
+      }
     },
-    "DELETE" : {
-
+    "Day streak": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Giorni di fila"
+          }
+        }
+      }
     },
-    "Day streak" : {
-
+    "Delete account": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elimina account"
+          }
+        }
+      }
     },
-    "Delete account" : {
-
+    "Delete page": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elimina pagina"
+          }
+        }
+      }
     },
-    "Delete page" : {
-
+    "Delete your account?": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eliminare il tuo account?"
+          }
+        }
+      }
     },
-    "Delete your account?" : {
-
+    "Delivered": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Consegnato"
+          }
+        }
+      }
     },
-    "Delivered" : {
-
+    "Done": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fatto"
+          }
+        }
+      }
     },
-    "Done" : {
-
+    "Draw": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disegna"
+          }
+        }
+      }
     },
-    "Draw" : {
-
+    "Draw your picture!": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fai il tuo disegno!"
+          }
+        }
+      }
     },
-    "Draw your picture!" : {
-
+    "Drawing your cartoon…": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sto disegnando il tuo cartone animato…"
+          }
+        }
+      }
     },
-    "Drawing your cartoon…" : {
-
+    "Edit book": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modifica il libro"
+          }
+        }
+      }
     },
-    "Edit book" : {
-
+    "Email": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Email"
+          }
+        }
+      }
     },
-    "Email" : {
-
+    "Every great book needs a name.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ogni bel libro ha bisogno di un nome."
+          }
+        }
+      }
     },
-    "Every great book needs a name." : {
-
+    "Everyday read": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Da leggere ogni giorno"
+          }
+        }
+      }
     },
-    "Everyday read" : {
-
+    "Family pack": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pacchetto famiglia"
+          }
+        }
+      }
     },
-    "Family pack" : {
-
+    "Featured Books": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Libri in evidenza"
+          }
+        }
+      }
     },
-    "Featured Books" : {
-
+    "Forgot your password?": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hai dimenticato la password?"
+          }
+        }
+      }
     },
-    "Forgot your password?" : {
-
+    "Format": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Formato"
+          }
+        }
+      }
     },
-    "Format" : {
-
+    "Full name": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nome e cognome"
+          }
+        }
+      }
     },
-    "Full name" : {
-
+    "G": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "G"
+          }
+        }
+      }
     },
-    "G" : {
-
+    "Gallery": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Galleria"
+          }
+        }
+      }
     },
-    "Gallery" : {
-
+    "Gallery is just getting started": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La galleria sta per aprire"
+          }
+        }
+      }
     },
-    "Gallery is just getting started" : {
-
+    "Generate AI cover": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Crea la copertina AI"
+          }
+        }
+      }
     },
-    "Generate AI cover" : {
-
+    "Get more coins": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prendi altre monete"
+          }
+        }
+      }
     },
-    "Get more coins" : {
-
+    "Gift pair": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Coppia regalo"
+          }
+        }
+      }
     },
-    "Gift pair" : {
-
+    "Hardcover": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copertina rigida"
+          }
+        }
+      }
     },
-    "Hardcover" : {
-
+    "Hi, %@!": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ciao, %@!"
+          }
+        }
+      }
     },
-    "Hi, %@!" : {
-
+    "Hi, storyteller!": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ciao, cantastorie!"
+          }
+        }
+      }
     },
-    "Hi, storyteller!" : {
-
+    "I'm done writing": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ho finito di scrivere"
+          }
+        }
+      }
     },
-    "I'm done writing" : {
-
+    "Illustrate": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Illustra"
+          }
+        }
+      }
     },
-    "Illustrate" : {
-
+    "In production": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In lavorazione"
+          }
+        }
+      }
     },
-    "In production" : {
-
+    "In use": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In uso"
+          }
+        }
+      }
     },
-    "In use" : {
-
+    "Jumps straight into creating a new book.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ti porta subito a creare un libro nuovo."
+          }
+        }
+      }
     },
-    "Jumps straight into creating a new book." : {
-
+    "Just one": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solo uno"
+          }
+        }
+      }
     },
-    "Just one" : {
-
+    "Keep my account": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tieni il mio account"
+          }
+        }
+      }
     },
-    "Keep my account" : {
-
+    "Keepsake quality": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Da tenere per sempre"
+          }
+        }
+      }
     },
-    "Keepsake quality" : {
-
+    "Let's begin": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Iniziamo"
+          }
+        }
+      }
     },
-    "Let's begin" : {
-
+    "Loading price": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Caricamento prezzo"
+          }
+        }
+      }
     },
-    "Loading price" : {
-
+    "Make your story shine": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fai brillare la tua storia"
+          }
+        }
+      }
     },
-    "Make your story shine" : {
-
+    "Making…": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sto creando…"
+          }
+        }
+      }
     },
-    "Making…" : {
-
+    "Manage subscription": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gestisci abbonamento"
+          }
+        }
+      }
     },
-    "Manage subscription" : {
-
+    "More stories, more illustrations, more pages — and the same parent-safe Story Buddy.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Più storie, più illustrazioni, più pagine — e lo stesso Story Buddy di cui i genitori si fidano."
+          }
+        }
+      }
     },
-    "More stories, more illustrations, more pages — and the same parent-safe Story Buddy." : {
-
+    "My Book Lab": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My Book Lab"
+          }
+        }
+      }
     },
-    "My Book Lab" : {
-
+    "My Books": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I miei libri"
+          }
+        }
+      }
     },
-    "My Books" : {
-
+    "New Story": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nuova storia"
+          }
+        }
+      }
     },
-    "New Story" : {
-
+    "New here? Create an account": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "È la prima volta? Crea un account"
+          }
+        }
+      }
     },
-    "New here? Create an account" : {
-
+    "Next page": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pagina successiva"
+          }
+        }
+      }
     },
-    "Next page" : {
-
+    "No orders yet": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ancora nessun ordine"
+          }
+        }
+      }
     },
-    "No orders yet" : {
-
+    "No pages yet": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ancora nessuna pagina"
+          }
+        }
+      }
     },
-    "No pages yet" : {
-
+    "No plans available right now. Try again in a moment.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nessun piano disponibile al momento. Riprova tra poco."
+          }
+        }
+      }
     },
-    "No plans available right now. Try again in a moment." : {
-
+    "Off": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No"
+          }
+        }
+      }
     },
-    "Off" : {
-
+    "On": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sì"
+          }
+        }
+      }
     },
-    "On" : {
-
+    "Open My Books": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apri i miei libri"
+          }
+        }
+      }
     },
-    "Open My Books" : {
-
+    "Open this book in Create to add pages.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apri questo libro in Crea per aggiungere le pagine."
+          }
+        }
+      }
     },
-    "Open this book in Create to add pages." : {
-
+    "Opening Apple Pay…": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apertura di Apple Pay…"
+          }
+        }
+      }
     },
-    "Opening Apple Pay…" : {
-
+    "Opens the book": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apre il libro"
+          }
+        }
+      }
     },
-    "Opens the book" : {
-
+    "Opens your bookshelf in My Book Lab.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apre la tua libreria in My Book Lab."
+          }
+        }
+      }
     },
-    "Opens your bookshelf in My Book Lab." : {
-
+    "Or pick a fun avatar": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oppure scegli un avatar simpatico"
+          }
+        }
+      }
     },
-    "Or pick a fun avatar" : {
-
+    "Or pick an emoji hero below 👇": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oppure scegli un eroe emoji qui sotto 👇"
+          }
+        }
+      }
     },
-    "Or pick an emoji hero below 👇" : {
-
+    "Order": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ordine"
+          }
+        }
+      }
     },
-    "Order" : {
-
+    "Order #%@": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ordine n. %@"
+          }
+        }
+      }
     },
-    "Order #%@" : {
-
+    "Order placed": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ordine inviato"
+          }
+        }
+      }
     },
-    "Order placed" : {
-
+    "Order printed copy": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ordina una copia stampata"
+          }
+        }
+      }
     },
-    "Order printed copy" : {
-
+    "Orders": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ordini"
+          }
+        }
+      }
     },
-    "Orders" : {
-
+    "Owned": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ce l'hai già"
+          }
+        }
+      }
     },
-    "Owned" : {
-
+    "Page %lld": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pagina %lld"
+          }
+        }
+      }
     },
-    "Page %lld" : {
-
+    "Painting cover…": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sto dipingendo la copertina…"
+          }
+        }
+      }
     },
-    "Painting cover…" : {
-
+    "Password": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Password"
+          }
+        }
+      }
     },
-    "Password" : {
-
+    "Pay & order": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paga e ordina"
+          }
+        }
+      }
     },
-    "Pay & order" : {
-
+    "Payment confirmed": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pagato"
+          }
+        }
+      }
     },
-    "Payment confirmed" : {
-
+    "Phone": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Telefono"
+          }
+        }
+      }
     },
-    "Phone" : {
-
+    "Pick a look for your app icon. Earn more with coins and streaks!": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scegli come sarà l'icona dell'app. Guadagnane altre con le monete e le serie!"
+          }
+        }
+      }
     },
-    "Pick a look for your app icon. Earn more with coins and streaks!" : {
-
+    "Pick a photo": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scegli una foto"
+          }
+        }
+      }
     },
-    "Pick a photo" : {
-
+    "Pick one to start writing!": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scegli e inizia a scrivere!"
+          }
+        }
+      }
     },
-    "Pick one to start writing!" : {
-
+    "Pick the world your story lives in.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scegli il mondo della tua storia."
+          }
+        }
+      }
     },
-    "Pick the world your story lives in." : {
-
+    "Previous page": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pagina precedente"
+          }
+        }
+      }
     },
-    "Previous page" : {
-
+    "Privacy Policy": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Informativa sulla privacy"
+          }
+        }
+      }
     },
-    "Privacy Policy" : {
-
+    "Publish your finished book to share it here!": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pubblica il tuo libro finito per condividerlo qui!"
+          }
+        }
+      }
     },
-    "Publish your finished book to share it here!" : {
-
+    "Purchases go through the App Store. Coins are added to your account once payment confirms.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gli acquisti passano dall'App Store. Le monete arrivano sul tuo account quando il pagamento è confermato."
+          }
+        }
+      }
     },
-    "Purchases go through the App Store. Coins are added to your account once payment confirms." : {
-
+    "Quantity": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quantità"
+          }
+        }
+      }
     },
-    "Quantity" : {
-
+    "Read this page aloud": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leggi questa pagina ad alta voce"
+          }
+        }
+      }
     },
-    "Read this page aloud" : {
-
+    "Regenerate cover": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rifai la copertina"
+          }
+        }
+      }
     },
-    "Regenerate cover" : {
-
+    "Remember me with %@": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ricordami con %@"
+          }
+        }
+      }
     },
-    "Remember me with %@" : {
-
+    "Report": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Segnala"
+          }
+        }
+      }
     },
-    "Report" : {
-
+    "Report this book": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Segnala questo libro"
+          }
+        }
+      }
     },
-    "Report this book" : {
-
+    "Restore purchases": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ripristina gli acquisti"
+          }
+        }
+      }
     },
-    "Restore purchases" : {
-
+    "Save and sync across devices": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salva e sincronizza su tutti i dispositivi"
+          }
+        }
+      }
     },
-    "Save and sync across devices" : {
-
+    "Save avatar": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salva avatar"
+          }
+        }
+      }
     },
-    "Save avatar" : {
-
+    "Save name": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salva nome"
+          }
+        }
+      }
     },
-    "Save name" : {
-
+    "Save to bookshelf": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salva nella libreria"
+          }
+        }
+      }
     },
-    "Save to bookshelf" : {
-
+    "Saving…": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salvataggio…"
+          }
+        }
+      }
     },
-    "Saving…" : {
-
+    "Schedule deletion": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Programma eliminazione"
+          }
+        }
+      }
     },
-    "Schedule deletion" : {
-
+    "See a finished book": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guarda un libro finito"
+          }
+        }
+      }
     },
-    "See a finished book" : {
-
+    "Send message": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invia messaggio"
+          }
+        }
+      }
     },
-    "Send message" : {
-
+    "Send report": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invia segnalazione"
+          }
+        }
+      }
     },
-    "Send report" : {
-
+    "Sending…": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invio in corso…"
+          }
+        }
+      }
     },
-    "Sending…" : {
-
+    "Sent to printer": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inviato in stampa"
+          }
+        }
+      }
     },
-    "Sent to printer" : {
-
+    "Setting up payment…": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparazione del pagamento…"
+          }
+        }
+      }
     },
-    "Setting up payment…" : {
-
+    "Shake again": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scuoti ancora"
+          }
+        }
+      }
     },
-    "Shake again" : {
-
+    "Shipped": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spedito"
+          }
+        }
+      }
     },
-    "Shipped" : {
-
+    "Shipping": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spedizione"
+          }
+        }
+      }
     },
-    "Shipping" : {
-
+    "Shipping to": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spedizione a"
+          }
+        }
+      }
     },
-    "Shipping to" : {
-
+    "Sign In": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accedi"
+          }
+        }
+      }
     },
-    "Sign In" : {
-
+    "Sign in": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accedi"
+          }
+        }
+      }
     },
-    "Sign in" : {
-
+    "Sign in to save your books and bring them to life with AI illustrations.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accedi per salvare i tuoi libri e dare loro vita con le illustrazioni AI."
+          }
+        }
+      }
     },
-    "Sign in to save your books and bring them to life with AI illustrations." : {
-
+    "Sign in to save your stories": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accedi per salvare le tue storie"
+          }
+        }
+      }
     },
-    "Sign in to save your stories" : {
-
+    "Sign in to see your printed book orders.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accedi per vedere i tuoi ordini di libri stampati."
+          }
+        }
+      }
     },
-    "Sign in to see your printed book orders." : {
-
+    "Sign in to see your saved books and order printed copies.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accedi per vedere i libri che hai salvato e ordinare le copie stampate."
+          }
+        }
+      }
     },
-    "Sign in to see your saved books and order printed copies." : {
-
+    "Sign in to sync your stories": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accedi per sincronizzare le tue storie"
+          }
+        }
+      }
     },
-    "Sign in to sync your stories" : {
-
+    "Sign in with %@": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accedi con %@"
+          }
+        }
+      }
     },
-    "Sign in with %@" : {
-
+    "Sign out": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esci"
+          }
+        }
+      }
     },
-    "Sign out" : {
-
+    "Signing in…": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accesso in corso…"
+          }
+        }
+      }
     },
-    "Signing in…" : {
-
+    "Softcover": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copertina morbida"
+          }
+        }
+      }
     },
-    "Softcover" : {
-
+    "Solve this so we know a grown-up is here.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Risolvi questo calcolo, così sappiamo che c'è un adulto."
+          }
+        }
+      }
     },
-    "Solve this so we know a grown-up is here." : {
-
+    "Something special about them (optional)": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Una cosa speciale sul personaggio (facoltativo)"
+          }
+        }
+      }
     },
-    "Something special about them (optional)" : {
-
+    "Spend on magical art styles and items": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spendile in stili grafici magici e oggetti"
+          }
+        }
+      }
     },
-    "Spend on magical art styles and items" : {
-
+    "Start a New Story": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inizia una nuova storia"
+          }
+        }
+      }
     },
-    "Start a New Story" : {
-
+    "Start a writing streak!": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inizia la tua serie di scrittura!"
+          }
+        }
+      }
     },
-    "Start a writing streak!" : {
-
+    "Start writing": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inizia a scrivere"
+          }
+        }
+      }
     },
-    "Start writing" : {
-
+    "State": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Provincia"
+          }
+        }
+      }
     },
-    "State" : {
-
+    "Stop reading aloud": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ferma la lettura"
+          }
+        }
+      }
     },
-    "Stop reading aloud" : {
-
+    "Store": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Negozio"
+          }
+        }
+      }
     },
-    "Store" : {
-
+    "Story Buddy": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Story Buddy"
+          }
+        }
+      }
     },
-    "Story Buddy" : {
-
+    "Stuck? Tap a button and I'll help with ideas — I never write your story for you. ✨": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non sai come continuare? Tocca un pulsante e ti do qualche idea: la tua storia non la scrivo mai io. ✨"
+          }
+        }
+      }
     },
-    "Stuck? Tap a button and I'll help with ideas — I never write your story for you. ✨" : {
-
+    "Subscribe for unlimited stories": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abbonati per storie illimitate"
+          }
+        }
+      }
     },
-    "Subscribe for unlimited stories" : {
-
+    "Subscription auto-renews unless canceled at least 24 hours before the end of the period. Manage or cancel in Settings → Apple ID → Subscriptions.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L'abbonamento si rinnova automaticamente, salvo disdetta almeno 24 ore prima della fine del periodo. Puoi gestirlo o disdirlo in Impostazioni → ID Apple → Abbonamenti."
+          }
+        }
+      }
     },
-    "Subscription auto-renews unless canceled at least 24 hours before the end of the period. Manage or cancel in Settings → Apple ID → Subscriptions." : {
-
+    "Subtotal": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Subtotale"
+          }
+        }
+      }
     },
-    "Subtotal" : {
-
+    "Summary": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Riepilogo"
+          }
+        }
+      }
     },
-    "Summary" : {
-
+    "Sync books across devices, order printed copies, and pick up where you left off.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sincronizza i libri su tutti i dispositivi, ordina le copie stampate e riprendi da dove hai lasciato."
+          }
+        }
+      }
     },
-    "Sync books across devices, order printed copies, and pick up where you left off." : {
-
+    "Tap **Create** to make your first story — or peek at the example below.": {
+      "comment": "Empty-shelf nudge. **Create** is Markdown bold naming the Create tab — keep the ** ** around the translated tab name, and translate the tab name the same way it is translated in the tab bar.",
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tocca **Crea** per fare la tua prima storia, oppure dai un'occhiata all'esempio qui sotto."
+          }
+        }
+      }
     },
-    "Tap **Create** to make your first story — or peek at the example below." : {
-      "comment" : "Empty-shelf nudge. **Create** is Markdown bold naming the Create tab — keep the ** ** around the translated tab name, and translate the tab name the same way it is translated in the tab bar."
+    "Tap Illustrate to add a picture": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tocca Illustra per aggiungere un disegno"
+          }
+        }
+      }
     },
-    "Tap Illustrate to add a picture" : {
-
+    "Tap anywhere to continue": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tocca lo schermo per continuare"
+          }
+        }
+      }
     },
-    "Tap anywhere to continue" : {
-
+    "Tap to use": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tocca per usare"
+          }
+        }
+      }
     },
-    "Tap to use" : {
-
+    "Tap to use this": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tocca per usare questo"
+          }
+        }
+      }
     },
-    "Tap to use this" : {
-
+    "Terms of Use": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Termini di utilizzo"
+          }
+        }
+      }
     },
-    "Terms of Use" : {
-
+    "Thanks": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grazie"
+          }
+        }
+      }
     },
-    "Thanks" : {
-
+    "Thanks for telling us": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grazie per avercelo detto"
+          }
+        }
+      }
     },
-    "Thanks for telling us" : {
-
+    "The End": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fine"
+          }
+        }
+      }
     },
-    "The End" : {
-
+    "Think about these, then keep writing!": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pensa a queste domande e poi continua a scrivere!"
+          }
+        }
+      }
     },
-    "Think about these, then keep writing!" : {
-
+    "Thinking…": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sto pensando…"
+          }
+        }
+      }
     },
-    "Thinking…" : {
-
+    "Title your book": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dai un titolo al tuo libro"
+          }
+        }
+      }
     },
-    "Title your book" : {
-
+    "Total": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Totale"
+          }
+        }
+      }
     },
-    "Total" : {
-
+    "Track package": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Segui la spedizione"
+          }
+        }
+      }
     },
-    "Track package" : {
-
+    "Try again": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prova ancora"
+          }
+        }
+      }
     },
-    "Try again" : {
-
+    "Try again.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prova ancora."
+          }
+        }
+      }
     },
-    "Try again." : {
-
+    "Turn a photo into your hero": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trasforma una foto nel tuo eroe"
+          }
+        }
+      }
     },
-    "Turn a photo into your hero" : {
-
+    "Turn your photo into a cartoon": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trasforma la tua foto in un cartone animato"
+          }
+        }
+      }
     },
-    "Turn your photo into a cartoon" : {
-
+    "Type DELETE to confirm": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scrivi DELETE per confermare"
+          }
+        }
+      }
     },
-    "Type DELETE to confirm" : {
-
+    "Unavailable": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non disponibile"
+          }
+        }
+      }
     },
-    "Unavailable" : {
-
+    "Unlock magical art styles for your avatar.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sblocca stili magici per il tuo avatar."
+          }
+        }
+      }
     },
-    "Unlock magical art styles for your avatar." : {
-
+    "Unlock more →": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sblocca altro →"
+          }
+        }
+      }
     },
-    "Unlock more →" : {
-
+    "Unlock new looks with coins and streaks": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sblocca nuovi stili con le monete e la serie"
+          }
+        }
+      }
     },
-    "Unlock new looks with coins and streaks" : {
-
+    "Unlock the full magic": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sblocca tutta la magia"
+          }
+        }
+      }
     },
-    "Unlock the full magic" : {
-
+    "Unlock: %@": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sblocca: %@"
+          }
+        }
+      }
     },
-    "Unlock: %@" : {
-
+    "Use it": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usalo"
+          }
+        }
+      }
     },
-    "Use it" : {
-
+    "Use your finger or Apple Pencil ✏️": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usa il dito o l'Apple Pencil ✏️"
+          }
+        }
+      }
     },
-    "Use your finger or Apple Pencil ✏️" : {
-
+    "Welcome Back!": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Che bello rivederti!"
+          }
+        }
+      }
     },
-    "Welcome Back!" : {
-
+    "Welcome back!": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Che bello rivederti!"
+          }
+        }
+      }
     },
-    "Welcome back!" : {
-
+    "What is %lld plus %lld?": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "What is %1$lld plus %2$lld?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quanto fa %1$lld più %2$lld?"
+          }
+        }
+      }
     },
-    "What is %lld plus %lld?" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "What is %1$lld plus %2$lld?"
+    "What's the title?": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Qual è il titolo?"
           }
         }
       }
     },
-    "What's the title?" : {
-
+    "What's wrong with it?": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Che problema c'è?"
+          }
+        }
+      }
     },
-    "What's wrong with it?" : {
-
+    "When you order a printed book, it'll show up here.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quando ordini un libro stampato, lo trovi qui."
+          }
+        }
+      }
     },
-    "When you order a printed book, it'll show up here." : {
-
+    "Where does it happen?": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dove succede la storia?"
+          }
+        }
+      }
     },
-    "Where does it happen?" : {
-
+    "Where it happens": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dove succede"
+          }
+        }
+      }
     },
-    "Where it happens" : {
-
+    "Who is the main character of your story?": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chi è il protagonista della tua storia?"
+          }
+        }
+      }
     },
-    "Who is the main character of your story?" : {
-
+    "Who's the author of this story?": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chi scrive questa storia?"
+          }
+        }
+      }
     },
-    "Who's the author of this story?" : {
-
+    "Write a little every day to keep it alive! Best: %lld": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scrivi un po' ogni giorno per tenerla viva! Record: %lld"
+          }
+        }
+      }
     },
-    "Write a little every day to keep it alive! Best: %lld" : {
-
+    "Write it!": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scrivila!"
+          }
+        }
+      }
     },
-    "Write it!" : {
-
+    "Write something today to start a streak!": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scrivi qualcosa oggi e inizia la tua serie!"
+          }
+        }
+      }
     },
-    "Write something today to start a streak!" : {
-
+    "Write your story": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scrivi la tua storia"
+          }
+        }
+      }
     },
-    "Write your story" : {
-
+    "Written by %@": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scritto da %@"
+          }
+        }
+      }
     },
-    "Written by %@" : {
-
+    "Yay!": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Evviva!"
+          }
+        }
+      }
     },
-    "Yay!" : {
-
+    "You can also email support@mybooklab.app.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Puoi anche scrivere a support@mybooklab.app."
+          }
+        }
+      }
     },
-    "You can also email support@mybooklab.app." : {
-
+    "Your account and all your books will be scheduled for deletion. You'll have 7 days to change your mind before anything is permanently removed.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il tuo account e tutti i tuoi libri verranno messi in coda per l'eliminazione. Hai 7 giorni per cambiare idea: fino ad allora non viene eliminato niente in modo definitivo."
+          }
+        }
+      }
     },
-    "Your account and all your books will be scheduled for deletion. You'll have 7 days to change your mind before anything is permanently removed." : {
-
+    "Your account is scheduled for deletion on %@.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L'eliminazione del tuo account è programmata per il %@."
+          }
+        }
+      }
     },
-    "Your account is scheduled for deletion on %@." : {
-
+    "Your account is scheduled for deletion.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L'eliminazione del tuo account è programmata."
+          }
+        }
+      }
     },
-    "Your account is scheduled for deletion." : {
-
+    "Your age (optional)": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La tua età (facoltativa)"
+          }
+        }
+      }
     },
-    "Your age (optional)" : {
-
+    "Your bookshelf": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La tua libreria"
+          }
+        }
+      }
     },
-    "Your bookshelf" : {
-
+    "Your bookshelf is empty": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La tua libreria è vuota"
+          }
+        }
+      }
     },
-    "Your bookshelf is empty" : {
-
+    "Your character": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il tuo personaggio"
+          }
+        }
+      }
     },
-    "Your character" : {
-
+    "Your first book is done!": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il tuo primo libro è pronto!"
+          }
+        }
+      }
     },
-    "Your first book is done!" : {
-
+    "Your name": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il tuo nome"
+          }
+        }
+      }
     },
-    "Your name" : {
-
+    "Your orders": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I tuoi ordini"
+          }
+        }
+      }
     },
-    "Your orders" : {
-
+    "Your original photo is never saved. Only the cartoon stays.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La tua foto non viene mai salvata. Resta solo il cartone animato."
+          }
+        }
+      }
     },
-    "Your original photo is never saved. Only the cartoon stays." : {
-
+    "ZIP": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CAP"
+          }
+        }
+      }
     },
-    "ZIP" : {
-
+    "account.delete.cancel_failed": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Couldn't cancel. Please try again."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annullamento non riuscito. Riprova."
+          }
+        }
+      }
     },
-    "account.delete.cancel_failed" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Couldn't cancel. Please try again."
+    "account.delete.confirm_word": {
+      "comment": "Typed by the user to confirm account deletion. MUST match the placeholder; uppercase.",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "DELETE"
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ELIMINA"
+          }
         }
       }
     },
-    "account.delete.schedule_failed" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Couldn't schedule deletion. Please try again."
+    "account.delete.schedule_failed": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Couldn't schedule deletion. Please try again."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non è stato possibile programmare l'eliminazione. Riprova."
           }
         }
       }
     },
-    "app_icon.change_failed" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Couldn't change the icon. Please try again."
+    "app_icon.change_failed": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Couldn't change the icon. Please try again."
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non è stato possibile cambiare l'icona. Riprova."
+          }
         }
       }
     },
-    "app_icon.classic.label" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Classic"
+    "app_icon.classic.label": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Classic"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Classica"
           }
         }
       }
     },
-    "app_icon.locked_by_badge" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Keep your streak going to earn %@ first!"
+    "app_icon.locked_by_badge": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Keep your streak going to earn %@ first!"
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prima conquista %@! Continua la tua serie."
+          }
         }
       }
     },
-    "app_icon.night.label" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Night Owl"
+    "app_icon.night.label": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Night Owl"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gufo notturno"
           }
         }
       }
     },
-    "app_icon.rainbow.label" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Rainbow"
+    "app_icon.rainbow.label": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Rainbow"
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arcobaleno"
+          }
         }
       }
     },
-    "app_icon.rocket.label" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Rocket"
+    "app_icon.rocket.label": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Rocket"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Razzo"
           }
         }
       }
     },
-    "app_icon.unsupported_device" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "This device doesn't support changing the icon."
+    "app_icon.unsupported_device": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "This device doesn't support changing the icon."
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questo dispositivo non può cambiare l'icona."
+          }
         }
       }
     },
-    "avatar_style.anime.description" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Vivid colors, expressive lines, Ghibli-inspired."
+    "avatar_style.anime.description": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Vivid colors, expressive lines, Ghibli-inspired."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Colori accesi, linee espressive, in stile Ghibli."
           }
         }
       }
     },
-    "avatar_style.anime.label" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Anime"
+    "avatar_style.anime.label": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Anime"
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anime"
+          }
         }
       }
     },
-    "avatar_style.pixar.description" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Polished 3D render. Big eyes, soft lighting."
+    "avatar_style.pixar.description": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Polished 3D render. Big eyes, soft lighting."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Render 3D curato. Occhi grandi, luce morbida."
           }
         }
       }
     },
-    "avatar_style.pixar.label" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Pixar 3D"
+    "avatar_style.pixar.label": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Pixar 3D"
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pixar 3D"
+          }
         }
       }
     },
-    "avatar_style.pixel.description" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "16-bit retro game character vibes."
+    "avatar_style.pixel.description": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "16-bit retro game character vibes."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stile personaggio dei videogiochi a 16 bit."
           }
         }
       }
     },
-    "avatar_style.pixel.label" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Pixel Art"
+    "avatar_style.pixel.label": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Pixel Art"
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pixel Art"
+          }
         }
       }
     },
-    "avatar_style.watercolor.description" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Soft painted brushstrokes, storybook look."
+    "avatar_style.watercolor.description": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Soft painted brushstrokes, storybook look."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pennellate morbide, come in un libro illustrato."
           }
         }
       }
     },
-    "avatar_style.watercolor.label" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Watercolor"
+    "avatar_style.watercolor.label": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Watercolor"
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Acquerello"
+          }
         }
       }
     },
-    "badge.added_illustration.description" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Generated an illustration"
+    "badge.added_illustration.description": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Generated an illustration"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hai creato un'illustrazione"
           }
         }
       }
     },
-    "badge.added_illustration.label" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Picture Magic"
+    "badge.added_illustration.label": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Picture Magic"
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Immagine magica"
+          }
         }
       }
     },
-    "badge.drew_illustration.description" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Drew your own picture"
+    "badge.drew_illustration.description": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Drew your own picture"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hai disegnato tu una figura"
           }
         }
       }
     },
-    "badge.drew_illustration.label" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Own Two Hands"
+    "badge.drew_illustration.label": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Own Two Hands"
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Con le tue mani"
+          }
         }
       }
     },
-    "badge.finished_blanks.description" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Finished a fill-in-the-blanks story"
+    "badge.finished_blanks.description": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Finished a fill-in-the-blanks story"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hai finito una storia riempiendo gli spazi"
           }
         }
       }
     },
-    "badge.finished_blanks.label" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Puzzle Solved"
+    "badge.finished_blanks.label": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Puzzle Solved"
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rompicapo risolto"
+          }
         }
       }
     },
-    "badge.first_book.description" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Finished your first book"
+    "badge.first_book.description": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Finished your first book"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hai finito il tuo primo libro"
           }
         }
       }
     },
-    "badge.first_book.label" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "The End"
+    "badge.first_book.label": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "The End"
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fine"
+          }
         }
       }
     },
-    "badge.first_page.description" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Wrote your first page"
+    "badge.first_page.description": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Wrote your first page"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hai scritto la tua prima pagina"
           }
         }
       }
     },
-    "badge.first_page.label" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "First Page"
+    "badge.first_page.label": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "First Page"
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prima pagina"
+          }
         }
       }
     },
-    "badge.five_books.description" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Created 5 books"
+    "badge.five_books.description": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Created 5 books"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hai creato 5 libri"
           }
         }
       }
     },
-    "badge.five_books.label" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Super Shelf"
+    "badge.five_books.label": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Super Shelf"
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Super libreria"
+          }
         }
       }
     },
-    "badge.five_pages.description" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Wrote a 5+ page story"
+    "badge.five_pages.description": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Wrote a 5+ page story"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hai scritto una storia di 5+ pagine"
           }
         }
       }
     },
-    "badge.five_pages.label" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Long Story"
+    "badge.five_pages.label": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Long Story"
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Storia lunga"
+          }
         }
       }
     },
-    "badge.generic.name" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "this badge"
+    "badge.generic.name": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "this badge"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "questa medaglia"
           }
         }
       }
     },
-    "badge.made_avatar.description" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Made your own avatar"
+    "badge.made_avatar.description": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Made your own avatar"
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hai creato il tuo avatar"
+          }
         }
       }
     },
-    "badge.made_avatar.label" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "That's Me"
+    "badge.made_avatar.label": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "That's Me"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sono io!"
           }
         }
       }
     },
-    "badge.printed_book.description" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Ordered a printed copy"
+    "badge.printed_book.description": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Ordered a printed copy"
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hai ordinato una copia stampata"
+          }
         }
       }
     },
-    "badge.printed_book.label" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Real Book"
+    "badge.printed_book.label": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Real Book"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Libro vero"
           }
         }
       }
     },
-    "badge.published_book.description" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Published a book to the gallery"
+    "badge.published_book.description": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Published a book to the gallery"
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hai pubblicato un libro nella galleria"
+          }
         }
       }
     },
-    "badge.published_book.label" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Shared It"
+    "badge.published_book.label": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Shared It"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Storia condivisa"
           }
         }
       }
     },
-    "badge.streak_3.description" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Wrote 3 days in a row"
+    "badge.streak_3.description": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Wrote 3 days in a row"
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hai scritto 3 giorni di fila"
+          }
         }
       }
     },
-    "badge.streak_3.label" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "On a Roll"
+    "badge.streak_3.label": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "On a Roll"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Che ritmo!"
           }
         }
       }
     },
-    "badge.streak_30.description" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Wrote 30 days in a row"
+    "badge.streak_30.description": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Wrote 30 days in a row"
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hai scritto 30 giorni di fila"
+          }
         }
       }
     },
-    "badge.streak_30.label" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Story Legend"
+    "badge.streak_30.label": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Story Legend"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leggenda"
           }
         }
       }
     },
-    "badge.streak_7.description" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Wrote 7 days in a row"
+    "badge.streak_7.description": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Wrote 7 days in a row"
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hai scritto 7 giorni di fila"
+          }
         }
       }
     },
-    "badge.streak_7.label" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Week of Wonders"
+    "badge.streak_7.label": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Week of Wonders"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settimana magica"
           }
         }
       }
     },
-    "badge.submitted_class.description" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Submitted a book to class"
+    "badge.submitted_class.description": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Submitted a book to class"
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hai consegnato un libro alla classe"
+          }
         }
       }
     },
-    "badge.submitted_class.label" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Class Star"
+    "badge.submitted_class.label": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Class Star"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stella di classe"
           }
         }
       }
     },
-    "badge.ten_books.description" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Created 10 books"
+    "badge.ten_books.description": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Created 10 books"
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hai creato 10 libri"
+          }
         }
       }
     },
-    "badge.ten_books.label" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Writing Star"
+    "badge.ten_books.label": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Writing Star"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Penna d'oro"
           }
         }
       }
     },
-    "badge.ten_pages.description" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Wrote a 10-page story"
+    "badge.ten_pages.description": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Wrote a 10-page story"
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hai scritto una storia di 10 pagine"
+          }
         }
       }
     },
-    "badge.ten_pages.label" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Epic Tale"
+    "badge.ten_pages.label": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Epic Tale"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Storia epica"
           }
         }
       }
     },
-    "badge.three_books.description" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Created 3 books"
+    "badge.three_books.description": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Created 3 books"
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hai creato 3 libri"
+          }
         }
       }
     },
-    "badge.three_books.label" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Bookworm"
+    "badge.three_books.label": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Bookworm"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Topo di biblioteca"
           }
         }
       }
     },
-    "badge.three_illustrations.description" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Put 3 pictures in one book"
+    "badge.three_illustrations.description": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Put 3 pictures in one book"
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hai messo 3 figure in un libro"
+          }
         }
       }
     },
-    "badge.three_illustrations.label" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Picture Book"
+    "badge.three_illustrations.label": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Picture Book"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Libro illustrato"
           }
         }
       }
     },
-    "badge.used_buddy.description" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Asked Story Buddy for help"
+    "badge.used_buddy.description": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Asked Story Buddy for help"
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hai chiesto aiuto a Story Buddy"
+          }
         }
       }
     },
-    "badge.used_buddy.label" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "AI Friend"
+    "badge.used_buddy.label": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "AI Friend"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Amico AI"
           }
         }
       }
     },
-    "badge.used_voice.description" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Used voice input"
+    "badge.used_voice.description": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Used voice input"
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hai usato la voce"
+          }
         }
       }
     },
-    "badge.used_voice.label" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Magic Voice"
+    "badge.used_voice.label": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Magic Voice"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voce magica"
           }
         }
       }
     },
-    "bookshelf.book_count" : {
-      "comment" : "Count of books on the shelf. MUST be varied by plural: one = \"1 book\", other = \"%lld books\".",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "%lld books"
+    "bookshelf.book_count": {
+      "comment": "Count of books on the shelf. MUST be varied by plural: one = \"1 book\", other = \"%lld books\".",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "%lld books"
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "^[%lld libro](inflect: true)"
+          }
         }
       }
     },
-    "by %@" : {
-
+    "by %@": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "di %@"
+          }
+        }
+      }
     },
-    "coin_pack.large.label" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Large pack"
+    "coin_pack.large.label": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Large pack"
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pacchetto grande"
+          }
         }
       }
     },
-    "coin_pack.medium.label" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Medium pack"
+    "coin_pack.medium.label": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Medium pack"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pacchetto medio"
           }
         }
       }
     },
-    "coin_pack.small.label" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Small pack"
+    "coin_pack.small.label": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Small pack"
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pacchetto piccolo"
+          }
         }
       }
     },
-    "coins.insufficient" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Not enough coins yet — keep creating to earn more!"
+    "coins.insufficient": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Not enough coins yet — keep creating to earn more!"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non hai abbastanza monete — continua a creare per guadagnarne altre!"
           }
         }
       }
     },
-    "coins.purchase.failed" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Purchase failed: %@"
+    "coins.purchase.failed": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Purchase failed: %@"
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Acquisto non riuscito: %@"
+          }
         }
       }
     },
-    "coins.purchase.pending" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Payment confirmed. Your coins will appear in a moment — pull to refresh if they don't show up."
+    "coins.purchase.pending": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Payment confirmed. Your coins will appear in a moment — pull to refresh if they don't show up."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pagamento confermato. Le tue monete arrivano tra un attimo: tira giù per aggiornare se non le vedi."
           }
         }
       }
     },
-    "create.cover.error.generation_failed" : {
-      "comment" : "%@ is the underlying network/server error, already localized by iOS",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Couldn't paint the cover: %@"
+    "create.cover.error.generation_failed": {
+      "comment": "%@ is the underlying network/server error, already localized by iOS",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Couldn't paint the cover: %@"
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non siamo riusciti a disegnare la copertina: %@"
+          }
         }
       }
     },
-    "create.hero.error.generation_failed" : {
-      "comment" : "%@ is the underlying network/server error, already localized by iOS",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Couldn't create your hero: %@"
+    "create.hero.error.generation_failed": {
+      "comment": "%@ is the underlying network/server error, already localized by iOS",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Couldn't create your hero: %@"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non siamo riusciti a creare il tuo eroe: %@"
           }
         }
       }
     },
-    "create.hero.error.unprocessable_photo" : {
-      "comment" : "Shown when the picked photo can't be re-encoded for upload",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Couldn't process that photo."
+    "create.hero.error.unprocessable_photo": {
+      "comment": "Shown when the picked photo can't be re-encoded for upload",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Couldn't process that photo."
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non siamo riusciti a usare questa foto."
+          }
         }
       }
     },
-    "create.hero.error.unreadable_photo" : {
-      "comment" : "Shown when the picked photo can't be decoded",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Couldn't read that photo."
+    "create.hero.error.unreadable_photo": {
+      "comment": "Shown when the picked photo can't be decoded",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Couldn't read that photo."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non siamo riusciti a leggere questa foto."
           }
         }
       }
     },
-    "create.page.error.drawing_save_failed" : {
-      "comment" : "%@ is the underlying upload error, already localized by iOS",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Couldn't save your drawing: %@"
+    "create.page.error.drawing_save_failed": {
+      "comment": "%@ is the underlying upload error, already localized by iOS",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Couldn't save your drawing: %@"
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non siamo riusciti a salvare il tuo disegno: %@"
+          }
         }
       }
     },
-    "create.page.error.illustration_failed" : {
-      "comment" : "%@ is the underlying network/server error, already localized by iOS",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Couldn't generate illustration: %@"
+    "create.page.error.illustration_failed": {
+      "comment": "%@ is the underlying network/server error, already localized by iOS",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Couldn't generate illustration: %@"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non siamo riusciti a creare l'illustrazione: %@"
           }
         }
       }
     },
-    "create.setting.cloud_kingdom.blurb" : {
-      "comment" : "One-line description of the Cloud Kingdom world",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "A floating land high above the world."
+    "create.setting.cloud_kingdom.blurb": {
+      "comment": "One-line description of the Cloud Kingdom world",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "A floating land high above the world."
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Una terra che galleggia altissima sopra il mondo."
+          }
         }
       }
     },
-    "create.setting.cloud_kingdom.title" : {
-      "comment" : "Name of a story world a child can pick",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "The Cloud Kingdom"
+    "create.setting.cloud_kingdom.title": {
+      "comment": "Name of a story world a child can pick",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "The Cloud Kingdom"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il Regno delle Nuvole"
           }
         }
       }
     },
-    "create.setting.cookie_planet.blurb" : {
-      "comment" : "One-line description of the Cookie Planet world",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "A planet made of every dessert imaginable."
+    "create.setting.cookie_planet.blurb": {
+      "comment": "One-line description of the Cookie Planet world",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "A planet made of every dessert imaginable."
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un pianeta fatto di tutti i dolci che puoi immaginare."
+          }
         }
       }
     },
-    "create.setting.cookie_planet.title" : {
-      "comment" : "Name of a story world a child can pick",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "The Cookie Planet"
+    "create.setting.cookie_planet.title": {
+      "comment": "Name of a story world a child can pick",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "The Cookie Planet"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il Pianeta dei Biscotti"
           }
         }
       }
     },
-    "create.setting.coral_city.blurb" : {
-      "comment" : "One-line description of the Coral City world",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "An underwater city of bright coral towers."
+    "create.setting.coral_city.blurb": {
+      "comment": "One-line description of the Coral City world",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "An underwater city of bright coral towers."
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Una città sott'acqua con torri di corallo luminose."
+          }
         }
       }
     },
-    "create.setting.coral_city.title" : {
-      "comment" : "Name of a story world a child can pick",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "The Coral City"
+    "create.setting.coral_city.title": {
+      "comment": "Name of a story world a child can pick",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "The Coral City"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La Città di Corallo"
           }
         }
       }
     },
-    "create.setting.dinosaur_valley.blurb" : {
-      "comment" : "One-line description of the Dinosaur Valley world",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "A hidden valley where dinosaurs still play."
+    "create.setting.dinosaur_valley.blurb": {
+      "comment": "One-line description of the Dinosaur Valley world",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "A hidden valley where dinosaurs still play."
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Una valle nascosta dove i dinosauri giocano ancora."
+          }
         }
       }
     },
-    "create.setting.dinosaur_valley.title" : {
-      "comment" : "Name of a story world a child can pick",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "The Dinosaur Valley"
+    "create.setting.dinosaur_valley.title": {
+      "comment": "Name of a story world a child can pick",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "The Dinosaur Valley"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La Valle dei Dinosauri"
           }
         }
       }
     },
-    "create.setting.glowing_forest.blurb" : {
-      "comment" : "One-line description of the Glowing Forest world",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "A magical forest where stars come down at night."
+    "create.setting.glowing_forest.blurb": {
+      "comment": "One-line description of the Glowing Forest world",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "A magical forest where stars come down at night."
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un bosco magico dove di notte scendono le stelle."
+          }
         }
       }
     },
-    "create.setting.glowing_forest.title" : {
-      "comment" : "Name of a story world a child can pick",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "The Glowing Forest"
+    "create.setting.glowing_forest.title": {
+      "comment": "Name of a story world a child can pick",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "The Glowing Forest"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il Bosco Luminoso"
           }
         }
       }
     },
-    "create.setting.snow_castle.blurb" : {
-      "comment" : "One-line description of the Snow Castle world",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "A castle of ice and silver moonlight."
+    "create.setting.snow_castle.blurb": {
+      "comment": "One-line description of the Snow Castle world",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "A castle of ice and silver moonlight."
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un castello di ghiaccio e di luna argentata."
+          }
         }
       }
     },
-    "create.setting.snow_castle.title" : {
-      "comment" : "Name of a story world a child can pick",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "The Snow Castle"
+    "create.setting.snow_castle.title": {
+      "comment": "Name of a story world a child can pick",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "The Snow Castle"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il Castello di Neve"
           }
         }
       }
     },
-    "e.g. The Brave Star Bear" : {
-
+    "e.g. The Brave Star Bear": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "es. Il coraggioso orso stellato"
+          }
+        }
+      }
     },
-    "gallery.byline %@" : {
-
+    "gallery.byline %@": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "di %@"
+          }
+        }
+      }
     },
-    "gallery.byline.with_age %@ %lld" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "gallery.byline.with_age %1$@ %2$lld"
+    "gallery.byline.with_age %@ %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "gallery.byline.with_age %1$@ %2$lld"
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "di %1$@, %2$lld anni"
+          }
         }
       }
     },
-    "gallery.card.a11y %@ %@" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "gallery.card.a11y %1$@ %2$@"
+    "gallery.card.a11y %@ %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "gallery.card.a11y %1$@ %2$@"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, di %2$@"
           }
         }
       }
     },
-    "gallery.card.a11y.with_age %@ %@ %lld" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "gallery.card.a11y.with_age %1$@ %2$@ %3$lld"
+    "gallery.card.a11y.with_age %@ %@ %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "gallery.card.a11y.with_age %1$@ %2$@ %3$lld"
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, di %2$@, %3$lld anni"
+          }
         }
       }
     },
-    "or" : {
-
+    "or": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "oppure"
+          }
+        }
+      }
     },
-    "order.detail.error.load_failed" : {
-      "comment" : "Shown when the order row cannot be fetched",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Couldn't load this order."
+    "order.detail.error.load_failed": {
+      "comment": "Shown when the order row cannot be fetched",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Couldn't load this order."
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non siamo riusciti a caricare questo ordine."
+          }
         }
       }
     },
-    "order.status.delivered" : {
-      "comment" : "Print order status: arrived",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Delivered"
+    "order.status.delivered": {
+      "comment": "Print order status: arrived",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Delivered"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Consegnato"
           }
         }
       }
     },
-    "order.status.failed" : {
-      "comment" : "Print order status: the order could not be completed",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Failed"
+    "order.status.failed": {
+      "comment": "Print order status: the order could not be completed",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Failed"
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non riuscito"
+          }
         }
       }
     },
-    "order.status.in_production" : {
-      "comment" : "Print order status: the book is being printed",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Printing"
+    "order.status.in_production": {
+      "comment": "Print order status: the book is being printed",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Printing"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In stampa"
           }
         }
       }
     },
-    "order.status.paid" : {
-      "comment" : "Print order status: paid, building the print PDF",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Preparing files"
+    "order.status.paid": {
+      "comment": "Print order status: paid, building the print PDF",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Preparing files"
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparazione file"
+          }
         }
       }
     },
-    "order.status.pdf_ready" : {
-      "comment" : "Print order status: PDF built, handed to the print partner",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Sent to printer"
+    "order.status.pdf_ready": {
+      "comment": "Print order status: PDF built, handed to the print partner",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Sent to printer"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inviato in stampa"
           }
         }
       }
     },
-    "order.status.pending" : {
-      "comment" : "Print order status: payment not completed yet",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Waiting on payment"
+    "order.status.pending": {
+      "comment": "Print order status: payment not completed yet",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Waiting on payment"
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Attesa pagamento"
+          }
         }
       }
     },
-    "order.status.refunded" : {
-      "comment" : "Print order status: money returned to the customer",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Refunded"
+    "order.status.refunded": {
+      "comment": "Print order status: money returned to the customer",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Refunded"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rimborsato"
           }
         }
       }
     },
-    "order.status.shipped" : {
-      "comment" : "Print order status: shipped, in transit",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "On the way"
+    "order.status.shipped": {
+      "comment": "Print order status: shipped, in transit",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "On the way"
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In arrivo"
+          }
         }
       }
     },
-    "order.status.submitted" : {
-      "comment" : "Print order status: accepted by the print partner",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Sent to printer"
+    "order.status.submitted": {
+      "comment": "Print order status: accepted by the print partner",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Sent to printer"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inviato in stampa"
           }
         }
       }
     },
-    "order.status.unknown" : {
-      "comment" : "Print order status the app doesn't recognize yet",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Processing"
+    "order.status.unknown": {
+      "comment": "Print order status the app doesn't recognize yet",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Processing"
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elaborazione"
+          }
         }
       }
     },
-    "order.summary.format_quantity" : {
-      "comment" : "Order summary value, e.g. \"Hardcover × 2\"",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "%1$@ × %2$lld"
+    "order.summary.format_quantity": {
+      "comment": "Order summary value, e.g. \"Hardcover × 2\"",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "%1$@ × %2$lld"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ × %2$lld"
           }
         }
       }
     },
-    "orders.card.quantity_line" : {
-      "comment" : "Order card subtitle, e.g. \"2 × Hardcover · $44.98\"",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "%1$lld × %2$@ · %3$@"
+    "orders.card.quantity_line": {
+      "comment": "Order card subtitle, e.g. \"2 × Hardcover · $44.98\"",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "%1$lld × %2$@ · %3$@"
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld × %2$@ · %3$@"
+          }
         }
       }
     },
-    "orders.list.error.load_failed" : {
-      "comment" : "%@ is the underlying network/server error, already localized by iOS",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Couldn't load orders: %@"
+    "orders.list.error.load_failed": {
+      "comment": "%@ is the underlying network/server error, already localized by iOS",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Couldn't load orders: %@"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non siamo riusciti a caricare gli ordini: %@"
           }
         }
       }
     },
-    "plan.classroom.name" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Classroom"
+    "plan.classroom.name": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Classroom"
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scuola"
+          }
         }
       }
     },
-    "plan.family.name" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Family"
+    "plan.family.name": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Family"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Famiglia"
           }
         }
       }
     },
-    "plan.free.name" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Free"
+    "plan.free.name": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Free"
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gratis"
+          }
         }
       }
     },
-    "plan.unknown.name" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Premium"
+    "plan.unknown.name": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Premium"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Premium"
           }
         }
       }
     },
-    "print.format.hardcover" : {
-      "comment" : "Print format: a book with a rigid cover",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Hardcover"
+    "print.format.hardcover": {
+      "comment": "Print format: a book with a rigid cover",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Hardcover"
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copertina rigida"
+          }
         }
       }
     },
-    "print.format.softcover" : {
-      "comment" : "Print format: a book with a flexible paper cover",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Softcover"
+    "print.format.softcover": {
+      "comment": "Print format: a book with a flexible paper cover",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Softcover"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copertina morbida"
           }
         }
       }
     },
-    "print.format.unknown" : {
-      "comment" : "Print format the app doesn't recognize yet",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Unknown"
+    "print.format.unknown": {
+      "comment": "Print format the app doesn't recognize yet",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Unknown"
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sconosciuto"
+          }
         }
       }
     },
-    "print.order.error.create_failed" : {
-      "comment" : "%@ is the underlying network/server error, already localized by iOS",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Couldn't create order: %@"
+    "print.order.error.create_failed": {
+      "comment": "%@ is the underlying network/server error, already localized by iOS",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Couldn't create order: %@"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non siamo riusciti a creare l'ordine: %@"
           }
         }
       }
     },
-    "print.order.error.payment_failed" : {
-      "comment" : "%@ is Stripe's decline/failure reason, already localized by the SDK",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Payment failed: %@"
+    "print.order.error.payment_failed": {
+      "comment": "%@ is Stripe's decline/failure reason, already localized by the SDK",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Payment failed: %@"
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pagamento non riuscito: %@"
+          }
         }
       }
     },
-    "print.order.error.payments_unavailable" : {
-      "comment" : "Shown when the server did not return a Stripe publishable key",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Payments are temporarily unavailable. Please try again later."
+    "print.order.error.payments_unavailable": {
+      "comment": "Shown when the server did not return a Stripe publishable key",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Payments are temporarily unavailable. Please try again later."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I pagamenti non sono disponibili in questo momento. Riprova più tardi."
           }
         }
       }
     },
-    "store.style.insufficient_coins" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "You need %lld coins for this. Earn more coins by creating books and using features!"
+    "store.style.insufficient_coins": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "You need %lld coins for this. Earn more coins by creating books and using features!"
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ti servono %lld monete. Guadagna altre monete creando libri e usando l'app!"
+          }
         }
       }
     },
-    "story.idea.01" : {
-      "comment" : "Shake-for-an-idea story starter shown to children aged 4-8",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "A dragon who is afraid of the dark finds a glowing friend."
+    "story.idea.01": {
+      "comment": "Shake-for-an-idea story starter shown to children aged 4-8",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "A dragon who is afraid of the dark finds a glowing friend."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un drago che ha paura del buio trova un amico luminoso."
           }
         }
       }
     },
-    "story.idea.02" : {
-      "comment" : "Shake-for-an-idea story starter shown to children aged 4-8",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Your sneakers can suddenly jump over houses. Where do you go first?"
+    "story.idea.02": {
+      "comment": "Shake-for-an-idea story starter shown to children aged 4-8",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Your sneakers can suddenly jump over houses. Where do you go first?"
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All'improvviso le tue scarpe saltano sopra le case. Dove vai per prima cosa?"
+          }
         }
       }
     },
-    "story.idea.03" : {
-      "comment" : "Shake-for-an-idea story starter shown to children aged 4-8",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "A tiny mouse opens the world's smallest bakery."
+    "story.idea.03": {
+      "comment": "Shake-for-an-idea story starter shown to children aged 4-8",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "A tiny mouse opens the world's smallest bakery."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un topolino apre il forno più piccolo del mondo."
           }
         }
       }
     },
-    "story.idea.04" : {
-      "comment" : "Shake-for-an-idea story starter shown to children aged 4-8",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "The moon gets lost and knocks on your window for directions."
+    "story.idea.04": {
+      "comment": "Shake-for-an-idea story starter shown to children aged 4-8",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "The moon gets lost and knocks on your window for directions."
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La luna si perde e bussa alla tua finestra per chiedere la strada."
+          }
         }
       }
     },
-    "story.idea.05" : {
-      "comment" : "Shake-for-an-idea story starter shown to children aged 4-8",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "A robot learns how to giggle."
+    "story.idea.05": {
+      "comment": "Shake-for-an-idea story starter shown to children aged 4-8",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "A robot learns how to giggle."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un robot impara a fare le risatine."
           }
         }
       }
     },
-    "story.idea.06" : {
-      "comment" : "Shake-for-an-idea story starter shown to children aged 4-8",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Your pet goldfish becomes the captain of a pirate ship."
+    "story.idea.06": {
+      "comment": "Shake-for-an-idea story starter shown to children aged 4-8",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Your pet goldfish becomes the captain of a pirate ship."
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il tuo pesce rosso diventa il capitano di una nave dei pirati."
+          }
         }
       }
     },
-    "story.idea.07" : {
-      "comment" : "Shake-for-an-idea story starter shown to children aged 4-8",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "A rainbow falls asleep across your street."
+    "story.idea.07": {
+      "comment": "Shake-for-an-idea story starter shown to children aged 4-8",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "A rainbow falls asleep across your street."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un arcobaleno si addormenta sopra la tua strada."
           }
         }
       }
     },
-    "story.idea.08" : {
-      "comment" : "Shake-for-an-idea story starter shown to children aged 4-8",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "The letters of the alphabet throw a birthday party."
+    "story.idea.08": {
+      "comment": "Shake-for-an-idea story starter shown to children aged 4-8",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "The letters of the alphabet throw a birthday party."
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le lettere dell'alfabeto fanno una festa di compleanno."
+          }
         }
       }
     },
-    "story.idea.09" : {
-      "comment" : "Shake-for-an-idea story starter shown to children aged 4-8",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "A snowman wishes for a warm hug that won't melt him."
+    "story.idea.09": {
+      "comment": "Shake-for-an-idea story starter shown to children aged 4-8",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "A snowman wishes for a warm hug that won't melt him."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un pupazzo di neve desidera un abbraccio caldo che non lo faccia sciogliere."
           }
         }
       }
     },
-    "story.idea.10" : {
-      "comment" : "Shake-for-an-idea story starter shown to children aged 4-8",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Your crayons sneak out at night to draw on the sky."
+    "story.idea.10": {
+      "comment": "Shake-for-an-idea story starter shown to children aged 4-8",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Your crayons sneak out at night to draw on the sky."
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Di notte i tuoi pastelli escono di nascosto per disegnare sul cielo."
+          }
         }
       }
     },
-    "story.idea.11" : {
-      "comment" : "Shake-for-an-idea story starter shown to children aged 4-8",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "A baby dinosaur hatches in your backyard."
+    "story.idea.11": {
+      "comment": "Shake-for-an-idea story starter shown to children aged 4-8",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "A baby dinosaur hatches in your backyard."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nel tuo giardino si schiude un uovo di dinosauro."
           }
         }
       }
     },
-    "story.idea.12" : {
-      "comment" : "Shake-for-an-idea story starter shown to children aged 4-8",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "The school bus grows wings on the way to school."
+    "story.idea.12": {
+      "comment": "Shake-for-an-idea story starter shown to children aged 4-8",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "The school bus grows wings on the way to school."
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allo scuolabus spuntano le ali mentre va a scuola."
+          }
         }
       }
     },
-    "story.idea.13" : {
-      "comment" : "Shake-for-an-idea story starter shown to children aged 4-8",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "A cloud rains lemonade on the town fair."
+    "story.idea.13": {
+      "comment": "Shake-for-an-idea story starter shown to children aged 4-8",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "A cloud rains lemonade on the town fair."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Una nuvola fa piovere limonata sulla festa del paese."
           }
         }
       }
     },
-    "story.idea.14" : {
-      "comment" : "Shake-for-an-idea story starter shown to children aged 4-8",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Your shadow wants to swap places with you for a day."
+    "story.idea.14": {
+      "comment": "Shake-for-an-idea story starter shown to children aged 4-8",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Your shadow wants to swap places with you for a day."
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La tua ombra vuole scambiarsi di posto con te per un giorno."
+          }
         }
       }
     },
-    "story.idea.15" : {
-      "comment" : "Shake-for-an-idea story starter shown to children aged 4-8",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "A unicorn loses its sparkle and goes looking for it."
+    "story.idea.15": {
+      "comment": "Shake-for-an-idea story starter shown to children aged 4-8",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "A unicorn loses its sparkle and goes looking for it."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un unicorno perde il suo luccichio e parte a cercarlo."
           }
         }
       }
     },
-    "story.idea.16" : {
-      "comment" : "Shake-for-an-idea story starter shown to children aged 4-8",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "The library books start whispering their stories at midnight."
+    "story.idea.16": {
+      "comment": "Shake-for-an-idea story starter shown to children aged 4-8",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "The library books start whispering their stories at midnight."
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A mezzanotte i libri della biblioteca iniziano a sussurrare le loro storie."
+          }
         }
       }
     },
-    "story.idea.17" : {
-      "comment" : "Shake-for-an-idea story starter shown to children aged 4-8",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "A penguin moves to the jungle and opens an ice-cream stand."
+    "story.idea.17": {
+      "comment": "Shake-for-an-idea story starter shown to children aged 4-8",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "A penguin moves to the jungle and opens an ice-cream stand."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un pinguino va a vivere nella giungla e apre un chiosco dei gelati."
           }
         }
       }
     },
-    "story.idea.18" : {
-      "comment" : "Shake-for-an-idea story starter shown to children aged 4-8",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Your grandma's old key opens a door in a tree."
+    "story.idea.18": {
+      "comment": "Shake-for-an-idea story starter shown to children aged 4-8",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Your grandma's old key opens a door in a tree."
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La vecchia chiave della nonna apre una porta dentro un albero."
+          }
         }
       }
     },
-    "story.idea.19" : {
-      "comment" : "Shake-for-an-idea story starter shown to children aged 4-8",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "A star falls into your soup. Now your spoon can fly."
+    "story.idea.19": {
+      "comment": "Shake-for-an-idea story starter shown to children aged 4-8",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "A star falls into your soup. Now your spoon can fly."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Una stella cade nella tua minestra. Adesso il tuo cucchiaio vola."
           }
         }
       }
     },
-    "story.idea.20" : {
-      "comment" : "Shake-for-an-idea story starter shown to children aged 4-8",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "The vegetables in the garden form a band."
+    "story.idea.20": {
+      "comment": "Shake-for-an-idea story starter shown to children aged 4-8",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "The vegetables in the garden form a band."
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le verdure dell'orto formano un gruppo musicale."
+          }
         }
       }
     },
-    "story.idea.21" : {
-      "comment" : "Shake-for-an-idea story starter; the shouted YOU is the joke, keep the emphasis",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "A friendly monster is hiding under the bed — and it's scared of YOU."
+    "story.idea.21": {
+      "comment": "Shake-for-an-idea story starter; the shouted YOU is the joke, keep the emphasis",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "A friendly monster is hiding under the bed — and it's scared of YOU."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un mostro gentile è nascosto sotto il letto e ha paura di TE."
           }
         }
       }
     },
-    "story.idea.22" : {
-      "comment" : "Shake-for-an-idea story starter shown to children aged 4-8",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Your bicycle can talk, but only on Tuesdays."
+    "story.idea.22": {
+      "comment": "Shake-for-an-idea story starter shown to children aged 4-8",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Your bicycle can talk, but only on Tuesdays."
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La tua bicicletta parla, ma solo di martedì."
+          }
         }
       }
     },
-    "story.idea.23" : {
-      "comment" : "Shake-for-an-idea story starter shown to children aged 4-8",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "A whale dreams of seeing the mountains."
+    "story.idea.23": {
+      "comment": "Shake-for-an-idea story starter shown to children aged 4-8",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "A whale dreams of seeing the mountains."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Una balena sogna di vedere le montagne."
           }
         }
       }
     },
-    "story.idea.24" : {
-      "comment" : "Shake-for-an-idea story starter shown to children aged 4-8",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "The playground slide is secretly a portal to the clouds."
+    "story.idea.24": {
+      "comment": "Shake-for-an-idea story starter shown to children aged 4-8",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "The playground slide is secretly a portal to the clouds."
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lo scivolo del parco è un passaggio segreto per le nuvole."
+          }
         }
       }
     },
-    "story.idea.25" : {
-      "comment" : "Shake-for-an-idea story starter shown to children aged 4-8",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "A firefly teaches the lighthouse how to blink hello."
+    "story.idea.25": {
+      "comment": "Shake-for-an-idea story starter shown to children aged 4-8",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "A firefly teaches the lighthouse how to blink hello."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Una lucciola insegna al faro a lampeggiare per dire ciao."
           }
         }
       }
     },
-    "story.idea.26" : {
-      "comment" : "Shake-for-an-idea story starter shown to children aged 4-8",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Your mittens are magic: everything you touch turns fuzzy."
+    "story.idea.26": {
+      "comment": "Shake-for-an-idea story starter shown to children aged 4-8",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Your mittens are magic: everything you touch turns fuzzy."
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I tuoi guanti sono magici: tutto quello che tocchi diventa peloso."
+          }
         }
       }
     },
-    "story.idea.27" : {
-      "comment" : "Shake-for-an-idea story starter shown to children aged 4-8",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "A little ghost just wants to be invited to the sleepover."
+    "story.idea.27": {
+      "comment": "Shake-for-an-idea story starter shown to children aged 4-8",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "A little ghost just wants to be invited to the sleepover."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un fantasmino vuole solo essere invitato al pigiama party."
           }
         }
       }
     },
-    "story.idea.28" : {
-      "comment" : "Shake-for-an-idea story starter shown to children aged 4-8",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "The last cookie in the jar makes a daring escape."
+    "story.idea.28": {
+      "comment": "Shake-for-an-idea story starter shown to children aged 4-8",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "The last cookie in the jar makes a daring escape."
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L'ultimo biscotto nel barattolo tenta una fuga coraggiosa."
+          }
         }
       }
     },
-    "story.idea.29" : {
-      "comment" : "Shake-for-an-idea story starter shown to children aged 4-8",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "A turtle enters the city's fastest race."
+    "story.idea.29": {
+      "comment": "Shake-for-an-idea story starter shown to children aged 4-8",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "A turtle enters the city's fastest race."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Una tartaruga si iscrive alla gara più veloce della città."
           }
         }
       }
     },
-    "story.idea.30" : {
-      "comment" : "Shake-for-an-idea story starter shown to children aged 4-8",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Your treehouse lifts off like a rocket at bedtime."
+    "story.idea.30": {
+      "comment": "Shake-for-an-idea story starter shown to children aged 4-8",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Your treehouse lifts off like a rocket at bedtime."
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All'ora della nanna la tua casa sull'albero decolla come un razzo."
+          }
         }
       }
     },
-    "story.idea.hint.pad" : {
-      "comment" : "Footnote on the story-idea popup, iPad wording",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Shake your iPad anytime for a new idea ✨"
+    "story.idea.hint.pad": {
+      "comment": "Footnote on the story-idea popup, iPad wording",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Shake your iPad anytime for a new idea ✨"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scuoti l'iPad quando vuoi per una nuova idea ✨"
           }
         }
       }
     },
-    "story.idea.hint.phone" : {
-      "comment" : "Footnote on the story-idea popup, iPhone wording",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Shake your phone anytime for a new idea ✨"
+    "story.idea.hint.phone": {
+      "comment": "Footnote on the story-idea popup, iPhone wording",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Shake your phone anytime for a new idea ✨"
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scuoti il telefono quando vuoi per una nuova idea ✨"
+          }
         }
       }
     },
-    "welcome.banner.subtitle" : {
-      "comment" : "Launch banner subtitle; %@ is the signed-in person's display name",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Good to see you, %@"
+    "welcome.banner.subtitle": {
+      "comment": "Launch banner subtitle; %@ is the signed-in person's display name",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Good to see you, %@"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ciao %@, che piacere vederti!"
           }
         }
       }
     },
-    "welcome.streak.continue" : {
-      "comment" : "Nudge on the launch celebration; %lld is tomorrow's streak day number",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Write today to reach day %lld!"
+    "welcome.streak.continue": {
+      "comment": "Nudge on the launch celebration; %lld is tomorrow's streak day number",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Write today to reach day %lld!"
           }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scrivi oggi e arrivi al giorno %lld!"
+          }
         }
       }
     },
-    "welcome.streak.start" : {
-      "comment" : "Nudge on the launch celebration when the streak is at zero",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Write something today to start a streak!"
+    "welcome.streak.start": {
+      "comment": "Nudge on the launch celebration when the streak is at zero",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Write something today to start a streak!"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scrivi qualcosa oggi e inizia la tua serie!"
           }
         }
       }
     },
-    "“%@”" : {
-
+    "“%@”": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "“%@”"
+          }
+        }
+      }
     },
-    "“%@” by %@" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "“%1$@” by %2$@"
+    "“%@” by %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "“%1$@” by %2$@"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "“%1$@” di %2$@"
           }
         }
       }
     },
-    "✨" : {
-
+    "✨": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "✨"
+          }
+        }
+      }
     },
-    "✨ Coin Store" : {
-
+    "✨ Coin Store": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "✨ Negozio monete"
+          }
+        }
+      }
     },
-    "⭐️ Recommended" : {
-
+    "⭐️ Recommended": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⭐️ Consigliato"
+          }
+        }
+      }
     },
-    "🌟" : {
-
+    "🌟": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "🌟"
+          }
+        }
+      }
     },
-    "🎉" : {
-
+    "🎉": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "🎉"
+          }
+        }
+      }
     },
-    "👋 Grown-up check" : {
-
+    "👋 Grown-up check": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "👋 Controllo per grandi"
+          }
+        }
+      }
     },
-    "💫 Story idea!" : {
-
+    "💫 Story idea!": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "💫 Idea per una storia!"
+          }
+        }
+      }
     },
-    "💭" : {
-
+    "💭": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "💭"
+          }
+        }
+      }
     },
-    "💰" : {
-
+    "💰": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "💰"
+          }
+        }
+      }
     },
-    "📖" : {
-
+    "📖": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "📖"
+          }
+        }
+      }
     },
-    "📦" : {
-
+    "📦": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "📦"
+          }
+        }
+      }
     },
-    "📭" : {
-
+    "📭": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "📭"
+          }
+        }
+      }
     },
-    "🔥" : {
-
+    "🔥": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "🔥"
+          }
+        }
+      }
     },
-    "🛡️" : {
-
+    "🛡️": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "🛡️"
+          }
+        }
+      }
     },
-    "🪙" : {
-
+    "🪙": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "🪙"
+          }
+        }
+      }
     }
   },
-  "version" : "1.0"
+  "version": "1.0"
 }

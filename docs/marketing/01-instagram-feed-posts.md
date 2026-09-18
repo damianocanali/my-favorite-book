@@ -2,26 +2,13 @@
 
 16 ready-to-publish posts. Captions are final copy — paste them as they are.
 
-Corrections from the fact-check and creative-director passes are attached to the posts they affect. **Every warning box must be resolved before that post goes out.**
+All fact-check and creative-director corrections have been applied to the copy below; no warning boxes remain. Every product claim here is verified against the codebase. The illustrations are AI-generated and every post that mentions them says so — note that the app itself carries no on-screen "AI-generated" label yet, which EU AI Act Art. 50 makes worth adding.
 
 ---
 
 ## 1. It can't write your kid's story. On purpose.
 
 **Audience:** parents · **Format:** carousel · **Pillar:** PARENTS — It will not write the story. That's the whole design.
-
-
-> [!WARNING]
-> **Do not publish as written — corrections required**
->
-> **Fact-check — Feed post 1 caption (para 3) + ASO description ("THE APP WILL NOT WRITE THE STORY") + Reel 4 voiceover**
->
-> *Problem:* IMPRECISE. All three say "Give me ideas" returns "three opening sentences". api/story-buddy.js:14-18 only asks for opening lines when `page.pageNumber === 1`; on every other page the prompt is "These should continue from where my story left off." So on pages 2+ a child gets continuation starters, not openings. A parent checking on page 3 sees something different from what you described.
->
-> *Use instead:* Post 1 caption: "\"Give me ideas\" gives your child three sentence starters — one line each, the kind a teacher writes on the board. On page one they're opening lines; after that they pick up from where the story left off. They tap one, and then they keep writing."
-ASO description: "When your child gets stuck, Story Buddy has exactly two buttons. \"Give me ideas\" hands back three one-line sentence starters — opening lines on page one, and lines that pick up the story after that — and your child taps one and keeps going."
-Reel 4 VO: "'Give me ideas' hands them three sentence starters — one line each, the kind of thing a teacher writes on the board — and they tap one and keep going."
->
 
 
 **On-image hook:** It can't write your kid's story. On purpose.
@@ -37,7 +24,7 @@ Here's the part I'd want to know before handing my kid an app with AI in it.
 
 Open Story Buddy on the iPad. There are two buttons.
 
-"Give me ideas" gives your child three opening sentences. One line each — the kind a teacher writes on the board. They tap one, and then they keep writing.
+"Give me ideas" gives your child three sentence starters — one line each, the kind a teacher writes on the board. On page one they're opening lines; after that they pick up from where the story left off. They tap one, and then they keep writing.
 
 "Help me think" gives them three questions about their own story. And there is no way to paste an answer in. The starter cards say "Tap to use this." The question cards say nothing, because they do nothing. Your child has to think of it and type it.
 
@@ -69,17 +56,6 @@ My Book Lab is on the App Store — link in bio.
 **Audience:** parents · **Format:** before-after · **Pillar:** PARENTS — The words come first. The picture is the reward.
 
 
-> [!WARNING]
-> **Do not publish as written — corrections required**
->
-> **Creative director — Feed post 2 caption, final paragraph — and the identical line on post 6, slide 6**
->
-> *Problem:* "The Draw button is never greyed out" is not true. CreateBookView.swift:688 carries `.disabled(savingDrawing || generatingIllustration)` — it greys out while an illustration is generating or a drawing is uploading. Tiny inaccuracy, but this campaign's entire conversion mechanic is "go and verify me," and a parent who taps Draw mid-generation sees a greyed button ten minutes into the inspection you invited.
->
-> *Use instead:* One more thing worth knowing: there's a Draw button sitting right next to Illustrate, and that one has no text requirement at all. Finger or Apple Pencil, Apple's own tool picker, and the drawing goes into the book — including the printed copy. If you'd rather your child never touch the AI art, the app works completely without it.
->
-
-
 **On-image hook:** The Illustrate button doesn't work on an empty page.
 
 **Art direction**
@@ -97,7 +73,7 @@ Which is the exact opposite of what most parents are picturing when they hear "A
 
 Here the incentive runs the other way round. Writing is what unlocks the fun part. And the picture that comes back is generated from the sentence they actually typed — so it's a picture of THEIR idea, not a stock scene.
 
-One more thing worth knowing: there's a Draw button sitting right next to Illustrate, and that one is never greyed out. Finger or Apple Pencil, Apple's own tool picker, and the drawing goes into the book — including the printed copy. If you'd rather your child never touch the AI art at all, the app works completely without it.
+One more thing worth knowing: there's a Draw button sitting right next to Illustrate, and that one has no text requirement at all. Finger or Apple Pencil, Apple's own tool picker, and the drawing goes into the book — including the printed copy. If you'd rather your child never touch the AI art, the app works completely without it.
 
 Sample page shown is from "Theo and the Star Bear", the demo book that ships in the app — you can read all 12 pages without an account.
 
@@ -249,38 +225,11 @@ My Book Lab, App Store, link in bio.
 **Audience:** parents · **Format:** carousel · **Pillar:** PARENTS — The words come first. The picture is the reward. (behind the scenes)
 
 
-> [!WARNING]
-> **Do not publish as written — corrections required**
->
-> **Fact-check — Feed post 6 ("How the picture actually gets made") — caption steps 2 and 3, and slides 3 and 4**
->
-> *Problem:* TWO PRECISION FAILURES. (a) Step 2 states moderation as unconditional. api/_aiGuard.js:102-127 fails OPEN twice: if OPENAI_API_KEY is unset it logs and returns null (allows), and on a transient provider error it also allows. Only the constructed image prompt is checked, and CreateBookView.swift:884 sends only `text.prefix(200)` — the first 200 characters of the page. (b) Step 3 says the style instruction "ends with" that phrase. The style constant (CreateBookView.swift:12) ends there, but the assembled prompt continues ", wide scene, landscape composition".
->
-> *Use instead:* Caption steps 2–3: "2. What they wrote goes through a content-moderation check before any image model sees it. If it trips, nothing is generated and your child gets a kid-safe message: \"Let's keep our story kind and friendly — try different words!\" It's a check, not a guarantee — if the moderation service is unreachable the request goes through rather than failing your child mid-sentence, and I'd rather tell you that than imply it's airtight.
-
-3. Their sentence is joined to a fixed style instruction that's the same every time, and it includes: \"safe for kids, no text, no words, no letters.\" The \"no letters\" part is there for a boring practical reason — without it the model tries to print the story sentence inside the picture."
-Slide 3 body: "...the text is checked by a moderation service. If it trips, nothing is generated and the child sees: [quote]. It's a check, not a guarantee."
-Slide 4 body: "Every image request carries the same fixed style instruction, and it includes:"
->
-> **Fact-check — Feed post 6 — slide 6 label on the right half**
->
-> *Problem:* WRONG. "The Draw button is never greyed out." CreateBookView.swift:688 carries `.disabled(savingDrawing || generatingIllustration)` — Draw IS disabled while an illustration is generating or a drawing is uploading. The real and stronger point is that it has no text requirement, unlike Illustrate.
->
-> *Use instead:* "Or skip all of it. The Draw button has no text requirement at all — it never needed words. The drawing exports at 1536×1024, so it prints at the same size as a generated one."
->
-> **Creative director — Feed post 2 caption, final paragraph — and the identical line on post 6, slide 6**
->
-> *Problem:* "The Draw button is never greyed out" is not true. CreateBookView.swift:688 carries `.disabled(savingDrawing || generatingIllustration)` — it greys out while an illustration is generating or a drawing is uploading. Tiny inaccuracy, but this campaign's entire conversion mechanic is "go and verify me," and a parent who taps Draw mid-generation sees a greyed button ten minutes into the inspection you invited.
->
-> *Use instead:* One more thing worth knowing: there's a Draw button sitting right next to Illustrate, and that one has no text requirement at all. Finger or Apple Pencil, Apple's own tool picker, and the drawing goes into the book — including the printed copy. If you'd rather your child never touch the AI art, the app works completely without it.
->
-
-
 **On-image hook:** How the picture actually gets made
 
 **Art direction**
 
-7-slide carousel, 1080×1350, styled as a technical walkthrough — restrained, Card Grid dominant, minimal sparkle. SLIDE 1 (Cosmic Hero): headline SF Rounded Heavy 100px in the wordmark gradient #66D9FF → #A68CFF → #D9A6F2: 'How the picture / actually / gets made'. Subhead 40px rgba(255,255,255,0.70): 'Five steps. Nothing hidden.' SLIDE 2 (Device Showcase, cropped tight): real screenshot of the iPad page editor with the child's sentence typed and the purple Illustrate button now ENABLED. Overlay label top-left 40px white: 'Step 1 — your child writes the page. Until they do, the button is disabled.' SLIDE 3 (Card Grid, 1×1 raised card, purple glow): title strip 'Step 2 — moderation'. Body 34px: 'Before any model sees it, the text is checked by a moderation service. If it trips, nothing is generated and the child sees: "Let's keep our story kind and friendly — try different words!"' Set that quoted line in serif on a small #FAF7ED paper strip inside the card so it reads as real product copy. SLIDE 4 (Card Grid, 1×1): title strip 'Step 3 — the style line'. Body: 'Every image request carries the same fixed style instruction, and it ends:' then, on a #FAF7ED paper strip in black monospace-feeling serif at 38px: '"...safe for kids, no text, no words, no letters"'. Small caption below in rgba(255,255,255,0.70): 'The "no letters" part stops the model printing your child's sentence into the picture.' SLIDE 5 (Paper Quote): the finished demo page — #FAF7ED card, 3:2 illustration block on top, story text in black serif below, #5B3FA8 page badge. Attribution line outside the card, 34px rgba(255,255,255,0.70): 'Step 4 — it comes back at 768×512, in the same 3:2 shape every page uses.' SLIDE 6 (Before/After Spread, 1080×1350): LEFT the Illustrate route (purple button, wand icon), RIGHT the Draw route — a real capture of DrawingCanvasView with Apple's own PencilKit tool picker floating below a white 3:2 sheet and the on-screen line 'Use your finger or Apple Pencil ✏️'. Divider hairline #BF5AF2. Label on the right half in near-black: 'Or skip all of it. The Draw button is never greyed out — it never needed words. The drawing exports at 1536×1024, so it prints at the same size as a generated one.' SLIDE 7 (Cosmic Hero): CTA capsule 'Watch it happen yourself'. Mascot Welcoming pose, bottom-left, halo. Do NOT speed-ramp any capture of generation — it takes real time. No loading spinners left hanging in any frame.
+7-slide carousel, 1080×1350, styled as a technical walkthrough — restrained, Card Grid dominant, minimal sparkle. SLIDE 1 (Cosmic Hero): headline SF Rounded Heavy 100px in the wordmark gradient #66D9FF → #A68CFF → #D9A6F2: 'How the picture / actually / gets made'. Subhead 40px rgba(255,255,255,0.70): 'Five steps. Nothing hidden.' SLIDE 2 (Device Showcase, cropped tight): real screenshot of the iPad page editor with the child's sentence typed and the purple Illustrate button now ENABLED. Overlay label top-left 40px white: 'Step 1 — your child writes the page. Until they do, the button is disabled.' SLIDE 3 (Card Grid, 1×1 raised card, purple glow): title strip 'Step 2 — moderation'. Body 34px: 'Before any model sees it, the text is checked by a moderation service. If it trips, nothing is generated and the child sees: "Let's keep our story kind and friendly — try different words!" It's a check, not a guarantee.' Set that quoted line in serif on a small #FAF7ED paper strip inside the card so it reads as real product copy. SLIDE 4 (Card Grid, 1×1): title strip 'Step 3 — the style line'. Body: 'Every image request carries the same fixed style instruction, and it includes:' then, on a #FAF7ED paper strip in black monospace-feeling serif at 38px: '"...safe for kids, no text, no words, no letters"'. Small caption below in rgba(255,255,255,0.70): 'The "no letters" part stops the model printing your child's sentence into the picture.' SLIDE 5 (Paper Quote): the finished demo page — #FAF7ED card, 3:2 illustration block on top, story text in black serif below, #5B3FA8 page badge. Attribution line outside the card, 34px rgba(255,255,255,0.70): 'Step 4 — it comes back at 768×512, in the same 3:2 shape every page uses.' SLIDE 6 (Before/After Spread, 1080×1350): LEFT the Illustrate route (purple button, wand icon), RIGHT the Draw route — a real capture of DrawingCanvasView with Apple's own PencilKit tool picker floating below a white 3:2 sheet and the on-screen line 'Use your finger or Apple Pencil ✏️'. Divider hairline #BF5AF2. Label on the right half in near-black: 'Or skip all of it. The Draw button has no text requirement at all — it never needed words. The drawing exports at 1536×1024, so it prints at the same size as a generated one.' SLIDE 7 (Cosmic Hero): CTA capsule 'Watch it happen yourself'. Mascot Welcoming pose, bottom-left, halo. Do NOT speed-ramp any capture of generation — it takes real time. No loading spinners left hanging in any frame.
 
 **Caption**
 
@@ -289,9 +238,9 @@ People ask what the AI is actually doing when a page turns into a picture. Here'
 
 1. Your child writes the page. The Illustrate button is disabled while the text is empty, so there's no picture without words first.
 
-2. What they wrote goes through a content-moderation check before any image model sees it. If it trips, nothing is generated and your child gets a kid-safe message: "Let's keep our story kind and friendly — try different words!"
+2. What they wrote goes through a content-moderation check before any image model sees it. If it trips, nothing is generated and your child gets a kid-safe message: "Let's keep our story kind and friendly — try different words!" It's a check, not a guarantee — if the moderation service is unreachable the request goes through rather than failing your child mid-sentence, and I'd rather tell you that than imply it's airtight.
 
-3. Their sentence is joined to a fixed style instruction that's the same every time. It ends with: "safe for kids, no text, no words, no letters." The "no letters" part is there for a boring practical reason — without it the model tries to print the story sentence inside the picture.
+3. Their sentence is joined to a fixed style instruction that's the same every time, and it includes: "safe for kids, no text, no words, no letters." The "no letters" part is there for a boring practical reason — without it the model tries to print the story sentence inside the picture.
 
 4. The image comes back at 768×512 — the same 3:2 shape every page in the book uses, so the layout never jumps.
 
@@ -310,31 +259,13 @@ App Store, link in bio.
 
 **Hashtags:** #creativewritingforkids #kidswriting #kidsart #applepencil #ipadapps #aiandkids #parentingtips #gentleparenting #homeschoolmom #kidscreativity #childrensbooks #raisingreaders #screentimebalance #adhdkids #dyslexiaawareness #storytellingforkids #behindthescenes
 
-**Alt text:** A seven-slide carousel titled "How the picture actually gets made". Slides walk through five steps: the child writes the page, the text is moderated, a fixed style instruction ending "safe for kids, no text, no words, no letters" is added, the image returns at 768 by 512, and it lands on the page. The final slides show the alternative Draw route using Apple Pencil.
+**Alt text:** A seven-slide carousel titled "How the picture actually gets made". Slides walk through five steps: the child writes the page, the text is moderated, a fixed style instruction that includes "safe for kids, no text, no words, no letters" is added, the image returns at 768 by 512, and it lands on the page. The final slides show the alternative Draw route using Apple Pencil.
 
 ---
 
 ## 7. The last step is a book in the post.
 
 **Audience:** parents · **Format:** single-image · **Pillar:** PARENTS — Screen time that ends in something you can hold. (printed book spotlight)
-
-
-> [!WARNING]
-> **Do not publish as written — corrections required**
->
-> **Fact-check — Feed post 7 (printed book spotlight) — caption, first bullet**
->
-> *Problem:* MISLEADING GIVEN A KNOWN BILLING BUG. "Hardcover also available — the current price is shown at checkout." The price shown in the app is wrong: PrintOrderView.swift:38 sets `unitCents = format == .hardcover ? 3499 : 1999` and line 117 displays "$34.99", while the server charges 3999 (lib/print/pricing.js:2). Pointing a parent at the in-app price as authoritative directs her to a figure $5 below what her card is charged. Say nothing about hardcover pricing until the app is fixed.
->
-> *Use instead:* → Softcover $19.99. A hardcover option exists too — we're not quoting its price here until a display bug on that screen is fixed.
->
-> **Creative director — Feed post 7 ("The last step is a book in the post") — caption, pricing block**
->
-> *Problem:* "Hardcover also available — the current price is shown at checkout" is misleading given a live billing bug. PrintOrderView.swift:117 displays $34.99 on the format card; lib/print/pricing.js:2 charges $39.99. The price shown in the app is wrong, so pointing at it is worse than quoting a number. Your own Stories playbook declares this an ops blocker and then two feed posts ship hardcover copy anyway.
->
-> *Use instead:* → Softcover $19.99. (Hardcover is coming back to this post — we're fixing a price-display bug in the app first and I'm not going to quote a number I don't trust.)
-→ $4.99 flat shipping.
->
 
 
 **On-image hook:** The last step is a book in the post.
@@ -352,7 +283,7 @@ When the story is finished, you can order it as an actual printed book — your 
 
 The details, plainly:
 
-→ Softcover $19.99. Hardcover also available — the current price is shown at checkout.
+→ Softcover $19.99. Hardcover $39.99. Those are the numbers on the order screen and the numbers your card is charged — the app and the server read the same figure.
 → $4.99 flat shipping.
 → US only for now. That's a hard limit in the ordering system, not a soft one, and I'd rather say it here than take your money and disappoint you.
 → 1 to 10 copies per order. Ten is enough for grandparents.
@@ -381,42 +312,6 @@ My Book Lab on the App Store, link in bio.
 **Audience:** parents · **Format:** single-image · **Pillar:** PARENTS — Screen time that ends in something you can hold. (gift angle)
 
 
-> [!WARNING]
-> **Do not publish as written — corrections required**
->
-> **Fact-check — Feed post 8 (gift angle) — caption, "practical bits" paragraph, and the on-image line**
->
-> *Problem:* Same billing bug. "hardcover priced at checkout" points the buyer at PrintOrderView's $34.99 display, which does not match the $39.99 the server charges (lib/print/pricing.js:2 vs PrintOrderView.swift:38). A gifting post is the worst possible place for a price a parent will later dispute.
->
-> *Use instead:* The practical bits so you can plan: softcover $19.99, $4.99 flat shipping, US only right now, up to 10 copies in one order — which covers both sets of grandparents and a spare. (A hardcover option exists; we'll post its price once a display bug on that screen is fixed.)
->
-> **Fact-check — Feed post 8 (gift angle) — caption "The versions that land hardest, from what parents tell us" + first_comment**
->
-> *Problem:* UNVERIFIABLE SOCIAL PROOF PRESENTED AS REPORTED FACT. There is no research, no review corpus and no support archive in the repo to back "from what parents tell us", and the first_comment ("Genuinely the best version of this I've seen described: a parent who let their kid write a story about the family dog and gave a copy to every relative...") reads as a testimonial with an invented source. Post 9 sets the house rule that quotes must be real, verbatim and permissioned; this breaks it in the same set.
->
-> *Use instead:* Caption: "Three versions of this that we think work best — take them as suggestions, not as data:"
-first_comment: "If you've done a version of this with your own child, tell us in the replies — we'd rather post your actual words than our guesses. House rule on this account: no invented quotes, first name and initial only, no photos of children."
->
-> **Creative director — Feed post 8 ("The gift is the book she wrote") — first comment**
->
-> *Problem:* It is an unattributed, unverifiable, testimonial-shaped anecdote ("a parent who let their kid write a story about the family dog and gave a copy to every relative at once. Nobody put it down.") in a campaign that ships an entire post (9) refusing to write a fake quote, with a caption that says "We don't write these. We can't." This is the campaign contradicting itself in the same week, and it is the exact line a skeptical account would screenshot next to post 9.
->
-> *Use instead:* One practical thing: the order caps at 10 copies, which is usually two sets of grandparents and a spare. If you want one for each relative, do it as a single order rather than several — the $4.99 shipping is flat.
->
-> **Creative director — Feed post 8 caption — the "versions that land hardest" block and the pricing line**
->
-> *Problem:* "from what parents tell us" is unverifiable social proof presented as a finding, and "hardcover priced at checkout" points at the wrong displayed price ($34.99 shown, $39.99 charged). Both fail the campaign's own standard.
->
-> *Use instead:* Three versions of this that are worth considering:
-
-→ A book written FOR the person opening it. A story about grandma, given to grandma.
-→ Siblings writing one each and swapping.
-→ The child illustrating it by hand rather than generating the pictures, because the wobbly drawings are the whole charm in ten years. The Draw button is right there and the drawing prints at full size.
-
-The practical bits so you can plan: softcover $19.99, $4.99 flat shipping, US only right now, up to 10 copies in one order — which covers both sets of grandparents and a spare.
->
-
-
 **On-image hook:** The gift is the book she wrote.
 
 **Art direction**
@@ -432,13 +327,13 @@ This is a nudge toward the second kind, and it needs a head start, so I'm postin
 
 Your child writes a story. Ten pages, or six, or twelve — whatever they've got. It gets printed as a real book with their name on the cover, and someone unwraps it.
 
-The versions that land hardest, from what parents tell us:
+Three versions of this that we think work best — take them as suggestions, not as data:
 
 → A book written FOR the person opening it. A story about grandma, given to grandma.
 → Siblings writing one each and swapping.
-→ The child illustrating it by hand rather than generating the pictures, because the wobbly drawings are the whole charm in ten years.
+→ The child illustrating it by hand rather than generating the pictures, because the wobbly drawings are the whole charm in ten years. The Draw button is right there and the drawing prints at full size.
 
-The practical bits so you can plan: softcover $19.99, hardcover priced at checkout, $4.99 flat shipping, US only right now, up to 10 copies in one order — which covers both sets of grandparents and a spare.
+The practical bits so you can plan: softcover $19.99, hardcover $39.99, $4.99 flat shipping, US only right now, up to 10 copies in one order — which covers both sets of grandparents and a spare.
 
 I'm not giving you a delivery cut-off date, because I can't promise printing and shipping times and I'm not going to invent one to create urgency. If it needs to be under a tree on a specific morning, order it weeks before you think you need to.
 
@@ -447,7 +342,7 @@ And if it doesn't arrive in time — the story still exists, and it's still thei
 My Book Lab on the App Store, link in bio.
 ```
 
-**First comment:** Genuinely the best version of this I've seen described: a parent who let their kid write a story about the family dog and gave a copy to every relative at once. Nobody put it down. It cost less than most of what was under the tree.
+**First comment:** One practical thing: the order caps at 10 copies, which is usually two sets of grandparents and a spare. If you want one for each relative, do it as a single order rather than several — the $4.99 shipping is flat. And if you've done a version of this with your own child, tell us in the replies — we'd rather post your actual words than our guesses. House rule on this account: no invented quotes, first name and initial only, no photos of children.
 
 **CTA:** Start the story now, order the book later — My Book Lab on the App Store, link in bio.
 
@@ -503,23 +398,11 @@ My Book Lab on the App Store, link in bio.
 **Audience:** parents · **Format:** carousel · **Pillar:** PARENTS — You can check it yourself in ten minutes.
 
 
-> [!WARNING]
-> **Do not publish as written — corrections required**
->
-> **Fact-check — Feed post 10 ("Open it before your child does") — caption paragraph after CHECK 4, and slide 6 body line**
->
-> *Problem:* FALSE FOR THE AI HELPER. "There are daily caps on the AI helper and the illustrations." `enforceDailyCap` is imported and called only in api/generate-image.js — api/story-buddy.js never calls it. Story Buddy has an hourly rate limit only (STORY_BUDDY_LIMIT = 30/hr, halved to 15 for unattested requests via hourlyLimitFor). Separately, the web plan numbers (3 Story Buddy uses/day, 2 illustrations/day in src/lib/plans.js) are not enforced on iOS at all — there is no plan-based check anywhere in ios-native/, and the server's image cap is a flat per-user figure (50 attested / 20 unattested per day, api/_appAttest.js:193-197) independent of plan.
->
-> *Use instead:* Caption: "You can do all four with a free account without paying us anything. There are usage limits on the AI helper and the illustrations — enough to build a short book start to finish and see exactly how the help behaves."
-Slide 6 body line: "You can build a book on a free account without paying. Usage limits apply to the AI helper and illustrations."
->
-
-
 **On-image hook:** Open it before your child does. Ten minutes.
 
 **Art direction**
 
-6-slide carousel, 1080×1350, deliberately plain — this is an inspection checklist and it should look like one. SLIDE 1 (Cosmic Hero): headline SF Rounded Heavy 96px white (plain white, not the gradient — gradient reads as branding, and this slide is meant to read as an offer): 'Open it before / your child does.' Subhead 40px rgba(255,255,255,0.70): 'Four things to check. Ten minutes.' Small numbered chip bottom-left: '1/4 →'. SLIDE 2 (Device Showcase, cropped): real capture of the Story Buddy 'Help me think' result — three 💭 question cards. Overlay label top-left 44px white on a rgba(0,0,0,0.35) backing: 'CHECK 1 — Tap "Help me think". Now try to get one of those questions into the story. There is no way. That's the test.' SLIDE 3 (Device Showcase, cropped): the page editor with an empty text field, the purple Illustrate button greyed out, ringed in 4px #FFD60A. Label: 'CHECK 2 — Try to illustrate an empty page. Nothing happens. Words first, always.' SLIDE 4 (Device Showcase, cropped): the real HeroParentalGate sheet — '👋 Grown-up check', 'Ask a grown-up to solve this before adding a photo', and a two-digit addition problem. Let it read at full size; do NOT show it being dismissed or bypassed. Label: 'CHECK 3 — Tap anything involving a photo. You'll meet a maths question first. Both numbers are 11–19.' SLIDE 5 (Card Grid, 1×3): title strip 'CHECK 4 — what's not in it'. Three glass cards: '🚫 No advertising SDK', '🚫 No analytics tracker', '🚫 The app's privacy manifest declares no cross-app tracking, with an empty tracking-domains list'. SLIDE 6 (Cosmic Hero): capsule CTA 620px 'Go and press the buttons'. Body line above it, 36px rgba(255,255,255,0.70): 'You can build a book on the free tier without paying. Daily caps apply on the AI helper and illustrations.' Mascot Welcoming pose bottom-left, halo, ≤40% frame height. Every capture from a real current build, demo account, fictional author name, no empty states, no spinners, clean 9:41 status bar.
+6-slide carousel, 1080×1350, deliberately plain — this is an inspection checklist and it should look like one. SLIDE 1 (Cosmic Hero): headline SF Rounded Heavy 96px white (plain white, not the gradient — gradient reads as branding, and this slide is meant to read as an offer): 'Open it before / your child does.' Subhead 40px rgba(255,255,255,0.70): 'Four things to check. Ten minutes.' Small numbered chip bottom-left: '1/4 →'. SLIDE 2 (Device Showcase, cropped): real capture of the Story Buddy 'Help me think' result — three 💭 question cards. Overlay label top-left 44px white on a rgba(0,0,0,0.35) backing: 'CHECK 1 — Tap "Help me think". Now try to get one of those questions into the story. There is no way. That's the test.' SLIDE 3 (Device Showcase, cropped): the page editor with an empty text field, the purple Illustrate button greyed out, ringed in 4px #FFD60A. Label: 'CHECK 2 — Try to illustrate an empty page. Nothing happens. Words first, always.' SLIDE 4 (Device Showcase, cropped): the real HeroParentalGate sheet — '👋 Grown-up check', 'Ask a grown-up to solve this before adding a photo', and a two-digit addition problem. Let it read at full size; do NOT show it being dismissed or bypassed. Label: 'CHECK 3 — Tap anything involving a photo. You'll meet a maths question first. Both numbers are 11–19.' SLIDE 5 (Card Grid, 1×3): title strip 'CHECK 4 — what's not in it'. Three glass cards: '🚫 No advertising SDK', '🚫 No analytics tracker', '🚫 The app's privacy manifest declares no cross-app tracking, with an empty tracking-domains list'. SLIDE 6 (Cosmic Hero): capsule CTA 620px 'Go and press the buttons'. Body line above it, 36px rgba(255,255,255,0.70): 'You can build a book on a free account without paying. Usage limits apply to the AI helper and illustrations.' Mascot Welcoming pose bottom-left, halo, ≤40% frame height. Every capture from a real current build, demo account, fictional author name, no empty states, no spinners, clean 9:41 status bar.
 
 **Caption**
 
@@ -534,7 +417,7 @@ CHECK 3 — Tap anything involving a photo. You'll hit a "Grown-up check" — a 
 
 CHECK 4 — Check what isn't there. No advertising SDK. No analytics tracker. The app's privacy manifest declares no cross-app tracking at all, with an empty list of tracking domains.
 
-You can do all four on the free tier without paying us anything. There are daily caps on the AI helper and the illustrations, which is enough to build a short book start to finish and see exactly how the help behaves.
+You can do all four with a free account without paying us anything. There are usage limits on the AI helper and the illustrations — enough to build a short book start to finish and see exactly how the help behaves.
 
 That's the point. We'd rather you test it than trust us.
 
@@ -551,31 +434,16 @@ My Book Lab on the App Store, link in bio.
 
 ---
 
-## 11. 40-minute car story. Three sentences on paper.
+## 11. 40-minute car story. Four sentences on paper.
 
 **Audience:** parents · **Format:** meme · **Pillar:** PARENTS — Built for the kid who stalls, not the kid who's already fluent.
 
 
-> [!WARNING]
-> **Do not publish as written — corrections required**
->
-> **Creative director — Feed post 11 (the meme) — bottom panel copy and hashtags**
->
-> *Problem:* "45 minutes. One meltdown." makes the child's meltdown the punchline, and #parentinghumour files a neurodivergent child's shutdown under comedy. This ICP is watching that exact meltdown at 8pm; she does not experience it as a bit. It is the one asset in the set where she would feel used rather than seen, and it undercuts the gentle-parenting frame every other asset holds perfectly.
->
-> *Use instead:* TOP PANEL: "The story he told me in the car:" / "40 minutes. Three characters. A twist."
-BOTTOM PANEL: "The story that made it onto the page:" / "Four sentences."
-BENEATH: "Same kid. Same story. Different job."
-
-Hashtags: drop #parentinghumour. Replace with #writingsupport.
->
-
-
-**On-image hook:** 40-minute car story. Three sentences on paper.
+**On-image hook:** 40-minute car story. Four sentences on paper.
 
 **Art direction**
 
-Single image meme, 1080×1080, built in the brand system rather than borrowed from a meme template — no Impact font, no white-bar meme chrome. Cosmic gradient background, full starfield, all three nebula blobs. Two stacked glass panels with a 40px gutter between them, each rgba(255,255,255,0.08), 18px radius, 48px internal padding, occupying the middle 70% of the frame. TOP PANEL: a 96px 🚗 glyph on the left, and to its right, SF Rounded Bold 46px white: 'Telling me a dragon story in the car:' then on the next line in SF Rounded Heavy 84px in the wordmark gradient #66D9FF → #A68CFF → #D9A6F2: '40 minutes'. BOTTOM PANEL: a 96px ✏️ glyph, SF Rounded Bold 46px white: 'Writing three sentences about it for school:' then in SF Rounded Heavy 84px, this time in flat rgba(255,255,255,0.55) rather than gradient — the visual drop is the joke: '45 minutes. One meltdown.' Beneath both panels, outside them, one 36px SF Rounded Semibold line in rgba(255,255,255,0.70), centred: 'Same kid. Same story. Different job.' No mascot, no confetti, no gold — this post must not read as celebratory. Three sparkles maximum, in the outer thirds. Bottom 220px kept clear of type.
+Single image meme, 1080×1080, built in the brand system rather than borrowed from a meme template — no Impact font, no white-bar meme chrome. Cosmic gradient background, full starfield, all three nebula blobs. Two stacked glass panels with a 40px gutter between them, each rgba(255,255,255,0.08), 18px radius, 48px internal padding, occupying the middle 70% of the frame. TOP PANEL: a 96px 🚗 glyph on the left, and to its right, SF Rounded Bold 46px white: 'The story he told me in the car:' then on the next line in SF Rounded Heavy 84px in the wordmark gradient #66D9FF → #A68CFF → #D9A6F2: '40 minutes. Three characters. A twist.' BOTTOM PANEL: a 96px ✏️ glyph, SF Rounded Bold 46px white: 'The story that made it onto the page:' then in SF Rounded Heavy 84px, this time in flat rgba(255,255,255,0.55) rather than gradient — the visual drop is the point: 'Four sentences.' Beneath both panels, outside them, one 36px SF Rounded Semibold line in rgba(255,255,255,0.70), centred: 'Same kid. Same story. Different job.' No mascot, no confetti, no gold — this post must not read as celebratory. Three sparkles maximum, in the outer thirds. Bottom 220px kept clear of type.
 
 **Caption**
 
@@ -601,9 +469,9 @@ If you've got one of these kids: he's not behind. He's stuck at the start, every
 
 **CTA:** Grab the five free sentence starters on the grid — no download needed.
 
-**Hashtags:** #adhdparenting #adhdkids #dysgraphia #dyslexiaawareness #dyslexiaparent #neurodivergentkids #neurodiversity #gentleparenting #learningdifferences #executivefunction #parentingtips #parentinghumour #kidswriting #creativewritingforkids #homeschoolmom #iep #raisingreaders
+**Hashtags:** #adhdparenting #adhdkids #dysgraphia #dyslexiaawareness #dyslexiaparent #neurodivergentkids #neurodiversity #gentleparenting #learningdifferences #executivefunction #parentingtips #writingsupport #kidswriting #creativewritingforkids #homeschoolmom #iep #raisingreaders
 
-**Alt text:** A two-panel graphic on a deep purple starfield. Top panel, with a car emoji: "Telling me a dragon story in the car: 40 minutes." Bottom panel, with a pencil emoji: "Writing three sentences about it for school: 45 minutes. One meltdown." Below both: "Same kid. Same story. Different job."
+**Alt text:** A two-panel graphic on a deep purple starfield. Top panel, with a car emoji: "The story he told me in the car: 40 minutes. Three characters. A twist." Bottom panel, with a pencil emoji: "The story that made it onto the page: Four sentences." Below both: "Same kid. Same story. Different job."
 
 ---
 
@@ -655,35 +523,21 @@ mybooklab.app/teacher — Teacher is $13.99/month or $109.99/year with a 14-day 
 
 ---
 
-## 13. Four supports, above the text box, always on.
+## 13. Four supports. On the writing screen. Never in a menu.
 
 **Audience:** educators · **Format:** carousel · **Pillar:** EDUCATORS — A low enough floor that the kid who never writes, writes.
 
 
-> [!WARNING]
-> **Do not publish as written — corrections required**
->
-> **Fact-check — Feed post 13 (educators) — hook, slide 1 headline, slide 2 visual brief, and caption first line**
->
-> *Problem:* FALSE. The toolbar is not above the text box. In src/components/editor/PageEditor.jsx the render order inside the text area is: read-aloud overlay → textarea (~line 172) → voice interim → WritingScaffold (line 206) → character counter → AccessibilityToolbar (line 226) → StoryBuddy. The toolbar sits BELOW the writing area, under the scaffold and the character count. The defensible half of the claim — always visible on the writing screen, never in a settings menu — is true and should carry the post. A teacher will screenshot this and correct you in the comments.
->
-> *Use instead:* Hook: "Four supports. On the writing screen. Never in a menu."
-Slide 1 headline: "Four supports. / On the writing screen. / Never in a menu."
-Slide 2 visual brief: "...real screenshot of the web page editor with the accessibility toolbar visible in the same view as the writing area, directly beneath it, all four controls legible."
-Caption first line: "Four supports sit on the writing screen itself in the web editor — right under the text box, not in a settings menu three taps deep, which is the difference between a support existing and a nine-year-old actually using it."
->
-
-
-**On-image hook:** Four supports, above the text box, always on.
+**On-image hook:** Four supports. On the writing screen. Never in a menu.
 
 **Art direction**
 
-7-slide carousel, 1080×1350. Quiet, informational, Card Grid dominant. No mascot, no confetti, no gold. SLIDE 1 (Cosmic Hero, type only): headline SF Rounded Heavy 84px pure white: 'Four supports. / Above the text box. / Never in a menu.' Subhead 40px rgba(255,255,255,0.70): 'Web editor at mybooklab.app.' SLIDE 2 (Device Showcase, laptop frame, straight on, 62% frame height): real screenshot of the web page editor with the accessibility toolbar visible directly above the writing area, all four controls legible. A 4px #64D2FF ring around the toolbar row. Overlay label 44px white: 'Read Aloud · Voice Input · Dyslexia Font · Focus Mode'. SLIDES 3–6 (Card Grid, one raised card each at rgba(255,255,255,0.12) with a 72px glyph, a 48px SF Rounded Bold white title, three lines of 34px rgba(255,255,255,0.70) body, and — critically — a 30px near-white caveat line at the bottom of every card on a recessed rgba(255,255,255,0.06) strip). Slide 3: '🔊 Read Aloud — speaks the student's own text back and highlights each word as it is spoken, at a slowed rate. Caveat: uses the browser's speech synthesis.' Slide 4: '🎙️ Voice Input — continuous dictation with interim results, so a student who can compose but not transcribe still produces text. Caveat: needs Chrome or Edge. Absent in Firefox, and it does not exist in the iPad app at all.' Slide 5: '🔤 Dyslexia Font — one tap swaps the body face to OpenDyslexic. Caveat: it loads from a third-party font CDN. Test it behind your district filter before you promise it to a student.' Slide 6: '🎯 Focus Mode — full-screen, one page, everything else gone. Esc to exit. Caveat: web only.' SLIDE 7 (Card Grid, 1×2, both cards RECESSED at rgba(255,255,255,0.06), no glow — this is a disclosure slide and must not look like a feature slide): title strip in plain white 'Two things to correct'. Card A: 'There is no high-contrast mode. Our own website says there is. It's wrong and we're fixing the page.' Card B: 'No accessibility audit, no VPAT, no conformance statement, and no standards alignment of any kind. Thoughtfully designed for access — not certified. If your district requires documented conformance, this does not have it.' Bottom of slide 7: a plain 36px CTA line, no capsule: 'mybooklab.app'.
+7-slide carousel, 1080×1350. Quiet, informational, Card Grid dominant. No mascot, no confetti, no gold. SLIDE 1 (Cosmic Hero, type only): headline SF Rounded Heavy 84px pure white: 'Four supports. / On the writing screen. / Never in a menu.' Subhead 40px rgba(255,255,255,0.70): 'Web editor at mybooklab.app.' SLIDE 2 (Device Showcase, laptop frame, straight on, 62% frame height): real screenshot of the web page editor with the accessibility toolbar visible in the same view as the writing area, directly beneath it, all four controls legible. A 4px #64D2FF ring around the toolbar row. Overlay label 44px white: 'Read Aloud · Voice Input · Dyslexia Font · Focus Mode'. SLIDES 3–6 (Card Grid, one raised card each at rgba(255,255,255,0.12) with a 72px glyph, a 48px SF Rounded Bold white title, three lines of 34px rgba(255,255,255,0.70) body, and — critically — a 30px near-white caveat line at the bottom of every card on a recessed rgba(255,255,255,0.06) strip). Slide 3: '🔊 Read Aloud — speaks the student's own text back and highlights each word as it is spoken, at a slowed rate. Caveat: uses the browser's speech synthesis.' Slide 4: '🎙️ Voice Input — continuous dictation with interim results, so a student who can compose but not transcribe still produces text. Caveat: needs Chrome or Edge. Absent in Firefox, and it does not exist in the iPad app at all.' Slide 5: '🔤 Dyslexia Font — one tap swaps the body face to OpenDyslexic. Caveat: it loads from a third-party font CDN. Test it behind your district filter before you promise it to a student.' Slide 6: '🎯 Focus Mode — full-screen, one page, everything else gone. Esc to exit. Caveat: web only.' SLIDE 7 (Card Grid, 1×2, both cards RECESSED at rgba(255,255,255,0.06), no glow — this is a disclosure slide and must not look like a feature slide): title strip in plain white 'Two things to correct'. Card A: 'There is no high-contrast mode. Our own website says there is. It's wrong and we're fixing the page.' Card B: 'No accessibility audit, no VPAT, no conformance statement, and no standards alignment of any kind. Thoughtfully designed for access — not certified. If your district requires documented conformance, this does not have it.' Bottom of slide 7: a plain 36px CTA line, no capsule: 'mybooklab.app'.
 
 **Caption**
 
 ```
-Four supports sit directly above the writing area in the web editor. Not in a settings menu three taps deep, which is the difference between a support existing and a nine-year-old actually using it.
+Four supports sit on the writing screen itself in the web editor — right under the text box, not in a settings menu three taps deep, which is the difference between a support existing and a nine-year-old actually using it.
 
 Read Aloud — speaks the student's own text back and highlights each word as it's spoken, at a slowed rate. Useful for the student who cannot proofread silently but hears the missing word instantly.
 
@@ -712,7 +566,7 @@ mybooklab.app — browser, not the App Store app.
 
 **Hashtags:** #specialeducationteacher #sped #slpsofinstagram #slpeeps #speechtherapyideas #assistivetechnology #udl #dyslexiaawareness #dysgraphia #resourceroom #teachersofinstagram #teachersfollowteachers #iteachtoo #inclusiveeducation #readingintervention #teachingwriting #edtech #accessibility
 
-**Alt text:** A seven-slide carousel for educators on a deep purple background, headed "Four supports. Above the text box. Never in a menu." A laptop screenshot shows the writing toolbar with Read Aloud, Voice Input, Dyslexia Font and Focus Mode. Following slides describe each with a caveat, and the last slide states there is no high-contrast mode and no accessibility audit or conformance claim.
+**Alt text:** A seven-slide carousel for educators on a deep purple background, headed "Four supports. On the writing screen. Never in a menu." A laptop screenshot shows the writing area with the toolbar directly beneath it, carrying Read Aloud, Voice Input, Dyslexia Font and Focus Mode. Following slides describe each with a caveat, and the last slide states there is no high-contrast mode and no accessibility audit or conformance claim.
 
 ---
 
@@ -766,18 +620,6 @@ So if you're running a writing block on Chromebooks, use the web one. That's whe
 **Audience:** educators · **Format:** ugc-style · **Pillar:** EDUCATORS — You control how much AI touches the writing.
 
 
-> [!WARNING]
-> **Do not publish as written — corrections required**
->
-> **Fact-check — Feed post 15 (educators, "Three helpers") — caption, second mitigation bullet**
->
-> *Problem:* NOT ENFORCED. "On the free tier the AI helper is capped at three uses a day, which is a natural ceiling while you trial it." `storyBuddyPerDay: 3` exists in src/lib/plans.js:9 but src/components/editor/StoryBuddy.jsx never reads it — there is no counter, no gate, no daily check anywhere in the component. (Contrast IllustrationGenerator.jsx:36-38, which does enforce `plan.imagesPerDay` client-side.) The only real ceiling is the server's hourly rate limit of 30 requests/hour in api/story-buddy.js. Offering an unenforced cap as a mitigation to the audience most likely to test it is the single riskiest line in the educator set.
->
-> *Use instead:* → The native iPad app ships only the starters and questions modes. The paragraph writer does not exist there.
-→ The free plan advertises three Story Buddy uses a day, but I'll be straight with you: that cap isn't actually enforced in the browser yet — the only live ceiling is a server rate limit of about 30 requests an hour. Don't plan a class rule around the daily number.
->
-
-
 **On-image hook:** Three helpers. Two of them refuse to write.
 
 **Art direction**
@@ -800,7 +642,7 @@ That's the honest version, and I'd rather give you it than the marketing version
 Two mitigations that are actually true:
 
 → The native iPad app ships only the starters and questions modes. The paragraph writer does not exist there.
-→ On the free tier the AI helper is capped at three uses a day, which is a natural ceiling while you trial it.
+→ The free plan advertises three Story Buddy uses a day, but I'll be straight with you: that cap isn't actually enforced in the browser yet — the only live ceiling is a server rate limit of about 30 requests an hour. Don't plan a class rule around the daily number.
 
 The framing that works in a classroom isn't a technical lock, it's a norm. Treat "Write for Me" the way you already treat a thesaurus, a word wall, or a sentence-frame poster: name the rule before you name the tool. "You may use the two on the left. The one on the right is off today." Nine-year-olds handle that fine — they handle it better than they handle a rule that was never said out loud.
 
@@ -824,18 +666,6 @@ mybooklab.app — browser, on a laptop or Chromebook.
 **Audience:** educators · **Format:** before-after · **Pillar:** EDUCATORS — It ends in a book, not a file.
 
 
-> [!WARNING]
-> **Do not publish as written — corrections required**
->
-> **Fact-check — Feed post 16 (educators) — caption paragraph 3 and first_comment**
->
-> *Problem:* OVERSTATED. "the finished book exports to PDF through a dedicated print layout" and "PDF export is on the paid plans". There is no PDF generation anywhere. src/pages/PreviewPage.jsx:44-50 gates `plan.pdfExport` and then calls `window.print()` — it opens the browser's print dialog, rendering src/components/print/PrintableBook.jsx. No file is produced; the teacher must choose "Save as PDF" in the OS print sheet. iOS has no export path at all. This audience will hold you to the word "export".
->
-> *Use instead:* Caption: "On a paid plan the finished book opens in a dedicated print layout — not a screenshot of the editor, an actual laid-out book — which you print, or save as a PDF from your browser's print dialog. That's your hallway wall, your portfolio, the thing you hand a parent across the table in November."
-first_comment: "If printing isn't in the budget: printing the book to PDF from your browser covers the hallway-wall and conference-night use, and a stapled colour print of it still reads as a book to a seven-year-old. The physical order is the upgrade, not the requirement."
->
-
-
 **On-image hook:** A file gets lost. A book gets held up.
 
 **Art direction**
@@ -849,22 +679,22 @@ Digital writing evaporates. A doc becomes a tab, becomes a folder, becomes July.
 
 Which is why conference night is the strongest argument for this and "engagement" is the weakest.
 
-On a paid plan the finished book exports to PDF through a dedicated print layout — not a screenshot of the editor, an actual laid-out book. That's your hallway wall, your portfolio, the thing you hand a parent across the table in November.
+On a paid plan the finished book opens in a dedicated print layout — not a screenshot of the editor, an actual laid-out book — which you print, or save as a PDF from your browser's print dialog. That's your hallway wall, your portfolio, the thing you hand a parent across the table in November.
 
 And it can go one step further: a finished story can be ordered as a physically printed copy. Softcover is $19.99 plus $4.99 flat US shipping, US only for now, up to 10 copies an order. I'm not attaching a turnaround time to that, because I can't promise printing and shipping schedules and I'm not going to invent one for a caption.
 
 What that changes in the room is smaller and more useful than it sounds: the task has an audience and an end state. Not "finish it and submit it," but "finish it and it becomes a thing." Revision arguments get easier when the student can picture the printed page.
 
-Worth being straight about scope: PDF export is on the paid plans, not the free one, and — as with everything on the teacher side — this is the browser version. Family is $6.99/month or $54.99/year. Teacher is $13.99/month or $109.99/year with a 14-day trial, and it's a personal-card subscription. There's no PO, invoicing or district billing path in the product at all.
+Worth being straight about scope: that print layout is on the paid plans, not the free one, and — as with everything on the teacher side — this is the browser version. Family is $6.99/month or $54.99/year. Teacher is $13.99/month or $109.99/year with a 14-day trial, and it's a personal-card subscription. There's no PO, invoicing or district billing path in the product at all.
 
 For a co-op or a small group that ends a term with a book each, that maths usually works. For a whole-district rollout, it doesn't yet, and I'd rather you heard it here.
 
 mybooklab.app
 ```
 
-**First comment:** If printing isn't in the budget: the PDF export alone covers the hallway-wall and conference-night use, and a stapled colour print of it still reads as a book to a seven-year-old. The physical order is the upgrade, not the requirement.
+**First comment:** If printing isn't in the budget: printing the book to PDF from your browser covers the hallway-wall and conference-night use, and a stapled colour print of it still reads as a book to a seven-year-old. The physical order is the upgrade, not the requirement.
 
-**CTA:** Set it up at mybooklab.app on a laptop — PDF export is on the paid plans.
+**CTA:** Set it up at mybooklab.app on a laptop — the print layout is on the paid plans.
 
 **Hashtags:** #teachersofinstagram #teachersfollowteachers #iteachtoo #writersworkshop #teachingwriting #elementaryteacher #2ndgradeteacher #3rdgradeteacher #literacyinstruction #studentwork #authorstudy #publishingparty #homeschoolcoop #edtech #teachertips #classroomideas #specialeducationteacher
 

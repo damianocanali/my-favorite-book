@@ -2,7 +2,7 @@
 
 12 production-ready scripts. Every shot maps to a real screen in the shipping app.
 
-Corrections are attached to the reels they affect. **Resolve every warning box before filming.**
+All review corrections have been applied in place — no warning boxes remain. Production notes flagged COPY-INTEGRITY, CHILD-SAFETY or PRODUCTION-CRITICAL are binding: if you can't meet one, change the copy rather than the note.
 
 ---
 
@@ -63,7 +63,7 @@ iPhone + iPad. Link in bio.
 
 | Time | Shot | Action |
 |---|---|---|
-| 0:00-0:03 | hands-on-device | HOOK. Overhead shot, iPad flat, small hands entering frame from the bottom. CHILD-SAFETY: THIS SHOT REQUIRES A REAL CHILD'S HANDS. Compliant version — camera locked directly overhead so only hands and forearms are ever in frame, no face, no reflection in the iPad glass (kill overhead lights, use side window light to stop the screen mirroring a face), no distinctive marks or jewellery. ALTERNATIVE IF YOU CAN'T CLEAR THIS: use your own hands and caption it honestly as 'me, walking through what my kid does' — do not imply the hands are a child's. |
+| 0:00-0:03 | hands-on-device | HOOK. Overhead shot, iPad flat, small hands entering frame from the bottom. CHILD-SAFETY: THIS SHOT REQUIRES A REAL CHILD'S HANDS. Compliant version — camera locked directly overhead so only hands and forearms are ever in frame, no face, no reflection in the iPad glass (kill overhead lights, use side window light to stop the screen mirroring a face), no distinctive marks or jewellery. ALTERNATIVE IF YOU CAN'T CLEAR THIS: use your own hands and caption it honestly as 'me, walking through what my kid does' — do not imply the hands are a child's. COPY-INTEGRITY: the hook says 'this is a seven-year-old making an entire book'. That line is only publishable if a real child actually made this book. If you shoot the alternative, change the hook to 'This is the whole thing, start to finish, and I didn't cut anything except the waiting' and drop 'seven-year-old' from the on-screen text. |
 | 0:03-0:08 | screen recording | AuthorIntroStep (CreateBookView step 0), demo name and age 7 entered. Then CharacterStep (step 1) — tap through two emoji heroes before settling on one, so it reads as a real choice being made. |
 | 0:08-0:13 | screen recording | SettingStep (step 2) 'Pick the world your story lives in' — tap 'The Glowing Forest 🌲'. Then TitleStep (step 3), title typed in. |
 | 0:13-0:24 | screen recording | PagesStep (step 4). Page tab strip visible at top. Type page one. The purple Illustrate button is greyed out until the text lands — HOLD ON THIS, it's the whole argument. Then tap Illustrate, it reads 'Making…', and the painting fills the slot. Do not speed-ramp the generation; use a hard cut and an on-screen '(sped up — this takes about 20 seconds)' label. |
@@ -104,25 +104,6 @@ Hands are hands only, on purpose. No kids' faces on this account, ever.
 **Audience:** parents · **Length:** 34s
 
 
-> [!WARNING]
-> **Do not publish as written — corrections required**
->
-> **Fact-check — Reel 3 ("The greyed-out button") — caption, third paragraph**
->
-> *Problem:* FALSE ON iOS, same root cause. "the badge for using it is worth more coins than the badge for the AI one" — both routes award `added_illustration` at 15 coins (CreateBookView.swift:877 and :904). There is no coin differential in the shipping build. Do not publish this until `saveDrawing` is changed to `earn("drew_illustration")`.
->
-> *Use instead:* There's also a Draw button right next to it with no AI in it whatsoever — finger or Apple Pencil, Apple's own tool picker — and the drawing gets printed in the book exactly like a generated one.
->
-> **Creative director — Reel 3 ("The greyed-out button") — caption, final paragraph**
->
-> *Problem:* Same false claim: "the badge for using it is worth more coins than the badge for the AI one." Drawing awards the identical 15-coin `added_illustration` badge as generating. This is in the caption of your single strongest asset, which is the one most likely to be saved and re-checked.
->
-> *Use instead:* There's also a Draw button right next to it with no AI in it whatsoever — finger or Apple Pencil, and that drawing is what gets printed in the book.
-
-Open it yourself before you hand it over. Takes ten minutes.
->
-
-
 **Hook (first 1.5s):** I want to show you a button that doesn't work — because it not working is the entire reason I'd hand my kid this app.
 
 **Shot list**
@@ -152,7 +133,7 @@ The most common thing I get asked is whether this is just AI doing my kid's home
 
 So here's the most boring possible answer: the Illustrate button is disabled while the page is empty. Not discouraged. Disabled. It's one line in the code and it's the reason the incentive in this app runs toward writing instead of away from it.
 
-There's also a Draw button right next to it with no AI in it whatsoever, and the badge for using it is worth more coins than the badge for the AI one.
+There's also a Draw button right next to it with no AI in it whatsoever — finger or Apple Pencil, and that drawing is what gets printed in the book.
 
 Open it yourself before you hand it over. Takes ten minutes.
 ```
@@ -166,19 +147,6 @@ Open it yourself before you hand it over. Takes ten minutes.
 ## 4. I made the AI worse on purpose
 
 **Audience:** parents · **Length:** 41s
-
-
-> [!WARNING]
-> **Do not publish as written — corrections required**
->
-> **Fact-check — Feed post 1 caption (para 3) + ASO description ("THE APP WILL NOT WRITE THE STORY") + Reel 4 voiceover**
->
-> *Problem:* IMPRECISE. All three say "Give me ideas" returns "three opening sentences". api/story-buddy.js:14-18 only asks for opening lines when `page.pageNumber === 1`; on every other page the prompt is "These should continue from where my story left off." So on pages 2+ a child gets continuation starters, not openings. A parent checking on page 3 sees something different from what you described.
->
-> *Use instead:* Post 1 caption: "\"Give me ideas\" gives your child three sentence starters — one line each, the kind a teacher writes on the board. On page one they're opening lines; after that they pick up from where the story left off. They tap one, and then they keep writing."
-ASO description: "When your child gets stuck, Story Buddy has exactly two buttons. \"Give me ideas\" hands back three one-line sentence starters — opening lines on page one, and lines that pick up the story after that — and your child taps one and keeps going."
-Reel 4 VO: "'Give me ideas' hands them three sentence starters — one line each, the kind of thing a teacher writes on the board — and they tap one and keep going."
->
 
 
 **Hook (first 1.5s):** I built an AI writing app for kids and then deliberately removed the part that writes. Here's the button I took out.
@@ -197,7 +165,7 @@ Reel 4 VO: "'Give me ideas' hands them three sentence starters — one line each
 **Voiceover**
 
 ```
-I built an AI writing app for kids, and then I took out the part that writes. There's a function on my server that generates a full paragraph. It works. It's just not in the app that ships to your child's iPad. What's in there instead is this: two buttons. 'Give me ideas' hands them three opening sentences — one line each, the kind of thing a teacher writes on the board — and they tap one and keep going. 'Help me think' gives them three questions about their own story. And look at what those question cards do when you tap them. Nothing. There's no button to paste an answer in, because I never built one — they have to think of it and type it themselves. Every competitor in this category is racing to make their AI generate more. I shipped mine with the generate button removed.
+I built an AI writing app for kids, and then I took out the part that writes. There's a function on my server that generates a full paragraph. It works. It's just not in the app that ships to your child's iPad. What's in there instead is this: two buttons. 'Give me ideas' hands them three sentence starters — one line each, the kind of thing a teacher writes on the board — and they tap one and keep going. 'Help me think' gives them three questions about their own story. And look at what those question cards do when you tap them. Nothing. There's no button to paste an answer in, because I never built one — they have to think of it and type it themselves. Every competitor in this category is racing to make their AI generate more. I shipped mine with the generate button removed.
 ```
 
 **On-screen text:** I removed the part that writes · "I never write your story for you" · — the app, to your kid, on screen · tap a question card 👇 · nothing happens. on purpose. · no way to paste an answer · the starters DO insert — one line each · the paragraph writer exists. · it's just not in your kid's app.
@@ -366,17 +334,6 @@ If you're comparing the two, the iPad app is the stricter one. And you can verif
 **Audience:** educators · **Length:** 42s
 
 
-> [!WARNING]
-> **Do not publish as written — corrections required**
->
-> **Fact-check — Reel 8 ("Six characters on the whiteboard") — shot list 0:10-0:18**
->
-> *Problem:* Same error as post 13. "the web PageEditor with the AccessibilityToolbar visible above the writing area" — it renders below the textarea (PageEditor.jsx:226). Filming it as directed will produce a shot that contradicts the direction.
->
-> *Use instead:* "Cut to the student side: the web PageEditor with the AccessibilityToolbar visible in the same view, directly below the writing area — four buttons: Read Aloud, Voice Input, Dyslexia Font, Focus Mode. Click Dyslexia Font and show the body type swap live. Then click Read Aloud and show the word-by-word yellow highlighting move across the text. THIS IS WEB ONLY — label it on screen."
->
-
-
 **Hook (first 1.5s):** No roster. No logins. No IT ticket. You write six characters on the board and their finished stories land in one place.
 
 **Shot list**
@@ -385,7 +342,7 @@ If you're comparing the two, the iPad app is the stricter one. And you can verif
 |---|---|---|
 | 0:00-0:04 | screen recording | HOOK. Laptop/Chromebook browser at mybooklab.app/teacher. TeacherPage with the class-creation field. Type a fictional class name — 'Room 12 Writers'. CHILD-SAFETY: never a real school, class, or teacher name. |
 | 0:04-0:10 | screen recording | Click create. The six-character class code appears in the saved-classes list with its copy button. Hold on the code so the letterforms are legible. On-screen text names the no-O/no-zero detail. |
-| 0:10-0:18 | screen recording | Cut to the student side: the web PageEditor with the AccessibilityToolbar visible above the writing area — four buttons: Read Aloud, Voice Input, Dyslexia Font, Focus Mode. Click Dyslexia Font and show the body type swap live. Then click Read Aloud and show the word-by-word yellow highlighting move across the text. THIS IS WEB ONLY — label it on screen. |
+| 0:10-0:18 | screen recording | Cut to the student side: the web PageEditor with the AccessibilityToolbar visible in the same view, directly below the writing area — four buttons: Read Aloud, Voice Input, Dyslexia Font, Focus Mode. Click Dyslexia Font and show the body type swap live. Then click Read Aloud and show the word-by-word yellow highlighting move across the text. THIS IS WEB ONLY — label it on screen. |
 | 0:18-0:25 | screen recording | WritingScaffold in the same editor — expand 'Need a spark? Tap a sentence starter', tap a starter chip, it inserts. Then 'Show word bank (feelings & actions)' and tap one feeling word in. Then show StoryProgressMap's dot row reading pages written. |
 | 0:25-0:32 | screen recording | SubmitToClassModal from PreviewPage — student enters the code, submits. Cut to /classroom/CODE (ClassroomPage) showing a grid of submitted demo books, one opening full-screen into BookPreview. Use fabricated student first names only. |
 | 0:32-0:42 | text card | THE LIMITS CARD — Card Grid template, glass cards on the cosmic gradient, four short lines. This is the retention beat: state the constraints plainly so nobody discovers them during period one. |
@@ -472,17 +429,8 @@ This works with a notebook. It works with a whiteboard. It works with nothing at
 **Audience:** parents · **Length:** 21s
 
 
-> [!WARNING]
-> **Do not publish as written — corrections required**
->
-> **Creative director — Reel 10 ("The guide who won't hold the pencil") — caption, final paragraph**
->
-> *Problem:* You are announcing to a parenting audience that the shipping App Store build renders a placeholder where the character should be. Honest, but it publishes "our released app is unfinished" as a headline, in a reel that carries no product proof, whose hashtags (#mascot #characterdesign #indiedev #buildinpublic) reach developers rather than buyers, and whose naming ask collides with the naming mechanic already running in Story Sequence 2. My recommendation is to hold this reel until the art is in Assets.xcassets. If it must run now, cut the naming ask and reframe the disclosure so it is about the artwork, not about the build.
->
-> *Use instead:* Our story guide. His whole job is the first sentence and the question — he has no way to write the page and no way to finish it. The confetti is the only thing he's actually good at.
-
-This one's animation, not a screen recording: he lives in the artwork and on the website while we finish bringing him into the app properly. I'll show you the real thing in-app the day he's there.
->
+> [!NOTE]
+> **Creative director's standing recommendation:** hold this reel until the mascot art is actually in `Assets.xcassets`. It carries no product proof beyond the single 0:12-0:16 beat, and its strongest version is the one shot after the character ships. The caption below is the run-it-now version: the naming ask is cut (it collided with the naming mechanic in Story Sequence 2) and the disclosure is reframed around the artwork rather than the build.
 
 
 **Hook (first 1.5s):** He'll hand your kid a first sentence, a question, and a high five. He will not hold the pencil.
@@ -510,45 +458,30 @@ Optional and short if you use one: 'He gives your kid a sentence to start with. 
 **Caption**
 
 ```
-Our story guide. He doesn't have a name yet — genuinely, we haven't named him, and I'd take suggestions.
+Our story guide. His whole job is the first sentence and the question — he has no way to write the page and no way to finish it. The confetti is the only thing he's actually good at.
 
-His whole job is the first sentence and the question. He has no way to write the page and no way to finish it. The confetti is the only thing he's actually good at.
-
-Heads up so nobody's surprised: the drawn character lives in the artwork and the web app. The version currently on the App Store shows a placeholder in his place while we finish dropping the art into the build — we'll show him properly in-app the moment he's really there.
+This one's animation, not a screen recording: he lives in the artwork and on the website while we finish bringing him into the app properly. I'll show you the real thing in-app the day he's there.
 ```
 
-**Hashtags:** #mascot #animation #kidsapps #characterdesign #kidlit #creativekids #writingforkids #indiedev #buildinpublic #storytelling
+**Hashtags:** #animation #kidsapps #kidlit #creativekids #writingforkids #storytelling #reluctantwriter #parenting #kidsapp #illustration
 
-**Why it works:** Character-led animation reaches a different, wider audience than screen recordings do and gives the brand a face that isn't a founder — plus the motion assets (Welcome.mp4, cheering.mp4, badge_achieved.mp4) already exist, so this is the lowest-effort reel here. Asking for a name is a genuine engagement mechanic rather than a fake one, since he really is unnamed in the codebase. Most importantly it stays honest under inspection: the mascot imagesets declare no files and the app falls back to emoji, so every mascot frame is composited and the caption says so out loud rather than letting a parent download it and catch the discrepancy.
+**Why it works:** Character-led animation reaches a different, wider audience than screen recordings do and gives the brand a face that isn't a founder — plus the motion assets (Welcome.mp4, cheering.mp4, badge_achieved.mp4) already exist, so this is the lowest-effort reel here. The one real-UI beat at 0:12-0:16 keeps it anchored to the shipping product. Most importantly it stays honest under inspection: the mascot imagesets declare no files and the app falls back to emoji, so every mascot frame is composited — and the caption says plainly that he's animation rather than a screen recording, instead of letting a parent download it and catch the discrepancy.
 
 ---
 
-## 11. Unboxing a book a seven-year-old wrote
+## 11. Unboxing the printed book — demo copy
 
 **Audience:** parents · **Length:** 33s
 
 
-> [!WARNING]
-> **Do not publish as written — corrections required**
->
-> **Fact-check — Reel 11 ("Unboxing a book a seven-year-old wrote") — hook_line, voiceover, caption**
->
-> *Problem:* FABRICATED FIRST-PERSON TESTIMONIAL. The shot list correctly mandates a demo book, a fictional author name and a demo order — yet the hook, VO and caption all assert a specific real event: "This came in the post today", "a seven-year-old typed every word in it", "There's a spelling mistake on page four and I asked them to leave it in", "it's been pulled off that shelf and read to us twice already". None of that is verifiable and the reel's own production notes say the artefact is staged. Feed post 9 explicitly bans inventing quotes; this is the same offence in VO form, aimed at the buyer who reads two-star reviews first.
->
-> *Use instead:* hook_line: "This is a real printed book made in the app, and every word in it was typed by a child — spelling mistakes and all, which we left in."
-voiceover: "This is what actually arrives. It's a real softcover — nineteen ninety-nine — and every word in it is typed by the child, not generated. This is our demo book, so I'm not going to pretend it came out of my own letterbox this morning. The page here was drawn by hand, with a finger, and it printed at full resolution exactly like the AI ones did. And this is the bit that changes things: it goes on the shelf with the actual books."
-caption: "Nineteen ninety-nine for the softcover, plus $4.99 shipping. US only at the moment.\n\nThis is our demo book, printed for real — not a customer's, and not a mockup.\n\nThe thing worth knowing: spelling isn't corrected, flagged or marked anywhere in the app. Whatever your child types is what prints. The second an adult starts fixing it, it stops being theirs.\n\nAnd it doesn't end up on the fridge for a month and then in the recycling in July. It's a book. It goes on the shelf."
->
-
-
-**Hook (first 1.5s):** This is a real printed book, and every word in it was typed by a seven-year-old. Including the spelling mistake on page four, which I asked them to leave in.
+**Hook (first 1.5s):** This is a real printed book made in the app, and every word in it was typed by a child — spelling mistakes and all, which we left in.
 
 **Shot list**
 
 | Time | Shot | Action |
 |---|---|---|
 | 0:00-0:04 | hands-on-device | HOOK. Overhead, plain table, the mailer already open. Adult hands lift the softcover book out and set it down cover-up. CHILD-SAFETY: adult hands only, no faces, no address label legible — turn the shipping label face-down or crop it out before rolling. Demo order, fictional address, never film a real customer order. |
-| 0:04-0:10 | hands-on-device | Slow rotate of the cover in hand. Demo book only — 'Theo and the Star Bear' or a freshly authored demo title. Show the painted cover art and the author line. Shoot on a table by a window; no ring light needed, just don't backlight it. |
+| 0:04-0:10 | hands-on-device | Slow rotate of the cover in hand. Demo book only — 'Theo and the Star Bear' or a freshly authored demo title. Show the painted cover art and the author line. Shoot on a table by a window; no ring light needed, just don't backlight it. COPY-INTEGRITY: the hook and VO say every word was typed by a child, so the demo book's text must genuinely have been written by a child (under a fictional author name) — not written by an adult in a child's voice. If you can't clear that, drop 'typed by a child' from the hook, VO and on-screen text and say 'typed, not generated' instead. |
 | 0:10-0:18 | hands-on-device | Open flat, thumb through three spreads at a natural pace, roughly one page per 1.5 seconds. Hold on one spread long enough to read a line of the actual story text. This is the reel's core texture shot — get the paper sound clean. |
 | 0:18-0:24 | hands-on-device | Hold on the hand-drawn page — the one made in DrawingCanvasView rather than generated. Point at it with a finger. On-screen text calls out that this one was drawn with a finger and printed at full resolution. |
 | 0:24-0:29 | screen recording | Quick cut: the same page as it appears in BookDetailView on the iPad (cream #FAF7ED paper card, serif text, page-number badge) next to the physical printed page. Screen and paper, side by side. |
@@ -557,10 +490,10 @@ caption: "Nineteen ninety-nine for the softcover, plus $4.99 shipping. US only a
 **Voiceover**
 
 ```
-This came in the post today. It's a real softcover book — nineteen ninety-nine — and a seven-year-old typed every word in it. There's a spelling mistake on page four and I asked them to leave it in, because fixing it would have made it mine. This page here they drew themselves, with a finger, and it printed at full resolution exactly like the AI ones did. And this is the bit I wasn't ready for: it goes on the shelf with the actual books. Not on the fridge for a month and then the recycling. On the shelf.
+This is what actually arrives. It's a real softcover — nineteen ninety-nine — and every word in it is typed by the child, not generated. This is our demo book, so I'm not going to pretend it came out of my own letterbox this morning. The page here was drawn by hand, with a finger, and it printed at full resolution exactly like the AI ones did. And this is the bit that changes things: it goes on the shelf with the actual books.
 ```
 
-**On-screen text:** a real printed book · every word typed by a 7-year-old · spelling mistake on page 4. left it in. · this page: drawn with a finger · printed at full resolution · softcover $19.99 + $4.99 shipping (US) · it goes on the shelf with the real ones
+**On-screen text:** a real printed book · every word typed by the child, not generated · the app never corrects the spelling · this page: drawn with a finger · printed at full resolution · softcover $19.99 + $4.99 shipping (US) · our demo book — printed for real · it goes on the shelf with the real ones
 
 **Audio:** Original audio, and let the object make the noise. Unboxing is an ASMR-adjacent genre: the cardboard, the tape, the cover flexing and above all the page turns are the reason people watch to the end. Record in a quiet room with the phone close, and do NOT put a trending vocal over it — you'd be muting the only thing that makes the format work. If the room is too dead, add a barely-there warm pad at -22dB. The VO should be low, close and unperformed, as if you're showing it to one friend across a table; record it separately and lay it over the natural sound rather than talking while filming.
 
@@ -569,16 +502,18 @@ This came in the post today. It's a real softcover book — nineteen ninety-nine
 ```
 Nineteen ninety-nine for the softcover, plus $4.99 shipping. US only at the moment.
 
-The spelling mistake on page four stays. That was the deal — the second I start correcting it, it stops being theirs and starts being a project I did.
+This is our demo book, printed for real — not a customer's, and not a mockup.
 
-What I didn't expect was where it ended up. Every drawing that comes home goes on the fridge for a month and then quietly into the recycling in July. This one went on the shelf with the published picture books, and it's been pulled off that shelf and read to us twice already.
+The thing worth knowing: the app never corrects, flags or rewrites your child's spelling. Whatever ends up on the page is what prints. The second an adult starts fixing it, it stops being theirs.
+
+And it doesn't end up on the fridge for a month and then in the recycling in July. It's a book. It goes on the shelf.
 
 Demo book, fictional author name — no real kids' names or faces here.
 ```
 
 **Hashtags:** #unboxing #printedbook #kidsbooks #keepsake #giftsforkids #creativekids #homeschool #momlife #kidlit #screentimethatends
 
-**Why it works:** Unboxing is a proven high-retention format and this one has an unusually strong hook because the object is genuinely novel — a printed book written by a child. The spelling-mistake detail is the credibility anchor: this ICP explicitly wants to see a real kid's real book with a mistake left in, and volunteering it signals that nothing here is staged. The hand-drawn page shot is the anti-AI-slop counter-argument delivered physically rather than argued. It quotes only the softcover price, which is the one figure where the app display and the server charge agree — the hardcover figure shown in PrintOrderView is $34.99 against a real charge of $39.99 and must never be quoted until that's fixed.
+**Why it works:** Unboxing is a proven high-retention format and this one has an unusually strong hook because the object is genuinely novel — a printed book written by a child. Saying out loud that it's the demo copy rather than a customer's is the credibility anchor: this ICP reads the two-star reviews first and can smell a staged 'it arrived today' from the thumbnail, so naming the staging up front buys belief in the un-corrected spelling, the price and the hand-drawn page. The hand-drawn page shot is the anti-AI-slop counter-argument delivered physically rather than argued. It quotes only the softcover price, which is the one figure where the app display and the server charge agree — the hardcover figure shown in PrintOrderView is $34.99 against a real charge of $39.99 and must never be quoted until that's fixed.
 
 ---
 

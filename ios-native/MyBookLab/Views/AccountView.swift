@@ -13,6 +13,18 @@ struct AccountView: View {
     @State private var nameDraft = ""
     @State private var showDeleteConfirm = false
     @State private var deleteConfirmText = ""
+
+    /// The word the user must type to arm account deletion.
+    ///
+    /// Read from ONE place and used both as the field's placeholder and as the
+    /// comparison, because those two must never diverge. Translating the
+    /// placeholder alone would leave an Italian user typing "ELIMINA" at a
+    /// button gated on "DELETE" — account deletion becomes impossible, which
+    /// is also an App Store Guideline 5.1.1(v) failure.
+    private var deleteConfirmWord: String {
+        String(localized: "account.delete.confirm_word", defaultValue: "DELETE",
+               comment: "Typed by the user to confirm account deletion. MUST match the placeholder; uppercase.")
+    }
     @State private var deleteBusy = false
     @State private var deletionScheduledFor: String?   // ISO date when pending
     // App-authored copy, so it must be localizable. (Contrast with the
@@ -403,7 +415,7 @@ struct AccountView: View {
             Text("Your account and all your books will be scheduled for deletion. You'll have 7 days to change your mind before anything is permanently removed.")
                 .font(.subheadline).multilineTextAlignment(.center).foregroundStyle(.secondary)
             Text("Type DELETE to confirm").font(.caption).foregroundStyle(.secondary)
-            TextField("DELETE", text: $deleteConfirmText)
+            TextField(deleteConfirmWord, text: $deleteConfirmText)
                 .textInputAutocapitalization(.characters)
                 .autocorrectionDisabled()
                 .multilineTextAlignment(.center)
@@ -421,9 +433,9 @@ struct AccountView: View {
                 }
                 .frame(maxWidth: .infinity).padding(12)
             }
-            .background(.red.opacity(deleteConfirmText == "DELETE" ? 0.8 : 0.3), in: RoundedRectangle(cornerRadius: 12))
+            .background(.red.opacity(deleteConfirmText == deleteConfirmWord ? 0.8 : 0.3), in: RoundedRectangle(cornerRadius: 12))
             .foregroundStyle(.white)
-            .disabled(deleteConfirmText != "DELETE" || deleteBusy)
+            .disabled(deleteConfirmText != deleteConfirmWord || deleteBusy)
 
             Button("Keep my account") { showDeleteConfirm = false }.padding(.top, 4)
             Spacer()
