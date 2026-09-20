@@ -90,7 +90,7 @@ describe('PageEditor does not offer an automatic breakpoint check-in', () => {
   const src = readFileSync('src/components/editor/PageEditor.jsx', 'utf8')
 
   it('never calls open(\'breakpoint\') from any effect', () => {
-    expect(src).not.toContain("open('breakpoint')")
+    expect(src).not.toContain('open(\'breakpoint\')')
   })
 
   it('does not import the check-in store or its trigger guard', () => {
