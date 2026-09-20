@@ -1,6 +1,10 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { useCheckInStore } from '../src/stores/useCheckInStore'
 import { useAuthStore } from '../src/stores/useAuthStore'
+import { supabase } from '../src/lib/supabase'
+import { useBookshelfStore } from '../src/stores/useBookshelfStore'
+import { useAvatarStore } from '../src/stores/useAvatarStore'
+import { useRewardsStore } from '../src/stores/useRewardsStore'
 
 const reset = () => useCheckInStore.setState({ current: null, entries: [], lastPromptedAt: null })
 
@@ -106,5 +110,67 @@ describe('sign-out', () => {
 
     await useAuthStore.getState().signOut().catch(() => {})
     expect(useCheckInStore.getState().entries).toEqual([])
+  })
+})
+
+describe('identity-change guard (onAuthStateChange)', () => {
+  beforeEach(reset)
+
+  it('clears entries only on an actual id change, not a same-user re-fire', async () => {
+    // initialize() reaches into these stores whenever a user is present —
+    // real implementations call apiFetchAuthed / supabase.from, which would
+    // otherwise turn this into a real network test. Stub them so only the
+    // check-in guard itself is under test.
+    vi.spyOn(useBookshelfStore.getState(), 'loadCloudBooks').mockResolvedValue()
+    vi.spyOn(useAvatarStore.getState(), 'refreshCoins').mockResolvedValue()
+    vi.spyOn(useAvatarStore.getState(), 'loadInventory').mockResolvedValue()
+    vi.spyOn(useRewardsStore.getState(), 'loadBadges').mockResolvedValue()
+    vi.spyOn(useRewardsStore.getState(), 'loadStreak').mockResolvedValue()
+
+    // Simulate an already-signed-in user reloading the page: getSession()
+    // resolves with a live session, and we capture the real callback
+    // onAuthStateChange registers so we can fire it directly, the way
+    // supabase-js really does (including firing INITIAL_SESSION immediately
+    // on subscription).
+    let handler
+    vi.spyOn(supabase.auth, 'getSession')
+      .mockResolvedValue({ data: { session: { user: { id: 'user-1' } } } })
+    vi.spyOn(supabase.auth, 'onAuthStateChange').mockImplementation((cb) => {
+      handler = cb
+      return { data: { subscription: { unsubscribe: () => {} } } }
+    })
+
+    await useAuthStore.getState().initialize()
+    expect(useAuthStore.getState().user).toMatchObject({ id: 'user-1' })
+
+    useCheckInStore.getState().open('button')
+    useCheckInStore.getState().pickFeeling('happy')
+    useCheckInStore.getState().pickNeed('keep_going')
+    expect(useCheckInStore.getState().entries).toHaveLength(1)
+
+    // Same user id fired again — the token-refresh and page-reload case.
+    // supabase-js fires INITIAL_SESSION immediately on subscription, so
+    // without the guard this alone would wipe an already-signed-in user's
+    // entries on every reload.
+    handler('INITIAL_SESSION', { user: { id: 'user-1' } })
+    expect(useCheckInStore.getState().entries).toHaveLength(1)
+    handler('TOKEN_REFRESHED', { user: { id: 'user-1' } })
+    expect(useCheckInStore.getState().entries).toHaveLength(1)
+
+    // A different user id — the sibling-on-one-family-account case.
+    handler('SIGNED_IN', { user: { id: 'user-2' } })
+    expect(useCheckInStore.getState().entries).toEqual([])
+
+    // A null user — sign-out observed through the listener rather than
+    // the explicit signOut() action — must also clear.
+    useCheckInStore.getState().open('button')
+    useCheckInStore.getState().pickFeeling('sad')
+    useCheckInStore.getState().pickNeed('break')
+    expect(useCheckInStore.getState().entries).toHaveLength(1)
+    handler('SIGNED_OUT', null)
+    expect(useCheckInStore.getState().entries).toEqual([])
+
+    vi.restoreAllMocks()
+    useAuthStore.setState({ user: null, loading: true })
   })
 })
