@@ -3,6 +3,7 @@ import { useCheckInStore } from '../../stores/useCheckInStore'
 import { useAccessibilityStore } from '../../stores/useAccessibilityStore'
 import CheckInSheet from './CheckInSheet'
 import BreakScreen from './BreakScreen'
+import HelpScreen from './HelpScreen'
 
 // Mounted once in App.jsx beside MilestoneHost. Owns both the sheet and what
 // happens after an answer, so no screen has to know the difference between
@@ -12,6 +13,7 @@ export default function CheckInHost() {
   const entries = useCheckInStore((s) => s.entries)
   const setFocusMode = useAccessibilityStore((s) => s.setFocusMode)
   const [breaking, setBreaking] = useState(false)
+  const [helping, setHelping] = useState(false)
 
   // `entries` is newest-first, so the entry to react to is entries[0]. But
   // this store is persisted, and zustand's persist middleware hydrates
@@ -46,9 +48,14 @@ export default function CheckInHost() {
     if (!latest.need) return // dismissed at the feeling step — nothing to respond to
     if (latest.need === 'quiet') setFocusMode(true)
     if (latest.need === 'break') setBreaking(true)
-    // 'help' has no handler here: the editor owns Story Buddy and doesn't
-    // yet expose a handle for opening it from outside itself. 'keep_going'
-    // needs nothing — the sheet already closed.
+    // The editor owns Story Buddy and doesn't yet expose a handle for
+    // opening it from outside itself, so 'help' can't actually open it here
+    // — that's a real lift, not a quick wire-up. It must not be silent
+    // either way: a child who says they're struggling and gets nothing
+    // back learns the tile does nothing. HelpScreen tells them where to
+    // find it instead. 'keep_going' needs nothing — the sheet already
+    // closed.
+    if (latest.need === 'help') setHelping(true)
   }, [latest?.at, latest?.need, setFocusMode])
 
   return (
@@ -65,6 +72,7 @@ export default function CheckInHost() {
           child. tests/checkin-savepoint.test.js pins the persistence this
           depends on. */}
       {breaking && <BreakScreen onDone={() => setBreaking(false)} />}
+      {helping && <HelpScreen onDone={() => setHelping(false)} />}
     </>
   )
 }
