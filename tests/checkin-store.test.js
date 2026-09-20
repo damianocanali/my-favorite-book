@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { useCheckInStore } from '../src/stores/useCheckInStore'
+import { useAuthStore } from '../src/stores/useAuthStore'
 
 const reset = () => useCheckInStore.setState({ current: null, entries: [], lastPromptedAt: null })
 
@@ -88,5 +89,22 @@ describe('useCheckInStore', () => {
 
     expect(warn).not.toHaveBeenCalledWith(expect.stringContaining('storage is currently unavailable'))
     warn.mockRestore()
+  })
+})
+
+describe('sign-out', () => {
+  // Without this, the entry the previous describe block's last test leaves
+  // in the (module-singleton) store would inflate the length assertion below
+  // and fail the test for a reason that has nothing to do with sign-out.
+  beforeEach(reset)
+
+  it('clears a child\'s entries so the next user sees none', async () => {
+    useCheckInStore.getState().open('button')
+    useCheckInStore.getState().pickFeeling('sad')
+    useCheckInStore.getState().pickNeed('break')
+    expect(useCheckInStore.getState().entries).toHaveLength(1)
+
+    await useAuthStore.getState().signOut().catch(() => {})
+    expect(useCheckInStore.getState().entries).toEqual([])
   })
 })
