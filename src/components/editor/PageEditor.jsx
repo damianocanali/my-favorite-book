@@ -12,6 +12,8 @@ import AccessibilityToolbar from './AccessibilityToolbar'
 import WritingScaffold from './WritingScaffold'
 import { useRewardsStore } from '../../stores/useRewardsStore'
 import { useMilestoneStore, milestoneForProgress } from '../../stores/useMilestoneStore'
+import { useCheckInStore } from '../../stores/useCheckInStore'
+import { isEligibleForPrompt } from '../../lib/checkIn'
 import { formatNumber } from '../../i18n/formats'
 import { displayName } from '../../i18n/contentCatalog'
 
@@ -20,6 +22,8 @@ export default function PageEditor({ page }) {
   const updatePageText = useBookStore((state) => state.updatePageText)
   const book = useBookStore((state) => state.book)
   const fireMilestone = useMilestoneStore((s) => s.fire)
+  const openCheckIn = useCheckInStore((s) => s.open)
+  const lastPromptedAt = useCheckInStore((s) => s.lastPromptedAt)
   const adaptive = useAgeAdaptive()
   const dyslexiaFont = useAccessibilityStore((s) => s.dyslexiaFont)
 
@@ -61,8 +65,15 @@ export default function PageEditor({ page }) {
   const writtenCount = (book?.pages ?? []).filter((p) => (p.text ?? '').trim()).length
   useEffect(() => {
     const beat = milestoneForProgress({ bookId: book?.id, pages: book?.pages ?? [] })
-    if (beat) fireMilestone(beat)
-  }, [writtenCount, book?.id, book?.pages, fireMilestone])
+    if (beat) {
+      fireMilestone(beat)
+    } else if (isEligibleForPrompt({ lastPromptedAt })) {
+      // Offer a check-in at the same seam the milestone uses — a page just
+      // finished. Only when the milestone did NOT fire, so a child never
+      // gets a celebration and a question in the same beat.
+      openCheckIn('breakpoint')
+    }
+  }, [writtenCount, book?.id, book?.pages, fireMilestone, openCheckIn, lastPromptedAt])
 
   // Font class based on dyslexia toggle
   const fontClass = dyslexiaFont ? 'font-dyslexic' : 'font-body'
