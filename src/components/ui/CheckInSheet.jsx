@@ -80,6 +80,23 @@ export default function CheckInSheet() {
     }
   }, [isOpen])
 
+  // Moving focus is what actually announces a step to a screen reader — the
+  // heading text and aria-label change from "How are you doing?" to "What
+  // would help?" when a feeling is picked, but text changing under an
+  // already-focused element is silent to AT unless something tells it to
+  // look again. Keyed on current?.step, separately from the isOpen effect
+  // above: that effect's capture-and-restore must only run at genuine
+  // open/close, not on every step (re-running it on step change would
+  // capture the panel itself as "previously focused" and restore focus to
+  // the dialog instead of the invoking button when the sheet finally
+  // closes). Re-focusing the same element re-announces its updated
+  // accessible name in most screen readers, which is exactly what a step
+  // change needs and an open/close doesn't already cover.
+  useEffect(() => {
+    if (!current) return
+    panelRef.current?.focus()
+  }, [current?.step])
+
   if (!current) return null
 
   const isFeelingStep = current.step === 'feeling'
