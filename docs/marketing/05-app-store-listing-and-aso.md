@@ -7,7 +7,7 @@ Everything below is written against the shipping SwiftUI app at `/Users/damianoc
 > **Revision — re-verified against the working tree.** Three things changed since the first draft of this document and all three are load-bearing for the copy below:
 >
 > 1. **Two of the three launch blockers are fixed** (print price, Gallery moderation). One is not (the paywall). §0 is rewritten.
-> 2. **Three claims in the description were wrong or overstated** and are corrected in §1.5 — the drawing-vs-AI reward claim, the on-screen AI label, and the moderation claim. The corrected wording, and the code that forced each correction, is recorded in §1.6.
+> 2. **Three claims in the description were wrong or overstated** and are corrected in §1.5 — the drawing-vs-AI reward claim, the on-screen AI label, and the moderation claim. The corrected wording, and the code that forced each correction, is recorded in §1.5 under "The three corrections the fact-check forced".
 > 3. **The app is localised into Italian**, so §5 is no longer a "don't translate yet" memo. It now carries a complete **Italian App Store listing** (§5.4) with its own keyword field.
 >
 > An AI-disclosure line has been added to the description in both languages (§1.5, §5.4) because EU AI Act Art. 50 has applied since 2 August 2026.
@@ -609,23 +609,21 @@ Ranked on: iOS revenue per user, parental spend on education apps, size and orga
 
 **Italian is no longer on this list — it has shipped.** It was ranked fifth here on market size, and the app was localised into it first anyway. That ordering decision is now sunk, and the argument for it is the one in §5.4: Italy is where the legal research was actually done, so it is the one non-English market whose claim rules are established fact rather than assumption.
 
-### Explicitly deprioritised
+### 5.3.1 Explicitly deprioritised
 
 **Japanese, Korean, Simplified Chinese.** Japan and Korea are top-tier App Store revenue markets and it is tempting. Don't. A writing app for children is the worst possible category to machine-translate into: Japanese needs vertical text support, an IME-aware text editor, kanji-level awareness in the Story Buddy age-scaling logic, and an entirely different children's-literature register. The serif book-page rendering (`.system(.body, design: .serif)` → New York) has no meaningful CJK equivalent in the current code. Print fulfilment doesn't reach them. This is a product project, not a translation project, and it should wait until the app has proven itself in Anglophone markets.
 
 **Right-to-left languages (Arabic, Hebrew).** The entire reader, the page-turn `TabView`, the drawing canvas orientation, and the printed-book layout assume LTR. Not a translation task.
 
-### Recommended sequencing
+### 5.3.2 Recommended sequencing
 
 Ship 2.0.0 with **en-US + en-GB + en-AU + en-CA + it** metadata. Spend the next two quarters on Anglophone growth plus Italy, where the app itself now speaks the language. Revisit German only after (a) the catalogs are translated, (b) print ships outside the US, and (c) you have enough US/UK/IT retention data to know the product is worth translating again.
 
----
-
-## 5.4 The Italian App Store listing
+### 5.4 The Italian App Store listing
 
 Italian ASO is a **separate keyword space**, not a translation of the English one. An Italian parent does not type the Italian words for the English keywords; she types what she would say out loud to another parent at the school gate. Everything below is chosen on that basis.
 
-### Four conditions before this listing goes live
+#### Four conditions before this listing goes live
 
 Apple will not let you ship a half-localised build quietly, and this listing makes promises the build has to keep.
 
@@ -634,7 +632,7 @@ Apple will not let you ship a half-localised build quietly, and this listing mak
 3. **Do not promise a printed book.** `api/print-orders/create.js:96` rejects every non-US shipping country. The description below therefore describes the finished book as something to read and keep on the shelf, and says the printed copy is US-only. Do not "fix" this by translating the English print paragraph.
 4. **Prices stay in USD.** `Models/PriceFormatting.swift` fixes the currency at USD and takes only the separators from the reader's locale, so an Italian device shows `39,99 USD`. There are no EUR price points in the code. Never write a euro figure in Italian metadata until there is one in `PrintPricing`. Subscription prices are a separate matter — those come from App Store Connect pricing tiers and are shown by StoreKit in euro automatically, which is why the description sends the reader to the App Store for them rather than naming a number.
 
-### 5.4.1 App name — do not translate it
+#### 5.4.1 App name — do not translate it
 
 **Keep `My Book Lab`.** The code already decided this: `InfoPlist.xcstrings` gives `CFBundleDisplayName` the Italian value `My Book Lab`, and the Siri phrases interpolate `${applicationName}` rather than a translated string. An Italian store name that differs from the home-screen label, from the Siri phrase, and from `mybooklab.app` would be a scam signal to exactly the cautious parent this product is sold to.
 
@@ -650,7 +648,7 @@ English product names are entirely normal on the Italian App Store, and "lab" is
 - `My Book Lab: libri per bambini` — 30. **Avoid** — it reads as a *reading* app and puts you against Storytel and the publisher apps, the same trap "My Favorite Book" set in English.
 - `My Book Lab: storie da scrivere` — 31, too long.
 
-### 5.4.2 Subtitle (30 char max)
+#### 5.4.2 Subtitle (30 char max)
 
 > `Scrivi, disegna, pubblica` — **25 characters**
 
@@ -662,11 +660,11 @@ Rejected, and worth recording why:
 
 **Do not use *stampa* (print) in the Italian subtitle.** It is the strongest word available and it is unavailable to you: the app cannot ship a printed book to Italy. *pubblica* is honest — a child's book does become publicly readable in the gallery, from the web.
 
-### 5.4.3 Keyword field (100 char max) — Italian
+#### 5.4.3 Keyword field (100 char max) — Italian
 
 Already indexed from the name and subtitle: `my, book, lab, storie, per, bimbi, scrivi, disegna, pubblica`.
 
-**Recommended keyword string (99 characters):**
+**Recommended keyword string (98 characters):**
 
 ```
 scrittura,bambini,creativa,italiano,favole,racconti,illustrare,fantasia,leggere,compiti,diario,dsa
@@ -693,7 +691,7 @@ Deliberately **not** included:
 - `scuola`, `maestra`, `insegnante` — teacher-facing, and the Italian teacher surface is web-only, same as English (§6.3 CPP-3).
 - `dislessia` spelled out — 9 characters against `dsa`'s 3, for a narrower slice of the same parents. Keep `dsa` and spend the six characters elsewhere.
 
-#### The claim rules that travel with `dsa` — these are established law, not caution
+##### The claim rules that travel with `dsa` — these are established law, not caution
 
 From `docs/ITALY-LEGAL-FINDINGS.md`, which is sourced and adversarially verified:
 
@@ -713,7 +711,7 @@ Layered on top: Codice del consumo art. 23 co. 1 lett. s) makes falsely claiming
 
 The description below therefore does what §1.3's caveat prescribes for English: it describes the **behaviour** — the child who freezes at a blank page, the absence of red pen — and lets the parent make the connection herself. It names no condition.
 
-**Conservative alternate (no `dsa`, 98 characters), if Review or counsel objects:**
+**Conservative alternate (no `dsa`, 99 characters), if Review or counsel objects:**
 
 ```
 scrittura,bambini,creativa,italiano,favole,racconti,illustrare,fantasia,leggere,compiti,diario,temi
@@ -721,7 +719,7 @@ scrittura,bambini,creativa,italiano,favole,racconti,illustrare,fantasia,leggere,
 
 *temi* (the Italian school essay) replaces `dsa` and is a genuinely good token in its own right.
 
-### 5.4.4 Promotional text (170 char max, updatable without a build)
+#### 5.4.4 Promotional text (170 char max, updatable without a build)
 
 > Tuo figlio ti racconta una storia lunghissima in macchina e poi per la scuola scrive quattro righe. Non è pigrizia: è che non sa da dove partire.
 
@@ -729,7 +727,7 @@ scrittura,bambini,creativa,italiano,favole,racconti,illustrare,fantasia,leggere,
 
 Note the construction. Italian consumer law — Codice del consumo art. 26 co. 1 lett. e) — makes any direct exhortation to a child to buy, or to nag a parent into buying, an aggressive practice **per se**: a hard ban, not a balancing test. Every line of Italian marketing copy must address the parent as an adult. The *tu* form here is aimed at the parent, never at the child.
 
-### 5.4.5 Full Italian description
+#### 5.4.5 Full Italian description
 
 Authored in Italian, not translated. The English original leans on rhythms that do not survive word-for-word — the first three lines have to land on their own in the collapsed preview, and Italian runs roughly 15–20% longer, so the opening is shortened rather than transposed.
 
@@ -877,7 +875,7 @@ Condizioni d'uso: https://mybooklab.app/terms
 Assistenza: https://mybooklab.app
 ```
 
-#### Every claim in that description, and where it is verified
+##### Every claim in that description, and where it is verified
 
 | Claim | Verified at |
 |---|---|
@@ -908,14 +906,14 @@ Assistenza: https://mybooklab.app
 
 Two things the Italian description says that the English one does not, and both are deliberate: **"da quest'app pubblicare non si può: si fa dal sito"** — English readers get this as an omission, but an Italian parent reading a *"Segnala"* paragraph will reasonably ask how a book got there in the first place, and the honest answer strengthens the paragraph. And **the print limitation is stated positively** — *you can make it, read it and keep it; you just can't order it on paper yet* — rather than buried, because discovering it at checkout is the refund scenario §5.2 exists to prevent.
 
-#### Operational commitments this listing makes
+##### Operational commitments this listing makes
 
 Two lines are promises about people, not code, and someone has to own them before the listing ships:
 
 - **"Le segnalazioni le legge una persona."** The app itself is more specific — `ReportBookSheet.swift:52` promises review *entro 24 ore*, in both languages. That is a staffed commitment. If no one is on it, change the string, not the listing.
 - **support@mybooklab.app** is published inside the report sheet and in the description. It must be monitored, and it must accept Italian.
 
-#### Two Italian legal points that are not ASO but will land on this listing
+##### Two Italian legal points that are not ASO but will land on this listing
 
 Both are from `docs/ITALY-LEGAL-FINDINGS.md` and both need counsel, not a copywriter:
 
@@ -947,7 +945,7 @@ Either way, **do not create a new SKU to unlock pre-order.** You would forfeit a
 7. **Kids Category: still opt out, but the reason has narrowed.** The original objection was that the Gallery had no moderation at all. That is fixed. What remains is that Kids Category apps face additional scrutiny on any data leaving the device and on third-party analytics, and the Gallery still displays other children's first names and ages to visitors (`GalleryView.swift:146-149`) — which is separately flagged under DSA Art. 28(1) in §5.4. Education + 4+ reaches the same audience without that surface. Revisit after the gallery byline question is resolved, not before.
 8. **Apple Search Ads from day one, small budget.** Bid on your own brand name first — this is defensive and cheap, and it stops StoryJumper or Night Zookeeper buying "my book lab". Then a small discovery campaign on `creative writing kids`, `make a book kids`, `kids story writing`. Point each ad group at a matching CPP (below).
 
-### 6.2.1 App Review notes — paste this into the Notes field
+#### 6.2.1 App Review notes — paste this into the Notes field
 
 Reviewers of a children's app with AI, a subscription, and a public feed of content authored by children will look for four things: whether a child can be exposed to other children's material, whether a child can spend money, whether the AI is doing the child's work, and whether the metadata is true. The notes should answer all four before the reviewer has to go looking, and every line below points at a screen the reviewer can reach in the demo account.
 
@@ -1135,7 +1133,7 @@ Separately from CPPs, use **PPO** to A/B test the *default* page, which is the o
 - Localised text in the overlays.
 
 **Not allowed, and each one is a real rejection cause:**
-- **Price or "Free".** Apple removes pricing references from screenshots. Nothing in your set may say "Free", "$19.99", "50% off", or "Try free". This is why §3 puts no price in any caption, and it's a second reason `PrintOrderView` is a bad screenshot candidate.
+- **Price or "Free".** Apple removes pricing references from screenshots. Nothing in your set may say "Free", "$19.99", "50% off", or "Try free". This is why §3 puts no price in any caption. It remains the reason to prefer `OrderDetailView`'s status timeline over `PrintOrderView` — the price bug that was the *other* reason is fixed (§0.2), so `PrintOrderView` is now merely a worse frame rather than an unusable one, and its format cards display prices.
 - **Calls to action to download or rate.** No "Download now", no "Rate us", no App Store badge inside a screenshot.
 - **Awards or superlatives you can't substantiate.** No "#1 writing app", no "Best app for ADHD", no "Award-winning". You have no efficacy data and no awards; inventing either is both a rejection and a trust failure with this specific buyer.
 - **Fabricated UI.** Every pixel of app content must come from a real build of `ios-native/MyBookLab`. No Figma comps composited into a device frame, no "coming soon" features shown as shipped. This is the rule that forbids compositing the drawn mascot over an app capture, since the app renders emoji.
@@ -1175,9 +1173,13 @@ Separately from CPPs, use **PPO** to A/B test the *default* page, which is the o
 |---|---|
 | **5.1.1(v)** — account deletion must be initiable in-app | ✅ `Views/AccountView.swift:365-411` → `api/delete-account.js`, with a 7-day grace period and a typed DELETE confirmation. |
 | **4.8** — Sign in with Apple required when a third-party sign-in is offered | ✅ Google Sign-In is present, and Sign in with Apple ships at `Views/SignInView.swift:70-79` with the entitlement in `project.yml`. |
-| **1.2** — UGC apps need filtering, reporting, blocking, and published contact | ❌ **Not met.** The Gallery displays other children's books with no report or block control on iOS. Highest rejection risk in the submission. See §0. |
-| **3.1.2** — accurate subscription information at the point of purchase | ⚠️ The paywall lists two features that don't exist. See §0. |
-| **1.3 / age rating** — accurate questionnaire answers | ⚠️ Must answer "yes" to user-generated content because of the Gallery; keeping a 4+ rating depends on moderation being in place. |
+| **1.2** — UGC apps need filtering, reporting, blocking, and published contact | ✅ **Met, all four.** Filtering: `api/publish-book.js:135-152`, fails closed. Reporting: `GalleryView.swift:103-107` and `:217-227` → `ReportBookSheet.swift`. Blocking: `ReportBookSheet.swift:129-184` → `APIClient.blockAuthor`. Contact: `support@mybooklab.app` at `ReportBookSheet.swift:139`. Plus two-report auto-hide, and no publish path in the iOS app at all. |
+| **3.1.2** — accurate subscription information at the point of purchase | ❌ **The one still-open blocker.** The paywall lists two features that don't exist (`PaywallView.swift:122-123`), and none of its five benefit lines is localised (`:131` takes `String`, not `LocalizedStringKey`), so an Italian buyer reads them in English. See §0.1. |
+| **3.1.2 / EULA** — terms of use available | ✅ `src/pages/TermsPage.jsx`, routed at `src/App.jsx:92`, linked from `PaywallView.swift:225`. Set it as the EULA in App Store Connect. |
+| **1.3 / age rating** — accurate questionnaire answers | ✅ Answer "yes" to user-generated content and describe the moderation, which now exists. That keeps the rating at 4+. |
+| **2.3.1** — accurate metadata | ⚠️ Two live inaccuracies, both in §0.1: the paywall lines, and `NSMicrophoneUsageDescription` — now translated into Italian — describing dictation the app does not have. |
+| **EU AI Act Art. 50** — transparency, applicable since 2 Aug 2026 | ⚠️ **Partly.** The store description now discloses AI-generated illustrations in both languages, which addresses the human-readable side. Art. 50(2) machine-readable marking of generated images, and Art. 50(5)'s "at the latest at the time of first interaction or exposure", are **code obligations that are not met** — there is no on-screen AI label anywhere in the app. Not an App Store rejection cause; it is an EU regulatory one, with penalties under Art. 99(4)(g). See §1.5 ("The three corrections…", item 2) and `docs/ITALY-LEGAL-FINDINGS.md`. |
+| **Localisation consistency** (en + it) | ⚠️ 411/413 app strings, 5/5 permission dialogs, 14/14 Siri phrases and 19/19 widget strings are Italian. The gap is the paywall, which is not extracted at all. Fix before the Italian metadata is published. |
 | **5.1.4** — kids apps must not send personal info to third parties | ✅ `PrivacyInfo.xcprivacy:11-16` declares `NSPrivacyTracking = false` with an empty tracking-domains list, and no analytics or advertising SDK appears in `package.json` or the Swift package list. |
 | **Privacy nutrition labels** | Must be re-verified against actual collection before submitting; a mismatch with the manifest is a slow rejection. |
 
@@ -1202,7 +1204,27 @@ Separately from CPPs, use **PPO** to A/B test the *default* page, which is the o
 - `/Users/damianocanali/Documents/my-favorite-book/ios-native/MyBookLab/Models/SampleBook.swift`
 - `/Users/damianocanali/Documents/my-favorite-book/ios-native/MyBookLab/PrivacyInfo.xcprivacy`
 - `/Users/damianocanali/Documents/my-favorite-book/ios-native/MyBookLab/Assets.xcassets/Mascot*.imageset/Contents.json` — all empty
+- `/Users/damianocanali/Documents/my-favorite-book/ios-native/MyBookLab/Views/ParentalGate.swift`
+- `/Users/damianocanali/Documents/my-favorite-book/ios-native/MyBookLab/Views/ReportBookSheet.swift`
+- `/Users/damianocanali/Documents/my-favorite-book/ios-native/MyBookLab/Views/CoinStoreView.swift`
+- `/Users/damianocanali/Documents/my-favorite-book/ios-native/MyBookLab/Views/AccountView.swift`
+- `/Users/damianocanali/Documents/my-favorite-book/ios-native/MyBookLab/Models/PrintOrder.swift` — `PrintPricing`
+- `/Users/damianocanali/Documents/my-favorite-book/ios-native/MyBookLab/Models/PriceFormatting.swift`
+- `/Users/damianocanali/Documents/my-favorite-book/ios-native/MyBookLab/Stores/RewardsStore.swift`
+- `/Users/damianocanali/Documents/my-favorite-book/ios-native/MyBookLab/Services/APIClient.swift`
+- `/Users/damianocanali/Documents/my-favorite-book/ios-native/MyBookLab/Services/SpeechSpeaker.swift`
+- `/Users/damianocanali/Documents/my-favorite-book/ios-native/MyBookLab/Localizable.xcstrings` — 411/413 Italian
+- `/Users/damianocanali/Documents/my-favorite-book/ios-native/MyBookLab/InfoPlist.xcstrings` — 5/5 Italian
+- `/Users/damianocanali/Documents/my-favorite-book/ios-native/MyBookLab/AppShortcuts.xcstrings` — 14/14 Italian
+- `/Users/damianocanali/Documents/my-favorite-book/ios-native/MyBookLabWidgets/Localizable.xcstrings` — 19/19 Italian
 - `/Users/damianocanali/Documents/my-favorite-book/lib/print/pricing.js`
 - `/Users/damianocanali/Documents/my-favorite-book/api/print-orders/create.js`
 - `/Users/damianocanali/Documents/my-favorite-book/api/publish-book.js`
+- `/Users/damianocanali/Documents/my-favorite-book/api/report-book.js`
+- `/Users/damianocanali/Documents/my-favorite-book/api/claim-badge.js`
+- `/Users/damianocanali/Documents/my-favorite-book/api/_aiGuard.js` — `moderatePrompt`, fails open
+- `/Users/damianocanali/Documents/my-favorite-book/api/story-buddy.js`
+- `/Users/damianocanali/Documents/my-favorite-book/src/pages/TermsPage.jsx`
+- `/Users/damianocanali/Documents/my-favorite-book/src/i18n/locales/it/` — the web's Italian bundle
+- `/Users/damianocanali/Documents/my-favorite-book/docs/ITALY-LEGAL-FINDINGS.md` — MDR/MDCG claim rules, AI Act Art. 50, Legge 132/2025
 
