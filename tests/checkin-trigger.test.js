@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
+import { readFileSync } from 'node:fs'
 import { useCheckInStore } from '../src/stores/useCheckInStore'
 import { isEligibleForPrompt, shouldOfferBreakpointCheckIn } from '../src/lib/checkIn'
 
@@ -64,5 +65,53 @@ describe('shouldOfferBreakpointCheckIn (the guard PageEditor calls)', () => {
       milestoneFired: false,
       lastPromptedAt: Date.now(),
     })).toBe(false)
+  })
+})
+
+// The mid-keystroke regression this fixes lived in TWO places a pure-function
+// test of shouldOfferBreakpointCheckIn can never reach: which array PageEditor's
+// effect depends on, and which guard it calls the offer with. Proof: reverting
+// the wiring to the exact broken pattern (bare book?.pages back in the deps,
+// a raw isEligibleForPrompt(...) call in place of shouldOfferBreakpointCheckIn)
+// left all the tests above green, because they only exercise the guard function
+// in isolation with hand-supplied counts — they never touch PageEditor.jsx.
+//
+// This repo runs pure-function tests under environment: 'node' with no DOM/
+// render harness, so a real "mount PageEditor and type a keystroke" test isn't
+// available here (adding @testing-library/react is a repo-wide precedent this
+// task isn't the place to set). Parsing the source text is a source-level
+// stand-in for that render test — same technique tests/badge-parity.test.js
+// uses to keep three files honest without executing any of them — and it is a
+// stopgap: a real render test, if this repo ever grows one, is the better
+// long-term answer.
+describe('PageEditor source guards against the mid-keystroke regression', () => {
+  const src = readFileSync('src/components/editor/PageEditor.jsx', 'utf8')
+
+  // Isolate the one effect that can call openCheckIn('breakpoint'), from its
+  // `useEffect(` opening through its dependency array, so a change to some
+  // unrelated effect elsewhere in the file can't accidentally satisfy these
+  // assertions.
+  const effectMatch = src.match(
+    /useEffect\(\(\) => \{[\s\S]*?openCheckIn\('breakpoint'\)[\s\S]*?\}, \[([^\]]*)\]\)/
+  )
+  const [effectBlock, deps] = effectMatch ?? [null, '']
+
+  it('finds the check-in effect in PageEditor.jsx', () => {
+    expect(effectBlock).not.toBeNull()
+  })
+
+  it('does not depend on the bare book?.pages array (a new reference every keystroke)', () => {
+    // book?.pages?.length is fine and required (next test) — only the bare
+    // array reference is what reintroduces the per-keystroke re-run.
+    expect(/book\?\.pages(?!\?\.length)\b/.test(deps)).toBe(false)
+  })
+
+  it('does depend on book?.pages?.length (page add/remove must stay reactive)', () => {
+    expect(deps).toContain('book?.pages?.length')
+  })
+
+  it('gates the offer with the written-count guard, not a bare isEligibleForPrompt call', () => {
+    expect(effectBlock ?? '').toContain('shouldOfferBreakpointCheckIn(')
+    expect(effectBlock ?? '').not.toMatch(/isEligibleForPrompt\(/)
   })
 })

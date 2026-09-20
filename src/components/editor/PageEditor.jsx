@@ -60,12 +60,18 @@ export default function PageEditor({ page }) {
   // congratulate them twice, and milestoneForProgress returns null for
   // almost every edit: a beat on every keystroke would be noise.
   //
-  // Keyed off writtenCount and book?.id only — deliberately NOT book?.pages,
-  // which is a new array reference on every character typed (updatePageText
-  // rebuilds it) and would schedule this effect on every keystroke. The
-  // milestone branch tolerates that because the store's `seen` set makes
-  // re-firing harmless either way, but the check-in branch has no such
-  // guard, so it additionally requires writtenCount to have genuinely
+  // Keyed off writtenCount, book?.pages?.length and book?.id — deliberately
+  // NOT the bare book?.pages array, which is a new reference on every
+  // character typed (updatePageText rebuilds it) and would schedule this
+  // effect on every keystroke. book?.pages?.length IS included: it's a
+  // primitive, stable across keystrokes (updatePageText maps pages in place
+  // and never changes how many there are), and without it a page add/remove
+  // that changes milestoneForProgress's answer without moving writtenCount
+  // (e.g. deleting a blank page so written === total becomes true) would
+  // never rerun this effect. The milestone branch tolerates the remaining
+  // per-keystroke-on-length-change runs because the store's `seen` set
+  // makes re-firing harmless either way, but the check-in branch has no
+  // such guard, so it additionally requires writtenCount to have genuinely
   // increased (prevWrittenRef) before it may offer — a page crossing
   // empty→written, never a character landing inside one already written.
   const writtenCount = (book?.pages ?? []).filter((p) => (p.text ?? '').trim()).length
@@ -85,7 +91,7 @@ export default function PageEditor({ page }) {
       // genuine progress, never mid-keystroke.
       openCheckIn('breakpoint')
     }
-  }, [writtenCount, book?.id, fireMilestone, openCheckIn, lastPromptedAt])
+  }, [writtenCount, book?.pages?.length, book?.id, fireMilestone, openCheckIn, lastPromptedAt])
 
   // Font class based on dyslexia toggle
   const fontClass = dyslexiaFont ? 'font-dyslexic' : 'font-body'
