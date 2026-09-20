@@ -62,6 +62,6 @@ export function appendEntry(entries, { feeling, need }, nowMs = Date.now()) {
 /// Whether an automatic prompt may fire now. The child-initiated button
 /// never consults this — it is always available.
 export function isEligibleForPrompt({ lastPromptedAt, nowMs = Date.now() }) {
-  if (!lastPromptedAt) return true
+  if (lastPromptedAt == null) return true
   return nowMs - lastPromptedAt >= QUIET_WINDOW_MS
 }

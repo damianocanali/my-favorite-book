@@ -31,15 +31,25 @@ describe('pruneEntries', () => {
     expect(kept[0].feeling).toBe('happy')
   })
 
-  it('keeps an entry exactly at the boundary', () => {
-    expect(pruneEntries([entry('happy', 'quiet', 29)], NOW)).toHaveLength(1)
+  it('keeps an entry exactly at the boundary and drops one just past it', () => {
+    expect(pruneEntries([entry('happy', 'quiet', 30)], NOW)).toHaveLength(1)
+    const justPast = { at: new Date(NOW - 30 * DAY - 1).toISOString(), feeling: 'happy', need: 'quiet' }
+    expect(pruneEntries([justPast], NOW)).toHaveLength(0)
   })
 
-  it('caps at MAX_ENTRIES, evicting oldest first', () => {
+  it('caps at MAX_ENTRIES, keeping the newest and evicting the oldest', () => {
+    // Distinct, known ages (0, 0.1, 0.2, ... days), all well inside the
+    // retention window, so only the MAX_ENTRIES cap is under test here.
     const many = Array.from({ length: MAX_ENTRIES + 10 }, (_, i) =>
-      entry('happy', 'keep_going', (i % 20) * 0.1)
+      entry('happy', 'keep_going', i * 0.1)
     )
-    expect(pruneEntries(many, NOW)).toHaveLength(MAX_ENTRIES)
+    const kept = pruneEntries(many, NOW)
+    expect(kept).toHaveLength(MAX_ENTRIES)
+    const keptAt = new Set(kept.map((e) => e.at))
+    const newest = many.slice(0, MAX_ENTRIES)
+    const oldest = many.slice(MAX_ENTRIES)
+    expect(newest.every((e) => keptAt.has(e.at))).toBe(true)
+    expect(oldest.some((e) => keptAt.has(e.at))).toBe(false)
   })
 
   it('survives a corrupt or empty store', () => {
