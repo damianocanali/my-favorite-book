@@ -13,7 +13,7 @@ import WritingScaffold from './WritingScaffold'
 import { useRewardsStore } from '../../stores/useRewardsStore'
 import { useMilestoneStore, milestoneForProgress } from '../../stores/useMilestoneStore'
 import { useCheckInStore } from '../../stores/useCheckInStore'
-import { isEligibleForPrompt } from '../../lib/checkIn'
+import { shouldOfferBreakpointCheckIn } from '../../lib/checkIn'
 import { formatNumber } from '../../i18n/formats'
 import { displayName } from '../../i18n/contentCatalog'
 
@@ -60,20 +60,32 @@ export default function PageEditor({ page }) {
   // congratulate them twice, and milestoneForProgress returns null for
   // almost every edit: a beat on every keystroke would be noise.
   //
-  // Keyed off the count of written pages rather than the text itself, so
-  // this runs when a page crosses empty→written, not on each character.
+  // Keyed off writtenCount and book?.id only — deliberately NOT book?.pages,
+  // which is a new array reference on every character typed (updatePageText
+  // rebuilds it) and would schedule this effect on every keystroke. The
+  // milestone branch tolerates that because the store's `seen` set makes
+  // re-firing harmless either way, but the check-in branch has no such
+  // guard, so it additionally requires writtenCount to have genuinely
+  // increased (prevWrittenRef) before it may offer — a page crossing
+  // empty→written, never a character landing inside one already written.
   const writtenCount = (book?.pages ?? []).filter((p) => (p.text ?? '').trim()).length
+  // Seeded with the current count so opening an already-half-written book
+  // doesn't read as "just made progress" on the first render.
+  const prevWrittenRef = useRef(writtenCount)
   useEffect(() => {
     const beat = milestoneForProgress({ bookId: book?.id, pages: book?.pages ?? [] })
+    const prevWritten = prevWrittenRef.current
+    prevWrittenRef.current = writtenCount
     if (beat) {
       fireMilestone(beat)
-    } else if (isEligibleForPrompt({ lastPromptedAt })) {
+    } else if (shouldOfferBreakpointCheckIn({ prevWritten, writtenCount, milestoneFired: !!beat, lastPromptedAt })) {
       // Offer a check-in at the same seam the milestone uses — a page just
       // finished. Only when the milestone did NOT fire, so a child never
-      // gets a celebration and a question in the same beat.
+      // gets a celebration and a question in the same beat, and only on
+      // genuine progress, never mid-keystroke.
       openCheckIn('breakpoint')
     }
-  }, [writtenCount, book?.id, book?.pages, fireMilestone, openCheckIn, lastPromptedAt])
+  }, [writtenCount, book?.id, fireMilestone, openCheckIn, lastPromptedAt])
 
   // Font class based on dyslexia toggle
   const fontClass = dyslexiaFont ? 'font-dyslexic' : 'font-body'

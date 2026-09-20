@@ -65,3 +65,17 @@ export function isEligibleForPrompt({ lastPromptedAt, nowMs = Date.now() }) {
   if (lastPromptedAt == null) return true
   return nowMs - lastPromptedAt >= QUIET_WINDOW_MS
 }
+
+/// Whether the page-finished seam should offer a breakpoint check-in.
+/// Pure so the guard can be pinned by a test without a DOM/render harness —
+/// PageEditor's effect re-runs on every keystroke (the page text array is
+/// rebuilt each character), so this is what stops the offer from firing
+/// mid-typing: `writtenCount` must have genuinely grown past `prevWritten`
+/// (a page crossing empty→written), not merely differ from it. A milestone
+/// firing in the same beat always wins — a child should never get a
+/// celebration and a question at once.
+export function shouldOfferBreakpointCheckIn({ prevWritten, writtenCount, milestoneFired, lastPromptedAt, nowMs = Date.now() }) {
+  if (milestoneFired) return false
+  if (!(writtenCount > prevWritten)) return false
+  return isEligibleForPrompt({ lastPromptedAt, nowMs })
+}
