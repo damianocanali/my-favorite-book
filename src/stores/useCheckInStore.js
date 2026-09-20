@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import { persist, createJSONStorage } from 'zustand/middleware'
 import { appendEntry } from '../lib/checkIn'
 
 // A child's check-ins.
@@ -57,6 +57,14 @@ export const useCheckInStore = create(
     }),
     {
       name: 'my-favorite-book-checkin',
+      // Explicit, not the default (`window.localStorage`): our test
+      // environment is node, which has no `window`, only `globalThis`.
+      // Bare `localStorage` resolves to `globalThis.localStorage` there and
+      // to `window.localStorage` in a real browser, so both work. Don't
+      // "simplify" this back to the default — it silently drops persist
+      // into its no-op storage-unavailable branch, and partialize below is
+      // never even called.
+      storage: createJSONStorage(() => localStorage),
       // `current` is transient UI state; persisting it would reopen the sheet
       // on every refresh.
       partialize: (s) => ({ entries: s.entries, lastPromptedAt: s.lastPromptedAt }),

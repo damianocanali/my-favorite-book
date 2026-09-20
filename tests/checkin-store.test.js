@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { useCheckInStore } from '../src/stores/useCheckInStore'
 
 const reset = () => useCheckInStore.setState({ current: null, entries: [], lastPromptedAt: null })
@@ -51,11 +51,42 @@ describe('useCheckInStore', () => {
     expect(useCheckInStore.getState().lastPromptedAt).toBeTypeOf('number')
   })
 
-  it('clear() empties entries, for sign-out', () => {
-    useCheckInStore.getState().open('button')
+  it('clear() empties entries, lastPromptedAt and current, for sign-out', () => {
+    // 'breakpoint' so lastPromptedAt is a real timestamp beforehand —
+    // otherwise asserting it's null after clear() wouldn't prove anything.
+    useCheckInStore.getState().open('breakpoint')
     useCheckInStore.getState().pickFeeling('happy')
     useCheckInStore.getState().pickNeed('keep_going')
     useCheckInStore.getState().clear()
-    expect(useCheckInStore.getState().entries).toEqual([])
+    const { entries, lastPromptedAt, current } = useCheckInStore.getState()
+    expect(entries).toEqual([])
+    expect(lastPromptedAt).toBeNull()
+    expect(current).toBeNull()
+  })
+
+  it('persists entries and lastPromptedAt to localStorage, excluding current', () => {
+    // The persist middleware defaults to `window.localStorage`, which does
+    // not exist in this node test environment — if the store's `storage`
+    // option ever regresses to that default, persist falls back to a no-op
+    // that warns instead of throwing, and every assertion below would fail
+    // silently instead of loudly. Spying on console.warn turns that failure
+    // mode into a hard test failure rather than a swallowed warning.
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+    useCheckInStore.getState().open('button')
+    useCheckInStore.getState().pickFeeling('proud')
+    useCheckInStore.getState().pickNeed('help')
+
+    const raw = localStorage.getItem('my-favorite-book-checkin')
+    expect(raw).not.toBeNull()
+    const { state } = JSON.parse(raw)
+    expect(state.entries).toHaveLength(1)
+    expect(state.entries[0]).toMatchObject({ feeling: 'proud', need: 'help' })
+    // partialize's whole job is to drop transient UI state from what's
+    // written to disk — this is the assertion that actually exercises it.
+    expect(state).not.toHaveProperty('current')
+
+    expect(warn).not.toHaveBeenCalledWith(expect.stringContaining('storage is currently unavailable'))
+    warn.mockRestore()
   })
 })
