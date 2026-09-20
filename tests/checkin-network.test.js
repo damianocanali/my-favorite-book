@@ -37,6 +37,18 @@ function walk(dir, out = []) {
 // "src/lib/checkIn.js") satisfies the same pattern.
 const IMPORTER_PATTERN = /useCheckInStore|lib\/checkIn/
 
+// BreakScreen.jsx and HelpScreen.jsx are deliberately NOT swept in here,
+// even though they're the screens a breakpoint/help check-in opens: both
+// are purely presentational, taking only `onDone` as a prop, and hold no
+// entry data of their own — CheckInHost reads pickFeeling/pickNeed/the
+// entry array from useCheckInStore before ever rendering these screens.
+// Neither imports useCheckInStore or lib/checkIn, so they correctly fall
+// outside IMPORTER_PATTERN. Leave the pattern as-is: widening it to catch
+// files like these — which can never hold entry data and so can never
+// legitimately trip OFFENDER_PATTERN — buys nothing, and the day one of
+// them picks up an unrelated fetch (an image asset, say) and false-positives,
+// the tempting "fix" is to loosen OFFENDER_PATTERN instead, which weakens
+// the fence for the files that actually do touch entry data.
 function discoverCheckInFiles() {
   return walk(SRC).filter((f) => IMPORTER_PATTERN.test(`${f}\n${readFileSync(f, 'utf8')}`))
 }

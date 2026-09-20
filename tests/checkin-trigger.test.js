@@ -22,13 +22,14 @@ describe('breakpoint eligibility', () => {
   })
 })
 
-// PageEditor's milestone/check-in effect re-runs on every keystroke (the
-// page array is a new reference each character), so the guard that decides
-// whether to offer a breakpoint check-in has to be pure and pinned on its
-// own — rendering the component wouldn't isolate the one thing that matters
-// here: does typing WITHIN an already-written page ever offer, versus a
-// page genuinely crossing empty→written.
-describe('shouldOfferBreakpointCheckIn (the guard PageEditor calls)', () => {
+// shouldOfferBreakpointCheckIn is currently unused — PageEditor no longer
+// calls it (the automatic breakpoint trigger was removed; see the describe
+// block below for why). It's kept here, pure and pinned on its own, for a
+// future trigger wired to a genuine "page finished" seam (addPage, page
+// navigation, illustration success). These tests pin the one thing that
+// matters for that future caller: does typing WITHIN an already-written
+// page ever offer, versus a page genuinely crossing empty→written.
+describe('shouldOfferBreakpointCheckIn (currently unused, retained for a future trigger)', () => {
   it('does NOT offer for a keystroke inside an already-written page', () => {
     // writtenCount unchanged (2 -> 2): the child is still typing on a page
     // already counted as written, not finishing a new one.
@@ -89,8 +90,12 @@ describe('shouldOfferBreakpointCheckIn (the guard PageEditor calls)', () => {
 describe('PageEditor does not offer an automatic breakpoint check-in', () => {
   const src = readFileSync('src/components/editor/PageEditor.jsx', 'utf8')
 
-  it('never calls open(\'breakpoint\') from any effect', () => {
-    expect(src).not.toContain('open(\'breakpoint\')')
+  it('never calls any function with a \'breakpoint\' argument from any effect', () => {
+    // Matches open('breakpoint'), openCheckIn('breakpoint'), or any future
+    // rename of the local binding — not just the literal identifier `open`,
+    // which the removed call site never actually used (it was openCheckIn,
+    // a local alias for useCheckInStore's `open` action).
+    expect(src).not.toMatch(/\w+\(\s*['"]breakpoint['"]\s*\)/)
   })
 
   it('does not import the check-in store or its trigger guard', () => {
