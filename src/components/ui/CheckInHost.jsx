@@ -54,6 +54,16 @@ export default function CheckInHost() {
   return (
     <>
       <CheckInSheet />
+      {/* BreakScreen's copy tells the child "Your story is saved" without
+          this component — or anything else on this path — calling any kind
+          of save. It's true only because useBookStore wraps its state in
+          zustand's persist middleware under the key
+          'my-favorite-book-current', so the draft is already sitting in
+          localStorage before a child ever taps "Take a break". If that
+          store's persistence is ever removed or its key renamed without
+          this copy changing too, the reassurance becomes a lie told to a
+          child. tests/checkin-savepoint.test.js pins the persistence this
+          depends on. */}
       {breaking && <BreakScreen onDone={() => setBreaking(false)} />}
     </>
   )
