@@ -66,14 +66,21 @@ export function isEligibleForPrompt({ lastPromptedAt, nowMs = Date.now() }) {
   return nowMs - lastPromptedAt >= QUIET_WINDOW_MS
 }
 
-/// Whether the page-finished seam should offer a breakpoint check-in.
-/// Pure so the guard can be pinned by a test without a DOM/render harness —
-/// PageEditor's effect re-runs on every keystroke (the page text array is
-/// rebuilt each character), so this is what stops the offer from firing
-/// mid-typing: `writtenCount` must have genuinely grown past `prevWritten`
-/// (a page crossing empty→written), not merely differ from it. A milestone
-/// firing in the same beat always wins — a child should never get a
-/// celebration and a question at once.
+/// CURRENTLY UNUSED — no caller. PageEditor used to call this to decide
+/// whether its text-change effect should offer a breakpoint check-in; that
+/// wiring was removed (see the comment in PageEditor.jsx) because a
+/// text-change effect has no "page saved" event for this guard to key on,
+/// no matter how the guard itself is written — it fired on the first
+/// character of a blank page and could go permanently silent once a
+/// milestone id was already in `seen`. Both were seam bugs, not bugs in the
+/// function below, which correctly implements "writtenCount must have
+/// genuinely grown past prevWritten". Kept, with its tests, because a
+/// future trigger hooked to a real "page just finished" event (addPage,
+/// page navigation, illustration success) will likely still want this
+/// exact "did progress genuinely happen, and are we in the quiet window"
+/// check — just called from a different seam.
+///
+/// Pure so the guard can be pinned by a test without a DOM/render harness.
 export function shouldOfferBreakpointCheckIn({ prevWritten, writtenCount, milestoneFired, lastPromptedAt, nowMs = Date.now() }) {
   if (milestoneFired) return false
   if (!(writtenCount > prevWritten)) return false

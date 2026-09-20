@@ -68,50 +68,41 @@ describe('shouldOfferBreakpointCheckIn (the guard PageEditor calls)', () => {
   })
 })
 
-// The mid-keystroke regression this fixes lived in TWO places a pure-function
-// test of shouldOfferBreakpointCheckIn can never reach: which array PageEditor's
-// effect depends on, and which guard it calls the offer with. Proof: reverting
-// the wiring to the exact broken pattern (bare book?.pages back in the deps,
-// a raw isEligibleForPrompt(...) call in place of shouldOfferBreakpointCheckIn)
-// left all the tests above green, because they only exercise the guard function
-// in isolation with hand-supplied counts — they never touch PageEditor.jsx.
+// The automatic breakpoint trigger was removed from PageEditor entirely: its
+// text-change effect has no "page saved" event, so no guard on it — however
+// carefully written — can honestly mean "a page just finished" rather than
+// "a character just landed". Two proven defects followed from that wrong
+// seam (see the comment above the milestone effect in PageEditor.jsx): it
+// fired on the FIRST CHARACTER typed into a blank page, stealing focus
+// mid-word, and separately could go permanently silent once a milestone id
+// was already in the store's `seen` set.
 //
-// This repo runs pure-function tests under environment: 'node' with no DOM/
-// render harness, so a real "mount PageEditor and type a keystroke" test isn't
-// available here (adding @testing-library/react is a repo-wide precedent this
-// task isn't the place to set). Parsing the source text is a source-level
-// stand-in for that render test — same technique tests/badge-parity.test.js
-// uses to keep three files honest without executing any of them — and it is a
-// stopgap: a real render test, if this repo ever grows one, is the better
-// long-term answer.
-describe('PageEditor source guards against the mid-keystroke regression', () => {
+// This guard is the regression fence for that removal: a future change that
+// reintroduces an automatic offer from THIS effect — the tempting "just add
+// the guard back" fix — is exactly what must not happen without hooking a
+// different seam (addPage, page navigation, illustration success). Parsing
+// the source text is a source-level stand-in for a render test, which this
+// repo has no harness for (see tests/badge-parity.test.js for the same
+// technique); a real "mount PageEditor and type a keystroke" test, if this
+// repo ever grows @testing-library/react, would be the better long-term
+// fence.
+describe('PageEditor does not offer an automatic breakpoint check-in', () => {
   const src = readFileSync('src/components/editor/PageEditor.jsx', 'utf8')
 
-  // Isolate the one effect that can call openCheckIn('breakpoint'), from its
-  // `useEffect(` opening through its dependency array, so a change to some
-  // unrelated effect elsewhere in the file can't accidentally satisfy these
-  // assertions.
-  const effectMatch = src.match(
-    /useEffect\(\(\) => \{[\s\S]*?openCheckIn\('breakpoint'\)[\s\S]*?\}, \[([^\]]*)\]\)/
-  )
-  const [effectBlock, deps] = effectMatch ?? [null, '']
-
-  it('finds the check-in effect in PageEditor.jsx', () => {
-    expect(effectBlock).not.toBeNull()
+  it('never calls open(\'breakpoint\') from any effect', () => {
+    expect(src).not.toContain("open('breakpoint')")
   })
 
-  it('does not depend on the bare book?.pages array (a new reference every keystroke)', () => {
-    // book?.pages?.length is fine and required (next test) — only the bare
-    // array reference is what reintroduces the per-keystroke re-run.
-    expect(/book\?\.pages(?!\?\.length)\b/.test(deps)).toBe(false)
+  it('does not import the check-in store or its trigger guard', () => {
+    expect(src).not.toContain('useCheckInStore')
+    expect(src).not.toContain('shouldOfferBreakpointCheckIn')
   })
 
-  it('does depend on book?.pages?.length (page add/remove must stay reactive)', () => {
-    expect(deps).toContain('book?.pages?.length')
-  })
-
-  it('gates the offer with the written-count guard, not a bare isEligibleForPrompt call', () => {
-    expect(effectBlock ?? '').toContain('shouldOfferBreakpointCheckIn(')
-    expect(effectBlock ?? '').not.toMatch(/isEligibleForPrompt\(/)
+  it('still depends on book?.pages?.length in the milestone effect (page add/remove must stay reactive)', () => {
+    const effectMatch = src.match(
+      /useEffect\(\(\) => \{[\s\S]*?fireMilestone\(beat\)[\s\S]*?\}, \[([^\]]*)\]\)/
+    )
+    expect(effectMatch).not.toBeNull()
+    expect(effectMatch[1]).toContain('book?.pages?.length')
   })
 })
