@@ -10,6 +10,7 @@ import { IS_NATIVE } from '../services/purchaseService'
 import AvatarDisplay from '../components/avatar/AvatarDisplay'
 import LanguageSwitcher from '../components/ui/LanguageSwitcher'
 import { useRewardsStore, BADGE_DEFINITIONS } from '../stores/useRewardsStore'
+import FeelingConstellation from '../components/ui/FeelingConstellation'
 import { formatDate, formatNumber } from '../i18n/formats'
 
 // Mirrors GRACE_DAYS in lib/deleteUser.js. Duplicated rather than imported:
@@ -230,6 +231,11 @@ export default function AccountPage() {
                   ))}
               </div>
             )}
+          </div>
+
+          {/* The child's own check-in history, as stars rather than a score. */}
+          <div className="border-b border-galaxy-text-muted/20 pb-6 mb-6">
+            <FeelingConstellation />
           </div>
 
           {/* Avatar customization */}
