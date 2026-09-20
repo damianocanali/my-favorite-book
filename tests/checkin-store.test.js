@@ -1,10 +1,11 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { useCheckInStore } from '../src/stores/useCheckInStore'
 import { useAuthStore } from '../src/stores/useAuthStore'
 import { supabase } from '../src/lib/supabase'
 import { useBookshelfStore } from '../src/stores/useBookshelfStore'
 import { useAvatarStore } from '../src/stores/useAvatarStore'
 import { useRewardsStore } from '../src/stores/useRewardsStore'
+import { MAX_AGE_DAYS } from '../src/lib/checkIn'
 
 const reset = () => useCheckInStore.setState({ current: null, entries: [], lastPromptedAt: null })
 
@@ -93,6 +94,33 @@ describe('useCheckInStore', () => {
 
     expect(warn).not.toHaveBeenCalledWith(expect.stringContaining('storage is currently unavailable'))
     warn.mockRestore()
+  })
+})
+
+describe('retention enforced on read, not just on write', () => {
+  const KEY = 'my-favorite-book-checkin'
+  const DAY = 24 * 60 * 60 * 1000
+
+  afterEach(() => {
+    localStorage.removeItem(KEY)
+    reset()
+  })
+
+  it('prunes an already-stale entry on rehydrate', async () => {
+    // appendEntry prunes on every write, but an entry that was written
+    // weeks ago and never touched since never goes through that path
+    // again — it just sits on disk. Seed localStorage directly, as if the
+    // app were relaunched days later with this already there, then
+    // rehydrate and confirm the stale entry doesn't survive being read.
+    const stale = { at: new Date(Date.now() - (MAX_AGE_DAYS + 1) * DAY).toISOString(), feeling: 'sad' }
+    localStorage.setItem(KEY, JSON.stringify({
+      state: { entries: [stale], lastPromptedAt: null },
+      version: 0,
+    }))
+
+    await useCheckInStore.persist.rehydrate()
+
+    expect(useCheckInStore.getState().entries).toEqual([])
   })
 })
 

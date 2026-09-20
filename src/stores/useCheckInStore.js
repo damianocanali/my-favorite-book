@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
-import { appendEntry } from '../lib/checkIn'
+import { appendEntry, pruneEntries } from '../lib/checkIn'
 
 // A child's check-ins.
 //
@@ -68,6 +68,16 @@ export const useCheckInStore = create(
       // `current` is transient UI state; persisting it would reopen the sheet
       // on every refresh.
       partialize: (s) => ({ entries: s.entries, lastPromptedAt: s.lastPromptedAt }),
+      // appendEntry prunes on every write, but that only enforces retention
+      // for entries added THIS session. An entry written weeks ago and never
+      // touched since sits in localStorage untouched by that path — it would
+      // cross MAX_AGE_DAYS silently and still show up as a star forever,
+      // because nothing ever re-checks entries that are only ever read, not
+      // written. Pruning again on hydrate closes that gap: every app launch
+      // re-applies both retention rules to whatever was actually on disk.
+      onRehydrateStorage: () => (s) => {
+        if (s) s.entries = pruneEntries(s.entries)
+      },
     }
   )
 )
