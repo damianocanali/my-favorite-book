@@ -103,7 +103,10 @@ that invites exactly the parent-dashboard feature we chose not to build.
   so, because "let parents see it" is the obvious next request and it is the
   change that turns this into sensitive data about a child under GDPR,
   triggers a DPIA, and — more practically — makes children answer dishonestly.
-- Keyed by user id, so siblings on one family account cannot read each other's.
+- Cleared on every identity change, so one child's entries are never visible
+  to the next person on that browser. (Chosen over per-user storage keys,
+  which would leave the first child's feelings sitting in localStorage
+  indefinitely — the opposite of the intent.)
 - Capped by BOTH rules, whichever bites first: keep at most 60 entries, and
   drop any entry older than 30 days. Unbounded localStorage growth is a real
   bug and no child needs a year of history.
