@@ -40,15 +40,28 @@ function isValid(e) {
   return !Number.isNaN(Date.parse(e.at))
 }
 
+/// Rebuilds an entry with exactly the three fields the design allows —
+/// nothing else survives, no matter what else was sitting on the object.
+/// `isValid` only checks that `at`/`feeling`/`need` are well-formed; it
+/// doesn't reject an entry for carrying extra fields, so without this step
+/// "an entry records no book id and no page id" would be a convention
+/// every caller happens to follow rather than something pruneEntries
+/// actually enforces.
+function normalise(e) {
+  return e.need !== undefined ? { at: e.at, feeling: e.feeling, need: e.need } : { at: e.at, feeling: e.feeling }
+}
+
 /// Drops anything invalid, anything past MAX_AGE_DAYS, and the oldest
-/// entries beyond MAX_ENTRIES. Tolerates undefined and corrupt storage,
-/// because localStorage can be edited by hand or truncated by the browser.
+/// entries beyond MAX_ENTRIES, and normalises whatever survives to exactly
+/// {at, feeling, need?}. Tolerates undefined and corrupt storage, because
+/// localStorage can be edited by hand or truncated by the browser.
 export function pruneEntries(entries, nowMs = Date.now()) {
   const cutoff = nowMs - MAX_AGE_DAYS * 24 * 60 * 60 * 1000
   return (Array.isArray(entries) ? entries : [])
     .filter((e) => isValid(e) && Date.parse(e.at) >= cutoff)
     .sort((a, b) => Date.parse(b.at) - Date.parse(a.at))
     .slice(0, MAX_ENTRIES)
+    .map(normalise)
 }
 
 /// Adds one entry, newest first, then prunes. Returns a new array.
