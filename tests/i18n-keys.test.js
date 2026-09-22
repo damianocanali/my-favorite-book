@@ -13,11 +13,19 @@ import { join, extname } from 'node:path'
 const SRC = 'src'
 const LOCALES = 'src/i18n/locales'
 
+// This repo lives in an iCloud-synced folder, which resolves a sync collision by
+// leaving a copy named "Component 2.jsx" beside the original. Those copies are
+// untracked and never imported, but this walk reads the filesystem rather than
+// the git index, so without this filter a stale copy of a deleted component
+// fails the suite for keys no shipping file references. Match the trailing
+// " <digit>" that iCloud (and Finder's duplicate action) append.
+const SYNC_COPY = / \d+\.[a-z]+$/
+
 function walk(dir, out = []) {
   for (const name of readdirSync(dir)) {
     const p = join(dir, name)
     if (statSync(p).isDirectory()) walk(p, out)
-    else if (['.js', '.jsx'].includes(extname(p))) out.push(p)
+    else if (['.js', '.jsx'].includes(extname(p)) && !SYNC_COPY.test(p)) out.push(p)
   }
   return out
 }
