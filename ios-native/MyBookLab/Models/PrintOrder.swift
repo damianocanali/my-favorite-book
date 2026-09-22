@@ -64,6 +64,33 @@ enum PrintPricing {
     }
 }
 
+/// Print pricing, mirrored from the server so the quote the app shows
+/// matches the amount Stripe charges.
+///
+/// SOURCE OF TRUTH: `PRICES` in lib/print/pricing.js and
+/// `FLAT_SHIPPING_CENTS` in api/print-orders/create.js. The web mirrors
+/// the same values in src/lib/printPricing.js. If you change a price,
+/// change it in all three — a mismatch here bills the customer a
+/// different amount than the one they agreed to.
+enum PrintPricing {
+    static let flatShippingCents = 499
+
+    static func unitCents(for format: PrintFormat) -> Int {
+        switch format {
+        case .hardcover: return 3999
+        case .softcover: return 1999
+        case .unknown: return 1999
+        }
+    }
+
+    /// "$39.99" — derived from the cents above so a display string can
+    /// never drift away from the number used in the total.
+    static func priceLabel(for format: PrintFormat) -> String {
+        let cents = unitCents(for: format)
+        return String(format: "$%.2f", Double(cents) / 100)
+    }
+}
+
 enum PrintOrderStatus: String, Codable, Sendable {
     case pending
     case paid

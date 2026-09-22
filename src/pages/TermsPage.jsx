@@ -78,6 +78,15 @@ export default function TermsPage() {
             <h2 className="font-heading text-lg font-bold text-galaxy-text mb-2">
               {t('legal:terms.printed.title')}
             </h2>
+            {/*
+              The withdrawal exclusion for goods made to the consumer's specifications
+              attaches at contract conclusion and does NOT depend on whether production
+              has started (CJEU C-529/19, Möbel Kraft, 21 October 2020). Earlier wording
+              said orders "cannot be cancelled once printing has begun" — that is wrong
+              as a matter of law. Any production-milestone trigger is unsound, so the
+              clause relies on the personalisation exclusion alone. Keep it that way in
+              every locale: legal:terms.printed.body carries the same reasoning in IT.
+            */}
             <p>{t('legal:terms.printed.body', { stripe: STRIPE })}</p>
           </section>
 
