@@ -60,6 +60,14 @@ targets:
     platform: iOS
     sources:
       - path: MyBookLab
+        # This repo lives in an iCloud-synced folder. iCloud resolves a sync
+        # collision by leaving "AppLanguage 2.swift" beside the original, and
+        # XcodeGen globs the directory, so the copy gets compiled and the build
+        # dies on "invalid redeclaration". The copies are never tracked by git,
+        # so the exclusion only ever removes files that shouldn't be built.
+        excludes:
+          - "**/* [0-9].swift"
+          - "**/* [0-9].xcstrings"
     resources:
       - path: MyBookLab/Resources
     info:
