@@ -14,8 +14,9 @@ import marketing from './marketing.json'
 import legal from './legal.json'
 import content from './content.json'
 import errors from './errors.json'
+import checkin from './checkin.json'
 
 export default {
   common, nav, auth, account, wizard, editor, games,
-  gallery, print, pricing, marketing, legal, content, errors,
+  gallery, print, pricing, marketing, legal, content, errors, checkin,
 }

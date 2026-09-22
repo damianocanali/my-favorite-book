@@ -33,6 +33,7 @@ import ProtectedRoute from './components/auth/ProtectedRoute'
 import BadgePopup from './components/ui/BadgePopup'
 import WelcomeBackMoment from './components/ui/WelcomeBackMoment'
 import MilestoneHost from './components/ui/MilestoneHost'
+import CheckInHost from './components/ui/CheckInHost'
 import { initCapacitor } from './capacitor'
 import { useAuthStore } from './stores/useAuthStore'
 import { resumeOnGesture } from './services/audioService'
@@ -77,6 +78,7 @@ export default function App() {
       <BadgePopup />
       <WelcomeBackMoment />
       <MilestoneHost />
+      <CheckInHost />
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/create" element={<CreatePage />} />

@@ -1,0 +1,35 @@
+{
+  "title": {
+    "feeling": "Come va?",
+    "need": "Cosa ti serve?"
+  },
+  "feeling": {
+    "happy": "Gioia",
+    "proud": "Orgoglio",
+    "tired": "Stanchezza",
+    "worried": "Preoccupazione",
+    "angry": "Rabbia",
+    "sad": "Tristezza"
+  },
+  "need": {
+    "break": "Fare una pausa",
+    "quiet": "Un po' di silenzio",
+    "help": "Ho bisogno di aiuto",
+    "keep_going": "Vado avanti"
+  },
+  "response": {
+    "break_title": "La tua storia è salvata",
+    "break_body": "Ti aspetta qui. Torna quando vuoi.",
+    "break_cta": "Va bene",
+    "help": "Story Buddy può aiutarti! Tocca il pulsante Story Buddy sotto la pagina ogni volta che vuoi qualche idea."
+  },
+  "button": {
+    "label": "Come va?",
+    "aria": "Dicci come stai"
+  },
+  "constellation": {
+    "title": "Quello che hai notato",
+    "empty": "Qui appariranno le tue stelline.",
+    "star_aria": "{{feeling}}, {{date}}"
+  }
+}

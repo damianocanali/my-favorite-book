@@ -13,7 +13,7 @@
 ## Global Constraints
 
 - **Entries NEVER leave the device.** No `fetch`, no `apiFetch`, no `/api` call anywhere in this feature. Task 10 adds a test that enforces this.
-- **No therapeutic framing** in any string, comment, or commit message. No "regulate", "calm down", "therapy", "treatment", "wellbeing". It is a check-in.
+- **No therapeutic framing in any USER-FACING string** — no "regulate", "calm down", "therapy", "treatment", "wellbeing". It is a check-in, never described as helping a child manage anything. Internal comments may use precise regulatory vocabulary ("a wellbeing record under GDPR") where that is the accurate term for the risk being explained.
 - **No gamification.** No badge, coin, streak or reward for checking in.
 - **An entry records no book id and no page id.** Only `{ at, feeling, need? }`.
 - **Tests run in `environment: 'node'`** — there is no `window` or `localStorage` unless a task adds a stub. Pure logic must be importable without either.
@@ -219,7 +219,7 @@ git commit -m "feat(checkin): pure catalogs, retention and prompt eligibility"
 
 **Interfaces:**
 - Consumes: `FEELINGS`, `NEEDS`, `appendEntry`, `isEligibleForPrompt` from Task 1
-- Produces: `useCheckInStore` with state `{ current, entries, lastPromptedAt }` and actions `open(source)`, `pickFeeling(id)`, `pickNeed(id)`, `dismiss()`, `clear()`, plus selector `entriesForUser(userId)`
+- Produces: `useCheckInStore` with state `{ current, entries, lastPromptedAt }` and actions `open(source)`, `pickFeeling(id)`, `pickNeed(id)`, `dismiss()`, `clear()`
 
 - [ ] **Step 1: Add the localStorage stub to the shared setup**
 
