@@ -1,7 +1,9 @@
 import { motion } from 'motion/react'
+import { useTranslation } from 'react-i18next'
 import { useBookStore } from '../../stores/useBookStore'
 
 export default function PageThumbnailStrip() {
+  const { t } = useTranslation()
   const book = useBookStore((state) => state.book)
   const currentPageIndex = useBookStore((state) => state.currentPageIndex)
   const setCurrentPageIndex = useBookStore((state) => state.setCurrentPageIndex)
@@ -13,7 +15,7 @@ export default function PageThumbnailStrip() {
   return (
     <div className="mt-6">
       <p className="text-galaxy-text-muted text-xs font-body mb-2 text-center">
-        Click a page to edit it
+        {t('editor:thumbnails.hint')}
       </p>
       <div className="flex gap-3 overflow-x-auto pb-2 justify-center flex-wrap">
         {book.pages.map((page, index) => {

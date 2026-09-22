@@ -362,7 +362,12 @@ struct BookDetailView: View {
         if speakingPage == pageIndex {
             speaker.stop(); speakingPage = nil
         } else {
-            speaker.speak(book.pages[pageIndex].text)
+            // The BOOK's language, not the UI's — an Italian story must be
+            // read by an Italian voice even if the app is in English.
+            speaker.speak(
+                book.pages[pageIndex].text,
+                language: AppLanguage.speechLanguage(for: book.language)
+            )
             speakingPage = pageIndex
         }
     }

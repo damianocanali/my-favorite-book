@@ -1,14 +1,17 @@
-import { formatPriceCents } from '../../lib/printPricing'
+import { useTranslation } from 'react-i18next'
+import { formatPriceCents, formatLabelKey } from '../../lib/printPricing'
+import { formatNumber } from '../../i18n/formats'
 
 export default function OrderSummaryTable({ order }) {
+  const { t } = useTranslation()
   return (
     <div className="rounded-xl border border-galaxy-text-muted/20 overflow-hidden">
-      <Row label="Format"   value={order.format} />
-      <Row label="Quantity" value={order.quantity} />
-      <Row label="Subtotal" value={formatPriceCents(order.unit_price_cents * order.quantity)} />
-      <Row label="Shipping" value={formatPriceCents(order.shipping_cents)} />
-      <Row label="Tax"      value={formatPriceCents(order.tax_cents)} />
-      <Row label="Total"    value={formatPriceCents(order.total_cents)} bold />
+      <Row label={t('print:summary.format')}   value={t(formatLabelKey(order.format))} />
+      <Row label={t('print:summary.quantity')} value={formatNumber(order.quantity)} />
+      <Row label={t('print:summary.subtotal')} value={formatPriceCents(order.unit_price_cents * order.quantity)} />
+      <Row label={t('print:summary.shipping')} value={formatPriceCents(order.shipping_cents)} />
+      <Row label={t('print:summary.tax')}      value={formatPriceCents(order.tax_cents)} />
+      <Row label={t('print:summary.total')}    value={formatPriceCents(order.total_cents)} bold />
     </div>
   )
 }

@@ -10,6 +10,32 @@
 // Word banks are deliberately concrete and picturable — they become
 // illustration prompts later, and "shimmering" makes a worse picture than
 // "purple". Nothing in a bank can combine into something unkind.
+//
+// LOCALISATION. The English strings below are the fallback; the UI reads
+// them through the helpers at the bottom of this file.
+//   games:templates.<id>.page_N   one WHOLE sentence, with named {slot}
+//                                 placeholders that may be reordered.
+//   games:bank_words.<slot>.<word>  the pickable word. The VALUE is what
+//                                 lands in the child's prose, so in Italian
+//                                 it may be a full phrase that carries its
+//                                 own article ("un orso", "una volpe").
+//   games:banks.<slot>.label      the bank's heading ("an animal").
+// The <word> key segment is derived from the ENGLISH word (wordKey below), so
+// it stays stable no matter what the translated value says.
+
+import i18next from '../i18n/index.js'
+
+/// t() with an English fallback, safe before i18next is initialised — the
+/// unit tests import this module without booting the runtime.
+export function tr(key, fallback) {
+  if (!i18next?.isInitialized || typeof i18next.t !== 'function') return fallback
+  return i18next.t(key, { defaultValue: fallback })
+}
+
+/// Catalogue key segment for an id or an English word:
+/// 'space-friend' -> 'space_friend', 'ice cream' -> 'ice_cream'.
+export const catalogKey = (s) =>
+  String(s ?? '').toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '')
 
 export const WORD_BANKS = {
   name: {
@@ -92,6 +118,34 @@ export const STORY_TEMPLATES = [
     ],
   },
 ]
+
+/**
+ * A template with its title, blurb and sentences taken from the catalogue.
+ * Pass the result — not the raw template — to src/lib/storyBlanks.js, so the
+ * blank parser sees the LOCALISED sentence.
+ */
+export function localizedTemplate(template) {
+  if (!template) return template
+  const id = catalogKey(template.id)
+  return {
+    ...template,
+    title: tr(`games:templates.${id}.title`, template.title),
+    blurb: tr(`games:templates.${id}.blurb`, template.blurb),
+    pages: (template.pages ?? []).map((p, i) => tr(`games:templates.${id}.page_${i + 1}`, p)),
+  }
+}
+
+/** The bank heading a child sees above the buttons ("an animal"). */
+export const bankLabel = (slotKey) =>
+  tr(`games:banks.${slotKey}.label`, WORD_BANKS[slotKey]?.label ?? String(slotKey ?? ''))
+
+/**
+ * One pickable word, localised. A word with no catalogue entry — the child's
+ * own name, seeded into the `name` bank — falls through unchanged, which is
+ * exactly right: nobody's name should be translated.
+ */
+export const bankWord = (slotKey, word) =>
+  tr(`games:bank_words.${slotKey}.${catalogKey(word)}`, word)
 
 /** Slot keys used by a template, in first-appearance order. */
 export function slotsForTemplate(template) {

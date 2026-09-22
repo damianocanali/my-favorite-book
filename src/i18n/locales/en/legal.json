@@ -1,0 +1,146 @@
+{
+  "meta": {
+    "last_updated": "Last updated: {{date}}"
+  },
+  "privacy": {
+    "title": "Privacy Policy",
+    "commitment": {
+      "title": "Our Commitment to Children's Privacy",
+      "body": "{{app}} (\"we\", \"our\", \"us\") is designed for children and families. An account is created and controlled by an adult — a parent, guardian, or teacher — who provides the child’s details, is responsible for the account, and authorises any purchase. A child does not create their own account. Most of what we do with this data is what we need in order to provide the service you asked for; where we rely on your consent instead — publishing a book to the public gallery, or turning a photo into a cartoon — we ask for it separately and you can withdraw it at any time. If you believe a child’s personal information reached us without an adult’s involvement, contact us at <email>{{email}}</email> and we will delete it."
+    },
+    "collect": {
+      "title": "Information We Collect",
+      "item_account": "<b>Account information:</b> the email address and display name given at registration. Teachers also provide a role designation.",
+      "item_author": "<b>Author details:</b> the first name and age a child enters when creating a book. These are stored with the book and are shown on the book itself.",
+      "item_story": "<b>Story content:</b> stories, page text, illustrations, and book covers are saved to your account on our servers so they are available on every device you sign in on. They are private to your account unless you choose to publish a book to the public gallery.",
+      "item_photos": "<b>Photos:</b> if you use the \"create your hero\" feature, the photo you choose is sent to our AI provider to be transformed into a cartoon. We do not store the original photo — only the cartoon result is saved to your account.",
+      "item_ai_text": "<b>Story text sent for AI help:</b> when a child asks the Story Buddy for help, the story text and the question are sent to our AI provider to produce a reply. Prompts and story text are also sent to a moderation service to screen for unsafe content.",
+      "item_payment": "<b>Payment information:</b> subscriptions and coin packs bought on iPhone or iPad are processed by {{apple}}; web subscriptions and printed-book orders are processed by {{stripe}}. We never see, store, or have access to card numbers.",
+      "item_shipping": "<b>Shipping information:</b> when you order a printed book, the recipient name, postal address, email, and phone number you enter are sent to our print partner so the book can be printed and delivered.",
+      "item_usage": "<b>Usage data:</b> we record counts of AI generations per account to enforce fair usage limits and prevent abuse. We do not use advertising or analytics trackers."
+    },
+    "use": {
+      "title": "How We Use Information",
+      "item_provide": "To provide the app and keep your books available across your devices",
+      "item_generate": "To generate illustrations, covers, and avatars you ask for",
+      "item_moderate": "To screen content for safety before it is generated or published",
+      "item_classroom": "To enable classroom features for teachers and students",
+      "item_payments": "To process payments and deliver printed books",
+      "item_limits": "To enforce usage limits and protect against abuse of paid AI features",
+      "no_sale": "We do not sell personal information, and we do not use it for behavioural advertising."
+    },
+    "gallery": {
+      "title": "Publishing to the Gallery",
+      "body": "Publishing a book is optional and off by default. If you publish one, its title, illustrations, story text, and the author's first name and age become publicly readable in the app and on {{domain}}, to people who are not signed in. Never include a full name, school, address, or other identifying detail in a book you publish. You can unpublish a book at any time, and you can report any published book you find inappropriate."
+    },
+    "storage": {
+      "title": "Data Storage & Security",
+      "body": "Accounts, books, orders, and progress are stored in our database, hosted by {{supabase}}, and protected by row-level security policies so one account cannot read another's data. All data is transmitted over encrypted HTTPS connections. Sign-in credentials on iPhone and iPad are held in the device Keychain."
+    },
+    "third_parties": {
+      "title": "Third-Party Services",
+      "desc_supabase": "authentication, database, and file storage",
+      "desc_together": "generates illustrations, covers, and cartoon avatars. Receives the illustration prompt, and — for the \"create your hero\" feature — the photo you supply.",
+      "desc_anthropic": "powers the Story Buddy assistant. Receives the story text and the child's question.",
+      "desc_openai": "content moderation only. Receives prompts and story text to screen them for unsafe content.",
+      "desc_stripe": "payment processing for web subscriptions and printed books",
+      "desc_apple_iap": "manage subscriptions and coin purchases made in the iOS app",
+      "desc_lulu": "our print partner. Receives the book file and the shipping details for printed orders.",
+      "no_trackers": "We do not use advertising networks or analytics trackers, and we do not sell data to third parties."
+    },
+    "parental_controls": {
+      "title": "Parental Controls",
+      "body": "A parental verification step — a maths problem young children cannot solve — appears before the camera and photo library are used, and before any purchase. Parents control the account, and can review, unpublish, or delete their child's books at any time."
+    },
+    "deletion": {
+      "title": "Data Deletion",
+      "body": "You can delete your account and all associated data from inside the app, on the Account screen, on both the web and iOS. Deletion removes your books, orders, progress, and account record. You can also email <email>{{email}}</email> and we will delete your data on request."
+    },
+    "contact": {
+      "title": "Contact Us",
+      "body": "If you have questions about this privacy policy or wish to exercise your data rights, please contact us at <email>{{email}}</email>. Our <terms>Terms of Use</terms> cover subscriptions, purchases, and printed books."
+    }
+  },
+  "terms": {
+    "title": "Terms of Use",
+    "acceptance": {
+      "title": "Acceptance of Terms",
+      "body": "By using {{app}}, you agree to these terms of use. If you are a parent or guardian, you are responsible for your child's use of the app and for any purchases made through your account."
+    },
+    "user_content": {
+      "title": "User Content",
+      "body": "Users retain ownership of all stories, text, and creative content they produce. By submitting content to a classroom, users grant their teacher permission to view that content. By publishing a book to the public gallery, users make that book's title, illustrations and story text publicly readable, and grant us permission to display it in the app and on {{domain}}. Published books can be unpublished at any time. AI-generated illustrations are created for the user's personal and educational use."
+    },
+    "subscriptions": {
+      "title": "Auto-Renewing Subscriptions",
+      "intro": "{{app}} offers auto-renewing subscriptions that unlock unlimited books, illustrations, and other paid features. Pricing and the length of each subscription period are shown in the app before you buy, in your local currency.",
+      "item_charge": "Payment is charged to your Apple ID account at confirmation of purchase when you subscribe on iPhone or iPad, or to your payment method via {{stripe}} when you subscribe on the web.",
+      "item_renewal": "Your subscription renews automatically unless auto-renew is turned off at least 24 hours before the end of the current period.",
+      "item_renewal_charge": "Your account is charged for renewal within 24 hours prior to the end of the current period, at the price of the plan you selected.",
+      "item_manage": "You can manage or cancel your subscription after purchase in your device's Settings → Apple ID → Subscriptions, or, for web subscriptions, from the billing portal linked in your account page.",
+      "item_cancel": "Cancelling stops the next renewal. Access continues until the end of the period you have already paid for. Partial periods are not refunded.",
+      "item_trial": "Any unused portion of a free trial, where offered, is forfeited when you purchase a subscription."
+    },
+    "coins": {
+      "title": "Coins and One-Time Purchases",
+      "body": "Coins are a virtual item used inside the app to unlock art styles and cosmetic items. Coins can be earned for free by using the app, or bought in packs. Coin packs are consumable purchases: they are credited to your account once and are not refundable, do not expire, have no cash value, and cannot be transferred between accounts or redeemed for money."
+    },
+    "printed": {
+      "title": "Printed Books",
+      "body": "Printed books are physical goods, printed and shipped by our print partner and paid for by card through {{stripe}}. Prices shown at checkout include the book and shipping. For most goods bought at a distance you would have 14 days to withdraw. A printed book is made to your specifications and clearly personalised with your child’s own story, illustrations and name, so the right of withdrawal does not apply to it — you agree to this when you place the order, and we tell you again at checkout before you pay. Your statutory two-year guarantee is unaffected: if a book arrives damaged, defective, or not matching the order, contact us and we will reprint or refund it."
+    },
+    "ai_content": {
+      "title": "AI-Generated Content",
+      "body": "Illustrations and avatars are generated by AI and may occasionally contain imperfections. We do not guarantee the accuracy or quality of AI-generated images. Users can regenerate or remove any AI content they are not satisfied with. The Story Buddy assistant is designed to suggest ideas and ask questions rather than write stories on a child's behalf."
+    },
+    "prohibited": {
+      "title": "Prohibited Use",
+      "body": "Users may not use the app to generate or publish inappropriate, harmful, or offensive content, to impersonate others, or to harass anyone. We reserve the right to remove content and suspend accounts that violate these terms. Report objectionable content in the app or by emailing <email>{{email}}</email>; we review reports and act within 24 hours."
+    },
+    "changes": {
+      "title": "Changes to Terms",
+      "body": "We may update these terms from time to time. Continued use of the app after changes constitutes acceptance of the updated terms."
+    },
+    "contact": {
+      "title": "Contact",
+      "body": "Questions about these terms? Contact us at <email>{{email}}</email>. See also our <privacy>Privacy Policy</privacy>."
+    }
+  },
+  "support": {
+    "title": "Support",
+    "intro": "Need help with <app>{{app}}</app>? Here's how to reach us and handle common questions.",
+    "contact": {
+      "title": "Contact us",
+      "body": "Email us and we'll get back to you within two business days."
+    },
+    "subscription": {
+      "title": "Manage or cancel a subscription",
+      "intro": "Subscriptions purchased on iPhone or iPad are managed through your Apple ID. To cancel or change plan:",
+      "step_settings": "Open <ui>Settings</ui> on your device",
+      "step_subscriptions": "Tap your name at the top, then <ui>Subscriptions</ui>",
+      "step_select_app": "Select <ui>{{app}}</ui> and choose Cancel or Change",
+      "web": "Subscriptions purchased on the web can be managed from your <account>Account page</account> via the \"Manage subscription\" button."
+    },
+    "refund": {
+      "title": "Request a refund",
+      "app_store": "For purchases made through the App Store (iPhone / iPad), refunds are handled directly by {{apple}}:",
+      "web": "For web purchases, contact us at {{email}} and we'll work with you directly."
+    },
+    "delete": {
+      "title": "Delete your account",
+      "intro": "You can permanently delete your account and all associated data (books, subscriptions, profile) from inside the app:",
+      "step_open_account": "Sign in and open the <account>Account page</account>",
+      "step_danger_zone": "Scroll to the <ui>Danger Zone</ui> section",
+      "step_confirm": "Tap <ui>Delete my account</ui> and confirm",
+      "note": "Deletion is immediate and cannot be reversed. Active App Store subscriptions must be cancelled separately via Settings → Subscriptions (deleting the account does not refund {{apple}} charges)."
+    },
+    "password": {
+      "title": "Forgot your password",
+      "body": "On the <login>login screen</login>, tap \"Forgot password\" and follow the link we email you."
+    },
+    "links": {
+      "title": "Privacy & Terms",
+      "eula": "Terms of Use (EULA)"
+    }
+  }
+}

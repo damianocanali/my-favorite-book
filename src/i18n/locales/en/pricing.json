@@ -1,0 +1,91 @@
+{
+  "page": {
+    "title": "Choose your plan",
+    "subtitle": "Start free. Upgrade anytime. Cancel anytime."
+  },
+  "billing": {
+    "monthly": "Monthly",
+    "annual": "Annual",
+    "annual_save": "Save 33%"
+  },
+  "interval": {
+    "per_month": "/month",
+    "per_year": "/year"
+  },
+  "card": {
+    "billed_monthly": "Billed monthly",
+    "billed_annually": "Billed annually",
+    "monthly_equivalent": "{{price}}/mo",
+    "current_plan": "Current plan",
+    "starting_checkout": "Starting checkout…"
+  },
+  "plans": {
+    "free": {
+      "name": "Free",
+      "billing_label": "Forever free",
+      "price": "Free",
+      "cta": "Get started",
+      "features": {
+        "one_book": "1 book total",
+        "story_buddy": "3 Story Buddy suggestions/day",
+        "illustrations": "2 AI illustrations per day",
+        "themes": "All themes & characters",
+        "read_aloud": "Read aloud & voice input",
+        "classroom_submit": "Submit to classroom"
+      }
+    },
+    "family": {
+      "name": "Family",
+      "badge": "Most Popular",
+      "cta": "Upgrade to Family",
+      "features": {
+        "unlimited_books": "Unlimited books",
+        "unlimited_story_buddy": "Unlimited Story Buddy",
+        "unlimited_illustrations": "Unlimited AI illustrations",
+        "pdf_export": "PDF & print export",
+        "accessibility": "All accessibility features",
+        "priority_support": "Priority support"
+      }
+    },
+    "teacher": {
+      "name": "Teacher",
+      "cta": "Start free trial",
+      "features": {
+        "everything_in_family": "Everything in Family",
+        "manage_classrooms": "Create & manage classrooms",
+        "collect_submissions": "Collect student submissions",
+        "view_books": "View all student books",
+        "free_trial": "14-day free trial",
+        "admin_dashboard": "Classroom admin dashboard"
+      }
+    }
+  },
+  "footer": {
+    "native_note": "Payment processed by Apple · Cancel anytime in Settings → Subscriptions",
+    "web_note": "Secure checkout by Stripe · Cancel anytime from your account · No hidden fees",
+    "restore": "Restore purchases"
+  },
+  "legal": {
+    "heading": "Subscription details",
+    "family_terms": "<name>Family</name> — {{monthly}}/month or {{annual}}/year (auto-renewing).",
+    "teacher_terms": "<name>Teacher</name> — {{monthly}}/month or {{annual}}/year (auto-renewing). Includes a 14-day free trial.",
+    "auto_renew": "Subscriptions automatically renew at the end of each billing period unless cancelled at least 24 hours before the end of the current period. Your Apple ID will be charged the renewal price at the start of each new period. Manage or cancel at any time in Settings → Apple ID → Subscriptions. Any unused portion of a free trial is forfeited when you purchase a subscription.",
+    "privacy_link": "Privacy Policy",
+    "terms_link": "Terms of Use (EULA)"
+  },
+  "errors": {
+    "checkout_failed": "Checkout failed ({{status}}). Check that {{secretVar}} and {{priceVar}} are configured on the server.",
+    "upgrade_failed": "Upgrade failed. Please try again.",
+    "restore_failed": "Restore failed. Please try again.",
+    "dismiss_aria": "Dismiss error"
+  },
+  "success": {
+    "title": "You're all set! 🎉",
+    "subtitle": "Your subscription is active. Time to create something amazing!",
+    "order_confirmed": "Order confirmed · {{code}}",
+    "cta_create": "Create a Book",
+    "cta_bookshelf": "My Bookshelf",
+    "redirecting_one": "Redirecting in {{count}}s…",
+    "redirecting_other": "Redirecting in {{count}}s…"
+  }
+}

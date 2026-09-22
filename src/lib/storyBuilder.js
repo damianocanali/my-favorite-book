@@ -142,7 +142,11 @@ export function buildBookFromCards({ frame, placements, authorName, authorAge, m
         illustrationData: null,
         illustrationRegenCount: 0,
         borderStyle: 'stars',
-        illustrationHint: cards.map((c) => c.word).join(', ') || null,
+        // FROZEN ENGLISH: this string is joined into the FLUX prompt in
+        // src/services/imageGenerator.js. The child reads the localised
+        // `word` in their prose (renderPage above); the image model gets
+        // `promptEn`. Do not swap this to `c.word`.
+        illustrationHint: cards.map((c) => c.promptEn ?? c.word).join(', ') || null,
       }
     }),
     coverImage: null,

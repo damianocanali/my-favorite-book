@@ -1,0 +1,374 @@
+{
+  "actions": {
+    "go_back": "Indietro",
+    "stories": "Storie",
+    "stories_aria": "Torna alle storie",
+    "surprise_me": "Sorprendimi",
+    "make_my_book": "Crea il mio libro"
+  },
+  "builder": {
+    "title": "Costruisci la storia",
+    "subtitle": "Trascina le figure dentro la storia. Oppure tocca una carta e poi tocca uno spazio.",
+    "frame_meta": "{{pages}} pagine · {{gaps}} spazi",
+    "surprise_me_aria": "Sorprendimi: riempi tutti gli spazi a caso",
+    "all_filled": "Tutti gli spazi sono pieni!",
+    "gaps_left_one": "Manca {{count}} spazio",
+    "gaps_left_other": "Mancano {{count}} spazi",
+    "finish_hint": "Riempi tutti gli spazi per finire",
+    "card_kinds_aria": "Tipi di carta",
+    "card_aria": "{{card}}, carta di tipo {{kind}}. Trascinala in uno spazio, oppure toccala per sceglierla.",
+    "remove_card": "Togli {{card}}",
+    "empty_slot_aria": "Spazio {{kind}} vuoto. {{hint}}",
+    "milestone_title": "Storia costruita!",
+    "milestone_sub": "Ora rendila tua",
+    "tap_hint": {
+      "who": "Ora tocca uno spazio <b>chi</b> per metterla lì.",
+      "what": "Ora tocca uno spazio <b>cosa</b> per metterla lì.",
+      "where": "Ora tocca uno spazio <b>dove</b> per metterla lì.",
+      "feeling": "Ora tocca uno spazio <b>emozione</b> per metterla lì."
+    },
+    "announce": {
+      "a_card": "carta",
+      "picked_up": "Hai preso {{card}}.",
+      "over_gap": "Sopra uno spazio {{kind}}.",
+      "not_over_gap": "Non sei sopra uno spazio.",
+      "placed": "{{card}} nello spazio {{kind}}.",
+      "returned": "Hai rimesso a posto {{card}}.",
+      "cancelled": "Annullato."
+    }
+  },
+  "blanks": {
+    "title": "Riempi la storia",
+    "subtitle": "Scegli una storia. Riempi gli spazi. Diventa un libro vero.",
+    "template_meta": "{{pages}} pagine · {{blanks}} spazi",
+    "surprise_me_aria": "Sorprendimi: riempi tutti gli spazi a caso",
+    "all_filled": "Tutti gli spazi sono pieni!",
+    "blanks_left_one": "Manca {{count}} spazio",
+    "blanks_left_other": "Mancano {{count}} spazi",
+    "finish_hint": "Riempi tutti gli spazi per finire",
+    "choose": "Scegli {{bank}}",
+    "type_your_own": "…oppure scrivi la tua parola",
+    "your_word_placeholder": "La tua parola",
+    "use_this_word": "Usa questa parola",
+    "blank_filled_aria": "{{slot}}: {{value}}. Cambiala",
+    "blank_empty_aria": "Spazio vuoto per {{slot}}. Scegli una parola",
+    "milestone_title": "Storia finita!",
+    "milestone_sub": "Ora rendila tua",
+    "error_empty": "Prima scrivi una parola.",
+    "error_too_long": "Questa parola è un po' troppo lunga.",
+    "error_letters_only": "Solo lettere, per favore.",
+    "error_repeats": "Troppe lettere ripetute."
+  },
+  "cards": {
+    "w_bear": {
+      "word": "l'orso"
+    },
+    "w_fox": {
+      "word": "la volpe"
+    },
+    "w_robot": {
+      "word": "il robot"
+    },
+    "w_dragon": {
+      "word": "il drago"
+    },
+    "w_astronaut": {
+      "word": "l'astronauta"
+    },
+    "w_owl": {
+      "word": "il gufo"
+    },
+    "t_key": {
+      "word": "una chiave d'oro"
+    },
+    "t_map": {
+      "word": "una vecchia mappa"
+    },
+    "t_egg": {
+      "word": "un uovo gigante"
+    },
+    "t_star": {
+      "word": "una stella caduta dal cielo"
+    },
+    "t_book": {
+      "word": "un libro che parla"
+    },
+    "t_cake": {
+      "word": "una torta enorme"
+    },
+    "p_forest": {
+      "word": "nel bosco fitto"
+    },
+    "p_moon": {
+      "word": "sulla luna"
+    },
+    "p_castle": {
+      "word": "in un vecchio castello"
+    },
+    "p_sea": {
+      "word": "in fondo al mare"
+    },
+    "p_cave": {
+      "word": "in una grotta buia"
+    },
+    "p_garden": {
+      "word": "in giardino"
+    },
+    "f_brave": {
+      "word": "coraggio"
+    },
+    "f_curious": {
+      "word": "curiosità"
+    },
+    "f_sleepy": {
+      "word": "sonno"
+    },
+    "f_excited": {
+      "word": "entusiasmo"
+    },
+    "f_worried": {
+      "word": "paura"
+    },
+    "f_proud": {
+      "word": "orgoglio"
+    }
+  },
+  "card_kinds": {
+    "who": {
+      "label": "chi",
+      "hint": "un personaggio"
+    },
+    "what": {
+      "label": "cosa",
+      "hint": "un oggetto"
+    },
+    "where": {
+      "label": "dove",
+      "hint": "un posto"
+    },
+    "feeling": {
+      "label": "emozione",
+      "hint": "come si sentiva"
+    }
+  },
+  "frames": {
+    "discovery": {
+      "title": "La grande scoperta",
+      "blurb": "Qualcuno trova una cosa che non stava cercando.",
+      "page_1": "Una mattina {who} camminava {where}.",
+      "page_2": "Sotto le foglie c'era {what}.",
+      "page_3": "Allora {who} ha sentito un po' di {feeling} e ha allungato la mano piano piano.",
+      "page_4": "Da quel giorno niente è stato più come prima."
+    },
+    "rescue": {
+      "title": "Il salvataggio",
+      "blurb": "Qualcuno ha bisogno di aiuto. E qualcuno arriva.",
+      "page_1": "Un giorno {who} ha sentito un pianto: qualcuno piangeva {where}.",
+      "page_2": "Nel fango c'era {what}, e aveva proprio bisogno di aiuto.",
+      "page_3": "Non era facile, ma {who} aveva {feeling} da vendere e ci ha provato lo stesso.",
+      "page_4": "Hanno fatto la strada di casa insieme, mentre il sole andava giù."
+    },
+    "journey": {
+      "title": "La lunga strada di casa",
+      "blurb": "Un viaggio che non va come previsto.",
+      "page_1": "Prima di partire, {who} ha messo {what} nello zaino e ha preso la strada per arrivare {where}.",
+      "page_2": "Il sentiero è sparito e il cielo è diventato scuro.",
+      "page_3": "Con un po' di {feeling} addosso, {who} ha continuato lo stesso.",
+      "page_4": "Casa era molto più vicina di quanto sembrasse."
+    }
+  },
+  "templates": {
+    "space_friend": {
+      "title": "Il mio amico spaziale",
+      "blurb": "Qualcuno atterra nel tuo giardino.",
+      "page_1": "Una mattina tranquilla {name} ha sentito un rumore fortissimo fuori dalla finestra: {sound}!",
+      "page_2": "In giardino c'era {animal} di colore {colour}, che arrivava da un posto lontano: {place}. Non sapeva più dove andare.",
+      "page_3": "Aveva fame, così {name} ha portato qualcosa di buono: {food}. Hanno mangiato insieme fino all'ultimo boccone.",
+      "page_4": "Hanno giocato tutto il pomeriggio, e {animal} {silly} ha promesso di tornare."
+    },
+    "lost_thing": {
+      "title": "La cosa perduta",
+      "blurb": "Qualcosa sparisce. Tu lo ritrovi.",
+      "page_1": "{name} ha cercato dappertutto, ma la chiave di colore {colour} non si trovava più.",
+      "page_2": "Poi {animal} {silly} ha detto di aver visto qualcosa che brillava laggiù, verso {place}.",
+      "page_3": "Hanno cercato insieme, finché sotto un sasso hanno sentito un rumore piccolo piccolo: {sound}!",
+      "page_4": "Eccola lì! {name} ha detto grazie e ha offerto a tutti l'ultima cosa buona che aveva: {food}."
+    },
+    "brave_night": {
+      "title": "La notte più coraggiosa",
+      "blurb": "È tutto buio. Hai più coraggio di quanto pensi.",
+      "page_1": "Le luci si sono spente e {name} non aveva per niente coraggio.",
+      "page_2": "Poi ecco {animal} di colore {colour}, che ha sussurrato: «Seguimi, andiamo verso {place}».",
+      "page_3": "Ogni volta che {name} aveva paura, diceva la parola magica: {sound}!",
+      "page_4": "La mattina dopo {name} sapeva una cosa nuova: la paura e il coraggio possono stare insieme. E a quella notte ha dato un nome buffo: {silly}."
+    }
+  },
+  "banks": {
+    "name": {
+      "label": "un nome"
+    },
+    "animal": {
+      "label": "un animale"
+    },
+    "colour": {
+      "label": "un colore"
+    },
+    "place": {
+      "label": "un posto"
+    },
+    "silly": {
+      "label": "una parola buffa"
+    },
+    "food": {
+      "label": "qualcosa di buono"
+    },
+    "sound": {
+      "label": "un rumore"
+    }
+  },
+  "bank_words": {
+    "name": {
+      "theo": "Theo",
+      "mia": "Mia",
+      "ada": "Ada",
+      "sam": "Sam",
+      "nia": "Nia",
+      "leo": "Leo",
+      "iris": "Iris",
+      "kai": "Kai"
+    },
+    "animal": {
+      "bear": "un orso",
+      "fox": "una volpe",
+      "penguin": "un pinguino",
+      "dragon": "un drago",
+      "turtle": "una tartaruga",
+      "owl": "un gufo",
+      "whale": "una balena",
+      "rabbit": "un coniglio",
+      "tiger": "una tigre",
+      "dinosaur": "un dinosauro"
+    },
+    "colour": {
+      "red": "rosso",
+      "blue": "blu",
+      "golden": "oro",
+      "purple": "viola",
+      "green": "verde",
+      "silver": "argento",
+      "orange": "arancione",
+      "pink": "rosa"
+    },
+    "place": {
+      "forest": "il bosco",
+      "moon": "la luna",
+      "castle": "il castello",
+      "beach": "la spiaggia",
+      "cave": "la grotta",
+      "garden": "il giardino",
+      "mountain": "la montagna",
+      "island": "l'isola"
+    },
+    "silly": {
+      "wobbly": "traballante",
+      "sparkly": "scintillante",
+      "enormous": "enorme",
+      "tiny": "tascabile",
+      "bouncy": "saltellante",
+      "fuzzy": "soffice",
+      "upside_down": "a testa in giù",
+      "giggly": "che ride sempre"
+    },
+    "food": {
+      "pancakes": "pancake",
+      "apples": "mele",
+      "soup": "minestra",
+      "honey": "miele",
+      "berries": "frutti di bosco",
+      "cake": "torta",
+      "noodles": "spaghetti",
+      "ice_cream": "gelato"
+    },
+    "sound": {
+      "whoosh": "FIUUU",
+      "ping": "plin",
+      "rumble": "brrrum",
+      "squeak": "squit",
+      "ta_da": "ta-daaa",
+      "boing": "boing",
+      "shhh": "sshh",
+      "kaboom": "bum"
+    }
+  },
+  "starters": {
+    "opening": {
+      "s1": "C'era una volta ",
+      "s2": "Una mattina di sole ",
+      "s3": "In un paese molto molto lontano ",
+      "s4": "Tanto tempo fa viveva ",
+      "s5": "Era una notte buia e tempestosa quando ",
+      "s6": "Nessuno si aspettava quello che è successo quando ",
+      "s7": "L'avventura è cominciata quando ",
+      "s8": "Tutto è cambiato il giorno in cui "
+    },
+    "middle": {
+      "s1": "All'improvviso ",
+      "s2": "Poi è successa una cosa incredibile: ",
+      "s3": "Ma c'era un problema: ",
+      "s4": "Proprio quando sembrava tutto perduto ",
+      "s5": "Intanto ",
+      "s6": "Da un momento all'altro ",
+      "s7": "Un attimo dopo ",
+      "s8": "E così è arrivata un'idea! ",
+      "s9": "Hanno deciso di ",
+      "s10": "Con grande sorpresa ",
+      "s11": "Dopo un po' ",
+      "s12": "Tutti insieme "
+    },
+    "ending": {
+      "s1": "E finalmente ",
+      "s2": "E da quel giorno ",
+      "s3": "Alla fine ",
+      "s4": "Hanno imparato che ",
+      "s5": "E così ",
+      "s6": "La cosa più bella è stata ",
+      "s7": "Tutti hanno fatto festa perché ",
+      "s8": "E vissero tutti felici e contenti."
+    }
+  },
+  "feeling_words": {
+    "happy": "era felice",
+    "excited": "non vedeva l'ora",
+    "nervous": "aveva le farfalle nella pancia",
+    "brave": "aveva coraggio",
+    "curious": "aveva tanta curiosità",
+    "surprised": "non se lo aspettava",
+    "proud": "sentiva un grande orgoglio",
+    "worried": "era in pensiero",
+    "determined": "non voleva mollare",
+    "amazed": "era a bocca aperta"
+  },
+  "action_words": {
+    "ran": "ha corso",
+    "jumped": "ha saltato",
+    "whispered": "ha sussurrato",
+    "discovered": "ha scoperto",
+    "built": "ha costruito",
+    "flew": "ha spiccato il volo",
+    "climbed": "ha scalato",
+    "painted": "ha dipinto",
+    "sang": "ha cantato",
+    "explored": "ha esplorato"
+  },
+  "nudges": {
+    "default_character": "il tuo personaggio",
+    "n1": "Non sai cosa scrivere? Prova uno degli inizi qui sopra!",
+    "n2": "Cosa succede adesso a {{name}}?",
+    "n3": "Come si sente il tuo personaggio in questo momento?",
+    "n4": "Prova a raccontare che cosa vede il tuo personaggio intorno a sé.",
+    "n5": "Che rumore sente il tuo personaggio?",
+    "n6": "Cosa decide di fare {{name}}?",
+    "n7": "Chiudi gli occhi e immagina la scena, poi raccontala!",
+    "n8": "E TU cosa faresti in questa storia?"
+  }
+}

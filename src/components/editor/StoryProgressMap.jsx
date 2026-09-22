@@ -1,8 +1,11 @@
 import { motion } from 'motion/react'
 import { Check } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { useBookStore } from '../../stores/useBookStore'
+import { formatNumber } from '../../i18n/formats'
 
 export default function StoryProgressMap() {
+  const { t } = useTranslation()
   const book = useBookStore((state) => state.book)
   const currentPageIndex = useBookStore((state) => state.currentPageIndex)
   const setCurrentPageIndex = useBookStore((state) => state.setCurrentPageIndex)
@@ -17,10 +20,14 @@ export default function StoryProgressMap() {
       {/* Progress text */}
       <div className="flex items-center justify-between mb-2">
         <p className="text-galaxy-text-muted text-xs font-body">
-          Your story progress
+          {t('editor:progress.label')}
         </p>
         <p className="text-galaxy-secondary text-xs font-body font-semibold">
-          {completedCount} of {pages.length} pages written
+          {t('editor:progress.written_of_total', {
+            count: pages.length,
+            done: formatNumber(completedCount),
+            total: formatNumber(pages.length),
+          })}
         </p>
       </div>
 
@@ -44,7 +51,9 @@ export default function StoryProgressMap() {
               }`}
               whileHover={{ scale: 1.15 }}
               whileTap={{ scale: 0.9 }}
-              title={`Page ${page.pageNumber}${hasText ? ' (written)' : ' (empty)'}`}
+              title={hasText
+                ? t('editor:progress.page_written', { number: formatNumber(page.pageNumber) })
+                : t('editor:progress.page_empty', { number: formatNumber(page.pageNumber) })}
             >
               {hasText ? (
                 <Check

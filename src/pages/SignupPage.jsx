@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, Link, useSearchParams } from 'react-router-dom'
 import { motion } from 'motion/react'
+import { useTranslation, Trans } from 'react-i18next'
 import { GraduationCap, Mail, Lock, User, Eye, EyeOff, CheckCircle, BookOpen } from 'lucide-react'
 import { useAuthStore } from '../stores/useAuthStore'
 import OAuthButtons from '../components/auth/OAuthButtons'
-import { friendlyAuthMessage } from '../lib/authErrors'
+import { authErrorCode } from '../lib/authErrors'
 
 export default function SignupPage() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const signUp = useAuthStore((s) => s.signUp)
@@ -29,9 +31,9 @@ export default function SignupPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (password !== confirm) { setError('Passwords do not match.'); return }
-    if (password.length < 6) { setError('Password must be at least 6 characters.'); return }
-    if (role === 'student' && !displayName.trim()) { setError('Please enter your name.'); return }
+    if (password !== confirm) { setError(t('errors:auth.passwords_mismatch')); return }
+    if (password.length < 6) { setError(t('errors:auth.password_too_short')); return }
+    if (role === 'student' && !displayName.trim()) { setError(t('errors:auth.name_required')); return }
     setLoading(true)
     setError('')
     try {
@@ -47,7 +49,7 @@ export default function SignupPage() {
       }
       setSuccess(true)
     } catch (err) {
-      setError(friendlyAuthMessage(err, { signingUp: true }))
+      setError(t(`errors:auth.${authErrorCode(err, { signingUp: true })}`))
     } finally {
       setLoading(false)
     }
@@ -66,31 +68,29 @@ export default function SignupPage() {
         >
           <Mail size={56} className="text-galaxy-primary mx-auto mb-4" />
           <h2 className="font-heading text-2xl font-bold text-galaxy-text mb-2">
-            You already have an account
+            {t('auth:existing_account.title')}
           </h2>
           <p className="text-galaxy-text-muted font-body mb-6">
-            {email} is already registered, so we didn&apos;t send a new
-            confirmation email. Sign in instead — or reset your password if you
-            can&apos;t remember it.
+            {t('auth:existing_account.body', { email })}
           </p>
           <div className="flex flex-col gap-3">
             <Link
               to="/login"
               className="inline-block px-6 py-3 rounded-xl font-body font-bold text-white btn-fill-primary transition-colors"
             >
-              Sign in
+              {t('auth:shared.sign_in')}
             </Link>
             <Link
               to="/login?reset=1"
               className="font-body text-sm text-galaxy-text-muted hover:text-galaxy-text transition-colors"
             >
-              Forgot your password?
+              {t('auth:shared.forgot_password')}
             </Link>
             <button
               onClick={() => { setExistingAccount(false); setEmail('') }}
               className="font-body text-sm text-galaxy-text-muted hover:text-galaxy-text transition-colors"
             >
-              Use a different email
+              {t('auth:existing_account.use_different_email')}
             </button>
           </div>
         </motion.div>
@@ -108,18 +108,18 @@ export default function SignupPage() {
         >
           <CheckCircle size={56} className="text-green-400 mx-auto mb-4" />
           <h2 className="font-heading text-2xl font-bold text-galaxy-text mb-2">
-            {role === 'student' ? '🎉 You\'re all set!' : 'Check your email'}
+            {role === 'student' ? t('auth:sign_up.success_title_student') : t('auth:sign_up.success_title_teacher')}
           </h2>
           <p className="text-galaxy-text-muted font-body mb-6">
             {role === 'student'
-              ? `Welcome, ${displayName}! We sent a confirmation to ${email}. Once confirmed, you can sign in and start writing.`
-              : `We sent a confirmation link to ${email}. Click it to activate your teacher account.`}
+              ? t('auth:sign_up.success_body_student', { name: displayName, email })
+              : t('auth:sign_up.success_body_teacher', { email })}
           </p>
           <Link
             to="/login"
             className="inline-block px-6 py-3 rounded-xl font-body font-bold text-white btn-fill-primary transition-colors"
           >
-            Go to Sign In
+            {t('auth:sign_up.success_cta')}
           </Link>
         </motion.div>
       </div>
@@ -137,8 +137,8 @@ export default function SignupPage() {
         {/* Header */}
         <div className="text-center mb-6">
           <img src="/logo.png" alt="My Book Lab" className="w-16 h-16 mx-auto mb-4 rounded-xl" />
-          <h1 className="font-heading text-2xl font-bold text-galaxy-text">Create an Account</h1>
-          <p className="text-galaxy-text-muted font-body text-sm mt-1">Join the adventure!</p>
+          <h1 className="font-heading text-2xl font-bold text-galaxy-text">{t('auth:sign_up.title')}</h1>
+          <p className="text-galaxy-text-muted font-body text-sm mt-1">{t('auth:sign_up.subtitle')}</p>
         </div>
 
         {/* Role toggle */}
@@ -152,7 +152,7 @@ export default function SignupPage() {
                 : 'text-galaxy-text-muted hover:text-galaxy-text'
             }`}
           >
-            <BookOpen size={15} /> Student / Parent
+            <BookOpen size={15} /> {t('auth:sign_up.role_student')}
           </button>
           <button
             type="button"
@@ -163,7 +163,7 @@ export default function SignupPage() {
                 : 'text-galaxy-text-muted hover:text-galaxy-text'
             }`}
           >
-            <GraduationCap size={15} /> Teacher
+            <GraduationCap size={15} /> {t('auth:sign_up.role_teacher')}
           </button>
         </div>
 
@@ -173,25 +173,25 @@ export default function SignupPage() {
           {/* Display name — students only */}
           {role === 'student' && (
             <div className="space-y-1">
-              <label className="text-galaxy-text-muted text-sm font-body font-semibold">Your Name</label>
+              <label className="text-galaxy-text-muted text-sm font-body font-semibold">{t('auth:fields.display_name_label')}</label>
               <div className="relative">
                 <User size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-galaxy-text-muted" />
                 <input
                   type="text"
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
-                  placeholder="What should we call you?"
+                  placeholder={t('auth:fields.display_name_placeholder')}
                   maxLength={30}
                   className="w-full pl-9 pr-4 py-3 glass border border-white/15 rounded-xl text-galaxy-text placeholder:text-galaxy-text-muted/40 focus:border-galaxy-primary focus:outline-none font-body"
                 />
               </div>
-              <p className="text-galaxy-text-muted text-xs font-body">This will appear on your books</p>
+              <p className="text-galaxy-text-muted text-xs font-body">{t('auth:fields.display_name_hint')}</p>
             </div>
           )}
 
           <div className="space-y-1">
             <label className="text-galaxy-text-muted text-sm font-body font-semibold">
-              {role === 'student' ? 'Email (parent\'s email is fine)' : 'Email'}
+              {role === 'student' ? t('auth:fields.email_label_student') : t('auth:fields.email_label')}
             </label>
             <div className="relative">
               <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-galaxy-text-muted" />
@@ -200,14 +200,14 @@ export default function SignupPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                placeholder="your@email.com"
+                placeholder={t('auth:fields.email_placeholder')}
                 className="w-full pl-9 pr-4 py-3 glass border border-white/15 rounded-xl text-galaxy-text placeholder:text-galaxy-text-muted/40 focus:border-galaxy-primary focus:outline-none font-body"
               />
             </div>
           </div>
 
           <div className="space-y-1">
-            <label className="text-galaxy-text-muted text-sm font-body font-semibold">Password</label>
+            <label className="text-galaxy-text-muted text-sm font-body font-semibold">{t('auth:fields.password_label')}</label>
             <div className="relative">
               <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-galaxy-text-muted" />
               <input
@@ -215,7 +215,7 @@ export default function SignupPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                placeholder="At least 6 characters"
+                placeholder={t('auth:fields.password_placeholder_min')}
                 className="w-full pl-9 pr-10 py-3 glass border border-white/15 rounded-xl text-galaxy-text placeholder:text-galaxy-text-muted/40 focus:border-galaxy-primary focus:outline-none font-body"
               />
               <button
@@ -229,7 +229,7 @@ export default function SignupPage() {
           </div>
 
           <div className="space-y-1">
-            <label className="text-galaxy-text-muted text-sm font-body font-semibold">Confirm Password</label>
+            <label className="text-galaxy-text-muted text-sm font-body font-semibold">{t('auth:fields.confirm_password_label')}</label>
             <div className="relative">
               <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-galaxy-text-muted" />
               <input
@@ -237,7 +237,7 @@ export default function SignupPage() {
                 value={confirm}
                 onChange={(e) => setConfirm(e.target.value)}
                 required
-                placeholder="Repeat your password"
+                placeholder={t('auth:fields.confirm_password_placeholder')}
                 className="w-full pl-9 pr-4 py-3 glass border border-white/15 rounded-xl text-galaxy-text placeholder:text-galaxy-text-muted/40 focus:border-galaxy-primary focus:outline-none font-body"
               />
             </div>
@@ -254,21 +254,23 @@ export default function SignupPage() {
                 : 'btn-fill-primary'
             }`}
           >
-            {loading ? 'Creating account…' : 'Create Account'}
+            {loading ? t('auth:sign_up.submitting') : t('auth:sign_up.submit')}
           </button>
 
-          <OAuthButtons label="or sign up with" />
+          <OAuthButtons label={t('auth:oauth.divider_sign_up')} />
         </form>
 
         <div className="text-center mt-4 space-y-2">
           <p className="text-galaxy-text-muted text-sm font-body">
-            Already have an account?{' '}
-            <Link to="/login" className="text-galaxy-primary hover:underline font-semibold">
-              Sign in
-            </Link>
+            <Trans
+              i18nKey="auth:sign_up.have_account"
+              components={{
+                signin: <Link to="/login" className="text-galaxy-primary hover:underline font-semibold" />,
+              }}
+            />
           </p>
           <Link to="/" className="text-galaxy-text-muted text-sm font-body hover:text-galaxy-text transition-colors block">
-            ← Back to the app
+            {t('auth:shared.back_to_app')}
           </Link>
         </div>
       </motion.div>

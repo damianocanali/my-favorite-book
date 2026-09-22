@@ -49,9 +49,19 @@ struct WelcomeBackMoment: View {
                         StatPill(icon: "🪙", value: coins.balance, label: "Coins")
                     }
 
+                    // Two complete, separately keyed sentences rather than
+                    // a ternary between two bare literals: a ternary hides
+                    // the literals from extraction, and a translator needs
+                    // to see each sentence whole to render it naturally.
                     Text(rewards.currentStreak > 0
-                         ? "Write today to reach day \(rewards.currentStreak + 1)!"
-                         : "Write something today to start a streak!")
+                         ? LocalizedStringResource(
+                            "welcome.streak.continue",
+                            defaultValue: "Write today to reach day \(rewards.currentStreak + 1)!",
+                            comment: "Nudge on the launch celebration; %lld is tomorrow's streak day number")
+                         : LocalizedStringResource(
+                            "welcome.streak.start",
+                            defaultValue: "Write something today to start a streak!",
+                            comment: "Nudge on the launch celebration when the streak is at zero"))
                         .font(.system(.subheadline, design: .rounded))
                         .foregroundStyle(.white.opacity(0.7))
                         .multilineTextAlignment(.center)
@@ -76,7 +86,16 @@ struct WelcomeBackMoment: View {
         .gameBanner(
             show: visible,
             text: "Welcome back!",
-            sub: auth.displayName.map { "Good to see you, \($0)" }
+            // The greeting used to be assembled inside the closure, which
+            // put a hand-built English sentence somewhere no extractor
+            // would ever look. One keyed format string instead, so a
+            // translator can move the name to wherever Italian wants it.
+            sub: auth.displayName.map {
+                LocalizedStringResource(
+                    "welcome.banner.subtitle",
+                    defaultValue: "Good to see you, \($0)",
+                    comment: "Launch banner subtitle; %@ is the signed-in person's display name")
+            }
         )
         // Showing and hiding are two SEPARATE tasks on purpose.
         //

@@ -2,7 +2,10 @@
  * PrintableBook — hidden on screen, shown only during window.print().
  * Each page uses .print-page which triggers a page break in @media print.
  */
+import { useTranslation } from 'react-i18next'
+
 export default function PrintableBook({ book, printMode = 'browser', visible = false }) {
+  const { t } = useTranslation()
   if (!book) return null
 
   const cover = book.colors?.cover ?? '#8B5CF6'
@@ -21,7 +24,7 @@ export default function PrintableBook({ book, printMode = 'browser', visible = f
           {book.coverImage ? (
             <img
               src={book.coverImage}
-              alt="Book cover"
+              alt={t('print:book.cover_alt')}
               style={{ width: '100%', height: '60%', objectFit: 'cover' }}
             />
           ) : (
@@ -34,7 +37,7 @@ export default function PrintableBook({ book, printMode = 'browser', visible = f
               {book.title}
             </h1>
             <p style={{ fontFamily: 'Nunito, sans-serif', fontSize: '1.25rem' }}>
-              by {book.authorName}
+              {t('print:book.by_author', { name: book.authorName })}
             </p>
           </div>
         </div>
@@ -61,7 +64,7 @@ export default function PrintableBook({ book, printMode = 'browser', visible = f
               {page.illustrationData ? (
                 <img
                   src={page.illustrationData}
-                  alt={`Page ${page.pageNumber} illustration`}
+                  alt={t('print:book.page_alt', { number: page.pageNumber })}
                   style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                 />
               ) : (
@@ -119,16 +122,16 @@ export default function PrintableBook({ book, printMode = 'browser', visible = f
         <div className="print-safe">
           <div style={{ textAlign: 'center', color: textColor, padding: '4rem' }}>
             <p style={{ fontFamily: 'Fredoka, sans-serif', fontSize: '4rem', fontWeight: 700, marginBottom: '1.5rem' }}>
-              The End
+              {t('print:book.the_end')}
             </p>
             <p style={{ fontFamily: 'Nunito, sans-serif', fontSize: '1.5rem', opacity: 0.85 }}>
               {book.title}
             </p>
             <p style={{ fontFamily: 'Nunito, sans-serif', fontSize: '1.1rem', opacity: 0.7, marginTop: '0.5rem' }}>
-              Written and illustrated by {book.authorName}
+              {t('print:book.written_by', { name: book.authorName })}
             </p>
             <p style={{ fontFamily: 'Nunito, sans-serif', fontSize: '0.9rem', opacity: 0.5, marginTop: '3rem' }}>
-              Created with My Book Lab ✨
+              {t('print:book.created_with')}
             </p>
           </div>
         </div>

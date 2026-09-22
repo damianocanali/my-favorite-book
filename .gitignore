@@ -57,3 +57,19 @@ ios-native/MyBookLab.xcodeproj/project.xcworkspace/xcshareddata/*
 !ios-native/MyBookLab.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/
 ios-native/MyBookLab.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/*
 !ios-native/MyBookLab.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
+
+# iCloud Drive sync collision copies.
+# This repo sits in ~/Documents, which iCloud syncs. When iCloud sees a file
+# change on two devices — or, in practice, sees git rewriting files during a
+# checkout — it keeps both and names one "Component 2.jsx". Those copies are
+# never source: they broke the iOS build once (XcodeGen globbed "AppLanguage
+# 2.swift" and the compiler hit an invalid redeclaration) and failed the i18n
+# key scanner once. Ignoring them keeps a stray `git add -A` from committing
+# them. The real fix is to move this repo out of iCloud Drive.
+* [0-9].swift
+* [0-9].js
+* [0-9].jsx
+* [0-9].json
+* [0-9].md
+* [0-9].xcstrings
+* [0-9].bak

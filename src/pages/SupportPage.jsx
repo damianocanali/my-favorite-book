@@ -1,12 +1,18 @@
 import { motion } from 'motion/react'
 import { ArrowLeft, Mail, ExternalLink } from 'lucide-react'
 import { useNavigate, Link } from 'react-router-dom'
+import { useTranslation, Trans } from 'react-i18next'
 
+const APP_NAME = 'My Book Lab'
 const SUPPORT_EMAIL = 'support@mybooklab.app'
 const APPLE_REPORT_URL = 'https://reportaproblem.apple.com'
+const APPLE_REPORT_LABEL = 'reportaproblem.apple.com'
+const APPLE_EULA_URL = 'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/'
+const APPLE = 'Apple'
 
 export default function SupportPage() {
   const navigate = useNavigate()
+  const { t } = useTranslation()
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
@@ -15,20 +21,24 @@ export default function SupportPage() {
           onClick={() => navigate(-1)}
           className="flex items-center gap-2 text-galaxy-text-muted hover:text-galaxy-text transition-colors font-body text-sm mb-6"
         >
-          <ArrowLeft size={16} /> Back
+          <ArrowLeft size={16} /> {t('common:actions.back')}
         </button>
 
-        <h1 className="font-heading text-3xl font-bold text-galaxy-text mb-3">Support</h1>
+        <h1 className="font-heading text-3xl font-bold text-galaxy-text mb-3">{t('legal:support.title')}</h1>
         <p className="text-galaxy-text-muted font-body text-base mb-8">
-          Need help with <span className="text-galaxy-text font-semibold">My Book Lab</span>? Here's how to reach us and handle common questions.
+          <Trans
+            i18nKey="legal:support.intro"
+            values={{ app: APP_NAME }}
+            components={{ app: <span className="text-galaxy-text font-semibold" /> }}
+          />
         </p>
 
         <div className="space-y-8 text-galaxy-text-muted font-body text-sm leading-relaxed">
           <section>
-            <h2 className="font-heading text-lg font-bold text-galaxy-text mb-2">Contact us</h2>
-            <p className="mb-3">
-              Email us and we'll get back to you within two business days.
-            </p>
+            <h2 className="font-heading text-lg font-bold text-galaxy-text mb-2">
+              {t('legal:support.contact.title')}
+            </h2>
+            <p className="mb-3">{t('legal:support.contact.body')}</p>
             <a
               href={`mailto:${SUPPORT_EMAIL}`}
               className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl border border-galaxy-text-muted/30 text-galaxy-text hover:border-galaxy-text-muted/60 transition-colors font-body text-sm"
@@ -38,71 +48,110 @@ export default function SupportPage() {
           </section>
 
           <section>
-            <h2 className="font-heading text-lg font-bold text-galaxy-text mb-2">Manage or cancel a subscription</h2>
-            <p className="mb-2">
-              Subscriptions purchased on iPhone or iPad are managed through your Apple ID. To cancel or change plan:
-            </p>
+            <h2 className="font-heading text-lg font-bold text-galaxy-text mb-2">
+              {t('legal:support.subscription.title')}
+            </h2>
+            <p className="mb-2">{t('legal:support.subscription.intro')}</p>
             <ol className="list-decimal pl-5 space-y-1">
-              <li>Open <span className="text-galaxy-text">Settings</span> on your device</li>
-              <li>Tap your name at the top, then <span className="text-galaxy-text">Subscriptions</span></li>
-              <li>Select <span className="text-galaxy-text">My Book Lab</span> and choose Cancel or Change</li>
+              <li>
+                <Trans
+                  i18nKey="legal:support.subscription.step_settings"
+                  components={{ ui: <span className="text-galaxy-text" /> }}
+                />
+              </li>
+              <li>
+                <Trans
+                  i18nKey="legal:support.subscription.step_subscriptions"
+                  components={{ ui: <span className="text-galaxy-text" /> }}
+                />
+              </li>
+              <li>
+                <Trans
+                  i18nKey="legal:support.subscription.step_select_app"
+                  values={{ app: APP_NAME }}
+                  components={{ ui: <span className="text-galaxy-text" /> }}
+                />
+              </li>
             </ol>
             <p className="mt-2">
-              Subscriptions purchased on the web can be managed from your <Link to="/account" className="underline hover:text-galaxy-text">Account page</Link> via the "Manage subscription" button.
+              <Trans
+                i18nKey="legal:support.subscription.web"
+                components={{ account: <Link to="/account" className="underline hover:text-galaxy-text" /> }}
+              />
             </p>
           </section>
 
           <section>
-            <h2 className="font-heading text-lg font-bold text-galaxy-text mb-2">Request a refund</h2>
-            <p>
-              For purchases made through the App Store (iPhone / iPad), refunds are handled directly by Apple:
-            </p>
+            <h2 className="font-heading text-lg font-bold text-galaxy-text mb-2">
+              {t('legal:support.refund.title')}
+            </h2>
+            <p>{t('legal:support.refund.app_store', { apple: APPLE })}</p>
             <a
               href={APPLE_REPORT_URL}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 mt-2 text-galaxy-text hover:text-galaxy-primary transition-colors underline"
             >
-              reportaproblem.apple.com <ExternalLink size={13} className="opacity-60" />
+              {APPLE_REPORT_LABEL} <ExternalLink size={13} className="opacity-60" />
             </a>
-            <p className="mt-2">
-              For web purchases, contact us at {SUPPORT_EMAIL} and we'll work with you directly.
-            </p>
+            <p className="mt-2">{t('legal:support.refund.web', { email: SUPPORT_EMAIL })}</p>
           </section>
 
           <section>
-            <h2 className="font-heading text-lg font-bold text-galaxy-text mb-2">Delete your account</h2>
-            <p>
-              You can permanently delete your account and all associated data (books, subscriptions, profile) from inside the app:
-            </p>
+            <h2 className="font-heading text-lg font-bold text-galaxy-text mb-2">
+              {t('legal:support.delete.title')}
+            </h2>
+            <p>{t('legal:support.delete.intro')}</p>
             <ol className="list-decimal pl-5 space-y-1 mt-2">
-              <li>Sign in and open the <Link to="/account" className="underline hover:text-galaxy-text">Account page</Link></li>
-              <li>Scroll to the <span className="text-galaxy-text">Danger Zone</span> section</li>
-              <li>Tap <span className="text-galaxy-text">Delete my account</span> and confirm</li>
+              <li>
+                <Trans
+                  i18nKey="legal:support.delete.step_open_account"
+                  components={{ account: <Link to="/account" className="underline hover:text-galaxy-text" /> }}
+                />
+              </li>
+              <li>
+                <Trans
+                  i18nKey="legal:support.delete.step_danger_zone"
+                  components={{ ui: <span className="text-galaxy-text" /> }}
+                />
+              </li>
+              <li>
+                <Trans
+                  i18nKey="legal:support.delete.step_confirm"
+                  components={{ ui: <span className="text-galaxy-text" /> }}
+                />
+              </li>
             </ol>
-            <p className="mt-2">
-              Deletion is immediate and cannot be reversed. Active App Store subscriptions must be cancelled separately via Settings → Subscriptions (deleting the account does not refund Apple charges).
-            </p>
+            <p className="mt-2">{t('legal:support.delete.note', { apple: APPLE })}</p>
           </section>
 
           <section>
-            <h2 className="font-heading text-lg font-bold text-galaxy-text mb-2">Forgot your password</h2>
+            <h2 className="font-heading text-lg font-bold text-galaxy-text mb-2">
+              {t('legal:support.password.title')}
+            </h2>
             <p>
-              On the <Link to="/login" className="underline hover:text-galaxy-text">login screen</Link>, tap "Forgot password" and follow the link we email you.
+              <Trans
+                i18nKey="legal:support.password.body"
+                components={{ login: <Link to="/login" className="underline hover:text-galaxy-text" /> }}
+              />
             </p>
           </section>
 
           <section>
-            <h2 className="font-heading text-lg font-bold text-galaxy-text mb-2">Privacy & Terms</h2>
+            <h2 className="font-heading text-lg font-bold text-galaxy-text mb-2">
+              {t('legal:support.links.title')}
+            </h2>
             <p className="flex flex-wrap gap-x-4 gap-y-1">
-              <Link to="/privacy" className="underline hover:text-galaxy-text">Privacy Policy</Link>
+              <Link to="/privacy" className="underline hover:text-galaxy-text">
+                {t('legal:privacy.title')}
+              </Link>
               <a
-                href="https://www.apple.com/legal/internet-services/itunes/dev/stdeula/"
+                href={APPLE_EULA_URL}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="underline hover:text-galaxy-text"
               >
-                Terms of Use (EULA)
+                {t('legal:support.links.eula')}
               </a>
             </p>
           </section>

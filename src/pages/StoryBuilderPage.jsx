@@ -7,12 +7,17 @@ import {
   useSensor, useSensors, useDraggable, useDroppable, closestCenter,
 } from '@dnd-kit/core'
 import { ArrowLeft, Shuffle, X } from 'lucide-react'
-import { STORY_FRAMES, STORY_CARDS, CARD_KINDS, cardById } from '../data/storyCards'
+import { useTranslation, Trans } from 'react-i18next'
+import {
+  STORY_FRAMES, STORY_CARDS, CARD_KINDS, cardById,
+  cardWord, cardKindLabel, cardKindHint, localizedFrame,
+} from '../data/storyCards'
 import {
   segmentsForPage, slotsForFrame, canDrop, place, clearSlot,
   missingSlots, isComplete, progress, renderStory, randomPlacements,
   buildBookFromCards,
 } from '../lib/storyBuilder'
+import { formatNumber } from '../i18n/formats'
 import { useBookStore } from '../stores/useBookStore'
 import { useBookshelfStore } from '../stores/useBookshelfStore'
 import { useAuthStore, selectDisplayName } from '../stores/useAuthStore'
@@ -32,7 +37,8 @@ import Mascot from '../components/ui/Mascot'
 
 export default function StoryBuilderPage() {
   const navigate = useNavigate()
-  const [frame, setFrame] = useState(null)
+  const { t, i18n } = useTranslation()
+  const [rawFrame, setRawFrame] = useState(null)
   const [placements, setPlacements] = useState({})
   const [activeCardId, setActiveCardId] = useState(null)   // mid-drag
   const [selectedCardId, setSelectedCardId] = useState(null) // tap-to-place
@@ -51,6 +57,15 @@ export default function StoryBuilderPage() {
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
     useSensor(TouchSensor, { activationConstraint: { delay: 120, tolerance: 8 } }),
     useSensor(KeyboardSensor)
+  )
+
+  // The whole frame — title, blurb and every sentence — comes from the
+  // catalogue, so the slot parser below reads the LOCALISED sentence and the
+  // book we build carries localised prose.
+  const frame = useMemo(
+    () => localizedFrame(rawFrame),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [rawFrame, i18n.language]
   )
 
   const done = frame ? isComplete(frame, placements) : false
@@ -87,8 +102,8 @@ export default function StoryBuilderPage() {
     earnBadge('first_book')
     fireMilestone({
       id: `builder:${book.id}`,
-      title: 'Story built!',
-      sub: 'Now make it yours',
+      title: t('games:builder.milestone_title'),
+      sub: t('games:builder.milestone_sub'),
       mood: 'proud',
     })
     celebrateBig()
@@ -99,32 +114,45 @@ export default function StoryBuilderPage() {
   if (!frame) {
     return (
       <div className="max-w-2xl mx-auto px-4 py-8">
-        <button onClick={() => navigate(-1)} className="toolbar-btn mb-6" aria-label="Go back" title="Go back">
-          <ArrowLeft size={15} /> <span className="toolbar-btn__label">Back</span>
+        <button
+          onClick={() => navigate(-1)}
+          className="toolbar-btn mb-6"
+          aria-label={t('games:actions.go_back')}
+          title={t('games:actions.go_back')}
+        >
+          <ArrowLeft size={15} /> <span className="toolbar-btn__label">{t('common:actions.back')}</span>
         </button>
         <div className="text-center mb-8">
           <Mascot mood="think" size={92} className="mx-auto" />
-          <h1 className="font-heading text-3xl font-bold mt-3">Story Builder</h1>
+          <h1 className="font-heading text-3xl font-bold mt-3">{t('games:builder.title')}</h1>
           <p className="font-body text-galaxy-text-muted mt-1">
-            Drag pictures into the story. Or tap a card, then tap a gap.
+            {t('games:builder.subtitle')}
           </p>
         </div>
         <ul className="grid gap-4 sm:grid-cols-2">
-          {STORY_FRAMES.map((f) => (
-            <li key={f.id}>
-              <button
-                onClick={() => { setFrame(f); setPlacements({}) }}
-                className="ios-card w-full text-left transition-transform hover:scale-[1.02] active:scale-[0.99]"
-              >
-                <span className="text-4xl" aria-hidden>{f.emoji}</span>
-                <p className="font-heading text-lg font-bold mt-2">{f.title}</p>
-                <p className="font-body text-sm text-galaxy-text-muted">{f.blurb}</p>
-                <p className="font-body text-xs text-galaxy-text-muted/70 mt-2">
-                  {f.pages.length} pages · {slotsForFrame(f).length} gaps
-                </p>
-              </button>
-            </li>
-          ))}
+          {STORY_FRAMES.map((raw) => {
+            // Localised here too, so the gap count on the card matches the
+            // sentences the child is about to see.
+            const f = localizedFrame(raw)
+            return (
+              <li key={f.id}>
+                <button
+                  onClick={() => { setRawFrame(raw); setPlacements({}) }}
+                  className="ios-card w-full text-left transition-transform hover:scale-[1.02] active:scale-[0.99]"
+                >
+                  <span className="text-4xl" aria-hidden>{f.emoji}</span>
+                  <p className="font-heading text-lg font-bold mt-2">{f.title}</p>
+                  <p className="font-body text-sm text-galaxy-text-muted">{f.blurb}</p>
+                  <p className="font-body text-xs text-galaxy-text-muted/70 mt-2">
+                    {t('games:builder.frame_meta', {
+                      pages: formatNumber(f.pages.length),
+                      gaps: formatNumber(slotsForFrame(f).length),
+                    })}
+                  </p>
+                </button>
+              </li>
+            )
+          })}
         </ul>
       </div>
     )
@@ -141,28 +169,42 @@ export default function StoryBuilderPage() {
       onDragEnd={handleDragEnd}
       accessibility={{
         announcements: {
-          onDragStart: ({ active }) => `Picked up ${cardById(active.id)?.word ?? 'card'}.`,
-          onDragOver: ({ over }) => (over ? `Over a ${over.data.current?.kind} gap.` : 'Not over a gap.'),
+          onDragStart: ({ active }) =>
+            t('games:builder.announce.picked_up', {
+              card: cardWord(cardById(active.id)) || t('games:builder.announce.a_card'),
+            }),
+          onDragOver: ({ over }) =>
+            over
+              ? t('games:builder.announce.over_gap', { kind: cardKindLabel(over.data.current?.kind) })
+              : t('games:builder.announce.not_over_gap'),
           onDragEnd: ({ active, over }) =>
             over
-              ? `Placed ${cardById(active.id)?.word} in the ${over.data.current?.kind} gap.`
-              : `Put ${cardById(active.id)?.word} back.`,
-          onDragCancel: () => 'Cancelled.',
+              ? t('games:builder.announce.placed', {
+                  card: cardWord(cardById(active.id)),
+                  kind: cardKindLabel(over.data.current?.kind),
+                })
+              : t('games:builder.announce.returned', { card: cardWord(cardById(active.id)) }),
+          onDragCancel: () => t('games:builder.announce.cancelled'),
         },
       }}
     >
       <div className="max-w-2xl mx-auto px-4 py-6 pb-56">
         <div className="flex items-center gap-2 mb-4">
-          <button onClick={() => setFrame(null)} className="toolbar-btn" aria-label="Back to stories" title="Back to stories">
-            <ArrowLeft size={15} /> <span className="toolbar-btn__label">Stories</span>
+          <button
+            onClick={() => setRawFrame(null)}
+            className="toolbar-btn"
+            aria-label={t('games:actions.stories_aria')}
+            title={t('games:actions.stories_aria')}
+          >
+            <ArrowLeft size={15} /> <span className="toolbar-btn__label">{t('games:actions.stories')}</span>
           </button>
           <button
             onClick={() => setPlacements(randomPlacements(frame))}
             className="toolbar-btn toolbar-btn--cyan ml-auto"
-            aria-label="Surprise me: fill every gap at random"
-            title="Surprise me"
+            aria-label={t('games:builder.surprise_me_aria')}
+            title={t('games:actions.surprise_me')}
           >
-            <Shuffle size={15} /> <span className="toolbar-btn__label">Surprise me</span>
+            <Shuffle size={15} /> <span className="toolbar-btn__label">{t('games:actions.surprise_me')}</span>
           </button>
         </div>
 
@@ -177,14 +219,21 @@ export default function StoryBuilderPage() {
             />
           </div>
           <p className="font-body text-xs text-galaxy-text-muted mt-1.5" aria-live="polite">
-            {done ? 'Every gap filled!' : `${remaining} gaps to go`}
+            {done
+              ? t('games:builder.all_filled')
+              : t('games:builder.gaps_left', { count: remaining })}
           </p>
         </div>
 
         {selectedCardId && (
           <p className="mb-3 rounded-xl bg-[#FFD60A]/15 px-3 py-2 font-body text-sm text-[#FFE68A]">
-            {cardById(selectedCardId)?.emoji} Now tap a{' '}
-            <strong>{cardById(selectedCardId)?.kind}</strong> gap to put it there.
+            <span aria-hidden>{cardById(selectedCardId)?.emoji}</span>{' '}
+            {/* One whole sentence per kind. Italian cannot build this from a
+                fragment plus a kind noun — the article has to agree. */}
+            <Trans
+              i18nKey={`games:builder.tap_hint.${cardById(selectedCardId)?.kind}`}
+              components={{ b: <strong /> }}
+            />
           </p>
         )}
 
@@ -192,7 +241,7 @@ export default function StoryBuilderPage() {
           {frame.pages.map((_, pageIndex) => (
             <li key={pageIndex} className="ios-card">
               <p className="font-body text-lg leading-loose">
-                <span className="text-galaxy-text-muted text-xs mr-2">{pageIndex + 1}</span>
+                <span className="text-galaxy-text-muted text-xs mr-2">{formatNumber(pageIndex + 1)}</span>
                 {segmentsForPage(frame, pageIndex).map((seg, i) =>
                   seg.type === 'text' ? (
                     <span key={i}>{seg.value}</span>
@@ -214,7 +263,7 @@ export default function StoryBuilderPage() {
 
         <div className="mt-8">
           <SparkleButton onClick={finish} disabled={!done}>
-            {done ? 'Make my book' : 'Fill every gap to finish'}
+            {done ? t('games:actions.make_my_book') : t('games:builder.finish_hint')}
           </SparkleButton>
         </div>
 
@@ -224,7 +273,7 @@ export default function StoryBuilderPage() {
       {/* Card tray */}
       <div className="fixed inset-x-0 bottom-[calc(56px+var(--sab,0px))] z-[56] ios-material border-t border-white/15">
         <div className="max-w-2xl mx-auto px-3 py-2">
-          <div className="flex gap-1.5 mb-2" role="tablist" aria-label="Card kinds">
+          <div className="flex gap-1.5 mb-2" role="tablist" aria-label={t('games:builder.card_kinds_aria')}>
             {Object.entries(CARD_KINDS).map(([kind, meta]) => (
               <button
                 key={kind}
@@ -237,7 +286,7 @@ export default function StoryBuilderPage() {
                     : 'bg-white/10 text-galaxy-text-muted'
                 }`}
               >
-                <span aria-hidden>{meta.emoji}</span> {meta.label}
+                <span aria-hidden>{meta.emoji}</span> {cardKindLabel(kind)}
               </button>
             ))}
           </div>
@@ -273,13 +322,14 @@ function CardFace({ card, dragging = false, selected = false }) {
     >
       <span className="text-2xl leading-none" aria-hidden>{card.emoji}</span>
       <span className="font-body text-[11px] font-semibold leading-tight text-center">
-        {card.word}
+        {cardWord(card)}
       </span>
     </span>
   )
 }
 
 function TrayCard({ card, selected, onSelect }) {
+  const { t } = useTranslation()
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: card.id })
   return (
     <button
@@ -287,7 +337,10 @@ function TrayCard({ card, selected, onSelect }) {
       {...listeners}
       {...attributes}
       onClick={onSelect}
-      aria-label={`${card.word}, a ${card.kind} card. Drag it to a gap, or tap to select it.`}
+      aria-label={t('games:builder.card_aria', {
+        card: cardWord(card),
+        kind: cardKindLabel(card.kind),
+      })}
       aria-pressed={selected}
       className={`touch-none ${isDragging ? 'opacity-40' : ''}`}
     >
@@ -297,6 +350,7 @@ function TrayCard({ card, selected, onSelect }) {
 }
 
 function Slot({ slot, cardId, selectedCardId, onTap, onClear }) {
+  const { t } = useTranslation()
   const { setNodeRef, isOver } = useDroppable({ id: slot.key, data: { kind: slot.kind } })
   const card = cardById(cardId)
   // Highlight only the gaps the held card can actually go in, so a wrong
@@ -307,11 +361,11 @@ function Slot({ slot, cardId, selectedCardId, onTap, onClear }) {
     return (
       <span ref={setNodeRef} className="mx-1 inline-flex items-center gap-1 align-middle">
         <span className="rounded-lg bg-[#FFD60A]/20 px-2 py-0.5 font-bold text-[#FFE68A]">
-          <span aria-hidden>{card.emoji}</span> {card.word}
+          <span aria-hidden>{card.emoji}</span> {cardWord(card)}
         </span>
         <button
           onClick={onClear}
-          aria-label={`Remove ${card.word}`}
+          aria-label={t('games:builder.remove_card', { card: cardWord(card) })}
           className="rounded-full bg-white/10 p-0.5 text-galaxy-text-muted hover:bg-white/20"
         >
           <X size={12} />
@@ -324,7 +378,10 @@ function Slot({ slot, cardId, selectedCardId, onTap, onClear }) {
     <button
       ref={setNodeRef}
       onClick={onTap}
-      aria-label={`Empty ${slot.kind} gap. ${CARD_KINDS[slot.kind]?.hint ?? ''}`}
+      aria-label={t('games:builder.empty_slot_aria', {
+        kind: cardKindLabel(slot.kind),
+        hint: cardKindHint(slot.kind),
+      })}
       className={`mx-1 inline-flex min-w-[92px] items-center justify-center gap-1 rounded-lg border-2 border-dashed px-3 py-0.5 align-middle font-body text-sm transition-colors ${
         isOver || eligible
           ? 'border-[#FFD60A] bg-[#FFD60A]/20 text-[#FFE68A]'
@@ -332,7 +389,7 @@ function Slot({ slot, cardId, selectedCardId, onTap, onClear }) {
       }`}
     >
       <span aria-hidden>{CARD_KINDS[slot.kind]?.emoji}</span>
-      {slot.kind}
+      {cardKindLabel(slot.kind)}
     </button>
   )
 }

@@ -1,0 +1,113 @@
+{
+  "spine": {
+    "pages_one": "{{count}} pagina",
+    "pages_other": "{{count}} pagine",
+    "order_print_aria": "Ordina una copia stampata di questo libro",
+    "order_print_title": "Ordina una copia stampata"
+  },
+  "delete_modal": {
+    "title": "Eliminare questo libro?",
+    "body": "\"{{title}}\" sparirà per sempre dalla tua libreria."
+  },
+  "empty_shelf": {
+    "title": "La tua libreria è vuota",
+    "body": "Non hai ancora creato nessun libro. Inizia la tua prima avventura!",
+    "cta": "Crea il tuo primo libro ✨",
+    "example_link": "Oppure guarda com'è fatto un libro finito →"
+  },
+  "signed_out": {
+    "title": "Accedi per vedere la tua libreria",
+    "body": "Crea un account gratuito per salvare i tuoi libri e ritrovarli su qualsiasi dispositivo.",
+    "create_account": "Crea un account gratuito",
+    "sign_in": "Accedi"
+  },
+  "shelf": {
+    "title": "La mia libreria",
+    "new_book": "Nuovo libro"
+  },
+  "byline": {
+    "plain": "di {{name}}",
+    "plain_with_age": "di {{name}}, {{age}} anni",
+    "rich": "di <name>{{name}}</name>",
+    "rich_with_age": "di <name>{{name}}</name><age>, {{age}} anni</age>"
+  },
+  "actions": {
+    "remove_from_gallery": "Rimuovi dalla galleria",
+    "start_writing": "Inizia a scrivere",
+    "write_your_story": "Scrivi la tua storia"
+  },
+  "card": {
+    "featured_badge": "IN EVIDENZA",
+    "stickers_one": "{{count}} adesivo",
+    "stickers_other": "{{count}} adesivi",
+    "remove_confirm": "Rimuovere?",
+    "remove_yes": "Sì",
+    "remove_failed": "Non è stato possibile rimuovere il libro: {{message}}"
+  },
+  "index": {
+    "title": "Galleria dei libri",
+    "subtitle": "Storie fantastiche scritte da bambini e bambine come te!",
+    "loading": "Carico storie fantastiche...",
+    "empty_title": "La galleria sta per aprire!",
+    "empty_body": "Pubblica il primo libro e mostralo a tutto il mondo!",
+    "featured_heading": "Storie in evidenza",
+    "recent_heading": "Appena pubblicate",
+    "publish_hint": "Vuoi il tuo libro nella galleria? Pubblicalo dalla pagina di anteprima!"
+  },
+  "view": {
+    "not_found_title": "Libro non trovato",
+    "not_found_body": "Questo libro non si trova. Forse è stato rimosso.",
+    "go_home": "Vai alla home",
+    "back_title": "Torna alla galleria",
+    "back_label": "Galleria",
+    "confirm_remove_title": "Conferma la rimozione dalla galleria",
+    "confirm_remove_label": "Sì, rimuovi",
+    "cancel_remove_title": "Tieni nella galleria",
+    "remove_label": "Rimuovi",
+    "remove_failed": "Rimozione non riuscita: {{message}}",
+    "share_title": "Condividi questo libro",
+    "share": "Condividi",
+    "share_copied": "Link copiato!",
+    "sticker_prompt": "Lascia un adesivo! 🎉",
+    "sticker_count_one": "{{count}} adesivo finora — aggiungine un altro!",
+    "sticker_count_other": "{{count}} adesivi finora — aggiungine un altro!",
+    "sticker_empty": "Tocca un adesivo per fare un complimento a chi ha scritto questa storia!",
+    "own_book_cta": "Vuoi creare anche tu il tuo libro?"
+  },
+  "teacher": {
+    "title": "Pannello insegnante",
+    "subtitle": "Crea un codice classe e condividilo con i tuoi studenti. Quando finiscono un libro, lo consegnano qui.",
+    "create_heading": "Crea una nuova classe",
+    "name_placeholder": "es. 3ª B – maestra Rossi",
+    "create": "Crea",
+    "creating": "Creazione…",
+    "create_failed": "Creazione della classe non riuscita",
+    "your_classes": "Le tue classi",
+    "copy_code": "Copia il codice",
+    "view_books": "Vedi i libri",
+    "empty": "Ancora nessuna classe: creane una qui sopra per iniziare."
+  },
+  "classroom": {
+    "meta_one": "Codice: <code>{{code}}</code> · {{count}} libro consegnato",
+    "meta_other": "Codice: <code>{{code}}</code> · {{count}} libri consegnati",
+    "card_byline_one": "di {{name}} · {{count}} pagina",
+    "card_byline_other": "di {{name}} · {{count}} pagine",
+    "load_failed": "Impossibile caricare la classe",
+    "not_found": "Classe non trovata",
+    "back_to_dashboard": "Torna al pannello insegnante",
+    "empty_title": "Ancora nessun libro.",
+    "empty_body": "Condividi il codice <code>{{code}}</code> con i tuoi studenti."
+  },
+  "submit_to_class": {
+    "title": "Consegna alla classe",
+    "subtitle": "Fai leggere il tuo libro al tuo insegnante",
+    "instruction": "Chiedi il codice classe al tuo insegnante e scrivilo qui sotto.",
+    "code_placeholder": "CODICE CLASSE",
+    "error_missing_code": "Scrivi il codice della classe.",
+    "submit": "Consegna il libro",
+    "submitting": "Invio in corso…",
+    "submit_failed": "Non è stato possibile consegnare il libro",
+    "success_title": "Libro consegnato!",
+    "success_body": "Ora il tuo insegnante può leggere <title>\"{{title}}\"</title> nella galleria della classe."
+  }
+}

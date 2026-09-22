@@ -1,3 +1,6 @@
+import { useTranslation } from 'react-i18next'
+import { formatNumber } from '../../i18n/formats'
+
 const DEFAULT_COLORS = { cover: '#8B5CF6', accent: '#06B6D4', text: '#1E293B' }
 
 /** Shared paper background + decorative rules used by both half pages. */
@@ -30,6 +33,7 @@ function PageNumber({ page, colors }) {
  * (PrintableBook) keeps its own single-page layout.
  */
 export function BookPageIllustration({ page, book }) {
+  const { t } = useTranslation()
   const colors = book.colors ?? DEFAULT_COLORS
   return (
     <Paper colors={colors}>
@@ -44,7 +48,7 @@ export function BookPageIllustration({ page, book }) {
         {page.illustrationData ? (
           <img
             src={page.illustrationData}
-            alt={`Page ${page.pageNumber} illustration`}
+            alt={t('editor:book.page_illustration_alt', { number: formatNumber(page.pageNumber) })}
             className="w-full h-full object-cover"
           />
         ) : (
@@ -71,6 +75,7 @@ export function BookPageIllustration({ page, book }) {
  * so it can breathe at a comfortable reading size.
  */
 export function BookPageText({ page, book }) {
+  const { t } = useTranslation()
   const colors = book.colors ?? DEFAULT_COLORS
   return (
     <Paper colors={colors}>
@@ -79,7 +84,7 @@ export function BookPageText({ page, book }) {
           className="font-body text-lg sm:text-xl leading-relaxed"
           style={{ color: '#2D3748' }}
         >
-          {page.text || <span className="italic opacity-40">This page is blank...</span>}
+          {page.text || <span className="italic opacity-40">{t('editor:book.blank_page')}</span>}
         </p>
       </div>
       <PageNumber page={page} colors={colors} />
@@ -88,6 +93,7 @@ export function BookPageText({ page, book }) {
 }
 
 export default function BookPage({ page, book }) {
+  const { t } = useTranslation()
   const colors = book.colors ?? { cover: '#8B5CF6', accent: '#06B6D4', text: '#1E293B' }
 
   return (
@@ -107,7 +113,7 @@ export default function BookPage({ page, book }) {
         {page.illustrationData ? (
           <img
             src={page.illustrationData}
-            alt={`Page ${page.pageNumber} illustration`}
+            alt={t('editor:book.page_illustration_alt', { number: formatNumber(page.pageNumber) })}
             className="w-full h-full object-cover"
           />
         ) : (
@@ -153,7 +159,7 @@ export default function BookPage({ page, book }) {
           style={{ color: '#2D3748' }}
         >
           {page.text || (
-            <span className="italic opacity-40">This page is blank...</span>
+            <span className="italic opacity-40">{t('editor:book.blank_page')}</span>
           )}
         </p>
       </div>

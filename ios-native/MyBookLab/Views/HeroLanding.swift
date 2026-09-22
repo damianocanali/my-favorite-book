@@ -6,7 +6,12 @@
 import SwiftUI
 
 struct HeroLanding: View {
-    var subtitle: String = "Create your own story in the stars ✨"
+    /// The first line of copy a new user reads. As a `String` this
+    /// default value was invisible to string extraction *and* selected
+    /// `Text`'s verbatim initializer, so it could never be translated.
+    /// Typed as a `LocalizedStringKey` the literal below is what the
+    /// catalog picks up, and any caller-supplied literal is too.
+    var subtitle: LocalizedStringKey = "Create your own story in the stars ✨"
     /// Optional custom CTA action. When nil, the button switches to the
     /// Create tab (used on the Books landing). When provided (e.g. on
     /// the Create tab itself), it runs this instead — typically to

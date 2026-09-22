@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
+import { useTranslation } from 'react-i18next'
 import { useBookStore } from '../../stores/useBookStore'
 import { useBookshelfStore } from '../../stores/useBookshelfStore'
 import { useAccessibilityStore } from '../../stores/useAccessibilityStore'
@@ -12,8 +13,10 @@ import SparkleButton from '../ui/SparkleButton'
 import CoverArtGenerator from './CoverArtGenerator'
 import { Eye } from 'lucide-react'
 import AppLogo from '../ui/AppLogo'
+import { formatNumber } from '../../i18n/formats'
 
 export default function StoryEditor({ onPreview }) {
+  const { t } = useTranslation()
   const book = useBookStore((state) => state.book)
   const currentPageIndex = useBookStore((state) => state.currentPageIndex)
   const getBook = useBookshelfStore((state) => state.getBook)
@@ -51,13 +54,17 @@ export default function StoryEditor({ onPreview }) {
                 {book.title}
               </h2>
               <p className="text-galaxy-text-muted text-xs sm:text-sm font-body">
-                by {book.authorName} — Page {currentPageIndex + 1} of {book.pages.length}
+                {t('editor:header.byline_page', {
+                  author: book.authorName,
+                  page: formatNumber(currentPageIndex + 1),
+                  total: formatNumber(book.pages.length),
+                })}
               </p>
             </div>
           </div>
           <SparkleButton onClick={onPreview} variant="secondary" size="small">
             <span className="flex items-center gap-2">
-              <Eye size={16} /> Preview Book
+              <Eye size={16} /> {t('editor:actions.preview_book')}
             </span>
           </SparkleButton>
         </div>
@@ -83,7 +90,7 @@ export default function StoryEditor({ onPreview }) {
         <div className="flex justify-center mt-8">
           <SparkleButton onClick={onPreview} variant="accent" size="large">
             <span className="flex items-center gap-2">
-              {isEditing ? '✨ Save & Preview My Book!' : '✨ Finish & Preview My Book!'}
+              {isEditing ? t('editor:actions.save_and_preview') : t('editor:actions.finish_and_preview')}
             </span>
           </SparkleButton>
         </div>
@@ -103,13 +110,13 @@ export default function StoryEditor({ onPreview }) {
               {/* Focus mode header */}
               <div className="flex items-center justify-between mb-4">
                 <p className="text-galaxy-text-muted text-sm font-body">
-                  Page {currentPageIndex + 1} — Focus Mode
+                  {t('editor:focus.page_label', { page: formatNumber(currentPageIndex + 1) })}
                 </p>
                 <button
                   onClick={() => setFocusMode(false)}
                   className="text-galaxy-text-muted hover:text-galaxy-text text-xs font-body px-3 py-1 rounded-lg border border-galaxy-text-muted/30 hover:border-galaxy-text-muted/60 transition-colors"
                 >
-                  Exit (Esc)
+                  {t('editor:focus.exit')}
                 </button>
               </div>
               <PageEditor key={`focus-${currentPage.id}`} page={currentPage} />

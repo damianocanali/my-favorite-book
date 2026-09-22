@@ -3,11 +3,13 @@ import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'motion/react'
 import { nanoid } from 'nanoid'
 import { ArrowLeft, Check, Shuffle } from 'lucide-react'
-import { STORY_TEMPLATES, slotsForTemplate } from '../data/storyTemplates'
+import { useTranslation } from 'react-i18next'
+import { STORY_TEMPLATES, slotsForTemplate, localizedTemplate, bankLabel } from '../data/storyTemplates'
 import {
   renderStory, missingSlots, isComplete, progress,
-  validateCustomWord, bankFor, buildBookFromBlanks,
+  validateCustomWord, localizedBank, buildBookFromBlanks,
 } from '../lib/storyBlanks'
+import { formatNumber } from '../i18n/formats'
 import { useBookStore } from '../stores/useBookStore'
 import { useBookshelfStore } from '../stores/useBookshelfStore'
 import { useAuthStore, selectDisplayName } from '../stores/useAuthStore'
@@ -25,7 +27,8 @@ import Mascot from '../components/ui/Mascot'
 
 export default function StoryBlanksPage() {
   const navigate = useNavigate()
-  const [template, setTemplate] = useState(null)
+  const { t, i18n } = useTranslation()
+  const [rawTemplate, setRawTemplate] = useState(null)
   const [picks, setPicks] = useState({})
   const [activeSlot, setActiveSlot] = useState(null)
   const [custom, setCustom] = useState('')
@@ -38,6 +41,15 @@ export default function StoryBlanksPage() {
   const earnBadge = useRewardsStore((s) => s.earnBadge)
   const recordWritingActivity = useRewardsStore((s) => s.recordWritingActivity)
   const fireMilestone = useMilestoneStore((s) => s.fire)
+
+  // Title, blurb and every sentence come from the catalogue, so the blank
+  // parser reads the LOCALISED sentence and the finished book carries
+  // localised prose.
+  const template = useMemo(
+    () => localizedTemplate(rawTemplate),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [rawTemplate, i18n.language]
+  )
 
   const slots = useMemo(() => slotsForTemplate(template), [template])
   const rendered = useMemo(() => renderStory(template, picks), [template, picks])
@@ -60,7 +72,7 @@ export default function StoryBlanksPage() {
   const surpriseMe = () => {
     const next = {}
     for (const slot of slots) {
-      const bank = bankFor(slot, { authorName: displayName })
+      const bank = localizedBank(slot, { authorName: displayName })
       next[slot] = bank.words[Math.floor(Math.random() * bank.words.length)]
     }
     setPicks(next)
@@ -83,8 +95,8 @@ export default function StoryBlanksPage() {
     if (book.pages.length >= 5) earnBadge('five_pages')
     fireMilestone({
       id: `blanks:${book.id}`,
-      title: 'Story complete!',
-      sub: 'Now make it yours',
+      title: t('games:blanks.milestone_title'),
+      sub: t('games:blanks.milestone_sub'),
       mood: 'proud',
     })
     celebrateBig()
@@ -95,50 +107,73 @@ export default function StoryBlanksPage() {
   if (!template) {
     return (
       <div className="max-w-2xl mx-auto px-4 py-8">
-        <button onClick={() => navigate(-1)} className="toolbar-btn mb-6" aria-label="Go back" title="Go back">
-          <ArrowLeft size={15} /> <span className="toolbar-btn__label">Back</span>
+        <button
+          onClick={() => navigate(-1)}
+          className="toolbar-btn mb-6"
+          aria-label={t('games:actions.go_back')}
+          title={t('games:actions.go_back')}
+        >
+          <ArrowLeft size={15} /> <span className="toolbar-btn__label">{t('common:actions.back')}</span>
         </button>
 
         <div className="text-center mb-8">
           <Mascot mood="wave" size={92} className="mx-auto" />
-          <h1 className="font-heading text-3xl font-bold mt-3">Story Blanks</h1>
+          <h1 className="font-heading text-3xl font-bold mt-3">{t('games:blanks.title')}</h1>
           <p className="font-body text-galaxy-text-muted mt-1">
-            Pick a story. Fill in the gaps. It becomes a real book.
+            {t('games:blanks.subtitle')}
           </p>
         </div>
 
         <ul className="grid gap-4 sm:grid-cols-2">
-          {STORY_TEMPLATES.map((t) => (
-            <li key={t.id}>
-              <button
-                onClick={() => { setTemplate(t); setPicks({}) }}
-                className="ios-card w-full text-left transition-transform hover:scale-[1.02] active:scale-[0.99]"
-              >
-                <span className="text-4xl" aria-hidden>{t.emoji}</span>
-                <p className="font-heading text-lg font-bold mt-2">{t.title}</p>
-                <p className="font-body text-sm text-galaxy-text-muted">{t.blurb}</p>
-                <p className="font-body text-xs text-galaxy-text-muted/70 mt-2">
-                  {t.pages.length} pages · {slotsForTemplate(t).length} blanks
-                </p>
-              </button>
-            </li>
-          ))}
+          {STORY_TEMPLATES.map((raw) => {
+            // Localised here too, so the blank count on the card matches the
+            // sentences the child is about to see.
+            const tpl = localizedTemplate(raw)
+            return (
+              <li key={tpl.id}>
+                <button
+                  onClick={() => { setRawTemplate(raw); setPicks({}) }}
+                  className="ios-card w-full text-left transition-transform hover:scale-[1.02] active:scale-[0.99]"
+                >
+                  <span className="text-4xl" aria-hidden>{tpl.emoji}</span>
+                  <p className="font-heading text-lg font-bold mt-2">{tpl.title}</p>
+                  <p className="font-body text-sm text-galaxy-text-muted">{tpl.blurb}</p>
+                  <p className="font-body text-xs text-galaxy-text-muted/70 mt-2">
+                    {t('games:blanks.template_meta', {
+                      pages: formatNumber(tpl.pages.length),
+                      blanks: formatNumber(slotsForTemplate(tpl).length),
+                    })}
+                  </p>
+                </button>
+              </li>
+            )
+          })}
         </ul>
       </div>
     )
   }
 
   // ── The game ───────────────────────────────────────────────────────
-  const bank = activeSlot ? bankFor(activeSlot, { authorName: displayName }) : null
+  const bank = activeSlot ? localizedBank(activeSlot, { authorName: displayName }) : null
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-6">
       <div className="flex items-center gap-2 mb-4">
-        <button onClick={() => setTemplate(null)} className="toolbar-btn" aria-label="Back to stories" title="Back to stories">
-          <ArrowLeft size={15} /> <span className="toolbar-btn__label">Stories</span>
+        <button
+          onClick={() => setRawTemplate(null)}
+          className="toolbar-btn"
+          aria-label={t('games:actions.stories_aria')}
+          title={t('games:actions.stories_aria')}
+        >
+          <ArrowLeft size={15} /> <span className="toolbar-btn__label">{t('games:actions.stories')}</span>
         </button>
-        <button onClick={surpriseMe} className="toolbar-btn toolbar-btn--cyan ml-auto" aria-label="Surprise me: fill every blank at random" title="Surprise me">
-          <Shuffle size={15} /> <span className="toolbar-btn__label">Surprise me</span>
+        <button
+          onClick={surpriseMe}
+          className="toolbar-btn toolbar-btn--cyan ml-auto"
+          aria-label={t('games:blanks.surprise_me_aria')}
+          title={t('games:actions.surprise_me')}
+        >
+          <Shuffle size={15} /> <span className="toolbar-btn__label">{t('games:actions.surprise_me')}</span>
         </button>
       </div>
 
@@ -154,7 +189,9 @@ export default function StoryBlanksPage() {
           />
         </div>
         <p className="font-body text-xs text-galaxy-text-muted mt-1.5" aria-live="polite">
-          {done ? 'All blanks filled!' : `${missingSlots(template, picks).length} blanks to go`}
+          {done
+            ? t('games:blanks.all_filled')
+            : t('games:blanks.blanks_left', { count: missingSlots(template, picks).length })}
         </p>
       </div>
 
@@ -163,8 +200,8 @@ export default function StoryBlanksPage() {
         {template.pages.map((raw, i) => (
           <li key={i} className="ios-card">
             <p className="font-body text-lg leading-relaxed">
-              <span className="text-galaxy-text-muted text-xs mr-2">{i + 1}</span>
-              {renderSentence(raw, picks, setActiveSlot)}
+              <span className="text-galaxy-text-muted text-xs mr-2">{formatNumber(i + 1)}</span>
+              {renderSentence(raw, picks, setActiveSlot, t)}
             </p>
           </li>
         ))}
@@ -180,11 +217,12 @@ export default function StoryBlanksPage() {
             exit={{ y: '100%' }}
             transition={{ type: 'spring', stiffness: 320, damping: 32 }}
             role="dialog"
-            aria-label={`Choose ${bank.label}`}
+            aria-label={t('games:blanks.choose', { bank: bank.label })}
           >
             <div className="max-w-2xl mx-auto">
               <p className="font-heading font-bold mb-3">
-                <span aria-hidden>{bank.emoji}</span> Choose {bank.label}
+                <span aria-hidden>{bank.emoji}</span>{' '}
+                {t('games:blanks.choose', { bank: bank.label })}
               </p>
               <div className="flex flex-wrap gap-2">
                 {bank.words.map((w) => (
@@ -201,7 +239,7 @@ export default function StoryBlanksPage() {
               {bank.allowCustom && (
                 <div className="mt-4">
                   <label className="font-body text-xs text-galaxy-text-muted" htmlFor="custom-word">
-                    …or type your own
+                    {t('games:blanks.type_your_own')}
                   </label>
                   <div className="flex gap-2 mt-1">
                     <input
@@ -210,10 +248,15 @@ export default function StoryBlanksPage() {
                       onChange={(e) => { setCustom(e.target.value); setCustomError(null) }}
                       onKeyDown={(e) => e.key === 'Enter' && submitCustom(activeSlot)}
                       className="flex-1 rounded-xl glass-recessed px-3 py-2 font-body text-sm outline-none"
-                      placeholder="Your word"
+                      placeholder={t('games:blanks.your_word_placeholder')}
                       maxLength={24}
                     />
-                    <button onClick={() => submitCustom(activeSlot)} className="toolbar-btn toolbar-btn--primary" aria-label="Use this word" title="Use this word">
+                    <button
+                      onClick={() => submitCustom(activeSlot)}
+                      className="toolbar-btn toolbar-btn--primary"
+                      aria-label={t('games:blanks.use_this_word')}
+                      title={t('games:blanks.use_this_word')}
+                    >
                       <Check size={15} />
                     </button>
                   </div>
@@ -227,7 +270,7 @@ export default function StoryBlanksPage() {
                 onClick={() => setActiveSlot(null)}
                 className="mt-4 w-full py-2 font-body text-sm text-galaxy-text-muted"
               >
-                Close
+                {t('common:actions.close')}
               </button>
             </div>
           </motion.div>
@@ -236,7 +279,7 @@ export default function StoryBlanksPage() {
 
       <div className="mt-8 mb-24">
         <SparkleButton onClick={finish} disabled={!done || saving}>
-          {done ? 'Make my book' : 'Fill every blank to finish'}
+          {done ? t('games:actions.make_my_book') : t('games:blanks.finish_hint')}
         </SparkleButton>
       </div>
 
@@ -252,7 +295,7 @@ export default function StoryBlanksPage() {
  * A filled blank stays tappable so a child can change their mind — the
  * commonest thing a 5-year-old wants to do right after choosing.
  */
-function renderSentence(raw, picks, onPick) {
+function renderSentence(raw, picks, onPick, t) {
   const parts = []
   let last = 0
   for (const m of raw.matchAll(/\{([a-z]+)\}/g)) {
@@ -268,7 +311,11 @@ function renderSentence(raw, picks, onPick) {
             ? 'mx-0.5 rounded-lg bg-[#FFD60A]/20 px-2 py-0.5 font-bold text-[#FFE68A] underline decoration-dotted underline-offset-4'
             : 'mx-0.5 rounded-lg bg-white/10 px-4 py-0.5 font-bold text-galaxy-text-muted underline decoration-dashed underline-offset-4'
         }
-        aria-label={value ? `${key}: ${value}. Change it` : `Empty blank for ${key}. Choose a word`}
+        aria-label={
+          value
+            ? t('games:blanks.blank_filled_aria', { slot: bankLabel(key), value })
+            : t('games:blanks.blank_empty_aria', { slot: bankLabel(key) })
+        }
       >
         {value || '_____'}
       </button>

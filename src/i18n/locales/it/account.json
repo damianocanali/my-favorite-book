@@ -1,0 +1,111 @@
+{
+  "name": {
+    "placeholder": "Il tuo nome",
+    "edit": "Modifica nome",
+    "error_generic": "Non è stato possibile aggiornare il nome"
+  },
+  "streak": {
+    "title": "Serie di scrittura",
+    "days_one": "{{count}} giorno di fila",
+    "days_other": "{{count}} giorni di fila",
+    "keep_going_one": "Scrivi un po' ogni giorno per non perdere la serie! Record: {{best}}",
+    "keep_going_other": "Scrivi un po' ogni giorno per non perdere la serie! Record: {{best}}",
+    "empty": "Scrivi qualcosa oggi e inizia la tua serie!"
+  },
+  "badges": {
+    "tooltip": "{{label}} — {{description}}"
+  },
+  "profile": {
+    "title": "Profilo",
+    "customize_avatar": "Personalizza il mio avatar"
+  },
+  "language": {
+    "title": "Lingua"
+  },
+  "subscription": {
+    "title": "Abbonamento",
+    "current_plan": "Piano attuale: <plan>{{name}}</plan>",
+    "native_manage": "Puoi gestire o disdire l'abbonamento in <path>Impostazioni → [nome] → Abbonamenti</path>.",
+    "opening_portal": "Apertura del portale…",
+    "manage": "Gestisci abbonamento",
+    "portal_hint": "Aggiorna il metodo di pagamento, cambia piano o disdici quando vuoi dal portale sicuro di Stripe.",
+    "portal_open_failed": "Impossibile aprire il portale pagamenti ({{status}})",
+    "portal_error_generic": "Non è stato possibile aprire il portale pagamenti. Riprova."
+  },
+  "session": {
+    "title": "Sessione",
+    "sign_out": "Esci"
+  },
+  "danger": {
+    "title": "Zona pericolosa",
+    "description_one": "Elimina il tuo account e tutti i tuoi libri. Hai {{count}} giorno per cambiare idea prima che l'eliminazione diventi definitiva.",
+    "description_other": "Elimina il tuo account e tutti i tuoi libri. Hai {{count}} giorni per cambiare idea prima che l'eliminazione diventi definitiva.",
+    "delete_button": "Elimina il mio account",
+    "confirm_title": "Confermi l'eliminazione?",
+    "confirm_body_one": "Il tuo account, tutti i tuoi libri e l'eventuale abbonamento attivo verranno eliminati tra {{count}} giorno. Entro quel termine puoi ancora cambiare idea.",
+    "confirm_body_other": "Il tuo account, tutti i tuoi libri e l'eventuale abbonamento attivo verranno eliminati tra {{count}} giorni. Entro quel termine puoi ancora cambiare idea.",
+    "scheduling": "Sto programmando…",
+    "confirm_button": "Programma eliminazione",
+    "scheduled_on": "L'eliminazione del tuo account è programmata per il {{date}}. Puoi ancora cambiare idea fino ad allora: prima di quella data non viene rimosso nulla.",
+    "scheduled_in_days_one": "L'eliminazione del tuo account è programmata tra {{count}} giorno. Puoi ancora cambiare idea entro quel termine: fino ad allora non viene rimosso nulla.",
+    "scheduled_in_days_other": "L'eliminazione del tuo account è programmata tra {{count}} giorni. Puoi ancora cambiare idea entro quel termine: fino ad allora non viene rimosso nulla.",
+    "schedule_failed": "Non è stato possibile programmare l'eliminazione",
+    "error_generic": "Qualcosa è andato storto. Riprova."
+  },
+  "errors": {
+    "network": "Errore di rete: {{message}}",
+    "server": "Errore del server: {{status}}"
+  },
+  "avatar": {
+    "title": "Il mio avatar",
+    "subtitle": "Costruisci il tuo avatar e poi dagli vita con l'AI!",
+    "image_alt": "Il mio avatar",
+    "generating": "Creazione...",
+    "regenerate": "Rifai",
+    "regenerate_cost_one": "Rifai ({{count}} moneta)",
+    "regenerate_cost_other": "Rifai ({{count}} monete)",
+    "create_cta": "Crea il mio avatar!",
+    "free_generations_left_one": "Ti resta {{count}} creazione gratis oggi",
+    "free_generations_left_other": "Ti restano {{count}} creazioni gratis oggi",
+    "coins_suffix": "monete",
+    "get_more_coins": "Prendi altre monete",
+    "badges_button": "Le mie medaglie ({{earned}}/{{total}})",
+    "photo": {
+      "cta": "Usa la mia foto",
+      "hint": "Scatta una foto e la trasformiamo in un simpatico personaggio dei cartoni animati. La tua foto non viene salvata."
+    },
+    "art_style": {
+      "title": "Stile"
+    },
+    "features": {
+      "skin_tone": "Colore pelle",
+      "hair_style": "Capelli",
+      "hair_color": "Colore capelli",
+      "clothing": "Vestiti",
+      "hat": "Cappello",
+      "accessory": "Accessori",
+      "expression": "Espressione"
+    },
+    "coin_shop": {
+      "title": "Pacchetti di monete",
+      "pack_one": "{{count}} moneta",
+      "pack_other": "{{count}} monete",
+      "best_value": "PIÙ CONVENIENTE",
+      "loading": "Caricamento...",
+      "earn_hint": "Guadagna monete gratis conquistando le medaglie!"
+    },
+    "upgrade": {
+      "title": "Vuoi avatar illimitati?",
+      "body": "Il piano Famiglia include 5 creazioni gratis al giorno, libri illimitati ed esportazione in PDF.",
+      "cta": "Vedi i piani"
+    },
+    "errors": {
+      "not_enough_coins_regen_one": "Non hai abbastanza monete! Ti serve {{count}} moneta per rifare l'avatar.",
+      "not_enough_coins_regen_other": "Non hai abbastanza monete! Ti servono {{count}} monete per rifare l'avatar.",
+      "not_enough_coins_photo_one": "Non hai abbastanza monete! Ti serve {{count}} moneta per creare l'avatar dalla foto.",
+      "not_enough_coins_photo_other": "Non hai abbastanza monete! Ti servono {{count}} monete per creare l'avatar dalla foto.",
+      "generate_failed": "Non è stato possibile creare l'avatar",
+      "cartoonify_failed": "Non è stato possibile trasformare la foto"
+    }
+  }
+}

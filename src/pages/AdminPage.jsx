@@ -2,7 +2,35 @@
 // against VITE_OWNER_USER_ID. Server-side gating in /api/admin/usage is
 // the actual security boundary; this client-side check just avoids
 // rendering chrome the user can't read anyway.
+//
+// NOT TRANSLATED, DELIBERATELY — and the line is drawn at the owner gate.
+//
+// Everything below `if (!isOwner)` renders for exactly one account: the
+// UUID in VITE_OWNER_USER_ID, i.e. the person who maintains this file. It
+// has no user audience to translate *for*. Its copy is also operator
+// jargon and vendor nouns — "Anthropic", "Together AI", "FLUX images",
+// "Claude API", "API calls", and a pointer at `api/_usage.js` — so most
+// of it would survive translation unchanged anyway; the genuinely
+// translatable surface is about six words. Extracting it would put ~20
+// keys of billing jargon in front of a translator forever, and re-churn
+// them every time a metric is added, to serve nobody. ErrorBoundary sets
+// the precedent for a documented English island in this codebase.
+//
+// Two consequences follow from that choice, on purpose:
+//   - fmt() keeps hand-building "$x.xx" instead of going through
+//     formatMoneyCents(). That helper follows the *active UI locale*, so
+//     on an it-IT browser it would render "12,34 $" inside otherwise
+//     English chrome. A single-locale screen wants a single-locale
+//     number. Costs here are USD provider invoices, never user-facing
+//     prices — every price a customer sees does go through the helper.
+//   - The one string a non-owner can actually reach — the "Not found."
+//     camouflage rendered for everyone else — IS translated, because that
+//     one does have real users: any signed-in visitor who guesses /admin.
+//
+// If this page ever grows a second reader (a support or teacher-admin
+// role), that reasoning expires and it should be extracted in full.
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Loader2, RefreshCw, AlertCircle } from 'lucide-react'
 import { useAuthStore } from '../stores/useAuthStore'
 import { apiFetchAuthed } from '../lib/api'
@@ -26,6 +54,7 @@ function fmt(cents) {
 }
 
 export default function AdminPage() {
+  const { t } = useTranslation()
   const user = useAuthStore((s) => s.user)
   const authLoading = useAuthStore((s) => s.loading)
   const [windowDays, setWindowDays] = useState(30)
@@ -68,7 +97,7 @@ export default function AdminPage() {
   if (!isOwner) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="text-galaxy-text-muted font-body">Not found.</p>
+        <p className="text-galaxy-text-muted font-body">{t('common:state.not_found')}</p>
       </div>
     )
   }

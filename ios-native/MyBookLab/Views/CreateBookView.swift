@@ -40,7 +40,7 @@ struct CreateBookView: View {
                     }
                 }
             }
-            .navigationTitle(draft.book == nil ? "" : navTitle)
+            .navigationTitle(draft.book == nil ? Text(verbatim: "") : Text(navTitle))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 if draft.book != nil {
@@ -77,7 +77,15 @@ struct CreateBookView: View {
         }
     }
 
-    private var navTitle: String {
+    /// The seven wizard headers.
+    ///
+    /// Returning `String` meant `Text(navTitle)` resolved to the verbatim
+    /// initializer and none of these seven headers ever reached the
+    /// catalog — the whole spine of the create flow stayed English. As a
+    /// `LocalizedStringKey` each literal below is a key the build
+    /// extracts, and the navigation bar localizes with no call-site
+    /// change beyond wrapping it in `Text`.
+    private var navTitle: LocalizedStringKey {
         guard draft.book != nil else { return "Create a Book" }
         switch draft.step {
         case 1: return "Your character"
@@ -230,7 +238,12 @@ private struct AuthorIntroStep: View {
 
     /// "Hi, Damiano!" when we know who they are; otherwise the
     /// generic "Hi, storyteller!" fallback.
-    private var greeting: String {
+    ///
+    /// `LocalizedStringKey`, not `String`: the interpolated form becomes
+    /// the single key "Hi, %@!", so a translator gets a whole greeting
+    /// and can put the name wherever their language wants it — and both
+    /// branches become catalog entries instead of baked-in English.
+    private var greeting: LocalizedStringKey {
         if let dn = auth.displayName, !dn.isEmpty {
             return "Hi, \(dn)!"
         }
@@ -252,7 +265,11 @@ private struct CharacterStep: View {
     @State private var showPhotoPicker = false
     @State private var showParentalGate = false
     @State private var generatingHero = false
-    @State private var heroError: String?
+    // App-authored copy that gets rendered, so `LocalizedStringResource`
+    // rather than `String` — `Text(String?)` would quietly opt the whole
+    // error out of localization. The one message that wraps a network
+    // failure keeps iOS's already-localized reason as an argument.
+    @State private var heroError: LocalizedStringResource?
 
     private let emojiOptions: [String] = [
         // Animals
@@ -389,7 +406,12 @@ private struct CharacterStep: View {
             } label: {
                 HStack(spacing: 6) {
                     Image(systemName: "camera.fill")
-                    Text(heroImage == nil ? "Turn a photo into your hero" : "Change hero photo")
+                    // Ternary between two `Text`s, not between two bare
+                    // literals: the literal has to sit directly inside a
+                    // localizing initializer to be extracted.
+                    heroImage == nil
+                        ? Text("Turn a photo into your hero")
+                        : Text("Change hero photo")
                 }
                 .font(.callout.bold())
                 .foregroundStyle(.yellow)
@@ -412,12 +434,18 @@ private struct CharacterStep: View {
         do {
             guard let data = try await item.loadTransferable(type: Data.self),
                   let original = UIImage(data: data) else {
-                heroError = "Couldn't read that photo."
+                heroError = LocalizedStringResource(
+                    "create.hero.error.unreadable_photo",
+                    defaultValue: "Couldn't read that photo.",
+                    comment: "Shown when the picked photo can't be decoded")
                 return
             }
             let resized = original.resizedSquare(to: 768)
             guard let jpeg = resized.jpegData(compressionQuality: 0.85) else {
-                heroError = "Couldn't process that photo."
+                heroError = LocalizedStringResource(
+                    "create.hero.error.unprocessable_photo",
+                    defaultValue: "Couldn't process that photo.",
+                    comment: "Shown when the picked photo can't be re-encoded for upload")
                 return
             }
             let dataUrl = "data:image/jpeg;base64,\(jpeg.base64EncodedString())"
@@ -428,7 +456,10 @@ private struct CharacterStep: View {
             heroImage = res.image
             Haptics.celebrate()
         } catch {
-            heroError = "Couldn't create your hero: \(error.localizedDescription)"
+            heroError = LocalizedStringResource(
+                "create.hero.error.generation_failed",
+                defaultValue: "Couldn't create your hero: \(error.localizedDescription)",
+                comment: "%@ is the underlying network/server error, already localized by iOS")
         }
     }
 
@@ -445,13 +476,60 @@ private struct SettingStep: View {
     @Binding var draft: BookDraftStore
     @State private var selectedIndex: Int = 0
 
-    private let presets: [(name: String, emoji: String, description: String)] = [
-        ("The Glowing Forest", "🌲", "A magical forest where stars come down at night."),
-        ("The Cloud Kingdom", "☁️", "A floating land high above the world."),
-        ("The Coral City", "🐠", "An underwater city of bright coral towers."),
-        ("The Cookie Planet", "🍪", "A planet made of every dessert imaginable."),
-        ("The Snow Castle", "🏰", "A castle of ice and silver moonlight."),
-        ("The Dinosaur Valley", "🦕", "A hidden valley where dinosaurs still play."),
+    /// The six worlds, each carrying two versions of its text.
+    ///
+    /// `name` and `description` are what get written onto the saved
+    /// `BookSetting` and spliced into the FLUX image prompt — data, not
+    /// copy, and they must stay English or the illustrations change
+    /// meaning with the device language. `title` and `blurb` are the
+    /// display text; as plain `String`s they went through `Text`'s
+    /// verbatim initializer and never reached the catalog, so they are
+    /// keyed resources now. The duplication is the point: it is what
+    /// keeps the wire value and the shown value free to diverge.
+    private let presets: [(name: String, emoji: String, description: String,
+                           title: LocalizedStringResource, blurb: LocalizedStringResource)] = [
+        ("The Glowing Forest", "🌲", "A magical forest where stars come down at night.",
+         LocalizedStringResource("create.setting.glowing_forest.title",
+                                 defaultValue: "The Glowing Forest",
+                                 comment: "Name of a story world a child can pick"),
+         LocalizedStringResource("create.setting.glowing_forest.blurb",
+                                 defaultValue: "A magical forest where stars come down at night.",
+                                 comment: "One-line description of the Glowing Forest world")),
+        ("The Cloud Kingdom", "☁️", "A floating land high above the world.",
+         LocalizedStringResource("create.setting.cloud_kingdom.title",
+                                 defaultValue: "The Cloud Kingdom",
+                                 comment: "Name of a story world a child can pick"),
+         LocalizedStringResource("create.setting.cloud_kingdom.blurb",
+                                 defaultValue: "A floating land high above the world.",
+                                 comment: "One-line description of the Cloud Kingdom world")),
+        ("The Coral City", "🐠", "An underwater city of bright coral towers.",
+         LocalizedStringResource("create.setting.coral_city.title",
+                                 defaultValue: "The Coral City",
+                                 comment: "Name of a story world a child can pick"),
+         LocalizedStringResource("create.setting.coral_city.blurb",
+                                 defaultValue: "An underwater city of bright coral towers.",
+                                 comment: "One-line description of the Coral City world")),
+        ("The Cookie Planet", "🍪", "A planet made of every dessert imaginable.",
+         LocalizedStringResource("create.setting.cookie_planet.title",
+                                 defaultValue: "The Cookie Planet",
+                                 comment: "Name of a story world a child can pick"),
+         LocalizedStringResource("create.setting.cookie_planet.blurb",
+                                 defaultValue: "A planet made of every dessert imaginable.",
+                                 comment: "One-line description of the Cookie Planet world")),
+        ("The Snow Castle", "🏰", "A castle of ice and silver moonlight.",
+         LocalizedStringResource("create.setting.snow_castle.title",
+                                 defaultValue: "The Snow Castle",
+                                 comment: "Name of a story world a child can pick"),
+         LocalizedStringResource("create.setting.snow_castle.blurb",
+                                 defaultValue: "A castle of ice and silver moonlight.",
+                                 comment: "One-line description of the Snow Castle world")),
+        ("The Dinosaur Valley", "🦕", "A hidden valley where dinosaurs still play.",
+         LocalizedStringResource("create.setting.dinosaur_valley.title",
+                                 defaultValue: "The Dinosaur Valley",
+                                 comment: "Name of a story world a child can pick"),
+         LocalizedStringResource("create.setting.dinosaur_valley.blurb",
+                                 defaultValue: "A hidden valley where dinosaurs still play.",
+                                 comment: "One-line description of the Dinosaur Valley world")),
     ]
 
     var body: some View {
@@ -472,8 +550,8 @@ private struct SettingStep: View {
                             HStack(spacing: 14) {
                                 Text(p.emoji).font(.system(size: 32))
                                 VStack(alignment: .leading, spacing: 2) {
-                                    Text(p.name).font(.headline).foregroundStyle(.white)
-                                    Text(p.description).font(.caption).foregroundStyle(.white.opacity(0.7))
+                                    Text(p.title).font(.headline).foregroundStyle(.white)
+                                    Text(p.blurb).font(.caption).foregroundStyle(.white.opacity(0.7))
                                 }
                                 Spacer()
                                 if selectedIndex == i {
@@ -567,7 +645,8 @@ private struct PagesStep: View {
     @Environment(\.horizontalSizeClass) private var hSize
     @State private var currentIndex: Int = 0
     @State private var generatingIllustration = false
-    @State private var generationError: String?
+    // App-authored copy that gets rendered — see `heroError` above.
+    @State private var generationError: LocalizedStringResource?
     @State private var showStoryBuddy = false
     @State private var showDrawing = false
     @State private var savingDrawing = false
@@ -643,7 +722,7 @@ private struct PagesStep: View {
                             } else {
                                 Image(systemName: "pencil.and.outline")
                             }
-                            Text(savingDrawing ? "Saving…" : "Draw")
+                            savingDrawing ? Text("Saving…") : Text("Draw")
                         }
                         .frame(maxWidth: .infinity)
                         .padding(12)
@@ -661,7 +740,7 @@ private struct PagesStep: View {
                             } else {
                                 Image(systemName: "wand.and.stars")
                             }
-                            Text(generatingIllustration ? "Making…" : "Illustrate")
+                            generatingIllustration ? Text("Making…") : Text("Illustrate")
                         }
                         .frame(maxWidth: .infinity)
                         .padding(12)
@@ -841,7 +920,10 @@ private struct PagesStep: View {
             Haptics.celebrate()
             await RewardsStore.shared.earn("added_illustration")
         } catch {
-            generationError = "Couldn't save your drawing: \(error.localizedDescription)"
+            generationError = LocalizedStringResource(
+                "create.page.error.drawing_save_failed",
+                defaultValue: "Couldn't save your drawing: \(error.localizedDescription)",
+                comment: "%@ is the underlying upload error, already localized by iOS")
         }
     }
 
@@ -868,7 +950,10 @@ private struct PagesStep: View {
             AudioService.shared.playSFX(.sparkle)
             await RewardsStore.shared.earn("added_illustration")
         } catch {
-            generationError = "Couldn't generate illustration: \(error.localizedDescription)"
+            generationError = LocalizedStringResource(
+                "create.page.error.illustration_failed",
+                defaultValue: "Couldn't generate illustration: \(error.localizedDescription)",
+                comment: "%@ is the underlying network/server error, already localized by iOS")
         }
     }
 
@@ -896,7 +981,8 @@ private struct ReadyStep: View {
     @Environment(\.horizontalSizeClass) private var hSize
     @State private var confettiTrigger = 0
     @State private var generatingCover = false
-    @State private var coverError: String?
+    // App-authored copy that gets rendered — see `heroError` above.
+    @State private var coverError: LocalizedStringResource?
 
     var body: some View {
         ScrollView {
@@ -939,8 +1025,13 @@ private struct ReadyStep: View {
                     HStack(spacing: 8) {
                         if generatingCover { ProgressView().tint(.white) }
                         else { Image(systemName: "wand.and.stars") }
-                        Text(generatingCover ? "Painting cover…"
-                             : (draft.book?.coverImage == nil ? "Generate AI cover" : "Regenerate cover"))
+                        if generatingCover {
+                            Text("Painting cover…")
+                        } else if draft.book?.coverImage == nil {
+                            Text("Generate AI cover")
+                        } else {
+                            Text("Regenerate cover")
+                        }
                     }
                 }
                 .disabled(generatingCover)
@@ -1027,7 +1118,10 @@ private struct ReadyStep: View {
             b.coverImage = res.image
             draft.book = b
         } catch {
-            coverError = "Couldn't paint the cover: \(error.localizedDescription)"
+            coverError = LocalizedStringResource(
+                "create.cover.error.generation_failed",
+                defaultValue: "Couldn't paint the cover: \(error.localizedDescription)",
+                comment: "%@ is the underlying network/server error, already localized by iOS")
         }
     }
 }

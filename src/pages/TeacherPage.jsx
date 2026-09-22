@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { motion, AnimatePresence } from 'motion/react'
 import { GraduationCap, Plus, ExternalLink, Copy, Check, LogOut } from 'lucide-react'
 import SparkleButton from '../components/ui/SparkleButton'
@@ -24,6 +25,7 @@ function saveClass(entry) {
 
 export default function TeacherPage() {
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const user = useAuthStore((s) => s.user)
   const signOut = useAuthStore((s) => s.signOut)
   const [className, setClassName] = useState('')
@@ -43,7 +45,7 @@ export default function TeacherPage() {
         body: JSON.stringify({ name: className.trim() }),
       })
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Failed to create class')
+      if (!res.ok) throw new Error(data.error || t('gallery:teacher.create_failed'))
       const entry = { code: data.code, name: data.name, createdAt: new Date().toISOString() }
       saveClass(entry)
       setSavedClasses(loadSavedClasses())
@@ -71,9 +73,9 @@ export default function TeacherPage() {
         <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-galaxy-secondary/20 flex items-center justify-center">
           <GraduationCap size={40} className="text-galaxy-secondary" />
         </div>
-        <h1 className="font-heading text-3xl font-bold text-galaxy-text mb-2">Teacher Dashboard</h1>
+        <h1 className="font-heading text-3xl font-bold text-galaxy-text mb-2">{t('gallery:teacher.title')}</h1>
         <p className="text-galaxy-text-muted font-body">
-          Create a class code and share it with your students. When they finish a book, they'll submit it here.
+          {t('gallery:teacher.subtitle')}
         </p>
         {user && (
           <div className="flex items-center justify-center gap-3 mt-3">
@@ -82,7 +84,7 @@ export default function TeacherPage() {
               onClick={async () => { await signOut(); navigate('/') }}
               className="flex items-center gap-1 text-galaxy-text-muted hover:text-galaxy-text text-sm font-body transition-colors"
             >
-              <LogOut size={13} /> Sign out
+              <LogOut size={13} /> {t('common:actions.sign_out')}
             </button>
           </div>
         )}
@@ -95,21 +97,21 @@ export default function TeacherPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
       >
-        <h2 className="font-heading text-lg font-bold text-galaxy-text mb-4">Create a New Class</h2>
+        <h2 className="font-heading text-lg font-bold text-galaxy-text mb-4">{t('gallery:teacher.create_heading')}</h2>
         <div className="flex gap-3">
           <input
             type="text"
             value={className}
             onChange={(e) => setClassName(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
-            placeholder="e.g. Mrs. Rivera's 3rd Grade"
+            placeholder={t('gallery:teacher.name_placeholder')}
             maxLength={60}
             className="flex-1 px-4 py-3 bg-galaxy-bg border border-galaxy-secondary/30 rounded-xl text-galaxy-text placeholder:text-galaxy-text-muted/50 focus:border-galaxy-secondary focus:outline-none font-body"
           />
           <SparkleButton onClick={handleCreate} disabled={!className.trim() || loading} size="small">
             <span className="flex items-center gap-1">
               <Plus size={16} />
-              {loading ? 'Creating…' : 'Create'}
+              {loading ? t('gallery:teacher.creating') : t('gallery:teacher.create')}
             </span>
           </SparkleButton>
         </div>
@@ -125,7 +127,7 @@ export default function TeacherPage() {
       {/* Saved classes */}
       {savedClasses.length > 0 && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}>
-          <h2 className="font-heading text-lg font-bold text-galaxy-text mb-3">Your Classes</h2>
+          <h2 className="font-heading text-lg font-bold text-galaxy-text mb-3">{t('gallery:teacher.your_classes')}</h2>
           <div className="space-y-3">
             {savedClasses.map((cls) => (
               <div
@@ -141,7 +143,7 @@ export default function TeacherPage() {
                     <button
                       onClick={() => handleCopy(cls.code)}
                       className="text-galaxy-text-muted hover:text-galaxy-secondary transition-colors"
-                      title="Copy code"
+                      title={t('gallery:teacher.copy_code')}
                     >
                       {copiedCode === cls.code ? <Check size={14} /> : <Copy size={14} />}
                     </button>
@@ -151,7 +153,7 @@ export default function TeacherPage() {
                   onClick={() => navigate(`/classroom/${cls.code}`)}
                   className="flex items-center gap-1.5 px-4 py-2 rounded-xl font-body font-semibold text-sm text-galaxy-secondary border border-galaxy-secondary/40 hover:bg-galaxy-secondary/10 transition-colors"
                 >
-                  View Books <ExternalLink size={14} />
+                  {t('gallery:teacher.view_books')} <ExternalLink size={14} />
                 </button>
               </div>
             ))}
@@ -161,7 +163,7 @@ export default function TeacherPage() {
 
       {savedClasses.length === 0 && (
         <p className="text-center text-galaxy-text-muted font-body text-sm mt-4">
-          No classes yet — create one above to get started.
+          {t('gallery:teacher.empty')}
         </p>
       )}
     </div>

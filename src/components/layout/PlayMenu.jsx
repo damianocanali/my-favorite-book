@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { motion, AnimatePresence } from 'motion/react'
 import { Gamepad2 } from 'lucide-react'
 
@@ -11,13 +12,16 @@ import { Gamepad2 } from 'lucide-react'
 // Pricing, mute and the account block — three more items overflow a
 // 430px phone.
 
+// Keys rather than literals: ITEMS is module-level, so both strings have to
+// be resolved at render time to follow a locale switch.
 const ITEMS = [
-  { to: '/blanks', emoji: '🧩', label: 'Story Blanks', hint: 'Fill in the gaps' },
-  { to: '/build', emoji: '🧲', label: 'Story Builder', hint: 'Drag pictures into a story' },
-  { to: '/example', emoji: '📖', label: 'See an Example', hint: 'A finished book' },
+  { to: '/blanks', emoji: '🧩', labelKey: 'nav:play.blanks_title', hintKey: 'nav:play.blanks_hint' },
+  { to: '/build', emoji: '🧲', labelKey: 'nav:play.builder_title', hintKey: 'nav:play.builder_hint' },
+  { to: '/example', emoji: '📖', labelKey: 'nav:play.example_title', hintKey: 'nav:play.example_hint' },
 ]
 
 export default function PlayMenu({ linkClass }) {
+  const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   const wrapRef = useRef(null)
   const location = useLocation()
@@ -48,17 +52,17 @@ export default function PlayMenu({ linkClass }) {
         className={linkClass(active || open)}
         aria-haspopup="menu"
         aria-expanded={open}
-        aria-label="Play: games and example book"
+        aria-label={t('nav:play.trigger_label')}
       >
         <Gamepad2 size={18} />
-        <span className="hidden font-body text-sm font-semibold sm:inline">Play</span>
+        <span className="hidden font-body text-sm font-semibold sm:inline">{t('nav:play.trigger')}</span>
       </button>
 
       <AnimatePresence>
         {open && (
           <motion.div
             role="menu"
-            aria-label="Games"
+            aria-label={t('nav:play.menu_label')}
             className="absolute right-0 top-[calc(100%+8px)] z-30 w-64 overflow-hidden rounded-2xl border border-white/15 ios-material shadow-glow-modal"
             initial={{ opacity: 0, y: -8, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -74,8 +78,8 @@ export default function PlayMenu({ linkClass }) {
               >
                 <span className="text-2xl leading-none" aria-hidden>{item.emoji}</span>
                 <span className="min-w-0">
-                  <span className="block font-heading text-sm font-bold text-white">{item.label}</span>
-                  <span className="block font-body text-xs text-white/55">{item.hint}</span>
+                  <span className="block font-heading text-sm font-bold text-white">{t(item.labelKey)}</span>
+                  <span className="block font-body text-xs text-white/55">{t(item.hintKey)}</span>
                 </span>
               </Link>
             ))}

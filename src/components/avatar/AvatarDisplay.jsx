@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { useAvatarStore } from '../../stores/useAvatarStore'
 
 /**
@@ -5,6 +6,7 @@ import { useAvatarStore } from '../../stores/useAvatarStore'
  * Shows AI-generated image if available, falls back to initials placeholder.
  */
 export default function AvatarDisplay({ size = 120, mini = false, className = '' }) {
+  const { t } = useTranslation()
   const avatarImage = useAvatarStore((s) => s.avatarImage)
   const features = useAvatarStore((s) => s.features)
 
@@ -16,7 +18,7 @@ export default function AvatarDisplay({ size = 120, mini = false, className = ''
       >
         <img
           src={avatarImage}
-          alt="My avatar"
+          alt={t('account:avatar.image_alt')}
           className="w-full h-full object-cover"
         />
       </div>

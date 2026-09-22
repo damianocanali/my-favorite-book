@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
-import { motion, AnimatePresence } from 'motion/react'
+import { createPortal } from 'react-dom'
+import { motion } from 'motion/react'
+import { useTranslation } from 'react-i18next'
 import { useAuthStore, selectDisplayName } from '../../stores/useAuthStore'
 import { useRewardsStore } from '../../stores/useRewardsStore'
 import { useAvatarStore } from '../../stores/useAvatarStore'
@@ -19,6 +21,7 @@ const SESSION_KEY = 'mbl-welcomed-this-session'
 const HOLD_MS = 4200
 
 export default function WelcomeBackMoment() {
+  const { t } = useTranslation()
   const user = useAuthStore((s) => s.user)
   const displayName = useAuthStore(selectDisplayName)
   const currentStreak = useRewardsStore((s) => s.currentStreak)
@@ -81,45 +84,58 @@ export default function WelcomeBackMoment() {
     <>
       <GameBanner
         show={open}
-        text="Welcome back!"
-        sub={displayName ? `Good to see you, ${displayName}` : undefined}
+        text={t('common:welcome_back.banner')}
+        sub={displayName ? t('common:welcome_back.greeting', { name: displayName }) : undefined}
       />
 
-      <AnimatePresence>
-        {open && (
+      {/* Portalled into <body>, and removed synchronously with `open`.
+          Both matter, and both were the bug:
+
+          AppShell puts page content inside `<main className="relative
+          z-10">`, a stacking context — so z-[65] here could never beat
+          the header (z-20) or tab bar (z-40). The film darkened the page
+          while the bars stayed bright above it.
+
+          And removal used to be delegated to AnimatePresence waiting on
+          `exit={{opacity:0}}`. If that exit was ever interrupted the
+          element stayed mounted forever, and every escape hatch was a
+          no-op: they all call setOpen(false) on state that is ALREADY
+          false, so React bails out and AnimatePresence is never
+          re-notified. Losing the 300ms fade-out is the price of a layer
+          that cannot strand. */}
+      {open && createPortal(
           <motion.button
             type="button"
-            aria-label="Dismiss"
+            aria-label={t('common:actions.dismiss')}
             onClick={() => setOpen(false)}
             className="fixed inset-0 z-[65] flex cursor-pointer flex-col items-center justify-center gap-5 bg-black/55 px-6 pt-40 backdrop-blur-sm"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
           >
             <Mascot mood="welcome" size={128} />
 
             <div className="flex items-center gap-3">
-              <StatPill icon="🔥" value={currentStreak} label="Day streak" tone="flame" />
-              <StatPill icon="🪙" value={coins} label="Coins" />
+              <StatPill icon="🔥" value={currentStreak} label={t('common:units.day_streak')} tone="flame" />
+              <StatPill icon="🪙" value={coins} label={t('common:units.coins')} />
             </div>
 
             <p className="font-body text-sm text-white/70">
               {currentStreak > 0
-                ? `Write today to reach day ${currentStreak + 1}!`
-                : 'Write something today to start a streak!'}
+                ? t('common:welcome_back.streak_next', { day: currentStreak + 1 })
+                : t('common:welcome_back.streak_start')}
             </p>
-            <p className="font-body text-xs text-white/40">Tap anywhere to continue</p>
+            <p className="font-body text-xs text-white/40">{t('common:welcome_back.tap_hint')}</p>
 
             {/* An explicit, visible way out. "Tap anywhere" assumes a child
                 can read it; this is a button they can see. It is inside the
                 dismissing button, so the click bubbles and closes either
                 way — it exists to be obvious, not to add behaviour. */}
             <span className="mt-1 rounded-full border-2 border-white/30 px-5 py-2 font-heading text-sm font-bold text-white/90">
-              Let's go
+              {t('common:actions.lets_go')}
             </span>
-          </motion.button>
-        )}
-      </AnimatePresence>
+          </motion.button>,
+        document.body
+      )}
     </>
   )
 }

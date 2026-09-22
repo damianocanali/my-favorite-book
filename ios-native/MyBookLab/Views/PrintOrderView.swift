@@ -29,7 +29,11 @@ struct PrintOrderView: View {
     @State private var phone: String = ""
 
     @State private var loading = false
-    @State private var error: String?
+    // App-authored copy, not a raw OS error string, so it is typed as a
+    // LocalizedStringResource — `Text(String)` would silently opt out of
+    // localization. The OS/Stripe `localizedDescription` is interpolated
+    // into it as an argument; iOS has already localized that part.
+    @State private var error: LocalizedStringResource?
 
     @State private var paymentSheet: PaymentSheet?
     @State private var paymentResult: PaymentSheetResult?
@@ -65,8 +69,16 @@ struct PrintOrderView: View {
                     }
                     SparkleButton(action: { showParentalGate = true }) {
                         HStack {
-                            if loading { ProgressView().tint(.white) }
-                            Text(loading ? "Setting up payment…" : "Pay & order")
+                            // Split rather than `Text(loading ? "a" : "b")`:
+                            // a ternary resolves to the `Text(String)`
+                            // initializer, which neither localizes nor gets
+                            // picked up by string extraction.
+                            if loading {
+                                ProgressView().tint(.white)
+                                Text("Setting up payment…")
+                            } else {
+                                Text("Pay & order")
+                            }
                         }
                     }
                     .disabled(loading || !canSubmit)
@@ -136,7 +148,12 @@ struct PrintOrderView: View {
     // Hardcover surfaces with a "Recommended" badge — it's the high-margin
     // option and parents/gifters convert better when it's emphasized as
     // the keepsake choice.
-    private func formatCard(_ value: PrintFormat, label: String, subtitle: String, price: String, recommended: Bool) -> some View {
+    // `label` and `subtitle` are LocalizedStringKey, not String: a String
+    // parameter forwarded into `Text(...)` picks the non-localizing
+    // initializer, so the literals at the call sites would never reach the
+    // String Catalog. `price` stays a String — it is an already-formatted
+    // number from PrintPricing, not translatable prose.
+    private func formatCard(_ value: PrintFormat, label: LocalizedStringKey, subtitle: LocalizedStringKey, price: String, recommended: Bool) -> some View {
         let selected = format == value
         return Button { format = value } label: {
             VStack(spacing: 4) {
@@ -191,7 +208,8 @@ struct PrintOrderView: View {
         .padding(.horizontal)
     }
 
-    private func quickQtyChip(qty: Int, emoji: String, label: String) -> some View {
+    // `emoji` stays a String on purpose — it is a glyph, not copy.
+    private func quickQtyChip(qty: Int, emoji: String, label: LocalizedStringKey) -> some View {
         let selected = quantity == qty
         return Button { quantity = qty } label: {
             VStack(spacing: 2) {
@@ -238,7 +256,9 @@ struct PrintOrderView: View {
         .padding(.horizontal)
     }
 
-    private func field(_ label: String, text: Binding<String>) -> some View {
+    // The label is the placeholder prompt shown inside the field, so it is
+    // user-facing copy and must be a LocalizedStringKey.
+    private func field(_ label: LocalizedStringKey, text: Binding<String>) -> some View {
         TextField("", text: text,
                   prompt: Text(label).foregroundStyle(.white.opacity(0.4)))
             .textInputAutocapitalization(.words)
@@ -261,7 +281,7 @@ struct PrintOrderView: View {
         .padding(.top, 8)
     }
 
-    private func sectionTitle(_ s: String) -> some View {
+    private func sectionTitle(_ s: LocalizedStringKey) -> some View {
         Text(s)
             .font(.caption.bold())
             .foregroundStyle(.white.opacity(0.7))
@@ -307,7 +327,10 @@ struct PrintOrderView: View {
             // live/test mode — using a key from the wrong mode fails at
             // confirmation with "No such payment_intent".
             guard let pk = res.publishableKey, !pk.isEmpty else {
-                self.error = "Payments are temporarily unavailable. Please try again later."
+                self.error = LocalizedStringResource(
+                    "print.order.error.payments_unavailable",
+                    defaultValue: "Payments are temporarily unavailable. Please try again later.",
+                    comment: "Shown when the server did not return a Stripe publishable key")
                 return
             }
             STPAPIClient.shared.publishableKey = pk
@@ -331,7 +354,12 @@ struct PrintOrderView: View {
                 self.paymentResult = result
             }
         } catch {
-            self.error = "Couldn't create order: \(error.localizedDescription)"
+            // One format string with the OS-localized reason as an
+            // argument, so a translator can reorder or reword around it.
+            self.error = LocalizedStringResource(
+                "print.order.error.create_failed",
+                defaultValue: "Couldn't create order: \(error.localizedDescription)",
+                comment: "%@ is the underlying network/server error, already localized by iOS")
         }
     }
 
@@ -357,7 +385,10 @@ struct PrintOrderView: View {
         case .canceled:
             break
         case .failed(let err):
-            self.error = "Payment failed: \(err.localizedDescription)"
+            self.error = LocalizedStringResource(
+                "print.order.error.payment_failed",
+                defaultValue: "Payment failed: \(err.localizedDescription)",
+                comment: "%@ is Stripe's decline/failure reason, already localized by the SDK")
         }
     }
 

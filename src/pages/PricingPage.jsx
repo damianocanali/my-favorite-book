@@ -1,45 +1,55 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { motion } from 'motion/react'
+import { useTranslation, Trans } from 'react-i18next'
 import { Check, Sparkles, GraduationCap, BookOpen, RotateCcw } from 'lucide-react'
 
 const APPLE_EULA_URL = 'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/'
 import { useAuthStore } from '../stores/useAuthStore'
 import { useSubscription } from '../hooks/useSubscription'
-import { PRICES } from '../lib/plans'
+import { PRICES, formatPlanPrice, formatMonthlyEquivalent } from '../lib/plans'
 import { apiFetchAuthed } from '../lib/api'
 import SparkleButton from '../components/ui/SparkleButton'
 import ParentalGate from '../components/ui/ParentalGate'
 import { IS_NATIVE, purchasePackage, restorePurchases } from '../services/purchaseService'
 
+// Feature bullets are catalogue keys, not English sentences. They used to be
+// arrays of copy used directly as React `key={f}` — translating the copy then
+// silently rekeys every <li> and remounts the list.
 const FREE_FEATURES = [
-  '1 book total',
-  '3 Story Buddy suggestions/day',
-  '2 AI illustrations per day',
-  'All themes & characters',
-  'Read aloud & voice input',
-  'Submit to classroom',
+  'pricing:plans.free.features.one_book',
+  'pricing:plans.free.features.story_buddy',
+  'pricing:plans.free.features.illustrations',
+  'pricing:plans.free.features.themes',
+  'pricing:plans.free.features.read_aloud',
+  'pricing:plans.free.features.classroom_submit',
 ]
 
 const FAMILY_FEATURES = [
-  'Unlimited books',
-  'Unlimited Story Buddy',
-  'Unlimited AI illustrations',
-  'PDF & print export',
-  'All accessibility features',
-  'Priority support',
+  'pricing:plans.family.features.unlimited_books',
+  'pricing:plans.family.features.unlimited_story_buddy',
+  'pricing:plans.family.features.unlimited_illustrations',
+  'pricing:plans.family.features.pdf_export',
+  'pricing:plans.family.features.accessibility',
+  'pricing:plans.family.features.priority_support',
 ]
 
 const TEACHER_FEATURES = [
-  'Everything in Family',
-  'Create & manage classrooms',
-  'Collect student submissions',
-  'View all student books',
-  '14-day free trial',
-  'Classroom admin dashboard',
+  'pricing:plans.teacher.features.everything_in_family',
+  'pricing:plans.teacher.features.manage_classrooms',
+  'pricing:plans.teacher.features.collect_submissions',
+  'pricing:plans.teacher.features.view_books',
+  'pricing:plans.teacher.features.free_trial',
+  'pricing:plans.teacher.features.admin_dashboard',
 ]
 
-function PlanCard({ icon: Icon, iconColor, title, badge, billing, price, monthlyEquivalent, features, cta, onCta, current, highlight, loading, disabled }) {
+// `isFree` and `interval` are passed explicitly rather than inferred from the
+// display strings. Branching on copy (price !== 'Free') breaks the moment the
+// copy is translated, and the break is silent — the card renders "/mese" next
+// to a free plan.
+function PlanCard({ icon: Icon, iconColor, title, badge, billingLabel, price, isFree = false, interval = 'monthly', monthlyEquivalent, features, cta, onCta, current, highlight, loading, disabled }) {
+  const { t } = useTranslation()
+
   return (
     <motion.div
       className={`relative flex flex-col rounded-3xl p-6 sm:p-8 border transition-all ${
@@ -61,28 +71,32 @@ function PlanCard({ icon: Icon, iconColor, title, badge, billing, price, monthly
       </div>
 
       <h3 className="font-heading text-2xl font-bold text-galaxy-text mb-1">{title}</h3>
-      <p className="text-galaxy-text-muted font-body text-sm mb-4">{billing}</p>
+      <p className="text-galaxy-text-muted font-body text-sm mb-4">{billingLabel}</p>
 
       <div className="mb-1">
         <span className="font-heading text-4xl font-bold text-galaxy-text">{price}</span>
-        {price !== 'Free' && <span className="text-galaxy-text-muted font-body text-sm ml-1">/{billing === 'Billed annually' ? 'year' : 'month'}</span>}
+        {!isFree && (
+          <span className="text-galaxy-text-muted font-body text-sm ml-1">
+            {interval === 'annual' ? t('pricing:interval.per_year') : t('pricing:interval.per_month')}
+          </span>
+        )}
       </div>
       {monthlyEquivalent && (
         <p className="text-galaxy-secondary font-body text-sm mb-4">{monthlyEquivalent}</p>
       )}
 
       <ul className="space-y-2.5 mb-8 flex-1 mt-4">
-        {features.map((f) => (
-          <li key={f} className="flex items-start gap-2 text-galaxy-text font-body text-sm">
+        {features.map((featureKey) => (
+          <li key={featureKey} className="flex items-start gap-2 text-galaxy-text font-body text-sm">
             <Check size={16} className={`mt-0.5 shrink-0 ${highlight ? 'text-galaxy-primary' : 'text-galaxy-secondary'}`} />
-            {f}
+            {t(featureKey)}
           </li>
         ))}
       </ul>
 
       {current ? (
         <div className="text-center text-galaxy-text-muted font-body text-sm py-3 border border-galaxy-text-muted/20 rounded-2xl">
-          Current plan
+          {t('pricing:card.current_plan')}
         </div>
       ) : (
         <SparkleButton
@@ -92,7 +106,7 @@ function PlanCard({ icon: Icon, iconColor, title, badge, billing, price, monthly
           className="w-full"
           disabled={disabled || loading}
         >
-          {loading ? 'Starting checkout…' : cta}
+          {loading ? t('pricing:card.starting_checkout') : cta}
         </SparkleButton>
       )}
     </motion.div>
@@ -101,6 +115,7 @@ function PlanCard({ icon: Icon, iconColor, title, badge, billing, price, monthly
 
 export default function PricingPage() {
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const user = useAuthStore((s) => s.user)
   const { planKey, loading } = useSubscription()
   const [billing, setBilling] = useState('monthly')
@@ -142,8 +157,14 @@ export default function PricingPage() {
       const data = await res.json().catch(() => null)
 
       if (!res.ok || !data?.url) {
+        // The env var names are wire identifiers, not copy — they are
+        // interpolated in so translation can move them but never rename them.
         const msg = data?.error
-          || `Checkout failed (${res.status}). Check that STRIPE_SECRET_KEY and STRIPE_PRICE_${planName.toUpperCase()}_${billing.toUpperCase()} are configured on the server.`
+          || t('pricing:errors.checkout_failed', {
+            status: res.status,
+            secretVar: 'STRIPE_SECRET_KEY',
+            priceVar: `STRIPE_PRICE_${planName.toUpperCase()}_${billing.toUpperCase()}`,
+          })
         throw new Error(msg)
       }
 
@@ -153,7 +174,7 @@ export default function PricingPage() {
       // is what you hit if the Stripe env vars aren't wired up or the
       // auth token didn't attach.
       console.error('[upgrade]', e)
-      setUpgradeError(e?.message || 'Upgrade failed. Please try again.')
+      setUpgradeError(e?.message || t('pricing:errors.upgrade_failed'))
     } finally {
       setUpgrading(null)
     }
@@ -164,12 +185,15 @@ export default function PricingPage() {
       await restorePurchases()
       setTimeout(() => window.location.reload(), 1500)
     } catch (e) {
-      alert(e.message || 'Restore failed. Please try again.')
+      alert(e.message || t('pricing:errors.restore_failed'))
     }
   }
 
   const familyPrice = billing === 'annual' ? PRICES.family.annual : PRICES.family.monthly
   const teacherPrice = billing === 'annual' ? PRICES.teacher.annual : PRICES.teacher.monthly
+  const billingLabel = billing === 'annual'
+    ? t('pricing:card.billed_annually')
+    : t('pricing:card.billed_monthly')
 
   return (
     <div className="min-h-screen py-12 px-4">
@@ -181,10 +205,10 @@ export default function PricingPage() {
           animate={{ opacity: 1, y: 0 }}
         >
           <h1 className="font-heading text-4xl sm:text-5xl font-bold text-galaxy-text mb-3">
-            Choose your plan
+            {t('pricing:page.title')}
           </h1>
           <p className="text-galaxy-text-muted font-body text-xl">
-            Start free. Upgrade anytime. Cancel anytime.
+            {t('pricing:page.subtitle')}
           </p>
         </motion.div>
 
@@ -203,7 +227,7 @@ export default function PricingPage() {
                 : 'text-galaxy-text-muted hover:text-galaxy-text'
             }`}
           >
-            Monthly
+            {t('pricing:billing.monthly')}
           </button>
           <button
             onClick={() => setBilling('annual')}
@@ -213,8 +237,8 @@ export default function PricingPage() {
                 : 'text-galaxy-text-muted hover:text-galaxy-text'
             }`}
           >
-            Annual
-            <span className="ml-2 text-xs text-galaxy-secondary font-bold">Save 33%</span>
+            {t('pricing:billing.annual')}
+            <span className="ml-2 text-xs text-galaxy-secondary font-bold">{t('pricing:billing.annual_save')}</span>
           </button>
         </motion.div>
 
@@ -230,7 +254,7 @@ export default function PricingPage() {
               <button
                 onClick={() => setUpgradeError(null)}
                 className="text-red-200/70 hover:text-red-100 text-xs font-bold shrink-0"
-                aria-label="Dismiss error"
+                aria-label={t('pricing:errors.dismiss_aria')}
               >
                 ✕
               </button>
@@ -243,11 +267,12 @@ export default function PricingPage() {
           <PlanCard
             icon={BookOpen}
             iconColor="text-galaxy-text-muted"
-            title="Free"
-            billing="Forever free"
-            price="Free"
+            title={t('pricing:plans.free.name')}
+            billingLabel={t('pricing:plans.free.billing_label')}
+            price={t('pricing:plans.free.price')}
+            isFree
             features={FREE_FEATURES}
-            cta="Get started"
+            cta={t('pricing:plans.free.cta')}
             onCta={() => navigate('/create')}
             current={!loading && planKey === 'free' && !!user}
           />
@@ -255,13 +280,16 @@ export default function PricingPage() {
           <PlanCard
             icon={Sparkles}
             iconColor="text-galaxy-primary"
-            title="Family"
-            badge="Most Popular"
-            billing={billing === 'annual' ? 'Billed annually' : 'Billed monthly'}
-            price={familyPrice.amount}
-            monthlyEquivalent={billing === 'annual' ? familyPrice.monthlyEquivalent : null}
+            title={t('pricing:plans.family.name')}
+            badge={t('pricing:plans.family.badge')}
+            billingLabel={billingLabel}
+            interval={billing}
+            price={formatPlanPrice(familyPrice)}
+            monthlyEquivalent={billing === 'annual'
+              ? t('pricing:card.monthly_equivalent', { price: formatMonthlyEquivalent(familyPrice) })
+              : null}
             features={FAMILY_FEATURES}
-            cta="Upgrade to Family"
+            cta={t('pricing:plans.family.cta')}
             onCta={() => handleUpgradeClick('family')}
             current={!loading && planKey === 'family'}
             loading={upgrading === 'family'}
@@ -272,12 +300,15 @@ export default function PricingPage() {
           <PlanCard
             icon={GraduationCap}
             iconColor="text-galaxy-secondary"
-            title="Teacher"
-            billing={billing === 'annual' ? 'Billed annually' : 'Billed monthly'}
-            price={teacherPrice.amount}
-            monthlyEquivalent={billing === 'annual' ? teacherPrice.monthlyEquivalent : null}
+            title={t('pricing:plans.teacher.name')}
+            billingLabel={billingLabel}
+            interval={billing}
+            price={formatPlanPrice(teacherPrice)}
+            monthlyEquivalent={billing === 'annual'
+              ? t('pricing:card.monthly_equivalent', { price: formatMonthlyEquivalent(teacherPrice) })
+              : null}
             features={TEACHER_FEATURES}
-            cta="Start free trial"
+            cta={t('pricing:plans.teacher.cta')}
             onCta={() => handleUpgradeClick('teacher')}
             current={!loading && planKey === 'teacher'}
             loading={upgrading === 'teacher'}
@@ -294,8 +325,8 @@ export default function PricingPage() {
         >
           <p className="text-galaxy-text-muted font-body text-sm">
             {IS_NATIVE
-              ? 'Payment processed by Apple · Cancel anytime in Settings → Subscriptions'
-              : 'Secure checkout by Stripe · Cancel anytime from your account · No hidden fees'}
+              ? t('pricing:footer.native_note')
+              : t('pricing:footer.web_note')}
           </p>
           {IS_NATIVE && (
             <button
@@ -303,7 +334,7 @@ export default function PricingPage() {
               className="flex items-center gap-1.5 mx-auto text-galaxy-text-muted font-body text-sm hover:text-galaxy-text transition-colors"
             >
               <RotateCcw size={14} />
-              Restore purchases
+              {t('pricing:footer.restore')}
             </button>
           )}
         </motion.div>
@@ -318,21 +349,35 @@ export default function PricingPage() {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.6 }}
         >
-          <p className="font-semibold text-galaxy-text">Subscription details</p>
+          <p className="font-semibold text-galaxy-text">{t('pricing:legal.heading')}</p>
           <ul className="space-y-1.5 list-disc pl-5">
             <li>
-              <span className="text-galaxy-text">Family</span> — {PRICES.family.monthly.amount}/month or {PRICES.family.annual.amount}/year (auto-renewing).
+              <Trans
+                i18nKey="pricing:legal.family_terms"
+                values={{
+                  monthly: formatPlanPrice(PRICES.family.monthly),
+                  annual: formatPlanPrice(PRICES.family.annual),
+                }}
+                components={{ name: <span className="text-galaxy-text" /> }}
+              />
             </li>
             <li>
-              <span className="text-galaxy-text">Teacher</span> — {PRICES.teacher.monthly.amount}/month or {PRICES.teacher.annual.amount}/year (auto-renewing). Includes a 14-day free trial.
+              <Trans
+                i18nKey="pricing:legal.teacher_terms"
+                values={{
+                  monthly: formatPlanPrice(PRICES.teacher.monthly),
+                  annual: formatPlanPrice(PRICES.teacher.annual),
+                }}
+                components={{ name: <span className="text-galaxy-text" /> }}
+              />
             </li>
           </ul>
           <p>
-            Subscriptions automatically renew at the end of each billing period unless cancelled at least 24 hours before the end of the current period. Your Apple ID will be charged the renewal price at the start of each new period. Manage or cancel at any time in Settings → Apple ID → Subscriptions. Any unused portion of a free trial is forfeited when you purchase a subscription.
+            {t('pricing:legal.auto_renew')}
           </p>
           <p className="flex flex-wrap gap-x-4 gap-y-1 pt-1">
             <Link to="/privacy" className="underline hover:text-galaxy-text transition-colors">
-              Privacy Policy
+              {t('pricing:legal.privacy_link')}
             </Link>
             <a
               href={APPLE_EULA_URL}
@@ -340,7 +385,7 @@ export default function PricingPage() {
               rel="noopener noreferrer"
               className="underline hover:text-galaxy-text transition-colors"
             >
-              Terms of Use (EULA)
+              {t('pricing:legal.terms_link')}
             </a>
           </p>
         </motion.div>

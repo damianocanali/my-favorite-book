@@ -1,0 +1,19 @@
+{
+  "auth": {
+    "email_not_confirmed": "Prima devi confermare la tua email — controlla la posta, ti abbiamo inviato un link.",
+    "invalid_credentials": "Email e password non coincidono. Riprova, oppure reimposta la password qui sotto.",
+    "rate_limited": "Troppi tentativi in poco tempo. Aspetta un minuto e riprova.",
+    "weak_password": "Le password devono avere almeno 6 caratteri.",
+    "offline": "Non riusciamo a collegarci a internet. Controlla la connessione e riprova.",
+    "sign_up_failed": "Non siamo riusciti a creare il tuo account. Riprova.",
+    "sign_in_failed": "Non siamo riusciti a farti accedere. Riprova.",
+    "oauth_failed": "Accesso non riuscito. Riprova.",
+    "passwords_mismatch": "Le password non coincidono.",
+    "password_too_short": "La password deve avere almeno 6 caratteri.",
+    "name_required": "Scrivi il tuo nome.",
+    "email_required": "Scrivi la tua email.",
+    "not_configured": "Autenticazione non configurata.",
+    "reset_link_invalid": "Il link non è valido o è scaduto. Chiedine uno nuovo.",
+    "generic_retry": "Qualcosa è andato storto. Riprova."
+  }
+}

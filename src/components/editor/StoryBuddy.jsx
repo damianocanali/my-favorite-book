@@ -1,16 +1,18 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
+import { useTranslation } from 'react-i18next'
 import { Bot, Lightbulb, FileText, HelpCircle, Loader2, X, ChevronDown, ChevronUp, Sparkles } from 'lucide-react'
 import { useBookStore } from '../../stores/useBookStore'
 import { getStoryStarters, getParagraphSuggestion, getGuidedQuestions } from '../../services/storyBuddy'
 
 const MODES = [
-  { id: 'starters', label: 'Sentence Starters', icon: Lightbulb, emoji: '💡', description: 'Get ideas to start writing' },
-  { id: 'paragraph', label: 'Write for Me', icon: FileText, emoji: '📝', description: 'Get a full paragraph suggestion' },
-  { id: 'questions', label: 'Help Me Think', icon: HelpCircle, emoji: '🤔', description: 'Answer fun questions to build your story' },
+  { id: 'starters', labelKey: 'editor:buddy.mode_starters', icon: Lightbulb, emoji: '💡', descriptionKey: 'editor:buddy.mode_starters_hint' },
+  { id: 'paragraph', labelKey: 'editor:buddy.mode_paragraph', icon: FileText, emoji: '📝', descriptionKey: 'editor:buddy.mode_paragraph_hint' },
+  { id: 'questions', labelKey: 'editor:buddy.mode_questions', icon: HelpCircle, emoji: '🤔', descriptionKey: 'editor:buddy.mode_questions_hint' },
 ]
 
 export default function StoryBuddy({ page, onInsertText }) {
+  const { t } = useTranslation()
   const [isOpen, setIsOpen] = useState(false)
   const [mode, setMode] = useState('starters')
   const [loading, setLoading] = useState(false)
@@ -56,7 +58,7 @@ export default function StoryBuddy({ page, onInsertText }) {
         whileTap={{ scale: 0.97 }}
       >
         <Bot size={18} />
-        Story Buddy
+        {t('editor:buddy.title')}
         {isOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
       </motion.button>
 
@@ -75,8 +77,8 @@ export default function StoryBuddy({ page, onInsertText }) {
                 <div className="flex items-center gap-2">
                   <span className="text-xl">🤖</span>
                   <div>
-                    <h3 className="font-heading font-bold text-sm text-galaxy-text">Story Buddy</h3>
-                    <p className="text-galaxy-text-muted text-xs font-body">Your AI writing helper!</p>
+                    <h3 className="font-heading font-bold text-sm text-galaxy-text">{t('editor:buddy.title')}</h3>
+                    <p className="text-galaxy-text-muted text-xs font-body">{t('editor:buddy.subtitle')}</p>
                   </div>
                 </div>
                 <button
@@ -100,7 +102,7 @@ export default function StoryBuddy({ page, onInsertText }) {
                     }`}
                   >
                     <span className="text-lg">{m.emoji}</span>
-                    <span className="text-[10px] leading-tight text-center">{m.label}</span>
+                    <span className="text-[10px] leading-tight text-center">{t(m.labelKey)}</span>
                   </button>
                 ))}
               </div>
@@ -116,14 +118,14 @@ export default function StoryBuddy({ page, onInsertText }) {
                 {loading ? (
                   <>
                     <Loader2 size={16} className="animate-spin" />
-                    Thinking...
+                    {t('editor:buddy.thinking')}
                   </>
                 ) : (
                   <>
                     <Sparkles size={16} />
-                    {mode === 'starters' && 'Get Sentence Starters'}
-                    {mode === 'paragraph' && 'Write a Paragraph'}
-                    {mode === 'questions' && 'Ask Me Questions'}
+                    {mode === 'starters' && t('editor:buddy.cta_starters')}
+                    {mode === 'paragraph' && t('editor:buddy.cta_paragraph')}
+                    {mode === 'questions' && t('editor:buddy.cta_questions')}
                   </>
                 )}
               </motion.button>
@@ -151,7 +153,7 @@ export default function StoryBuddy({ page, onInsertText }) {
                   >
                     {results.type === 'starters' && Array.isArray(results.data) && (
                       <>
-                        <p className="text-galaxy-text-muted text-xs font-body">Pick a starter and keep writing!</p>
+                        <p className="text-galaxy-text-muted text-xs font-body">{t('editor:buddy.starters_intro')}</p>
                         {results.data.map((starter, i) => (
                           <motion.button
                             key={i}
@@ -162,9 +164,9 @@ export default function StoryBuddy({ page, onInsertText }) {
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: i * 0.1 }}
                           >
-                            <p className="text-galaxy-text font-body text-sm">"{starter}"</p>
+                            <p className="text-galaxy-text font-body text-sm">{t('editor:buddy.quoted', { text: starter })}</p>
                             <p className="text-galaxy-secondary text-[10px] font-body mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                              Click to use this starter
+                              {t('editor:buddy.click_to_use')}
                             </p>
                           </motion.button>
                         ))}
@@ -173,7 +175,7 @@ export default function StoryBuddy({ page, onInsertText }) {
 
                     {results.type === 'paragraph' && typeof results.data === 'string' && (
                       <div>
-                        <p className="text-galaxy-text-muted text-xs font-body mb-2">Here's a suggestion! Use it, edit it, or try again.</p>
+                        <p className="text-galaxy-text-muted text-xs font-body mb-2">{t('editor:buddy.paragraph_intro')}</p>
                         <div className="p-3 bg-galaxy-bg rounded-xl border border-galaxy-text-muted/10">
                           <p className="text-galaxy-text font-body text-sm leading-relaxed mb-3">
                             {results.data}
@@ -183,7 +185,7 @@ export default function StoryBuddy({ page, onInsertText }) {
                               onClick={() => onInsertText(results.data)}
                               className="px-3 py-1.5 bg-galaxy-secondary text-white rounded-lg text-xs font-body font-semibold cursor-pointer hover:bg-cyan-500 transition-colors"
                             >
-                              Use This
+                              {t('editor:buddy.use_this')}
                             </button>
                             <button
                               onClick={() => {
@@ -192,13 +194,13 @@ export default function StoryBuddy({ page, onInsertText }) {
                               }}
                               className="px-3 py-1.5 bg-galaxy-primary/20 text-galaxy-primary rounded-lg text-xs font-body font-semibold cursor-pointer hover:bg-galaxy-primary/30 transition-colors"
                             >
-                              Add to Existing
+                              {t('editor:buddy.add_to_existing')}
                             </button>
                             <button
                               onClick={handleGenerate}
                               className="px-3 py-1.5 glass text-galaxy-text-muted rounded-lg text-xs font-body font-semibold cursor-pointer hover:text-galaxy-text transition-colors"
                             >
-                              Try Another
+                              {t('editor:buddy.try_another')}
                             </button>
                           </div>
                         </div>
@@ -207,7 +209,7 @@ export default function StoryBuddy({ page, onInsertText }) {
 
                     {results.type === 'questions' && Array.isArray(results.data) && (
                       <>
-                        <p className="text-galaxy-text-muted text-xs font-body">Think about these questions, then write your story!</p>
+                        <p className="text-galaxy-text-muted text-xs font-body">{t('editor:buddy.questions_intro')}</p>
                         {results.data.map((question, i) => (
                           <motion.div
                             key={i}

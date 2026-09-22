@@ -1,0 +1,160 @@
+{
+  "sourceLanguage": "en",
+  "version": "1.0",
+  "strings": {
+    "OpenMyBooksIntent.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apri i miei libri"
+          }
+        }
+      }
+    },
+    "OpenMyBooksIntent.description": {
+      "extractionState": "manual",
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apre la tua libreria in My Book Lab."
+          }
+        }
+      }
+    },
+    "OpenMyBooksIntent.shortTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I miei libri"
+          }
+        }
+      }
+    },
+    "OpenMyBooksIntent.phrase1": {
+      "extractionState": "manual",
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apri i miei libri su ${applicationName}"
+          }
+        }
+      }
+    },
+    "OpenMyBooksIntent.phrase2": {
+      "extractionState": "manual",
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fammi vedere i miei libri su ${applicationName}"
+          }
+        }
+      }
+    },
+    "OpenMyBooksIntent.phrase3": {
+      "extractionState": "manual",
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apri la mia libreria su ${applicationName}"
+          }
+        }
+      }
+    },
+    "OpenMyBooksIntent.phrase4": {
+      "extractionState": "manual",
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostrami la libreria di ${applicationName}"
+          }
+        }
+      }
+    },
+    "StartNewStoryIntent.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inizia una nuova storia"
+          }
+        }
+      }
+    },
+    "StartNewStoryIntent.description": {
+      "extractionState": "manual",
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ti porta subito a creare un libro nuovo."
+          }
+        }
+      }
+    },
+    "StartNewStoryIntent.shortTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nuova storia"
+          }
+        }
+      }
+    },
+    "StartNewStoryIntent.phrase1": {
+      "extractionState": "manual",
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scrivi una storia su ${applicationName}"
+          }
+        }
+      }
+    },
+    "StartNewStoryIntent.phrase2": {
+      "extractionState": "manual",
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inizia una nuova storia su ${applicationName}"
+          }
+        }
+      }
+    },
+    "StartNewStoryIntent.phrase3": {
+      "extractionState": "manual",
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Crea un libro su ${applicationName}"
+          }
+        }
+      }
+    },
+    "StartNewStoryIntent.phrase4": {
+      "extractionState": "manual",
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voglio scrivere una storia su ${applicationName}"
+          }
+        }
+      }
+    }
+  }
+}

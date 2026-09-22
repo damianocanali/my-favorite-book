@@ -1,0 +1,91 @@
+{
+  "page": {
+    "title": "Scegli il tuo piano",
+    "subtitle": "Inizia gratis. Cambia piano quando vuoi. Disdici quando vuoi."
+  },
+  "billing": {
+    "monthly": "Mensile",
+    "annual": "Annuale",
+    "annual_save": "Risparmia 33%"
+  },
+  "interval": {
+    "per_month": "/mese",
+    "per_year": "/anno"
+  },
+  "card": {
+    "billed_monthly": "Addebito mensile",
+    "billed_annually": "Addebito annuale",
+    "monthly_equivalent": "{{price}}/mese",
+    "current_plan": "Piano attuale",
+    "starting_checkout": "Avvio del pagamento…"
+  },
+  "plans": {
+    "free": {
+      "name": "Gratis",
+      "billing_label": "Gratis per sempre",
+      "price": "Gratis",
+      "cta": "Inizia",
+      "features": {
+        "one_book": "1 libro in tutto",
+        "story_buddy": "3 idee di Story Buddy al giorno",
+        "illustrations": "2 illustrazioni AI al giorno",
+        "themes": "Tutti i temi e i personaggi",
+        "read_aloud": "Lettura ad alta voce e dettatura",
+        "classroom_submit": "Consegna alla classe"
+      }
+    },
+    "family": {
+      "name": "Famiglia",
+      "badge": "Il più scelto",
+      "cta": "Passa a Famiglia",
+      "features": {
+        "unlimited_books": "Libri illimitati",
+        "unlimited_story_buddy": "Story Buddy illimitato",
+        "unlimited_illustrations": "Illustrazioni AI illimitate",
+        "pdf_export": "Esportazione PDF e stampa",
+        "accessibility": "Tutte le funzioni di accessibilità",
+        "priority_support": "Assistenza prioritaria"
+      }
+    },
+    "teacher": {
+      "name": "Insegnante",
+      "cta": "Inizia la prova gratuita",
+      "features": {
+        "everything_in_family": "Tutto il piano Famiglia",
+        "manage_classrooms": "Crea e gestisci le classi",
+        "collect_submissions": "Raccogli i lavori degli studenti",
+        "view_books": "Vedi tutti i libri della classe",
+        "free_trial": "14 giorni di prova gratis",
+        "admin_dashboard": "Pannello di gestione delle classi"
+      }
+    }
+  },
+  "footer": {
+    "native_note": "Pagamento gestito da Apple · Disdici quando vuoi in Impostazioni → Abbonamenti",
+    "web_note": "Pagamento sicuro con Stripe · Disdici quando vuoi dal tuo account · Nessun costo nascosto",
+    "restore": "Ripristina gli acquisti"
+  },
+  "legal": {
+    "heading": "Dettagli dell'abbonamento",
+    "family_terms": "<name>Famiglia</name> — {{monthly}} al mese oppure {{annual}} all'anno (rinnovo automatico).",
+    "teacher_terms": "<name>Insegnante</name> — {{monthly}} al mese oppure {{annual}} all'anno (rinnovo automatico). Include 14 giorni di prova gratuita.",
+    "auto_renew": "Gli abbonamenti si rinnovano automaticamente alla fine di ogni periodo di fatturazione, salvo disdetta almeno 24 ore prima della fine del periodo in corso. L'addebito del prezzo di rinnovo viene effettuato sul tuo ID Apple all'inizio di ogni nuovo periodo. Puoi gestire o disdire l'abbonamento in qualsiasi momento in Impostazioni → [nome] → Abbonamenti. L'eventuale parte non utilizzata di una prova gratuita decade al momento dell'acquisto di un abbonamento.",
+    "privacy_link": "Informativa sulla privacy",
+    "terms_link": "Termini di utilizzo (EULA)"
+  },
+  "errors": {
+    "checkout_failed": "Pagamento non riuscito ({{status}}). Verifica che {{secretVar}} e {{priceVar}} siano configurate sul server.",
+    "upgrade_failed": "Passaggio al nuovo piano non riuscito. Riprova.",
+    "restore_failed": "Ripristino non riuscito. Riprova.",
+    "dismiss_aria": "Chiudi l'errore"
+  },
+  "success": {
+    "title": "È tutto pronto! 🎉",
+    "subtitle": "Il tuo abbonamento è attivo. Ora puoi creare qualcosa di fantastico!",
+    "order_confirmed": "Ordine confermato · {{code}}",
+    "cta_create": "Crea un libro",
+    "cta_bookshelf": "La mia libreria",
+    "redirecting_one": "Ti portiamo lì tra {{count}}s…",
+    "redirecting_other": "Ti portiamo lì tra {{count}}s…"
+  }
+}

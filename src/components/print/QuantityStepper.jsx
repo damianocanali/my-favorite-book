@@ -1,6 +1,9 @@
 import { Minus, Plus } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
+import { formatNumber } from '../../i18n/formats'
 
 export default function QuantityStepper({ value, onChange, min = 1, max = 10 }) {
+  const { t } = useTranslation()
   const dec = () => onChange(Math.max(min, value - 1))
   const inc = () => onChange(Math.min(max, value + 1))
   return (
@@ -9,17 +12,17 @@ export default function QuantityStepper({ value, onChange, min = 1, max = 10 }) 
         type="button"
         onClick={dec}
         disabled={value <= min}
-        aria-label="Decrease quantity"
+        aria-label={t('print:quantity.decrease')}
         className="w-9 h-9 flex items-center justify-center rounded-lg text-galaxy-text disabled:opacity-30 hover:bg-galaxy-bg transition-colors"
       >
         <Minus size={16} />
       </button>
-      <span className="w-6 text-center font-body font-bold text-galaxy-text tabular-nums">{value}</span>
+      <span className="w-6 text-center font-body font-bold text-galaxy-text tabular-nums">{formatNumber(value)}</span>
       <button
         type="button"
         onClick={inc}
         disabled={value >= max}
-        aria-label="Increase quantity"
+        aria-label={t('print:quantity.increase')}
         className="w-9 h-9 flex items-center justify-center rounded-lg text-galaxy-text disabled:opacity-30 hover:bg-galaxy-bg transition-colors"
       >
         <Plus size={16} />

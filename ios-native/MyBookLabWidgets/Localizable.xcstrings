@@ -1,0 +1,313 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "My Books": {
+      "comment": "Widget title fallback when the latest book has no title",
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I miei libri"
+          }
+        }
+      }
+    },
+    "My Latest Book": {
+      "comment": "Widget name in the widget gallery",
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il mio ultimo libro"
+          }
+        }
+      }
+    },
+    "Start your first story!": {
+      "comment": "Widget empty state, no books yet",
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inizia la tua prima storia!"
+          }
+        }
+      }
+    },
+    "Tap to write today! ✨": {
+      "comment": "Widget call to action",
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scrivi oggi! ✨"
+          }
+        }
+      }
+    },
+    "Your newest story and writing streak.": {
+      "comment": "Widget description in the widget gallery",
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L'ultima storia e la tua serie di scrittura."
+          }
+        }
+      }
+    },
+    "order.live.headline": {
+      "comment": "Live Activity lock-screen headline; %@ is the book title",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "\"%@\" in print"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "\"%@\" in stampa"
+          }
+        }
+      }
+    },
+    "order.live.progress": {
+      "comment": "Compact Dynamic Island progress out of four stages, e.g. \"2/4\"",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "%lld/4"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld/4"
+          }
+        }
+      }
+    },
+    "order.status.delivered": {
+      "comment": "Live Activity stage: the book arrived",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Delivered!"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Consegnato!"
+          }
+        }
+      }
+    },
+    "order.status.failed": {
+      "comment": "Live Activity stage: the order could not be completed",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Something went wrong"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Qualcosa è andato storto"
+          }
+        }
+      }
+    },
+    "order.status.in_production": {
+      "comment": "Live Activity stage: the book is on the press",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Being printed"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In stampa"
+          }
+        }
+      }
+    },
+    "order.status.paid": {
+      "comment": "Live Activity stage: payment went through",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Payment confirmed"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pagato"
+          }
+        }
+      }
+    },
+    "order.status.pdf_ready": {
+      "comment": "Live Activity stage: print PDF built and handed over",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Sent to printer"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inviato in stampa"
+          }
+        }
+      }
+    },
+    "order.status.pending": {
+      "comment": "Live Activity stage: order created, awaiting payment",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Order placed"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ordine inviato"
+          }
+        }
+      }
+    },
+    "order.status.refunded": {
+      "comment": "Live Activity stage: money returned to the customer",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Refunded"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rimborsato"
+          }
+        }
+      }
+    },
+    "order.status.shipped": {
+      "comment": "Live Activity stage: shipped, in transit",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "On its way!"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In viaggio!"
+          }
+        }
+      }
+    },
+    "order.status.submitted": {
+      "comment": "Live Activity stage: accepted by the print partner",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Sent to printer"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inviato in stampa"
+          }
+        }
+      }
+    },
+    "order.status.unknown": {
+      "comment": "Live Activity stage for a status the app doesn't recognize yet",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Processing"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elaborazione"
+          }
+        }
+      }
+    },
+    "widget.shelf.book_count": {
+      "comment": "Widget subtitle counting the books on the shelf, e.g. \"3 books on your shelf\"",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "^[%lld book](inflect: true) on your shelf"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "^[%lld libro](inflect: true) sulla tua libreria"
+          }
+        }
+      }
+    },
+    "widget.streak.days": {
+      "comment": "Widget writing-streak line, e.g. \"🔥 4 day streak\"",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "🔥 %lld day streak"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "🔥 ^[%lld giorno](inflect: true) di fila"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

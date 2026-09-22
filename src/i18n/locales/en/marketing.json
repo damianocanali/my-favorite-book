@@ -1,0 +1,83 @@
+{
+  "hero": {
+    "tagline": "Create your own story in the stars ✨",
+    "cta_create": "Create a Book 📖",
+    "bookshelf_link_one": "My Bookshelf ({{count}})",
+    "bookshelf_link_other": "My Bookshelf ({{count}})"
+  },
+  "about": {
+    "title": "Every child has a story to tell",
+    "body": "My Book Lab helps kids write, illustrate, and share their own stories — with built-in tools that make reading and writing fun and accessible for every learner."
+  },
+  "features": {
+    "story_buddy": {
+      "title": "AI Story Buddy",
+      "desc": "A friendly writing assistant that gives ideas, not answers — encouraging kids to build their own stories."
+    },
+    "illustrations": {
+      "title": "AI Illustrations",
+      "desc": "Turn any page into art with one tap. Kids see their words come to life as unique illustrations."
+    },
+    "voice": {
+      "title": "Voice Input & Read Aloud",
+      "desc": "Speak your story or listen to it read back. Great for early writers and auditory learners."
+    },
+    "focus": {
+      "title": "ADHD & Dyslexia Friendly",
+      "desc": "Sentence starters, word banks, visual progress maps, and gentle nudges keep kids focused without pressure."
+    },
+    "classroom": {
+      "title": "Classroom Ready",
+      "desc": "Teachers can create classrooms, collect student stories, and track writing progress."
+    },
+    "accessibility": {
+      "title": "Built for All Learners",
+      "desc": "Adjustable fonts, high contrast mode, text-to-speech, and scaffolding tools support UDL and WCAG standards."
+    }
+  },
+  "callout": {
+    "title": "Designed with every child in mind",
+    "body": "My Book Lab follows Universal Design for Learning (UDL) principles and WCAG/COGA accessibility guidelines. Features like sentence starters, visual progress tracking, effort-based rewards, and multi-modal input are specifically designed to support children with ADHD, dyslexia, and other learning differences — making creative writing achievable and fun for everyone."
+  },
+  "pricing": {
+    "title": "Plans & Pricing",
+    "subtitle": "Start free. Upgrade when you're ready.",
+    "per_month_short": "/mo",
+    "family_annual_note": "or {{price}}/yr ({{monthly}}/mo)",
+    "teacher_annual_note": "or {{price}}/yr · 14-day free trial",
+    "view_details": "View full plan details →",
+    "free_features": {
+      "books": "2 books",
+      "story_buddy": "3 Story Buddy chats/day",
+      "illustrations": "2 AI illustrations per day",
+      "read_aloud": "Read aloud & voice input"
+    },
+    "family_features": {
+      "unlimited_books": "Unlimited books",
+      "unlimited_story_buddy": "Unlimited Story Buddy",
+      "unlimited_illustrations": "Unlimited illustrations",
+      "pdf_export": "PDF & print export"
+    },
+    "teacher_features": {
+      "everything_in_family": "Everything in Family",
+      "manage_classrooms": "Create & manage classrooms",
+      "submissions": "Student submissions",
+      "dashboard": "Classroom dashboard"
+    }
+  },
+  "example": {
+    "eyebrow": "A printed example",
+    "title": "What your printed book looks like",
+    "intro": "Tap or drag to flip through the full printed edition of <title>\"{{bookTitle}}\"</title> — story pages, back-of-book extras, and all.",
+    "backmatter_title": "What's inside, at a glance",
+    "backmatter_subtitle": "Every printed book ships with these curated pages after the story.",
+    "cta_create": "Start your own book",
+    "cta_pricing": "See pricing",
+    "disclaimer": "This sample story was generated with MyBookLab. Order a real printed copy of any book you create — hardcover or softcover, shipped anywhere in the US."
+  },
+  "footer": {
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "copyright": "© {{year}} My Book Lab"
+  }
+}

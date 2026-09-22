@@ -2,10 +2,12 @@ import { useEffect } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { motion } from 'motion/react'
 import { CheckCircle2 } from 'lucide-react'
+import { Trans, useTranslation } from 'react-i18next'
 import { useRewardsStore } from '../stores/useRewardsStore'
 
 export default function OrderConfirmPage() {
   const { id } = useParams()
+  const { t } = useTranslation()
   const [params] = useSearchParams()
   const isNew = params.get('new') === '1'
   const earnBadge = useRewardsStore((s) => s.earnBadge)
@@ -37,16 +39,18 @@ export default function OrderConfirmPage() {
         className="text-center max-w-md"
       >
         <CheckCircle2 size={64} className="mx-auto text-green-400 mb-4" />
-        <h1 className="font-heading text-3xl font-bold mb-2">Order placed! 🎉</h1>
-        <p className="text-galaxy-text-muted">Order #{shortId}</p>
-        <p className="mt-6">Usually arrives in <span className="font-semibold">10–14 business days</span>.</p>
-        <p className="text-galaxy-text-muted text-sm mt-2">We'll send you an email when your book ships.</p>
+        <h1 className="font-heading text-3xl font-bold mb-2">{t('print:confirm.title')}</h1>
+        <p className="text-galaxy-text-muted">{t('print:confirm.order_number', { id: shortId })}</p>
+        <p className="mt-6">
+          <Trans i18nKey="print:confirm.eta" components={{ b: <span className="font-semibold" /> }} />
+        </p>
+        <p className="text-galaxy-text-muted text-sm mt-2">{t('print:confirm.email_note')}</p>
         <div className="mt-8 flex flex-col gap-3">
           <Link to="/bookshelf" className="w-full py-3 rounded-xl bg-galaxy-primary text-white font-heading font-bold hover:bg-purple-500 transition-colors">
-            Back to my shelf
+            {t('print:confirm.back_to_shelf')}
           </Link>
           <Link to={`/orders/${id}`} className="text-sm text-galaxy-text-muted hover:text-galaxy-text underline">
-            View order status
+            {t('print:confirm.view_status')}
           </Link>
         </div>
       </motion.div>

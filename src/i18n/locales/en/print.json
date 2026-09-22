@@ -1,0 +1,149 @@
+{
+  "status": {
+    "pending": "Order received",
+    "paid": "Payment confirmed",
+    "pdf_ready": "Preparing files",
+    "submitted": "Sent to printer",
+    "in_production": "Being printed",
+    "shipped": "Shipped!",
+    "delivered": "Delivered",
+    "failed": "Problem",
+    "refunded": "Refunded",
+    "unknown": "Order update"
+  },
+  "timeline": {
+    "paid": "Payment received",
+    "pdf_ready": "Files prepared",
+    "submitted": "Sent to printer",
+    "in_production": "Being printed",
+    "shipped": "Shipped",
+    "delivered": "Delivered",
+    "failed_title": "There was a problem with your order",
+    "refunded_title": "Order refunded",
+    "problem_help": "If you have questions, tap \"Report a problem\" below."
+  },
+  "format": {
+    "hardcover": "Hardcover",
+    "softcover": "Softcover",
+    "unknown": "Print book",
+    "delivery_days": "{{days}} business days"
+  },
+  "summary": {
+    "format": "Format",
+    "quantity": "Quantity",
+    "subtotal": "Subtotal",
+    "shipping": "Shipping",
+    "tax": "Tax",
+    "total": "Total"
+  },
+  "quantity": {
+    "decrease": "Decrease quantity",
+    "increase": "Increase quantity"
+  },
+  "payment": {
+    "title": "Payment",
+    "processing": "Processing…",
+    "pay": "Pay",
+    "failed": "Payment failed"
+  },
+  "finished": {
+    "title": "Your book is done!",
+    "subtitle": "You can order a real printed copy and hold it in your hands.",
+    "order_cta": "Order a print →",
+    "later": "Maybe later"
+  },
+  "book": {
+    "cover_alt": "Book cover",
+    "page_alt": "Page {{number}} illustration",
+    "by_author": "by {{name}}",
+    "the_end": "The End",
+    "written_by": "Written and illustrated by {{name}}",
+    "created_with": "Created with My Book Lab ✨"
+  },
+  "back_matter": {
+    "title": "What else is in the printed book",
+    "subtitle": "Every printed book includes these curated pages after your story.",
+    "subtitle_with_total_one": "Every printed book includes these curated pages after your story — {{count}} page total.",
+    "subtitle_with_total_other": "Every printed book includes these curated pages after your story — {{count}} pages total.",
+    "the_end_desc": "A title spread closing the story.",
+    "dedication_title": "Dedication",
+    "dedication_desc": "A blank \"This book is for…\" page so the reader can fill in a name.",
+    "about_author_title": "About the Author",
+    "about_author_desc": "Spotlights {{name}}, the storyteller.",
+    "about_author_desc_generic": "Spotlights the kid who wrote the book.",
+    "characters_title": "Meet the Characters",
+    "characters_desc_one": "{{count}} character, with a name + emoji + short bio.",
+    "characters_desc_other": "{{count}} characters, each with a name + emoji + short bio.",
+    "characters_desc_generic": "A page introducing the heroes of the story.",
+    "setting_title": "Where the story happens",
+    "setting_desc": "Visualizes {{name}}.",
+    "setting_desc_generic": "Visualizes the setting.",
+    "reflection_title": "Story Reflection",
+    "reflection_desc": "4 open-ended questions for the reader to think about.",
+    "share_title": "Make your own magical book",
+    "share_desc": "A scan-to-download page sharing MyBookLab with whoever holds the book next.",
+    "padding_title_one": "{{count}} more page for notes & doodles",
+    "padding_title_other": "{{count}} more pages for notes & doodles",
+    "padding_desc": "Lined \"Notes from your reader\" pages and blank \"Draw your own scene\" doodle frames, alternating. Lulu requires at least {{min}} interior pages — these fill out the book and make it feel substantial."
+  },
+  "order": {
+    "title": "Order a print",
+    "section_preview": "Your story",
+    "preview_hint": "Scroll through every page to confirm before printing.",
+    "section_back_matter": "Back of the book",
+    "check_reviewed": "I've reviewed every page",
+    "check_finished": "This book is finished and ready to print",
+    "section_format": "Format",
+    "section_quantity": "Quantity",
+    "section_shipping": "Shipping",
+    "line_item": "{{quantity}} × {{price}} {{format}}",
+    "continue_to_payment": "Continue to payment · {{price}}"
+  },
+  "gate": {
+    "login_required": "Please log in to continue.",
+    "book_not_found": "Book not found.",
+    "back_to_bookshelf": "Back to bookshelf"
+  },
+  "shipping": {
+    "name": "Full name",
+    "address_line1": "Address",
+    "address_line2": "Apt, suite, etc. (optional)",
+    "city": "City",
+    "state": "State",
+    "state_placeholder": "e.g. TX",
+    "postal_code": "ZIP",
+    "phone": "Phone",
+    "email": "Email"
+  },
+  "orders": {
+    "title": "My print orders",
+    "login_required": "Log in to see your orders.",
+    "empty": "No orders yet.",
+    "empty_cta": "Pick a book to print →",
+    "fallback_name": "Print order",
+    "line": "{{quantity}} × {{format}} · {{date}}"
+  },
+  "detail": {
+    "title": "Order #{{id}}",
+    "not_found": "Order not found",
+    "all_orders": "All orders",
+    "section_progress": "Progress",
+    "section_summary": "Summary",
+    "section_shipping_to": "Shipping to",
+    "shipping_title": "Your book is on its way!",
+    "tracking_line": "{{carrier}} · {{number}}",
+    "track_cta": "Track your package",
+    "address_line": "{{city}}, {{state}} {{postal_code}}",
+    "report_problem": "Report a problem",
+    "support_subject": "Help with print order {{id}}",
+    "support_body": "Order ID: {{id}}\n\nWhat happened: "
+  },
+  "confirm": {
+    "title": "Order placed! 🎉",
+    "order_number": "Order #{{id}}",
+    "eta": "Usually arrives in <b>10–14 business days</b>.",
+    "email_note": "We'll send you an email when your book ships.",
+    "back_to_shelf": "Back to my shelf",
+    "view_status": "View order status"
+  }
+}

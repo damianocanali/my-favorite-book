@@ -1,9 +1,11 @@
 import { motion } from 'motion/react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import SparkleButton from '../ui/SparkleButton'
 
 export default function EmptyShelf() {
   const navigate = useNavigate()
+  const { t } = useTranslation()
 
   return (
     <motion.div
@@ -19,20 +21,20 @@ export default function EmptyShelf() {
         <img src="/logo.png" alt="My Book Lab" className="w-full h-full rounded-2xl opacity-60" />
       </motion.div>
       <h3 className="font-heading text-2xl font-bold text-galaxy-text mb-2">
-        Your Bookshelf is Empty
+        {t('gallery:empty_shelf.title')}
       </h3>
       <p className="text-galaxy-text-muted font-body mb-8 max-w-sm mx-auto">
-        You haven't created any books yet. Start your first adventure!
+        {t('gallery:empty_shelf.body')}
       </p>
       <SparkleButton onClick={() => navigate('/create')} size="large">
-        Create Your First Book ✨
+        {t('gallery:empty_shelf.cta')}
       </SparkleButton>
       <p className="mt-5">
         <button
           onClick={() => navigate('/example')}
           className="text-sm text-galaxy-text-muted hover:text-galaxy-text underline underline-offset-4 transition-colors"
         >
-          Or see what a finished book looks like →
+          {t('gallery:empty_shelf.example_link')}
         </button>
       </p>
     </motion.div>

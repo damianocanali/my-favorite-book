@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react'
 import { motion } from 'motion/react'
+import { useTranslation } from 'react-i18next'
 import { ShieldCheck, X } from 'lucide-react'
 import SparkleButton from './SparkleButton'
 
@@ -11,6 +12,7 @@ function generateProblem() {
 }
 
 export default function ParentalGate({ onPass, onClose }) {
+  const { t } = useTranslation()
   const problem = useMemo(generateProblem, [])
   const [input, setInput] = useState('')
   const [error, setError] = useState(false)
@@ -46,18 +48,18 @@ export default function ParentalGate({ onPass, onClose }) {
             <ShieldCheck size={22} className="text-galaxy-primary" />
           </div>
           <div>
-            <h2 className="font-heading text-lg font-bold text-galaxy-text">Grown-ups only!</h2>
-            <p className="text-galaxy-text-muted text-xs font-body">Ask a parent or guardian for help</p>
+            <h2 className="font-heading text-lg font-bold text-galaxy-text">{t('common:parental_gate.title')}</h2>
+            <p className="text-galaxy-text-muted text-xs font-body">{t('common:parental_gate.subtitle')}</p>
           </div>
         </div>
 
         <p className="text-galaxy-text font-body text-sm mb-4">
-          To continue to the payment page, please solve this math problem:
+          {t('common:parental_gate.instruction')}
         </p>
 
         <div className="text-center mb-4">
           <span className="font-heading text-3xl font-bold text-galaxy-primary">
-            {problem.question} = ?
+            {t('common:parental_gate.problem', { question: problem.question })}
           </span>
         </div>
 
@@ -67,7 +69,7 @@ export default function ParentalGate({ onPass, onClose }) {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleCheck()}
-          placeholder="Your answer"
+          placeholder={t('common:parental_gate.answer_placeholder')}
           autoFocus
           className={`w-full px-4 py-3 bg-galaxy-bg border rounded-xl text-galaxy-text placeholder:text-galaxy-text-muted/40 focus:outline-none font-body text-center text-xl transition-colors ${
             error
@@ -82,7 +84,7 @@ export default function ParentalGate({ onPass, onClose }) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
           >
-            That's not right — try again!
+            {t('common:parental_gate.wrong_answer')}
           </motion.p>
         )}
 
@@ -91,7 +93,7 @@ export default function ParentalGate({ onPass, onClose }) {
             onClick={onClose}
             className="flex-1 py-2.5 rounded-xl font-body font-semibold text-galaxy-text-muted border border-galaxy-text-muted/30 hover:border-galaxy-text-muted/60 transition-colors text-sm"
           >
-            Cancel
+            {t('common:actions.cancel')}
           </button>
           <SparkleButton
             onClick={handleCheck}
@@ -99,7 +101,7 @@ export default function ParentalGate({ onPass, onClose }) {
             size="small"
             className="flex-1"
           >
-            Continue
+            {t('common:actions.continue')}
           </SparkleButton>
         </div>
       </motion.div>

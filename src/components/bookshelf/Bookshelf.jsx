@@ -1,12 +1,15 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useBookshelfStore } from '../../stores/useBookshelfStore'
 import { useBookStore } from '../../stores/useBookStore'
 import BookSpine from './BookSpine'
 import EmptyShelf from './EmptyShelf'
 
 function DeleteConfirmModal({ title, onConfirm, onCancel }) {
+  const { t } = useTranslation()
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/60" onClick={onCancel} />
@@ -17,22 +20,22 @@ function DeleteConfirmModal({ title, onConfirm, onCancel }) {
         exit={{ scale: 0.9, opacity: 0 }}
         transition={{ duration: 0.15 }}
       >
-        <p className="font-heading text-lg font-bold text-galaxy-text">Delete this book?</p>
+        <p className="font-heading text-lg font-bold text-galaxy-text">{t('gallery:delete_modal.title')}</p>
         <p className="font-body text-galaxy-text-muted text-sm">
-          "{title}" will be permanently removed from your shelf.
+          {t('gallery:delete_modal.body', { title })}
         </p>
         <div className="flex gap-3 justify-center">
           <button
             onClick={onCancel}
             className="px-5 py-2 rounded-xl font-body font-semibold text-galaxy-text glass border border-white/15 hover:border-galaxy-text-muted/60 transition-colors"
           >
-            Cancel
+            {t('common:actions.cancel')}
           </button>
           <button
             onClick={onConfirm}
             className="px-5 py-2 rounded-xl font-body font-semibold text-white bg-red-500 hover:bg-red-600 transition-colors"
           >
-            Delete
+            {t('common:actions.delete')}
           </button>
         </div>
       </motion.div>

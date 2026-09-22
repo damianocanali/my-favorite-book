@@ -1,0 +1,113 @@
+{
+  "spine": {
+    "pages_one": "{{count}} page",
+    "pages_other": "{{count}} pages",
+    "order_print_aria": "Order a printed copy of this book",
+    "order_print_title": "Order a printed copy"
+  },
+  "delete_modal": {
+    "title": "Delete this book?",
+    "body": "\"{{title}}\" will be permanently removed from your shelf."
+  },
+  "empty_shelf": {
+    "title": "Your Bookshelf is Empty",
+    "body": "You haven't created any books yet. Start your first adventure!",
+    "cta": "Create Your First Book ✨",
+    "example_link": "Or see what a finished book looks like →"
+  },
+  "signed_out": {
+    "title": "Sign in to see your bookshelf",
+    "body": "Create a free account to save your books and access them from any device.",
+    "create_account": "Create free account",
+    "sign_in": "Sign in"
+  },
+  "shelf": {
+    "title": "My Bookshelf",
+    "new_book": "New Book"
+  },
+  "byline": {
+    "plain": "by {{name}}",
+    "plain_with_age": "by {{name}}, age {{age}}",
+    "rich": "by <name>{{name}}</name>",
+    "rich_with_age": "by <name>{{name}}</name><age>, age {{age}}</age>"
+  },
+  "actions": {
+    "remove_from_gallery": "Remove from gallery",
+    "start_writing": "Start Writing",
+    "write_your_story": "Write Your Story"
+  },
+  "card": {
+    "featured_badge": "FEATURED",
+    "stickers_one": "{{count}} sticker",
+    "stickers_other": "{{count}} stickers",
+    "remove_confirm": "Remove?",
+    "remove_yes": "Yes",
+    "remove_failed": "Could not remove book: {{message}}"
+  },
+  "index": {
+    "title": "Book Gallery",
+    "subtitle": "Amazing stories written by young authors just like you!",
+    "loading": "Loading amazing stories...",
+    "empty_title": "The gallery is getting ready!",
+    "empty_body": "Be the first to publish a book and share it with the world!",
+    "featured_heading": "Featured Stories",
+    "recent_heading": "Recently Published",
+    "publish_hint": "Want your book in the gallery? Publish it from your preview page!"
+  },
+  "view": {
+    "not_found_title": "Book Not Found",
+    "not_found_body": "This book could not be found. It may have been removed.",
+    "go_home": "Go Home",
+    "back_title": "Back to gallery",
+    "back_label": "Gallery",
+    "confirm_remove_title": "Confirm removal from the gallery",
+    "confirm_remove_label": "Yes, remove",
+    "cancel_remove_title": "Keep in gallery",
+    "remove_label": "Remove",
+    "remove_failed": "Failed to remove: {{message}}",
+    "share_title": "Share this book",
+    "share": "Share",
+    "share_copied": "Link Copied!",
+    "sticker_prompt": "Leave a Sticker! 🎉",
+    "sticker_count_one": "{{count}} sticker so far — keep them coming!",
+    "sticker_count_other": "{{count}} stickers so far — keep them coming!",
+    "sticker_empty": "Tap a sticker to show this author some love!",
+    "own_book_cta": "Want to create your own book?"
+  },
+  "teacher": {
+    "title": "Teacher Dashboard",
+    "subtitle": "Create a class code and share it with your students. When they finish a book, they'll submit it here.",
+    "create_heading": "Create a New Class",
+    "name_placeholder": "e.g. Mrs. Rivera's 3rd Grade",
+    "create": "Create",
+    "creating": "Creating…",
+    "create_failed": "Failed to create class",
+    "your_classes": "Your Classes",
+    "copy_code": "Copy code",
+    "view_books": "View Books",
+    "empty": "No classes yet — create one above to get started."
+  },
+  "classroom": {
+    "meta_one": "Code: <code>{{code}}</code> · {{count}} book submitted",
+    "meta_other": "Code: <code>{{code}}</code> · {{count}} books submitted",
+    "card_byline_one": "by {{name}} · {{count}} page",
+    "card_byline_other": "by {{name}} · {{count}} pages",
+    "load_failed": "Could not load classroom",
+    "not_found": "Classroom not found",
+    "back_to_dashboard": "Back to Teacher Dashboard",
+    "empty_title": "No books yet.",
+    "empty_body": "Share the code <code>{{code}}</code> with your students."
+  },
+  "submit_to_class": {
+    "title": "Submit to Class",
+    "subtitle": "Share your book with your teacher",
+    "instruction": "Ask your teacher for the class code and enter it below.",
+    "code_placeholder": "CLASS CODE",
+    "error_missing_code": "Enter your class code.",
+    "submit": "Submit Book",
+    "submitting": "Submitting…",
+    "submit_failed": "Could not submit book",
+    "success_title": "Book Submitted!",
+    "success_body": "Your teacher can now read <title>\"{{title}}\"</title> in the class gallery."
+  }
+}

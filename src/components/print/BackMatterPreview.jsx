@@ -3,11 +3,13 @@
 // Mirrors the page sequence in lib/print/pdf-html.js#buildClosingPages —
 // when that changes, update this list to match.
 import { BookOpen, Heart, Users, MapPin, MessageCircle, Sparkles, FileText, Pencil } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 // Lulu floor for color print-on-demand. Same as MIN_INTERIOR_PAGES on the server.
 const MIN_INTERIOR_PAGES = 32
 
 export default function BackMatterPreview({ book }) {
+  const { t } = useTranslation()
   const storyPageCount = book?.pages?.length ?? 0
   const charCount = (book?.characters ?? []).length
 
@@ -16,45 +18,50 @@ export default function BackMatterPreview({ book }) {
   const sections = [
     {
       icon: BookOpen,
-      title: 'The End',
-      desc: 'A title spread closing the story.',
+      title: t('print:book.the_end'),
+      desc: t('print:back_matter.the_end_desc'),
     },
     {
       icon: Heart,
-      title: 'Dedication',
-      desc: 'A blank "This book is for…" page so the reader can fill in a name.',
+      title: t('print:back_matter.dedication_title'),
+      desc: t('print:back_matter.dedication_desc'),
     },
     {
       icon: FileText,
-      title: 'About the Author',
+      title: t('print:back_matter.about_author_title'),
+      // Two whole sentences rather than a name spliced into a shared stem —
+      // the word order around the name differs per language.
       desc: book?.authorName
-        ? `Spotlights ${book.authorName}, the storyteller.`
-        : 'Spotlights the kid who wrote the book.',
+        ? t('print:back_matter.about_author_desc', { name: book.authorName })
+        : t('print:back_matter.about_author_desc_generic'),
     },
     {
       icon: Users,
-      title: 'Meet the Characters',
+      title: t('print:back_matter.characters_title'),
       desc: charCount > 0
-        ? `${charCount} character${charCount === 1 ? '' : 's'}, each with a name + emoji + short bio.`
-        : 'A page introducing the heroes of the story.',
+        ? t('print:back_matter.characters_desc', { count: charCount })
+        : t('print:back_matter.characters_desc_generic'),
     },
   ]
   if (book?.setting) {
+    const settingName = book.setting.name ?? book.setting.label
     sections.push({
       icon: MapPin,
-      title: 'Where the story happens',
-      desc: `Visualizes ${book.setting.name ?? book.setting.label ?? 'the setting'}.`,
+      title: t('print:back_matter.setting_title'),
+      desc: settingName
+        ? t('print:back_matter.setting_desc', { name: settingName })
+        : t('print:back_matter.setting_desc_generic'),
     })
   }
   sections.push({
     icon: MessageCircle,
-    title: 'Story Reflection',
-    desc: '4 open-ended questions for the reader to think about.',
+    title: t('print:back_matter.reflection_title'),
+    desc: t('print:back_matter.reflection_desc'),
   })
   sections.push({
     icon: Sparkles,
-    title: 'Make your own magical book',
-    desc: 'A scan-to-download page sharing MyBookLab with whoever holds the book next.',
+    title: t('print:back_matter.share_title'),
+    desc: t('print:back_matter.share_desc'),
   })
 
   // Estimate how many notes / doodle padding pages will be appended.
@@ -68,10 +75,11 @@ export default function BackMatterPreview({ book }) {
   return (
     <div className="rounded-xl border border-galaxy-text-muted/20 glass p-4 space-y-4">
       <div>
-        <h3 className="font-heading text-sm font-bold text-galaxy-text">What else is in the printed book</h3>
+        <h3 className="font-heading text-sm font-bold text-galaxy-text">{t('print:back_matter.title')}</h3>
         <p className="text-xs text-galaxy-text-muted mt-1">
-          Every printed book includes these curated pages after your story
-          {totalPages > 0 ? ` — ${totalPages} pages total` : ''}.
+          {totalPages > 0
+            ? t('print:back_matter.subtitle_with_total', { count: totalPages })
+            : t('print:back_matter.subtitle')}
         </p>
       </div>
 
@@ -93,10 +101,10 @@ export default function BackMatterPreview({ book }) {
             <Pencil size={16} className="text-galaxy-text-muted mt-0.5 flex-shrink-0" />
             <div className="min-w-0">
               <p className="font-body text-sm font-semibold text-galaxy-text">
-                {padCount} more {padCount === 1 ? 'page' : 'pages'} for notes &amp; doodles
+                {t('print:back_matter.padding_title', { count: padCount })}
               </p>
               <p className="text-xs text-galaxy-text-muted">
-                Lined "Notes from your reader" pages and blank "Draw your own scene" doodle frames, alternating. Lulu requires at least {MIN_INTERIOR_PAGES} interior pages — these fill out the book and make it feel substantial.
+                {t('print:back_matter.padding_desc', { min: MIN_INTERIOR_PAGES })}
               </p>
             </div>
           </div>

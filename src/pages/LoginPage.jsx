@@ -1,13 +1,15 @@
 import { useState } from 'react'
 import { useNavigate, Link, useSearchParams } from 'react-router-dom'
 import { motion } from 'motion/react'
+import { useTranslation, Trans } from 'react-i18next'
 import { Mail, Lock, Eye, EyeOff, ArrowLeft, CheckCircle } from 'lucide-react'
 import { useAuthStore } from '../stores/useAuthStore'
 import { supabase } from '../lib/supabase'
 import OAuthButtons from '../components/auth/OAuthButtons'
-import { friendlyAuthMessage } from '../lib/authErrors'
+import { authErrorCode } from '../lib/authErrors'
 
 export default function LoginPage() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const signIn = useAuthStore((s) => s.signIn)
@@ -31,7 +33,7 @@ export default function LoginPage() {
       const role = user?.user_metadata?.role
       navigate(role === 'teacher' ? '/teacher' : '/', { replace: true })
     } catch (err) {
-      setError(friendlyAuthMessage(err))
+      setError(t(`errors:auth.${authErrorCode(err)}`))
     } finally {
       setLoading(false)
     }
@@ -39,8 +41,8 @@ export default function LoginPage() {
 
   const handleResetPassword = async (e) => {
     e.preventDefault()
-    if (!resetEmail.trim()) { setResetError('Please enter your email.'); return }
-    if (!supabase) { setResetError('Auth not configured.'); return }
+    if (!resetEmail.trim()) { setResetError(t('errors:auth.email_required')); return }
+    if (!supabase) { setResetError(t('errors:auth.not_configured')); return }
     setResetLoading(true)
     setResetError('')
     try {
@@ -53,7 +55,7 @@ export default function LoginPage() {
       if (error) throw error
       setResetSent(true)
     } catch (err) {
-      setResetError(err.message || 'Something went wrong. Please try again.')
+      setResetError(err.message || t('errors:auth.generic_retry'))
     } finally {
       setResetLoading(false)
     }
@@ -70,16 +72,16 @@ export default function LoginPage() {
         {/* Header */}
         <div className="text-center mb-8">
           <img src="/logo.png" alt="My Book Lab" className="w-16 h-16 mx-auto mb-4 rounded-xl" />
-          <h1 className="font-heading text-2xl font-bold text-galaxy-text">Welcome Back!</h1>
+          <h1 className="font-heading text-2xl font-bold text-galaxy-text">{t('auth:sign_in.title')}</h1>
           <p className="text-galaxy-text-muted font-body text-sm mt-1">
-            Sign in to continue your story
+            {t('auth:sign_in.subtitle')}
           </p>
         </div>
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="glass rounded-2xl p-6 border border-galaxy-text-muted/10 space-y-4">
           <div className="space-y-1">
-            <label className="text-galaxy-text-muted text-sm font-body font-semibold">Email</label>
+            <label className="text-galaxy-text-muted text-sm font-body font-semibold">{t('auth:fields.email_label')}</label>
             <div className="relative">
               <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-galaxy-text-muted" />
               <input
@@ -87,14 +89,14 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                placeholder="your@email.com"
+                placeholder={t('auth:fields.email_placeholder')}
                 className="w-full pl-9 pr-4 py-3 glass border border-white/15 rounded-xl text-galaxy-text placeholder:text-galaxy-text-muted/40 focus:border-galaxy-primary focus:outline-none font-body"
               />
             </div>
           </div>
 
           <div className="space-y-1">
-            <label className="text-galaxy-text-muted text-sm font-body font-semibold">Password</label>
+            <label className="text-galaxy-text-muted text-sm font-body font-semibold">{t('auth:fields.password_label')}</label>
             <div className="relative">
               <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-galaxy-text-muted" />
               <input
@@ -122,7 +124,7 @@ export default function LoginPage() {
             disabled={loading || !email || !password}
             className="w-full py-3 rounded-xl font-body font-bold text-white btn-fill-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            {loading ? 'Signing in…' : 'Sign In'}
+            {loading ? t('auth:sign_in.submitting') : t('auth:sign_in.submit')}
           </button>
 
           <button
@@ -130,7 +132,7 @@ export default function LoginPage() {
             onClick={() => { setShowReset(true); setResetEmail(email) }}
             className="w-full text-center text-galaxy-text-muted text-sm font-body hover:text-galaxy-primary transition-colors"
           >
-            Forgot your password?
+            {t('auth:shared.forgot_password')}
           </button>
 
           <OAuthButtons />
@@ -146,21 +148,25 @@ export default function LoginPage() {
             {resetSent ? (
               <div className="text-center space-y-3">
                 <CheckCircle size={40} className="text-green-400 mx-auto" />
-                <h3 className="font-heading text-lg font-bold text-galaxy-text">Check your email!</h3>
+                <h3 className="font-heading text-lg font-bold text-galaxy-text">{t('auth:reset_request.sent_title')}</h3>
                 <p className="text-galaxy-text-muted font-body text-sm">
-                  We sent a password reset link to <span className="text-galaxy-text font-semibold">{resetEmail}</span>. Click the link in the email to set a new password.
+                  <Trans
+                    i18nKey="auth:reset_request.sent_body"
+                    values={{ email: resetEmail }}
+                    components={{ email: <span className="text-galaxy-text font-semibold" /> }}
+                  />
                 </p>
                 <button
                   onClick={() => { setShowReset(false); setResetSent(false) }}
                   className="text-galaxy-primary text-sm font-body font-semibold hover:underline"
                 >
-                  Back to sign in
+                  {t('auth:reset_request.back_to_sign_in')}
                 </button>
               </div>
             ) : (
               <form onSubmit={handleResetPassword} className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <h3 className="font-heading text-base font-bold text-galaxy-text">Reset password</h3>
+                  <h3 className="font-heading text-base font-bold text-galaxy-text">{t('auth:reset_request.title')}</h3>
                   <button
                     type="button"
                     onClick={() => setShowReset(false)}
@@ -170,7 +176,7 @@ export default function LoginPage() {
                   </button>
                 </div>
                 <p className="text-galaxy-text-muted font-body text-xs">
-                  Enter your email and we'll send you a link to reset your password.
+                  {t('auth:reset_request.hint')}
                 </p>
                 <div className="relative">
                   <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-galaxy-text-muted" />
@@ -179,7 +185,7 @@ export default function LoginPage() {
                     value={resetEmail}
                     onChange={(e) => setResetEmail(e.target.value)}
                     required
-                    placeholder="your@email.com"
+                    placeholder={t('auth:fields.email_placeholder')}
                     className="w-full pl-9 pr-4 py-3 glass border border-white/15 rounded-xl text-galaxy-text placeholder:text-galaxy-text-muted/40 focus:border-galaxy-primary focus:outline-none font-body"
                   />
                 </div>
@@ -189,7 +195,7 @@ export default function LoginPage() {
                   disabled={resetLoading || !resetEmail.trim()}
                   className="w-full py-3 rounded-xl font-body font-bold text-white btn-fill-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
-                  {resetLoading ? 'Sending…' : 'Send Reset Link'}
+                  {resetLoading ? t('auth:reset_request.submitting') : t('auth:reset_request.submit')}
                 </button>
               </form>
             )}
@@ -198,13 +204,15 @@ export default function LoginPage() {
 
         <div className="text-center mt-4 space-y-2">
           <p className="text-galaxy-text-muted text-sm font-body">
-            New here?{' '}
-            <Link to="/signup" className="text-galaxy-primary hover:underline font-semibold">
-              Create an account
-            </Link>
+            <Trans
+              i18nKey="auth:sign_in.no_account"
+              components={{
+                signup: <Link to="/signup" className="text-galaxy-primary hover:underline font-semibold" />,
+              }}
+            />
           </p>
           <Link to="/" className="text-galaxy-text-muted text-sm font-body hover:text-galaxy-text transition-colors block">
-            ← Back to the app
+            {t('auth:shared.back_to_app')}
           </Link>
         </div>
       </motion.div>

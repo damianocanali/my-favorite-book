@@ -1,0 +1,91 @@
+{
+  "actions": {
+    "sign_out": "Sign out",
+    "cancel": "Cancel",
+    "close": "Close",
+    "save": "Save",
+    "back": "Back",
+    "next": "Next",
+    "done": "Done",
+    "retry": "Retry",
+    "delete": "Delete",
+    "confirm": "Confirm",
+    "continue": "Continue",
+    "dismiss": "Dismiss",
+    "edit": "Edit",
+    "add": "Add",
+    "remove": "Remove",
+    "start": "Start",
+    "skip": "Skip",
+    "submit": "Submit",
+    "share": "Share",
+    "download": "Download",
+    "print": "Print",
+    "copy": "Copy",
+    "search": "Search",
+    "refresh": "Refresh",
+    "view": "View",
+    "select": "Select",
+    "ok": "OK",
+    "yes": "Yes",
+    "no": "No",
+    "got_it": "Got it",
+    "try_again": "Try again",
+    "lets_go": "Let's go"
+  },
+  "state": {
+    "loading": "Loading…",
+    "saving": "Saving…",
+    "saved": "Saved",
+    "deleting": "Deleting…",
+    "empty": "Nothing here yet",
+    "error": "Something went wrong",
+    "no_results": "No results",
+    "offline": "You're offline",
+    "not_found": "Not found."
+  },
+  "units": {
+    "coins": "Coins",
+    "day_streak": "Day streak",
+    "coins_count_one": "{{count}} coin",
+    "coins_count_other": "{{count}} coins",
+    "days_one": "{{count}} day",
+    "days_other": "{{count}} days",
+    "pages_one": "{{count}} page",
+    "pages_other": "{{count}} pages",
+    "words_one": "{{count}} word",
+    "words_other": "{{count}} words",
+    "minutes_one": "{{count}} minute",
+    "minutes_other": "{{count}} minutes"
+  },
+  "language": {
+    "label": "Language",
+    "aria_label": "Select language"
+  },
+  "parental_gate": {
+    "title": "Grown-ups only!",
+    "subtitle": "Ask a parent or guardian for help",
+    "instruction": "To continue to the payment page, please solve this math problem:",
+    "problem": "{{question}} = ?",
+    "answer_placeholder": "Your answer",
+    "wrong_answer": "That's not right — try again!"
+  },
+  "badge_popup": {
+    "earned": "Badge earned!",
+    "coins_earned_one": "+{{count}} coin earned!",
+    "coins_earned_other": "+{{count}} coins earned!"
+  },
+  "welcome_back": {
+    "banner": "Welcome back!",
+    "greeting": "Good to see you, {{name}}",
+    "streak_next": "Write today to reach day {{day}}!",
+    "streak_start": "Write something today to start a streak!",
+    "tap_hint": "Tap anywhere to continue"
+  },
+  "not_found": {
+    "title": "Lost in space",
+    "body": "We couldn't find that page. It may have drifted off, or the link might have a typo in it.",
+    "go_home": "Go home",
+    "bookshelf": "My bookshelf"
+  }
+}

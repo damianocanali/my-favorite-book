@@ -69,10 +69,14 @@ struct LatestBookWidgetView: View {
         VStack(alignment: .leading, spacing: 6) {
             bookBadge(snapshot, size: 40)
             Spacer(minLength: 2)
-            Text(snapshot.latestBookTitle ?? "My Books")
+            titleText(snapshot)
                 .font(.system(.callout, design: .rounded).bold())
                 .foregroundStyle(.white)
                 .lineLimit(2)
+                // systemSmall has no room to grow: the fixed .callout and
+                // a title that runs 15-25% longer in Italian would clip
+                // without a scale floor.
+                .minimumScaleFactor(0.7)
             streakLine(snapshot)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
@@ -82,18 +86,34 @@ struct LatestBookWidgetView: View {
         HStack(spacing: 14) {
             bookBadge(snapshot, size: 64)
             VStack(alignment: .leading, spacing: 4) {
-                Text(snapshot.latestBookTitle ?? "My Books")
+                titleText(snapshot)
                     .font(.system(.headline, design: .rounded).bold())
                     .foregroundStyle(.white)
                     .lineLimit(2)
-                Text(snapshot.booksCount == 1 ? "1 book on your shelf"
-                     : "\(snapshot.booksCount) books on your shelf")
+                    .minimumScaleFactor(0.75)
+                // Was a hand-rolled plural (`count == 1 ? "1 book" : "N books"`),
+                // which only ever encodes English's two forms. Now one key
+                // with the count as its argument, pluralized by automatic
+                // grammar agreement — the catalog carries the inflection and
+                // each language applies its own rules.
+                //
+                // It goes through `AttributedString(localized:)` on purpose:
+                // `String(localized:)` does NOT run the inflection pass and
+                // would render the raw "^[...](inflect: true)" markup.
+                Text(AttributedString(
+                    localized: "widget.shelf.book_count",
+                    defaultValue: "^[\(snapshot.booksCount) book](inflect: true) on your shelf",
+                    comment: "Widget subtitle counting the books on the shelf, e.g. \"3 books on your shelf\""))
                     .font(.caption)
                     .foregroundStyle(.white.opacity(0.7))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
                 streakLine(snapshot)
-                Text("Tap to write today! ✨")
+                Text("Tap to write today! ✨", comment: "Widget call to action")
                     .font(.caption2.bold())
                     .foregroundStyle(.yellow)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
             }
             Spacer(minLength: 0)
         }
@@ -102,13 +122,33 @@ struct LatestBookWidgetView: View {
 
     private var emptyState: some View {
         VStack(spacing: 6) {
-            Text("📖").font(.system(size: 34))
-            Text("Start your first story!")
+            Text(verbatim: "📖").font(.system(size: 34))
+            Text("Start your first story!", comment: "Widget empty state, no books yet")
                 .font(.system(.caption, design: .rounded).bold())
                 .foregroundStyle(.white)
                 .multilineTextAlignment(.center)
+                .lineLimit(2)
+                .minimumScaleFactor(0.7)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    /// The book's title is user DATA and must stay verbatim; the fallback
+    /// is UI copy and must be translatable.
+    ///
+    /// Written as one expression, `snapshot.latestBookTitle ?? "My Books"`
+    /// types as `String`, which selects `Text`'s NON-localizing
+    /// initializer — the fallback never reached the catalog and stayed
+    /// English forever. Splitting the branches puts the fallback through a
+    /// `LocalizedStringKey` literal while the title goes through
+    /// `Text(verbatim:)`.
+    @ViewBuilder
+    private func titleText(_ snapshot: WidgetSnapshot) -> some View {
+        if let title = snapshot.latestBookTitle {
+            Text(verbatim: title)
+        } else {
+            Text("My Books", comment: "Widget title fallback when the latest book has no title")
+        }
     }
 
     private func bookBadge(_ snapshot: WidgetSnapshot, size: CGFloat) -> some View {
@@ -116,7 +156,8 @@ struct LatestBookWidgetView: View {
             RoundedRectangle(cornerRadius: size / 5)
                 .fill(LinearGradient(colors: [coverColor, coverColor.opacity(0.6)],
                                      startPoint: .top, endPoint: .bottom))
-            Text(snapshot.latestBookEmoji ?? "📖")
+            // Data, not copy — `verbatim` says so out loud.
+            Text(verbatim: snapshot.latestBookEmoji ?? "📖")
                 .font(.system(size: size * 0.55))
         }
         .frame(width: size, height: size * 1.25)
@@ -125,9 +166,14 @@ struct LatestBookWidgetView: View {
     @ViewBuilder
     private func streakLine(_ snapshot: WidgetSnapshot) -> some View {
         if snapshot.currentStreak > 0 {
-            Text("🔥 \(snapshot.currentStreak) day streak")
+            Text(LocalizedStringResource(
+                "widget.streak.days",
+                defaultValue: "🔥 \(snapshot.currentStreak) day streak",
+                comment: "Widget writing-streak line, e.g. \"🔥 4 day streak\""))
                 .font(.caption2.bold())
                 .foregroundStyle(.orange)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
         }
     }
 }
@@ -137,8 +183,10 @@ struct LatestBookWidget: Widget {
         StaticConfiguration(kind: "LatestBookWidget", provider: LatestBookProvider()) { entry in
             LatestBookWidgetView(entry: entry)
         }
-        .configurationDisplayName("My Latest Book")
-        .description("Your newest story and writing streak.")
+        // The `Text` overloads (rather than the bare literals) are what let
+        // these carry translator comments into the catalog.
+        .configurationDisplayName(Text("My Latest Book", comment: "Widget name in the widget gallery"))
+        .description(Text("Your newest story and writing streak.", comment: "Widget description in the widget gallery"))
         .supportedFamilies([.systemSmall, .systemMedium])
     }
 }

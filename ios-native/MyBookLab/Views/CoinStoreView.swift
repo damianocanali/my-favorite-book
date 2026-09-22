@@ -11,16 +11,32 @@ import RevenueCat
 // In-app coin buying via StoreKit IAP. Requires the three consumable
 // products to be live in App Store Connect + linked in RevenueCat
 // (see ios-native/LAUNCH-2.0.0.md). Each pack button shows the real
-// localized App Store price; packs that aren't available yet show as
-// "Unavailable" rather than failing on tap.
+// localized App Store price — a placeholder bar while the products
+// load, and "Unavailable" for packs that never arrive, rather than a
+// guessed currency or a failure on tap.
 let coinPurchasesEnabled = true
+
+/// Two kinds of failure text. `app` is our own copy and must be
+/// translated; `system` is an OS/URLSession message that iOS has already
+/// localized, so re-keying it would only make it worse.
+private enum StoreMessage {
+    case app(LocalizedStringResource)
+    case system(String)
+
+    var text: Text {
+        switch self {
+        case .app(let resource): return Text(resource)
+        case .system(let string): return Text(string)   // already localized by iOS
+        }
+    }
+}
 
 struct CoinStoreView: View {
     @Environment(CoinsStore.self) private var coins
     @Environment(\.dismiss) private var dismiss
 
     @State private var purchasing: String?
-    @State private var error: String?
+    @State private var error: StoreMessage?
     @State private var showingBuyCoins = false
 
     var body: some View {
@@ -31,7 +47,7 @@ struct CoinStoreView: View {
                     header
                     artStylesSection
                     if let error {
-                        Text(error)
+                        error.text
                             .font(.footnote)
                             .foregroundStyle(.red.opacity(0.9))
                             .padding(.horizontal)
@@ -106,7 +122,7 @@ struct CoinStoreView: View {
             HStack(spacing: 14) {
                 Text(style.emoji).font(.system(size: 36))
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(style.label)
+                    Text(style.displayLabel)
                         .font(.headline)
                         .foregroundStyle(.white)
                     Text(style.description)
@@ -125,7 +141,8 @@ struct CoinStoreView: View {
                         Image(systemName: "circle.hexagongrid.fill")
                             .foregroundStyle(.yellow)
                             .font(.caption)
-                        Text("\(style.price)")
+                        // A bare price in coins: locale-formatted number.
+                        Text(style.price, format: .number)
                             .font(.subheadline.bold())
                             .foregroundStyle(.white)
                     }
@@ -161,10 +178,13 @@ struct CoinStoreView: View {
             } else {
                 // No web steering — Apple's anti-steering rule forbids
                 // pointing users to buy elsewhere from inside the app.
-                self.error = "You need \(style.price) coins for this. Earn more coins by creating books and using features!"
+                self.error = .app(LocalizedStringResource(
+                    "store.style.insufficient_coins",
+                    defaultValue: "You need \(style.price) coins for this. Earn more coins by creating books and using features!"))
             }
         case .error(let message):
-            self.error = message
+            // CoinsStore hands back error.localizedDescription — OS text.
+            self.error = .system(message)
         }
     }
 }
@@ -188,7 +208,8 @@ struct CoinBadge: View {
                 Image(systemName: "circle.hexagongrid.fill")
                     .foregroundStyle(.yellow)
                     .font(.caption)
-                Text("\(balance)")
+                // A bare balance: locale-formatted number, no catalog key.
+                Text(balance, format: .number)
                     .font(.subheadline.bold())
                     .foregroundStyle(.white)
             }
@@ -207,8 +228,13 @@ struct BuyCoinsSheet: View {
     @Environment(CoinsStore.self) private var coins
 
     @State private var purchasing: String?
-    @State private var error: String?
-    @State private var pendingMessage: String?
+    // Both are app-authored sentences (the failure one takes the OS
+    // message as an argument), so both are localizable resources.
+    @State private var error: LocalizedStringResource?
+    @State private var pendingMessage: LocalizedStringResource?
+    /// Nil until `loadCoinProducts` has run once. Without it, "no product"
+    /// and "not loaded yet" look the same and every pack reads Unavailable.
+    @State private var productsLoaded = false
     // Grown-up check before spending real money on a coin pack.
     // (Spending already-earned coins on an art style isn't gated —
     // no money changes hands there.)
@@ -240,7 +266,10 @@ struct BuyCoinsSheet: View {
                     }
                     .padding(.horizontal, 16)
                     .padding(.top, 8)
-                    .task { await coins.loadCoinProducts(ids: CoinPack.all.map(\.id)) }
+                    .task {
+                        await coins.loadCoinProducts(ids: CoinPack.all.map(\.id))
+                        productsLoaded = true
+                    }
 
                     if let pendingMessage {
                         Text(pendingMessage)
@@ -281,11 +310,13 @@ struct BuyCoinsSheet: View {
     }
 
     private func packCard(_ pack: CoinPack) -> some View {
-        // Real localized App Store price when the product loaded;
-        // fall back to the catalog price string only while loading.
+        // The only correct price is StoreKit's `localizedPriceString` —
+        // it carries the storefront's currency, symbol placement and
+        // separators. The old fallback was a hardcoded "$0.99", which is
+        // wrong for every non-US storefront and untranslatable besides.
+        // While the products load we show a placeholder bar instead.
         let product = coins.coinProducts[pack.id]
         let available = product != nil
-        let priceText = product?.localizedPriceString ?? pack.price
 
         return Button {
             pendingPack = pack
@@ -312,8 +343,15 @@ struct BuyCoinsSheet: View {
                 }
                 if purchasing == pack.id {
                     ProgressView().tint(.white)
-                } else if available {
-                    Text(priceText).font(.title3.bold()).foregroundStyle(.white)
+                } else if let product {
+                    Text(verbatim: product.localizedPriceString)
+                        .font(.title3.bold()).foregroundStyle(.white)
+                } else if !productsLoaded {
+                    // Price skeleton — never a guessed currency.
+                    RoundedRectangle(cornerRadius: 6)
+                        .fill(.white.opacity(0.18))
+                        .frame(width: 58, height: 20)
+                        .accessibilityLabel("Loading price")
                 } else {
                     Text("Unavailable").font(.caption).foregroundStyle(.white.opacity(0.5))
                 }
@@ -346,9 +384,16 @@ struct BuyCoinsSheet: View {
         case .cancelled:
             break
         case .pending:
-            pendingMessage = "Payment confirmed. Your coins will appear in a moment — pull to refresh if they don't show up."
+            pendingMessage = LocalizedStringResource(
+                "coins.purchase.pending",
+                defaultValue: "Payment confirmed. Your coins will appear in a moment — pull to refresh if they don't show up.")
         case .failed(let msg):
-            error = "Purchase failed: \(msg)"
+            // One sentence, one key; the StoreKit message (already
+            // localized by iOS) goes in as an argument so a translation
+            // can put it wherever the language wants it.
+            error = LocalizedStringResource(
+                "coins.purchase.failed",
+                defaultValue: "Purchase failed: \(msg)")
         }
     }
 }
@@ -356,48 +401,77 @@ struct BuyCoinsSheet: View {
 // MARK: - Catalog
 
 struct AvatarStyle: Identifiable, Hashable {
+    /// owned_styles id — wire value shared with the web. Never localized.
     let id: String
-    let label: String
+    /// Display text, keyed so the literals below reach the String Catalog.
+    let displayLabel: LocalizedStringResource
     let emoji: String
-    let description: String
+    let description: LocalizedStringResource
     let price: Int  // in coins
+
+    /// Resolved plain text of `displayLabel`. AvatarEditorView's
+    /// `styleChip(label:)` still takes a `String`; routing it through the
+    /// catalog here means that screen gets the translation too, without
+    /// this file duplicating the literal. Callers that can take a
+    /// `LocalizedStringResource` should use `displayLabel` directly.
+    var label: String { String(localized: displayLabel) }
+
+    static func == (lhs: AvatarStyle, rhs: AvatarStyle) -> Bool { lhs.id == rhs.id }
+    func hash(into hasher: inout Hasher) { hasher.combine(id) }
 
     /// Mirrors the web's ART_STYLES catalog. `cartoon` is free + owned
     /// by default, so it doesn't appear here.
     static let purchasable: [AvatarStyle] = [
-        .init(id: "pixar", label: "Pixar 3D", emoji: "✨",
-              description: "Polished 3D render. Big eyes, soft lighting.",
+        .init(id: "pixar",
+              displayLabel: LocalizedStringResource("avatar_style.pixar.label", defaultValue: "Pixar 3D"),
+              emoji: "✨",
+              description: LocalizedStringResource("avatar_style.pixar.description", defaultValue: "Polished 3D render. Big eyes, soft lighting."),
               price: 15),
-        .init(id: "anime", label: "Anime", emoji: "🌸",
-              description: "Vivid colors, expressive lines, Ghibli-inspired.",
+        .init(id: "anime",
+              displayLabel: LocalizedStringResource("avatar_style.anime.label", defaultValue: "Anime"),
+              emoji: "🌸",
+              description: LocalizedStringResource("avatar_style.anime.description", defaultValue: "Vivid colors, expressive lines, Ghibli-inspired."),
               price: 15),
-        .init(id: "watercolor", label: "Watercolor", emoji: "🖌️",
-              description: "Soft painted brushstrokes, storybook look.",
+        .init(id: "watercolor",
+              displayLabel: LocalizedStringResource("avatar_style.watercolor.label", defaultValue: "Watercolor"),
+              emoji: "🖌️",
+              description: LocalizedStringResource("avatar_style.watercolor.description", defaultValue: "Soft painted brushstrokes, storybook look."),
               price: 15),
-        .init(id: "pixel", label: "Pixel Art", emoji: "👾",
-              description: "16-bit retro game character vibes.",
+        .init(id: "pixel",
+              displayLabel: LocalizedStringResource("avatar_style.pixel.label", defaultValue: "Pixel Art"),
+              emoji: "👾",
+              description: LocalizedStringResource("avatar_style.pixel.description", defaultValue: "16-bit retro game character vibes."),
               price: 15),
     ]
 }
 
 struct CoinPack: Identifiable, Hashable {
+    /// App Store product identifier — wire value, never localized.
     let id: String
     let coins: Int
-    let price: String
-    let label: String
+    /// Display text. The *price* deliberately has no field here: it comes
+    /// from StoreKit's localizedPriceString, which is the only value that
+    /// is right in every storefront.
+    let label: LocalizedStringResource
     let emoji: String
     let popular: Bool
+
+    static func == (lhs: CoinPack, rhs: CoinPack) -> Bool { lhs.id == rhs.id }
+    func hash(into hasher: inout Hasher) { hasher.combine(id) }
 
     /// Same coin packs as the web's BuyCoinsPanel + ios IAP product IDs.
     static let all: [CoinPack] = [
         .init(id: "com.myfavoritebook.app.coins.small",
-              coins: 50, price: "$0.99",
-              label: "Small pack", emoji: "🪙", popular: false),
+              coins: 50,
+              label: LocalizedStringResource("coin_pack.small.label", defaultValue: "Small pack"),
+              emoji: "🪙", popular: false),
         .init(id: "com.myfavoritebook.app.coins.medium",
-              coins: 200, price: "$2.99",
-              label: "Medium pack", emoji: "💰", popular: true),
+              coins: 200,
+              label: LocalizedStringResource("coin_pack.medium.label", defaultValue: "Medium pack"),
+              emoji: "💰", popular: true),
         .init(id: "com.myfavoritebook.app.coins.large",
-              coins: 500, price: "$4.99",
-              label: "Large pack", emoji: "💎", popular: false),
+              coins: 500,
+              label: LocalizedStringResource("coin_pack.large.label", defaultValue: "Large pack"),
+              emoji: "💎", popular: false),
     ]
 }

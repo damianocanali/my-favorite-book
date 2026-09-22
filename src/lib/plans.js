@@ -1,5 +1,6 @@
 // Single source of truth for plan features and pricing.
 // Price IDs come from environment variables set in the Vercel dashboard.
+import { formatMoneyCents } from '../i18n/formats.js'
 
 
 export const PLANS = {
@@ -40,15 +41,34 @@ export const PLANS = {
   },
 }
 
+// Subscriptions are billed in USD by Stripe and by App Store Connect
+// regardless of the UI locale — only the *formatting* follows the locale,
+// never the currency. Prices used to live here as pre-formatted display
+// strings ('$6.99', '$4.58/mo'), which pinned every price in the app to US
+// punctuation and symbol placement and glued the "/mo" suffix onto an
+// untranslatable string.
+export const PLAN_CURRENCY = 'USD'
+
 export const PRICES = {
   family: {
-    monthly: { amount: '$6.99',  interval: 'month' },
-    annual:  { amount: '$54.99', interval: 'year', monthlyEquivalent: '$4.58/mo' },
+    monthly: { cents: 699,   currency: PLAN_CURRENCY, interval: 'month' },
+    annual:  { cents: 5499,  currency: PLAN_CURRENCY, interval: 'year', monthlyEquivalentCents: 458 },
   },
   teacher: {
-    monthly: { amount: '$13.99', interval: 'month' },
-    annual:  { amount: '$109.99', interval: 'year', monthlyEquivalent: '$9.17/mo' },
+    monthly: { cents: 1399,  currency: PLAN_CURRENCY, interval: 'month' },
+    annual:  { cents: 10999, currency: PLAN_CURRENCY, interval: 'year', monthlyEquivalentCents: 917 },
   },
+}
+
+/// Formats a PRICES entry's headline amount for display.
+export function formatPlanPrice(price) {
+  return formatMoneyCents(price.cents, price.currency)
+}
+
+/// Formats an annual entry's per-month equivalent (the bare amount — the
+/// "/mo" suffix lives in the translated string that wraps it).
+export function formatMonthlyEquivalent(price) {
+  return formatMoneyCents(price.monthlyEquivalentCents, price.currency)
 }
 
 /** Returns the plan object for a given plan key (defaults to 'free'). */

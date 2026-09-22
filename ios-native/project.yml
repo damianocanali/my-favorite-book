@@ -10,6 +10,16 @@ options:
   deploymentTarget:
     iOS: "17.0"
   createIntermediateGroups: true
+  # Source language for the String Catalogs.
+  #
+  # NOTE: the generated project's `knownRegions` stays (Base, en) — XcodeGen
+  # 2.45.4 has no option to add regions, and it normally infers them from
+  # .lproj folders, which String Catalogs replace. That does NOT matter, and
+  # it has been verified rather than assumed: with the catalogs in place and
+  # CFBundleLocalizations declaring [en, it], a Release build emits
+  # MyBookLab.app/it.lproj/Localizable.strings with the translated values.
+  # Don't spend time trying to force knownRegions.
+  developmentLanguage: en
 
 configFiles:
   Debug: Config.local.xcconfig
@@ -18,6 +28,13 @@ configFiles:
 settings:
   base:
     SWIFT_VERSION: "5.10"
+    # String Catalog extraction. SWIFT_EMIT_LOC_STRINGS makes the compiler
+    # emit .stringsdata for every Text("literal") / LocalizedStringKey, which
+    # is what populates Localizable.xcstrings — without it the catalogs stay
+    # empty no matter how many literals exist.
+    SWIFT_EMIT_LOC_STRINGS: "YES"
+    LOCALIZATION_PREFERS_STRING_CATALOGS: "YES"
+    LOCALIZED_STRING_CODE_COMMENTS: "YES"
     MARKETING_VERSION: "2.0.0"
     CURRENT_PROJECT_VERSION: "1"
     DEVELOPMENT_TEAM: G53XBRCRVU
@@ -43,12 +60,26 @@ targets:
     platform: iOS
     sources:
       - path: MyBookLab
+        # This repo lives in an iCloud-synced folder. iCloud resolves a sync
+        # collision by leaving "AppLanguage 2.swift" beside the original, and
+        # XcodeGen globs the directory, so the copy gets compiled and the build
+        # dies on "invalid redeclaration". The copies are never tracked by git,
+        # so the exclusion only ever removes files that shouldn't be built.
+        excludes:
+          - "**/* [0-9].swift"
+          - "**/* [0-9].xcstrings"
     resources:
       - path: MyBookLab/Resources
     info:
       path: MyBookLab/Info.plist
       properties:
         CFBundleDisplayName: My Book Lab
+        # Languages this bundle ships. Declaring "it" is also what gives the
+        # app its own entry in iOS Settings > My Book Lab > Language, which is
+        # the per-app override — we get that for free rather than building one.
+        CFBundleLocalizations:
+          - en
+          - it
         # Pull version/build from the MARKETING_VERSION and
         # CURRENT_PROJECT_VERSION build settings. Without these, XcodeGen
         # injects its defaults (1.0 / 1) and the build ships as 1.0.
@@ -160,6 +191,11 @@ targets:
       path: MyBookLabWidgets/Info.plist
       properties:
         CFBundleDisplayName: My Book Lab
+        # The widget is a separate bundle with its own Bundle.main, so it
+        # needs its own localization declaration and its own catalogs.
+        CFBundleLocalizations:
+          - en
+          - it
         # An app-extension's version keys MUST match the parent app's or
         # the build is rejected ("CFBundleVersion of an app extension must
         # match that of its containing parent app"). Tracking the same

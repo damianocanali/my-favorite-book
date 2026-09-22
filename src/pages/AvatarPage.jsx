@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'motion/react'
+import { useTranslation } from 'react-i18next'
 import { Coins, Lock, Award, Wand2, Loader2, Sparkles, RefreshCw, Camera } from 'lucide-react'
 import { apiFetchAuthed } from '../lib/api'
+import { formatMoneyCents } from '../i18n/formats'
 import { IS_NATIVE, purchaseCoinPack } from '../services/purchaseService'
 import { useAvatarStore } from '../stores/useAvatarStore'
 import { useRewardsStore } from '../stores/useRewardsStore'
@@ -14,95 +16,106 @@ import ParentalGate from '../components/ui/ParentalGate'
 import SparkleButton from '../components/ui/SparkleButton'
 
 // --- Feature options ---
+//
+// `id` is an ENGLISH PROMPT FRAGMENT. api/generate-avatar.js splices it
+// straight into the FLUX prompt ("wearing a blue t-shirt", "with star-shaped
+// glasses"), and the avatar store persists it, so an id must NEVER be
+// translated or renamed. `labelKey` is the display-only text, keyed by a
+// stable slug of the id.
 const SKIN_TONES = [
-  { id: 'light', label: 'Light', color: '#FFDBB4' },
-  { id: 'fair', label: 'Fair', color: '#E8B88A' },
-  { id: 'medium', label: 'Medium', color: '#C68642' },
-  { id: 'dark', label: 'Dark', color: '#8D5524' },
-  { id: 'peach', label: 'Peach', color: '#FFDBAC' },
-  { id: 'tan', label: 'Tan', color: '#F1C27D' },
+  { id: 'light', labelKey: 'content:avatar.skin_tone.light.label', color: '#FFDBB4' },
+  { id: 'fair', labelKey: 'content:avatar.skin_tone.fair.label', color: '#E8B88A' },
+  { id: 'medium', labelKey: 'content:avatar.skin_tone.medium.label', color: '#C68642' },
+  { id: 'dark', labelKey: 'content:avatar.skin_tone.dark.label', color: '#8D5524' },
+  { id: 'peach', labelKey: 'content:avatar.skin_tone.peach.label', color: '#FFDBAC' },
+  { id: 'tan', labelKey: 'content:avatar.skin_tone.tan.label', color: '#F1C27D' },
 ]
 
 const HAIR_STYLES = [
-  { id: 'none', label: 'None' },
-  { id: 'short', label: 'Short' },
-  { id: 'long', label: 'Long' },
-  { id: 'curly', label: 'Curly' },
-  { id: 'braids', label: 'Braids' },
-  { id: 'ponytail', label: 'Ponytail' },
-  { id: 'mohawk', label: 'Mohawk' },
-  { id: 'afro', label: 'Afro' },
+  { id: 'none', labelKey: 'content:avatar.hair_style.none.label' },
+  { id: 'short', labelKey: 'content:avatar.hair_style.short.label' },
+  { id: 'long', labelKey: 'content:avatar.hair_style.long.label' },
+  { id: 'curly', labelKey: 'content:avatar.hair_style.curly.label' },
+  { id: 'braids', labelKey: 'content:avatar.hair_style.braids.label' },
+  { id: 'ponytail', labelKey: 'content:avatar.hair_style.ponytail.label' },
+  { id: 'mohawk', labelKey: 'content:avatar.hair_style.mohawk.label' },
+  { id: 'afro', labelKey: 'content:avatar.hair_style.afro.label' },
 ]
 
 const HAIR_COLORS = [
-  { id: 'brown', label: 'Brown', color: '#5C3317' },
-  { id: 'black', label: 'Black', color: '#1A1A1A' },
-  { id: 'blonde', label: 'Blonde', color: '#F5DEB3' },
-  { id: 'red', label: 'Red', color: '#B7410E' },
-  { id: 'pink', label: 'Pink', color: '#FF69B4' },
-  { id: 'blue', label: 'Blue', color: '#4FC3F7' },
-  { id: 'purple', label: 'Purple', color: '#9C27B0' },
+  { id: 'brown', labelKey: 'content:avatar.hair_color.brown.label', color: '#5C3317' },
+  { id: 'black', labelKey: 'content:avatar.hair_color.black.label', color: '#1A1A1A' },
+  { id: 'blonde', labelKey: 'content:avatar.hair_color.blonde.label', color: '#F5DEB3' },
+  { id: 'red', labelKey: 'content:avatar.hair_color.red.label', color: '#B7410E' },
+  { id: 'pink', labelKey: 'content:avatar.hair_color.pink.label', color: '#FF69B4' },
+  { id: 'blue', labelKey: 'content:avatar.hair_color.blue.label', color: '#4FC3F7' },
+  { id: 'purple', labelKey: 'content:avatar.hair_color.purple.label', color: '#9C27B0' },
 ]
 
 const CLOTHING_OPTIONS = [
-  { id: 'blue t-shirt', label: 'Blue T-Shirt' },
-  { id: 'red hoodie', label: 'Red Hoodie' },
-  { id: 'green jacket', label: 'Green Jacket' },
-  { id: 'pink dress', label: 'Pink Dress' },
-  { id: 'yellow sweater', label: 'Yellow Sweater' },
-  { id: 'purple overalls', label: 'Purple Overalls' },
-  { id: 'superhero cape', label: 'Super Cape' },
-  { id: 'wizard robe', label: 'Wizard Robe' },
-  { id: 'sports jersey', label: 'Sports Jersey' },
-  { id: 'astronaut suit', label: 'Space Suit' },
+  { id: 'blue t-shirt', labelKey: 'content:avatar.clothing.blue_t_shirt.label' },
+  { id: 'red hoodie', labelKey: 'content:avatar.clothing.red_hoodie.label' },
+  { id: 'green jacket', labelKey: 'content:avatar.clothing.green_jacket.label' },
+  { id: 'pink dress', labelKey: 'content:avatar.clothing.pink_dress.label' },
+  { id: 'yellow sweater', labelKey: 'content:avatar.clothing.yellow_sweater.label' },
+  { id: 'purple overalls', labelKey: 'content:avatar.clothing.purple_overalls.label' },
+  { id: 'superhero cape', labelKey: 'content:avatar.clothing.superhero_cape.label' },
+  { id: 'wizard robe', labelKey: 'content:avatar.clothing.wizard_robe.label' },
+  { id: 'sports jersey', labelKey: 'content:avatar.clothing.sports_jersey.label' },
+  { id: 'astronaut suit', labelKey: 'content:avatar.clothing.astronaut_suit.label' },
 ]
 
 const HAT_OPTIONS = [
-  { id: 'none', label: 'None' },
-  { id: 'baseball cap', label: 'Cap' },
-  { id: 'beanie', label: 'Beanie' },
-  { id: 'cowboy hat', label: 'Cowboy' },
-  { id: 'crown', label: 'Crown' },
-  { id: 'wizard hat', label: 'Wizard' },
-  { id: 'party hat', label: 'Party' },
-  { id: 'flower crown', label: 'Flowers' },
-  { id: 'headphones', label: 'Headphones' },
-  { id: 'pirate hat', label: 'Pirate' },
+  { id: 'none', labelKey: 'content:avatar.hat.none.label' },
+  { id: 'baseball cap', labelKey: 'content:avatar.hat.baseball_cap.label' },
+  { id: 'beanie', labelKey: 'content:avatar.hat.beanie.label' },
+  { id: 'cowboy hat', labelKey: 'content:avatar.hat.cowboy_hat.label' },
+  { id: 'crown', labelKey: 'content:avatar.hat.crown.label' },
+  { id: 'wizard hat', labelKey: 'content:avatar.hat.wizard_hat.label' },
+  { id: 'party hat', labelKey: 'content:avatar.hat.party_hat.label' },
+  { id: 'flower crown', labelKey: 'content:avatar.hat.flower_crown.label' },
+  { id: 'headphones', labelKey: 'content:avatar.hat.headphones.label' },
+  { id: 'pirate hat', labelKey: 'content:avatar.hat.pirate_hat.label' },
 ]
 
 const ACCESSORY_OPTIONS = [
-  { id: 'none', label: 'None' },
-  { id: 'round glasses', label: 'Glasses' },
-  { id: 'cool sunglasses', label: 'Sunglasses' },
-  { id: 'star-shaped glasses', label: 'Star Glasses' },
-  { id: 'a red scarf', label: 'Scarf' },
-  { id: 'a magic wand', label: 'Wand' },
-  { id: 'a backpack', label: 'Backpack' },
-  { id: 'butterfly wings', label: 'Wings' },
+  { id: 'none', labelKey: 'content:avatar.accessory.none.label' },
+  { id: 'round glasses', labelKey: 'content:avatar.accessory.round_glasses.label' },
+  { id: 'cool sunglasses', labelKey: 'content:avatar.accessory.cool_sunglasses.label' },
+  { id: 'star-shaped glasses', labelKey: 'content:avatar.accessory.star_shaped_glasses.label' },
+  { id: 'a red scarf', labelKey: 'content:avatar.accessory.a_red_scarf.label' },
+  { id: 'a magic wand', labelKey: 'content:avatar.accessory.a_magic_wand.label' },
+  { id: 'a backpack', labelKey: 'content:avatar.accessory.a_backpack.label' },
+  { id: 'butterfly wings', labelKey: 'content:avatar.accessory.butterfly_wings.label' },
 ]
 
 const EXPRESSION_OPTIONS = [
-  { id: 'happy smiling', label: 'Happy' },
-  { id: 'excited laughing', label: 'Excited' },
-  { id: 'cool confident', label: 'Cool' },
-  { id: 'silly tongue out', label: 'Silly' },
-  { id: 'brave determined', label: 'Brave' },
-  { id: 'curious wondering', label: 'Curious' },
-  { id: 'peaceful calm', label: 'Peaceful' },
+  { id: 'happy smiling', labelKey: 'content:avatar.expression.happy_smiling.label' },
+  { id: 'excited laughing', labelKey: 'content:avatar.expression.excited_laughing.label' },
+  { id: 'cool confident', labelKey: 'content:avatar.expression.cool_confident.label' },
+  { id: 'silly tongue out', labelKey: 'content:avatar.expression.silly_tongue_out.label' },
+  { id: 'brave determined', labelKey: 'content:avatar.expression.brave_determined.label' },
+  { id: 'curious wondering', labelKey: 'content:avatar.expression.curious_wondering.label' },
+  { id: 'peaceful calm', labelKey: 'content:avatar.expression.peaceful_calm.label' },
 ]
 
+// Art-style ids key the style prompt table in api/generate-avatar.js and the
+// `ownedStyles` rows in user_inventory — wire values, never translated.
 const ART_STYLES = [
-  { id: 'cartoon', label: 'Cartoon', emoji: '🎨', price: 0 },
-  { id: 'pixar', label: 'Pixar 3D', emoji: '✨', price: 15 },
-  { id: 'anime', label: 'Anime', emoji: '🌸', price: 15 },
-  { id: 'watercolor', label: 'Watercolor', emoji: '🖌️', price: 15 },
-  { id: 'pixel', label: 'Pixel Art', emoji: '👾', price: 15 },
+  { id: 'cartoon', labelKey: 'content:avatar.art_style.cartoon.label', emoji: '🎨', price: 0 },
+  { id: 'pixar', labelKey: 'content:avatar.art_style.pixar.label', emoji: '✨', price: 15 },
+  { id: 'anime', labelKey: 'content:avatar.art_style.anime.label', emoji: '🌸', price: 15 },
+  { id: 'watercolor', labelKey: 'content:avatar.art_style.watercolor.label', emoji: '🖌️', price: 15 },
+  { id: 'pixel', labelKey: 'content:avatar.art_style.pixel.label', emoji: '👾', price: 15 },
 ]
 
+// `key` is the wire value posted to /api/buy-coins (and the RevenueCat
+// product mapping on native). Prices are minor units so Intl can place the
+// symbol per locale.
 const COIN_PACKS = [
-  { key: 'small', coins: 50, price: '$0.99', label: '50 Coins' },
-  { key: 'medium', coins: 200, price: '$2.99', label: '200 Coins', popular: true },
-  { key: 'large', coins: 500, price: '$4.99', label: '500 Coins' },
+  { key: 'small', coins: 50, priceCents: 99 },
+  { key: 'medium', coins: 200, priceCents: 299, popular: true },
+  { key: 'large', coins: 500, priceCents: 499 },
 ]
 
 const REGEN_COIN_COST = 10
@@ -110,6 +123,7 @@ const STYLE_CHANGE_COIN_COST = 5
 
 // --- Selector component ---
 function OptionRow({ label, options, value, onChange, colorKey }) {
+  const { t } = useTranslation()
   return (
     <div className="space-y-1.5">
       <p className="text-galaxy-text-muted text-xs font-body font-semibold">{label}</p>
@@ -130,7 +144,7 @@ function OptionRow({ label, options, value, onChange, colorKey }) {
                 style={{ backgroundColor: opt[colorKey] }}
               />
             )}
-            {opt.label}
+            {t(opt.labelKey)}
           </button>
         ))}
       </div>
@@ -140,6 +154,7 @@ function OptionRow({ label, options, value, onChange, colorKey }) {
 
 export default function AvatarPage() {
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const [searchParams, setSearchParams] = useSearchParams()
   const features = useAvatarStore((s) => s.features)
   const setFeature = useAvatarStore((s) => s.setFeature)
@@ -192,7 +207,7 @@ export default function AvatarPage() {
     if (!canGenerateFree) {
       const newBalance = await spendCoins(REGEN_COIN_COST)
       if (newBalance === null) {
-        setError(`Not enough coins! You need ${REGEN_COIN_COST} coins to regenerate.`)
+        setError(t('account:avatar.errors.not_enough_coins_regen', { count: REGEN_COIN_COST }))
         setGenerating(false)
         return
       }
@@ -205,7 +220,7 @@ export default function AvatarPage() {
         body: JSON.stringify({ features, artStyle }),
       })
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Failed to generate avatar')
+      if (!res.ok) throw new Error(data.error || t('account:avatar.errors.generate_failed'))
       setAvatarImage(data.image)
       earnBadge('made_avatar')
       incrementGenerations()
@@ -229,7 +244,7 @@ export default function AvatarPage() {
     if (!canGenerateFree) {
       const newBalance = await spendCoins(REGEN_COIN_COST)
       if (newBalance === null) {
-        setError(`Not enough coins! You need ${REGEN_COIN_COST} coins to make a photo avatar.`)
+        setError(t('account:avatar.errors.not_enough_coins_photo', { count: REGEN_COIN_COST }))
         setGenerating(false)
         return
       }
@@ -243,7 +258,7 @@ export default function AvatarPage() {
         body: JSON.stringify({ sourceImage, artStyle }),
       })
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Failed to cartoonify photo')
+      if (!res.ok) throw new Error(data.error || t('account:avatar.errors.cartoonify_failed'))
       setAvatarImage(data.image)
       earnBadge('made_avatar')
       incrementGenerations()
@@ -300,13 +315,13 @@ export default function AvatarPage() {
         })
         const data = await res.json()
         if (data.url) window.location.href = data.url
-        else alert(data.error || 'Something went wrong')
+        else alert(data.error || t('common:state.error'))
       }
     } catch (e) {
       // RevenueCat throws with userCancelled when the user dismisses the
       // native sheet — treat that as silent.
       const cancelled = e?.userCancelled || /cancell?ed/i.test(e?.message || '')
-      if (!cancelled) alert(e?.message || 'Something went wrong')
+      if (!cancelled) alert(e?.message || t('common:state.error'))
     } finally {
       setCoinBuyLoading(null)
     }
@@ -319,8 +334,8 @@ export default function AvatarPage() {
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
       >
-        <h1 className="font-heading text-3xl font-bold text-galaxy-text mb-2">My Avatar</h1>
-        <p className="text-galaxy-text-muted font-body">Design your look, then bring it to life with AI!</p>
+        <h1 className="font-heading text-3xl font-bold text-galaxy-text mb-2">{t('account:avatar.title')}</h1>
+        <p className="text-galaxy-text-muted font-body">{t('account:avatar.subtitle')}</p>
       </motion.div>
 
       <div className="grid grid-cols-1 md:grid-cols-[280px_1fr] lg:grid-cols-[320px_1fr] gap-6 sm:gap-8">
@@ -350,11 +365,13 @@ export default function AvatarPage() {
           >
             <span className="flex items-center justify-center gap-2">
               {generating ? (
-                <><Loader2 size={18} className="animate-spin" /> Creating...</>
+                <><Loader2 size={18} className="animate-spin" /> {t('account:avatar.generating')}</>
               ) : avatarImage ? (
-                <><RefreshCw size={18} /> Regenerate{!canGenerateFree ? ` (${REGEN_COIN_COST} coins)` : ''}</>
+                <><RefreshCw size={18} /> {canGenerateFree
+                  ? t('account:avatar.regenerate')
+                  : t('account:avatar.regenerate_cost', { count: REGEN_COIN_COST })}</>
               ) : (
-                <><Wand2 size={18} /> Create My Avatar!</>
+                <><Wand2 size={18} /> {t('account:avatar.create_cta')}</>
               )}
             </span>
           </SparkleButton>
@@ -367,16 +384,16 @@ export default function AvatarPage() {
             className="w-full max-w-[280px] flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl glass border border-galaxy-text-muted/20 text-galaxy-text hover:border-galaxy-primary/50 hover:bg-galaxy-primary/5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-body"
           >
             <Camera size={16} className="text-galaxy-primary" />
-            <span>Use my photo</span>
+            <span>{t('account:avatar.photo.cta')}</span>
           </button>
           <p className="text-galaxy-text-muted/70 text-[11px] font-body text-center max-w-[280px]">
-            Take a photo and we'll turn it into a fun cartoon. Your photo isn't saved.
+            {t('account:avatar.photo.hint')}
           </p>
 
           {/* Generation info */}
           {plan.freeAvatarRegen && plan.avatarGenerations !== Infinity && (
             <p className="text-galaxy-text-muted text-xs font-body">
-              {Math.max(0, plan.avatarGenerations - generationsUsed)} free generations left today
+              {t('account:avatar.free_generations_left', { count: Math.max(0, plan.avatarGenerations - generationsUsed) })}
             </p>
           )}
 
@@ -388,14 +405,14 @@ export default function AvatarPage() {
           <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-yellow-400/10 border border-yellow-400/30">
             <Coins size={18} className="text-yellow-400" />
             <span className="text-yellow-400 font-heading font-bold text-lg">{coins}</span>
-            <span className="text-galaxy-text-muted font-body text-sm">coins</span>
+            <span className="text-galaxy-text-muted font-body text-sm">{t('account:avatar.coins_suffix')}</span>
           </div>
 
           <button
             onClick={() => setShowParentalGate(true)}
             className="text-galaxy-text-muted text-xs font-body hover:text-galaxy-secondary transition-colors underline underline-offset-2"
           >
-            Get more coins
+            {t('account:avatar.get_more_coins')}
           </button>
 
           {/* Coin shop */}
@@ -407,7 +424,7 @@ export default function AvatarPage() {
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
               >
-                <p className="text-galaxy-text font-body text-sm font-semibold mb-3 text-center">Coin Packs</p>
+                <p className="text-galaxy-text font-body text-sm font-semibold mb-3 text-center">{t('account:avatar.coin_shop.title')}</p>
                 <div className="space-y-2">
                   {COIN_PACKS.map((pack) => (
                     <button
@@ -422,19 +439,25 @@ export default function AvatarPage() {
                     >
                       <div className="flex items-center gap-2">
                         <Coins size={16} className="text-yellow-400" />
-                        <span className="text-galaxy-text font-body font-semibold text-sm">{pack.label}</span>
+                        <span className="text-galaxy-text font-body font-semibold text-sm">
+                          {t('account:avatar.coin_shop.pack', { count: pack.coins })}
+                        </span>
                         {pack.popular && (
-                          <span className="text-[10px] font-bold text-yellow-400 bg-yellow-400/20 px-1.5 py-0.5 rounded-full">BEST VALUE</span>
+                          <span className="text-[10px] font-bold text-yellow-400 bg-yellow-400/20 px-1.5 py-0.5 rounded-full">
+                            {t('account:avatar.coin_shop.best_value')}
+                          </span>
                         )}
                       </div>
                       <span className="text-galaxy-text-muted font-body text-sm">
-                        {coinBuyLoading === pack.key ? 'Loading...' : pack.price}
+                        {coinBuyLoading === pack.key
+                          ? t('account:avatar.coin_shop.loading')
+                          : formatMoneyCents(pack.priceCents)}
                       </span>
                     </button>
                   ))}
                 </div>
                 <p className="text-galaxy-text-muted text-[10px] font-body text-center mt-2">
-                  Earn free coins by completing badges!
+                  {t('account:avatar.coin_shop.earn_hint')}
                 </p>
               </motion.div>
             )}
@@ -447,7 +470,7 @@ export default function AvatarPage() {
           >
             <Award size={16} className="text-galaxy-primary" />
             <span className="text-galaxy-text font-body text-sm font-semibold">
-              My Badges ({earnedBadges.length}/{badges.length})
+              {t('account:avatar.badges_button', { earned: earnedBadges.length, total: badges.length })}
             </span>
           </button>
 
@@ -487,7 +510,7 @@ export default function AvatarPage() {
           {/* Art style picker */}
           <div className="glass rounded-2xl p-5 border border-galaxy-text-muted/10">
             <p className="text-galaxy-text font-body text-sm font-bold mb-3 flex items-center gap-2">
-              <Sparkles size={16} className="text-galaxy-primary" /> Art Style
+              <Sparkles size={16} className="text-galaxy-primary" /> {t('account:avatar.art_style.title')}
             </p>
             <div className="flex flex-wrap gap-2">
               {ART_STYLES.map((style) => {
@@ -506,7 +529,7 @@ export default function AvatarPage() {
                     }`}
                   >
                     <span>{style.emoji}</span>
-                    {style.label}
+                    {t(style.labelKey)}
                     {!owned && style.price > 0 && (
                       <span className="flex items-center gap-0.5 text-yellow-400 text-xs">
                         <Coins size={10} />{style.price}
@@ -521,7 +544,7 @@ export default function AvatarPage() {
           {/* Feature selectors */}
           <div className="glass rounded-2xl p-5 border border-galaxy-text-muted/10 space-y-4">
             <OptionRow
-              label="Skin Tone"
+              label={t('account:avatar.features.skin_tone')}
               options={SKIN_TONES}
               value={features.skinTone}
               onChange={(v) => setFeature('skinTone', v)}
@@ -529,7 +552,7 @@ export default function AvatarPage() {
             />
 
             <OptionRow
-              label="Hair Style"
+              label={t('account:avatar.features.hair_style')}
               options={HAIR_STYLES}
               value={features.hairStyle}
               onChange={(v) => setFeature('hairStyle', v)}
@@ -537,7 +560,7 @@ export default function AvatarPage() {
 
             {features.hairStyle !== 'none' && (
               <OptionRow
-                label="Hair Color"
+                label={t('account:avatar.features.hair_color')}
                 options={HAIR_COLORS}
                 value={features.hairColor}
                 onChange={(v) => setFeature('hairColor', v)}
@@ -546,28 +569,28 @@ export default function AvatarPage() {
             )}
 
             <OptionRow
-              label="Clothing"
+              label={t('account:avatar.features.clothing')}
               options={CLOTHING_OPTIONS}
               value={features.clothing}
               onChange={(v) => setFeature('clothing', v)}
             />
 
             <OptionRow
-              label="Hat"
+              label={t('account:avatar.features.hat')}
               options={HAT_OPTIONS}
               value={features.hat}
               onChange={(v) => setFeature('hat', v)}
             />
 
             <OptionRow
-              label="Accessories"
+              label={t('account:avatar.features.accessory')}
               options={ACCESSORY_OPTIONS}
               value={features.accessory}
               onChange={(v) => setFeature('accessory', v)}
             />
 
             <OptionRow
-              label="Expression"
+              label={t('account:avatar.features.expression')}
               options={EXPRESSION_OPTIONS}
               value={features.expression}
               onChange={(v) => setFeature('expression', v)}
@@ -582,12 +605,12 @@ export default function AvatarPage() {
               animate={{ opacity: 1 }}
               transition={{ delay: 0.5 }}
             >
-              <p className="text-galaxy-text font-body text-sm font-bold mb-1">Want unlimited avatars?</p>
+              <p className="text-galaxy-text font-body text-sm font-bold mb-1">{t('account:avatar.upgrade.title')}</p>
               <p className="text-galaxy-text-muted font-body text-xs mb-3">
-                Family plan includes 5 free generations per day, unlimited books, and PDF export.
+                {t('account:avatar.upgrade.body')}
               </p>
               <SparkleButton onClick={() => navigate('/pricing')} size="small" variant="secondary">
-                View Plans
+                {t('account:avatar.upgrade.cta')}
               </SparkleButton>
             </motion.div>
           )}

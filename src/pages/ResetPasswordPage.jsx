@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'motion/react'
+import { useTranslation } from 'react-i18next'
 import { Lock, Eye, EyeOff, CheckCircle } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 
 export default function ResetPasswordPage() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
@@ -20,15 +22,18 @@ export default function ResetPasswordPage() {
       if (session) {
         setReady(true)
       } else {
-        setError('Invalid or expired reset link. Please request a new one.')
+        setError(t('errors:auth.reset_link_invalid'))
       }
     })
+    // Runs once on mount: this checks the reset link's session, and re-running
+    // it because `t` changed identity on a locale switch would be pointless.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (password !== confirm) { setError('Passwords do not match.'); return }
-    if (password.length < 6) { setError('Password must be at least 6 characters.'); return }
+    if (password !== confirm) { setError(t('errors:auth.passwords_mismatch')); return }
+    if (password.length < 6) { setError(t('errors:auth.password_too_short')); return }
     setLoading(true)
     setError('')
     try {
@@ -37,7 +42,7 @@ export default function ResetPasswordPage() {
       setDone(true)
       setTimeout(() => navigate('/login', { replace: true }), 3000)
     } catch (err) {
-      setError(err.message || 'Something went wrong. Please try again.')
+      setError(err.message || t('errors:auth.generic_retry'))
     } finally {
       setLoading(false)
     }
@@ -53,22 +58,22 @@ export default function ResetPasswordPage() {
       >
         <div className="text-center mb-8">
           <img src="/logo.png" alt="My Book Lab" className="w-16 h-16 mx-auto mb-4 rounded-xl" />
-          <h1 className="font-heading text-2xl font-bold text-galaxy-text">Set New Password</h1>
+          <h1 className="font-heading text-2xl font-bold text-galaxy-text">{t('auth:reset_password.title')}</h1>
           <p className="text-galaxy-text-muted font-body text-sm mt-1">
-            Choose a strong password for your account
+            {t('auth:reset_password.subtitle')}
           </p>
         </div>
 
         {done ? (
           <div className="glass rounded-2xl p-6 border border-galaxy-text-muted/10 text-center space-y-3">
             <CheckCircle size={40} className="mx-auto text-green-400" />
-            <p className="text-galaxy-text font-body font-semibold">Password updated!</p>
-            <p className="text-galaxy-text-muted font-body text-sm">Redirecting you to login…</p>
+            <p className="text-galaxy-text font-body font-semibold">{t('auth:reset_password.done_title')}</p>
+            <p className="text-galaxy-text-muted font-body text-sm">{t('auth:reset_password.redirecting')}</p>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="glass rounded-2xl p-6 border border-galaxy-text-muted/10 space-y-4">
             <div className="space-y-1">
-              <label className="text-galaxy-text-muted text-sm font-body font-semibold">New Password</label>
+              <label className="text-galaxy-text-muted text-sm font-body font-semibold">{t('auth:fields.new_password_label')}</label>
               <div className="relative">
                 <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-galaxy-text-muted" />
                 <input
@@ -90,7 +95,7 @@ export default function ResetPasswordPage() {
             </div>
 
             <div className="space-y-1">
-              <label className="text-galaxy-text-muted text-sm font-body font-semibold">Confirm Password</label>
+              <label className="text-galaxy-text-muted text-sm font-body font-semibold">{t('auth:fields.confirm_password_label')}</label>
               <div className="relative">
                 <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-galaxy-text-muted" />
                 <input
@@ -111,7 +116,7 @@ export default function ResetPasswordPage() {
               disabled={loading || !ready || !password || !confirm}
               className="w-full py-3 rounded-xl font-body font-bold text-white btn-fill-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              {loading ? 'Updating…' : 'Update Password'}
+              {loading ? t('auth:reset_password.submitting') : t('auth:reset_password.submit')}
             </button>
           </form>
         )}

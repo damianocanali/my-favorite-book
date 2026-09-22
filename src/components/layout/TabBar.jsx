@@ -1,4 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { Library, Star, PlusCircle, Package, UserCircle } from 'lucide-react'
 import { useAuthStore } from '../../stores/useAuthStore'
 
@@ -14,15 +15,18 @@ import { useAuthStore } from '../../stores/useAuthStore'
 // iOS tints the selected tab white and dims the rest; the bar itself is
 // UIBlurEffect(.systemUltraThinMaterialDark), approximated by .ios-material.
 
+// `labelKey` rather than a literal: the array is module-level, so the label
+// has to be resolved at render time to follow a locale switch.
 const TABS = [
-  { to: '/bookshelf', label: 'Books', Icon: Library },
-  { to: '/gallery', label: 'Gallery', Icon: Star },
-  { to: '/create', label: 'Create', Icon: PlusCircle },
-  { to: '/orders', label: 'Orders', Icon: Package },
-  { to: '/account', label: 'Account', Icon: UserCircle },
+  { to: '/bookshelf', labelKey: 'nav:tabs.books', Icon: Library },
+  { to: '/gallery', labelKey: 'nav:tabs.gallery', Icon: Star },
+  { to: '/create', labelKey: 'nav:tabs.create', Icon: PlusCircle },
+  { to: '/orders', labelKey: 'nav:tabs.orders', Icon: Package },
+  { to: '/account', labelKey: 'nav:tabs.account', Icon: UserCircle },
 ]
 
 export default function TabBar() {
+  const { t } = useTranslation()
   const location = useLocation()
   const user = useAuthStore((s) => s.user)
 
@@ -35,10 +39,10 @@ export default function TabBar() {
     <nav
       className="fixed bottom-0 inset-x-0 z-40 ios-material border-t border-white/[0.08]"
       style={{ paddingBottom: 'var(--sab, 0px)' }}
-      aria-label="Main"
+      aria-label={t('nav:tabs.aria_label')}
     >
       <ul className="mx-auto flex max-w-lg items-stretch justify-around px-1">
-        {TABS.map(({ to, label, Icon }) => {
+        {TABS.map(({ to, labelKey, Icon }) => {
           // Account sends signed-out visitors to sign-in instead of a
           // page that would only show them a sign-in prompt.
           const href = to === '/account' && !user ? '/login' : to
@@ -59,7 +63,7 @@ export default function TabBar() {
                   fillOpacity={active ? 0.18 : 0}
                 />
                 <span className="font-body text-[10px] font-semibold leading-none">
-                  {label}
+                  {t(labelKey)}
                 </span>
               </Link>
             </li>

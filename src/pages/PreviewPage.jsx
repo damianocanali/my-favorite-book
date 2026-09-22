@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom'
 import { motion, AnimatePresence } from 'motion/react'
+import { useTranslation } from 'react-i18next'
 import { ArrowLeft, Edit3, Printer, FileDown, Send, X, Shield, Globe, Check, Loader2 } from 'lucide-react'
 import { useBookshelfStore } from '../stores/useBookshelfStore'
 import { useBookStore } from '../stores/useBookStore'
@@ -20,6 +21,7 @@ import { celebrateBig } from '../lib/celebrate'
 export default function PreviewPage() {
   const { bookId } = useParams()
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const getBook = useBookshelfStore((state) => state.getBook)
   const loadBook = useBookStore((state) => state.loadBook)
   const setStep = useBookStore((state) => state.setStep)
@@ -67,7 +69,7 @@ export default function PreviewPage() {
       celebrateBig()
       earnBadge('published_book')
     } catch {
-      alert('Failed to publish. Please try again.')
+      alert(t('editor:preview.publish_failed'))
     } finally {
       setPublishing(false)
     }
@@ -77,10 +79,10 @@ export default function PreviewPage() {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center">
         <p className="text-galaxy-text-muted font-body text-xl mb-4">
-          Book not found
+          {t('editor:preview.not_found')}
         </p>
         <SparkleButton onClick={() => navigate('/bookshelf')} variant="secondary">
-          Back to Bookshelf
+          {t('editor:preview.back_to_bookshelf')}
         </SparkleButton>
       </div>
     )
@@ -95,19 +97,19 @@ export default function PreviewPage() {
         <button
           onClick={() => navigate('/bookshelf')}
           className="toolbar-btn"
-          title="Back to bookshelf"
+          title={t('editor:preview.bookshelf_title')}
         >
           <ArrowLeft size={15} />
-          <span className="toolbar-btn__label">Bookshelf</span>
+          <span className="toolbar-btn__label">{t('editor:preview.bookshelf')}</span>
         </button>
 
         <button
           onClick={() => setShowSubmitModal(true)}
           className="toolbar-btn toolbar-btn--cyan"
-          title="Submit to class"
+          title={t('editor:preview.submit_title')}
         >
           <Send size={15} />
-          <span className="toolbar-btn__label">Submit to Class</span>
+          <span className="toolbar-btn__label">{t('editor:preview.submit')}</span>
         </button>
 
         {user && !publishedUrl && (
@@ -115,10 +117,12 @@ export default function PreviewPage() {
             onClick={handlePublish}
             disabled={publishing}
             className="toolbar-btn toolbar-btn--primary"
-            title="Publish to the gallery"
+            title={t('editor:preview.publish_title')}
           >
             {publishing ? <Loader2 size={15} className="animate-spin" /> : <Globe size={15} />}
-            <span className="toolbar-btn__label">{publishing ? 'Publishing…' : 'Publish'}</span>
+            <span className="toolbar-btn__label">
+              {publishing ? t('editor:preview.publishing') : t('editor:preview.publish')}
+            </span>
           </button>
         )}
         {publishedUrl && (
@@ -128,38 +132,38 @@ export default function PreviewPage() {
               if (navigator.share) navigator.share({ title: book.title, url: publishedUrl })
             }}
             className="toolbar-btn toolbar-btn--green"
-            title="Copy share link"
+            title={t('editor:preview.copy_link_title')}
           >
             <Check size={15} />
-            <span className="toolbar-btn__label">Share Link</span>
+            <span className="toolbar-btn__label">{t('editor:preview.share_link')}</span>
           </button>
         )}
 
         <button
           onClick={() => navigate(`/order/${book.id}`)}
           className="toolbar-btn"
-          title="Order a printed copy"
+          title={t('editor:preview.order_print_title')}
         >
           <Printer size={15} />
-          <span className="toolbar-btn__label">Print</span>
+          <span className="toolbar-btn__label">{t('common:actions.print')}</span>
         </button>
 
         {!isNative && (
           <button
             onClick={handlePrint}
             className="toolbar-btn"
-            title={plan.pdfExport ? 'Print or save as PDF' : 'Upgrade to export PDF'}
+            title={plan.pdfExport ? t('editor:preview.pdf_title') : t('editor:preview.pdf_locked_title')}
           >
             <FileDown size={15} />
             <span className="toolbar-btn__label">
-              {plan.pdfExport ? 'PDF' : '🔒 PDF'}
+              {plan.pdfExport ? t('editor:preview.pdf') : t('editor:preview.pdf_locked')}
             </span>
           </button>
         )}
 
-        <button onClick={handleEdit} className="toolbar-btn toolbar-btn--primary" title="Edit book">
+        <button onClick={handleEdit} className="toolbar-btn toolbar-btn--primary" title={t('editor:preview.edit_title')}>
           <Edit3 size={15} />
-          <span className="toolbar-btn__label">Edit</span>
+          <span className="toolbar-btn__label">{t('common:actions.edit')}</span>
         </button>
       </PageActions>
 
@@ -173,7 +177,7 @@ export default function PreviewPage() {
         <h1 className={`font-heading font-bold text-galaxy-text ${isNative ? 'text-lg' : 'text-xl'}`}>
           {book.title}
           <span className="ml-2 font-body text-sm font-normal text-galaxy-text-muted">
-            by {book.authorName}
+            {t('editor:book.by_author', { author: book.authorName })}
           </span>
         </h1>
       </motion.div>
@@ -207,10 +211,10 @@ export default function PreviewPage() {
             ))}
             <div className="bg-green-400/10 border border-green-400/30 rounded-2xl px-5 py-4 text-center">
               <p className="font-heading text-lg font-bold text-green-400 mb-1">
-                Your book is live! 🎉
+                {t('editor:preview.published_title')}
               </p>
               <p className="text-galaxy-text-muted font-body text-xs mb-3">
-                Share this link with family and friends — they can read your book and leave stickers!
+                {t('editor:preview.published_body')}
               </p>
               <div className="flex items-center gap-2 bg-galaxy-bg rounded-xl px-3 py-2 border border-galaxy-text-muted/10">
                 <p className="text-galaxy-text font-body text-xs truncate flex-1">{publishedUrl}</p>
@@ -221,7 +225,7 @@ export default function PreviewPage() {
                   }}
                   className="shrink-0 px-3 py-1 rounded-lg bg-green-400/20 text-green-400 text-xs font-body font-semibold hover:bg-green-400/30 transition-colors"
                 >
-                  Copy
+                  {t('common:actions.copy')}
                 </button>
               </div>
             </div>
@@ -237,7 +241,7 @@ export default function PreviewPage() {
           animate={{ opacity: 1 }}
           transition={{ delay: 1 }}
         >
-          Click or swipe the pages to flip through your book!
+          {t('editor:preview.flip_hint')}
         </motion.p>
       )}
 
@@ -260,23 +264,23 @@ export default function PreviewPage() {
               <Shield size={20} className="text-galaxy-primary shrink-0 mt-0.5" />
               <div className="flex-1 min-w-0">
                 <p className="text-galaxy-text font-body text-sm font-semibold mb-0.5">
-                  Keep your book safe!
+                  {t('editor:preview.guest_nudge_title')}
                 </p>
                 <p className="text-galaxy-text-muted font-body text-xs">
-                  This book is saved on this device only. Create a free account to access it anywhere.
+                  {t('editor:preview.guest_nudge_body')}
                 </p>
                 <div className="flex items-center gap-3 mt-3">
                   <Link
                     to="/signup"
                     className="px-4 py-1.5 rounded-full bg-galaxy-primary text-white text-xs font-body font-semibold hover:bg-galaxy-primary/80 transition-colors"
                   >
-                    Create free account
+                    {t('editor:preview.guest_nudge_signup')}
                   </Link>
                   <Link
                     to="/login"
                     className="text-galaxy-text-muted text-xs font-body hover:text-galaxy-text transition-colors"
                   >
-                    Sign in
+                    {t('auth:shared.sign_in')}
                   </Link>
                 </div>
               </div>

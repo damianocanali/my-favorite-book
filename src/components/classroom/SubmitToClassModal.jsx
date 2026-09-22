@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation, Trans } from 'react-i18next'
 import { motion } from 'motion/react'
 import { Send, CheckCircle } from 'lucide-react'
 import SparkleButton from '../ui/SparkleButton'
@@ -7,6 +8,7 @@ import { apiFetch } from '../../lib/api'
 import { celebrateBig } from '../../lib/celebrate'
 
 export default function SubmitToClassModal({ book, onClose }) {
+  const { t } = useTranslation()
   const earnBadge = useRewardsStore((s) => s.earnBadge)
   const [code, setCode] = useState('')
   const [loading, setLoading] = useState(false)
@@ -15,7 +17,7 @@ export default function SubmitToClassModal({ book, onClose }) {
 
   const handleSubmit = async () => {
     const trimmed = code.trim().toUpperCase()
-    if (trimmed.length < 4) { setError('Enter your class code.'); return }
+    if (trimmed.length < 4) { setError(t('gallery:submit_to_class.error_missing_code')); return }
     setLoading(true)
     setError('')
     try {
@@ -25,7 +27,7 @@ export default function SubmitToClassModal({ book, onClose }) {
         body: JSON.stringify({ code: trimmed, book }),
       })
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Could not submit book')
+      if (!res.ok) throw new Error(data.error || t('gallery:submit_to_class.submit_failed'))
       setSuccess(true)
       celebrateBig()
       earnBadge('submitted_class')
@@ -49,11 +51,17 @@ export default function SubmitToClassModal({ book, onClose }) {
         {success ? (
           <div className="text-center py-4 space-y-3">
             <CheckCircle size={48} className="text-green-400 mx-auto" />
-            <h2 className="font-heading text-xl font-bold text-galaxy-text">Book Submitted!</h2>
+            <h2 className="font-heading text-xl font-bold text-galaxy-text">
+              {t('gallery:submit_to_class.success_title')}
+            </h2>
             <p className="text-galaxy-text-muted font-body text-sm">
-              Your teacher can now read <span className="text-galaxy-text font-semibold">"{book.title}"</span> in the class gallery.
+              <Trans
+                i18nKey="gallery:submit_to_class.success_body"
+                values={{ title: book.title }}
+                components={{ title: <span className="text-galaxy-text font-semibold" /> }}
+              />
             </p>
-            <SparkleButton onClick={onClose} size="small">Done</SparkleButton>
+            <SparkleButton onClick={onClose} size="small">{t('common:actions.done')}</SparkleButton>
           </div>
         ) : (
           <div className="space-y-4">
@@ -62,13 +70,17 @@ export default function SubmitToClassModal({ book, onClose }) {
                 <Send size={20} className="text-galaxy-secondary" />
               </div>
               <div>
-                <h2 className="font-heading text-lg font-bold text-galaxy-text">Submit to Class</h2>
-                <p className="text-galaxy-text-muted text-xs font-body">Share your book with your teacher</p>
+                <h2 className="font-heading text-lg font-bold text-galaxy-text">
+                  {t('gallery:submit_to_class.title')}
+                </h2>
+                <p className="text-galaxy-text-muted text-xs font-body">
+                  {t('gallery:submit_to_class.subtitle')}
+                </p>
               </div>
             </div>
 
             <p className="text-galaxy-text-muted font-body text-sm">
-              Ask your teacher for the class code and enter it below.
+              {t('gallery:submit_to_class.instruction')}
             </p>
 
             <input
@@ -76,7 +88,7 @@ export default function SubmitToClassModal({ book, onClose }) {
               value={code}
               onChange={(e) => setCode(e.target.value.toUpperCase())}
               onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
-              placeholder="CLASS CODE"
+              placeholder={t('gallery:submit_to_class.code_placeholder')}
               maxLength={8}
               className="w-full px-4 py-3 bg-galaxy-bg border border-galaxy-secondary/30 rounded-xl text-galaxy-text placeholder:text-galaxy-text-muted/50 focus:border-galaxy-secondary focus:outline-none font-mono text-center text-xl tracking-widest uppercase"
             />
@@ -88,7 +100,7 @@ export default function SubmitToClassModal({ book, onClose }) {
                 onClick={onClose}
                 className="flex-1 py-2 rounded-xl font-body font-semibold text-galaxy-text-muted border border-galaxy-text-muted/30 hover:border-galaxy-text-muted/60 transition-colors text-sm"
               >
-                Cancel
+                {t('common:actions.cancel')}
               </button>
               <SparkleButton
                 onClick={handleSubmit}
@@ -96,7 +108,7 @@ export default function SubmitToClassModal({ book, onClose }) {
                 size="small"
                 className="flex-1"
               >
-                {loading ? 'Submitting…' : 'Submit Book'}
+                {loading ? t('gallery:submit_to_class.submitting') : t('gallery:submit_to_class.submit')}
               </SparkleButton>
             </div>
           </div>

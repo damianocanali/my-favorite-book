@@ -1,7 +1,10 @@
 import { motion } from 'motion/react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
+import { formatNumber } from '../../i18n/formats'
 
 export default function PageFlipControls({ flipBookRef, currentPage, totalPages }) {
+  const { t } = useTranslation()
   const handlePrev = () => {
     flipBookRef.current?.pageFlip()?.flipPrev()
   }
@@ -27,7 +30,10 @@ export default function PageFlipControls({ flipBookRef, currentPage, totalPages 
       </motion.button>
 
       <span className="text-galaxy-text-muted text-sm font-body">
-        {currentPage + 1} / {totalPages}
+        {t('editor:reader.page_of', {
+          current: formatNumber(currentPage + 1),
+          total: formatNumber(totalPages),
+        })}
       </span>
 
       <motion.button

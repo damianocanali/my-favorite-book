@@ -4,13 +4,15 @@ import { useNavigate, useParams, Link } from 'react-router-dom'
 import { motion } from 'motion/react'
 import { ArrowLeft, Loader2, AlertTriangle } from 'lucide-react'
 import { Capacitor } from '@capacitor/core'
+import { useTranslation } from 'react-i18next'
 
 import { useAuthStore } from '../stores/useAuthStore'
 import { useBookshelfStore } from '../stores/useBookshelfStore'
 import { usePrintOrderStore } from '../stores/usePrintOrderStore'
 import { apiFetchAuthed } from '../lib/api'
-import { PRINT_PRICES, FLAT_SHIPPING_CENTS, totalCents, formatPriceCents } from '../lib/printPricing'
+import { PRINT_PRICES, FLAT_SHIPPING_CENTS, totalCents, formatPriceCents, formatLabelKey } from '../lib/printPricing'
 import { pay } from '../services/printPaymentService'
+import { formatNumber } from '../i18n/formats'
 
 import PrintableBook from '../components/print/PrintableBook'
 import BackMatterPreview from '../components/print/BackMatterPreview'
@@ -25,6 +27,7 @@ const isNativeIos =
 export default function PrintOrderPage() {
   const { bookId } = useParams()
   const navigate = useNavigate()
+  const { t } = useTranslation()
 
   const user = useAuthStore((s) => s.user)
   const books = useBookshelfStore((s) => s.books) ?? []
@@ -49,15 +52,15 @@ export default function PrintOrderPage() {
   if (!user) {
     return (
       <Centered>
-        <Link to="/login" className="underline">Please log in to continue.</Link>
+        <Link to="/login" className="underline">{t('print:gate.login_required')}</Link>
       </Centered>
     )
   }
   if (!book) {
     return (
       <Centered>
-        <p className="text-galaxy-text-muted">Book not found.</p>
-        <Link to="/bookshelf" className="underline mt-2">Back to bookshelf</Link>
+        <p className="text-galaxy-text-muted">{t('print:gate.book_not_found')}</p>
+        <Link to="/bookshelf" className="underline mt-2">{t('print:gate.back_to_bookshelf')}</Link>
       </Centered>
     )
   }
@@ -106,7 +109,7 @@ export default function PrintOrderPage() {
         } else if (result.canceled) {
           setError(null)
         } else {
-          setError(result.error || 'Payment failed')
+          setError(result.error || t('print:payment.failed'))
         }
       } else {
         // Web — show PaymentElement modal. confirmPayment inside the modal
@@ -124,24 +127,24 @@ export default function PrintOrderPage() {
     <div className="min-h-screen text-galaxy-text font-body">
       <div className="max-w-2xl mx-auto px-4 py-6">
         <header className="flex items-center gap-3 mb-6">
-          <button onClick={() => navigate(-1)} aria-label="Back" className="p-2 -ml-2 hover:glass rounded-lg transition-colors">
+          <button onClick={() => navigate(-1)} aria-label={t('common:actions.back')} className="p-2 -ml-2 hover:glass rounded-lg transition-colors">
             <ArrowLeft size={20} />
           </button>
-          <h1 className="font-heading text-2xl font-bold">Order a print</h1>
+          <h1 className="font-heading text-2xl font-bold">{t('print:order.title')}</h1>
         </header>
 
         {/* Preview */}
         <section className="mb-8">
-          <h2 className="font-heading text-sm uppercase tracking-wide text-galaxy-text-muted mb-3">Your story</h2>
+          <h2 className="font-heading text-sm uppercase tracking-wide text-galaxy-text-muted mb-3">{t('print:order.section_preview')}</h2>
           <div className="rounded-xl border border-galaxy-text-muted/20 bg-white max-h-[60vh] overflow-y-auto">
             <PrintableBook book={book} visible />
           </div>
-          <p className="text-xs text-galaxy-text-muted mt-2">Scroll through every page to confirm before printing.</p>
+          <p className="text-xs text-galaxy-text-muted mt-2">{t('print:order.preview_hint')}</p>
         </section>
 
         {/* What else is in the printed book — fixed back matter + padding */}
         <section className="mb-8">
-          <h2 className="font-heading text-sm uppercase tracking-wide text-galaxy-text-muted mb-3">Back of the book</h2>
+          <h2 className="font-heading text-sm uppercase tracking-wide text-galaxy-text-muted mb-3">{t('print:order.section_back_matter')}</h2>
           <BackMatterPreview book={book} />
         </section>
 
@@ -154,7 +157,7 @@ export default function PrintOrderPage() {
               onChange={(e) => store.setChecks({ reviewChecked: e.target.checked })}
               className="mt-1 w-5 h-5 rounded border-galaxy-text-muted/40"
             />
-            <span className="text-sm">I've reviewed every page</span>
+            <span className="text-sm">{t('print:order.check_reviewed')}</span>
           </label>
           <label className="flex items-start gap-3 cursor-pointer">
             <input
@@ -163,26 +166,26 @@ export default function PrintOrderPage() {
               onChange={(e) => store.setChecks({ finishedChecked: e.target.checked })}
               className="mt-1 w-5 h-5 rounded border-galaxy-text-muted/40"
             />
-            <span className="text-sm">This book is finished and ready to print</span>
+            <span className="text-sm">{t('print:order.check_finished')}</span>
           </label>
         </section>
 
         {/* Format */}
         <section className="mb-8">
-          <h2 className="font-heading text-sm uppercase tracking-wide text-galaxy-text-muted mb-3">Format</h2>
+          <h2 className="font-heading text-sm uppercase tracking-wide text-galaxy-text-muted mb-3">{t('print:order.section_format')}</h2>
           <div className="grid grid-cols-2 gap-3">
             <FormatCard
               format="hardcover"
-              label="Hardcover"
-              price={PRINT_PRICES.hardcover.label}
+              label={t('print:format.hardcover')}
+              price={formatPriceCents(PRINT_PRICES.hardcover.cents)}
               deliveryDays={PRINT_PRICES.hardcover.deliveryDays}
               selected={store.format === 'hardcover'}
               onSelect={store.setFormat}
             />
             <FormatCard
               format="softcover"
-              label="Softcover"
-              price={PRINT_PRICES.softcover.label}
+              label={t('print:format.softcover')}
+              price={formatPriceCents(PRINT_PRICES.softcover.cents)}
               deliveryDays={PRINT_PRICES.softcover.deliveryDays}
               selected={store.format === 'softcover'}
               onSelect={store.setFormat}
@@ -192,23 +195,30 @@ export default function PrintOrderPage() {
 
         {/* Quantity */}
         <section className="mb-8 flex items-center justify-between">
-          <h2 className="font-heading text-sm uppercase tracking-wide text-galaxy-text-muted">Quantity</h2>
+          <h2 className="font-heading text-sm uppercase tracking-wide text-galaxy-text-muted">{t('print:order.section_quantity')}</h2>
           <QuantityStepper value={store.quantity} onChange={store.setQuantity} />
         </section>
 
         {/* Shipping */}
         <section className="mb-8">
-          <h2 className="font-heading text-sm uppercase tracking-wide text-galaxy-text-muted mb-3">Shipping</h2>
+          <h2 className="font-heading text-sm uppercase tracking-wide text-galaxy-text-muted mb-3">{t('print:order.section_shipping')}</h2>
           <ShippingFields store={store} />
         </section>
 
         {/* Totals */}
         <section className="mb-8 p-4 rounded-xl glass border border-galaxy-text-muted/10">
-          <Row label={`${store.quantity} × ${PRINT_PRICES[store.format].label} ${store.format}`} value={formatPriceCents(subtotal)} />
-          <Row label="Shipping" value={formatPriceCents(FLAT_SHIPPING_CENTS)} />
-          <Row label="Tax" value="$0.00" />
+          <Row
+            label={t('print:order.line_item', {
+              quantity: formatNumber(store.quantity),
+              price: formatPriceCents(PRINT_PRICES[store.format].cents),
+              format: t(formatLabelKey(store.format)),
+            })}
+            value={formatPriceCents(subtotal)}
+          />
+          <Row label={t('print:summary.shipping')} value={formatPriceCents(FLAT_SHIPPING_CENTS)} />
+          <Row label={t('print:summary.tax')} value={formatPriceCents(0)} />
           <div className="h-px bg-galaxy-text-muted/20 my-2" />
-          <Row label="Total" value={formatPriceCents(total)} bold />
+          <Row label={t('print:summary.total')} value={formatPriceCents(total)} bold />
         </section>
 
         {error && (
@@ -229,9 +239,9 @@ export default function PrintOrderPage() {
           }`}
         >
           {store.submitting ? (
-            <span className="flex items-center justify-center gap-2"><Loader2 size={18} className="animate-spin" />Processing…</span>
+            <span className="flex items-center justify-center gap-2"><Loader2 size={18} className="animate-spin" />{t('print:payment.processing')}</span>
           ) : (
-            <>Continue to payment · {formatPriceCents(total)}</>
+            t('print:order.continue_to_payment', { price: formatPriceCents(total) })
           )}
         </motion.button>
       </div>
@@ -270,20 +280,54 @@ function Row({ label, value, bold }) {
   )
 }
 
+const INPUT_CLASS = 'w-full px-3 py-2.5 rounded-lg glass border border-galaxy-text-muted/20 text-galaxy-text placeholder:text-galaxy-text-muted/50 focus:outline-none focus:border-galaxy-primary'
+
+/// Every field used to be placeholder-only. A placeholder disappears the
+/// moment the field has focus — so the one moment you most need to know what
+/// you are typing is the moment the hint is gone — and it is not a label as
+/// far as a screen reader is concerned. Longer translations also truncate
+/// inside the box. Real <label>s fix all three.
+function Field({ id, label, className = '', children }) {
+  return (
+    <div className={className}>
+      <label htmlFor={id} className="block text-xs font-body text-galaxy-text-muted mb-1">
+        {label}
+      </label>
+      {children}
+    </div>
+  )
+}
+
 function ShippingFields({ store }) {
+  const { t } = useTranslation()
   const sh = store.shipping
   const set = (patch) => store.setShipping(patch)
-  const input = 'w-full px-3 py-2.5 rounded-lg glass border border-galaxy-text-muted/20 text-galaxy-text placeholder:text-galaxy-text-muted/50 focus:outline-none focus:border-galaxy-primary'
   return (
     <div className="grid grid-cols-2 gap-3">
-      <input className={`${input} col-span-2`} placeholder="Full name" value={sh.name} onChange={(e) => set({ name: e.target.value })} />
-      <input className={`${input} col-span-2`} placeholder="Address" value={sh.address_line1} onChange={(e) => set({ address_line1: e.target.value })} />
-      <input className={`${input} col-span-2`} placeholder="Apt, suite, etc. (optional)" value={sh.address_line2} onChange={(e) => set({ address_line2: e.target.value })} />
-      <input className={input} placeholder="City" value={sh.city} onChange={(e) => set({ city: e.target.value })} />
-      <input className={input} placeholder="State (e.g. TX)" maxLength={2} value={sh.state} onChange={(e) => set({ state: e.target.value.toUpperCase() })} />
-      <input className={input} placeholder="ZIP" value={sh.postal_code} onChange={(e) => set({ postal_code: e.target.value })} />
-      <input className={input} type="tel" placeholder="Phone" value={sh.phone} onChange={(e) => set({ phone: e.target.value })} />
-      <input className={`${input} col-span-2`} type="email" placeholder="Email" value={sh.email} onChange={(e) => set({ email: e.target.value })} />
+      <Field id="ship-name" label={t('print:shipping.name')} className="col-span-2">
+        <input id="ship-name" className={INPUT_CLASS} autoComplete="name" value={sh.name} onChange={(e) => set({ name: e.target.value })} />
+      </Field>
+      <Field id="ship-address1" label={t('print:shipping.address_line1')} className="col-span-2">
+        <input id="ship-address1" className={INPUT_CLASS} autoComplete="address-line1" value={sh.address_line1} onChange={(e) => set({ address_line1: e.target.value })} />
+      </Field>
+      <Field id="ship-address2" label={t('print:shipping.address_line2')} className="col-span-2">
+        <input id="ship-address2" className={INPUT_CLASS} autoComplete="address-line2" value={sh.address_line2} onChange={(e) => set({ address_line2: e.target.value })} />
+      </Field>
+      <Field id="ship-city" label={t('print:shipping.city')}>
+        <input id="ship-city" className={INPUT_CLASS} autoComplete="address-level2" value={sh.city} onChange={(e) => set({ city: e.target.value })} />
+      </Field>
+      <Field id="ship-state" label={t('print:shipping.state')}>
+        <input id="ship-state" className={INPUT_CLASS} autoComplete="address-level1" placeholder={t('print:shipping.state_placeholder')} maxLength={2} value={sh.state} onChange={(e) => set({ state: e.target.value.toUpperCase() })} />
+      </Field>
+      <Field id="ship-postal" label={t('print:shipping.postal_code')}>
+        <input id="ship-postal" className={INPUT_CLASS} autoComplete="postal-code" value={sh.postal_code} onChange={(e) => set({ postal_code: e.target.value })} />
+      </Field>
+      <Field id="ship-phone" label={t('print:shipping.phone')}>
+        <input id="ship-phone" className={INPUT_CLASS} type="tel" autoComplete="tel" value={sh.phone} onChange={(e) => set({ phone: e.target.value })} />
+      </Field>
+      <Field id="ship-email" label={t('print:shipping.email')} className="col-span-2">
+        <input id="ship-email" className={INPUT_CLASS} type="email" autoComplete="email" value={sh.email} onChange={(e) => set({ email: e.target.value })} />
+      </Field>
     </div>
   )
 }
