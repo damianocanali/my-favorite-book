@@ -56,13 +56,42 @@ export default function PageEditor({ page }) {
   // congratulate them twice, and milestoneForProgress returns null for
   // almost every edit: a beat on every keystroke would be noise.
   //
-  // Keyed off the count of written pages rather than the text itself, so
-  // this runs when a page crosses empty→written, not on each character.
+  // Keyed off writtenCount, book?.pages?.length and book?.id — deliberately
+  // NOT the bare book?.pages array, which is a new reference on every
+  // character typed (updatePageText rebuilds it) and would schedule this
+  // effect on every keystroke. book?.pages?.length IS included: it's a
+  // primitive, stable across keystrokes (updatePageText maps pages in place
+  // and never changes how many there are), and without it a page add/remove
+  // that changes milestoneForProgress's answer without moving writtenCount
+  // (e.g. deleting a blank page so written === total becomes true) would
+  // never rerun this effect. The store's `seen` set makes re-firing on the
+  // remaining per-keystroke-on-length-change runs harmless.
+  //
+  // A breakpoint check-in used to be offered from this same effect, guarded
+  // by a "writtenCount genuinely increased" check, whenever the milestone
+  // did not fire. It came out: this is a text-change effect, not a
+  // "page finished" event, and no guard on it can honestly mean "a page
+  // just finished" rather than "a character just landed". In practice it
+  // fired on the FIRST CHARACTER typed into a blank page — writtenCount
+  // ticks 0→1 the instant writing starts, not when a page is done — and it
+  // stole focus from the textarea mid-word, exactly what the spec forbids.
+  // Separately, in the ordinary add-a-page-at-a-time flow it could go quiet
+  // forever: `beat` here is computed fresh from the page array every run,
+  // with no memory of `seen` — so once a book satisfies a milestone's
+  // condition (most commonly `all-pages:<bookId>`, once every page holds
+  // text), `beat` comes back truthy on every later run where that condition
+  // still holds, permanently taking the `if (beat)` branch. fireMilestone()
+  // itself is a no-op by then (the id is already in `seen`), so nothing is
+  // shown — but the `else if` that offered the check-in never runs either,
+  // suppressing it for the rest of the book with nothing visible to explain
+  // why. A future attempt should hook a real "page just finished" event
+  // instead: addPage, page navigation away from a written page, or
+  // illustration success.
   const writtenCount = (book?.pages ?? []).filter((p) => (p.text ?? '').trim()).length
   useEffect(() => {
     const beat = milestoneForProgress({ bookId: book?.id, pages: book?.pages ?? [] })
     if (beat) fireMilestone(beat)
-  }, [writtenCount, book?.id, book?.pages, fireMilestone])
+  }, [writtenCount, book?.pages?.length, book?.id, fireMilestone])
 
   // Font class based on dyslexia toggle
   const fontClass = dyslexiaFont ? 'font-dyslexic' : 'font-body'

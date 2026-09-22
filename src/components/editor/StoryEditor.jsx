@@ -10,6 +10,7 @@ import PageThumbnailStrip from './PageThumbnailStrip'
 import PageToolbar from './PageToolbar'
 import StoryProgressMap from './StoryProgressMap'
 import SparkleButton from '../ui/SparkleButton'
+import CheckInButton from '../ui/CheckInButton'
 import CoverArtGenerator from './CoverArtGenerator'
 import { Eye } from 'lucide-react'
 import AppLogo from '../ui/AppLogo'
@@ -86,8 +87,9 @@ export default function StoryEditor({ onPreview }) {
         {/* Page thumbnails */}
         <PageThumbnailStrip />
 
-        {/* Finish button */}
-        <div className="flex justify-center mt-8">
+        {/* Finish button — check-in first so it never competes for the primary position */}
+        <div className="flex items-center justify-center gap-3 mt-8">
+          <CheckInButton />
           <SparkleButton onClick={onPreview} variant="accent" size="large">
             <span className="flex items-center gap-2">
               {isEditing ? t('editor:actions.save_and_preview') : t('editor:actions.finish_and_preview')}
