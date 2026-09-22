@@ -1,9 +1,10 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { motion } from 'motion/react'
 import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import { useCheckInStore } from '../../stores/useCheckInStore'
 import { FEELINGS, NEEDS } from '../../lib/checkIn'
+import { artUrl, toneFor } from '../../lib/checkInArt'
 import Mascot from './Mascot'
 
 // The two-step check-in. Portalled for the same reason WelcomeBackMoment is:
@@ -13,6 +14,35 @@ import Mascot from './Mascot'
 // Unlike MilestoneMoment this DOES take pointer events and does NOT
 // auto-dismiss — it is waiting for an answer. The backdrop, Escape, and an
 // explicit Close button all reach `dismiss()`, so a child is never trapped.
+
+// The tile's picture. Art is optional: if public/checkin/<id>.png is absent
+// the <img> errors and we swap in a tinted dot, so the sheet stays usable and
+// the six feelings stay visually distinct before any illustration exists.
+// Failing to a neutral shape rather than a broken-image icon matters here —
+// the audience is six-year-olds.
+function TileArt({ id }) {
+  const [failed, setFailed] = useState(false)
+
+  if (failed) {
+    return (
+      <span
+        aria-hidden="true"
+        className="block h-12 w-12 rounded-full opacity-70"
+        style={{ backgroundColor: toneFor(id) }}
+      />
+    )
+  }
+
+  return (
+    <img
+      src={artUrl(id)}
+      alt=""
+      aria-hidden="true"
+      onError={() => setFailed(true)}
+      className="h-12 w-12 object-contain"
+    />
+  )
+}
 
 function Tile({ label, onClick, children }) {
   return (
@@ -136,10 +166,7 @@ export default function CheckInSheet() {
         <div className={`grid gap-3 ${isFeelingStep ? 'grid-cols-3' : 'grid-cols-2'}`}>
           {items.map((item) => (
             <Tile key={item.id} label={t(`${prefix}${item.id}`)} onClick={() => choose(item.id)}>
-              {/* Placeholder until the ten mascot-style illustrations land.
-                  Swapping this for <img src={art[item.id]}/> is the only
-                  change the art drop needs. */}
-              <span aria-hidden="true" className="text-3xl">·</span>
+              <TileArt id={item.id} />
             </Tile>
           ))}
         </div>
