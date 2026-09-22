@@ -5,6 +5,7 @@ import { useBookStore } from './useBookStore'
 import { useAvatarStore } from './useAvatarStore'
 import { useRewardsStore } from './useRewardsStore'
 import { useCheckInStore } from './useCheckInStore'
+import { usePrintOrderStore } from './usePrintOrderStore'
 import { Capacitor } from '@capacitor/core'
 
 export const useAuthStore = create((set, get) => ({
@@ -93,6 +94,11 @@ export const useAuthStore = create((set, get) => ({
     // Same reasoning as the onAuthStateChange guard above: entries are
     // per-child and must not carry over to whoever uses this browser next.
     useCheckInStore.getState().clear()
+    // The print-order form persists a full shipping address — name, street,
+    // city, postcode, email and phone. That is the most identifying thing the
+    // app keeps in localStorage, and this is a family device by assumption, so
+    // it must not outlive the session that entered it.
+    usePrintOrderStore.getState().reset()
     set({ user: null })
   },
 
