@@ -1,5 +1,13 @@
 export const config = { runtime: 'edge' }
 
+// CORS is applied per-handler. vercel.json used to force
+// Access-Control-Allow-Origin:* on every /api/* route, which overrode the
+// ALLOWED_ORIGINS allowlist in _rateLimit.js; that block is gone, so any
+// handler a browser calls has to carry its own headers. The web app is
+// same-origin and would not need them, but the Capacitor webview is not —
+// resolveAllowedOrigin() special-cases capacitor:// for exactly that.
+import { handleCors, withCors } from '../_rateLimit.js'
+
 import { unitPriceCents, totalCents } from '../../lib/print/pricing.js'
 import { getStripeSecretKey, getStripePublishableKey } from '../../lib/print/stripe-key.js'
 
@@ -66,39 +74,45 @@ async function createPaymentIntent({ amountCents, orderId, userId, email }) {
   return await r.json()
 }
 
-function bad(status, message) {
+// Takes req so error responses carry the same origin-aware CORS headers as
+// success ones; otherwise a browser sees an opaque CORS failure instead of
+// the real status.
+function bad(req, status, message) {
   return new Response(JSON.stringify({ error: message }), {
-    status, headers: { 'Content-Type': 'application/json' },
+    status, headers: withCors({ 'Content-Type': 'application/json' }, req),
   })
 }
 
 export default async function handler(req) {
-  if (req.method !== 'POST') return bad(405, 'Method not allowed')
+  const preflight = handleCors(req)
+  if (preflight) return preflight
+
+  if (req.method !== 'POST') return bad(req, 405, 'Method not allowed')
 
   const tok = (req.headers.get('authorization') || '').replace(/^Bearer /, '')
-  if (!tok) return bad(401, 'Missing token')
+  if (!tok) return bad(req, 401, 'Missing token')
   const user = await authUser(tok)
-  if (!user?.id) return bad(401, 'Invalid token')
+  if (!user?.id) return bad(req, 401, 'Invalid token')
 
   const body = await req.json().catch(() => null)
-  if (!body) return bad(400, 'Bad JSON')
+  if (!body) return bad(req, 400, 'Bad JSON')
 
   const { bookId, format, quantity, shipping } = body
-  if (!bookId) return bad(400, 'Missing bookId')
-  if (format !== 'hardcover' && format !== 'softcover') return bad(400, 'Bad format')
+  if (!bookId) return bad(req, 400, 'Missing bookId')
+  if (format !== 'hardcover' && format !== 'softcover') return bad(req, 400, 'Bad format')
   const qty = Number.parseInt(quantity, 10)
-  if (!Number.isInteger(qty) || qty < 1 || qty > 10) return bad(400, 'Bad quantity')
+  if (!Number.isInteger(qty) || qty < 1 || qty > 10) return bad(req, 400, 'Bad quantity')
   // phone is required by Lulu's API on the shipping address — collect at
   // checkout. The other fields are required by US Postal address rules.
   for (const k of ['name','address_line1','city','state','postal_code','email','phone']) {
-    if (!shipping?.[k]) return bad(400, `Missing shipping.${k}`)
+    if (!shipping?.[k]) return bad(req, 400, `Missing shipping.${k}`)
   }
-  if ((shipping.country ?? 'US') !== 'US') return bad(400, 'US shipping only in v1')
+  if ((shipping.country ?? 'US') !== 'US') return bad(req, 400, 'US shipping only in v1')
 
   const book = await fetchBook(user.id, bookId)
-  if (!book) return bad(404, 'Book not found')
+  if (!book) return bad(req, 404, 'Book not found')
   if (!Array.isArray(book.book_data?.pages) || book.book_data.pages.length < 1) {
-    return bad(400, 'Book has no pages')
+    return bad(req, 400, 'Book has no pages')
   }
 
   const unitCents = unitPriceCents(format)
@@ -156,6 +170,6 @@ export default async function handler(req) {
       // live/test mode as the PaymentIntent above.
       publishableKey: getStripePublishableKey() ?? null,
     }),
-    { status: 200, headers: { 'Content-Type': 'application/json' } }
+    { status: 200, headers: withCors({ 'Content-Type': 'application/json' }, req) }
   )
 }

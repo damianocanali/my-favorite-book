@@ -38,7 +38,7 @@ export default async function handler(req) {
   const json = (s, o) =>
     new Response(JSON.stringify(o), {
       status: s,
-      headers: withCors({ 'Content-Type': 'application/json' }),
+      headers: withCors({ 'Content-Type': 'application/json' }, req),
     })
 
   if (req.method !== 'POST') return json(405, { error: 'Method not allowed' })

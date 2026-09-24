@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Widget extension privacy manifest. Satisfies Apple's required-reason
+	     API declaration (ITMS-91053).
+
+	     An app extension ships as its own binary inside the app bundle and
+	     needs its own manifest — the app target's PrivacyInfo.xcprivacy does
+	     not cover it. This target compiles MyBookLab/Services/WidgetShared.swift
+	     (see the widget's `sources` in project.yml), which reaches for
+	     UserDefaults, so the declaration below is required even though the
+	     widget's own folder contains no such call. -->
+
+	<!-- No tracking: the widget has no network access, no IDFA, and shares
+	     nothing with third parties. -->
+	<key>NSPrivacyTracking</key>
+	<false/>
+	<key>NSPrivacyTrackingDomains</key>
+	<array/>
+
+	<!-- Required-reason APIs used by this extension. -->
+	<key>NSPrivacyAccessedAPITypes</key>
+	<array>
+		<dict>
+			<!-- UserDefaults(suiteName:) in WidgetShared.swift — the App
+			     Group container the app writes the latest-book snapshot and
+			     streak into, and the widget reads. Data never leaves the
+			     device or the group. -->
+			<key>NSPrivacyAccessedAPIType</key>
+			<string>NSPrivacyAccessedAPICategoryUserDefaults</string>
+			<key>NSPrivacyAccessedAPITypeReasons</key>
+			<array>
+				<!-- CA92.1: access only to app group containers this app
+				     and its extensions are members of. -->
+				<string>CA92.1</string>
+			</array>
+		</dict>
+	</array>
+
+	<!-- Declared via the App Store Connect privacy questionnaire, which is
+	     authoritative. Left empty here to avoid drift, matching the app
+	     target's manifest. -->
+	<key>NSPrivacyCollectedDataTypes</key>
+	<array/>
+</dict>
+</plist>

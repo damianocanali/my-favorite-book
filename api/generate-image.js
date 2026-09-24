@@ -16,7 +16,7 @@ export default async function handler(req) {
   if (req.method !== 'POST') {
     return new Response(JSON.stringify({ error: 'Method not allowed' }), {
       status: 405,
-      headers: withCors({ 'Content-Type': 'application/json' }),
+      headers: withCors({ 'Content-Type': 'application/json' }, req),
     })
   }
 
@@ -47,7 +47,7 @@ export default async function handler(req) {
   if (!allowed) {
     return new Response(
       JSON.stringify({ error: 'Too many requests. Please try again in an hour.' }),
-      { status: 429, headers: withCors({ 'Content-Type': 'application/json' }) }
+      { status: 429, headers: withCors({ 'Content-Type': 'application/json' }, req) }
     )
   }
 
@@ -55,7 +55,7 @@ export default async function handler(req) {
   if (!apiKey) {
     return new Response(JSON.stringify({ error: 'API key not configured' }), {
       status: 500,
-      headers: withCors({ 'Content-Type': 'application/json' }),
+      headers: withCors({ 'Content-Type': 'application/json' }, req),
     })
   }
 
@@ -126,7 +126,7 @@ export default async function handler(req) {
     if (!b64) {
       return new Response(JSON.stringify({ error: 'No image data returned' }), {
         status: 500,
-        headers: withCors({ 'Content-Type': 'application/json' }),
+        headers: withCors({ 'Content-Type': 'application/json' }, req),
       })
     }
 
@@ -147,7 +147,7 @@ export default async function handler(req) {
 
     return new Response(JSON.stringify({ image: stored ?? `data:image/png;base64,${b64}` }), {
       status: 200,
-      headers: withCors({ 'Content-Type': 'application/json' }),
+      headers: withCors({ 'Content-Type': 'application/json' }, req),
     })
   } catch (err) {
     console.error('[generate-image] error', err?.message)

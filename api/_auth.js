@@ -8,10 +8,13 @@
 
 import { withCors } from './_rateLimit.js'
 
-function unauthorized(message = 'Unauthorized') {
+// Takes req so the 401 carries the same origin-aware CORS headers as every
+// other response. Without it the browser reports an opaque CORS failure
+// instead of the 401, which is the harder bug to diagnose of the two.
+function unauthorized(req, message = 'Unauthorized') {
   return new Response(JSON.stringify({ error: message }), {
     status: 401,
-    headers: withCors({ 'Content-Type': 'application/json' }),
+    headers: withCors({ 'Content-Type': 'application/json' }, req),
   })
 }
 
@@ -24,22 +27,22 @@ export async function verifyJwt(req) {
       ok: false,
       response: new Response(JSON.stringify({ error: 'Auth not configured' }), {
         status: 503,
-        headers: withCors({ 'Content-Type': 'application/json' }),
+        headers: withCors({ 'Content-Type': 'application/json' }, req),
       }),
     }
   }
 
   const authHeader = req.headers.get('authorization') || ''
   const jwt = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : ''
-  if (!jwt) return { ok: false, response: unauthorized('Missing bearer token') }
+  if (!jwt) return { ok: false, response: unauthorized(req, 'Missing bearer token') }
 
   const res = await fetch(`${supabaseUrl}/auth/v1/user`, {
     headers: { apikey: anonKey, Authorization: `Bearer ${jwt}` },
   })
-  if (!res.ok) return { ok: false, response: unauthorized('Invalid session') }
+  if (!res.ok) return { ok: false, response: unauthorized(req, 'Invalid session') }
 
   const user = await res.json().catch(() => null)
-  if (!user?.id) return { ok: false, response: unauthorized('Could not identify user') }
+  if (!user?.id) return { ok: false, response: unauthorized(req, 'Could not identify user') }
 
   return { ok: true, userId: user.id, email: user.email, jwt }
 }

@@ -21,12 +21,12 @@ export default async function handler(req) {
 
   if (!supabaseUrl || !supabaseKey) {
     return new Response(JSON.stringify({ error: 'Not configured' }), {
-      status: 503, headers: withCors({ 'Content-Type': 'application/json' }),
+      status: 503, headers: withCors({ 'Content-Type': 'application/json' }, req),
     })
   }
 
   const json = (s, o) => new Response(JSON.stringify(o), {
-    status: s, headers: withCors({ 'Content-Type': 'application/json' }),
+    status: s, headers: withCors({ 'Content-Type': 'application/json' }, req),
   })
 
   // Auth — userId always comes from the verified JWT, never from the body

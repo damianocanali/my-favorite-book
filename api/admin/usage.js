@@ -5,6 +5,14 @@
 // matching OWNER_USER_ID env var.
 export const config = { runtime: 'edge' }
 
+// CORS is applied per-handler. vercel.json used to force
+// Access-Control-Allow-Origin:* on every /api/* route, which overrode the
+// ALLOWED_ORIGINS allowlist in _rateLimit.js; that block is gone, so any
+// handler a browser calls has to carry its own headers. The web app is
+// same-origin and would not need them, but the Capacitor webview is not —
+// resolveAllowedOrigin() special-cases capacitor:// for exactly that.
+import { handleCors, withCors } from '../_rateLimit.js'
+
 const SUPABASE = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
 const ANON_KEY = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY
@@ -20,9 +28,12 @@ async function authUser(token) {
   return await r.json()
 }
 
-function bad(status, message) {
+// Takes req so error responses carry the same origin-aware CORS headers as
+// success ones; otherwise a browser sees an opaque CORS failure instead of
+// the real status.
+function bad(req, status, message) {
   return new Response(JSON.stringify({ error: message }), {
-    status, headers: { 'Content-Type': 'application/json' },
+    status, headers: withCors({ 'Content-Type': 'application/json' }, req),
   })
 }
 
@@ -67,14 +78,17 @@ function rangeFromHeader(req) {
 }
 
 export default async function handler(req) {
-  if (req.method !== 'GET') return bad(405, 'Method not allowed')
-  if (!OWNER_USER_ID) return bad(503, 'OWNER_USER_ID not configured')
+  const preflight = handleCors(req)
+  if (preflight) return preflight
+
+  if (req.method !== 'GET') return bad(req, 405, 'Method not allowed')
+  if (!OWNER_USER_ID) return bad(req, 503, 'OWNER_USER_ID not configured')
 
   const tok = (req.headers.get('authorization') || '').replace(/^Bearer /, '')
-  if (!tok) return bad(401, 'Missing token')
+  if (!tok) return bad(req, 401, 'Missing token')
   const user = await authUser(tok)
-  if (!user?.id) return bad(401, 'Invalid token')
-  if (user.id !== OWNER_USER_ID) return bad(403, 'Forbidden')
+  if (!user?.id) return bad(req, 401, 'Invalid token')
+  if (user.id !== OWNER_USER_ID) return bad(req, 403, 'Forbidden')
 
   const { days, start } = rangeFromHeader(req)
 
@@ -92,6 +106,6 @@ export default async function handler(req) {
     })
   } catch (err) {
     console.error('[admin/usage] error', err?.message)
-    return bad(500, 'Failed to load usage')
+    return bad(req, 500, 'Failed to load usage')
   }
 }
