@@ -1,0 +1,35 @@
+{
+  "title": {
+    "feeling": "How are you doing?",
+    "need": "What would help?"
+  },
+  "feeling": {
+    "happy": "Happy",
+    "proud": "Proud",
+    "tired": "Tired",
+    "worried": "Worried",
+    "angry": "Angry",
+    "sad": "Sad"
+  },
+  "need": {
+    "break": "Take a break",
+    "quiet": "Make it quiet",
+    "help": "I need help",
+    "keep_going": "Keep going"
+  },
+  "response": {
+    "break_title": "Your story is saved",
+    "break_body": "It's here waiting for you. Come back whenever you want.",
+    "break_cta": "Okay",
+    "help": "Story Buddy can help! Tap the Story Buddy button under your page any time you want ideas."
+  },
+  "button": {
+    "label": "How am I doing?",
+    "aria": "Check in on how you are doing"
+  },
+  "constellation": {
+    "title": "Feelings you've noticed",
+    "empty": "Your feelings will show up here as stars.",
+    "star_aria": "{{feeling}}, {{date}}"
+  }
+}

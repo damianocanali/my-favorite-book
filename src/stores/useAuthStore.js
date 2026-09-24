@@ -4,9 +4,11 @@ import { useBookshelfStore, setBookshelfUserId } from './useBookshelfStore'
 import { useBookStore } from './useBookStore'
 import { useAvatarStore } from './useAvatarStore'
 import { useRewardsStore } from './useRewardsStore'
+import { useCheckInStore } from './useCheckInStore'
+import { usePrintOrderStore } from './usePrintOrderStore'
 import { Capacitor } from '@capacitor/core'
 
-export const useAuthStore = create((set) => ({
+export const useAuthStore = create((set, get) => ({
   user: null,
   loading: true,
 
@@ -25,6 +27,15 @@ export const useAuthStore = create((set) => ({
     }
     supabase.auth.onAuthStateChange((_event, session) => {
       const newUser = session?.user ?? null
+      // Feelings are per-child and never leave the device. Clearing on every
+      // identity change is how one child's entries stay invisible to the
+      // next person on this browser — simpler and safer than per-user
+      // storage keys, which would leave the first child's feelings sitting
+      // there indefinitely. Guarded on an actual id change so a background
+      // token refresh for the same user doesn't wipe today's entries.
+      if (newUser?.id !== get().user?.id) {
+        useCheckInStore.getState().clear()
+      }
       set({ user: newUser })
       setBookshelfUserId(newUser?.id ?? null)
       if (newUser) {
@@ -80,6 +91,14 @@ export const useAuthStore = create((set) => ({
     // localStorage, so a signed-out visit to /create would surface them.
     useBookshelfStore.setState({ books: [], deletedBookIds: [] })
     useBookStore.getState().resetBook()
+    // Same reasoning as the onAuthStateChange guard above: entries are
+    // per-child and must not carry over to whoever uses this browser next.
+    useCheckInStore.getState().clear()
+    // The print-order form persists a full shipping address — name, street,
+    // city, postcode, email and phone. That is the most identifying thing the
+    // app keeps in localStorage, and this is a family device by assumption, so
+    // it must not outlive the session that entered it.
+    usePrintOrderStore.getState().reset()
     set({ user: null })
   },
 

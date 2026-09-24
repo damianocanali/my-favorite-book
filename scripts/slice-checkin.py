@@ -1,25 +1,23 @@
 #!/usr/bin/env python3
-"""Slice the mascot pose sheet into individual transparent PNGs.
+"""Slice the check-in pose sheet into the ten tile illustrations.
 
-The artwork arrives as one sheet: five poses on a transparent background
-with a text caption under each. This finds the poses, drops the captions,
-trims each to its own bounds, and writes the files the app expects.
+Companion to slice-mascot.py, sharing its segmentation exactly — that code
+was debugged against a real flattened export and is not worth reinventing.
+Only the output directory, the expected pose count and the names differ.
 
     pip install Pillow
-    python3 scripts/slice-mascot.py path/to/sheet.png
+    python3 scripts/slice-checkin.py path/to/checkin-sheet.png
 
-Poses are matched by position, reading order, top row then bottom:
+Ten poses on a transparent background, a caption under each, matched by
+position in reading order, top row then bottom:
 
-    welcoming · cheering · welcome-back        (row 1)
-    badge · badge-glow                         (row 2)
+    happy · proud · tired · worried · angry      (row 1)
+    sad · break · quiet · help · keep_going      (row 2)
 
-The small head-only sprite that sits between the two row-2 poses is
-written as head.png and is not required by the app.
+Writes public/checkin/<id>.png for each. Those filenames are the contract
+src/lib/checkInArt.js reads; nothing else needs changing when the art lands.
 
-Nothing is guessed about pixel offsets — the sheet is segmented by finding
-connected regions of non-transparent pixels, so it survives being
-re-exported at a different size. Captions are dropped by discarding
-regions far shorter than the tallest one.
+The brief that produced the sheet is docs/CHECKIN-ART-BRIEF.md.
 """
 
 import sys
@@ -31,7 +29,7 @@ try:
 except ImportError:
     sys.exit("Pillow is required:  pip install Pillow")
 
-OUT_DIR = Path("public/mascot")
+OUT_DIR = Path("public/checkin")
 ALPHA_FLOOR = 24        # below this a pixel counts as background
 MIN_CAPTION_RATIO = 0.35  # a region under this fraction of the tallest is a caption
 
@@ -179,10 +177,15 @@ def main(sheet_path):
     minis = [b for b, ht in zip(boxes, heights) if ht < big * 0.5]
 
     print(f"found {len(poses)} full poses, {len(minis)} small sprite(s)")
-    if len(poses) != 5:
-        print("WARNING: expected 5 full poses. Check the output before using it.")
+    if len(poses) != 10:
+        print(f"WARNING: expected 10 full poses, found {len(poses)}. "
+              "Check the output before using it — a pose that touches its "
+              "neighbour merges into one region, and a pose drawn much "
+              "shorter than the rest can be mistaken for a caption.")
 
-    names = ["welcoming", "cheering", "welcome-back", "badge", "badge-glow"]
+    # Reading order, and the exact ids src/lib/checkInArt.js expects.
+    names = ["happy", "proud", "tired", "worried", "angry",
+             "sad", "break", "quiet", "help", "keep_going"]
     OUT_DIR.mkdir(parents=True, exist_ok=True)
 
     for name, box in zip(names, poses):
@@ -191,15 +194,9 @@ def main(sheet_path):
         bw, bh = box[2] - box[0], box[3] - box[1]
         print(f"  {out}  {bw}x{bh}")
 
-    for box in minis[:1]:
-        out = OUT_DIR / "head.png"
-        img.crop(box).save(out)
-        print(f"  {out}  {box[2]-box[0]}x{box[3]-box[1]}  (optional)")
-
-    if len(poses) >= 1:
-        # The generic fallback the component reaches for before the emoji.
-        img.crop(poses[0]).save("public/mascot.png")
-        print("  public/mascot.png  (generic fallback = first pose)")
+    if minis:
+        print(f"  ignored {len(minis)} region(s) too short to be a pose "
+              "(captions, or stray marks)")
 
 
 if __name__ == "__main__":
