@@ -19,6 +19,7 @@
 
 import { Trash2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { useLongPress, LONG_PRESS_MS } from '../../hooks/useLongPress'
 
 // Matches the iOS spineWidth: 44pt on phone, 56pt on iPad.
 export const SPINE_W = 44
@@ -36,6 +37,14 @@ export default function BookSpine({ book, indexInRow = 0, onClick, onDelete }) {
   const { t } = useTranslation()
   const colors = book.colors ?? { cover: '#8B5CF6', accent: '#06B6D4', text: '#F1F5F9' }
   const height = spineHeight(indexInRow)
+
+  // Press and hold to delete, for touch devices where the hover control below
+  // is unreachable. The hold opens the same confirmation dialog the hover
+  // button does — it never deletes on its own.
+  const { holding, handlers } = useLongPress({
+    onLongPress: onDelete,
+    onClick,
+  })
 
   return (
     <span className="group/spine relative inline-flex shrink-0">
@@ -61,14 +70,34 @@ export default function BookSpine({ book, indexInRow = 0, onClick, onDelete }) {
 
       <button
         type="button"
-        onClick={onClick}
+        {...(onDelete ? handlers : { onClick })}
         // The label carries what the spine shows plus what tapping does, because
         // the title is rendered rotated and a screen reader should not have to
-        // infer either from the visual arrangement.
+        // infer either from the visual arrangement. The hold is not announced:
+        // a screen-reader user reaches the same action through the Delete
+        // button beside this one, which is a real focusable control.
         aria-label={t('gallery:spine.open_aria', { title: book.title, author: book.authorName })}
         style={{ height, backgroundColor: colors.cover }}
-        className="group relative w-11 shrink-0 cursor-pointer overflow-hidden rounded-[3px] shadow-[1px_2px_4px_rgba(0,0,0,0.4)] transition-transform duration-150 hover:-translate-y-2.5 hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-galaxy-primary lg:w-14"
+        // pan-y, NOT touch-none. The shelf is mostly spines, so a finger that
+        // starts on one has to still be able to scroll the page — touch-none
+        // would trap the gesture and make the shelf feel stuck. Allowing the
+        // pan means the browser fires pointercancel when it takes the gesture
+        // over for scrolling, which cancels the hold, which is exactly right:
+        // a scroll is not a hold. select-none stops the press raising the
+        // text-selection callout over the shelf.
+        className="group relative w-11 shrink-0 cursor-pointer select-none overflow-hidden [touch-action:pan-y] rounded-[3px] shadow-[1px_2px_4px_rgba(0,0,0,0.4)] transition-transform duration-150 hover:-translate-y-2.5 hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-galaxy-primary lg:w-14"
       >
+        {/* What the hold is about to do. It grows from the bottom over exactly
+            the hold duration, so a child can see the book filling up and let go
+            before anything happens. Nothing is destroyed at the end of it — the
+            confirmation dialog still has to be answered. */}
+        {holding && (
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-x-0 bottom-0 origin-bottom bg-red-500/45"
+            style={{ height: '100%', animation: `spine-hold ${LONG_PRESS_MS}ms linear forwards` }}
+          />
+        )}
         {/* Spine shading: lighter at the left edge, falling off to the right, so
           the surface reads as curved rather than as a flat bar. */}
         <span
