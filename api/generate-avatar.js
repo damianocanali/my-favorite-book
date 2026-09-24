@@ -39,7 +39,7 @@ export default async function handler(req) {
 
   if (req.method !== 'POST') {
     return new Response(JSON.stringify({ error: 'Method not allowed' }), {
-      status: 405, headers: withCors({ 'Content-Type': 'application/json' }),
+      status: 405, headers: withCors({ 'Content-Type': 'application/json' }, req),
     })
   }
 
@@ -67,14 +67,14 @@ export default async function handler(req) {
   if (!allowed) {
     return new Response(
       JSON.stringify({ error: 'Too many avatar generations. Try again in an hour.' }),
-      { status: 429, headers: withCors({ 'Content-Type': 'application/json' }) }
+      { status: 429, headers: withCors({ 'Content-Type': 'application/json' }, req) }
     )
   }
 
   const apiKey = process.env.TOGETHER_API_KEY
   if (!apiKey) {
     return new Response(JSON.stringify({ error: 'API key not configured' }), {
-      status: 500, headers: withCors({ 'Content-Type': 'application/json' }),
+      status: 500, headers: withCors({ 'Content-Type': 'application/json' }, req),
     })
   }
 
@@ -94,7 +94,7 @@ export default async function handler(req) {
     const isPhotoMode = Boolean(sourceImage)
     if (!isPhotoMode && !features) {
       return new Response(JSON.stringify({ error: 'features or sourceImage required' }), {
-        status: 400, headers: withCors({ 'Content-Type': 'application/json' }),
+        status: 400, headers: withCors({ 'Content-Type': 'application/json' }, req),
       })
     }
 
@@ -155,7 +155,7 @@ export default async function handler(req) {
     const b64 = data.data?.[0]?.b64_json
     if (!b64) {
       return new Response(JSON.stringify({ error: 'No image data returned' }), {
-        status: 500, headers: withCors({ 'Content-Type': 'application/json' }),
+        status: 500, headers: withCors({ 'Content-Type': 'application/json' }, req),
       })
     }
 
@@ -173,7 +173,7 @@ export default async function handler(req) {
     const stored = await storeIllustration(b64, auth.userId, 'avatar')
 
     return new Response(JSON.stringify({ image: stored ?? `data:image/png;base64,${b64}` }), {
-      status: 200, headers: withCors({ 'Content-Type': 'application/json' }),
+      status: 200, headers: withCors({ 'Content-Type': 'application/json' }, req),
     })
   } catch (err) {
     console.error('[generate-avatar] error', err?.message)

@@ -321,7 +321,13 @@ function CardFace({ card, dragging = false, selected = false }) {
       } ${dragging ? 'scale-110 shadow-glow-modal' : ''}`}
     >
       <span className="text-2xl leading-none" aria-hidden>{card.emoji}</span>
-      <span className="font-body text-[11px] font-semibold leading-tight text-center">
+      {/* break-words because the card is a fixed 76px and Italian has single
+          tokens that do not fit it: "personaggio" and "l'astronauta" are ~11-12
+          characters, which at 11px overruns the ~60px of content box left after
+          px-2. Without this they overflow the card's rounded border instead of
+          wrapping inside it. min-w-0 lets the flex child actually take the
+          constraint rather than sizing to its content. */}
+      <span className="min-w-0 break-words font-body text-[11px] font-semibold leading-tight text-center">
         {cardWord(card)}
       </span>
     </span>

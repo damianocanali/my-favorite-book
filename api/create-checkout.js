@@ -33,13 +33,13 @@ export default async function handler(req) {
 
   if (req.method !== 'POST') {
     return new Response(JSON.stringify({ error: 'Method not allowed' }), {
-      status: 405, headers: withCors({ 'Content-Type': 'application/json' }),
+      status: 405, headers: withCors({ 'Content-Type': 'application/json' }, req),
     })
   }
 
   if (!process.env.STRIPE_SECRET_KEY) {
     return new Response(JSON.stringify({ error: 'Payments not configured' }), {
-      status: 503, headers: withCors({ 'Content-Type': 'application/json' }),
+      status: 503, headers: withCors({ 'Content-Type': 'application/json' }, req),
     })
   }
 
@@ -49,14 +49,14 @@ export default async function handler(req) {
 
   if (!email) {
     return new Response(JSON.stringify({ error: 'Account has no email on file' }), {
-      status: 400, headers: withCors({ 'Content-Type': 'application/json' }),
+      status: 400, headers: withCors({ 'Content-Type': 'application/json' }, req),
     })
   }
 
   const { planName, billing } = await req.json().catch(() => ({}))
   if (!planName || !billing) {
     return new Response(JSON.stringify({ error: 'planName and billing are required' }), {
-      status: 400, headers: withCors({ 'Content-Type': 'application/json' }),
+      status: 400, headers: withCors({ 'Content-Type': 'application/json' }, req),
     })
   }
 
@@ -66,7 +66,7 @@ export default async function handler(req) {
 
   if (!priceId) {
     return new Response(JSON.stringify({ error: 'Pricing not configured for this plan' }), {
-      status: 503, headers: withCors({ 'Content-Type': 'application/json' }),
+      status: 503, headers: withCors({ 'Content-Type': 'application/json' }, req),
     })
   }
 
@@ -90,11 +90,11 @@ export default async function handler(req) {
 
   if (session.error) {
     return new Response(JSON.stringify({ error: session.error.message }), {
-      status: 400, headers: withCors({ 'Content-Type': 'application/json' }),
+      status: 400, headers: withCors({ 'Content-Type': 'application/json' }, req),
     })
   }
 
   return new Response(JSON.stringify({ url: session.url }), {
-    status: 200, headers: withCors({ 'Content-Type': 'application/json' }),
+    status: 200, headers: withCors({ 'Content-Type': 'application/json' }, req),
   })
 }

@@ -129,7 +129,7 @@ ${languageRule(locale)}
 
 // Native app path: a free-form chat turn ({ message, context }) → { reply }.
 // The web app uses the intent-based path below; this keeps both working.
-async function handleChat(payload, apiKey, locale) {
+async function handleChat(payload, apiKey, locale, req) {
   const message = sanitize(payload.message)
   const context = sanitize(payload.context)
   const model = 'claude-haiku-4-5-20251001'
@@ -154,7 +154,7 @@ async function handleChat(payload, apiKey, locale) {
     console.error('[story-buddy] chat Anthropic error', response.status, detail.slice(0, 500))
     return new Response(
       JSON.stringify({ error: 'Story Buddy is unavailable right now. Please try again.' }),
-      { status: 502, headers: withCors({ 'Content-Type': 'application/json' }) }
+      { status: 502, headers: withCors({ 'Content-Type': 'application/json' }, req) }
     )
   }
 
@@ -173,7 +173,7 @@ async function handleChat(payload, apiKey, locale) {
   const reply = String(data?.content?.[0]?.text ?? '').trim()
   return new Response(JSON.stringify({ reply }), {
     status: 200,
-    headers: withCors({ 'Content-Type': 'application/json' }),
+    headers: withCors({ 'Content-Type': 'application/json' }, req),
   })
 }
 
@@ -184,7 +184,7 @@ export default async function handler(req) {
   if (req.method !== 'POST') {
     return new Response(JSON.stringify({ error: 'Method not allowed' }), {
       status: 405,
-      headers: withCors({ 'Content-Type': 'application/json' }),
+      headers: withCors({ 'Content-Type': 'application/json' }, req),
     })
   }
 
@@ -212,7 +212,7 @@ export default async function handler(req) {
   if (!allowed) {
     return new Response(
       JSON.stringify({ error: 'Too many requests. Please try again in an hour.' }),
-      { status: 429, headers: withCors({ 'Content-Type': 'application/json' }) }
+      { status: 429, headers: withCors({ 'Content-Type': 'application/json' }, req) }
     )
   }
 
@@ -220,7 +220,7 @@ export default async function handler(req) {
   if (!apiKey) {
     return new Response(JSON.stringify({ error: 'API key not configured' }), {
       status: 500,
-      headers: withCors({ 'Content-Type': 'application/json' }),
+      headers: withCors({ 'Content-Type': 'application/json' }, req),
     })
   }
 
@@ -242,7 +242,7 @@ export default async function handler(req) {
     if (typeof payload?.message === 'string' && payload.message.trim()) {
       const modErr = await moderatePrompt(payload.message, req)
       if (modErr) return modErr
-      return await handleChat(payload, apiKey, locale)
+      return await handleChat(payload, apiKey, locale, req)
     }
 
     const { intent, book, page } = payload
@@ -301,7 +301,7 @@ export default async function handler(req) {
 
     return new Response(JSON.stringify(data), {
       status: 200,
-      headers: withCors({ 'Content-Type': 'application/json' }),
+      headers: withCors({ 'Content-Type': 'application/json' }, req),
     })
   } catch (err) {
     console.error('[story-buddy] error', err?.message)

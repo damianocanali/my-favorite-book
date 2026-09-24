@@ -41,7 +41,13 @@ export default function OrderDetailPage() {
             <ArrowLeft size={20} />
           </Link>
           <div className="min-w-0">
-            <h1 className="font-heading text-2xl font-bold truncate">{t('print:detail.title', { id: shortId })}</h1>
+            {/* Not truncate: this heading IS the order number, so clipping it
+                hides the one thing the page is identified by. Italian's
+                "Ordine n. {id}" is longer than "Order #{id}", and the row also
+                carries a back link and a status pill, so the English version
+                fits on a 390px screen where the Italian one did not. Wrapping
+                costs a line; truncating costs the order number. */}
+            <h1 className="font-heading text-2xl font-bold break-words">{t('print:detail.title', { id: shortId })}</h1>
           </div>
           <div className="ml-auto"><OrderStatusPill status={order.status} /></div>
         </header>

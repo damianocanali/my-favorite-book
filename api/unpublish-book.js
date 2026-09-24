@@ -19,7 +19,7 @@ export default async function handler(req) {
   const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY
 
   const json = (s, o) => new Response(JSON.stringify(o), {
-    status: s, headers: withCors({ 'Content-Type': 'application/json' }),
+    status: s, headers: withCors({ 'Content-Type': 'application/json' }, req),
   })
 
   if (!supabaseUrl || !supabaseKey) return json(503, { error: 'Not configured' })
