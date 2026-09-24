@@ -1,11 +1,44 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useBookshelfStore } from '../../stores/useBookshelfStore'
 import { useBookStore } from '../../stores/useBookStore'
 import BookSpine from './BookSpine'
+import ShelfBoard from './ShelfBoard'
 import EmptyShelf from './EmptyShelf'
+
+
+// How many columns the grid is showing, mirroring the Tailwind breakpoints on
+// the grid below. Needed for one reason only: the last row is usually not full,
+// and without filler the shelf board stops under the last book instead of
+// running the width of the shelf. iOS draws the plank outside the row's HStack
+// so it always spans — this is how the same thing is done with a CSS grid whose
+// column count only exists in CSS.
+const COLUMN_QUERIES = [
+  ['(min-width: 1024px)', 5],
+  ['(min-width: 768px)', 4],
+  ['(min-width: 640px)', 3],
+]
+
+function useGridColumns() {
+  const read = () => {
+    if (typeof window === 'undefined' || !window.matchMedia) return 5
+    return COLUMN_QUERIES.find(([q]) => window.matchMedia(q).matches)?.[1] ?? 2
+  }
+  const [columns, setColumns] = useState(read)
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return
+    const lists = COLUMN_QUERIES.map(([q]) => window.matchMedia(q))
+    const update = () => setColumns(read())
+    lists.forEach((l) => l.addEventListener('change', update))
+    update()
+    return () => lists.forEach((l) => l.removeEventListener('change', update))
+  }, [])
+
+  return columns
+}
 
 function DeleteConfirmModal({ title, onConfirm, onCancel }) {
   const { t } = useTranslation()
@@ -50,6 +83,7 @@ export default function Bookshelf() {
   const setStep = useBookStore((state) => state.setStep)
   const navigate = useNavigate()
   const [pendingDelete, setPendingDelete] = useState(null)
+  const columns = useGridColumns()
 
   const handleEdit = (book) => {
     loadBook(book)
@@ -61,28 +95,49 @@ export default function Bookshelf() {
 
   return (
     <div>
-      {/* Shelf */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+      {/* The shelf.
+          No horizontal gap: each cell carries its own board, and boards only
+          read as one continuous plank if the cells touch. Books are spaced by
+          padding inside the cell instead. Doing it this way means the shelves
+          land correctly at every breakpoint without JavaScript measuring the
+          viewport to work out where a row ends. */}
+      <div className="grid grid-cols-2 gap-x-0 gap-y-8 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
         {books.map((book, index) => (
           <motion.div
             key={book.id}
+            // perspective belongs on this cell, the parent of the book that
+            // rotates. Setting it on the rotating element instead makes the
+            // turn render flat — the books looked like plain cards.
+            className="flex flex-col justify-end [perspective:620px]"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 }}
+            // Books land left to right. Capped so a full shelf does not make
+            // the last book wait seconds to appear.
+            transition={{ delay: Math.min(index, 12) * 0.06 }}
           >
-            <BookSpine
-              book={book}
-              onClick={() => navigate(`/preview/${book.id}`)}
-              onEdit={() => handleEdit(book)}
-              onDelete={() => setPendingDelete(book)}
-              onOrderPrint={() => navigate(`/order/${book.id}`)}
-            />
+            {/* Book spacing lives here, not on the cell, so the board below
+                still spans the full cell and meets its neighbours. */}
+            <div className="px-2 sm:px-3">
+              <BookSpine
+                book={book}
+                onClick={() => navigate(`/preview/${book.id}`)}
+                onEdit={() => handleEdit(book)}
+                onDelete={() => setPendingDelete(book)}
+                onOrderPrint={() => navigate(`/order/${book.id}`)}
+              />
+            </div>
+            <ShelfBoard />
           </motion.div>
         ))}
-      </div>
 
-      {/* Shelf decoration - wooden shelf line */}
-      <div className="mt-8 h-3 bg-gradient-to-r from-amber-900/40 via-amber-800/60 to-amber-900/40 rounded-full" />
+        {/* Board-only cells finishing the last row, so the plank runs the full
+            width of the shelf rather than stopping under the last book. */}
+        {Array.from({ length: (columns - (books.length % columns)) % columns }).map((_, i) => (
+          <div key={`filler-${i}`} className="flex flex-col justify-end" aria-hidden="true">
+            <ShelfBoard />
+          </div>
+        ))}
+      </div>
 
       <AnimatePresence>
         {pendingDelete && (
