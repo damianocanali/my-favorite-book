@@ -1,41 +1,34 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useBookshelfStore } from '../../stores/useBookshelfStore'
-import { useBookStore } from '../../stores/useBookStore'
 import BookSpine from './BookSpine'
+import BookOpenTransition from './BookOpenTransition'
 import ShelfBoard from './ShelfBoard'
 import EmptyShelf from './EmptyShelf'
 
 
-// How many columns the grid is showing, mirroring the Tailwind breakpoints on
-// the grid below. Needed for one reason only: the last row is usually not full,
-// and without filler the shelf board stops under the last book instead of
-// running the width of the shelf. iOS draws the plank outside the row's HStack
-// so it always spans — this is how the same thing is done with a CSS grid whose
-// column count only exists in CSS.
-const COLUMN_QUERIES = [
-  ['(min-width: 1024px)', 5],
-  ['(min-width: 768px)', 4],
-  ['(min-width: 640px)', 3],
-]
+// How many spines fit across, mirroring the auto-fill track below. Needed only
+// so the last row's shelf board can be padded out to full width — without it
+// the plank stops under the last book instead of running the length of the
+// shelf, which iOS avoids by drawing the board outside the row's HStack.
+const TRACK_PX = 72
 
-function useGridColumns() {
-  const read = () => {
-    if (typeof window === 'undefined' || !window.matchMedia) return 5
-    return COLUMN_QUERIES.find(([q]) => window.matchMedia(q).matches)?.[1] ?? 2
-  }
-  const [columns, setColumns] = useState(read)
+function useGridColumns(ref) {
+  const [columns, setColumns] = useState(8)
 
   useEffect(() => {
-    if (typeof window === 'undefined' || !window.matchMedia) return
-    const lists = COLUMN_QUERIES.map(([q]) => window.matchMedia(q))
-    const update = () => setColumns(read())
-    lists.forEach((l) => l.addEventListener('change', update))
-    update()
-    return () => lists.forEach((l) => l.removeEventListener('change', update))
-  }, [])
+    const el = ref.current
+    if (!el || typeof ResizeObserver === 'undefined') return
+    // Measured rather than derived from breakpoints: the track is auto-fill, so
+    // the count depends on the container's width, not the viewport's.
+    const ro = new ResizeObserver(() => {
+      setColumns(Math.max(1, Math.floor(el.clientWidth / TRACK_PX)))
+    })
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [ref])
 
   return columns
 }
@@ -79,51 +72,57 @@ function DeleteConfirmModal({ title, onConfirm, onCancel }) {
 export default function Bookshelf() {
   const books = useBookshelfStore((state) => state.books)
   const removeBook = useBookshelfStore((state) => state.removeBook)
-  const loadBook = useBookStore((state) => state.loadBook)
-  const setStep = useBookStore((state) => state.setStep)
   const navigate = useNavigate()
   const [pendingDelete, setPendingDelete] = useState(null)
-  const columns = useGridColumns()
+  const [opening, setOpening] = useState(null)
+  const shelfRef = useRef(null)
+  const columns = useGridColumns(shelfRef)
 
-  const handleEdit = (book) => {
-    loadBook(book)
-    setStep(7) // Skip wizard, go straight to editor
-    navigate('/create')
-  }
+  // The transition hands off here rather than navigating itself, so an
+  // interrupted animation can never strand a child on a decorative overlay.
+  const finishOpening = useCallback(() => {
+    const book = opening
+    setOpening(null)
+    if (book) navigate(`/preview/${book.id}`)
+  }, [opening, navigate])
 
   if (books.length === 0) return <EmptyShelf />
 
+  const fillers = (columns - (books.length % columns)) % columns
+
   return (
     <div>
-      {/* The shelf.
-          No horizontal gap: each cell carries its own board, and boards only
-          read as one continuous plank if the cells touch. Books are spaced by
-          padding inside the cell instead. Doing it this way means the shelves
-          land correctly at every breakpoint without JavaScript measuring the
-          viewport to work out where a row ends. */}
-      <div className="grid grid-cols-2 gap-x-0 gap-y-8 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+      {/* The shelf. Spines stand in an auto-fill track, so as many fit across
+          as the container allows rather than a fixed count per breakpoint.
+
+          No horizontal gap: each cell carries its own board segment, and the
+          segments only read as one continuous plank if the cells touch. Spines
+          are spaced by padding inside their own cell instead. */}
+      <div
+        ref={shelfRef}
+        className="grid gap-x-0 gap-y-8"
+        style={{ gridTemplateColumns: `repeat(auto-fill, minmax(${TRACK_PX}px, 1fr))` }}
+      >
         {books.map((book, index) => (
           <motion.div
             key={book.id}
-            // perspective belongs on this cell, the parent of the book that
-            // rotates. Setting it on the rotating element instead makes the
-            // turn render flat — the books looked like plain cards.
-            className="flex flex-col justify-end [perspective:620px]"
+            className="flex flex-col justify-end"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             // Books land left to right. Capped so a full shelf does not make
-            // the last book wait seconds to appear.
-            transition={{ delay: Math.min(index, 12) * 0.06 }}
+            // the last one wait seconds to appear.
+            transition={{ delay: Math.min(index, 12) * 0.05 }}
           >
-            {/* Book spacing lives here, not on the cell, so the board below
-                still spans the full cell and meets its neighbours. */}
-            <div className="px-2 sm:px-3">
+            {/* items-end so spines of differing heights share a baseline —
+                they stand ON the shelf rather than hanging from a grid row. */}
+            <div className="flex items-end justify-center px-1.5">
               <BookSpine
                 book={book}
-                onClick={() => navigate(`/preview/${book.id}`)}
-                onEdit={() => handleEdit(book)}
+                // Position within its row, so the height variation repeats
+                // across the shelf the way it does on iOS.
+                indexInRow={index % Math.max(1, columns)}
+                onClick={() => setOpening(book)}
                 onDelete={() => setPendingDelete(book)}
-                onOrderPrint={() => navigate(`/order/${book.id}`)}
               />
             </div>
             <ShelfBoard />
@@ -132,12 +131,14 @@ export default function Bookshelf() {
 
         {/* Board-only cells finishing the last row, so the plank runs the full
             width of the shelf rather than stopping under the last book. */}
-        {Array.from({ length: (columns - (books.length % columns)) % columns }).map((_, i) => (
+        {Array.from({ length: fillers }).map((_, i) => (
           <div key={`filler-${i}`} className="flex flex-col justify-end" aria-hidden="true">
             <ShelfBoard />
           </div>
         ))}
       </div>
+
+      {opening && <BookOpenTransition book={opening} onDone={finishOpening} />}
 
       <AnimatePresence>
         {pendingDelete && (

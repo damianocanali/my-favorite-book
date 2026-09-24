@@ -2,8 +2,9 @@
   "spine": {
     "pages_one": "{{count}} pagina",
     "pages_other": "{{count}} pagine",
-    "order_print_aria": "Ordina una copia stampata di questo libro",
-    "order_print_title": "Ordina una copia stampata"
+    "open_aria": "Apri {{title}} di {{author}}",
+    "by_author": "di {{author}}",
+    "delete_aria": "Elimina {{title}}"
   },
   "delete_modal": {
     "title": "Eliminare questo libro?",
