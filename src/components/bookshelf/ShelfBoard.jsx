@@ -18,9 +18,9 @@ const WOOD_BOTTOM = '#734D2E'
 
 export default function ShelfBoard() {
   return (
-    <div className="relative mt-2 h-3 select-none" aria-hidden="true">
+    <div className="relative h-3 select-none" aria-hidden="true">
       <div
-        className="h-full w-full overflow-hidden rounded-[3px] shadow-[0_3px_4px_rgba(0,0,0,0.4)]"
+        className="h-full w-full overflow-hidden shadow-[0_3px_4px_rgba(0,0,0,0.4)]"
         style={{
           backgroundImage: `linear-gradient(to bottom, ${WOOD_TOP}, ${WOOD_MID}, ${WOOD_BOTTOM})`,
         }}
