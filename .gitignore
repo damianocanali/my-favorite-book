@@ -66,14 +66,7 @@ ios-native/MyBookLab.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/*
 # 2.swift" and the compiler hit an invalid redeclaration) and failed the i18n
 # key scanner once. Ignoring them keeps a stray `git add -A` from committing
 # them. The real fix is to move this repo out of iCloud Drive.
-* [0-9].swift
-* [0-9].js
-* [0-9].jsx
-* [0-9].json
-* [0-9].md
-* [0-9].xcstrings
-* [0-9].bak
-* [0-9].plist
-* [0-9].entitlements
-* [0-9].xcprivacy
-* [0-9].yml
+# Any extension: listing them one by one missed .png and .mp4 and let a
+# whole set of copies through. "Name <digit>.<ext>" is iCloud's own
+# collision format and is never a filename anyone types deliberately.
+* [0-9].*
