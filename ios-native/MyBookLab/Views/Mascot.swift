@@ -25,11 +25,13 @@ enum MascotMood: String {
         }
     }
 
-    /// A lit second frame, cross-faded over the base to make it glow.
-    var glowAsset: String? {
+    /// Whether this mood pulses with a warm bloom. Previously this named a
+    /// second imageset to cross-fade; see the comment on the shadow in `body`
+    /// for why that was wrong.
+    var glows: Bool {
         switch self {
-        case .proud, .badge: "MascotBadgeGlow"
-        default:             nil
+        case .proud, .badge: true
+        default:             false
         }
     }
 
@@ -80,33 +82,42 @@ struct Mascot: View {
         return nil
     }
 
-    private var glowArtwork: Image? {
-        guard let name = mood.glowAsset, let img = UIImage(named: name) else { return nil }
-        return Image(uiImage: img)
-    }
 
     var body: some View {
         let m = motion(for: mood)
 
         Group {
             if let artwork {
-                ZStack {
-                    artwork
-                        .resizable()
-                        .scaledToFit()
-                    if let glowArtwork, !reduceMotion {
-                        glowArtwork
-                            .resizable()
-                            .scaledToFit()
-                            .opacity(glowing ? 1 : 0)
-                            .animation(
-                                .easeInOut(duration: 1.8).repeatForever(autoreverses: true),
-                                value: glowing
-                            )
-                    }
-                }
-                .frame(width: size, height: size)
-                .shadow(color: Color(red: 0.75, green: 0.35, blue: 0.95).opacity(0.45), radius: 20, y: 8)
+                artwork
+                    .resizable()
+                    .scaledToFit()
+                    // Height, not a square. The poses are not square and are
+                    // not even a consistent shape — welcoming is 0.66 wide-to-
+                    // tall, badge is 0.85 — so a size x size frame rendered
+                    // welcoming at 66% of the box and badge at 85%, which is
+                    // why he looked small, and why he changed size whenever the
+                    // mood changed. He is a standing character; his height is
+                    // the thing that should stay put.
+                    .frame(height: size)
+                    // A real bloom rather than a second image. The old glow
+                    // cross-faded MascotBadgeGlow over MascotBadge as if they
+                    // were two frames of one drawing. They are two different
+                    // poses — different stance, different arm, different badge
+                    // — sliced from different cells of the sheet, so the
+                    // cross-fade morphed him instead of lighting him up, and
+                    // the two rendered 37pt apart in width besides.
+                    .shadow(
+                        color: Color(red: 1.0, green: 0.85, blue: 0.4)
+                            .opacity(mood.glows && !reduceMotion ? (glowing ? 0.85 : 0.25) : 0),
+                        radius: glowing ? 26 : 12
+                    )
+                    .animation(
+                        mood.glows && !reduceMotion
+                            ? .easeInOut(duration: 1.8).repeatForever(autoreverses: true)
+                            : nil,
+                        value: glowing
+                    )
+                    .shadow(color: Color(red: 0.75, green: 0.35, blue: 0.95).opacity(0.45), radius: 20, y: 8)
             } else {
                 Text(mood.emoji)
                     .font(.system(size: size * 0.64))

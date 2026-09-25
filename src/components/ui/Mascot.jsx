@@ -30,8 +30,13 @@ export const POSES = {
   idle: { src: `${BASE}/welcoming.png`, emoji: '⭐', motion: 'float' },
   wave: { src: `${BASE}/welcoming.png`, emoji: '👋', motion: 'wave' },
   welcome: {
-    src: `${BASE}/welcome-back.png`, emoji: '🤗', motion: 'breathe',
-    frames: 'welcome-back', frameCount: 16, fps: 12,
+    // welcome-back.png is cropped at the knees — the slicer cut the pose in
+    // half and the source sheet no longer exists to re-cut it. Pointing at the
+    // complete pose until it is redrawn; see docs/MASCOT-ASSET-ISSUES.md.
+    src: `${BASE}/welcoming.png`, emoji: '🤗', motion: 'breathe',
+      // No frame set: frames/welcome-back animates the same knee-cropped
+      // pose, so playing it reintroduces the crop the src above avoids. The
+      // CSS `breathe` motion carries this mood until the pose is redrawn.
   },
   cheer: {
     src: `${BASE}/cheering.png`, emoji: '🎉', motion: 'bounce',
@@ -43,12 +48,18 @@ export const POSES = {
   },
   think: { src: `${BASE}/welcoming.png`, emoji: '🤔', motion: 'tilt' },
   proud: {
-    src: `${BASE}/badge.png`, glow: `${BASE}/badge-glow.png`, emoji: '🏅', motion: 'present',
-    frames: 'badge', frameCount: 16, fps: 12,
+    src: `${BASE}/badge.png`, emoji: '🏅', motion: 'present',
+      // No frame set: frames/badge shows the mascot holding a BLANK purple
+      // shield, not the gold star badge the static pose draws, and at
+      // 161x256 against the static pose's 297x348. Wrong artwork, and the
+      // lower resolution of the two. See docs/MASCOT-ASSET-ISSUES.md.
   },
   badge: {
-    src: `${BASE}/badge.png`, glow: `${BASE}/badge-glow.png`, emoji: '🏅', motion: 'present',
-    frames: 'badge', frameCount: 16, fps: 12,
+    src: `${BASE}/badge.png`, emoji: '🏅', motion: 'present',
+      // No frame set: frames/badge shows the mascot holding a BLANK purple
+      // shield, not the gold star badge the static pose draws, and at
+      // 161x256 against the static pose's 297x348. Wrong artwork, and the
+      // lower resolution of the two. See docs/MASCOT-ASSET-ISSUES.md.
   },
 }
 
@@ -134,12 +145,20 @@ export default function Mascot({ mood = 'idle', size = 112, className = '' }) {
     )
   }
 
-  const showGlow = pose.glow && !glowFailed && !reduceMotion && !playFrames
+  // No glow overlay: badge-glow.png is a different pose, not a lit second
+  // frame of badge.png, so cross-fading them morphed the mascot instead of
+  // lighting him. The warm bloom now comes from a drop-shadow.
 
   return (
     <motion.div
       className={`relative select-none ${className}`}
-      style={{ height: size, width: size }}
+      // Height, not a square. The poses are not square and not even a
+      // consistent shape — welcoming is 0.66 wide-to-tall, badge 0.85 — so a
+      // size x size box rendered welcoming at 66% of its width and badge at
+      // 85%, which is why he looked small and why he changed size whenever the
+      // mood changed. He is a standing character; his height is what should
+      // stay put, and width:auto lets each pose keep its own shape.
+      style={{ height: size, width: 'auto' }}
       animate={animate}
       transition={transition}
       aria-hidden
@@ -149,7 +168,7 @@ export default function Mascot({ mood = 'idle', size = 112, className = '' }) {
           src={framePath(pose.frames, frame)}
           alt=""
           onError={() => setFramesFailed(true)}
-          className="absolute inset-0 h-full w-full object-contain drop-shadow-[0_8px_24px_rgba(191,90,242,0.45)]"
+          className="block h-full w-auto object-contain drop-shadow-[0_8px_24px_rgba(191,90,242,0.45)]"
         />
       ) : (
       <img
@@ -162,19 +181,8 @@ export default function Mascot({ mood = 'idle', size = 112, className = '' }) {
           e.currentTarget.dataset.retried = '1'
           e.currentTarget.src = '/mascot.png'
         }}
-        className="absolute inset-0 h-full w-full object-contain drop-shadow-[0_8px_24px_rgba(191,90,242,0.45)]"
+        className="block h-full w-auto object-contain drop-shadow-[0_8px_24px_rgba(191,90,242,0.45)]"
       />
-      )}
-
-      {showGlow && (
-        <motion.img
-          src={pose.glow}
-          alt=""
-          onError={() => setGlowFailed(true)}
-          className="absolute inset-0 h-full w-full object-contain"
-          animate={{ opacity: [0, 1, 0] }}
-          transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
-        />
       )}
     </motion.div>
   )
