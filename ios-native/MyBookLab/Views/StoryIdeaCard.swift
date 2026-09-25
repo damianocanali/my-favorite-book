@@ -8,8 +8,11 @@ struct StoryIdeaCard: View {
     /// `String` because that is what the binding's owner holds; the
     /// localization happens upstream, at the point the idea is picked.
     @Binding var idea: String?
-
-    @Environment(AppRouter.self) private var router
+    /// Receives the idea when the child taps "Write it!". The card used to
+    /// switch to the Create tab and discard the text — so from the editor,
+    /// which is already on that tab, the button visibly did nothing at all.
+    /// The editor now owns the card and drops the idea into the page.
+    var onWrite: (String) -> Void
 
     var body: some View {
         if let current = idea {
@@ -48,12 +51,8 @@ struct StoryIdeaCard: View {
 
                         Button {
                             Haptics.bigTap()
+                            onWrite(current)
                             dismiss()
-                            // Jump to the Create tab so the idea can
-                            // become a book right away.
-                            withAnimation(.spring(response: 0.45, dampingFraction: 0.7)) {
-                                router.selectedTab = .create
-                            }
                         } label: {
                             Label("Write it!", systemImage: "pencil.and.scribble")
                                 .frame(maxWidth: .infinity)
@@ -71,12 +70,12 @@ struct StoryIdeaCard: View {
                     // correctly no matter what goes in the blank.
                     Text(UIDevice.current.userInterfaceIdiom == .pad
                          ? LocalizedStringResource(
-                            "story.idea.hint.pad",
-                            defaultValue: "Shake your iPad anytime for a new idea ✨",
+                            "story.idea.hint.pad.writing",
+                            defaultValue: "Shake your iPad while you write for a new idea ✨",
                             comment: "Footnote on the story-idea popup, iPad wording")
                          : LocalizedStringResource(
-                            "story.idea.hint.phone",
-                            defaultValue: "Shake your phone anytime for a new idea ✨",
+                            "story.idea.hint.phone.writing",
+                            defaultValue: "Shake your phone while you write for a new idea ✨",
                             comment: "Footnote on the story-idea popup, iPhone wording"))
                         .font(.caption2)
                         .foregroundStyle(.white.opacity(0.5))
