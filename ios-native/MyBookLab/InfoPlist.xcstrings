@@ -1,6 +1,5 @@
 {
   "sourceLanguage": "en",
-  "version": "1.0",
   "strings": {
     "CFBundleDisplayName": {
       "extractionState": "manual",
@@ -9,6 +8,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "My Book Lab"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My Book Lab"
+          }
+        }
+      }
+    },
+    "CFBundleName": {
+      "comment": "Bundle name",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "MyBookLab"
           }
         }
       }
@@ -21,27 +38,11 @@
             "state": "translated",
             "value": "Per scattare una foto e trasformarla nel tuo avatar in stile cartone animato. La foto originale non viene mai salvata: resta solo l'avatar."
           }
-        }
-      }
-    },
-    "NSPhotoLibraryUsageDescription": {
-      "extractionState": "manual",
-      "localizations": {
-        "it": {
+        },
+        "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Per scegliere una foto e trasformarla nel tuo avatar in stile cartone animato. La foto originale non viene mai salvata: resta solo l'avatar."
-          }
-        }
-      }
-    },
-    "NSMicrophoneUsageDescription": {
-      "extractionState": "manual",
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Per dettare la tua storia quando tocchi il pulsante del microfono."
+            "value": "Used to take a photo for your cartoon avatar. The original photo is never saved — only the cartoon version is kept."
           }
         }
       }
@@ -54,8 +55,49 @@
             "state": "translated",
             "value": "Per farti accedere di nuovo al tuo account in modo sicuro."
           }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Used to securely sign you back in to your account."
+          }
+        }
+      }
+    },
+    "NSMicrophoneUsageDescription": {
+      "extractionState": "manual",
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Per dettare la tua storia quando tocchi il pulsante del microfono."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Used to dictate your story when you tap the microphone button."
+          }
+        }
+      }
+    },
+    "NSPhotoLibraryUsageDescription": {
+      "extractionState": "manual",
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Per scegliere una foto e trasformarla nel tuo avatar in stile cartone animato. La foto originale non viene mai salvata: resta solo l'avatar."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Used to pick a photo for your cartoon avatar. The original photo is never saved — only the cartoon version is kept."
+          }
         }
       }
     }
-  }
+  },
+  "version": "1.0"
 }
