@@ -236,6 +236,10 @@ final class AuthStore: NSObject {
     }
 
     func signOut() async {
+        // Feelings are per-child and never leave the device; clearing here is
+        // how one child's entries stay invisible to the next person to use
+        // this iPad. Matches the web's useAuthStore.
+        CheckInStore.shared.clear()
         if BiometricCredentials.hasStoredCredentials {
             // Keep the saved biometric login so the user can Face-ID
             // back in. Snapshot the freshest tokens, then sign out

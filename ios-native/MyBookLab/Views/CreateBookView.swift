@@ -648,6 +648,7 @@ private struct PagesStep: View {
     // App-authored copy that gets rendered — see `heroError` above.
     @State private var generationError: LocalizedStringResource?
     @State private var showStoryBuddy = false
+    @Environment(CheckInStore.self) private var checkIn
     @State private var showDrawing = false
     @State private var savingDrawing = false
 
@@ -702,6 +703,13 @@ private struct PagesStep: View {
                 }
 
                 HStack(spacing: 10) {
+                    // First in the row, and deliberately not a SparkleButton:
+                    // it must be reachable without competing with Story Buddy
+                    // or Draw for the eye. A child who is struggling should not
+                    // have to hunt for it, and one who is fine should not be
+                    // nudged toward it.
+                    CheckInButton()
+
                     Button { showStoryBuddy = true } label: {
                         HStack(spacing: 6) {
                             Image(systemName: "bubble.left.and.bubble.right.fill")
@@ -759,6 +767,15 @@ private struct PagesStep: View {
             }
             .padding(.horizontal)
             .padding(.bottom, 16)
+        }
+        // A child who picked "I need help" in the check-in. The host cannot
+        // open Story Buddy itself — it has no book or page — so it publishes
+        // the request and this view, which does, answers it. Cleared
+        // immediately so it fires once.
+        .onChange(of: checkIn.wantsStoryBuddy) { _, wants in
+            guard wants else { return }
+            checkIn.wantsStoryBuddy = false
+            showStoryBuddy = true
         }
         .sheet(isPresented: $showStoryBuddy) {
             if let book = draft.book, currentIndex < book.pages.count {

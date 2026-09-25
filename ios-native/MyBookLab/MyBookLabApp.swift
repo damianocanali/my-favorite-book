@@ -11,6 +11,7 @@ struct MyBookLabApp: App {
     @State private var audio = AudioService.shared
     @State private var coins = CoinsStore.shared
     @State private var rewards = RewardsStore.shared
+    @State private var checkIn = CheckInStore.shared
 
     init() {
         Purchases.logLevel = .warn
@@ -27,6 +28,9 @@ struct MyBookLabApp: App {
                 .environment(audio)
                 .environment(coins)
                 .environment(rewards)
+                .environment(checkIn)
+                // Mounted once, beside the other global moments.
+                .checkInHost()
                 .task {
                     audio.play(.home)
                     PrintOrderActivityManager.cleanup()
