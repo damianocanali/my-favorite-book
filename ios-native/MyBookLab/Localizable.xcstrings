@@ -2,6 +2,32 @@
   "sourceLanguage": "en",
   "strings": {
     "": {},
+    "“%@”": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "“%@”"
+          }
+        }
+      }
+    },
+    "“%@” by %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "“%1$@” by %2$@"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "“%1$@” di %2$@"
+          }
+        }
+      }
+    },
     "%@, %@ %@": {
       "localizations": {
         "en": {
@@ -116,6 +142,157 @@
         }
       }
     },
+    "✨": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "✨"
+          }
+        }
+      }
+    },
+    "✨ Coin Store": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "✨ Negozio monete"
+          }
+        }
+      }
+    },
+    "⭐️ Recommended": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⭐️ Consigliato"
+          }
+        }
+      }
+    },
+    "🌟": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "🌟"
+          }
+        }
+      }
+    },
+    "🎉": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "🎉"
+          }
+        }
+      }
+    },
+    "👋 Grown-up check": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "👋 Controllo per grandi"
+          }
+        }
+      }
+    },
+    "💫 Story idea!": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "💫 Idea per una storia!"
+          }
+        }
+      }
+    },
+    "💭": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "💭"
+          }
+        }
+      }
+    },
+    "💰": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "💰"
+          }
+        }
+      }
+    },
+    "📖": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "📖"
+          }
+        }
+      }
+    },
+    "📦": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "📦"
+          }
+        }
+      }
+    },
+    "📭": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "📭"
+          }
+        }
+      }
+    },
+    "🔥": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "🔥"
+          }
+        }
+      }
+    },
+    "🤫": {},
+    "🪙": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "🪙"
+          }
+        }
+      }
+    },
+    "🛡️": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "🛡️"
+          }
+        }
+      }
+    },
     "12 pages · Tap to flip through": {
       "localizations": {
         "it": {
@@ -142,6 +319,58 @@
           "stringUnit": {
             "state": "translated",
             "value": "Account"
+          }
+        }
+      }
+    },
+    "account.delete.cancel_failed": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Couldn't cancel. Please try again."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annullamento non riuscito. Riprova."
+          }
+        }
+      }
+    },
+    "account.delete.confirm_word": {
+      "comment": "Typed by the user to confirm account deletion. MUST match the placeholder; uppercase.",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "DELETE"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ELIMINA"
+          }
+        }
+      }
+    },
+    "account.delete.schedule_failed": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Couldn't schedule deletion. Please try again."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non è stato possibile programmare l'eliminazione. Riprova."
           }
         }
       }
@@ -256,16 +485,6 @@
         }
       }
     },
-    "App Icon": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Icona dell'app"
-          }
-        }
-      }
-    },
     "App icon": {
       "localizations": {
         "it": {
@@ -276,2474 +495,12 @@
         }
       }
     },
-    "Art style": {
+    "App Icon": {
       "localizations": {
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Stile"
-          }
-        }
-      }
-    },
-    "Art styles": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Stili"
-          }
-        }
-      }
-    },
-    "Ask Buddy…": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Chiedi a Buddy…"
-          }
-        }
-      }
-    },
-    "Ask your own question": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Fai la tua domanda"
-          }
-        }
-      }
-    },
-    "Background music": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Musica di sottofondo"
-          }
-        }
-      }
-    },
-    "Badge earned!": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Medaglia conquistata!"
-          }
-        }
-      }
-    },
-    "Badges": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Medaglie"
-          }
-        }
-      }
-    },
-    "Best value": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Più conveniente"
-          }
-        }
-      }
-    },
-    "Books": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Libri"
-          }
-        }
-      }
-    },
-    "Buddy": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Buddy"
-          }
-        }
-      }
-    },
-    "Buy coins": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Compra monete"
-          }
-        }
-      }
-    },
-    "Cancel": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Annulla"
-          }
-        }
-      }
-    },
-    "Cancel editing name": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Annulla la modifica del nome"
-          }
-        }
-      }
-    },
-    "Cancelling…": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Annullamento…"
-          }
-        }
-      }
-    },
-    "Change hero photo": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Cambia la foto dell'eroe"
-          }
-        }
-      }
-    },
-    "Character name": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nome del personaggio"
-          }
-        }
-      }
-    },
-    "Check your email for a link to reset your password.": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Controlla la tua email: c'è un link per reimpostare la password."
-          }
-        }
-      }
-    },
-    "City": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Città"
-          }
-        }
-      }
-    },
-    "Class set": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Set per la classe"
-          }
-        }
-      }
-    },
-    "Clear drawing": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Cancella il disegno"
-          }
-        }
-      }
-    },
-    "Close": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Chiudi"
-          }
-        }
-      }
-    },
-    "Coins": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Monete"
-          }
-        }
-      }
-    },
-    "Coins unlock magical art styles, accessories, and extra avatar regenerations.": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Con le monete sblocchi stili magici, accessori e la possibilità di rifare l'avatar."
-          }
-        }
-      }
-    },
-    "Continue": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Continua"
-          }
-        }
-      }
-    },
-    "Continue with Apple": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Continua con Apple"
-          }
-        }
-      }
-    },
-    "Continue with Google": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Continua con Google"
-          }
-        }
-      }
-    },
-    "Couldn't load your books": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Non riusciamo a caricare i tuoi libri"
-          }
-        }
-      }
-    },
-    "Create": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Crea"
-          }
-        }
-      }
-    },
-    "Create Account": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Crea account"
-          }
-        }
-      }
-    },
-    "Create a Book": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Crea un libro"
-          }
-        }
-      }
-    },
-    "Create an Account": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Crea un account"
-          }
-        }
-      }
-    },
-    "Create your hero": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Crea il tuo eroe"
-          }
-        }
-      }
-    },
-    "Create your own story in the stars ✨": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Scrivi la tua storia tra le stelle ✨"
-          }
-        }
-      }
-    },
-    "Creating account…": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Creazione account…"
-          }
-        }
-      }
-    },
-    "Current plan: %@": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Piano attuale: %@"
-          }
-        }
-      }
-    },
-    "Customize avatar": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Personalizza l'avatar"
-          }
-        }
-      }
-    },
-    "Day streak": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Giorni di fila"
-          }
-        }
-      }
-    },
-    "Delete account": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Elimina account"
-          }
-        }
-      }
-    },
-    "Delete page": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Elimina pagina"
-          }
-        }
-      }
-    },
-    "Delete your account?": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Eliminare il tuo account?"
-          }
-        }
-      }
-    },
-    "Delivered": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Consegnato"
-          }
-        }
-      }
-    },
-    "Done": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Fatto"
-          }
-        }
-      }
-    },
-    "Draw": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Disegna"
-          }
-        }
-      }
-    },
-    "Draw your picture!": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Fai il tuo disegno!"
-          }
-        }
-      }
-    },
-    "Drawing your cartoon…": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sto disegnando il tuo cartone animato…"
-          }
-        }
-      }
-    },
-    "Edit book": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Modifica il libro"
-          }
-        }
-      }
-    },
-    "Email": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Email"
-          }
-        }
-      }
-    },
-    "Every great book needs a name.": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ogni bel libro ha bisogno di un nome."
-          }
-        }
-      }
-    },
-    "Everyday read": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Da leggere ogni giorno"
-          }
-        }
-      }
-    },
-    "Family pack": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pacchetto famiglia"
-          }
-        }
-      }
-    },
-    "Featured Books": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Libri in evidenza"
-          }
-        }
-      }
-    },
-    "Forgot your password?": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Hai dimenticato la password?"
-          }
-        }
-      }
-    },
-    "Format": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Formato"
-          }
-        }
-      }
-    },
-    "Full name": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nome e cognome"
-          }
-        }
-      }
-    },
-    "G": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "G"
-          }
-        }
-      }
-    },
-    "Gallery": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Galleria"
-          }
-        }
-      }
-    },
-    "Gallery is just getting started": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "La galleria sta per aprire"
-          }
-        }
-      }
-    },
-    "Generate AI cover": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Crea la copertina AI"
-          }
-        }
-      }
-    },
-    "Get more coins": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Prendi altre monete"
-          }
-        }
-      }
-    },
-    "Gift pair": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Coppia regalo"
-          }
-        }
-      }
-    },
-    "Happy": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Felicità"
-          }
-        }
-      }
-    },
-    "Hardcover": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Copertina rigida"
-          }
-        }
-      }
-    },
-    "Hi, %@!": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ciao, %@!"
-          }
-        }
-      }
-    },
-    "Hi, storyteller!": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ciao, cantastorie!"
-          }
-        }
-      }
-    },
-    "How are you doing?": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Come stai?"
-          }
-        }
-      }
-    },
-    "How you've been": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "I tuoi momenti"
-          }
-        }
-      }
-    },
-    "I need help": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ho bisogno di aiuto"
-          }
-        }
-      }
-    },
-    "I'm done writing": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ho finito di scrivere"
-          }
-        }
-      }
-    },
-    "I'm ready": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Riprendiamo"
-          }
-        }
-      }
-    },
-    "Illustrate": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Illustra"
-          }
-        }
-      }
-    },
-    "In production": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "In lavorazione"
-          }
-        }
-      }
-    },
-    "In use": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "In uso"
-          }
-        }
-      }
-    },
-    "Jumps straight into creating a new book.": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ti porta subito a creare un libro nuovo."
-          }
-        }
-      }
-    },
-    "Just one": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Solo uno"
-          }
-        }
-      }
-    },
-    "Keep going": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Continuare"
-          }
-        }
-      }
-    },
-    "Keep my account": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tieni il mio account"
-          }
-        }
-      }
-    },
-    "Keepsake quality": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Da tenere per sempre"
-          }
-        }
-      }
-    },
-    "Let's begin": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Iniziamo"
-          }
-        }
-      }
-    },
-    "Loading price": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Caricamento prezzo"
-          }
-        }
-      }
-    },
-    "Make it quiet": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Fare silenzio"
-          }
-        }
-      }
-    },
-    "Make your story shine": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Fai brillare la tua storia"
-          }
-        }
-      }
-    },
-    "Making…": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sto creando…"
-          }
-        }
-      }
-    },
-    "Manage subscription": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Gestisci abbonamento"
-          }
-        }
-      }
-    },
-    "More stories, more illustrations, more pages — and the same parent-safe Story Buddy.": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Più storie, più illustrazioni, più pagine — e lo stesso Story Buddy di cui i genitori si fidano."
-          }
-        }
-      }
-    },
-    "My Book Lab": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "My Book Lab"
-          }
-        }
-      }
-    },
-    "My Books": {
-      "comment": "Widget title fallback when the latest book has no title",
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "I miei libri"
-          }
-        }
-      }
-    },
-    "My Latest Book": {
-      "comment": "Widget name in the widget gallery"
-    },
-    "New Story": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nuova storia"
-          }
-        }
-      }
-    },
-    "New here? Create an account": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "È la prima volta? Crea un account"
-          }
-        }
-      }
-    },
-    "Next page": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pagina successiva"
-          }
-        }
-      }
-    },
-    "No orders yet": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ancora nessun ordine"
-          }
-        }
-      }
-    },
-    "No pages yet": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ancora nessuna pagina"
-          }
-        }
-      }
-    },
-    "No plans available right now. Try again in a moment.": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nessun piano disponibile al momento. Riprova tra poco."
-          }
-        }
-      }
-    },
-    "Off": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No"
-          }
-        }
-      }
-    },
-    "Okay": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Va bene"
-          }
-        }
-      }
-    },
-    "On": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sì"
-          }
-        }
-      }
-    },
-    "Open My Books": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Apri i miei libri"
-          }
-        }
-      }
-    },
-    "Open this book in Create to add pages.": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Apri questo libro in Crea per aggiungere le pagine."
-          }
-        }
-      }
-    },
-    "Opening Apple Pay…": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Apertura di Apple Pay…"
-          }
-        }
-      }
-    },
-    "Opens a check-in": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Apre un momento per dire come stai"
-          }
-        }
-      }
-    },
-    "Opens the book": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Apre il libro"
-          }
-        }
-      }
-    },
-    "Opens your bookshelf in My Book Lab.": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Apre la tua libreria in My Book Lab."
-          }
-        }
-      }
-    },
-    "Or pick a fun avatar": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Oppure scegli un avatar simpatico"
-          }
-        }
-      }
-    },
-    "Or pick an emoji hero below 👇": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Oppure scegli un eroe emoji qui sotto 👇"
-          }
-        }
-      }
-    },
-    "Order": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ordine"
-          }
-        }
-      }
-    },
-    "Order #%@": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ordine n. %@"
-          }
-        }
-      }
-    },
-    "Order placed": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ordine inviato"
-          }
-        }
-      }
-    },
-    "Order printed copy": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ordina una copia stampata"
-          }
-        }
-      }
-    },
-    "Orders": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ordini"
-          }
-        }
-      }
-    },
-    "Owned": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ce l'hai già"
-          }
-        }
-      }
-    },
-    "Page %lld": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pagina %lld"
-          }
-        }
-      }
-    },
-    "Painting cover…": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sto dipingendo la copertina…"
-          }
-        }
-      }
-    },
-    "Password": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Password"
-          }
-        }
-      }
-    },
-    "Pay & order": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Paga e ordina"
-          }
-        }
-      }
-    },
-    "Payment confirmed": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pagato"
-          }
-        }
-      }
-    },
-    "Phone": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Telefono"
-          }
-        }
-      }
-    },
-    "Pick a look for your app icon. Earn more with coins and streaks!": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Scegli come sarà l'icona dell'app. Guadagnane altre con le monete e le serie!"
-          }
-        }
-      }
-    },
-    "Pick a photo": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Scegli una foto"
-          }
-        }
-      }
-    },
-    "Pick one to start writing!": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Scegli e inizia a scrivere!"
-          }
-        }
-      }
-    },
-    "Pick the world your story lives in.": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Scegli il mondo della tua storia."
-          }
-        }
-      }
-    },
-    "Previous page": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pagina precedente"
-          }
-        }
-      }
-    },
-    "Privacy Policy": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Informativa sulla privacy"
-          }
-        }
-      }
-    },
-    "Proud": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Orgoglio"
-          }
-        }
-      }
-    },
-    "Publish your finished book to share it here!": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pubblica il tuo libro finito per condividerlo qui!"
-          }
-        }
-      }
-    },
-    "Purchases go through the App Store. Coins are added to your account once payment confirms.": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Gli acquisti passano dall'App Store. Le monete arrivano sul tuo account quando il pagamento è confermato."
-          }
-        }
-      }
-    },
-    "Quantity": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Quantità"
-          }
-        }
-      }
-    },
-    "Read this page aloud": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Leggi questa pagina ad alta voce"
-          }
-        }
-      }
-    },
-    "Regenerate cover": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Rifai la copertina"
-          }
-        }
-      }
-    },
-    "Remember me with %@": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ricordami con %@"
-          }
-        }
-      }
-    },
-    "Report": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Segnala"
-          }
-        }
-      }
-    },
-    "Report this book": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Segnala questo libro"
-          }
-        }
-      }
-    },
-    "Restore purchases": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ripristina gli acquisti"
-          }
-        }
-      }
-    },
-    "Sad": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tristezza"
-          }
-        }
-      }
-    },
-    "Save and sync across devices": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Salva e sincronizza su tutti i dispositivi"
-          }
-        }
-      }
-    },
-    "Save avatar": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Salva avatar"
-          }
-        }
-      }
-    },
-    "Save name": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Salva nome"
-          }
-        }
-      }
-    },
-    "Save to bookshelf": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Salva nella libreria"
-          }
-        }
-      }
-    },
-    "Saving…": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Salvataggio…"
-          }
-        }
-      }
-    },
-    "Schedule deletion": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Programma eliminazione"
-          }
-        }
-      }
-    },
-    "See a finished book": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Guarda un libro finito"
-          }
-        }
-      }
-    },
-    "Send message": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Invia messaggio"
-          }
-        }
-      }
-    },
-    "Send report": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Invia segnalazione"
-          }
-        }
-      }
-    },
-    "Sending…": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Invio in corso…"
-          }
-        }
-      }
-    },
-    "Sent to printer": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Inviato in stampa"
-          }
-        }
-      }
-    },
-    "Setting up payment…": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Preparazione del pagamento…"
-          }
-        }
-      }
-    },
-    "Shake again": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Scuoti ancora"
-          }
-        }
-      }
-    },
-    "Shipped": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Spedito"
-          }
-        }
-      }
-    },
-    "Shipping": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Spedizione"
-          }
-        }
-      }
-    },
-    "Shipping to": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Spedizione a"
-          }
-        }
-      }
-    },
-    "Sign In": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Accedi"
-          }
-        }
-      }
-    },
-    "Sign in": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Accedi"
-          }
-        }
-      }
-    },
-    "Sign in to save your books and bring them to life with AI illustrations.": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Accedi per salvare i tuoi libri e dare loro vita con le illustrazioni AI."
-          }
-        }
-      }
-    },
-    "Sign in to save your stories": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Accedi per salvare le tue storie"
-          }
-        }
-      }
-    },
-    "Sign in to see your printed book orders.": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Accedi per vedere i tuoi ordini di libri stampati."
-          }
-        }
-      }
-    },
-    "Sign in to see your saved books and order printed copies.": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Accedi per vedere i libri che hai salvato e ordinare le copie stampate."
-          }
-        }
-      }
-    },
-    "Sign in to sync your stories": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Accedi per sincronizzare le tue storie"
-          }
-        }
-      }
-    },
-    "Sign in with %@": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Accedi con %@"
-          }
-        }
-      }
-    },
-    "Sign out": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Esci"
-          }
-        }
-      }
-    },
-    "Signing in…": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Accesso in corso…"
-          }
-        }
-      }
-    },
-    "Softcover": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Copertina morbida"
-          }
-        }
-      }
-    },
-    "Solve this so we know a grown-up is here.": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Risolvi questo calcolo, così sappiamo che c'è un adulto."
-          }
-        }
-      }
-    },
-    "Something special about them (optional)": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Una cosa speciale sul personaggio (facoltativo)"
-          }
-        }
-      }
-    },
-    "Spend on magical art styles and items": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Spendile in stili grafici magici e oggetti"
-          }
-        }
-      }
-    },
-    "Start a New Story": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Inizia una nuova storia"
-          }
-        }
-      }
-    },
-    "Start a writing streak!": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Inizia la tua serie di scrittura!"
-          }
-        }
-      }
-    },
-    "Start writing": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Inizia a scrivere"
-          }
-        }
-      }
-    },
-    "Start your first story!": {
-      "comment": "Widget empty state, no books yet"
-    },
-    "State": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Provincia"
-          }
-        }
-      }
-    },
-    "Stop reading aloud": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ferma la lettura"
-          }
-        }
-      }
-    },
-    "Store": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Negozio"
-          }
-        }
-      }
-    },
-    "Story Buddy": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Story Buddy"
-          }
-        }
-      }
-    },
-    "Stuck? Tap a button and I'll help with ideas — I never write your story for you. ✨": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Non sai come continuare? Tocca un pulsante e ti do qualche idea: la tua storia non la scrivo mai io. ✨"
-          }
-        }
-      }
-    },
-    "Subscribe for unlimited stories": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Abbonati per storie illimitate"
-          }
-        }
-      }
-    },
-    "Subscription auto-renews unless canceled at least 24 hours before the end of the period. Manage or cancel in Settings → Apple ID → Subscriptions.": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "L'abbonamento si rinnova automaticamente, salvo disdetta almeno 24 ore prima della fine del periodo. Puoi gestirlo o disdirlo in Impostazioni → ID Apple → Abbonamenti."
-          }
-        }
-      }
-    },
-    "Subtotal": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Subtotale"
-          }
-        }
-      }
-    },
-    "Summary": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Riepilogo"
-          }
-        }
-      }
-    },
-    "Sync books across devices, order printed copies, and pick up where you left off.": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sincronizza i libri su tutti i dispositivi, ordina le copie stampate e riprendi da dove hai lasciato."
-          }
-        }
-      }
-    },
-    "Take a break": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Fare una pausa"
-          }
-        }
-      }
-    },
-    "Take as long as you like.": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Prenditi tutto il tempo che vuoi."
-          }
-        }
-      }
-    },
-    "Tap **Create** to make your first story — or peek at the example below.": {
-      "comment": "Empty-shelf nudge. **Create** is Markdown bold naming the Create tab — keep the ** ** around the translated tab name, and translate the tab name the same way it is translated in the tab bar.",
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tocca **Crea** per fare la tua prima storia, oppure dai un'occhiata all'esempio qui sotto."
-          }
-        }
-      }
-    },
-    "Tap Illustrate to add a picture": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tocca Illustra per aggiungere un disegno"
-          }
-        }
-      }
-    },
-    "Tap anywhere to continue": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tocca lo schermo per continuare"
-          }
-        }
-      }
-    },
-    "Tap to use": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tocca per usare"
-          }
-        }
-      }
-    },
-    "Tap to use this": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tocca per usare questo"
-          }
-        }
-      }
-    },
-    "Tap to write today! ✨": {
-      "comment": "Widget call to action"
-    },
-    "Terms of Use": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Termini di utilizzo"
-          }
-        }
-      }
-    },
-    "Thanks": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Grazie"
-          }
-        }
-      }
-    },
-    "Thanks for telling us": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Grazie per avercelo detto"
-          }
-        }
-      }
-    },
-    "The End": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Fine"
-          }
-        }
-      }
-    },
-    "The music is off.": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "La musica è spenta."
-          }
-        }
-      }
-    },
-    "Think about these, then keep writing!": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pensa a queste domande e poi continua a scrivere!"
-          }
-        }
-      }
-    },
-    "Thinking…": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sto pensando…"
-          }
-        }
-      }
-    },
-    "Tired": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Stanchezza"
-          }
-        }
-      }
-    },
-    "Title your book": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Dai un titolo al tuo libro"
-          }
-        }
-      }
-    },
-    "Total": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Totale"
-          }
-        }
-      }
-    },
-    "Track package": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Segui la spedizione"
-          }
-        }
-      }
-    },
-    "Try again": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Prova ancora"
-          }
-        }
-      }
-    },
-    "Try again.": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Prova ancora."
-          }
-        }
-      }
-    },
-    "Turn a photo into your hero": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Trasforma una foto nel tuo eroe"
-          }
-        }
-      }
-    },
-    "Turn your photo into a cartoon": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Trasforma la tua foto in un cartone animato"
-          }
-        }
-      }
-    },
-    "Type DELETE to confirm": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Scrivi DELETE per confermare"
-          }
-        }
-      }
-    },
-    "Unavailable": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Non disponibile"
-          }
-        }
-      }
-    },
-    "Unlock magical art styles for your avatar.": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sblocca stili magici per il tuo avatar."
-          }
-        }
-      }
-    },
-    "Unlock more →": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sblocca altro →"
-          }
-        }
-      }
-    },
-    "Unlock new looks with coins and streaks": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sblocca nuovi stili con le monete e la serie"
-          }
-        }
-      }
-    },
-    "Unlock the full magic": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sblocca tutta la magia"
-          }
-        }
-      }
-    },
-    "Unlock: %@": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sblocca: %@"
-          }
-        }
-      }
-    },
-    "Use it": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Usalo"
-          }
-        }
-      }
-    },
-    "Use your finger or Apple Pencil ✏️": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Usa il dito o l'Apple Pencil ✏️"
-          }
-        }
-      }
-    },
-    "Welcome Back!": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Che bello rivederti!"
-          }
-        }
-      }
-    },
-    "Welcome back!": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Che bello rivederti!"
-          }
-        }
-      }
-    },
-    "What is %lld plus %lld?": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "new",
-            "value": "What is %1$lld plus %2$lld?"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Quanto fa %1$lld più %2$lld?"
-          }
-        }
-      }
-    },
-    "What would help?": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Cosa ti aiuterebbe?"
-          }
-        }
-      }
-    },
-    "What's the title?": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Qual è il titolo?"
-          }
-        }
-      }
-    },
-    "What's wrong with it?": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Che problema c'è?"
-          }
-        }
-      }
-    },
-    "When you order a printed book, it'll show up here.": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Quando ordini un libro stampato, lo trovi qui."
-          }
-        }
-      }
-    },
-    "Where does it happen?": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Dove succede la storia?"
-          }
-        }
-      }
-    },
-    "Where it happens": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Dove succede"
-          }
-        }
-      }
-    },
-    "Who is the main character of your story?": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Chi è il protagonista della tua storia?"
-          }
-        }
-      }
-    },
-    "Who's the author of this story?": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Chi scrive questa storia?"
-          }
-        }
-      }
-    },
-    "Worried": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Preoccupazione"
-          }
-        }
-      }
-    },
-    "Write a little every day to keep it alive! Best: %lld": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Scrivi un po' ogni giorno per tenerla viva! Record: %lld"
-          }
-        }
-      }
-    },
-    "Write it!": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Scrivila!"
-          }
-        }
-      }
-    },
-    "Write something today to start a streak!": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Scrivi qualcosa oggi e inizia la tua serie!"
-          }
-        }
-      }
-    },
-    "Write your story": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Scrivi la tua storia"
-          }
-        }
-      }
-    },
-    "Written by %@": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Scritto da %@"
-          }
-        }
-      }
-    },
-    "Yay!": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Evviva!"
-          }
-        }
-      }
-    },
-    "You can also email support@mybooklab.app.": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Puoi anche scrivere a support@mybooklab.app."
-          }
-        }
-      }
-    },
-    "You can turn it back on any time from Settings.": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Puoi riaccenderla quando vuoi dalle Impostazioni."
-          }
-        }
-      }
-    },
-    "Your account and all your books will be scheduled for deletion. You'll have 7 days to change your mind before anything is permanently removed.": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Il tuo account e tutti i tuoi libri verranno messi in coda per l'eliminazione. Hai 7 giorni per cambiare idea: fino ad allora non viene eliminato niente in modo definitivo."
-          }
-        }
-      }
-    },
-    "Your account is scheduled for deletion on %@.": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "L'eliminazione del tuo account è programmata per il %@."
-          }
-        }
-      }
-    },
-    "Your account is scheduled for deletion.": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "L'eliminazione del tuo account è programmata."
-          }
-        }
-      }
-    },
-    "Your age (optional)": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "La tua età (facoltativa)"
-          }
-        }
-      }
-    },
-    "Your bookshelf": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "La tua libreria"
-          }
-        }
-      }
-    },
-    "Your bookshelf is empty": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "La tua libreria è vuota"
-          }
-        }
-      }
-    },
-    "Your character": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Il tuo personaggio"
-          }
-        }
-      }
-    },
-    "Your check-ins will show up here, as stars.": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "I tuoi momenti appariranno qui, come stelle."
-          }
-        }
-      }
-    },
-    "Your first book is done!": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Il tuo primo libro è pronto!"
-          }
-        }
-      }
-    },
-    "Your name": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Il tuo nome"
-          }
-        }
-      }
-    },
-    "Your newest story and writing streak.": {
-      "comment": "Widget description in the widget gallery"
-    },
-    "Your orders": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "I tuoi ordini"
-          }
-        }
-      }
-    },
-    "Your original photo is never saved. Only the cartoon stays.": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "La tua foto non viene mai salvata. Resta solo il cartone animato."
-          }
-        }
-      }
-    },
-    "Your story is saved and waiting.": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "La tua storia è salvata e ti aspetta."
-          }
-        }
-      }
-    },
-    "ZIP": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "CAP"
-          }
-        }
-      }
-    },
-    "account.delete.cancel_failed": {
-      "extractionState": "extracted_with_value",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "new",
-            "value": "Couldn't cancel. Please try again."
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Annullamento non riuscito. Riprova."
-          }
-        }
-      }
-    },
-    "account.delete.confirm_word": {
-      "comment": "Typed by the user to confirm account deletion. MUST match the placeholder; uppercase.",
-      "extractionState": "extracted_with_value",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "new",
-            "value": "DELETE"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ELIMINA"
-          }
-        }
-      }
-    },
-    "account.delete.schedule_failed": {
-      "extractionState": "extracted_with_value",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "new",
-            "value": "Couldn't schedule deletion. Please try again."
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Non è stato possibile programmare l'eliminazione. Riprova."
+            "value": "Icona dell'app"
           }
         }
       }
@@ -2863,6 +620,46 @@
           "stringUnit": {
             "state": "translated",
             "value": "Questo dispositivo non può cambiare l'icona."
+          }
+        }
+      }
+    },
+    "Art style": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stile"
+          }
+        }
+      }
+    },
+    "Art styles": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stili"
+          }
+        }
+      }
+    },
+    "Ask Buddy…": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chiedi a Buddy…"
+          }
+        }
+      }
+    },
+    "Ask your own question": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fai la tua domanda"
           }
         }
       }
@@ -2999,6 +796,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Acquerello"
+          }
+        }
+      }
+    },
+    "Background music": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Musica di sottofondo"
+          }
+        }
+      }
+    },
+    "Badge earned!": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Medaglia conquistata!"
           }
         }
       }
@@ -3394,40 +1211,6 @@
         }
       }
     },
-    "badge.streak_30.description": {
-      "extractionState": "extracted_with_value",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "new",
-            "value": "Wrote 30 days in a row"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Hai scritto 30 giorni di fila"
-          }
-        }
-      }
-    },
-    "badge.streak_30.label": {
-      "extractionState": "extracted_with_value",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "new",
-            "value": "Story Legend"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Leggenda"
-          }
-        }
-      }
-    },
     "badge.streak_7.description": {
       "extractionState": "extracted_with_value",
       "localizations": {
@@ -3458,6 +1241,40 @@
           "stringUnit": {
             "state": "translated",
             "value": "Settimana magica"
+          }
+        }
+      }
+    },
+    "badge.streak_30.description": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Wrote 30 days in a row"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hai scritto 30 giorni di fila"
+          }
+        }
+      }
+    },
+    "badge.streak_30.label": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Story Legend"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leggenda"
           }
         }
       }
@@ -3700,6 +1517,36 @@
         }
       }
     },
+    "Badges": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Medaglie"
+          }
+        }
+      }
+    },
+    "Best value": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Più conveniente"
+          }
+        }
+      }
+    },
+    "Books": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Libri"
+          }
+        }
+      }
+    },
     "bookshelf.book_count": {
       "comment": "Count of books on the shelf. MUST be varied by plural: one = \"1 book\", other = \"%lld books\".",
       "extractionState": "extracted_with_value",
@@ -3718,12 +1565,132 @@
         }
       }
     },
+    "Buddy": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buddy"
+          }
+        }
+      }
+    },
+    "Buy coins": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compra monete"
+          }
+        }
+      }
+    },
     "by %@": {
       "localizations": {
         "it": {
           "stringUnit": {
             "state": "translated",
             "value": "di %@"
+          }
+        }
+      }
+    },
+    "Cancel": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annulla"
+          }
+        }
+      }
+    },
+    "Cancel editing name": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annulla la modifica del nome"
+          }
+        }
+      }
+    },
+    "Cancelling…": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annullamento…"
+          }
+        }
+      }
+    },
+    "Change hero photo": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cambia la foto dell'eroe"
+          }
+        }
+      }
+    },
+    "Character name": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nome del personaggio"
+          }
+        }
+      }
+    },
+    "Check your email for a link to reset your password.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Controlla la tua email: c'è un link per reimpostare la password."
+          }
+        }
+      }
+    },
+    "City": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Città"
+          }
+        }
+      }
+    },
+    "Class set": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Set per la classe"
+          }
+        }
+      }
+    },
+    "Clear drawing": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancella il disegno"
+          }
+        }
+      }
+    },
+    "Close": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chiudi"
           }
         }
       }
@@ -3779,6 +1746,26 @@
         }
       }
     },
+    "Coins": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Monete"
+          }
+        }
+      }
+    },
+    "Coins unlock magical art styles, accessories, and extra avatar regenerations.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Con le monete sblocchi stili magici, accessori e la possibilità di rifare l'avatar."
+          }
+        }
+      }
+    },
     "coins.insufficient": {
       "extractionState": "extracted_with_value",
       "localizations": {
@@ -3826,6 +1813,106 @@
           "stringUnit": {
             "state": "translated",
             "value": "Pagamento confermato. Le tue monete arrivano tra un attimo: tira giù per aggiornare se non le vedi."
+          }
+        }
+      }
+    },
+    "Continue": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continua"
+          }
+        }
+      }
+    },
+    "Continue with Apple": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continua con Apple"
+          }
+        }
+      }
+    },
+    "Continue with Google": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continua con Google"
+          }
+        }
+      }
+    },
+    "Couldn't load your books": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non riusciamo a caricare i tuoi libri"
+          }
+        }
+      }
+    },
+    "Create": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Crea"
+          }
+        }
+      }
+    },
+    "Create a Book": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Crea un libro"
+          }
+        }
+      }
+    },
+    "Create Account": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Crea account"
+          }
+        }
+      }
+    },
+    "Create an Account": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Crea un account"
+          }
+        }
+      }
+    },
+    "Create your hero": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Crea il tuo eroe"
+          }
+        }
+      }
+    },
+    "Create your own story in the stars ✨": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scrivi la tua storia tra le stelle ✨"
           }
         }
       }
@@ -4154,12 +2241,252 @@
         }
       }
     },
+    "Creating account…": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Creazione account…"
+          }
+        }
+      }
+    },
+    "Current plan: %@": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Piano attuale: %@"
+          }
+        }
+      }
+    },
+    "Customize avatar": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Personalizza l'avatar"
+          }
+        }
+      }
+    },
+    "Day streak": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Giorni di fila"
+          }
+        }
+      }
+    },
+    "Delete account": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elimina account"
+          }
+        }
+      }
+    },
+    "Delete page": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elimina pagina"
+          }
+        }
+      }
+    },
+    "Delete your account?": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eliminare il tuo account?"
+          }
+        }
+      }
+    },
+    "Delivered": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Consegnato"
+          }
+        }
+      }
+    },
+    "Done": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fatto"
+          }
+        }
+      }
+    },
+    "Draw": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disegna"
+          }
+        }
+      }
+    },
+    "Draw your picture!": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fai il tuo disegno!"
+          }
+        }
+      }
+    },
+    "Drawing your cartoon…": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sto disegnando il tuo cartone animato…"
+          }
+        }
+      }
+    },
     "e.g. The Brave Star Bear": {
       "localizations": {
         "it": {
           "stringUnit": {
             "state": "translated",
             "value": "es. Il coraggioso orso stellato"
+          }
+        }
+      }
+    },
+    "Edit book": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modifica il libro"
+          }
+        }
+      }
+    },
+    "Email": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Email"
+          }
+        }
+      }
+    },
+    "Every great book needs a name.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ogni bel libro ha bisogno di un nome."
+          }
+        }
+      }
+    },
+    "Everyday read": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Da leggere ogni giorno"
+          }
+        }
+      }
+    },
+    "Family pack": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pacchetto famiglia"
+          }
+        }
+      }
+    },
+    "Featured Books": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Libri in evidenza"
+          }
+        }
+      }
+    },
+    "Forgot your password?": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hai dimenticato la password?"
+          }
+        }
+      }
+    },
+    "Format": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Formato"
+          }
+        }
+      }
+    },
+    "Full name": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nome e cognome"
+          }
+        }
+      }
+    },
+    "G": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "G"
+          }
+        }
+      }
+    },
+    "Gallery": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Galleria"
+          }
+        }
+      }
+    },
+    "Gallery is just getting started": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La galleria sta per aprire"
           }
         }
       }
@@ -4222,12 +2549,513 @@
         }
       }
     },
+    "Generate AI cover": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Crea la copertina AI"
+          }
+        }
+      }
+    },
+    "Get more coins": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prendi altre monete"
+          }
+        }
+      }
+    },
+    "Gift pair": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Coppia regalo"
+          }
+        }
+      }
+    },
+    "Happy": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Felicità"
+          }
+        }
+      }
+    },
+    "Hardcover": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copertina rigida"
+          }
+        }
+      }
+    },
+    "Hi, %@!": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ciao, %@!"
+          }
+        }
+      }
+    },
+    "Hi, storyteller!": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ciao, cantastorie!"
+          }
+        }
+      }
+    },
+    "How are you doing?": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Come stai?"
+          }
+        }
+      }
+    },
+    "How you've been": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I tuoi momenti"
+          }
+        }
+      }
+    },
+    "I need help": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ho bisogno di aiuto"
+          }
+        }
+      }
+    },
+    "I'm done writing": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ho finito di scrivere"
+          }
+        }
+      }
+    },
+    "I'm ready": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Riprendiamo"
+          }
+        }
+      }
+    },
+    "Illustrate": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Illustra"
+          }
+        }
+      }
+    },
+    "In production": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In lavorazione"
+          }
+        }
+      }
+    },
+    "In use": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In uso"
+          }
+        }
+      }
+    },
+    "Jumps straight into creating a new book.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ti porta subito a creare un libro nuovo."
+          }
+        }
+      }
+    },
+    "Just one": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solo uno"
+          }
+        }
+      }
+    },
+    "Keep going": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continuare"
+          }
+        }
+      }
+    },
+    "Keep my account": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tieni il mio account"
+          }
+        }
+      }
+    },
+    "Keepsake quality": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Da tenere per sempre"
+          }
+        }
+      }
+    },
+    "Let's begin": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Iniziamo"
+          }
+        }
+      }
+    },
+    "Loading price": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Caricamento prezzo"
+          }
+        }
+      }
+    },
+    "Make it quiet": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fare silenzio"
+          }
+        }
+      }
+    },
+    "Make your story shine": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fai brillare la tua storia"
+          }
+        }
+      }
+    },
+    "Making…": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sto creando…"
+          }
+        }
+      }
+    },
+    "Manage subscription": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gestisci abbonamento"
+          }
+        }
+      }
+    },
+    "More stories, more illustrations, more pages — and the same parent-safe Story Buddy.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Più storie, più illustrazioni, più pagine — e lo stesso Story Buddy di cui i genitori si fidano."
+          }
+        }
+      }
+    },
+    "My Book Lab": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My Book Lab"
+          }
+        }
+      }
+    },
+    "My Books": {
+      "comment": "Widget title fallback when the latest book has no title",
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I miei libri"
+          }
+        }
+      }
+    },
+    "New here? Create an account": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "È la prima volta? Crea un account"
+          }
+        }
+      }
+    },
+    "New Story": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nuova storia"
+          }
+        }
+      }
+    },
+    "Next page": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pagina successiva"
+          }
+        }
+      }
+    },
+    "No orders yet": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ancora nessun ordine"
+          }
+        }
+      }
+    },
+    "No pages yet": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ancora nessuna pagina"
+          }
+        }
+      }
+    },
+    "No plans available right now. Try again in a moment.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nessun piano disponibile al momento. Riprova tra poco."
+          }
+        }
+      }
+    },
+    "Off": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No"
+          }
+        }
+      }
+    },
+    "Okay": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Va bene"
+          }
+        }
+      }
+    },
+    "On": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sì"
+          }
+        }
+      }
+    },
+    "Open My Books": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apri i miei libri"
+          }
+        }
+      }
+    },
+    "Open this book in Create to add pages.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apri questo libro in Crea per aggiungere le pagine."
+          }
+        }
+      }
+    },
+    "Opening Apple Pay…": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apertura di Apple Pay…"
+          }
+        }
+      }
+    },
+    "Opens a check-in": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apre un momento per dire come stai"
+          }
+        }
+      }
+    },
+    "Opens the book": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apre il libro"
+          }
+        }
+      }
+    },
+    "Opens your bookshelf in My Book Lab.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apre la tua libreria in My Book Lab."
+          }
+        }
+      }
+    },
     "or": {
       "localizations": {
         "it": {
           "stringUnit": {
             "state": "translated",
             "value": "oppure"
+          }
+        }
+      }
+    },
+    "Or pick a fun avatar": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oppure scegli un avatar simpatico"
+          }
+        }
+      }
+    },
+    "Or pick an emoji hero below 👇": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oppure scegli un eroe emoji qui sotto 👇"
+          }
+        }
+      }
+    },
+    "Order": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ordine"
+          }
+        }
+      }
+    },
+    "Order #%@": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ordine n. %@"
+          }
+        }
+      }
+    },
+    "Order placed": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ordine inviato"
+          }
+        }
+      }
+    },
+    "Order printed copy": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ordina una copia stampata"
           }
         }
       }
@@ -4250,32 +3078,8 @@
         }
       }
     },
-    "order.live.headline": {
-      "comment": "Live Activity lock-screen headline; %@ is the book title",
-      "extractionState": "extracted_with_value",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "new",
-            "value": "\"%@\" in print"
-          }
-        }
-      }
-    },
-    "order.live.progress": {
-      "comment": "Compact Dynamic Island progress out of four stages, e.g. \"2/4\"",
-      "extractionState": "extracted_with_value",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "new",
-            "value": "%lld/4"
-          }
-        }
-      }
-    },
     "order.status.delivered": {
-      "comment": "Live Activity stage: the book arrived\nPrint order status: arrived",
+      "comment": "Print order status: arrived",
       "extractionState": "extracted_with_value",
       "localizations": {
         "en": {
@@ -4293,7 +3097,7 @@
       }
     },
     "order.status.failed": {
-      "comment": "Live Activity stage: the order could not be completed\nPrint order status: the order could not be completed",
+      "comment": "Print order status: the order could not be completed",
       "extractionState": "extracted_with_value",
       "localizations": {
         "en": {
@@ -4311,13 +3115,13 @@
       }
     },
     "order.status.in_production": {
-      "comment": "Live Activity stage: the book is on the press\nPrint order status: the book is being printed",
+      "comment": "Print order status: the book is being printed",
       "extractionState": "extracted_with_value",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "new",
-            "value": "Being printed"
+            "value": "Printing"
           }
         },
         "it": {
@@ -4329,13 +3133,13 @@
       }
     },
     "order.status.paid": {
-      "comment": "Live Activity stage: payment went through\nPrint order status: paid, building the print PDF",
+      "comment": "Print order status: paid, building the print PDF",
       "extractionState": "extracted_with_value",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "new",
-            "value": "Payment confirmed"
+            "value": "Preparing files"
           }
         },
         "it": {
@@ -4347,7 +3151,7 @@
       }
     },
     "order.status.pdf_ready": {
-      "comment": "Live Activity stage: print PDF built and handed over\nPrint order status: PDF built, handed to the print partner",
+      "comment": "Print order status: PDF built, handed to the print partner",
       "extractionState": "extracted_with_value",
       "localizations": {
         "en": {
@@ -4365,13 +3169,13 @@
       }
     },
     "order.status.pending": {
-      "comment": "Live Activity stage: order created, awaiting payment\nPrint order status: payment not completed yet",
+      "comment": "Print order status: payment not completed yet",
       "extractionState": "extracted_with_value",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "new",
-            "value": "Order placed"
+            "value": "Waiting on payment"
           }
         },
         "it": {
@@ -4383,7 +3187,7 @@
       }
     },
     "order.status.refunded": {
-      "comment": "Live Activity stage: money returned to the customer\nPrint order status: money returned to the customer",
+      "comment": "Print order status: money returned to the customer",
       "extractionState": "extracted_with_value",
       "localizations": {
         "en": {
@@ -4401,13 +3205,13 @@
       }
     },
     "order.status.shipped": {
-      "comment": "Live Activity stage: shipped, in transit\nPrint order status: shipped, in transit",
+      "comment": "Print order status: shipped, in transit",
       "extractionState": "extracted_with_value",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "new",
-            "value": "On its way!"
+            "value": "On the way"
           }
         },
         "it": {
@@ -4419,7 +3223,7 @@
       }
     },
     "order.status.submitted": {
-      "comment": "Live Activity stage: accepted by the print partner\nPrint order status: accepted by the print partner",
+      "comment": "Print order status: accepted by the print partner",
       "extractionState": "extracted_with_value",
       "localizations": {
         "en": {
@@ -4437,7 +3241,7 @@
       }
     },
     "order.status.unknown": {
-      "comment": "Live Activity stage for a status the app doesn't recognize yet\nPrint order status the app doesn't recognize yet",
+      "comment": "Print order status the app doesn't recognize yet",
       "extractionState": "extracted_with_value",
       "localizations": {
         "en": {
@@ -4468,6 +3272,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$@ × %2$lld"
+          }
+        }
+      }
+    },
+    "Orders": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ordini"
           }
         }
       }
@@ -4504,6 +3318,116 @@
           "stringUnit": {
             "state": "translated",
             "value": "Non siamo riusciti a caricare gli ordini: %@"
+          }
+        }
+      }
+    },
+    "Owned": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ce l'hai già"
+          }
+        }
+      }
+    },
+    "Page %lld": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pagina %lld"
+          }
+        }
+      }
+    },
+    "Painting cover…": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sto dipingendo la copertina…"
+          }
+        }
+      }
+    },
+    "Password": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Password"
+          }
+        }
+      }
+    },
+    "Pay & order": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paga e ordina"
+          }
+        }
+      }
+    },
+    "Payment confirmed": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pagato"
+          }
+        }
+      }
+    },
+    "Phone": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Telefono"
+          }
+        }
+      }
+    },
+    "Pick a look for your app icon. Earn more with coins and streaks!": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scegli come sarà l'icona dell'app. Guadagnane altre con le monete e le serie!"
+          }
+        }
+      }
+    },
+    "Pick a photo": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scegli una foto"
+          }
+        }
+      }
+    },
+    "Pick one to start writing!": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scegli e inizia a scrivere!"
+          }
+        }
+      }
+    },
+    "Pick the world your story lives in.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scegli il mondo della tua storia."
           }
         }
       }
@@ -4572,6 +3496,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Premium"
+          }
+        }
+      }
+    },
+    "Previous page": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pagina precedente"
           }
         }
       }
@@ -4684,6 +3618,486 @@
         }
       }
     },
+    "Privacy Policy": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Informativa sulla privacy"
+          }
+        }
+      }
+    },
+    "Proud": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Orgoglio"
+          }
+        }
+      }
+    },
+    "Publish your finished book to share it here!": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pubblica il tuo libro finito per condividerlo qui!"
+          }
+        }
+      }
+    },
+    "Purchases go through the App Store. Coins are added to your account once payment confirms.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gli acquisti passano dall'App Store. Le monete arrivano sul tuo account quando il pagamento è confermato."
+          }
+        }
+      }
+    },
+    "Quantity": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quantità"
+          }
+        }
+      }
+    },
+    "Read this page aloud": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leggi questa pagina ad alta voce"
+          }
+        }
+      }
+    },
+    "Regenerate cover": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rifai la copertina"
+          }
+        }
+      }
+    },
+    "Remember me with %@": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ricordami con %@"
+          }
+        }
+      }
+    },
+    "Report": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Segnala"
+          }
+        }
+      }
+    },
+    "Report this book": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Segnala questo libro"
+          }
+        }
+      }
+    },
+    "Restore purchases": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ripristina gli acquisti"
+          }
+        }
+      }
+    },
+    "Sad": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tristezza"
+          }
+        }
+      }
+    },
+    "Save and sync across devices": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salva e sincronizza su tutti i dispositivi"
+          }
+        }
+      }
+    },
+    "Save avatar": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salva avatar"
+          }
+        }
+      }
+    },
+    "Save name": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salva nome"
+          }
+        }
+      }
+    },
+    "Save to bookshelf": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salva nella libreria"
+          }
+        }
+      }
+    },
+    "Saving…": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salvataggio…"
+          }
+        }
+      }
+    },
+    "Schedule deletion": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Programma eliminazione"
+          }
+        }
+      }
+    },
+    "See a finished book": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guarda un libro finito"
+          }
+        }
+      }
+    },
+    "Send message": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invia messaggio"
+          }
+        }
+      }
+    },
+    "Send report": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invia segnalazione"
+          }
+        }
+      }
+    },
+    "Sending…": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invio in corso…"
+          }
+        }
+      }
+    },
+    "Sent to printer": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inviato in stampa"
+          }
+        }
+      }
+    },
+    "Setting up payment…": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparazione del pagamento…"
+          }
+        }
+      }
+    },
+    "Shake again": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scuoti ancora"
+          }
+        }
+      }
+    },
+    "Shipped": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spedito"
+          }
+        }
+      }
+    },
+    "Shipping": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spedizione"
+          }
+        }
+      }
+    },
+    "Shipping to": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spedizione a"
+          }
+        }
+      }
+    },
+    "Sign in": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accedi"
+          }
+        }
+      }
+    },
+    "Sign In": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accedi"
+          }
+        }
+      }
+    },
+    "Sign in to save your books and bring them to life with AI illustrations.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accedi per salvare i tuoi libri e dare loro vita con le illustrazioni AI."
+          }
+        }
+      }
+    },
+    "Sign in to save your stories": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accedi per salvare le tue storie"
+          }
+        }
+      }
+    },
+    "Sign in to see your printed book orders.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accedi per vedere i tuoi ordini di libri stampati."
+          }
+        }
+      }
+    },
+    "Sign in to see your saved books and order printed copies.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accedi per vedere i libri che hai salvato e ordinare le copie stampate."
+          }
+        }
+      }
+    },
+    "Sign in to sync your stories": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accedi per sincronizzare le tue storie"
+          }
+        }
+      }
+    },
+    "Sign in with %@": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accedi con %@"
+          }
+        }
+      }
+    },
+    "Sign out": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esci"
+          }
+        }
+      }
+    },
+    "Signing in…": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accesso in corso…"
+          }
+        }
+      }
+    },
+    "Softcover": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copertina morbida"
+          }
+        }
+      }
+    },
+    "Solve this so we know a grown-up is here.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Risolvi questo calcolo, così sappiamo che c'è un adulto."
+          }
+        }
+      }
+    },
+    "Something special about them (optional)": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Una cosa speciale sul personaggio (facoltativo)"
+          }
+        }
+      }
+    },
+    "Spend on magical art styles and items": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spendile in stili grafici magici e oggetti"
+          }
+        }
+      }
+    },
+    "Start a New Story": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inizia una nuova storia"
+          }
+        }
+      }
+    },
+    "Start a writing streak!": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inizia la tua serie di scrittura!"
+          }
+        }
+      }
+    },
+    "Start writing": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inizia a scrivere"
+          }
+        }
+      }
+    },
+    "State": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Provincia"
+          }
+        }
+      }
+    },
+    "Stop reading aloud": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ferma la lettura"
+          }
+        }
+      }
+    },
+    "Store": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Negozio"
+          }
+        }
+      }
+    },
     "store.style.insufficient_coins": {
       "extractionState": "extracted_with_value",
       "localizations": {
@@ -4697,6 +4111,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ti servono %lld monete. Guadagna altre monete creando libri e usando l'app!"
+          }
+        }
+      }
+    },
+    "Story Buddy": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Story Buddy"
           }
         }
       }
@@ -5243,7 +4667,7 @@
     },
     "story.idea.hint.pad": {
       "comment": "Footnote on the story-idea popup, iPad wording",
-      "extractionState": "extracted_with_value",
+      "extractionState": "stale",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -5261,7 +4685,7 @@
     },
     "story.idea.hint.phone": {
       "comment": "Footnote on the story-idea popup, iPhone wording",
-      "extractionState": "extracted_with_value",
+      "extractionState": "stale",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -5273,6 +4697,397 @@
           "stringUnit": {
             "state": "translated",
             "value": "Scuoti il telefono quando vuoi per una nuova idea ✨"
+          }
+        }
+      }
+    },
+    "Stuck? Tap a button and I'll help with ideas — I never write your story for you. ✨": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non sai come continuare? Tocca un pulsante e ti do qualche idea: la tua storia non la scrivo mai io. ✨"
+          }
+        }
+      }
+    },
+    "Subscribe for unlimited stories": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abbonati per storie illimitate"
+          }
+        }
+      }
+    },
+    "Subscription auto-renews unless canceled at least 24 hours before the end of the period. Manage or cancel in Settings → Apple ID → Subscriptions.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L'abbonamento si rinnova automaticamente, salvo disdetta almeno 24 ore prima della fine del periodo. Puoi gestirlo o disdirlo in Impostazioni → ID Apple → Abbonamenti."
+          }
+        }
+      }
+    },
+    "Subtotal": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Subtotale"
+          }
+        }
+      }
+    },
+    "Summary": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Riepilogo"
+          }
+        }
+      }
+    },
+    "Sync books across devices, order printed copies, and pick up where you left off.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sincronizza i libri su tutti i dispositivi, ordina le copie stampate e riprendi da dove hai lasciato."
+          }
+        }
+      }
+    },
+    "Take a break": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fare una pausa"
+          }
+        }
+      }
+    },
+    "Take as long as you like.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prenditi tutto il tempo che vuoi."
+          }
+        }
+      }
+    },
+    "Tap **Create** to make your first story — or peek at the example below.": {
+      "comment": "Empty-shelf nudge. **Create** is Markdown bold naming the Create tab — keep the ** ** around the translated tab name, and translate the tab name the same way it is translated in the tab bar.",
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tocca **Crea** per fare la tua prima storia, oppure dai un'occhiata all'esempio qui sotto."
+          }
+        }
+      }
+    },
+    "Tap anywhere to continue": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tocca lo schermo per continuare"
+          }
+        }
+      }
+    },
+    "Tap Illustrate to add a picture": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tocca Illustra per aggiungere un disegno"
+          }
+        }
+      }
+    },
+    "Tap to use": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tocca per usare"
+          }
+        }
+      }
+    },
+    "Tap to use this": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tocca per usare questo"
+          }
+        }
+      }
+    },
+    "Terms of Use": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Termini di utilizzo"
+          }
+        }
+      }
+    },
+    "Thanks": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grazie"
+          }
+        }
+      }
+    },
+    "Thanks for telling us": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grazie per avercelo detto"
+          }
+        }
+      }
+    },
+    "The End": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fine"
+          }
+        }
+      }
+    },
+    "The music is off.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La musica è spenta."
+          }
+        }
+      }
+    },
+    "Think about these, then keep writing!": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pensa a queste domande e poi continua a scrivere!"
+          }
+        }
+      }
+    },
+    "Thinking…": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sto pensando…"
+          }
+        }
+      }
+    },
+    "Tired": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stanchezza"
+          }
+        }
+      }
+    },
+    "Title your book": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dai un titolo al tuo libro"
+          }
+        }
+      }
+    },
+    "Total": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Totale"
+          }
+        }
+      }
+    },
+    "Track package": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Segui la spedizione"
+          }
+        }
+      }
+    },
+    "Try again": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prova ancora"
+          }
+        }
+      }
+    },
+    "Try again.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prova ancora."
+          }
+        }
+      }
+    },
+    "Turn a photo into your hero": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trasforma una foto nel tuo eroe"
+          }
+        }
+      }
+    },
+    "Turn your photo into a cartoon": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trasforma la tua foto in un cartone animato"
+          }
+        }
+      }
+    },
+    "Type DELETE to confirm": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scrivi DELETE per confermare"
+          }
+        }
+      }
+    },
+    "Unavailable": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non disponibile"
+          }
+        }
+      }
+    },
+    "Unlock magical art styles for your avatar.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sblocca stili magici per il tuo avatar."
+          }
+        }
+      }
+    },
+    "Unlock more →": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sblocca altro →"
+          }
+        }
+      }
+    },
+    "Unlock new looks with coins and streaks": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sblocca nuovi stili con le monete e la serie"
+          }
+        }
+      }
+    },
+    "Unlock the full magic": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sblocca tutta la magia"
+          }
+        }
+      }
+    },
+    "Unlock: %@": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sblocca: %@"
+          }
+        }
+      }
+    },
+    "Use it": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usalo"
+          }
+        }
+      }
+    },
+    "Use your finger or Apple Pencil ✏️": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usa il dito o l'Apple Pencil ✏️"
+          }
+        }
+      }
+    },
+    "Welcome back!": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Che bello rivederti!"
+          }
+        }
+      }
+    },
+    "Welcome Back!": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Che bello rivederti!"
           }
         }
       }
@@ -5331,203 +5146,373 @@
         }
       }
     },
-    "widget.shelf.book_count": {
-      "comment": "Widget subtitle counting the books on the shelf, e.g. \"3 books on your shelf\"",
-      "extractionState": "extracted_with_value",
+    "What is %lld plus %lld?": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "new",
-            "value": "^[%lld book](inflect: true) on your shelf"
-          }
-        }
-      }
-    },
-    "widget.streak.days": {
-      "comment": "Widget writing-streak line, e.g. \"🔥 4 day streak\"",
-      "extractionState": "extracted_with_value",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "new",
-            "value": "🔥 %lld day streak"
-          }
-        }
-      }
-    },
-    "“%@”": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "“%@”"
-          }
-        }
-      }
-    },
-    "“%@” by %@": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "new",
-            "value": "“%1$@” by %2$@"
+            "value": "What is %1$lld plus %2$lld?"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "“%1$@” di %2$@"
+            "value": "Quanto fa %1$lld più %2$lld?"
           }
         }
       }
     },
-    "✨": {
+    "What would help?": {
       "localizations": {
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "✨"
+            "value": "Cosa ti aiuterebbe?"
           }
         }
       }
     },
-    "✨ Coin Store": {
+    "What's the title?": {
       "localizations": {
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "✨ Negozio monete"
+            "value": "Qual è il titolo?"
           }
         }
       }
     },
-    "⭐️ Recommended": {
+    "What's wrong with it?": {
       "localizations": {
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "⭐️ Consigliato"
+            "value": "Che problema c'è?"
           }
         }
       }
     },
-    "🌟": {
+    "When you order a printed book, it'll show up here.": {
       "localizations": {
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "🌟"
+            "value": "Quando ordini un libro stampato, lo trovi qui."
           }
         }
       }
     },
-    "🎉": {
+    "Where does it happen?": {
       "localizations": {
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "🎉"
+            "value": "Dove succede la storia?"
           }
         }
       }
     },
-    "👋 Grown-up check": {
+    "Where it happens": {
       "localizations": {
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "👋 Controllo per grandi"
+            "value": "Dove succede"
           }
         }
       }
     },
-    "💫 Story idea!": {
+    "Who is the main character of your story?": {
       "localizations": {
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "💫 Idea per una storia!"
+            "value": "Chi è il protagonista della tua storia?"
           }
         }
       }
     },
-    "💭": {
+    "Who's the author of this story?": {
       "localizations": {
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "💭"
+            "value": "Chi scrive questa storia?"
           }
         }
       }
     },
-    "💰": {
+    "Worried": {
       "localizations": {
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "💰"
+            "value": "Preoccupazione"
           }
         }
       }
     },
-    "📖": {
+    "Write a little every day to keep it alive! Best: %lld": {
       "localizations": {
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "📖"
+            "value": "Scrivi un po' ogni giorno per tenerla viva! Record: %lld"
           }
         }
       }
     },
-    "📦": {
+    "Write it!": {
       "localizations": {
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "📦"
+            "value": "Scrivila!"
           }
         }
       }
     },
-    "📭": {
+    "Write something today to start a streak!": {
       "localizations": {
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "📭"
+            "value": "Scrivi qualcosa oggi e inizia la tua serie!"
           }
         }
       }
     },
-    "🔥": {
+    "Write your story": {
       "localizations": {
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "🔥"
+            "value": "Scrivi la tua storia"
           }
         }
       }
     },
-    "🛡️": {
+    "Written by %@": {
       "localizations": {
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "🛡️"
+            "value": "Scritto da %@"
           }
         }
       }
     },
-    "🤫": {},
-    "🪙": {
+    "Yay!": {
       "localizations": {
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "🪙"
+            "value": "Evviva!"
+          }
+        }
+      }
+    },
+    "You can also email support@mybooklab.app.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Puoi anche scrivere a support@mybooklab.app."
+          }
+        }
+      }
+    },
+    "You can turn it back on any time from Settings.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Puoi riaccenderla quando vuoi dalle Impostazioni."
+          }
+        }
+      }
+    },
+    "Your account and all your books will be scheduled for deletion. You'll have 7 days to change your mind before anything is permanently removed.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il tuo account e tutti i tuoi libri verranno messi in coda per l'eliminazione. Hai 7 giorni per cambiare idea: fino ad allora non viene eliminato niente in modo definitivo."
+          }
+        }
+      }
+    },
+    "Your account is scheduled for deletion on %@.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L'eliminazione del tuo account è programmata per il %@."
+          }
+        }
+      }
+    },
+    "Your account is scheduled for deletion.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L'eliminazione del tuo account è programmata."
+          }
+        }
+      }
+    },
+    "Your age (optional)": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La tua età (facoltativa)"
+          }
+        }
+      }
+    },
+    "Your bookshelf": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La tua libreria"
+          }
+        }
+      }
+    },
+    "Your bookshelf is empty": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La tua libreria è vuota"
+          }
+        }
+      }
+    },
+    "Your character": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il tuo personaggio"
+          }
+        }
+      }
+    },
+    "Your check-ins will show up here, as stars.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I tuoi momenti appariranno qui, come stelle."
+          }
+        }
+      }
+    },
+    "Your first book is done!": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il tuo primo libro è pronto!"
+          }
+        }
+      }
+    },
+    "Your name": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il tuo nome"
+          }
+        }
+      }
+    },
+    "Your orders": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I tuoi ordini"
+          }
+        }
+      }
+    },
+    "Your original photo is never saved. Only the cartoon stays.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La tua foto non viene mai salvata. Resta solo il cartone animato."
+          }
+        }
+      }
+    },
+    "Your story is saved and waiting.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La tua storia è salvata e ti aspetta."
+          }
+        }
+      }
+    },
+    "ZIP": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CAP"
+          }
+        }
+      }
+    },
+    "How are you?": {
+      "comment": "Label under the check-in mascot button in the page editor",
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Come stai?"
+          }
+        }
+      }
+    },
+    "story.idea.hint.phone.writing": {
+      "comment": "Hint in the page editor, iPhone wording",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shake your phone while you write for a new idea ✨"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scuoti il telefono mentre scrivi per una nuova idea ✨"
+          }
+        }
+      }
+    },
+    "story.idea.hint.pad.writing": {
+      "comment": "Hint in the page editor, iPad wording",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shake your iPad while you write for a new idea ✨"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scuoti l'iPad mentre scrivi per una nuova idea ✨"
           }
         }
       }

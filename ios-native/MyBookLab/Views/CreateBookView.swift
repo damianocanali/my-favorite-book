@@ -648,6 +648,7 @@ private struct PagesStep: View {
     // App-authored copy that gets rendered — see `heroError` above.
     @State private var generationError: LocalizedStringResource?
     @State private var showStoryBuddy = false
+    @State private var storyIdea: String?
     @Environment(CheckInStore.self) private var checkIn
     @State private var showDrawing = false
     @State private var savingDrawing = false
@@ -711,52 +712,44 @@ private struct PagesStep: View {
                     CheckInButton()
 
                     Button { showStoryBuddy = true } label: {
-                        HStack(spacing: 6) {
+                        ToolLabel(background: .white.opacity(0.12)) {
                             Image(systemName: "bubble.left.and.bubble.right.fill")
-                            Text("Buddy")
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(12)
-                        .background(.white.opacity(0.12), in: RoundedRectangle(cornerRadius: 12))
-                        .foregroundStyle(.white)
+                        } label: { Text("Buddy") }
                     }
 
                     // Draw it yourself — no AI, no waiting, and the child's
                     // own artwork ends up in the printed book.
                     Button { showDrawing = true } label: {
-                        HStack(spacing: 6) {
-                            if savingDrawing {
-                                ProgressView().tint(.white)
-                            } else {
-                                Image(systemName: "pencil.and.outline")
-                            }
-                            savingDrawing ? Text("Saving…") : Text("Draw")
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(12)
-                        .background(.cyan.opacity(0.75), in: RoundedRectangle(cornerRadius: 12))
-                        .foregroundStyle(.white)
+                        ToolLabel(background: .cyan.opacity(0.75)) {
+                            if savingDrawing { ProgressView().tint(.white) }
+                            else { Image(systemName: "pencil.and.outline") }
+                        } label: { savingDrawing ? Text("Saving…") : Text("Draw") }
                     }
                     .disabled(savingDrawing || generatingIllustration)
 
                     Button {
                         Task { await generateIllustration() }
                     } label: {
-                        HStack(spacing: 6) {
-                            if generatingIllustration {
-                                ProgressView().tint(.white)
-                            } else {
-                                Image(systemName: "wand.and.stars")
-                            }
-                            generatingIllustration ? Text("Making…") : Text("Illustrate")
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(12)
-                        .background(.purple.opacity(0.85), in: RoundedRectangle(cornerRadius: 12))
-                        .foregroundStyle(.white)
+                        ToolLabel(background: .purple.opacity(0.85)) {
+                            if generatingIllustration { ProgressView().tint(.white) }
+                            else { Image(systemName: "wand.and.stars") }
+                        } label: { generatingIllustration ? Text("Making…") : Text("Illustrate") }
                     }
                     .disabled(generatingIllustration || savingDrawing || currentPageText.isEmpty)
                 }
+
+                // Otherwise nobody finds the shake: there is no button for it.
+                Label(UIDevice.current.userInterfaceIdiom == .pad
+                      ? LocalizedStringResource("story.idea.hint.pad.writing",
+                            defaultValue: "Shake your iPad while you write for a new idea ✨",
+                            comment: "Footnote on the story-idea popup, iPad wording")
+                      : LocalizedStringResource("story.idea.hint.phone.writing",
+                            defaultValue: "Shake your phone while you write for a new idea ✨",
+                            comment: "Footnote on the story-idea popup, iPhone wording"),
+                      systemImage: "iphone.radiowaves.left.and.right")
+                    .font(.caption)
+                    .foregroundStyle(.white.opacity(0.6))
+                    .frame(maxWidth: .infinity)
 
                 SparkleButton(action: {
                     withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) { draft.step = 5 }
@@ -768,6 +761,19 @@ private struct PagesStep: View {
             .padding(.horizontal)
             .padding(.bottom, 16)
         }
+        // Shake for a story idea — here and only here. It used to be mounted on
+        // the whole tab bar, so it fired on the bookshelf and in the gallery
+        // where there is nothing to write into. In the editor, "Write it!"
+        // drops the idea straight into the page being written.
+        .onShake {
+            guard storyIdea == nil else { return }
+            Haptics.bigTap()
+            AudioService.shared.playSFX(.sparkle)
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.75)) {
+                storyIdea = StoryIdeas.random()
+            }
+        }
+        .overlay { StoryIdeaCard(idea: $storyIdea) { appendToCurrentPage($0) } }
         // A child who picked "I need help" in the check-in. The host cannot
         // open Story Buddy itself — it has no book or page — so it publishes
         // the request and this view, which does, answers it. Cleared
@@ -1140,5 +1146,32 @@ private struct ReadyStep: View {
                 defaultValue: "Couldn't paint the cover: \(error.localizedDescription)",
                 comment: "%@ is the underlying network/server error, already localized by iOS")
         }
+    }
+}
+
+
+/// One of the editor's tool buttons: icon above a one-line label, all the same
+/// height. Laid out side by side in a single row, three labels of different
+/// lengths got the same width, and on a phone "Illustrate" — the longest — was
+/// cut off while its button looked bigger than Buddy and Draw. Stacking the
+/// icon frees the whole width for the word, and the label may shrink a little
+/// before it would ever truncate.
+private struct ToolLabel<Icon: View>: View {
+    let background: Color
+    @ViewBuilder let icon: () -> Icon
+    @ViewBuilder let label: () -> Text
+
+    var body: some View {
+        VStack(spacing: 4) {
+            icon().font(.system(size: 18, weight: .semibold)).frame(height: 22)
+            label()
+                .font(.system(.caption, design: .rounded).weight(.semibold))
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+        }
+        .frame(maxWidth: .infinity, minHeight: 56)
+        .padding(.horizontal, 4)
+        .background(background, in: RoundedRectangle(cornerRadius: 12))
+        .foregroundStyle(.white)
     }
 }

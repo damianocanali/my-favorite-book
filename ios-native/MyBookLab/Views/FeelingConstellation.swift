@@ -79,13 +79,44 @@ struct FeelingConstellation: View {
 /// reached flow is actively harmful.
 struct CheckInButton: View {
     @Environment(CheckInStore.self) private var store
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var nudge = false
 
     var body: some View {
         Button { store.open() } label: {
-            Mascot(mood: .welcome, size: 40)
+            VStack(spacing: 2) {
+                Mascot(mood: .welcome, size: 38)
+                    // A small wiggle every few seconds, so a child reads the
+                    // mascot as something to tap rather than decoration. It
+                    // repeats rather than playing once: a child who missed it
+                    // the first time is exactly the one who needs it. Never an
+                    // interruption — no sound, no haptic, nothing that pulls
+                    // focus from the writing — and absent under Reduce Motion.
+                    .rotationEffect(.degrees(nudge ? 8 : 0), anchor: .bottom)
+                // The words do the rest: a picture alone does not say "for you".
+                Text("How are you?")
+                    .font(.system(size: 10, weight: .semibold, design: .rounded))
+                    .foregroundStyle(.white.opacity(0.85))
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.8)
+                    .multilineTextAlignment(.center)
+            }
+            .frame(width: 58)
         }
         .buttonStyle(.plain)
         .accessibilityLabel("How are you doing?")
         .accessibilityHint("Opens a check-in")
+        .task {
+            guard !reduceMotion else { return }
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(6))
+                for _ in 0..<2 {
+                    withAnimation(.easeInOut(duration: 0.12)) { nudge = true }
+                    try? await Task.sleep(for: .milliseconds(130))
+                    withAnimation(.easeInOut(duration: 0.12)) { nudge = false }
+                    try? await Task.sleep(for: .milliseconds(130))
+                }
+            }
+        }
     }
 }
