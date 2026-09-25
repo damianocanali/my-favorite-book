@@ -68,13 +68,74 @@ const framePath = (folder, i) =>
 
 // Motion presets. `loop: false` means a burst that settles — a cheer that
 // never stops stops reading as a cheer.
+// Four things make a flat sprite read as a character rather than a sticker,
+// and none of them needs layered artwork:
+//
+//   ANTICIPATION. A jump that starts at the top reads as a cut. Dipping first
+//   — and, on a loop, settling after — is what makes the movement look
+//   intended rather than applied.
+//
+//   SQUASH AND STRETCH, on the ground and only there. He stretches on the way
+//   up and compresses on landing. Applied in the air it looks like a bug.
+//
+//   A PIVOT AT THE FEET. Rotating about the centre swings a standing character
+//   like a hanging sign. Rotating about the bottom edge is a lean, which is
+//   what a person does. That is `transformOrigin` below and it costs nothing.
+//
+//   WEIGHT. The ground shadow tightens and darkens as he lands and spreads as
+//   he rises. It is the cue that says he has mass, and it is drawn by the
+//   parent, so it works on any pose.
+//
+// `times` is given explicitly wherever the keyframes are not evenly spaced —
+// the dip before a bounce is short and the fall is long, and without `times`
+// motion would give each leg the same slice and the anticipation would read
+// as a slow crouch.
 const MOTIONS = {
-  float: { animate: { y: [0, -8, 0] }, duration: 2.8, loop: true },
-  wave: { animate: { rotate: [-5, 5, -5] }, duration: 1.4, loop: true },
-  breathe: { animate: { scale: [1, 1.04, 1], y: [0, -5, 0] }, duration: 3.2, loop: true },
-  bounce: { animate: { y: [0, -28, 0], scale: [1, 1.06, 1] }, duration: 0.62, loop: false, repeat: 2 },
-  tilt: { animate: { rotate: [-6, -2, -6], y: [0, -4, 0] }, duration: 2.6, loop: true },
-  present: { animate: { y: [0, -6, 0] }, duration: 2.4, loop: true },
+  float: {
+    animate: { y: [0, -8, 0], scaleY: [1, 1.01, 1] },
+    duration: 2.8, loop: true, ease: 'easeInOut',
+  },
+  wave: {
+    // Leans from the feet, and the lean is not symmetric: he pushes over and
+    // eases back, the way weight shifts.
+    animate: { rotate: [-4, 4, -4], y: [0, -2, 0] },
+    times: [0, 0.45, 1], duration: 1.6, loop: true, ease: 'easeInOut',
+  },
+  breathe: {
+    animate: { scale: [1, 1.035, 1], y: [0, -5, 0] },
+    duration: 3.2, loop: true, ease: 'easeInOut',
+  },
+  bounce: {
+    // Crouch, launch, stretch, land heavy, settle. The landing overshoots into
+    // a squash and recovers — that recovery is most of what sells the weight.
+    animate: {
+      y:      [0, 6,   -30,  -30,  0,    0,    0],
+      scaleY: [1, 0.9,  1.08, 1.04, 0.86, 1.03, 1],
+      scaleX: [1, 1.08, 0.95, 0.98, 1.14, 0.98, 1],
+    },
+    times:   [0, 0.12, 0.34, 0.5,  0.72, 0.86, 1],
+    duration: 0.78, loop: false, repeat: 2, ease: 'easeOut',
+  },
+  tilt: {
+    animate: { rotate: [-6, -2, -6], y: [0, -4, 0] },
+    duration: 2.6, loop: true, ease: 'easeInOut',
+  },
+  present: {
+    // A small lift with a beat at the top, as if holding the badge out for
+    // someone to see rather than bobbing continuously.
+    animate: { y: [0, -7, -7, 0], scaleY: [1, 1.02, 1.02, 1] },
+    times: [0, 0.3, 0.55, 1], duration: 2.6, loop: true, ease: 'easeInOut',
+  },
+}
+
+/// How much the ground shadow reacts, per motion. Motions that leave the floor
+/// get a shadow; ones that only sway do not, because a shadow that never
+/// changes is just a smudge.
+const SHADOW = {
+  bounce:  { scale: [1, 1.05, 0.55, 0.55, 1.12, 0.96, 1], opacity: [0.34, 0.36, 0.14, 0.14, 0.4, 0.32, 0.34] },
+  float:   { scale: [1, 0.88, 1], opacity: [0.3, 0.2, 0.3] },
+  breathe: { scale: [1, 0.92, 1], opacity: [0.3, 0.23, 0.3] },
+  present: { scale: [1, 0.9, 0.9, 1], opacity: [0.3, 0.22, 0.22, 0.3] },
 }
 
 export default function Mascot({ mood = 'idle', size = 112, className = '' }) {
@@ -123,12 +184,17 @@ export default function Mascot({ mood = 'idle', size = 112, className = '' }) {
   // A drawn animation already carries the movement; layering the code
   // preset on top would translate the whole clip around as it plays.
   const animate = reduceMotion || playFrames ? {} : preset.animate
+  const shadow = reduceMotion || playFrames ? null : SHADOW[pose.motion]
   const transition = reduceMotion
     ? { duration: 0 }
     : {
         duration: preset.duration,
         repeat: preset.loop ? Infinity : (preset.repeat ?? 1),
-        ease: 'easeInOut',
+        // `times` matters wherever the keyframes are unevenly spaced: the dip
+        // before a bounce is brief and the fall is long, and without it every
+        // leg gets an equal slice and the anticipation reads as a slow crouch.
+        ...(preset.times ? { times: preset.times } : {}),
+        ease: preset.ease ?? 'easeInOut',
       }
 
   if (failed) {
@@ -158,11 +224,27 @@ export default function Mascot({ mood = 'idle', size = 112, className = '' }) {
       // 85%, which is why he looked small and why he changed size whenever the
       // mood changed. He is a standing character; his height is what should
       // stay put, and width:auto lets each pose keep its own shape.
-      style={{ height: size, width: 'auto' }}
+      // transformOrigin at the feet. Rotating about the centre swings a
+      // standing character like a hanging sign; rotating about the bottom edge
+      // is a lean, which is what a person does.
+      style={{ height: size, width: 'auto', transformOrigin: '50% 100%' }}
       animate={animate}
       transition={transition}
       aria-hidden
     >
+      {/* Ground shadow. Tightens and darkens on landing, spreads and fades as
+          he rises — the cue that says he has mass. Drawn here rather than baked
+          into any pose, so it works for all of them. Omitted under Reduce
+          Motion, where nothing moves and a static ellipse is just a smudge. */}
+      {shadow && (
+        <motion.span
+          aria-hidden
+          className="pointer-events-none absolute left-1/2 -z-10 rounded-[50%] bg-black blur-[6px]"
+          style={{ bottom: -2, width: size * 0.42, height: size * 0.07, x: '-50%' }}
+          animate={{ scaleX: shadow.scale, opacity: shadow.opacity }}
+          transition={transition}
+        />
+      )}
       {playFrames ? (
         <img
           src={framePath(pose.frames, frame)}
