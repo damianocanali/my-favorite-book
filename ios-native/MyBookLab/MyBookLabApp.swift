@@ -21,6 +21,12 @@ struct MyBookLabApp: App {
     var body: some Scene {
         WindowGroup {
             MainTabView()
+                // INSIDE the .environment() calls below, not after them. An
+                // environment value only reaches views nested inside the
+                // modifier that sets it; applied after `.environment(checkIn)`,
+                // the host's own @Environment(CheckInStore.self) looked upward,
+                // found nothing, and crashed the app on its first frame.
+                .checkInHost()
                 .environment(auth)
                 .environment(bookshelf)
                 .environment(router)
@@ -29,8 +35,6 @@ struct MyBookLabApp: App {
                 .environment(coins)
                 .environment(rewards)
                 .environment(checkIn)
-                // Mounted once, beside the other global moments.
-                .checkInHost()
                 .task {
                     audio.play(.home)
                     PrintOrderActivityManager.cleanup()
