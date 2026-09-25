@@ -120,7 +120,7 @@ struct CoinStoreView: View {
             Task { await purchase(style) }
         } label: {
             HStack(spacing: 14) {
-                Text(style.emoji).font(.system(size: 36))
+                StoreIcon(asset: StoreIcon.style(style.id), emoji: style.emoji, size: 56)
                 VStack(alignment: .leading, spacing: 4) {
                     Text(style.displayLabel)
                         .font(.headline)
@@ -323,7 +323,7 @@ struct BuyCoinsSheet: View {
             showParentalGate = true
         } label: {
             HStack(spacing: 14) {
-                Text(pack.emoji).font(.system(size: 40))
+                StoreIcon(asset: StoreIcon.coins(pack.id), emoji: pack.emoji, size: 56)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(pack.label).font(.headline).foregroundStyle(.white)
                     HStack(spacing: 4) {
@@ -474,4 +474,40 @@ struct CoinPack: Identifiable, Hashable {
               label: LocalizedStringResource("coin_pack.large.label", defaultValue: "Large pack"),
               emoji: "💎", popular: false),
     ]
+}
+
+
+/// The picture on a store row. Emoji used to stand in for everything a child
+/// can buy; for something paid for with real money that read as unfinished,
+/// and "Watercolor" as 🖌️ says nothing about what you get. Each art style now
+/// shows the same boy drawn IN that style, so the icon is a preview, and the
+/// coin packs grow from a stack to a pouch to a chest.
+///
+/// Falls back to the emoji if an imageset is ever missing, so a new catalog
+/// item never renders as an empty square.
+struct StoreIcon: View {
+    let asset: String
+    let emoji: String
+    var size: CGFloat = 56
+
+    var body: some View {
+        if let image = UIImage(named: asset) {
+            Image(uiImage: image)
+                .resizable()
+                .scaledToFit()
+                .frame(width: size, height: size)
+                .shadow(color: .black.opacity(0.25), radius: 4, y: 2)
+        } else {
+            Text(emoji).font(.system(size: size * 0.64))
+                .frame(width: size, height: size)
+        }
+    }
+
+    /// "pixar" -> "StylePixar"
+    static func style(_ id: String) -> String { "Style" + id.capitalized }
+
+    /// "com.myfavoritebook.app.coins.medium" -> "CoinsMedium"
+    static func coins(_ productID: String) -> String {
+        "Coins" + (productID.split(separator: ".").last.map { String($0).capitalized } ?? "")
+    }
 }

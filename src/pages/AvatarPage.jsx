@@ -438,7 +438,8 @@ export default function AvatarPage() {
                       }`}
                     >
                       <div className="flex items-center gap-2">
-                        <Coins size={16} className="text-yellow-400" />
+                        {/* Stack, pouch, chest — the picture grows with the pack. */}
+                        <StoreIcon src={`/store/coins-${pack.key}.png`} size={40} fallback={<Coins size={16} className="text-yellow-400" />} />
                         <span className="text-galaxy-text font-body font-semibold text-sm">
                           {t('account:avatar.coin_shop.pack', { count: pack.coins })}
                         </span>
@@ -528,7 +529,7 @@ export default function AvatarPage() {
                           : 'bg-galaxy-bg border border-yellow-400/30 text-galaxy-text-muted hover:border-yellow-400/60'
                     }`}
                   >
-                    <span>{style.emoji}</span>
+                    <StoreIcon src={`/store/style-${style.id}.png`} size={28} fallback={<span>{style.emoji}</span>} />
                     {t(style.labelKey)}
                     {!owned && style.price > 0 && (
                       <span className="flex items-center gap-0.5 text-yellow-400 text-xs">
@@ -640,3 +641,26 @@ export default function AvatarPage() {
     </div>
   )
 }
+
+// The picture on a store item. Emoji stood in for everything a child can buy;
+// for something paid for with real money that read as unfinished, and
+// "Watercolor" as 🖌️ said nothing about what you get. Art styles now show the
+// same boy drawn IN that style, so the icon is a preview. If the file is ever
+// missing, the original emoji or icon comes back rather than a broken image.
+function StoreIcon({ src, size, fallback }) {
+  const [failed, setFailed] = useState(false)
+  if (failed) return fallback
+  return (
+    <img
+      src={src}
+      alt=""
+      aria-hidden="true"
+      width={size}
+      height={size}
+      onError={() => setFailed(true)}
+      className="shrink-0 object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]"
+      style={{ width: size, height: size }}
+    />
+  )
+}
+

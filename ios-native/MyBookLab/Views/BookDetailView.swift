@@ -264,15 +264,11 @@ struct BookDetailView: View {
 
     @ViewBuilder
     private func pageIllustration(illustration: String, isRealImage: Bool) -> some View {
-        if isRealImage, let url = URL(string: illustration) {
-            AsyncImage(url: url) { phase in
-                if let img = phase.image {
-                    img.resizable().scaledToFill()
-                } else if phase.error != nil {
-                    Image(systemName: "photo").foregroundStyle(.gray)
-                } else {
-                    ProgressView()
-                }
+        if isRealImage {
+            // Same inline-data trap as the editor had: URL(string:) accepts
+            // data: URLs, and AsyncImage cannot render them.
+            GeneratedImageView(source: illustration) {
+                Image(systemName: "photo").foregroundStyle(.gray)
             }
         } else {
             // Most synced pages have no illustration here
