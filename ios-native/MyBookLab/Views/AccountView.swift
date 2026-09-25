@@ -71,6 +71,10 @@ struct AccountView: View {
                 rowsCard
                 musicCard
                 signOutCard
+                // Below the badges and above the danger zone: something to look
+                // at, never something to act on.
+                FeelingConstellation()
+
                 deleteAccountCard
             }
             .padding()

@@ -226,6 +226,16 @@
         }
       }
     },
+    "Angry": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rabbia"
+          }
+        }
+      }
+    },
     "Answer": {
       "localizations": {
         "it": {
@@ -866,6 +876,16 @@
         }
       }
     },
+    "Happy": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Felicità"
+          }
+        }
+      }
+    },
     "Hardcover": {
       "localizations": {
         "it": {
@@ -896,12 +916,52 @@
         }
       }
     },
+    "How are you doing?": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Come stai?"
+          }
+        }
+      }
+    },
+    "How you've been": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I tuoi momenti"
+          }
+        }
+      }
+    },
+    "I need help": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ho bisogno di aiuto"
+          }
+        }
+      }
+    },
     "I'm done writing": {
       "localizations": {
         "it": {
           "stringUnit": {
             "state": "translated",
             "value": "Ho finito di scrivere"
+          }
+        }
+      }
+    },
+    "I'm ready": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Riprendiamo"
           }
         }
       }
@@ -956,6 +1016,16 @@
         }
       }
     },
+    "Keep going": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continuare"
+          }
+        }
+      }
+    },
     "Keep my account": {
       "localizations": {
         "it": {
@@ -992,6 +1062,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Caricamento prezzo"
+          }
+        }
+      }
+    },
+    "Make it quiet": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fare silenzio"
           }
         }
       }
@@ -1047,6 +1127,7 @@
       }
     },
     "My Books": {
+      "comment": "Widget title fallback when the latest book has no title",
       "localizations": {
         "it": {
           "stringUnit": {
@@ -1055,6 +1136,9 @@
           }
         }
       }
+    },
+    "My Latest Book": {
+      "comment": "Widget name in the widget gallery"
     },
     "New Story": {
       "localizations": {
@@ -1126,6 +1210,16 @@
         }
       }
     },
+    "Okay": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Va bene"
+          }
+        }
+      }
+    },
     "On": {
       "localizations": {
         "it": {
@@ -1162,6 +1256,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Apertura di Apple Pay…"
+          }
+        }
+      }
+    },
+    "Opens a check-in": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apre un momento per dire come stai"
           }
         }
       }
@@ -1386,6 +1490,16 @@
         }
       }
     },
+    "Proud": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Orgoglio"
+          }
+        }
+      }
+    },
     "Publish your finished book to share it here!": {
       "localizations": {
         "it": {
@@ -1472,6 +1586,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ripristina gli acquisti"
+          }
+        }
+      }
+    },
+    "Sad": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tristezza"
           }
         }
       }
@@ -1806,6 +1930,9 @@
         }
       }
     },
+    "Start your first story!": {
+      "comment": "Widget empty state, no books yet"
+    },
     "State": {
       "localizations": {
         "it": {
@@ -1906,6 +2033,26 @@
         }
       }
     },
+    "Take a break": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fare una pausa"
+          }
+        }
+      }
+    },
+    "Take as long as you like.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prenditi tutto il tempo che vuoi."
+          }
+        }
+      }
+    },
     "Tap **Create** to make your first story — or peek at the example below.": {
       "comment": "Empty-shelf nudge. **Create** is Markdown bold naming the Create tab — keep the ** ** around the translated tab name, and translate the tab name the same way it is translated in the tab bar.",
       "localizations": {
@@ -1957,6 +2104,9 @@
         }
       }
     },
+    "Tap to write today! ✨": {
+      "comment": "Widget call to action"
+    },
     "Terms of Use": {
       "localizations": {
         "it": {
@@ -1997,6 +2147,16 @@
         }
       }
     },
+    "The music is off.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La musica è spenta."
+          }
+        }
+      }
+    },
     "Think about these, then keep writing!": {
       "localizations": {
         "it": {
@@ -2013,6 +2173,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Sto pensando…"
+          }
+        }
+      }
+    },
+    "Tired": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stanchezza"
           }
         }
       }
@@ -2213,6 +2383,16 @@
         }
       }
     },
+    "What would help?": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cosa ti aiuterebbe?"
+          }
+        }
+      }
+    },
     "What's the title?": {
       "localizations": {
         "it": {
@@ -2279,6 +2459,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Chi scrive questa storia?"
+          }
+        }
+      }
+    },
+    "Worried": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preoccupazione"
           }
         }
       }
@@ -2353,6 +2543,16 @@
         }
       }
     },
+    "You can turn it back on any time from Settings.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Puoi riaccenderla quando vuoi dalle Impostazioni."
+          }
+        }
+      }
+    },
     "Your account and all your books will be scheduled for deletion. You'll have 7 days to change your mind before anything is permanently removed.": {
       "localizations": {
         "it": {
@@ -2423,6 +2623,16 @@
         }
       }
     },
+    "Your check-ins will show up here, as stars.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I tuoi momenti appariranno qui, come stelle."
+          }
+        }
+      }
+    },
     "Your first book is done!": {
       "localizations": {
         "it": {
@@ -2443,6 +2653,9 @@
         }
       }
     },
+    "Your newest story and writing streak.": {
+      "comment": "Widget description in the widget gallery"
+    },
     "Your orders": {
       "localizations": {
         "it": {
@@ -2459,6 +2672,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "La tua foto non viene mai salvata. Resta solo il cartone animato."
+          }
+        }
+      }
+    },
+    "Your story is saved and waiting.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La tua storia è salvata e ti aspetta."
           }
         }
       }
@@ -4027,8 +4250,32 @@
         }
       }
     },
+    "order.live.headline": {
+      "comment": "Live Activity lock-screen headline; %@ is the book title",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "\"%@\" in print"
+          }
+        }
+      }
+    },
+    "order.live.progress": {
+      "comment": "Compact Dynamic Island progress out of four stages, e.g. \"2/4\"",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "%lld/4"
+          }
+        }
+      }
+    },
     "order.status.delivered": {
-      "comment": "Print order status: arrived",
+      "comment": "Live Activity stage: the book arrived\nPrint order status: arrived",
       "extractionState": "extracted_with_value",
       "localizations": {
         "en": {
@@ -4046,7 +4293,7 @@
       }
     },
     "order.status.failed": {
-      "comment": "Print order status: the order could not be completed",
+      "comment": "Live Activity stage: the order could not be completed\nPrint order status: the order could not be completed",
       "extractionState": "extracted_with_value",
       "localizations": {
         "en": {
@@ -4064,43 +4311,43 @@
       }
     },
     "order.status.in_production": {
-      "comment": "Print order status: the book is being printed",
+      "comment": "Live Activity stage: the book is on the press\nPrint order status: the book is being printed",
       "extractionState": "extracted_with_value",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "new",
-            "value": "Printing"
+            "value": "Being printed"
           }
         },
         "it": {
           "stringUnit": {
-            "state": "translated",
+            "state": "needs_review",
             "value": "In stampa"
           }
         }
       }
     },
     "order.status.paid": {
-      "comment": "Print order status: paid, building the print PDF",
+      "comment": "Live Activity stage: payment went through\nPrint order status: paid, building the print PDF",
       "extractionState": "extracted_with_value",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "new",
-            "value": "Preparing files"
+            "value": "Payment confirmed"
           }
         },
         "it": {
           "stringUnit": {
-            "state": "translated",
+            "state": "needs_review",
             "value": "Preparazione file"
           }
         }
       }
     },
     "order.status.pdf_ready": {
-      "comment": "Print order status: PDF built, handed to the print partner",
+      "comment": "Live Activity stage: print PDF built and handed over\nPrint order status: PDF built, handed to the print partner",
       "extractionState": "extracted_with_value",
       "localizations": {
         "en": {
@@ -4118,25 +4365,25 @@
       }
     },
     "order.status.pending": {
-      "comment": "Print order status: payment not completed yet",
+      "comment": "Live Activity stage: order created, awaiting payment\nPrint order status: payment not completed yet",
       "extractionState": "extracted_with_value",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "new",
-            "value": "Waiting on payment"
+            "value": "Order placed"
           }
         },
         "it": {
           "stringUnit": {
-            "state": "translated",
+            "state": "needs_review",
             "value": "Attesa pagamento"
           }
         }
       }
     },
     "order.status.refunded": {
-      "comment": "Print order status: money returned to the customer",
+      "comment": "Live Activity stage: money returned to the customer\nPrint order status: money returned to the customer",
       "extractionState": "extracted_with_value",
       "localizations": {
         "en": {
@@ -4154,25 +4401,25 @@
       }
     },
     "order.status.shipped": {
-      "comment": "Print order status: shipped, in transit",
+      "comment": "Live Activity stage: shipped, in transit\nPrint order status: shipped, in transit",
       "extractionState": "extracted_with_value",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "new",
-            "value": "On the way"
+            "value": "On its way!"
           }
         },
         "it": {
           "stringUnit": {
-            "state": "translated",
+            "state": "needs_review",
             "value": "In arrivo"
           }
         }
       }
     },
     "order.status.submitted": {
-      "comment": "Print order status: accepted by the print partner",
+      "comment": "Live Activity stage: accepted by the print partner\nPrint order status: accepted by the print partner",
       "extractionState": "extracted_with_value",
       "localizations": {
         "en": {
@@ -4190,7 +4437,7 @@
       }
     },
     "order.status.unknown": {
-      "comment": "Print order status the app doesn't recognize yet",
+      "comment": "Live Activity stage for a status the app doesn't recognize yet\nPrint order status the app doesn't recognize yet",
       "extractionState": "extracted_with_value",
       "localizations": {
         "en": {
@@ -5084,6 +5331,30 @@
         }
       }
     },
+    "widget.shelf.book_count": {
+      "comment": "Widget subtitle counting the books on the shelf, e.g. \"3 books on your shelf\"",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "^[%lld book](inflect: true) on your shelf"
+          }
+        }
+      }
+    },
+    "widget.streak.days": {
+      "comment": "Widget writing-streak line, e.g. \"🔥 4 day streak\"",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "🔥 %lld day streak"
+          }
+        }
+      }
+    },
     "“%@”": {
       "localizations": {
         "it": {
@@ -5250,6 +5521,7 @@
         }
       }
     },
+    "🤫": {},
     "🪙": {
       "localizations": {
         "it": {
