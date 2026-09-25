@@ -331,3 +331,12 @@ body.keyboard-open main {
     margin: 0;
   }
 }
+
+/* The press-and-hold indicator on a book spine (see useLongPress). It fills
+   from the bottom over exactly the hold duration, so the fill reaching the top
+   and the action firing are the same moment — a progress bar that lied about
+   the timing would teach a child to let go too late. */
+@keyframes spine-hold {
+  from { transform: scaleY(0); }
+  to   { transform: scaleY(1); }
+}
