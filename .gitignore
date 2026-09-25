@@ -73,3 +73,7 @@ ios-native/MyBookLab.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/*
 * [0-9].md
 * [0-9].xcstrings
 * [0-9].bak
+* [0-9].plist
+* [0-9].entitlements
+* [0-9].xcprivacy
+* [0-9].yml
