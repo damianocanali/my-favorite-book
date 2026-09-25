@@ -202,7 +202,7 @@ struct AvatarEditorView: View {
         } label: {
             VStack(spacing: 4) {
                 ZStack(alignment: .topTrailing) {
-                    Text(emoji).font(.system(size: 28))
+                    StoreIcon(asset: StoreIcon.style(id), emoji: emoji, size: 44)
                         .frame(width: 56, height: 56)
                         .background(
                             RoundedRectangle(cornerRadius: 14)
