@@ -6,11 +6,12 @@
     "teacher_can_see": "La tua maestra o il tuo maestro può vederlo"
   },
   "teacher_help": {
+    "pending": "Sto mandando il tuo messaggio…",
     "in_hours": "La tua maestra o il tuo maestro ha ricevuto il tuo messaggio.",
     "out_of_hours": "La tua maestra o il tuo maestro lo vedrà a scuola. Se hai bisogno di aiuto adesso, dillo a un adulto vicino a te.",
-    "failed": "Dillo a un adulto vicino a te che hai bisogno di aiuto.",
-    "seen_named": "{{teacherName}} ha visto il tuo messaggio 💛",
-    "seen_generic": "La tua maestra o il tuo maestro ha visto il tuo messaggio 💛"
+    "failed": "Di' a un adulto vicino a te che hai bisogno di aiuto.",
+    "seen_named": "{{teacherName}} ha visto il tuo messaggio",
+    "seen_generic": "La tua maestra o il tuo maestro ha visto il tuo messaggio"
   },
   "page_title": "La mia classe",
   "code_step": {

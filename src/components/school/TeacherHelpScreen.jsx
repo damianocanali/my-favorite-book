@@ -7,37 +7,49 @@ import Mascot from '../ui/Mascot'
 
 const POLL_MS = 20 * 1000
 
-// What tapping "I need a grown-up" shows, once CheckInHost's askForHelp
-// call has resolved. Same modal treatment as HelpScreen/BreakScreen: portal,
-// role="dialog" + aria-modal, focus moved onto the panel and given back on
-// close, Escape alongside the Close button.
+// What tapping "I need a grown-up" shows. Same modal treatment as
+// HelpScreen/BreakScreen: portal, role="dialog" + aria-modal, focus moved
+// onto the panel and given back on close, Escape alongside the Close
+// button.
 //
-// `ok`/`id`/`inHours` are exactly askForHelp's resolved shape
-// (src/lib/schoolShare.js) — CheckInHost passes it straight through rather
-// than this component calling askForHelp itself, so there is exactly one
-// place (schoolShare.js) that ever posts a help ask.
+// `pending`/`ok`/`id`/`inHours` are CheckInHost's state for the in-flight
+// askForHelp('grownup') call (src/lib/schoolShare.js) — CheckInHost passes
+// it straight through rather than this component calling askForHelp
+// itself, so there is exactly one place (schoolShare.js) that ever posts a
+// help ask.
 //
-//   ok: false            → the ask itself failed to send. This is the one
-//                           failure a child DOES see (unlike the silent
-//                           console.warn everywhere else check-in sharing
-//                           can fail) — "I need a grown-up" is urgent enough
-//                           that staying quiet about a failed send would
-//                           leave a child believing help is coming when it
-//                           isn't.
-//   ok: true, !inHours    → sent, but outside school hours: no one is
+//   pending               → shown the instant the child answers, before
+//                           askForHelp has resolved. On slow wifi that
+//                           request can take a real, noticeable moment
+//                           (schoolShare.js bounds it to 8s), and a child
+//                           who just said they need a grown-up must never
+//                           be left staring at nothing while it's in
+//                           flight.
+//   ok: false             → the ask itself failed to send (including a
+//                           timeout). This is the one failure a child DOES
+//                           see (unlike the silent console.warn everywhere
+//                           else check-in sharing can fail) — "I need a
+//                           grown-up" is urgent enough that staying quiet
+//                           about a failed send would leave a child
+//                           believing help is coming when it isn't.
+//   ok: true, !inHours     → sent, but outside school hours: no one is
 //                           there to see it right now, so no polling either
 //                           — polling would just run forever with nothing
 //                           to report.
-//   ok: true, inHours     → sent and someone may be at school right now.
+//   ok: true, inHours      → sent and someone may be at school right now.
 //                           Polls pollHelpSeen(id) every 20s until the
 //                           teacher has seen it, then stops for good.
-export default function TeacherHelpScreen({ ok, id, inHours, onDone }) {
+export default function TeacherHelpScreen({ pending, ok, id, inHours, onDone }) {
   const { t } = useTranslation()
   const panelRef = useRef(null)
   const [seen, setSeen] = useState(false)
   const [teacherName, setTeacherName] = useState(null)
 
-  const canPoll = ok && inHours && !!id
+  // Undefined (not false) while pending: `ok` isn't known yet, and treating
+  // "unknown" as "no" here would be harmless for canPoll specifically (it's
+  // correctly false either way), but writing it as `pending` makes that
+  // explicit rather than relying on `undefined && ...` short-circuiting.
+  const canPoll = !pending && ok && inHours && !!id
 
   // Polling lifecycle: only while in-hours and not yet seen, stopped on
   // unmount same as any other interval, and stopped for good the moment a
@@ -69,26 +81,35 @@ export default function TeacherHelpScreen({ ok, id, inHours, onDone }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // The message changes under an already-focused panel exactly once — from
-  // "got your message" to "saw your message" — the moment a poll comes back
-  // seen. Same reasoning as CheckInSheet's own step-change effect: text
-  // changing under an already-focused element is silent to a screen reader
-  // unless something tells it to look again, so this re-focuses the panel
-  // (re-announcing its updated accessible name) right when that happens.
-  useEffect(() => {
-    if (!seen) return
-    panelRef.current?.focus()
-  }, [seen])
+  const message = pending
+    ? t('school:teacher_help.pending')
+    : !ok
+      ? t('school:teacher_help.failed')
+      : !inHours
+        ? t('school:teacher_help.out_of_hours')
+        : seen
+          ? (teacherName
+            ? t('school:teacher_help.seen_named', { teacherName })
+            : t('school:teacher_help.seen_generic'))
+          : t('school:teacher_help.in_hours')
 
-  const message = !ok
-    ? t('school:teacher_help.failed')
-    : !inHours
-      ? t('school:teacher_help.out_of_hours')
-      : seen
-        ? (teacherName
-          ? t('school:teacher_help.seen_named', { teacherName })
-          : t('school:teacher_help.seen_generic'))
-        : t('school:teacher_help.in_hours')
+  // The message changes under an already-focused panel at up to two points
+  // — pending → one of the failed/out-of-hours/in-hours end-states once
+  // askForHelp resolves, and (from in-hours) → "saw your message" the
+  // moment a poll comes back seen. Same reasoning as CheckInSheet's own
+  // step-change effect: text changing under an already-focused element is
+  // silent to a screen reader unless something tells it to look again, so
+  // this re-focuses the panel (re-announcing its updated accessible name)
+  // on every change after the initial mount — which the mount-focus effect
+  // above already covers, hence skipping the very first run here.
+  const isFirstMessage = useRef(true)
+  useEffect(() => {
+    if (isFirstMessage.current) {
+      isFirstMessage.current = false
+      return
+    }
+    panelRef.current?.focus()
+  }, [message])
 
   return createPortal(
     <motion.div
@@ -104,6 +125,10 @@ export default function TeacherHelpScreen({ ok, id, inHours, onDone }) {
       <Mascot mood="welcome" size={120} />
       <p className="max-w-sm font-body text-lg text-galaxy-text">
         {message}
+        {/* Decorative only — kept out of aria-label/message itself so a
+            screen reader announces the sentence once, cleanly, rather than
+            also reading or mispronouncing the emoji. */}
+        {seen && <span aria-hidden="true"> 💛</span>}
       </p>
       <button
         type="button"

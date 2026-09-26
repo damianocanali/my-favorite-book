@@ -30,4 +30,24 @@ describe('schoolShare', () => {
     expect(await askForHelp('grownup', student)).toEqual({ ok: true, id: 'h1', inHours: true })
     expect((await askForHelp('grownup', parent)).ok).toBe(false)
   })
+
+  it('askForHelp resolves { ok: false } when the request times out (AbortError), rather than hanging or throwing', async () => {
+    const { apiFetchAuthed } = await import('../src/lib/api')
+    const abortError = new Error('The operation was aborted')
+    abortError.name = 'AbortError'
+    apiFetchAuthed.mockImplementationOnce(async () => { throw abortError })
+
+    const { askForHelp } = await import('../src/lib/schoolShare.js')
+    await expect(askForHelp('grownup', student)).resolves.toEqual({ ok: false })
+  })
+
+  it('shareCheckIn resolves false (never rejects) when the request times out (AbortError)', async () => {
+    const { apiFetchAuthed } = await import('../src/lib/api')
+    const abortError = new Error('The operation was aborted')
+    abortError.name = 'AbortError'
+    apiFetchAuthed.mockImplementationOnce(async () => { throw abortError })
+
+    const { shareCheckIn } = await import('../src/lib/schoolShare.js')
+    await expect(shareCheckIn({ feeling: 'sad' }, student)).resolves.toBe(false)
+  })
 })

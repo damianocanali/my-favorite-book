@@ -38,6 +38,10 @@ export async function shareCheckIn(entry, user) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
+      // A hung request on slow wifi must not hang forever — 8s and this
+      // rejects with an AbortError, which the catch below turns into a
+      // normal `false` return, same as any other failure.
+      signal: AbortSignal.timeout(8000),
     })
     if (!res.ok) console.warn('schoolShare: teacher copy of check-in was not saved', res.status)
     return res.ok
@@ -65,6 +69,11 @@ export async function askForHelp(kind, user) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ kind }),
+      // Same reasoning as shareCheckIn: a request that never comes back
+      // must still resolve to a real, displayable end-state (TeacherHelpScreen's
+      // "failed" copy) rather than leaving "I need a grown-up" stuck showing
+      // a pending message forever on slow wifi.
+      signal: AbortSignal.timeout(8000),
     })
     if (!res.ok) {
       console.warn('schoolShare: help ask was not sent', res.status)

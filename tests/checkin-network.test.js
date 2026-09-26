@@ -44,7 +44,18 @@ function walk(dir, out = []) {
 // two files that DEFINE the store and the lib don't import themselves —
 // they're picked up because their own path ("src/stores/useCheckInStore.js",
 // "src/lib/checkIn.js") satisfies the same pattern.
-const IMPORTER_PATTERN = /useCheckInStore|lib\/checkIn/
+//
+// `lib\/checkIn` alone misses the natural same-directory form: a file that
+// already lives in src/lib/ (schoolShare.js, say) would import the pure
+// logic as `from './checkIn'` — no "lib/" prefix at all — and that
+// substring test would silently pass it by. The added
+// `checkIn(?:\.js)?['"]` alternative catches any quoted import/require
+// specifier that ENDS in "checkIn" or "checkIn.js", same-directory or not,
+// without also matching "checkInArt" (nothing ends a specifier in
+// "checkInArt" immediately before the closing quote/`.js`). Proved by
+// temporarily adding `import { NEEDS } from './checkIn'` to
+// src/lib/schoolShare.js and confirming this test failed, then reverting.
+const IMPORTER_PATTERN = /useCheckInStore|lib\/checkIn|checkIn(?:\.js)?['"]/
 
 // BreakScreen.jsx and HelpScreen.jsx are deliberately NOT swept in here,
 // even though they're the screens a breakpoint/help check-in opens: both
@@ -147,18 +158,22 @@ describe('check-in data never leaves the device', () => {
     expect(offenders, `check-in files must not talk to the server:\n${offenders.join('\n')}`).toEqual([])
   })
 
-  it('schoolShare.js (owner decision D7) imports neither useCheckInStore nor lib/checkIn, so it stays outside this fence', () => {
+  it('schoolShare.js (owner decision D7) imports neither useCheckInStore nor the check-in pure-logic module, so it stays outside this fence', () => {
     // The whole point of D7 living in its own file: useCheckInStore/lib/checkIn
     // stay the network-free "consumer" fence regardless of account type, and
     // schoolShare.js — the one place a check-in copy is genuinely sent — is
-    // never pulled into that fence's own discovery by an import. If this ever
-    // starts failing because someone added `import { useCheckInStore } ...` or
-    // `from '../lib/checkIn'` to schoolShare.js, that's the regression: the
-    // fix is to stop importing them, not to widen ALLOWED_SENDERS or loosen
+    // never pulled into that fence's own discovery by an import. Reuses
+    // IMPORTER_PATTERN itself (not a second, hand-written regex) so this
+    // assertion can never drift out of sync with what discoverCheckInFiles()
+    // actually matches — which is exactly how the previous, narrower
+    // `lib\/checkIn` copy here missed the same-directory `from './checkIn'`
+    // form IMPORTER_PATTERN was just widened to catch. If this ever starts
+    // failing because someone added `import { useCheckInStore } ...` or
+    // `from './checkIn'` to schoolShare.js, that's the regression: the fix is
+    // to stop importing them, not to widen ALLOWED_SENDERS or loosen
     // IMPORTER_PATTERN.
     const src = readFileSync('src/lib/schoolShare.js', 'utf8')
-    expect(src).not.toMatch(/useCheckInStore/)
-    expect(src).not.toMatch(/lib\/checkIn(?!Art)/)
+    expect(src).not.toMatch(IMPORTER_PATTERN)
     expect(discoverCheckInFiles()).not.toContain('src/lib/schoolShare.js')
   })
 })

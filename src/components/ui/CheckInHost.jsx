@@ -18,12 +18,13 @@ export default function CheckInHost() {
   const user = useAuthStore((s) => s.user)
   const [breaking, setBreaking] = useState(false)
   const [helping, setHelping] = useState(false)
-  // The result of an 'I need a grown-up' ask, once askForHelp resolves —
-  // null while there is nothing to show. Not the raw promise: TeacherHelpScreen
-  // renders one of three fixed end-states (failed / out-of-hours / in-hours,
-  // see its own comment), and it expects the already-resolved shape askForHelp
-  // returns, not a pending one this component would otherwise have to invent
-  // copy for.
+  // Null while there is nothing to show. `{ pending: true }` the instant a
+  // 'grownup' need lands — so the child sees SOMETHING right away even on
+  // slow wifi, rather than nothing at all until askForHelp resolves — then
+  // replaced with askForHelp's resolved `{ ok, id, inHours }` once it
+  // settles. TeacherHelpScreen itself renders the pending copy or one of
+  // the three fixed end-states (failed / out-of-hours / in-hours) off of
+  // this shape.
   const [teacherHelp, setTeacherHelp] = useState(null)
 
   // `entries` is newest-first, so the entry to react to is entries[0]. But
@@ -82,8 +83,13 @@ export default function CheckInHost() {
     // teacher directly, via a real, separate request — not just the
     // shareCheckIn copy above — and shows TeacherHelpScreen instead of the
     // generic HelpScreen so the child sees whether that ask actually went
-    // anywhere.
+    // anywhere. Shown pending immediately, not only once askForHelp
+    // resolves: on slow wifi that request can take a real, noticeable
+    // moment (bounded to 8s by schoolShare.js's own timeout), and a child
+    // who just said they need a grown-up must never be left staring at
+    // nothing in the meantime.
     if (latest.need === 'grownup') {
+      setTeacherHelp({ pending: true })
       askForHelp('grownup', user).then((result) => setTeacherHelp(result))
     }
   }, [latest?.at, latest?.need, setFocusMode, user])
@@ -105,6 +111,7 @@ export default function CheckInHost() {
       {helping && <HelpScreen onDone={() => setHelping(false)} />}
       {teacherHelp && (
         <TeacherHelpScreen
+          pending={!!teacherHelp.pending}
           ok={teacherHelp.ok}
           id={teacherHelp.id}
           inHours={teacherHelp.inHours}
