@@ -82,6 +82,22 @@ describe('GET /api/school/students', () => {
     const listCall = log.find((l) => l.method === 'GET' && l.url.includes('/rest/v1/class_students'))
     expect(listCall.url).not.toContain('secret_hash')
   })
+
+  it('never contains secret_hash or auth_user_id in the response body', async () => {
+    mockSupabase({
+      user: TEACHER,
+      routes: [
+        classroomRoute,
+        { method: 'GET', match: '/rest/v1/class_students', reply: { body: [fullStudentRow()] } },
+      ],
+    })
+    const { default: handler } = await import('../api/school/students.js')
+    const res = await handler(call('GET', undefined, `?classId=${CLASS_ID}`))
+    expect(res.status).toBe(200)
+    const bodyText = JSON.stringify(await res.json())
+    expect(bodyText).not.toContain('secret_hash')
+    expect(bodyText).not.toContain('auth_user_id')
+  })
 })
 
 describe('POST /api/school/students', () => {
@@ -108,6 +124,24 @@ describe('POST /api/school/students', () => {
     expect(res.status).toBe(403)
     expect((await res.json()).code).toBe('license_required')
     expect(log.filter((l) => l.method === 'POST' && l.url.includes('/auth/v1/admin/users'))).toHaveLength(0)
+  })
+
+  it('returns 503 upstream (not an empty class) when the active-students list query fails, creating no auth user', async () => {
+    const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const log = mockSupabase({
+      user: TEACHER,
+      routes: [
+        classroomRoute,
+        licenseRoute(usableLicense),
+        { method: 'GET', match: 'status=eq.active', reply: { status: 500, body: { message: 'list failed' } } },
+      ],
+    })
+    const { default: handler } = await import('../api/school/students.js')
+    const res = await handler(call('POST', { classId: CLASS_ID, students: [{ name: 'A' }] }))
+    expect(res.status).toBe(503)
+    expect((await res.json()).code).toBe('upstream')
+    expect(log.filter((l) => l.method === 'POST' && l.url.includes('/auth/v1/admin/users'))).toHaveLength(0)
+    errSpy.mockRestore()
   })
 
   it('returns 409 seats_full for 3 new names against 34 active students and 35 seats, creating no auth user', async () => {
@@ -225,6 +259,36 @@ describe('POST /api/school/students', () => {
     expect(errSpy).toHaveBeenCalled()
     errSpy.mockRestore()
   })
+
+  it('still returns the second created student when the first insert fails AND its compensating delete also rejects', async () => {
+    const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    let authCount = 0
+    const log = mockSupabase({
+      user: TEACHER,
+      routes: [
+        classroomRoute,
+        licenseRoute(usableLicense),
+        activeStudentsRoute([]),
+        { method: 'POST', match: '/auth/v1/admin/users', reply: () => ({ status: 201, body: { id: `auth-comp-${++authCount}` } }) },
+        {
+          method: 'POST',
+          match: '/rest/v1/class_students',
+          reply: (last) => (last.body.auth_user_id === 'auth-comp-1' ? { status: 500, body: { message: 'insert failed' } } : { status: 201, body: [] }),
+        },
+        { method: 'PUT', match: '/auth/v1/admin/users/', reply: { status: 200, body: {} } },
+        { method: 'DELETE', match: '/auth/v1/admin/users/auth-comp-1', reply: () => { throw new Error('compensating delete rejected') } },
+      ],
+    })
+    const { default: handler } = await import('../api/school/students.js')
+    const res = await handler(call('POST', { classId: CLASS_ID, students: [{ name: 'First Fail' }, { name: 'Second Good' }] }))
+    expect(res.status).toBe(201)
+    const body = await res.json()
+    expect(body.created).toHaveLength(1)
+    expect(body.created[0].display_name).toBe('Second Good')
+    expect(body.skipped).toEqual([{ name: 'First Fail', code: 'create_failed' }])
+    expect(errSpy).toHaveBeenCalled()
+    errSpy.mockRestore()
+  })
 })
 
 describe('PATCH /api/school/students', () => {
@@ -237,6 +301,23 @@ describe('PATCH /api/school/students', () => {
     const res = await handler(call('PATCH', { classId: CLASS_ID, id: STUDENT_ID, action: 'unlock' }))
     expect(res.status).toBe(404)
     expect((await res.json()).code).toBe('student_not_found')
+  })
+
+  it('remove returns 502 upstream and never bans or signs out when the row update fails', async () => {
+    const log = mockSupabase({
+      user: TEACHER,
+      routes: [
+        classroomRoute,
+        { method: 'GET', match: '/rest/v1/class_students', reply: { body: [fullStudentRow()] } },
+        { method: 'PATCH', match: '/rest/v1/class_students?id=eq.', reply: { status: 500, body: { message: 'update failed' } } },
+      ],
+    })
+    const { default: handler } = await import('../api/school/students.js')
+    const res = await handler(call('PATCH', { classId: CLASS_ID, id: STUDENT_ID, action: 'remove' }))
+    expect(res.status).toBe(502)
+    expect((await res.json()).code).toBe('upstream')
+    expect(log.filter((l) => l.method === 'PUT' && l.url.includes('/auth/v1/admin/users/auth-kid-1'))).toHaveLength(0)
+    expect(log.filter((l) => l.method === 'POST' && l.url.includes('/rest/v1/rpc/school_sign_out_user'))).toHaveLength(0)
   })
 
   it('remove sends the ban PUT with ban_duration 876000h and calls the sign-out RPC, without leaking secret_hash/auth_user_id', async () => {
@@ -310,6 +391,77 @@ describe('PATCH /api/school/students', () => {
     expect(rpcCall.body.p_user_id).toBe('auth-kid-1')
     const getCalls = log.filter((l) => l.method === 'GET' && l.url.includes('/rest/v1/class_students'))
     expect(getCalls.length).toBeGreaterThanOrEqual(2)
+  })
+
+  it('restore returns 409 seats_full when there is no free seat, sending no PATCH or PUT', async () => {
+    const log = mockSupabase({
+      user: TEACHER,
+      routes: [
+        classroomRoute,
+        { method: 'GET', match: `id=eq.${STUDENT_ID}`, reply: { body: [fullStudentRow({ status: 'removed' })] } },
+        licenseRoute({ status: 'trial', expires_at: '2099-01-01T00:00:00.000Z', seats: 2 }),
+        activeStudentsRoute([{ id: 'a1', display_name: 'A', avatar_emoji: '🐼' }, { id: 'a2', display_name: 'B', avatar_emoji: '🐨' }]),
+      ],
+    })
+    const { default: handler } = await import('../api/school/students.js')
+    const res = await handler(call('PATCH', { classId: CLASS_ID, id: STUDENT_ID, action: 'restore' }))
+    expect(res.status).toBe(409)
+    expect((await res.json()).code).toBe('seats_full')
+    expect(log.filter((l) => l.method === 'PATCH' && l.url.includes('/rest/v1/class_students'))).toHaveLength(0)
+    expect(log.filter((l) => l.method === 'PUT' && l.url.includes('/auth/v1/admin/users/'))).toHaveLength(0)
+  })
+
+  it('restore succeeds with a free seat, sending PUT ban_duration none', async () => {
+    const log = mockSupabase({
+      user: TEACHER,
+      routes: [
+        classroomRoute,
+        { method: 'GET', match: `id=eq.${STUDENT_ID}`, reply: { body: [fullStudentRow({ status: 'removed' })] } },
+        licenseRoute({ status: 'trial', expires_at: '2099-01-01T00:00:00.000Z', seats: 35 }),
+        activeStudentsRoute([]),
+        { method: 'PATCH', match: '/rest/v1/class_students?id=eq.', reply: { status: 200, body: [fullStudentRow({ status: 'active' })] } },
+        { method: 'PUT', match: '/auth/v1/admin/users/auth-kid-1', reply: { status: 200, body: {} } },
+      ],
+    })
+    const { default: handler } = await import('../api/school/students.js')
+    const res = await handler(call('PATCH', { classId: CLASS_ID, id: STUDENT_ID, action: 'restore' }))
+    expect(res.status).toBe(200)
+    const putCall = log.find((l) => l.method === 'PUT' && l.url.includes('/auth/v1/admin/users/auth-kid-1'))
+    expect(putCall.body.ban_duration).toBe('none')
+  })
+
+  it('restore returns 502 upstream and never unbans when the row update fails', async () => {
+    const log = mockSupabase({
+      user: TEACHER,
+      routes: [
+        classroomRoute,
+        { method: 'GET', match: `id=eq.${STUDENT_ID}`, reply: { body: [fullStudentRow({ status: 'removed' })] } },
+        licenseRoute({ status: 'trial', expires_at: '2099-01-01T00:00:00.000Z', seats: 35 }),
+        activeStudentsRoute([]),
+        { method: 'PATCH', match: '/rest/v1/class_students?id=eq.', reply: { status: 500, body: { message: 'update failed' } } },
+      ],
+    })
+    const { default: handler } = await import('../api/school/students.js')
+    const res = await handler(call('PATCH', { classId: CLASS_ID, id: STUDENT_ID, action: 'restore' }))
+    expect(res.status).toBe(502)
+    expect((await res.json()).code).toBe('upstream')
+    expect(log.filter((l) => l.method === 'PUT' && l.url.includes('/auth/v1/admin/users/'))).toHaveLength(0)
+  })
+
+  it('rename to an existing active student\'s name returns 409 duplicate_name', async () => {
+    const log = mockSupabase({
+      user: TEACHER,
+      routes: [
+        classroomRoute,
+        { method: 'GET', match: `id=eq.${STUDENT_ID}`, reply: { body: [fullStudentRow()] } },
+        activeStudentsRoute([{ id: 'other-1', display_name: 'Existing Name', avatar_emoji: '🐼' }]),
+      ],
+    })
+    const { default: handler } = await import('../api/school/students.js')
+    const res = await handler(call('PATCH', { classId: CLASS_ID, id: STUDENT_ID, action: 'rename', name: 'existing name' }))
+    expect(res.status).toBe(409)
+    expect((await res.json()).code).toBe('duplicate_name')
+    expect(log.filter((l) => l.method === 'PATCH' && l.url.includes('/rest/v1/class_students'))).toHaveLength(0)
   })
 })
 

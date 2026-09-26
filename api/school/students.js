@@ -35,15 +35,23 @@ function randomPassword() {
   return btoa(String.fromCharCode(...b)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
 }
 
+// These two reads guard invariants (license validity, seat count, name
+// clashes) that the rest of the handler trusts without re-checking. A
+// swallowed failure here would read as "an empty class" and let POST/rename/
+// restore proceed on wrong data, so they fail closed: any transport error or
+// non-2xx response throws, which the handler's top-level try/catch turns
+// into a 503 upstream instead of silently treating the class as empty.
 async function loadLicense(classroomId) {
-  const rows = await sb(`/rest/v1/class_licenses?classroom_id=eq.${classroomId}&select=status,expires_at,seats`)
-    .then((r) => r.json()).catch(() => [])
+  const res = await sb(`/rest/v1/class_licenses?classroom_id=eq.${classroomId}&select=status,expires_at,seats`)
+  if (!res.ok) throw new Error(`license lookup failed: ${res.status}`)
+  const rows = await res.json()
   return rows?.[0] ?? null
 }
 
 async function activeStudents(classroomId) {
-  return sb(`/rest/v1/class_students?classroom_id=eq.${classroomId}&status=eq.active&select=id,display_name,avatar_emoji`)
-    .then((r) => r.json()).catch(() => [])
+  const res = await sb(`/rest/v1/class_students?classroom_id=eq.${classroomId}&status=eq.active&select=id,display_name,avatar_emoji`)
+  if (!res.ok) throw new Error(`active students lookup failed: ${res.status}`)
+  return res.json()
 }
 
 async function createOne({ classroomId, name, emoji, pepper }) {
@@ -85,7 +93,16 @@ async function createOne({ classroomId, name, emoji, pepper }) {
     return { id, display_name: name, avatar_emoji: emoji, pictures }
   } catch (e) {
     console.error('[school/students] create failed, removing auth user', e?.message)
-    await sb(`/auth/v1/admin/users/${authId}`, { method: 'DELETE' })
+    // The compensating delete is best-effort: if it also fails, log and move
+    // on rather than let it abort the whole batch. A student left over in
+    // Supabase Auth with no class_students row is an orphaned account (no
+    // student can sign in without a row), not a data-integrity risk — safe
+    // to clean up later, unlike letting one failure sink every other name.
+    try {
+      await sb(`/auth/v1/admin/users/${authId}`, { method: 'DELETE' })
+    } catch (delErr) {
+      console.error('[school/students] compensating delete also failed', delErr?.message)
+    }
     return null
   }
 }
@@ -207,7 +224,10 @@ export default async function handler(req) {
           return json(req, 200, { student: publicShape(rows2[0]) })
         }
         case 'remove': {
+          // Check the row update before any auth side effect: a failed
+          // write must not ban or sign the student out anyway.
           const res = await patchRow({ status: 'removed', removed_at: new Date().toISOString() })
+          if (!res.ok) return json(req, 502, { error: 'Could not update student', code: 'upstream' })
           await sb(`/auth/v1/admin/users/${authId}`, { method: 'PUT', body: JSON.stringify({ ban_duration: BAN_FOREVER }) })
           await signOut()
           return reply(res)
@@ -217,6 +237,7 @@ export default async function handler(req) {
           const used = (await activeStudents(classroomId)).length
           if (!license || used + 1 > license.seats) return json(req, 409, { error: 'Not enough seats in this class', code: 'seats_full' })
           const res = await patchRow({ status: 'active', removed_at: null })
+          if (!res.ok) return json(req, 502, { error: 'Could not update student', code: 'upstream' })
           await sb(`/auth/v1/admin/users/${authId}`, { method: 'PUT', body: JSON.stringify({ ban_duration: 'none' }) })
           return reply(res)
         }
