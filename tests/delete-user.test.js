@@ -173,4 +173,65 @@ describe('purgeUser', () => {
     expect(result).toEqual({ ok: false })
     expect(indexOfCall(`/auth/v1/admin/users/${USER}`)).toBe(-1)
   })
+
+  it('aborts without deleting the teacher when the owned-classrooms list read fails', async () => {
+    mockFetch({
+      [`classrooms?owner_user_id=eq.${USER}&select=id,code`]: {
+        ok: false, status: 500, json: async () => ({}), text: async () => 'boom',
+      },
+    })
+    const result = await purgeUser(USER, ENV)
+    expect(result).toEqual({ ok: false })
+    // A broken list-read must abort, never be treated as "no classes" — that
+    // would let the auth delete through while a real class stays unpurged.
+    expect(indexOfCall(`DELETE /auth/v1/admin/users/${USER}`)).toBe(-1)
+  })
+
+  it('aborts the class purge (and the teacher delete) when the student list read fails', async () => {
+    mockFetch({
+      [`classrooms?owner_user_id=eq.${USER}&select=id,code`]: {
+        ok: true, status: 200, json: async () => [{ id: 'c1', code: 'ABC234' }], text: async () => '',
+      },
+      'class_students?classroom_id=eq.c1': {
+        ok: false, status: 500, json: async () => ({}), text: async () => 'boom',
+      },
+    })
+    const result = await purgeUser(USER, ENV)
+    expect(result).toEqual({ ok: false })
+    // A half-purged class (still holding unpurged students) must stay
+    // findable — the classroom row itself must not be removed.
+    expect(indexOfCall('DELETE /rest/v1/classrooms?id=eq.c1')).toBe(-1)
+    expect(indexOfCall(`DELETE /auth/v1/admin/users/${USER}`)).toBe(-1)
+  })
+
+  it('aborts without deleting the teacher when the class_licenses delete fails, and otherwise runs it before the auth delete', async () => {
+    mockFetch({
+      'class_licenses?owner_user_id=eq.': { ok: false, status: 500, json: async () => ({}), text: async () => 'boom' },
+    })
+    const result = await purgeUser(USER, ENV)
+    expect(result).toEqual({ ok: false })
+    expect(indexOfCall(`DELETE /auth/v1/admin/users/${USER}`)).toBe(-1)
+  })
+
+  it('deletes class_licenses owned by the teacher before the auth delete', async () => {
+    mockFetch()
+    await purgeUser(USER, ENV)
+    const licensesDelete = indexOfCall(`DELETE /rest/v1/class_licenses?owner_user_id=eq.${USER}`)
+    const authDelete = indexOfCall(`DELETE /auth/v1/admin/users/${USER}`)
+    expect(licensesDelete).toBeGreaterThanOrEqual(0)
+    expect(authDelete).toBeGreaterThanOrEqual(0)
+    expect(licensesDelete).toBeLessThan(authDelete)
+  })
+
+  it("purgeClassroom's student list has no status filter, so removed students are still purged", async () => {
+    mockFetch({
+      [`classrooms?owner_user_id=eq.${USER}&select=id,code`]: {
+        ok: true, status: 200, json: async () => [{ id: 'c1', code: 'ABC234' }], text: async () => '',
+      },
+    })
+    await purgeUser(USER, ENV)
+    const studentListCall = calls.find((c) => c.includes('class_students?classroom_id=eq.c1'))
+    expect(studentListCall).toBeDefined()
+    expect(studentListCall).not.toContain('status=')
+  })
 })
