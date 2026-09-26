@@ -1,12 +1,17 @@
 export const config = { runtime: 'edge' }
 
 // POST /api/spend-coins — atomically debit the authed user's coin balance.
-// Returns 402 if the user doesn't have enough. The client sends the amount
-// it wants to spend; the server is agnostic to the reason and only enforces
-// that the user has the balance.
+// Returns 402 if the user doesn't have enough.
+//
+// Two kinds of spend. A PURCHASE (kind + id) is charged the price in
+// lib/catalog.js and nothing else: the client's amount must match it, so a
+// direct API call can no longer buy a 15-coin style for 1 coin. An ACTION
+// spend (no kind — e.g. re-rolling an avatar) debits the amount sent; it buys
+// nothing that is kept, so there is nothing to under-price.
 
 import { checkRateLimit, handleCors, withCors } from './_rateLimit.js'
 import { verifyJwt } from './_auth.js'
+import { priceOf } from '../lib/catalog.js'
 
 const MAX_SPEND = 1000
 
@@ -43,6 +48,13 @@ export default async function handler(req) {
     purchaseKind && typeof id === 'string' && id.length > 0 && id.length <= 64 ? id : null
   if (purchaseKind && !purchaseId) {
     return json(400, { error: 'Invalid item id' })
+  }
+  if (purchaseKind) {
+    const price = priceOf(purchaseKind, purchaseId)
+    if (price === null) return json(400, { error: 'Not for sale' })
+    // Refuse rather than silently charge the catalog price: a mismatch means
+    // the client is showing the child a different price than they'd pay.
+    if (n !== price) return json(400, { error: 'Price mismatch', price })
   }
 
   const rpc = await fetch(`${supabaseUrl}/rest/v1/rpc/spend_coins_for`, {

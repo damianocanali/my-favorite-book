@@ -319,6 +319,18 @@
       },
       "pixel": {
         "label": "Pixel Art"
+      },
+      "claymation": {
+        "label": "Plastilina"
+      },
+      "comic": {
+        "label": "Fumetto"
+      },
+      "crayon": {
+        "label": "Pastelli a cera"
+      },
+      "storybook": {
+        "label": "Libro illustrato"
       }
     }
   }

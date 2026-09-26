@@ -5516,6 +5516,182 @@
           }
         }
       }
+    },
+    "avatar_style.claymation.label": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Claymation"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plastilina"
+          }
+        }
+      }
+    },
+    "avatar_style.claymation.description": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sculpted plasticine, like a stop-motion film."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plastilina modellata, come in un film in stop-motion."
+          }
+        }
+      }
+    },
+    "avatar_style.comic.label": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comic Book"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fumetto"
+          }
+        }
+      }
+    },
+    "avatar_style.comic.description": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bold ink lines and halftone dots, like a superhero comic."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Linee d'inchiostro decise e retini, come un fumetto di supereroi."
+          }
+        }
+      }
+    },
+    "avatar_style.crayon.label": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Crayon"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pastelli a cera"
+          }
+        }
+      }
+    },
+    "avatar_style.crayon.description": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waxy crayon strokes, like your best drawing."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tratti di pastello a cera, come il tuo disegno più bello."
+          }
+        }
+      }
+    },
+    "avatar_style.storybook.label": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Storybook Ink"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Libro illustrato"
+          }
+        }
+      }
+    },
+    "avatar_style.storybook.description": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fine pen lines and soft paint, like an old fairy tale."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Linee sottili e colori delicati, come una vecchia fiaba."
+          }
+        }
+      }
+    },
+    "app_icon.dino.label": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dinosaur"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dinosauro"
+          }
+        }
+      }
+    },
+    "app_icon.ocean.label": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ocean"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oceano"
+          }
+        }
+      }
+    },
+    "app_icon.dragon.label": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dragon"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Drago"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
