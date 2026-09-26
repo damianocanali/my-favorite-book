@@ -102,18 +102,31 @@ struct AppIconPickerView: View {
         } label: {
             VStack(spacing: 8) {
                 ZStack {
-                    RoundedRectangle(cornerRadius: 18)
-                        .fill(LinearGradient(colors: option.swatch,
-                                             startPoint: .top, endPoint: .bottom))
-                        .frame(width: 72, height: 72)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 18)
-                                .stroke(selected ? Color.yellow : .white.opacity(0.15),
-                                        lineWidth: selected ? 3 : 1)
-                        )
-                    Text(option.emoji).font(.system(size: 34))
+                    // The real icon, not a stand-in. This cell used to draw a
+                    // gradient with an emoji on it whatever the icon art was, so
+                    // a child spent 100 coins on a coloured square and only found
+                    // out what they had bought on the home screen. An app-icon
+                    // set cannot be loaded with UIImage(named:), so each option
+                    // has a plain "<asset>Preview" imageset beside it.
+                    Group {
+                        if let preview = UIImage(named: (option.assetName ?? "AppIcon") + "Preview") {
+                            Image(uiImage: preview).resizable().scaledToFill()
+                        } else {
+                            LinearGradient(colors: option.swatch, startPoint: .top, endPoint: .bottom)
+                                .overlay(Text(option.emoji).font(.system(size: 34)))
+                        }
+                    }
+                    .frame(width: 72, height: 72)
+                    // Continuous corners at iOS's own icon ratio, so the preview
+                    // is the shape it will be on the home screen.
+                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .stroke(selected ? Color.yellow : .white.opacity(0.15),
+                                    lineWidth: selected ? 3 : 1)
+                    )
                     if !owned {
-                        RoundedRectangle(cornerRadius: 18)
+                        RoundedRectangle(cornerRadius: 16, style: .continuous)
                             .fill(.black.opacity(0.45))
                             .frame(width: 72, height: 72)
                         Image(systemName: "lock.fill")
