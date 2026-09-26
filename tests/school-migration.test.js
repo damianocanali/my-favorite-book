@@ -7,7 +7,7 @@ import { readFileSync } from 'node:fs'
 
 const SQL = readFileSync('supabase-migrations/018_schools_core.sql', 'utf8')
 const NEW_TABLES = ['class_licenses', 'class_students', 'student_sign_in_attempts', 'class_checkins', 'class_help_requests']
-const RPCS = ['school_record_attempt', 'school_sign_in_state', 'school_bump_image', 'school_sign_out_user']
+const RPCS = ['school_begin_attempt', 'school_confirm_attempt', 'school_bump_image', 'school_sign_out_user']
 
 describe('018_schools_core.sql', () => {
   it.each(NEW_TABLES)('%s is created with RLS enabled', (t) => {

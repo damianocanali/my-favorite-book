@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { PICTURE_IDS } from '../lib/school/pictures.js'
-import { hashPictureSecret } from '../lib/school/crypto.js'
+import { hashPictureSecret, hashIp } from '../lib/school/crypto.js'
 
 const URL_ = 'https://example.supabase.co'
 const CLASS_ID = '6f1c1b1e-0000-4000-8000-000000000001'
@@ -153,6 +153,17 @@ describe('GET /api/school/roster', () => {
     expect((await res.json()).code).toBe('class_resting')
   })
 
+  it('returns 423 class_paused when sign_in_paused_until is in the future', async () => {
+    mockSupabase({
+      user: null,
+      routes: [classroomRoute(classroomRow({ sign_in_paused_until: '2099-01-01T00:00:00.000Z' }))],
+    })
+    const { default: handler } = await import('../api/school/roster.js')
+    const res = await handler(rosterCall(CODE))
+    expect(res.status).toBe(423)
+    expect((await res.json()).code).toBe('class_paused')
+  })
+
   it('returns 503 upstream (not 404) when the classrooms lookup fails', async () => {
     const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
     mockSupabase({
@@ -192,96 +203,134 @@ describe('POST /api/school/sign-in', () => {
     }
   }
   const studentsRoute = (row) => ({ method: 'GET', match: '/rest/v1/class_students', reply: { body: [row] } })
-  const stateRoute = (state) => ({ method: 'POST', match: '/rest/v1/rpc/school_sign_in_state', reply: { status: 200, body: state } })
-  const recordRoute = (state) => ({ method: 'POST', match: '/rest/v1/rpc/school_record_attempt', reply: { status: 200, body: state } })
+  const beginRoute = (body, status = 200) => ({ method: 'POST', match: '/rest/v1/rpc/school_begin_attempt', reply: { status, body } })
+  const confirmRoute = (result, status = 200) => ({ method: 'POST', match: '/rest/v1/rpc/school_confirm_attempt', reply: { status, body: result } })
+  const usersRoute = (email) => ({ method: 'GET', match: '/auth/v1/admin/users/auth-kid-1', reply: { status: 200, body: { email } } })
+  const generateLinkRoute = (hashed_token) => ({ method: 'POST', match: '/auth/v1/admin/generate_link', reply: { status: 200, body: { hashed_token } } })
+  const verifyRoute = (tokens, status = 200) => ({ method: 'POST', match: '/auth/v1/verify', reply: { status, body: tokens } })
+  const TOKENS = { access_token: 'at-ok', refresh_token: 'rt-ok', expires_in: 3600, expires_at: 999 }
 
-  it('signs in with the right pictures: records p_ok:true, mints a session, 200 with tokens', async () => {
+  it('signs in with the right pictures: begins the attempt under a row lock, confirms it, mints a session, 200 with tokens', async () => {
     const row = await studentRow(RIGHT_PICTURES)
     const log = mockSupabase({
       user: null,
       routes: [
         classroomRoute(classroomRow()),
         studentsRoute(row),
-        stateRoute('ok'),
-        recordRoute('ok'),
-        { method: 'GET', match: '/auth/v1/admin/users/auth-kid-1', reply: { status: 200, body: { email: 's-kid@students.mybooklab.invalid' } } },
-        { method: 'POST', match: '/auth/v1/admin/generate_link', reply: { status: 200, body: { hashed_token: 'th-1' } } },
-        {
-          method: 'POST', match: '/auth/v1/verify',
-          reply: { status: 200, body: { access_token: 'at-ok', refresh_token: 'rt-ok', expires_in: 3600, expires_at: 999 } },
-        },
+        beginRoute({ state: 'ok', attempt_id: 42, after: 'ok' }),
+        confirmRoute('ok'),
+        usersRoute('s-kid@students.mybooklab.invalid'),
+        generateLinkRoute('th-1'),
+        verifyRoute(TOKENS),
       ],
     })
     const { default: handler } = await import('../api/school/sign-in.js')
     const res = await handler(signInCall({ code: CODE, studentId: STUDENT_ID, pictures: RIGHT_PICTURES }))
     expect(res.status).toBe(200)
-    expect(await res.json()).toEqual({ access_token: 'at-ok', refresh_token: 'rt-ok', expires_in: 3600, expires_at: 999 })
+    expect(await res.json()).toEqual(TOKENS)
 
-    const recordCall = log.find((l) => l.url.includes('/rest/v1/rpc/school_record_attempt'))
-    expect(recordCall.body).toMatchObject({ p_ok: true, p_classroom_id: CLASS_ID, p_student_id: STUDENT_ID })
+    const beginCall = log.find((l) => l.url.includes('/rest/v1/rpc/school_begin_attempt'))
+    expect(beginCall.body).toMatchObject({ p_classroom_id: CLASS_ID, p_student_id: STUDENT_ID })
+    // The IP is hashed before it ever reaches Postgres, never sent raw.
+    expect(beginCall.body.p_ip_hash).toBe(await hashIp(PEPPER, 'unknown'))
+    expect(beginCall.body.p_ip_hash).not.toBe('unknown')
 
-    const recordIdx = log.findIndex((l) => l.url.includes('/rest/v1/rpc/school_record_attempt'))
+    const confirmCall = log.find((l) => l.url.includes('/rest/v1/rpc/school_confirm_attempt'))
+    expect(confirmCall.body).toEqual({ p_attempt_id: 42, p_student_id: STUDENT_ID })
+
+    const confirmIdx = log.findIndex((l) => l.url.includes('/rest/v1/rpc/school_confirm_attempt'))
     const genIdx = log.findIndex((l) => l.url.includes('/auth/v1/admin/generate_link'))
     const verifyIdx = log.findIndex((l) => l.url.includes('/auth/v1/verify'))
-    expect(recordIdx).toBeGreaterThanOrEqual(0)
-    expect(genIdx).toBeGreaterThan(recordIdx)
+    expect(confirmIdx).toBeGreaterThanOrEqual(0)
+    expect(genIdx).toBeGreaterThan(confirmIdx)
     expect(verifyIdx).toBeGreaterThan(genIdx)
   })
 
-  it('rejects wrong pictures: records p_ok:false, 401 wrong_pictures, never calls generate_link', async () => {
+  it('rejects wrong pictures when after is ok: 401 wrong_pictures, no confirm_attempt or generate_link', async () => {
     const row = await studentRow(RIGHT_PICTURES)
     const log = mockSupabase({
       user: null,
-      routes: [classroomRoute(classroomRow()), studentsRoute(row), stateRoute('ok'), recordRoute('ok')],
+      routes: [classroomRoute(classroomRow()), studentsRoute(row), beginRoute({ state: 'ok', attempt_id: 7, after: 'ok' })],
     })
     const { default: handler } = await import('../api/school/sign-in.js')
     const res = await handler(signInCall({ code: CODE, studentId: STUDENT_ID, pictures: WRONG_PICTURES }))
     expect(res.status).toBe(401)
     expect((await res.json()).code).toBe('wrong_pictures')
-
-    const recordCall = log.find((l) => l.url.includes('/rest/v1/rpc/school_record_attempt'))
-    expect(recordCall.body.p_ok).toBe(false)
+    expect(log.filter((l) => l.url.includes('/rest/v1/rpc/school_confirm_attempt'))).toHaveLength(0)
     expect(log.filter((l) => l.url.includes('/auth/v1/admin/generate_link'))).toHaveLength(0)
   })
 
-  it('returns 423 locked with no hash comparison when the sign-in state is already locked', async () => {
+  it('returns 423 locked with no hash comparison when begin_attempt reports the student already locked', async () => {
     const row = await studentRow(RIGHT_PICTURES)
     const log = mockSupabase({
       user: null,
-      routes: [classroomRoute(classroomRow()), studentsRoute(row), stateRoute('locked')],
+      routes: [classroomRoute(classroomRow()), studentsRoute(row), beginRoute({ state: 'locked' })],
     })
     const { default: handler } = await import('../api/school/sign-in.js')
     const res = await handler(signInCall({ code: CODE, studentId: STUDENT_ID, pictures: RIGHT_PICTURES }))
     expect(res.status).toBe(423)
     expect((await res.json()).code).toBe('locked')
-    expect(log.filter((l) => l.url.includes('/rest/v1/rpc/school_record_attempt'))).toHaveLength(0)
+    expect(log.filter((l) => l.url.includes('/rest/v1/rpc/school_confirm_attempt'))).toHaveLength(0)
   })
 
-  it('returns 429 too_many when the sign-in state is ip_blocked', async () => {
+  it('returns 429 too_many when begin_attempt reports ip_blocked', async () => {
     const row = await studentRow(RIGHT_PICTURES)
-    mockSupabase({
-      user: null,
-      routes: [classroomRoute(classroomRow()), studentsRoute(row), stateRoute('ip_blocked')],
-    })
+    mockSupabase({ user: null, routes: [classroomRoute(classroomRow()), studentsRoute(row), beginRoute({ state: 'ip_blocked' })] })
     const { default: handler } = await import('../api/school/sign-in.js')
     const res = await handler(signInCall({ code: CODE, studentId: STUDENT_ID, pictures: RIGHT_PICTURES }))
     expect(res.status).toBe(429)
     expect((await res.json()).code).toBe('too_many')
   })
 
-  it('returns 423 locked on the 5th wrong try, when school_record_attempt reports locked', async () => {
+  it('returns 423 class_paused when begin_attempt reports class_paused', async () => {
     const row = await studentRow(RIGHT_PICTURES)
-    mockSupabase({
+    mockSupabase({ user: null, routes: [classroomRoute(classroomRow()), studentsRoute(row), beginRoute({ state: 'class_paused' })] })
+    const { default: handler } = await import('../api/school/sign-in.js')
+    const res = await handler(signInCall({ code: CODE, studentId: STUDENT_ID, pictures: RIGHT_PICTURES }))
+    expect(res.status).toBe(423)
+    expect((await res.json()).code).toBe('class_paused')
+  })
+
+  it('returns 423 ask_teacher when begin_attempt reports the student hard-locked, calling neither confirm_attempt nor generate_link', async () => {
+    const row = await studentRow(RIGHT_PICTURES)
+    const log = mockSupabase({
       user: null,
-      routes: [classroomRoute(classroomRow()), studentsRoute(row), stateRoute('ok'), recordRoute('locked')],
+      routes: [classroomRoute(classroomRow()), studentsRoute(row), beginRoute({ state: 'hard_locked' })],
+    })
+    const { default: handler } = await import('../api/school/sign-in.js')
+    const res = await handler(signInCall({ code: CODE, studentId: STUDENT_ID, pictures: RIGHT_PICTURES }))
+    expect(res.status).toBe(423)
+    expect((await res.json()).code).toBe('ask_teacher')
+    expect(log.filter((l) => l.url.includes('/rest/v1/rpc/school_confirm_attempt'))).toHaveLength(0)
+    expect(log.filter((l) => l.url.includes('/auth/v1/admin/generate_link'))).toHaveLength(0)
+  })
+
+  it("returns 423 locked on a wrong guess when begin_attempt's after is locked (the 5th failure in the window)", async () => {
+    const row = await studentRow(RIGHT_PICTURES)
+    const log = mockSupabase({
+      user: null,
+      routes: [classroomRoute(classroomRow()), studentsRoute(row), beginRoute({ state: 'ok', attempt_id: 9, after: 'locked' })],
     })
     const { default: handler } = await import('../api/school/sign-in.js')
     const res = await handler(signInCall({ code: CODE, studentId: STUDENT_ID, pictures: WRONG_PICTURES }))
     expect(res.status).toBe(423)
     expect((await res.json()).code).toBe('locked')
+    expect(log.filter((l) => l.url.includes('/rest/v1/rpc/school_confirm_attempt'))).toHaveLength(0)
   })
 
-  it('returns 404 student_not_found for a student id from another class, filtering by classroom_id', async () => {
+  it("returns 423 ask_teacher on a wrong guess when begin_attempt's after is hard_locked (the 10th failure)", async () => {
+    const row = await studentRow(RIGHT_PICTURES)
+    mockSupabase({
+      user: null,
+      routes: [classroomRoute(classroomRow()), studentsRoute(row), beginRoute({ state: 'ok', attempt_id: 10, after: 'hard_locked' })],
+    })
+    const { default: handler } = await import('../api/school/sign-in.js')
+    const res = await handler(signInCall({ code: CODE, studentId: STUDENT_ID, pictures: WRONG_PICTURES }))
+    expect(res.status).toBe(423)
+    expect((await res.json()).code).toBe('ask_teacher')
+  })
+
+  it('returns 404 student_not_found for a student id from another class, filtering by classroom_id and active status, never calling begin_attempt', async () => {
     const log = mockSupabase({
       user: null,
       routes: [classroomRoute(classroomRow()), { method: 'GET', match: '/rest/v1/class_students', reply: { body: [] } }],
@@ -292,29 +341,11 @@ describe('POST /api/school/sign-in', () => {
     expect((await res.json()).code).toBe('student_not_found')
     const studentsCall = log.find((l) => l.method === 'GET' && l.url.includes('/rest/v1/class_students'))
     expect(studentsCall.url).toContain(`classroom_id=eq.${CLASS_ID}`)
+    expect(studentsCall.url).toContain('status=eq.active')
+    expect(log.filter((l) => l.url.includes('/rest/v1/rpc/school_begin_attempt'))).toHaveLength(0)
   })
 
-  it('returns 503 upstream, comparing nothing, when school_sign_in_state errors', async () => {
-    const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-    const row = await studentRow(RIGHT_PICTURES)
-    const log = mockSupabase({
-      user: null,
-      routes: [
-        classroomRoute(classroomRow()),
-        studentsRoute(row),
-        { method: 'POST', match: '/rest/v1/rpc/school_sign_in_state', reply: { status: 500, body: { message: 'down' } } },
-      ],
-    })
-    const { default: handler } = await import('../api/school/sign-in.js')
-    const res = await handler(signInCall({ code: CODE, studentId: STUDENT_ID, pictures: RIGHT_PICTURES }))
-    expect(res.status).toBe(503)
-    expect((await res.json()).code).toBe('upstream')
-    expect(log.filter((l) => l.url.includes('/rest/v1/rpc/school_record_attempt'))).toHaveLength(0)
-    expect(log.filter((l) => l.url.includes('/auth/v1/admin/generate_link'))).toHaveLength(0)
-    errSpy.mockRestore()
-  })
-
-  it('returns 503 upstream when the class_students lookup fails, never calling the state RPC', async () => {
+  it('returns 503 upstream when the class_students lookup fails, never calling begin_attempt', async () => {
     const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
     const log = mockSupabase({
       user: null,
@@ -327,7 +358,87 @@ describe('POST /api/school/sign-in', () => {
     const res = await handler(signInCall({ code: CODE, studentId: STUDENT_ID, pictures: RIGHT_PICTURES }))
     expect(res.status).toBe(503)
     expect((await res.json()).code).toBe('upstream')
-    expect(log.filter((l) => l.url.includes('/rest/v1/rpc/school_sign_in_state'))).toHaveLength(0)
+    expect(log.filter((l) => l.url.includes('/rest/v1/rpc/school_begin_attempt'))).toHaveLength(0)
+    errSpy.mockRestore()
+  })
+
+  it('returns 503 upstream, comparing nothing, when school_begin_attempt errors', async () => {
+    const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const row = await studentRow(RIGHT_PICTURES)
+    const log = mockSupabase({
+      user: null,
+      routes: [
+        classroomRoute(classroomRow()),
+        studentsRoute(row),
+        { method: 'POST', match: '/rest/v1/rpc/school_begin_attempt', reply: { status: 500, body: { message: 'down' } } },
+      ],
+    })
+    const { default: handler } = await import('../api/school/sign-in.js')
+    const res = await handler(signInCall({ code: CODE, studentId: STUDENT_ID, pictures: RIGHT_PICTURES }))
+    expect(res.status).toBe(503)
+    expect((await res.json()).code).toBe('upstream')
+    expect(log.filter((l) => l.url.includes('/rest/v1/rpc/school_confirm_attempt'))).toHaveLength(0)
+    expect(log.filter((l) => l.url.includes('/auth/v1/admin/generate_link'))).toHaveLength(0)
+    errSpy.mockRestore()
+  })
+
+  it("returns 401 wrong_pictures (never signs in) when the right guess's confirm_attempt reports invalid", async () => {
+    const row = await studentRow(RIGHT_PICTURES)
+    const log = mockSupabase({
+      user: null,
+      routes: [
+        classroomRoute(classroomRow()),
+        studentsRoute(row),
+        beginRoute({ state: 'ok', attempt_id: 5, after: 'ok' }),
+        confirmRoute('invalid'),
+      ],
+    })
+    const { default: handler } = await import('../api/school/sign-in.js')
+    const res = await handler(signInCall({ code: CODE, studentId: STUDENT_ID, pictures: RIGHT_PICTURES }))
+    expect(res.status).toBe(401)
+    expect((await res.json()).code).toBe('wrong_pictures')
+    expect(log.filter((l) => l.url.includes('/auth/v1/admin/generate_link'))).toHaveLength(0)
+  })
+
+  it('returns 503 upstream when school_confirm_attempt errors, never calling generate_link', async () => {
+    const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const row = await studentRow(RIGHT_PICTURES)
+    const log = mockSupabase({
+      user: null,
+      routes: [
+        classroomRoute(classroomRow()),
+        studentsRoute(row),
+        beginRoute({ state: 'ok', attempt_id: 6, after: 'ok' }),
+        { method: 'POST', match: '/rest/v1/rpc/school_confirm_attempt', reply: { status: 500, body: { message: 'down' } } },
+      ],
+    })
+    const { default: handler } = await import('../api/school/sign-in.js')
+    const res = await handler(signInCall({ code: CODE, studentId: STUDENT_ID, pictures: RIGHT_PICTURES }))
+    expect(res.status).toBe(503)
+    expect((await res.json()).code).toBe('upstream')
+    expect(log.filter((l) => l.url.includes('/auth/v1/admin/generate_link'))).toHaveLength(0)
+    errSpy.mockRestore()
+  })
+
+  it('returns 502 sign_in_failed when the verify call fails after a right guess', async () => {
+    const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const row = await studentRow(RIGHT_PICTURES)
+    mockSupabase({
+      user: null,
+      routes: [
+        classroomRoute(classroomRow()),
+        studentsRoute(row),
+        beginRoute({ state: 'ok', attempt_id: 11, after: 'ok' }),
+        confirmRoute('ok'),
+        usersRoute('s-kid@students.mybooklab.invalid'),
+        generateLinkRoute('th-2'),
+        verifyRoute({ message: 'nope' }, 500),
+      ],
+    })
+    const { default: handler } = await import('../api/school/sign-in.js')
+    const res = await handler(signInCall({ code: CODE, studentId: STUDENT_ID, pictures: RIGHT_PICTURES }))
+    expect(res.status).toBe(502)
+    expect((await res.json()).code).toBe('sign_in_failed')
     errSpy.mockRestore()
   })
 
@@ -337,5 +448,28 @@ describe('POST /api/school/sign-in', () => {
     const res = await handler(signInCall({ code: CODE, studentId: 'not-a-uuid', pictures: ['cat'] }))
     expect(res.status).toBe(400)
     expect((await res.json()).code).toBe('bad_request')
+  })
+
+  it('returns 400 bad_request for a JSON null body', async () => {
+    mockSupabase({ user: null, routes: [] })
+    const { default: handler } = await import('../api/school/sign-in.js')
+    const res = await handler(signInCall(null))
+    expect(res.status).toBe(400)
+    expect((await res.json()).code).toBe('bad_request')
+  })
+
+  it('returns 429 too_many once the defense-in-depth rate cap (600/hr) is exceeded', async () => {
+    const row = await studentRow(RIGHT_PICTURES)
+    mockSupabase({
+      user: null,
+      routes: [classroomRoute(classroomRow()), studentsRoute(row), beginRoute({ state: 'ok', attempt_id: 1, after: 'ok' })],
+    })
+    const { default: handler } = await import('../api/school/sign-in.js')
+    let last
+    for (let i = 0; i < 601; i++) {
+      last = await handler(signInCall({ code: CODE, studentId: STUDENT_ID, pictures: WRONG_PICTURES }))
+    }
+    expect(last.status).toBe(429)
+    expect((await last.json()).code).toBe('too_many')
   })
 })

@@ -130,61 +130,71 @@ alter table public.class_help_requests enable row level security;
 
 -- ── RPCs (service role only) ────────────────────────────────────────────
 
--- Whether a sign-in may be attempted right now. Checked BEFORE the picture
--- comparison so a locked account never reveals whether a guess was right.
--- Returns: ok | ip_blocked | class_paused | hard_locked | locked
-create or replace function public.school_sign_in_state(p_classroom_id uuid, p_student_id uuid, p_ip_hash text)
-returns text language plpgsql security definer set search_path = public as $$
+-- One sign-in attempt, serialised per student by the row lock. The attempt
+-- is recorded as a FAILURE before the pictures are compared; a right guess
+-- is flipped to ok by school_confirm_attempt. So a parallel burst is counted
+-- one at a time and at most 5 guesses fit in a lock window.
+-- Returns {state: ok|not_found|ip_blocked|class_paused|hard_locked|locked,
+--          attempt_id, after: ok|locked|hard_locked (what a WRONG guess leaves)}
+create or replace function public.school_begin_attempt(p_classroom_id uuid, p_student_id uuid, p_ip_hash text)
+returns jsonb language plpgsql security definer set search_path = public as $$
 declare
   s record;
   paused timestamptz;
+  fails smallint;
+  attempt bigint;
 begin
+  select hard_locked, locked_until, failed_attempts into s
+    from class_students
+    where id = p_student_id and classroom_id = p_classroom_id and status = 'active'
+    for update;
+  if not found then return jsonb_build_object('state', 'not_found'); end if;
+
+  -- A whole school shares one NAT'd IP, so this is set well above one class's typos.
   if (select count(*) from student_sign_in_attempts
-      where ip_hash = p_ip_hash and not ok and created_at > now() - interval '1 hour') > 30 then
-    return 'ip_blocked';
+      where ip_hash = p_ip_hash and not ok and created_at > now() - interval '1 hour') > 200 then
+    return jsonb_build_object('state', 'ip_blocked');
   end if;
   select sign_in_paused_until into paused from classrooms where id = p_classroom_id;
-  if paused is not null and paused > now() then return 'class_paused'; end if;
-  select hard_locked, locked_until into s from class_students where id = p_student_id;
-  if s.hard_locked then return 'hard_locked'; end if;
-  if s.locked_until is not null and s.locked_until > now() then return 'locked'; end if;
-  return 'ok';
-end $$;
+  if paused is not null and paused > now() then return jsonb_build_object('state', 'class_paused'); end if;
+  if s.hard_locked then return jsonb_build_object('state', 'hard_locked'); end if;
+  if s.locked_until is not null and s.locked_until > now() then return jsonb_build_object('state', 'locked'); end if;
 
--- Record one attempt and apply the lockout rules (spec §4.4):
--- 5 failures -> 15 min lock; 10 -> hard lock (teacher only);
--- >20 class-wide failures in 10 min -> class paused 10 min.
--- Returns the student's state after this attempt: ok | locked | hard_locked
-create or replace function public.school_record_attempt(p_classroom_id uuid, p_student_id uuid, p_ip_hash text, p_ok boolean)
-returns text language plpgsql security definer set search_path = public as $$
-declare
-  fails smallint;
-begin
   insert into student_sign_in_attempts (classroom_id, student_id, ip_hash, ok)
-  values (p_classroom_id, p_student_id, p_ip_hash, p_ok);
+    values (p_classroom_id, p_student_id, p_ip_hash, false)
+    returning id into attempt;
 
-  if p_ok then
-    update class_students
-      set failed_attempts = 0, locked_until = null, last_sign_in_at = now()
-      where id = p_student_id;
-    return 'ok';
-  end if;
+  fails := s.failed_attempts + 1;
+  update class_students set
+    failed_attempts = fails,
+    hard_locked = (fails >= 10),
+    locked_until = case when fails < 10 and fails % 5 = 0 then now() + interval '15 minutes' else locked_until end
+    where id = p_student_id;
 
-  update class_students set failed_attempts = failed_attempts + 1
-    where id = p_student_id returning failed_attempts into fails;
-
+  -- 30 young children mistype at the start of a lesson; 60 in 10 minutes is an attack.
   if (select count(*) from student_sign_in_attempts
-      where classroom_id = p_classroom_id and not ok and created_at > now() - interval '10 minutes') > 20 then
+      where classroom_id = p_classroom_id and not ok and created_at > now() - interval '10 minutes') > 60 then
     update classrooms set sign_in_paused_until = now() + interval '10 minutes' where id = p_classroom_id;
   end if;
 
-  if fails >= 10 then
-    update class_students set hard_locked = true where id = p_student_id;
-    return 'hard_locked';
-  elsif fails % 5 = 0 then
-    update class_students set locked_until = now() + interval '15 minutes' where id = p_student_id;
-    return 'locked';
-  end if;
+  return jsonb_build_object(
+    'state', 'ok',
+    'attempt_id', attempt,
+    'after', case when fails >= 10 then 'hard_locked' when fails % 5 = 0 then 'locked' else 'ok' end
+  );
+end $$;
+
+-- The guess was right: turn the pessimistic failure into a success and clear
+-- the counters. Returns ok, or invalid if the attempt is unknown/already used.
+create or replace function public.school_confirm_attempt(p_attempt_id bigint, p_student_id uuid)
+returns text language plpgsql security definer set search_path = public as $$
+begin
+  update student_sign_in_attempts set ok = true
+    where id = p_attempt_id and student_id = p_student_id and not ok;
+  if not found then return 'invalid'; end if;
+  update class_students
+    set failed_attempts = 0, locked_until = null, hard_locked = false, last_sign_in_at = now()
+    where id = p_student_id;
   return 'ok';
 end $$;
 
@@ -226,11 +236,11 @@ begin
   delete from auth.sessions where user_id = p_user_id;
 end $$;
 
-revoke all on function public.school_sign_in_state(uuid, uuid, text) from public, anon, authenticated;
-revoke all on function public.school_record_attempt(uuid, uuid, text, boolean) from public, anon, authenticated;
+revoke all on function public.school_begin_attempt(uuid, uuid, text) from public, anon, authenticated;
+revoke all on function public.school_confirm_attempt(bigint, uuid) from public, anon, authenticated;
 revoke all on function public.school_bump_image(uuid, int) from public, anon, authenticated;
 revoke all on function public.school_sign_out_user(uuid) from public, anon, authenticated;
-grant execute on function public.school_sign_in_state(uuid, uuid, text) to service_role;
-grant execute on function public.school_record_attempt(uuid, uuid, text, boolean) to service_role;
+grant execute on function public.school_begin_attempt(uuid, uuid, text) to service_role;
+grant execute on function public.school_confirm_attempt(bigint, uuid) to service_role;
 grant execute on function public.school_bump_image(uuid, int) to service_role;
 grant execute on function public.school_sign_out_user(uuid) to service_role;
