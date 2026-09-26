@@ -17,7 +17,8 @@ create table if not exists public.class_licenses (
   status text not null check (status in ('trial','pending_payment','active','grace','lapsed','canceled','comped')),
   billing_method text check (billing_method in ('card','invoice','manual')),
   seats int not null default 35 check (seats between 1 and 35),
-  image_allowance int not null default 7500 check (image_allowance >= 0),
+  -- Default to 300 (trial allowance): if an insert forgets to set it, under-provision rather than grant paid 7,500.
+  image_allowance int not null default 300 check (image_allowance >= 0),
   images_used int not null default 0 check (images_used >= 0),
   starts_at timestamptz not null default now(),
   expires_at timestamptz not null,

@@ -31,11 +31,15 @@ describe('018_schools_core.sql', () => {
   })
 
   it('makes the classroom owner FK restrictive and the legacy code FK follow renames', () => {
-    expect(SQL).toMatch(/classrooms_owner_user_id_fkey[\s\S]*on delete restrict/i)
-    expect(SQL).toMatch(/submissions_classroom_code_fkey[\s\S]*on update cascade on delete cascade/i)
+    expect(SQL).toMatch(/add constraint classrooms_owner_user_id_fkey\s+foreign key \(owner_user_id\) references auth\.users\(id\) on delete restrict/i)
+    expect(SQL).toMatch(/add constraint submissions_classroom_code_fkey\s+foreign key \(classroom_code\) references public\.classrooms\(code\) on update cascade on delete cascade/i)
   })
 
   it('caps class size at 35', () => {
     expect(SQL).toMatch(/seats between 1 and 35/i)
+  })
+
+  it('defaults image_allowance to 300 (trial safe)', () => {
+    expect(SQL).toMatch(/image_allowance int not null default 300/i)
   })
 })
