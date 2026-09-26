@@ -1,12 +1,27 @@
 # Schools: class licenses, student sign-in, assignments, feedback — Design
 
-Date: 2026-09-26 · Status: draft for owner review · Scope: web (`src/`, `api/`, `lib/`), Supabase, iOS (`ios-native/MyBookLab`)
+Date: 2026-09-26 · Status: owner decisions recorded (§0) · Scope: web (`src/`, `api/`, `lib/`), Supabase, iOS (`ios-native/MyBookLab`)
 
 Goal: turn the thin classroom feature into something a school pays for. Fixed decisions: per-class yearly
 license bought by a teacher on the web (Stripe, card or invoice); v1 ships student logins without email,
 assignments, and review & feedback; teacher dashboard is web-first; students use web and iOS.
 
 ---
+
+## 0. Owner decisions (2026-09-26)
+
+These override anything below that disagrees with them.
+
+| # | Decision | Consequence |
+|---|---|---|
+| D1 | **US schools first.** Italian schools "coming soon" | USD only. No MEPA/SDI, no EUR prices, no VAT/`tax_id` in v1. GDPR items in §5 become Italy-launch work; COPPA + FERPA are the v1 regime. Student UI still ships EN/IT because the app already is |
+| D2 | **Class license $179/yr, up to 35 students.** Optional founding price **$149 for school year 2026-27** | `seats` default and max become 35 |
+| D3 | **School bundle $1,490/yr for up to 10 classes, $129 per extra class**, invoice / PO | Stays under the ~$5k a principal can usually approve without a bid. Needs a self-serve quote PDF, a W-9 download and net-30 invoicing |
+| D4 | **Free trial: 30 days, no card, all features, capped at 300 AI images per class** | New license status `trial`. At the end the class goes read-only (the `lapsed` rules), nothing is deleted |
+| D5 | **Pooled AI allowance per class: 7,500 images / school year, plus 15 images per student per day** | Replaces the consumer 50/day cap for student accounts. Worst case ≈ $113 of image cost per class, so a fully used class still clears ~$60 |
+| D6 | **The agreement is the SDPC National Data Privacy Agreement (NDPA v2.x)**, not a contract we draft. The principal signs, or the district where the principal cannot | No custom DPA text. Accept the district's NDPA, sign it, and list the signature in the SDPC registry so other districts in the same state can adopt it with Exhibit E. Check A4L vendor membership cost before the first sale |
+| D7 | **Teachers can see every check-in of their students** | See §5a. The owner chose this over the opt-in "tell my teacher" note after the privacy trade-off was explained |
+| D8 | **Printable worksheets** join the product (§11) | New Stage 6 |
 
 ## 1. What exists today
 
@@ -42,7 +57,7 @@ as migration `017_classroom_baseline.sql`.
 - Teacher dashboard on iOS. Teachers on iOS keep today's app, and **no license purchase UI appears on iOS**.
 - Student-to-student visibility (no class gallery, no peer comments).
 - Parent accounts or a parent portal.
-- Per-seat pricing above 30. One license = one class ≤ 30 students (see open questions).
+- Per-seat pricing above 35. One license = one class ≤ 35 students (D2).
 - Migrating legacy code-only classes into licensed classes automatically.
 
 ## 3. Data model
@@ -60,8 +75,8 @@ read-only for clients.
 | id | uuid PK default `gen_random_uuid()` | |
 | owner_user_id | uuid → `auth.users` **ON DELETE RESTRICT** | The purchasing teacher. `purgeUser` must clean up licenses explicitly |
 | classroom_id | uuid → `classrooms.id` null, unique | Null until the teacher attaches it to a class |
-| seats | int not null default 30, check 1–30 | |
-| status | text check in (`pending_payment`,`active`,`grace`,`lapsed`,`canceled`,`comped`) | `comped` = pilot schools granted by hand |
+| seats | int not null default 35, check 1–35 | D2 |
+| status | text check in (`trial`,`pending_payment`,`active`,`grace`,`lapsed`,`canceled`,`comped`) | `comped` = pilot schools granted by hand; `trial` = D4 |
 | billing_method | text check in (`card`,`invoice`,`manual`) | |
 | starts_at / expires_at | timestamptz | `expires_at` drives the lifecycle (§6) |
 | stripe_customer_id, stripe_subscription_id, stripe_price_id | text null | |
@@ -227,7 +242,9 @@ iOS: hide `PaywallView`, `CoinStoreView`, print orders, `GalleryView` publish, a
   That requires a **DPA**: subject matter, instructions-only processing, confidentiality, security, sub-processor list with notice of
   changes, assistance with DSARs and DPIAs, deletion/return at end, audits. Sub-processors today: Supabase, Vercel, Anthropic
   (Story Buddy), Together (images), OpenAI (moderation), Apple (iOS attest). Stripe processes **teacher** billing data only.
-  **Lawyer:** DPA text, international transfers (US AI providers: SCCs/DPF), whether a teacher can bind the school.
+  **US v1 (D1, D6):** the agreement is the district's NDPA; its Exhibit A (services), Exhibit B (data elements, which must now
+  include check-in feelings, D7) and the sub-processor list above are what we fill in. The GDPR/Italy items in this section are
+  deferred to the Italian launch.
 - **GDPR Art. 8** (parental consent, age 14 in Italy under D.Lgs. 196/2003 art. 2-quinquies) covers *consent-based* services offered
   directly to a child. In the school model the lawful basis is the school's (likely public task or contract), not child consent.
   **Lawyer:** confirm the basis per country and whether schools will expect a DPIA (likely: children plus AI). We should ship a DPIA support pack.
@@ -236,8 +253,7 @@ iOS: hide `PaywallView`, `CoinStoreView`, print orders, `GalleryView` publish, a
   Consequence for design: **no upsell, coin store, ads, or marketing to student accounts**, and no use of student content for anything else.
   **Lawyer:** current FTC position after the 2025 Rule amendments, and state student-privacy laws (e.g. SOPIPA-style).
 - **Minimization.** No email, no age, no photo, no surname (first name + initial, teacher-chosen). IP stored only as an HMAC in the
-  attempts table (30 days). Check-in feelings (`useCheckInStore`) remain device-only and are cleared on sign-out, which already happens.
-  **Open question:** disable check-in for students entirely.
+  attempts table (30 days). Check-in feelings are the one exception to device-only storage, and only for student accounts (§5a).
 - **Public gallery must be off for student accounts.** Publishing a book to the gallery (`published_books`, publicly readable RLS
   `USING (true)`, shows `author_name`/`author_age`) would disclose a pupil's name and work to the world. The school, as controller,
   has not instructed that, and under COPPA it would be a use outside the educational purpose. Enforce it server-side in
@@ -251,6 +267,29 @@ iOS: hide `PaywallView`, `CoinStoreView`, print orders, `GalleryView` publish, a
   - Legacy anonymous `submissions` rows have no owner. Proposed rule: deleted with their classroom, and all legacy rows purged at a fixed date (owner decision).
 - **Apple.** The iOS app shows no purchase path, price, or link for class licenses (see §6).
 
+## 5a. Student check-ins visible to the teacher (D7)
+
+For consumer accounts nothing changes: check-ins stay on the device. For **student accounts only**, each check-in is also sent to
+the server so the owning teacher can read it. The owner chose this; the rules below are what keep it defensible under COPPA/FERPA
+and in front of a district privacy reviewer.
+
+- **The child is told, every time.** The check-in sheet for a student shows "Your teacher can see this" with a small teacher icon,
+  read aloud with the rest of the sheet. A student is never led to believe a check-in is private when it is not. Not negotiable:
+  a hidden reader is the version that fails a district review and breaks trust with families if found.
+- **Storage.** New table `class_checkins(id, classroom_id, student_id, feeling text, need text null, created_at)`. Fixed-vocabulary
+  ids only (the existing `FEELINGS` / needs lists), **no free text**. Writes via `POST /api/school/checkin` (student session);
+  RLS denies all client access.
+- **Who reads it.** Only the owning teacher, via `GET /api/school/checkins?classId=`. Never other students, never parents through
+  us, never Story Buddy or any AI provider, never analytics.
+- **What the teacher sees.** Per student: a list of recent check-ins (feeling, need, time). **"I need help" is surfaced at the top of
+  the class view** as the thing to act on. No class ranking, no "most angry student", no score. Deliberately not a chart, for the same
+  reason the child's own constellation is not one.
+- **Retention.** Rolling **30 days**, purged by the daily cron, and deleted with the student and the class. A teacher who needs a
+  record keeps it in the school's own systems.
+- **Not a safety service.** The teacher view says, in plain words, that check-ins are not monitored by My Book Lab and are not an
+  emergency channel. We never promise to detect or escalate anything.
+- **Disclosure.** Listed as a data element in NDPA Exhibit B and in the privacy notice for schools.
+
 ## 6. Licensing & payment
 
 **App Store Guideline 3.1.3(c) Enterprise Services:** "If your app sells services directly to an organization or group for its
@@ -263,14 +302,14 @@ plans stay on RevenueCat IAP. A teacher paying personally for "their class" is a
 | Item | Shape |
 |---|---|
 | Stripe Product | "My Book Lab Class License" |
-| Prices | Yearly recurring, per class (`quantity` = number of classes), **EUR and USD** (today `plans.js` is USD-only; Italian schools pay EUR). Stripe Tax for VAT; collect `tax_id` |
+| Prices | Yearly recurring, per class (`quantity` = number of classes), **USD only** (D1). $179 per class; founding $149 for 2026-27; school bundle $1,490 for up to 10 classes + $129 per extra (D2, D3) |
 | Card | `POST /api/school/checkout` → Checkout `mode: 'subscription'`, `metadata[type]=class_license`, `subscription_data[metadata][type]=class_license`, `…[owner_user_id]`. Auto-renew **on**; the teacher can cancel in the Customer Portal |
 | Invoice | `POST /api/school/invoice-request` → create Customer + Subscription with `collection_method=send_invoice`, `days_until_due=30`. Licenses start `pending_payment` and are **usable immediately** for 30 days, then `lapsed` if unpaid |
 | Webhook | In `api/stripe-webhook.js`, branch on `metadata.type === 'class_license'` **first** in `checkout.session.completed`, `customer.subscription.updated/deleted`, `invoice.paid`, `invoice.payment_failed`, so it never reaches `upsertSubscription` (which would clobber the teacher's `subscriptions` row). Create/extend `quantity` license rows. Idempotency through `processed_webhook_events` (migration 008) |
 | Pilot | `comped` licenses set by the owner via SQL/admin endpoint, so Stages 1–3 are sellable before Stripe self-serve |
 
-**What a license unlocks:** a class with up to 30 student accounts, assignments, review grid, feedback, student AI caps pooled per
-class, and student iOS access. The owning teacher also gets `teacher`-plan features while any license is active (no double-billing).
+**What a license unlocks:** a class with up to 35 student accounts, assignments, review grid, feedback, student AI caps pooled per
+class (D5), and student iOS access. The owning teacher also gets `teacher`-plan features while any license is active (no double-billing).
 Legacy code-only classes keep working for existing `teacher` subscribers.
 
 **Lifecycle:** `active` → at `expires_at` → `grace` (14 days, everything works, teacher banner and emails) → `lapsed` (students
@@ -336,6 +375,10 @@ New endpoints live under `api/school/` (service role, `requireTeacherOf` / `requ
 | 3 | **Review grid + feedback (web)** | Completes the teacher loop. The first sellable product | M |
 | 4 | **Stripe self-serve.** Card checkout, invoice path, webhook branches, lifecycle cron, emails, export, DPA click-through | Revenue without the owner in the loop | M |
 | 5 | **iOS student.** `ClassSignInView`, assignments, hand-in, feedback, student gating, EN/IT strings | Classes with iPads | L |
+| 6 | **Printable worksheets (§11).** Free public template library first, then teacher-customised sheets inside a license | The free library is teacher acquisition; the custom ones are a license feature | S → M |
+
+Check-in sharing (§5a) lands with Stage 1 (it needs student sessions) and the teacher view with Stage 3.
+Stage 0 is PR #44.
 
 Relative total ≈ S + L + M + M + M + L. Stages 2 and 5 can overlap once Stage 1's APIs are stable.
 
@@ -352,15 +395,40 @@ Relative total ≈ S + L + M + M + M + L. Stages 2 and 5 can overlap once Stage 
 - Rate limiting elsewhere is still per-instance (Upstash unset). The school endpoints avoid it by using Postgres counters.
 - Student AI usage on web is unattested and hits the halved caps (ATTEST_MODE note). A 30-kid class may hit caps in one lesson.
 
-**Open questions for the owner**
-1. Price per class per year, in EUR and USD? Trial for schools (e.g. 30 days comped)?
-2. Class size above 30: a second license, or seat add-ons?
-3. Invoice path: allow use before payment (30 days proposed)? Support SDI/MEPA for Italian public schools, or target private schools and the US first?
+**Open questions for the owner** (1, 3, 8, 10 answered in §0)
+1. ~~Price and trial~~ → D2–D4.
+2. Class size above 35: a second license, or seat add-ons?
+3. ~~Market~~ → US first (D1). Invoice use-before-payment: 30 days still proposed.
 4. What happens to the existing `teacher` plan: keep, grandfather, or fold into "teacher with ≥1 license"? And the iOS `classroom` IAP entitlement?
 5. Student AI caps per class per day (images, Story Buddy)?
 6. Grace (14 days) and post-lapse retention (90 days) and removed-student window (30 days): acceptable?
 7. Legacy anonymous `submissions` rows with no user id: purge on a fixed date, or keep until each classroom is deleted?
-8. Disable the emotional check-in for student accounts?
+8. ~~Check-in for students~~ → teacher sees all, child is told (D7, §5a).
 9. Keep student illustrations in the public bucket, or move to private + signed URLs?
-10. Who signs the DPA: can a teacher accept it for the school, or do we require a school officer? Budget for a lawyer (DPA, COPPA, transfers)?
+10. ~~Who signs~~ → principal or district signs the NDPA (D6). Still worth one paid hour of a US edtech-privacy lawyer before the first district signs.
 11. Printable QR sign-in cards (faster for 6-year-olds, but a lost card = access): v1 or later?
+
+## 11. Printable worksheets (D8)
+
+Teachers already print. Free printable story worksheets are one of the most searched-for things a US elementary teacher looks for,
+so a free library is how teachers find My Book Lab before they ever start a trial.
+
+**v1: a fixed template library, free, public, no account.** US Letter, black-and-white friendly, printed with the browser's print
+dialog (the same `@media print` approach as `PrintableBook.jsx`, no PDF library). Starting set:
+
+| Template | Mirrors in the app |
+|---|---|
+| Story map (beginning / middle / end) | Story Builder |
+| Character profile | Characters step |
+| Setting sketch | Setting step |
+| Storyboard, 6 panels | Pages step |
+| Sentence starters strip | `sentenceStarters.js` |
+| Book report | `book_reports` |
+| Feelings check-in card | Check-in feelings |
+| "About the author" page | Back matter |
+
+Each sheet carries a small "Make it a real book at mybooklab.app" footer and a QR code.
+
+**Later, inside a license: teacher-customised sheets.** The teacher edits the prompt text, adds the class name and an assignment,
+and can print a sheet that matches an assignment (links to Stage 2). An AI illustration on the sheet counts against the class
+allowance (D5). A worksheet builder with free layout is out of scope.
