@@ -22,6 +22,8 @@ These override anything below that disagrees with them.
 | D6 | **The agreement is the SDPC National Data Privacy Agreement (NDPA v2.x)**, not a contract we draft. The principal signs, or the district where the principal cannot | No custom DPA text. Accept the district's NDPA, sign it, and list the signature in the SDPC registry so other districts in the same state can adopt it with Exhibit E. Check A4L vendor membership cost before the first sale |
 | D7 | **Teachers can see every check-in of their students** | See §5a. The owner chose this over the opt-in "tell my teacher" note after the privacy trade-off was explained |
 | D8 | **Printable worksheets** join the product (§11) | New Stage 6 |
+| D9 | **Teacher notifications (§12)**: "I need a grown-up" alerts are immediate; hand-ins and finished books are batched. Help alerts only go out **inside the teacher's school hours** | Needs email, web push and APNs |
+| D10 | **Schools use iPads, so teachers get an iOS side too**: push notifications plus an iPad teacher area (alerts, class list, review and feedback) | Reverses the §2 non-goal "Teacher dashboard on iOS". Purchase and roster setup stay web-only (3.1.3(c)) |
 
 ## 1. What exists today
 
@@ -54,7 +56,7 @@ as migration `017_classroom_baseline.sql`.
 - School/district admin accounts, multi-teacher classes, co-teachers (one owner teacher per class).
 - SSO (Google Classroom, Microsoft, ClassLink/Clever) and roster import (CSV paste is enough).
 - Grades or rubrics. Feedback is a comment and/or sticker only.
-- Teacher dashboard on iOS. Teachers on iOS keep today's app, and **no license purchase UI appears on iOS**.
+- License purchase, roster creation and printing on iOS. **No license purchase UI or price appears on iOS** (§6). The iPad teacher area is D10.
 - Student-to-student visibility (no class gallery, no peer comments).
 - Parent accounts or a parent portal.
 - Per-seat pricing above 35. One license = one class ≤ 35 students (D2).
@@ -375,6 +377,7 @@ New endpoints live under `api/school/` (service role, `requireTeacherOf` / `requ
 | 3 | **Review grid + feedback (web)** | Completes the teacher loop. The first sellable product | M |
 | 4 | **Stripe self-serve.** Card checkout, invoice path, webhook branches, lifecycle cron, emails, export, DPA click-through | Revenue without the owner in the loop | M |
 | 5 | **iOS student.** `ClassSignInView`, assignments, hand-in, feedback, student gating, EN/IT strings | Classes with iPads | L |
+| 5b | **iPad teacher area + APNs (D10, §12).** Alerts inbox, class list, review and feedback, push registration | Teachers on the classroom iPad | M |
 | 6 | **Printable worksheets (§11).** Free public template library first, then teacher-customised sheets inside a license | The free library is teacher acquisition; the custom ones are a license feature | S → M |
 
 Check-in sharing (§5a) lands with Stage 1 (it needs student sessions) and the teacher view with Stage 3.
@@ -432,3 +435,50 @@ Each sheet carries a small "Make it a real book at mybooklab.app" footer and a Q
 **Later, inside a license: teacher-customised sheets.** The teacher edits the prompt text, adds the class name and an assignment,
 and can print a sheet that matches an assignment (links to Stage 2). An AI illustration on the sheet counts against the class
 allowance (D5). A worksheet builder with free layout is out of scope.
+
+## 12. Teacher notifications (D9, D10)
+
+### 12.1 Two kinds of help
+
+The student check-in sheet offers two different asks, because "I need help" from a 7-year-old is ambiguous:
+
+| Ask | Stored as | Urgent? |
+|---|---|---|
+| "Help with my book" | `class_help_requests.kind = 'book'` | No: dashboard bell only |
+| "I need a grown-up" | `kind = 'grownup'` | Yes: bell, web push, APNs, email |
+
+`class_help_requests(id, classroom_id, student_id, kind, created_at, seen_at null, seen_by null)`. **Dedup:** a second ask of the
+same kind from the same student within 15 minutes updates the open row instead of creating one, and sends nothing new.
+
+### 12.2 School hours
+
+Per class: `school_hours jsonb` (weekday → start/end, default Mon–Fri 08:00–15:30) and `timezone text` (IANA, set from the teacher's
+browser at class creation). An urgent ask **inside** hours is pushed at once. **Outside** hours it is stored and shown in the dashboard,
+but **no push or email** is sent, and the child is told: *"Your teacher will see this at school. If you need help now, tell a grown-up
+near you."* Inside hours the child sees *"Your teacher got your message"*, then *"<Teacher name> saw your message 💛"* when `seen_at` is set.
+
+### 12.3 Batched events
+
+Hand-ins, resubmissions, late hand-ins, books finished, feedback seen: written to `teacher_notifications(id, teacher_user_id,
+classroom_id, kind, payload jsonb, created_at, read_at null)`. They drive the **bell** (web and iPad) and a **daily summary email** at
+the end of the school day in the class time zone (setting: daily / weekly / off). One immediate email/push only for "everyone has
+handed in <assignment>".
+
+### 12.4 Channels
+
+| Channel | Carries | Implementation |
+|---|---|---|
+| Bell (web + iPad) | Everything | `GET /api/school/notifications`, polled every 30 s while the dashboard is open |
+| Web push | Urgent asks | Service worker + VAPID keys (`VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`); `push_subscriptions(user_id, endpoint, keys, created_at)` |
+| APNs (iPad/iPhone) | Urgent asks, "everyone handed in" | Token-based APNs (`APNS_KEY_ID`, `APNS_TEAM_ID`, `APNS_KEY_P8`, `APNS_TOPIC`); `device_tokens(user_id, token, platform, env, created_at)`. HTTP/2 from a Vercel function |
+| Email | Urgent asks, daily/weekly summary | Resend (`RESEND_API_KEY`, `EMAIL_FROM`) |
+
+Every sender is a no-op that logs when its env vars are missing, so the product works (bell only) before any key exists.
+Push and email text never contain the feeling, only: *"<Student> in <Class> asked for a grown-up."* Every surface carries the line
+*"My Book Lab passes this message on. It is not monitored and is not an emergency service."*
+
+### 12.5 iPad teacher area
+
+Shown when the signed-in user owns at least one class. Tabs: **Alerts** (help asks first, then the bell list), **Classes** (roster
+status, today's check-ins per §5a, assignments), **Review** (open a hand-in in the existing reader and send a comment + sticker).
+Tapping a push opens the matching alert. No purchase, price, roster creation or printing on iOS; those link out with no price shown.
