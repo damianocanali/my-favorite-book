@@ -115,7 +115,8 @@ export default async function handler(req) {
     // higher-quality / pricier sibling, deferred unless quality demands it.
     const model = isPhotoMode
       ? 'black-forest-labs/FLUX.1-kontext-pro'
-      : 'black-forest-labs/FLUX.1-schnell'
+      // FLUX.1-schnell left Together's serverless tier; see generate-image.js.
+      : 'black-forest-labs/FLUX.2-dev'
 
     const requestBody = isPhotoMode
       ? {

@@ -4,7 +4,7 @@ import { promptName, promptDescription, promptLabel } from '../i18n/contentCatal
 // EVERYTHING IN THIS FILE IS ENGLISH ON PURPOSE AND MUST STAY ENGLISH.
 //
 // The style tokens and the carrier sentences below are sent verbatim to
-// FLUX.1-schnell / FLUX.1-kontext-dev via /api/generate-image. Those models
+// FLUX.2-dev / FLUX.1-kontext-pro via /api/generate-image. Those models
 // are trained overwhelmingly on English captions, so translating any of this
 // degrades the illustration a child gets.
 //

@@ -13,14 +13,17 @@ const ANTHROPIC_PRICES = {
   'claude-opus-4-7':             { input: 1500, output: 7500 },   // $15.00 / $75.00 per 1M
 }
 
-// Together AI — per image (any FLUX schnell call is roughly the same).
-// Source: together.ai/pricing as of 2026-04. Update when changed.
+// Together AI — per image. FLUX.2-dev is priced per image; kontext-pro per
+// megapixel ($0.04/MP), which at our 512x512 and 768x512 sizes is ~1-1.6 cents.
+// Source: Together's /v1/models pricing, checked 2026-09-26. Update when changed.
+// schnell and kontext-dev are kept only so historical usage rows still price.
 const TOGETHER_IMAGE_PRICES = {
-  'black-forest-labs/FLUX.1-schnell':      0.5,  // ~$0.005/image = 0.5 cents
-  'black-forest-labs/FLUX.1-dev':          2.5,  // ~$0.025/image = 2.5 cents
-  'black-forest-labs/FLUX.1-pro':          5,    // ~$0.05/image = 5 cents
-  'black-forest-labs/FLUX.1-kontext-dev':  3,    // ~$0.03/image = 3 cents (image edit)
-  'black-forest-labs/FLUX.1-kontext-pro':  6,    // ~$0.06/image = 6 cents (image edit, higher fidelity)
+  'black-forest-labs/FLUX.2-dev':          1.5,  // ~$0.015/image
+  'black-forest-labs/FLUX.1-kontext-pro':  1.6,  // ~$0.04/MP x 0.39MP (768x512)
+  'black-forest-labs/FLUX.1-schnell':      0.5,  // retired from serverless 2026-09
+  'black-forest-labs/FLUX.1-kontext-dev':  3,    // retired from serverless 2026-09
+  'black-forest-labs/FLUX.1-dev':          2.5,
+  'black-forest-labs/FLUX.1-pro':          5,
 }
 
 export function estimateAnthropicCostCents({ model, input_tokens = 0, output_tokens = 0 }) {
