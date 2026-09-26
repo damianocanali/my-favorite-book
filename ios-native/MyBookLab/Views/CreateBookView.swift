@@ -818,37 +818,29 @@ private struct PagesStep: View {
         if let book = draft.book, currentIndex < book.pages.count {
             VStack(alignment: .leading, spacing: 12) {
                 // Illustration slot
-                Group {
-                    if let data = book.pages[currentIndex].illustrationData,
-                       let url = URL(string: data) {
-                        AsyncImage(url: url) { phase in
-                            if let img = phase.image {
-                                img.resizable()
-                                    .aspectRatio(contentMode: .fill)
-                            } else if phase.error != nil {
-                                Image(systemName: "photo")
-                                    .foregroundStyle(.white.opacity(0.5))
-                            } else {
-                                ProgressView().tint(.white)
-                            }
-                        }
-                    } else if let data = book.pages[currentIndex].illustrationData,
-                              data.hasPrefix("data:image") {
-                        // base64 data URL — render via UIImage
-                        if let img = decodeBase64Image(data) {
-                            Image(uiImage: img).resizable().aspectRatio(contentMode: .fill)
-                        }
-                    } else {
-                        VStack(spacing: 6) {
-                            Image(systemName: "sparkles")
-                                .font(.system(size: 40))
-                                .foregroundStyle(.white.opacity(0.5))
-                            Text("Tap Illustrate to add a picture")
-                                .font(.caption)
-                                .foregroundStyle(.white.opacity(0.5))
-                        }
+                // GeneratedImageView, not a hand-rolled URL check. The old code
+                // tried URL(string:) first, and that ALSO accepts
+                // "data:image/png;base64,…" — data: is a valid URL scheme — so
+                // an illustration still stored inline went to AsyncImage as if
+                // it were a web address and never rendered. Opening a book to
+                // edit showed no pictures; saving uploaded them to Storage and
+                // swapped in http URLs, which is why they came back after a
+                // save. GeneratedImageView decodes inline data first and only
+                // treats http(s) as a URL.
+                GeneratedImageView(source: book.pages[currentIndex].illustrationData) {
+                    VStack(spacing: 6) {
+                        Image(systemName: "sparkles")
+                            .font(.system(size: 40))
+                            .foregroundStyle(.white.opacity(0.5))
+                        Text("Tap Illustrate to add a picture")
+                            .font(.caption)
+                            .foregroundStyle(.white.opacity(0.5))
                     }
                 }
+                // Re-create per page: without an identity tied to the page,
+                // swiping between pages could keep showing the previous one's
+                // AsyncImage while the next loads.
+                .id(book.pages[currentIndex].id)
                 .frame(maxWidth: .infinity)
                 .frame(height: hSize == .regular ? 360 : 200)
                 .background(.white.opacity(0.06), in: RoundedRectangle(cornerRadius: 16))
@@ -980,11 +972,6 @@ private struct PagesStep: View {
         }
     }
 
-    private func decodeBase64Image(_ dataURL: String) -> UIImage? {
-        let parts = dataURL.split(separator: ",", maxSplits: 1)
-        guard parts.count == 2, let data = Data(base64Encoded: String(parts[1])) else { return nil }
-        return UIImage(data: data)
-    }
 }
 
 // Convenience array safe-subscript
