@@ -178,9 +178,10 @@ export default function CreatePage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
         >
-          {/* A class (student) account never sees a pricing link (global
-              constraint) — see this task's report for the pre-existing gap
-              this exposes (plan.maxBooks has no student-aware value). */}
+          {/* Unreachable in practice — the student plan's maxBooks is
+              Infinity (lib/plans.js), so this gate never fires for a class
+              account — kept as defense in depth: a class account never
+              sees a pricing link (global constraint), regardless. */}
           {!isStudent && (
             <SparkleButton onClick={() => navigate('/pricing')} size="large" variant="primary">
               {t('wizard:gate.upgrade')}

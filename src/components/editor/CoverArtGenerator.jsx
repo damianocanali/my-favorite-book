@@ -157,13 +157,12 @@ export default function CoverArtGenerator() {
               )}
             </>
           ) : isStudent ? (
-            // A class account never sees a pricing link (global
-            // constraint), so the one affordance this branch otherwise
-            // offers — "Upgrade" — is hidden rather than shown disabled.
-            // Cover generation itself stays gated behind `isPaid`, which a
-            // student account (no `subscriptions` row) never satisfies —
-            // see this task's report for why that's flagged as a separate,
-            // pre-existing gap rather than fixed here.
+            // Unreachable in practice — a class account's plan (lib/plans.js)
+            // always has isPaid:true, so this branch is never actually taken
+            // for a student — kept only as defense in depth: if `isPaid`
+            // were ever miscomputed for a student, the one affordance this
+            // branch otherwise offers ("Upgrade") must still not appear
+            // (global constraint: no pricing links for a class account).
             null
           ) : (
             <motion.button

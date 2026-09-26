@@ -155,10 +155,12 @@ export default function PreviewPage() {
           </button>
         )}
 
-        {/* Locked (free-plan) PDF export otherwise falls through to
-            navigate('/pricing') in handlePrint — a class (student) account
-            never sees a pricing link (global constraint), so this button is
-            hidden for them entirely rather than shown disabled. */}
+        {/* A locked (pdfExport:false) plan's button otherwise falls through
+            to navigate('/pricing') in handlePrint — true for the free plan,
+            and also for the student plan by design (lib/plans.js: printing
+            is a consumer feature class accounts are fenced away from). A
+            class account never sees a pricing link (global constraint), so
+            this button is hidden entirely rather than shown disabled. */}
         {!isNative && !isStudent && (
           <button
             onClick={handlePrint}
