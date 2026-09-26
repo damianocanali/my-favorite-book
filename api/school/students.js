@@ -1,0 +1,233 @@
+export const config = { runtime: 'edge' }
+
+import { handleCors, checkRateLimit } from '../_rateLimit.js'
+import { requireClassOwner, sb, json, isUuid } from '../_school.js'
+import { generatePictureSecret, hashPictureSecret, syntheticStudentEmail } from '../../lib/school/crypto.js'
+import { AVATAR_EMOJI } from '../../lib/school/pictures.js'
+import { isLicenseUsable, MAX_SEATS } from '../../lib/school/license.js'
+
+const PUBLIC = 'id,display_name,avatar_emoji,status,locked_until,hard_locked,last_sign_in_at,created_at'
+const SELECT_WITH_AUTH = `${PUBLIC},auth_user_id`
+const BAN_FOREVER = '876000h'
+
+// Built from an explicit allowlist rather than by deleting known-bad keys, so
+// a stray column in a PostgREST representation (secret_hash, auth_user_id,
+// secret_version, classroom_id, failed_attempts...) can never leak through by
+// omission — it simply isn't copied to the output.
+function publicShape(row) {
+  const { id, display_name, avatar_emoji, status, hard_locked, last_sign_in_at, created_at, locked_until } = row
+  return {
+    id,
+    display_name,
+    avatar_emoji,
+    status,
+    hard_locked,
+    last_sign_in_at,
+    created_at,
+    locked: !!locked_until && new Date(locked_until) > new Date(),
+  }
+}
+
+const cleanName = (n) => String(n ?? '').trim().replace(/\s+/g, ' ').slice(0, 24)
+
+function randomPassword() {
+  const b = crypto.getRandomValues(new Uint8Array(48))
+  return btoa(String.fromCharCode(...b)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+}
+
+async function loadLicense(classroomId) {
+  const rows = await sb(`/rest/v1/class_licenses?classroom_id=eq.${classroomId}&select=status,expires_at,seats`)
+    .then((r) => r.json()).catch(() => [])
+  return rows?.[0] ?? null
+}
+
+async function activeStudents(classroomId) {
+  return sb(`/rest/v1/class_students?classroom_id=eq.${classroomId}&status=eq.active&select=id,display_name,avatar_emoji`)
+    .then((r) => r.json()).catch(() => [])
+}
+
+async function createOne({ classroomId, name, emoji, pepper }) {
+  const authRes = await sb('/auth/v1/admin/users', {
+    method: 'POST',
+    body: JSON.stringify({
+      email: syntheticStudentEmail(),
+      password: randomPassword(), // never stored or shown; sign-in mints sessions
+      email_confirm: true,
+      app_metadata: { role: 'student', classroom_id: classroomId },
+      user_metadata: { display_name: name },
+    }),
+  })
+  if (!authRes.ok) return null
+  const authUser = await authRes.json()
+  const authId = authUser.id
+
+  try {
+    const id = crypto.randomUUID()
+    const pictures = generatePictureSecret()
+    const ins = await sb('/rest/v1/class_students', {
+      method: 'POST',
+      body: JSON.stringify({
+        id,
+        classroom_id: classroomId,
+        auth_user_id: authId,
+        display_name: name,
+        avatar_emoji: emoji,
+        secret_hash: await hashPictureSecret(pepper, id, pictures),
+        secret_version: 1,
+      }),
+    })
+    if (!ins.ok) throw new Error(`insert ${ins.status}`)
+    const meta = await sb(`/auth/v1/admin/users/${authId}`, {
+      method: 'PUT',
+      body: JSON.stringify({ app_metadata: { role: 'student', classroom_id: classroomId, student_id: id } }),
+    })
+    if (!meta.ok) throw new Error(`metadata ${meta.status}`)
+    return { id, display_name: name, avatar_emoji: emoji, pictures }
+  } catch (e) {
+    console.error('[school/students] create failed, removing auth user', e?.message)
+    await sb(`/auth/v1/admin/users/${authId}`, { method: 'DELETE' })
+    return null
+  }
+}
+
+export default async function handler(req) {
+  const cors = handleCors(req)
+  if (cors) return cors
+
+  try {
+    const pepper = process.env.STUDENT_SECRET_PEPPER
+
+    if (req.method === 'GET') {
+      const classId = new URL(req.url).searchParams.get('classId')
+      const o = await requireClassOwner(req, classId)
+      if (!o.ok) return o.response
+      const rows = await sb(`/rest/v1/class_students?classroom_id=eq.${o.classroom.id}&select=${PUBLIC}&order=display_name.asc`)
+        .then((r) => r.json()).catch(() => [])
+      return json(req, 200, { students: rows.map(publicShape) })
+    }
+
+    const body = await req.json().catch(() => ({}))
+    const o = await requireClassOwner(req, body.classId)
+    if (!o.ok) return o.response
+    if (!pepper) return json(req, 503, { error: 'Schools feature not configured', code: 'not_configured' })
+    if (!checkRateLimit(`school-students:${o.auth.userId}`, 120).allowed) {
+      return json(req, 429, { error: 'Too many requests', code: 'rate_limited' })
+    }
+    const classroomId = o.classroom.id
+
+    if (req.method === 'POST') {
+      const license = await loadLicense(classroomId)
+      if (!isLicenseUsable(license)) return json(req, 403, { error: 'This class needs an active license', code: 'license_required' })
+      const input = Array.isArray(body.students) ? body.students.slice(0, MAX_SEATS) : []
+      const existing = await activeStudents(classroomId)
+      const taken = new Set(existing.map((s) => s.display_name.toLowerCase()))
+      const usedEmoji = new Set(existing.map((s) => s.avatar_emoji))
+
+      const skipped = []
+      const todo = []
+      for (const s of input) {
+        const name = cleanName(s?.name)
+        if (!name) continue
+        if (taken.has(name.toLowerCase())) {
+          skipped.push({ name, code: 'duplicate_name' })
+          continue
+        }
+        taken.add(name.toLowerCase())
+        const emoji = AVATAR_EMOJI.includes(s?.emoji) ? s.emoji : AVATAR_EMOJI.find((e) => !usedEmoji.has(e)) ?? AVATAR_EMOJI[0]
+        usedEmoji.add(emoji)
+        todo.push({ name, emoji })
+      }
+      if (existing.length + todo.length > license.seats) {
+        return json(req, 409, { error: 'Not enough seats in this class', code: 'seats_full', seats: license.seats, used: existing.length })
+      }
+
+      const created = []
+      for (const s of todo) {
+        const c = await createOne({ classroomId, name: s.name, emoji: s.emoji, pepper })
+        if (c) created.push(c)
+        else skipped.push({ name: s.name, code: 'create_failed' })
+      }
+      return json(req, 201, { created, skipped })
+    }
+
+    if (req.method === 'PATCH') {
+      if (!isUuid(body.id)) return json(req, 400, { error: 'Invalid student id', code: 'bad_request' })
+      const scopedPath = `/rest/v1/class_students?id=eq.${body.id}&classroom_id=eq.${classroomId}`
+      const rows = await sb(`${scopedPath}&select=${SELECT_WITH_AUTH}`).then((r) => r.json()).catch(() => [])
+      const student = rows?.[0]
+      if (!student) return json(req, 404, { error: 'Student not found', code: 'student_not_found' })
+      const { auth_user_id: authId } = student
+
+      const patchRow = (p) =>
+        sb(`${scopedPath}&select=${SELECT_WITH_AUTH}`, {
+          method: 'PATCH',
+          headers: { Prefer: 'return=representation' },
+          body: JSON.stringify(p),
+        })
+      const reselect = () => sb(`${scopedPath}&select=${SELECT_WITH_AUTH}`).then((r) => r.json()).catch(() => [])
+      const signOut = () => sb('/rest/v1/rpc/school_sign_out_user', { method: 'POST', body: JSON.stringify({ p_user_id: authId }) })
+      const reply = async (res, extra = {}) => {
+        if (!res.ok) return json(req, 502, { error: 'Could not update student', code: 'upstream' })
+        const [row] = await res.json()
+        return json(req, 200, { student: publicShape(row), ...extra })
+      }
+      const UNLOCK = { failed_attempts: 0, locked_until: null, hard_locked: false }
+
+      switch (body.action) {
+        case 'reset_secret': {
+          const pictures = generatePictureSecret()
+          return reply(
+            await patchRow({ ...UNLOCK, secret_hash: await hashPictureSecret(pepper, student.id, pictures), secret_version: 1 }),
+            { pictures }
+          )
+        }
+        case 'unlock':
+          return reply(await patchRow(UNLOCK))
+        case 'rename': {
+          const p = {}
+          if (body.name !== undefined) {
+            const name = cleanName(body.name)
+            if (!name) return json(req, 400, { error: 'Name is required', code: 'name_required' })
+            const clash = (await activeStudents(classroomId)).some(
+              (s) => s.id !== student.id && s.display_name.toLowerCase() === name.toLowerCase()
+            )
+            if (clash) return json(req, 409, { error: 'Another student has that name', code: 'duplicate_name' })
+            p.display_name = name
+          }
+          if (AVATAR_EMOJI.includes(body.emoji)) p.avatar_emoji = body.emoji
+          return reply(await patchRow(p))
+        }
+        case 'sign_out': {
+          // No empty-body PATCH: RPC-sign-out, then re-select the row to
+          // build the reply, rather than issuing a no-op write.
+          const res = await signOut()
+          if (!res.ok) return json(req, 502, { error: 'Could not update student', code: 'upstream' })
+          const rows2 = await reselect()
+          if (!rows2?.[0]) return json(req, 502, { error: 'Could not update student', code: 'upstream' })
+          return json(req, 200, { student: publicShape(rows2[0]) })
+        }
+        case 'remove': {
+          const res = await patchRow({ status: 'removed', removed_at: new Date().toISOString() })
+          await sb(`/auth/v1/admin/users/${authId}`, { method: 'PUT', body: JSON.stringify({ ban_duration: BAN_FOREVER }) })
+          await signOut()
+          return reply(res)
+        }
+        case 'restore': {
+          const license = await loadLicense(classroomId)
+          const used = (await activeStudents(classroomId)).length
+          if (!license || used + 1 > license.seats) return json(req, 409, { error: 'Not enough seats in this class', code: 'seats_full' })
+          const res = await patchRow({ status: 'active', removed_at: null })
+          await sb(`/auth/v1/admin/users/${authId}`, { method: 'PUT', body: JSON.stringify({ ban_duration: 'none' }) })
+          return reply(res)
+        }
+        default:
+          return json(req, 400, { error: 'Unknown action', code: 'bad_request' })
+      }
+    }
+
+    return json(req, 405, { error: 'Method not allowed', code: 'method_not_allowed' })
+  } catch (e) {
+    console.error('school/students: unhandled error', e)
+    return json(req, 503, { error: 'Service unavailable, try again', code: 'upstream' })
+  }
+}
