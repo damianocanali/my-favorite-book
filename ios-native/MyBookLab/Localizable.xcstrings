@@ -2584,7 +2584,7 @@
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Felicità"
+            "value": "Gioia"
           }
         }
       }
@@ -2620,6 +2620,17 @@
       }
     },
     "How are you doing?": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Come stai?"
+          }
+        }
+      }
+    },
+    "How are you?": {
+      "comment": "Label under the check-in mascot button in the page editor",
       "localizations": {
         "it": {
           "stringUnit": {
@@ -4683,6 +4694,23 @@
         }
       }
     },
+    "story.idea.hint.pad.writing": {
+      "comment": "Footnote on the story-idea popup, iPad wording",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shake your iPad while you write for a new idea ✨"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scuoti l'iPad mentre scrivi per una nuova idea ✨"
+          }
+        }
+      }
+    },
     "story.idea.hint.phone": {
       "comment": "Footnote on the story-idea popup, iPhone wording",
       "extractionState": "stale",
@@ -4697,6 +4725,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "Scuoti il telefono quando vuoi per una nuova idea ✨"
+          }
+        }
+      }
+    },
+    "story.idea.hint.phone.writing": {
+      "comment": "Footnote on the story-idea popup, iPhone wording",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shake your phone while you write for a new idea ✨"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scuoti il telefono mentre scrivi per una nuova idea ✨"
           }
         }
       }
@@ -5468,51 +5513,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "CAP"
-          }
-        }
-      }
-    },
-    "How are you?": {
-      "comment": "Label under the check-in mascot button in the page editor",
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Come stai?"
-          }
-        }
-      }
-    },
-    "story.idea.hint.phone.writing": {
-      "comment": "Hint in the page editor, iPhone wording",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Shake your phone while you write for a new idea ✨"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Scuoti il telefono mentre scrivi per una nuova idea ✨"
-          }
-        }
-      }
-    },
-    "story.idea.hint.pad.writing": {
-      "comment": "Hint in the page editor, iPad wording",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Shake your iPad while you write for a new idea ✨"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Scuoti l'iPad mentre scrivi per una nuova idea ✨"
           }
         }
       }
