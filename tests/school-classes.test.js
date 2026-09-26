@@ -187,6 +187,54 @@ describe('POST /api/school/classes', () => {
     expect((await res.json()).code).toBe('bad_timezone')
     expect(log.filter((l) => l.method === 'POST').length).toBe(0)
   })
+
+  it('still returns 201 with license:null when the trial license insert fails, logging the error', async () => {
+    const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    mockSupabase({
+      user: TEACHER,
+      routes: [
+        { method: 'POST', match: '/rest/v1/classrooms', reply: { status: 201, body: [{ ...baseClassRow, id: 'new-class-9' }] } },
+        { method: 'GET', match: '/rest/v1/class_licenses', reply: { body: [] } },
+        { method: 'POST', match: '/rest/v1/class_licenses', reply: { status: 500, body: { message: 'insert failed' } } },
+        { method: 'GET', match: '/rest/v1/classrooms', reply: { body: [{ ...baseClassRow, id: 'new-class-9', class_licenses: null, class_students: [{ count: 0 }] }] } },
+      ],
+    })
+    const { default: handler } = await import('../api/school/classes.js')
+    const res = await handler(call('POST', { name: 'Room 9' }))
+    expect(res.status).toBe(201)
+    const body = await res.json()
+    expect(body.class.license).toBeNull()
+    expect(errSpy).toHaveBeenCalled()
+    errSpy.mockRestore()
+  })
+
+  it('returns 429 rate_limited once the hourly cap is exceeded', async () => {
+    mockSupabase({
+      user: TEACHER,
+      routes: [
+        { method: 'POST', match: '/rest/v1/classrooms', reply: { status: 201, body: [{ ...baseClassRow, id: 'rl-class' }] } },
+        // 3 existing trials so no license insert is attempted on any of the 60 allowed calls.
+        { method: 'GET', match: '/rest/v1/class_licenses', reply: { body: [{ id: 'a' }, { id: 'b' }, { id: 'c' }] } },
+        { method: 'GET', match: '/rest/v1/classrooms', reply: { body: [{ ...baseClassRow, id: 'rl-class', class_licenses: null, class_students: [{ count: 0 }] }] } },
+      ],
+    })
+    const { default: handler } = await import('../api/school/classes.js')
+    let last
+    for (let i = 0; i < 61; i++) {
+      last = await handler(call('POST', { name: `Room ${i}` }))
+    }
+    expect(last.status).toBe(429)
+    expect((await last.json()).code).toBe('rate_limited')
+  })
+})
+
+describe('CORS preflight', () => {
+  it('OPTIONS on the classes handler allows PATCH', async () => {
+    const { default: handler } = await import('../api/school/classes.js')
+    const res = await handler(new Request('https://app.test/api/school/classes', { method: 'OPTIONS' }))
+    expect(res.status).toBe(204)
+    expect(res.headers.get('Access-Control-Allow-Methods')).toContain('PATCH')
+  })
 })
 
 describe('PATCH /api/school/classes', () => {
