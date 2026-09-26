@@ -3,6 +3,7 @@ import { useCheckInStore } from '../../stores/useCheckInStore'
 import { useAccessibilityStore } from '../../stores/useAccessibilityStore'
 import { useAuthStore } from '../../stores/useAuthStore'
 import { shareCheckIn, askForHelp } from '../../lib/schoolShare'
+import { createRequestToken } from '../../lib/requestToken'
 import CheckInSheet from './CheckInSheet'
 import BreakScreen from './BreakScreen'
 import HelpScreen from './HelpScreen'
@@ -26,6 +27,16 @@ export default function CheckInHost() {
   // the three fixed end-states (failed / out-of-hours / in-hours) off of
   // this shape.
   const [teacherHelp, setTeacherHelp] = useState(null)
+  // Guards askForHelp('grownup')'s promise against resolving late: without
+  // it, closing the pending screen before the promise settles would still
+  // let its eventual `.then` reopen TeacherHelpScreen (stealing focus back,
+  // possibly starting polling), and a second 'grownup' ask started before
+  // the first resolves could have its own state clobbered by the first's
+  // stale result arriving after. See src/lib/requestToken.js for why this
+  // is one ever-incrementing counter rather than a "reset to 0 on clear"
+  // scheme (the latter can reissue a token a still-in-flight call already
+  // holds).
+  const teacherHelpTokenRef = useRef(createRequestToken())
 
   // `entries` is newest-first, so the entry to react to is entries[0]. But
   // this store is persisted, and zustand's persist middleware hydrates
@@ -89,8 +100,14 @@ export default function CheckInHost() {
     // who just said they need a grown-up must never be left staring at
     // nothing in the meantime.
     if (latest.need === 'grownup') {
+      const token = teacherHelpTokenRef.current.next()
       setTeacherHelp({ pending: true })
-      askForHelp('grownup', user).then((result) => setTeacherHelp(result))
+      askForHelp('grownup', user).then((result) => {
+        // Only act if this is still the current ask — stale if the child
+        // already closed the screen (clear()'d in onDone below) or a
+        // second 'grownup' ask has since started (next()'d again above).
+        if (teacherHelpTokenRef.current.isCurrent(token)) setTeacherHelp(result)
+      })
     }
   }, [latest?.at, latest?.need, setFocusMode, user])
 
@@ -115,7 +132,12 @@ export default function CheckInHost() {
           ok={teacherHelp.ok}
           id={teacherHelp.id}
           inHours={teacherHelp.inHours}
-          onDone={() => setTeacherHelp(null)}
+          onDone={() => {
+            // Invalidates the in-flight ask (if any) so its late resolve
+            // can't reopen this screen after the child chose to close it.
+            teacherHelpTokenRef.current.clear()
+            setTeacherHelp(null)
+          }}
         />
       )}
     </>
