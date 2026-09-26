@@ -1,10 +1,14 @@
-// The child's own check-ins, as a constellation.
+// The child's own check-ins, as a constellation of named feelings.
 //
 // No counts, no charts, no streaks. The obvious version of this panel reads
 // "angry: 8 this week", which teaches a child that some feelings are a bad
-// score; counts invite comparison and comparison invites shame. Each check-in
-// is one star, coloured by feeling. The layout's message is: all of these are
-// normal, and you noticed them.
+// score. So each feeling they have noticed appears ONCE, as a star with its
+// word beneath it, and the stars are joined by a faint line in the order each
+// was last felt. The layout's message is: all of these are normal, and you
+// noticed them.
+//
+// It used to be one unlabelled dot per check-in, which read as confetti: a
+// child could not tell which colour was which feeling.
 //
 // Never surfaced in a celebration, never mentioned by the mascot, never shown
 // unprompted. It lives on the Account screen and waits to be looked at.
@@ -14,61 +18,105 @@ import SwiftUI
 struct FeelingConstellation: View {
     @Environment(CheckInStore.self) private var store
 
+    /// The panel keeps the web's 320x200 shape, which is the geometry the
+    /// no-overlap test in tests/constellation.test.js is written against.
+    private let aspect: CGFloat = 320.0 / 200.0
+
     var body: some View {
+        let feelings = constellationFeelings(store.entries)
+
         VStack(alignment: .leading, spacing: 10) {
             Text("How you've been")
                 .font(.system(.headline, design: .rounded))
                 .foregroundStyle(.white)
 
-            if store.entries.isEmpty {
+            if feelings.isEmpty {
                 Text("Your check-ins will show up here, as stars.")
                     .font(.footnote)
                     .foregroundStyle(.white.opacity(0.6))
             } else {
                 GeometryReader { geo in
-                    ZStack {
-                        ForEach(Array(store.entries.enumerated()), id: \.element.id) { index, entry in
-                            Circle()
-                                .fill(color(for: entry.feeling))
-                                .frame(width: 10, height: 10)
-                                .position(position(index: index, total: store.entries.count, in: geo.size))
-                                .opacity(0.9)
-                                .accessibilityLabel(Text(accessibilityLabel(for: entry)))
+                    let pts = points(for: feelings, in: geo.size)
+                    ZStack(alignment: .topLeading) {
+                        backgroundStars(in: geo.size)
+
+                        if pts.count > 1 {
+                            Path { path in
+                                path.move(to: pts[0])
+                                for p in pts.dropFirst() { path.addLine(to: p) }
+                            }
+                            .stroke(.white.opacity(0.28),
+                                    style: StrokeStyle(lineWidth: 1, lineCap: .round, dash: [2, 3]))
+                        }
+
+                        ForEach(Array(feelings.enumerated()), id: \.element) { i, feeling in
+                            star(feeling, at: pts[i], width: geo.size.width)
                         }
                     }
                 }
-                .frame(height: 120)
+                .aspectRatio(aspect, contentMode: .fit)
                 .background(.white.opacity(0.05), in: RoundedRectangle(cornerRadius: 16))
+                // One sentence for the whole picture, in the child's language.
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(Text(feelings.map { String(localized: $0.displayName) }
+                                            .formatted(.list(type: .and))))
             }
         }
     }
 
-    /// Scattered, not plotted. A deterministic hash keeps each star in the same
-    /// place between launches — a constellation that reshuffles every time you
-    /// open it is not a constellation — while avoiding a grid, which would
-    /// read as a chart and invite exactly the counting this design refuses.
-    private func position(index: Int, total: Int, in size: CGSize) -> CGPoint {
-        let golden = 2.399963   // radians; spreads points without clustering
-        let angle = Double(index) * golden
-        let radius = sqrt(Double(index) + 0.5) / sqrt(Double(max(total, 1)))
-        let x = 0.5 + 0.44 * radius * cos(angle)
-        let y = 0.5 + 0.40 * radius * sin(angle)
-        return CGPoint(x: x * size.width, y: y * size.height)
+    private func points(for feelings: [Feeling], in size: CGSize) -> [CGPoint] {
+        let layout = constellationLayouts[min(feelings.count, constellationLayouts.count - 1)]
+        return layout.map { CGPoint(x: $0.x * size.width, y: $0.y * size.height) }
     }
 
-    private func accessibilityLabel(for entry: CheckInEntry) -> String {
-        let when = entry.at.formatted(date: .abbreviated, time: .omitted)
-        return "\(entry.feeling.rawValue), \(when)"
+    private func star(_ feeling: Feeling, at p: CGPoint, width: CGFloat) -> some View {
+        let tone = color(for: feeling)
+        // The word sits in a fixed-width box anchored the way the web anchors
+        // its SVG text: left-aligned from just left of the star near the left
+        // edge, right-aligned near the right edge, centred elsewhere. Plain
+        // .position, no measuring, so it lands the same way every time.
+        let box = width * 0.46
+        let (align, x): (Alignment, CGFloat) =
+            p.x < width * 0.2 ? (.leading, p.x - 6 + box / 2)
+          : p.x > width * 0.8 ? (.trailing, p.x + 6 - box / 2)
+          : (.center, p.x)
+        return ZStack {
+            ZStack {
+                Circle().fill(tone).frame(width: 10, height: 10).blur(radius: 3)
+                Circle().fill(tone).frame(width: 10, height: 10)
+                Circle().fill(.white).frame(width: 4, height: 4)
+            }
+            .position(p)
+
+            Text(feeling.displayName)
+                .font(.system(size: 13, weight: .bold, design: .rounded))
+                .foregroundStyle(tone)
+                .lineLimit(1)
+                .frame(width: box, alignment: align)
+                // The web draws the baseline 19 below the star; the text's
+                // centre sits ~15 below.
+                .position(x: x, y: p.y + 15)
+        }
+    }
+
+    /// A few fixed faint stars, so a single feeling still sits in a sky.
+    private func backgroundStars(in size: CGSize) -> some View {
+        let dots: [CGPoint] = [.init(x: 0.08, y: 0.11), .init(x: 0.94, y: 0.15), .init(x: 0.47, y: 0.06),
+                               .init(x: 0.19, y: 0.9), .init(x: 0.88, y: 0.92), .init(x: 0.6, y: 0.7)]
+        return ForEach(dots.indices, id: \.self) { i in
+            Circle().fill(.white.opacity(0.35)).frame(width: 2, height: 2)
+                .position(x: dots[i].x * size.width, y: dots[i].y * size.height)
+        }
     }
 
     private func color(for feeling: Feeling) -> Color {
         switch feeling.tone {
-        case "gold":   return Color(red: 0.96, green: 0.77, blue: 0.32)
-        case "purple": return Color(red: 0.65, green: 0.55, blue: 0.98)
-        case "blue":   return Color(red: 0.38, green: 0.65, blue: 0.98)
-        case "cyan":   return Color(red: 0.13, green: 0.83, blue: 0.93)
-        case "pink":   return Color(red: 0.96, green: 0.45, blue: 0.71)
-        default:       return Color(red: 0.51, green: 0.55, blue: 0.97)
+        case "gold":   return Color(red: 1.0, green: 0.84, blue: 0.04)
+        case "purple": return Color(red: 0.75, green: 0.35, blue: 0.95)
+        case "blue":   return Color(red: 0.39, green: 0.82, blue: 1.0)
+        case "cyan":   return Color(red: 0.4, green: 0.85, blue: 1.0)
+        case "pink":   return Color(red: 1.0, green: 0.22, blue: 0.37)
+        default:       return Color(red: 0.65, green: 0.55, blue: 1.0)
         }
     }
 }

@@ -30,6 +30,6 @@
   "constellation": {
     "title": "Feelings you've noticed",
     "empty": "Your feelings will show up here as stars.",
-    "star_aria": "{{feeling}}, {{date}}"
+    "aria": "Feelings you have noticed: {{feelings}}"
   }
 }

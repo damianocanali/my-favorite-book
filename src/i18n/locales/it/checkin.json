@@ -30,6 +30,6 @@
   "constellation": {
     "title": "Quello che hai notato",
     "empty": "Qui appariranno le tue stelline.",
-    "star_aria": "{{feeling}}, {{date}}"
+    "aria": "Le emozioni che hai notato: {{feelings}}"
   }
 }

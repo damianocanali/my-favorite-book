@@ -99,3 +99,37 @@ export function shouldOfferBreakpointCheckIn({ prevWritten, writtenCount, milest
   if (!(writtenCount > prevWritten)) return false
   return isEligibleForPrompt({ lastPromptedAt, nowMs })
 }
+
+/// The feelings a child has noticed, once each, oldest-remembered first.
+///
+/// One star per FEELING, not per check-in. Drawing every entry turns the sky
+/// into a tally — five angry stars is "angry: 5" with extra steps — and the
+/// whole point of the constellation is that it is not a score. Ordered by when
+/// each feeling was LAST noticed, so the line through them ends at how the
+/// child felt most recently.
+export function constellationFeelings(entries) {
+  const lastSeen = new Map()
+  for (const e of entries) {
+    const at = Date.parse(e.at)
+    if (!FEELINGS.some((f) => f.id === e.feeling)) continue
+    if (!lastSeen.has(e.feeling) || at > lastSeen.get(e.feeling)) lastSeen.set(e.feeling, at)
+  }
+  return [...lastSeen.entries()].sort((a, b) => a[1] - b[1]).map(([id]) => id)
+}
+
+/// Hand-placed star positions for one to six feelings, as fractions of the
+/// panel (x, y). Hand-placed rather than computed so the words can never land
+/// on each other: the longest label, Italian "Preoccupazione", is ~14
+/// characters, and a generated scatter put two labels on top of one another
+/// often enough to matter. Mirrored exactly in ios-native FeelingConstellation.
+export const CONSTELLATION_LAYOUTS = [
+  [],
+  [[0.5, 0.42]],
+  [[0.28, 0.58], [0.72, 0.34]],
+  [[0.18, 0.6], [0.5, 0.28], [0.82, 0.56]],
+  [[0.14, 0.58], [0.38, 0.26], [0.62, 0.6], [0.86, 0.3]],
+  // Five and six zigzag between two columns: with three words to a row, the
+  // Italian six-feeling sky put "Preoccupazione" across "Stanchezza".
+  [[0.22, 0.16], [0.74, 0.3], [0.26, 0.5], [0.76, 0.64], [0.24, 0.84]],
+  [[0.2, 0.14], [0.72, 0.26], [0.28, 0.46], [0.8, 0.56], [0.22, 0.8], [0.7, 0.86]],
+]
