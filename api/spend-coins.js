@@ -7,6 +7,7 @@ export const config = { runtime: 'edge' }
 
 import { checkRateLimit, handleCors, withCors } from './_rateLimit.js'
 import { verifyJwt } from './_auth.js'
+import { rejectStudent } from './_school.js'
 
 const MAX_SPEND = 1000
 
@@ -25,6 +26,8 @@ export default async function handler(req) {
 
   const auth = await verifyJwt(req)
   if (!auth.ok) return auth.response
+  const blocked = rejectStudent(auth, req)
+  if (blocked) return blocked
 
   const { allowed } = checkRateLimit(`spend-coins:${auth.userId}`, 120)
   if (!allowed) return json(429, { error: 'Too many requests' })

@@ -3,6 +3,7 @@ export const config = { runtime: 'edge' }
 import { checkRateLimit, getClientIp, handleCors, withCors } from './_rateLimit.js'
 import { verifyJwt } from './_auth.js'
 import { moderatePrompt } from './_aiGuard.js'
+import { rejectStudent } from './_school.js'
 
 function supabaseHeaders(serviceKey) {
   return {
@@ -77,6 +78,8 @@ export default async function handler(req) {
   // POST — publish or unpublish a book. Both require a signed-in user.
   const auth = await verifyJwt(req)
   if (!auth.ok) return auth.response
+  const blocked = rejectStudent(auth, req)
+  if (blocked) return blocked
   const userId = auth.userId
 
   let body

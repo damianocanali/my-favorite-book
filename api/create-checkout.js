@@ -3,6 +3,7 @@ export const config = { runtime: 'edge' }
 import { handleCors, withCors } from './_rateLimit.js'
 import { verifyJwt } from './_auth.js'
 import { checkoutBaseUrl } from './_origin.js'
+import { rejectStudent } from './_school.js'
 
 // Creates a Stripe Checkout session and returns the redirect URL.
 // Price IDs are resolved server-side — never exposed to the browser.
@@ -45,6 +46,8 @@ export default async function handler(req) {
 
   const auth = await verifyJwt(req)
   if (!auth.ok) return auth.response
+  const blocked = rejectStudent(auth, req)
+  if (blocked) return blocked
   const { userId, email } = auth
 
   if (!email) {

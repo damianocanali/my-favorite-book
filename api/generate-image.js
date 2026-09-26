@@ -3,6 +3,7 @@ import { logUsage, estimateTogetherImageCostCents } from './_usage.js'
 import { requireUser, validatePrompt, validateSourceImage, moderatePrompt, enforceDailyCap } from './_aiGuard.js'
 import { classifyAttestation, dailyCapFor, hourlyLimitFor } from './_appAttest.js'
 import { storeIllustration } from './_imageStore.js'
+import { isStudent, enforceStudentImageCap } from './_school.js'
 
 export const config = { runtime: 'edge' }
 
@@ -68,7 +69,11 @@ export default async function handler(req) {
     if (imageErr) return imageErr
     const modErr = await moderatePrompt(prompt, req)
     if (modErr) return modErr
-    const capErr = await enforceDailyCap(auth.userId, req, dailyCapFor(attest.attested))
+    // Students draw from their class's shared allowance, not the consumer
+    // daily cap (owner decision D5) — checked before the paid model call.
+    const capErr = isStudent(auth)
+      ? await enforceStudentImageCap(auth, req)
+      : await enforceDailyCap(auth.userId, req, dailyCapFor(attest.attested))
     if (capErr) return capErr
 
     // Image edits go through FLUX.1-Kontext-Dev (purpose-built for editing

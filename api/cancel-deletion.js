@@ -2,6 +2,7 @@ export const config = { runtime: 'edge' }
 
 import { handleCors, withCors } from './_rateLimit.js'
 import { verifyJwt } from './_auth.js'
+import { rejectStudent } from './_school.js'
 
 export default async function handler(req) {
   const corsResponse = handleCors(req)
@@ -21,6 +22,8 @@ export default async function handler(req) {
 
   const auth = await verifyJwt(req)
   if (!auth.ok) return auth.response
+  const blocked = rejectStudent(auth, req)
+  if (blocked) return blocked
 
   const res = await fetch(`${supabaseUrl}/rest/v1/account_deletions?user_id=eq.${auth.userId}`, {
     method: 'DELETE',

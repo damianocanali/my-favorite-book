@@ -2,6 +2,7 @@
 // client keys (migration 018), so all access is here, with the service role.
 import { verifyJwt } from './_auth.js'
 import { withCors } from './_rateLimit.js'
+import { STUDENT_DAILY_IMAGES } from '../lib/school/license.js'
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 export const isUuid = (s) => typeof s === 'string' && UUID_RE.test(s)
@@ -32,6 +33,28 @@ export function rejectStudent(auth, req) {
   return isStudent(auth)
     ? json(req, 403, { error: 'Not available for class accounts', code: 'student_forbidden' })
     : null
+}
+
+// Students draw AI images from their class's allowance (owner decision D5),
+// not the consumer daily cap. Fails CLOSED: an unmetered class is a bill.
+export async function enforceStudentImageCap(auth, req) {
+  if (!isStudent(auth)) return null
+  const studentId = auth.appMetadata?.student_id
+  if (!studentId) return json(req, 403, { error: 'Not available for class accounts', code: 'student_forbidden' })
+  try {
+    const res = await sb('/rest/v1/rpc/school_bump_image', {
+      method: 'POST',
+      body: JSON.stringify({ p_student_id: studentId, p_daily_limit: STUDENT_DAILY_IMAGES }),
+    })
+    if (!res.ok) return json(req, 503, { error: 'Try again in a minute', code: 'upstream' })
+    const allowed = await res.json()
+    if (allowed === false) {
+      return json(req, 429, { error: "That's all the pictures for today. Ask your teacher.", code: 'class_image_limit' })
+    }
+    return null
+  } catch {
+    return json(req, 503, { error: 'Try again in a minute', code: 'upstream' })
+  }
 }
 
 export async function requireTeacher(req) {

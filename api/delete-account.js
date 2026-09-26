@@ -3,6 +3,7 @@ export const config = { runtime: 'edge' }
 import { handleCors, withCors } from './_rateLimit.js'
 import { verifyJwt } from './_auth.js'
 import { GRACE_DAYS } from '../lib/deleteUser.js'
+import { rejectStudent } from './_school.js'
 
 // Recoverable deletion: POST schedules it (idempotent), GET reports status.
 // The actual hard delete happens later in the purge cron (lib/deleteUser.js).
@@ -28,6 +29,8 @@ export default async function handler(req) {
 
   const auth = await verifyJwt(req)
   if (!auth.ok) return auth.response
+  const blocked = rejectStudent(auth, req)
+  if (blocked) return blocked
   const { userId } = auth
 
   const headers = {

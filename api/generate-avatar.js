@@ -5,6 +5,7 @@ import { logUsage, estimateTogetherImageCostCents } from './_usage.js'
 import { requireUser, validateSourceImage, moderatePrompt, enforceDailyCap } from './_aiGuard.js'
 import { classifyAttestation, dailyCapFor, hourlyLimitFor } from './_appAttest.js'
 import { storeIllustration } from './_imageStore.js'
+import { isStudent, rejectStudent, enforceStudentImageCap } from './_school.js'
 
 const TOGETHER_API_URL = 'https://api.together.xyz/v1/images/generations'
 const AVATAR_LIMIT = 10 // per hour per IP
@@ -81,6 +82,10 @@ export default async function handler(req) {
   try {
     const { features, artStyle, sourceImage } = payload
 
+    // A class account never uploads a photo of a child — no consent chain
+    // for that image exists on this account type.
+    if (isStudent(auth) && sourceImage) return rejectStudent(auth, req)
+
     const imageErr = validateSourceImage(sourceImage, req)
     if (imageErr) return imageErr
 
@@ -106,7 +111,11 @@ export default async function handler(req) {
 
     const modErr = await moderatePrompt(prompt, req)
     if (modErr) return modErr
-    const capErr = await enforceDailyCap(auth.userId, req, dailyCapFor(attest.attested))
+    // Students draw from their class's shared allowance, not the consumer
+    // daily cap (owner decision D5) — checked before the paid model call.
+    const capErr = isStudent(auth)
+      ? await enforceStudentImageCap(auth, req)
+      : await enforceDailyCap(auth.userId, req, dailyCapFor(attest.attested))
     if (capErr) return capErr
 
     // FLUX.1-kontext-pro is the serverless image-to-image model on Together.
