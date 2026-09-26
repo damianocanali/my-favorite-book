@@ -10,10 +10,12 @@ import { Sparkles, Printer } from 'lucide-react'
 import { SAMPLE_BOOK } from '../data/sampleBook'
 import BookPreview from '../components/book/BookPreview'
 import BackMatterPreview from '../components/print/BackMatterPreview'
+import { useIsStudent } from '../hooks/useIsStudent'
 
 export default function ExampleBookPage() {
   const navigate = useNavigate()
   const { t } = useTranslation()
+  const isStudent = useIsStudent()
 
   return (
     <div className="min-h-screen text-galaxy-text font-body">
@@ -69,13 +71,17 @@ export default function ExampleBookPage() {
             <Sparkles size={16} />
             {t('marketing:example.cta_create')}
           </button>
-          <button
-            onClick={() => navigate('/pricing')}
-            className="flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl glass border border-galaxy-text-muted/20 text-galaxy-text hover:border-galaxy-text-muted/40 transition-colors"
-          >
-            <Printer size={16} />
-            {t('marketing:example.cta_pricing')}
-          </button>
+          {/* A class (student) account never sees a pricing link (global
+              constraint). */}
+          {!isStudent && (
+            <button
+              onClick={() => navigate('/pricing')}
+              className="flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl glass border border-galaxy-text-muted/20 text-galaxy-text hover:border-galaxy-text-muted/40 transition-colors"
+            >
+              <Printer size={16} />
+              {t('marketing:example.cta_pricing')}
+            </button>
+          )}
         </motion.div>
 
         <p className="text-center text-xs text-galaxy-text-muted/60 mt-8">

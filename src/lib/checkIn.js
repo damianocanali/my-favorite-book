@@ -24,6 +24,20 @@ export const NEEDS = [
   { id: 'keep_going' },
 ]
 
+/// The need step for a class (student) account (owner decision D7, spec
+/// §12.1): splits the consumer `help` tile into two the teacher can act on
+/// differently — `help_book` opens the same in-app HelpScreen a consumer
+/// gets, `grownup` also asks a real person via TeacherHelpScreen
+/// (src/lib/schoolShare.js). Consumer accounts are unaffected: NEEDS above
+/// still offers plain `help`, unchanged.
+export const STUDENT_NEEDS = [
+  { id: 'break' },
+  { id: 'quiet' },
+  { id: 'help_book' },
+  { id: 'grownup' },
+  { id: 'keep_going' },
+]
+
 export const MAX_ENTRIES = 60
 export const MAX_AGE_DAYS = 30
 
@@ -32,7 +46,13 @@ export const MAX_AGE_DAYS = 30
 const QUIET_WINDOW_MS = 4 * 60 * 60 * 1000
 
 const FEELING_IDS = new Set(FEELINGS.map((f) => f.id))
-const NEED_IDS = new Set(NEEDS.map((n) => n.id))
+// Union of both catalogs: the local store (useCheckInStore) holds entries
+// for whichever account is signed in on this device, consumer or student,
+// so its validation must accept either vocabulary rather than just NEEDS —
+// otherwise a student's 'help_book'/'grownup' pick would fail isValid and
+// silently get stored with `need` dropped, which breaks CheckInHost's
+// `latest.need === 'help_book'` / `'grownup'` branches.
+const NEED_IDS = new Set([...NEEDS, ...STUDENT_NEEDS].map((n) => n.id))
 
 function isValid(e) {
   if (!e || typeof e.at !== 'string' || !FEELING_IDS.has(e.feeling)) return false

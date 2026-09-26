@@ -5,13 +5,25 @@ import { appendEntry, pruneEntries } from '../lib/checkIn'
 // A child's check-ins.
 //
 // ─────────────────────────────────────────────────────────────────────────
-// THESE ENTRIES NEVER LEAVE THE DEVICE. Do not add a fetch here, do not sync
-// them, do not surface them to a parent or teacher dashboard.
+// A CONSUMER (FAMILY) CHECK-IN NEVER LEAVES THE DEVICE FROM HERE. Do not add
+// a fetch to this file, do not sync entries, do not surface them to a parent
+// dashboard.
 //
-// That is not squeamishness. Synced, this becomes a record of how a named
-// child feels over time: sensitive data under GDPR, a DPIA trigger, and —
-// the part that actually breaks the feature — a reason for the child to stop
-// answering honestly. tests/checkin-network.test.js enforces it.
+// For a CLASS (student) account, owner decision D7 does send a copy — but
+// from src/lib/schoolShare.js, never from this store, and only after
+// telling the child on the check-in sheet that their teacher can see it.
+// That split is deliberate: this store stays the one place that is
+// unconditionally network-free regardless of account type, so
+// tests/checkin-network.test.js can keep discovering and fencing it (and
+// everything that imports it) without needing to know which accounts are
+// students. schoolShare.js is out of that discovery on purpose — it imports
+// neither this store nor lib/checkIn — and is instead pinned by its own
+// explicit ALLOWED_SENDERS entry in that test.
+//
+// That is not squeamishness. Synced without a child's knowledge, this
+// becomes a record of how a named child feels over time: sensitive data
+// under GDPR, a DPIA trigger, and — the part that actually breaks the
+// feature — a reason for the child to stop answering honestly.
 // ─────────────────────────────────────────────────────────────────────────
 //
 // Unlike useMilestoneStore this IS persisted: a milestone is a moment, but a

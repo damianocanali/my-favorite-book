@@ -7,6 +7,7 @@ import { useBookshelfStore } from '../stores/useBookshelfStore'
 import { useBookStore } from '../stores/useBookStore'
 import { useSubscription } from '../hooks/useSubscription'
 import { useAuthStore } from '../stores/useAuthStore'
+import { useIsStudent } from '../hooks/useIsStudent'
 import BookPreview from '../components/book/BookPreview'
 import PageActions from '../components/layout/PageActions'
 import PrintableBook from '../components/print/PrintableBook'
@@ -34,6 +35,7 @@ export default function PreviewPage() {
   const [finishedOpen, setFinishedOpen] = useState(searchParams.get('celebrate') === '1')
   const { plan } = useSubscription()
   const user = useAuthStore((s) => s.user)
+  const isStudent = useIsStudent()
 
   const book = getBook(bookId)
 
@@ -112,7 +114,7 @@ export default function PreviewPage() {
           <span className="toolbar-btn__label">{t('editor:preview.submit')}</span>
         </button>
 
-        {user && !publishedUrl && (
+        {user && !isStudent && !publishedUrl && (
           <button
             onClick={handlePublish}
             disabled={publishing}
@@ -125,7 +127,7 @@ export default function PreviewPage() {
             </span>
           </button>
         )}
-        {publishedUrl && (
+        {!isStudent && publishedUrl && (
           <button
             onClick={() => {
               navigator.clipboard.writeText(publishedUrl)
@@ -139,16 +141,25 @@ export default function PreviewPage() {
           </button>
         )}
 
-        <button
-          onClick={() => navigate(`/order/${book.id}`)}
-          className="toolbar-btn"
-          title={t('editor:preview.order_print_title')}
-        >
-          <Printer size={15} />
-          <span className="toolbar-btn__label">{t('common:actions.print')}</span>
-        </button>
+        {/* Print orders are a paid, consumer-only feature — a class
+            (student) account never gets this entry point (it also redirects
+            server-side and via ConsumerOnlyRoute if reached directly). */}
+        {!isStudent && (
+          <button
+            onClick={() => navigate(`/order/${book.id}`)}
+            className="toolbar-btn"
+            title={t('editor:preview.order_print_title')}
+          >
+            <Printer size={15} />
+            <span className="toolbar-btn__label">{t('common:actions.print')}</span>
+          </button>
+        )}
 
-        {!isNative && (
+        {/* Locked (free-plan) PDF export otherwise falls through to
+            navigate('/pricing') in handlePrint — a class (student) account
+            never sees a pricing link (global constraint), so this button is
+            hidden for them entirely rather than shown disabled. */}
+        {!isNative && !isStudent && (
           <button
             onClick={handlePrint}
             className="toolbar-btn"

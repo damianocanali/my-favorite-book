@@ -10,6 +10,7 @@ import { useAvatarStore } from '../stores/useAvatarStore'
 import { useRewardsStore } from '../stores/useRewardsStore'
 import { useSubscription } from '../hooks/useSubscription'
 import { useAuthStore } from '../stores/useAuthStore'
+import { useIsStudent } from '../hooks/useIsStudent'
 import { usePhotoCapture } from '../hooks/usePhotoCapture'
 import AvatarDisplay from '../components/avatar/AvatarDisplay'
 import ParentalGate from '../components/ui/ParentalGate'
@@ -174,6 +175,7 @@ export default function AvatarPage() {
   const getBadges = useRewardsStore((s) => s.getBadges)
   const user = useAuthStore((s) => s.user)
   const { plan, planKey } = useSubscription()
+  const isStudent = useIsStudent()
 
   const [generating, setGenerating] = useState(false)
   const [error, setError] = useState(null)
@@ -376,19 +378,25 @@ export default function AvatarPage() {
             </span>
           </SparkleButton>
 
-          {/* Photo cartoonify — alternative to feature-builder generation. */}
-          <button
-            type="button"
-            onClick={() => setPhotoGateOpen(true)}
-            disabled={generating}
-            className="w-full max-w-[280px] flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl glass border border-galaxy-text-muted/20 text-galaxy-text hover:border-galaxy-primary/50 hover:bg-galaxy-primary/5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-body"
-          >
-            <Camera size={16} className="text-galaxy-primary" />
-            <span>{t('account:avatar.photo.cta')}</span>
-          </button>
-          <p className="text-galaxy-text-muted/70 text-[11px] font-body text-center max-w-[280px]">
-            {t('account:avatar.photo.hint')}
-          </p>
+          {/* Photo cartoonify — alternative to feature-builder generation.
+              Uploading a child's photo is a consumer/parental-gate feature;
+              a class (student) account never gets this entry point. */}
+          {!isStudent && (
+            <>
+              <button
+                type="button"
+                onClick={() => setPhotoGateOpen(true)}
+                disabled={generating}
+                className="w-full max-w-[280px] flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl glass border border-galaxy-text-muted/20 text-galaxy-text hover:border-galaxy-primary/50 hover:bg-galaxy-primary/5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-body"
+              >
+                <Camera size={16} className="text-galaxy-primary" />
+                <span>{t('account:avatar.photo.cta')}</span>
+              </button>
+              <p className="text-galaxy-text-muted/70 text-[11px] font-body text-center max-w-[280px]">
+                {t('account:avatar.photo.hint')}
+              </p>
+            </>
+          )}
 
           {/* Generation info */}
           {plan.freeAvatarRegen && plan.avatarGenerations !== Infinity && (
@@ -408,16 +416,21 @@ export default function AvatarPage() {
             <span className="text-galaxy-text-muted font-body text-sm">{t('account:avatar.coins_suffix')}</span>
           </div>
 
-          <button
-            onClick={() => setShowParentalGate(true)}
-            className="text-galaxy-text-muted text-xs font-body hover:text-galaxy-secondary transition-colors underline underline-offset-2"
-          >
-            {t('account:avatar.get_more_coins')}
-          </button>
+          {/* Coin store — real-money purchases. Children see no prices, no
+              purchase links (global constraint): a class (student) account
+              never gets this entry point. */}
+          {!isStudent && (
+            <button
+              onClick={() => setShowParentalGate(true)}
+              className="text-galaxy-text-muted text-xs font-body hover:text-galaxy-secondary transition-colors underline underline-offset-2"
+            >
+              {t('account:avatar.get_more_coins')}
+            </button>
+          )}
 
           {/* Coin shop */}
           <AnimatePresence>
-            {showCoinShop && (
+            {!isStudent && showCoinShop && (
               <motion.div
                 className="w-full glass rounded-2xl p-4 border border-yellow-400/20"
                 initial={{ opacity: 0, height: 0 }}
@@ -598,8 +611,9 @@ export default function AvatarPage() {
             />
           </div>
 
-          {/* Upgrade nudge for free users */}
-          {planKey === 'free' && (
+          {/* Upgrade nudge for free users — a class (student) account never
+              sees a pricing link (global constraint). */}
+          {planKey === 'free' && !isStudent && (
             <motion.div
               className="bg-galaxy-primary/10 rounded-2xl p-5 border border-galaxy-primary/30"
               initial={{ opacity: 0 }}

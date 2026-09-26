@@ -31,6 +31,7 @@ import NotFoundPage from './pages/NotFoundPage'
 import StoryBlanksPage from './pages/StoryBlanksPage'
 import StoryBuilderPage from './pages/StoryBuilderPage'
 import ProtectedRoute from './components/auth/ProtectedRoute'
+import ConsumerOnlyRoute from './components/auth/ConsumerOnlyRoute'
 import BadgePopup from './components/ui/BadgePopup'
 import WelcomeBackMoment from './components/ui/WelcomeBackMoment'
 import MilestoneHost from './components/ui/MilestoneHost'
@@ -91,7 +92,7 @@ export default function App() {
         <Route path="/class" element={<ClassSignInPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
-        <Route path="/pricing" element={<PricingPage />} />
+        <Route path="/pricing" element={<ConsumerOnlyRoute><PricingPage /></ConsumerOnlyRoute>} />
         <Route path="/success" element={<SuccessPage />} />
         <Route path="/avatar" element={<AvatarPage />} />
         <Route path="/privacy" element={<PrivacyPage />} />
@@ -103,10 +104,10 @@ export default function App() {
         <Route path="/admin" element={<AdminPage />} />
         <Route path="/gallery" element={<GalleryPage />} />
         <Route path="/view/:slug" element={<ViewBookPage />} />
-        <Route path="/order/:bookId" element={<PrintOrderPage />} />
-        <Route path="/orders" element={<OrdersListPage />} />
-        <Route path="/orders/:id" element={<OrderDetailPage />} />
-        <Route path="/orders/:id/confirm" element={<OrderConfirmPage />} />
+        <Route path="/order/:bookId" element={<ConsumerOnlyRoute><PrintOrderPage /></ConsumerOnlyRoute>} />
+        <Route path="/orders" element={<ConsumerOnlyRoute><OrdersListPage /></ConsumerOnlyRoute>} />
+        <Route path="/orders/:id" element={<ConsumerOnlyRoute><OrderDetailPage /></ConsumerOnlyRoute>} />
+        <Route path="/orders/:id/confirm" element={<ConsumerOnlyRoute><OrderConfirmPage /></ConsumerOnlyRoute>} />
         <Route path="/example" element={<ExampleBookPage />} />
         {/* Story Blanks writes a real book to the shelf and claims
             badges, both of which need an account — an anonymous player
@@ -131,7 +132,9 @@ export default function App() {
           path="/teacher"
           element={
             <ProtectedRoute>
-              <TeacherPage />
+              <ConsumerOnlyRoute>
+                <TeacherPage />
+              </ConsumerOnlyRoute>
             </ProtectedRoute>
           }
         />

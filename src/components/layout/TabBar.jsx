@@ -2,6 +2,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Library, Star, PlusCircle, Package, UserCircle } from 'lucide-react'
 import { useAuthStore } from '../../stores/useAuthStore'
+import { useIsStudent } from '../../hooks/useIsStudent'
 
 // Web port of the native MainTabView tab bar. Same five destinations, in
 // the same order, with the closest Lucide equivalents of the SF Symbols:
@@ -29,6 +30,12 @@ export default function TabBar() {
   const { t } = useTranslation()
   const location = useLocation()
   const user = useAuthStore((s) => s.user)
+  const isStudent = useIsStudent()
+
+  // Print orders are a consumer-only, paid feature — a class (student)
+  // account never has one to check on. Filtered rather than a fifth branch
+  // per tab: the remaining four still spread evenly via justify-around.
+  const tabs = isStudent ? TABS.filter((tab) => tab.to !== '/orders') : TABS
 
   const isActive = (to) =>
     to === '/create'
@@ -42,7 +49,7 @@ export default function TabBar() {
       aria-label={t('nav:tabs.aria_label')}
     >
       <ul className="mx-auto flex max-w-lg items-stretch justify-around px-1">
-        {TABS.map(({ to, labelKey, Icon }) => {
+        {tabs.map(({ to, labelKey, Icon }) => {
           // Account sends signed-out visitors to sign-in instead of a
           // page that would only show them a sign-in prompt.
           const href = to === '/account' && !user ? '/login' : to

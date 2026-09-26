@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next'
 import { useBookStore } from '../../stores/useBookStore'
 import { useRewardsStore } from '../../stores/useRewardsStore'
 import { useSubscription } from '../../hooks/useSubscription'
+import { useIsStudent } from '../../hooks/useIsStudent'
 import { generatePageIllustration, editPageIllustration } from '../../services/imageGenerator'
 import { formatNumber } from '../../i18n/formats'
 
@@ -29,6 +30,7 @@ export default function IllustrationGenerator({ page }) {
   const incrementImageGenerations = useBookStore((s) => s.incrementImageGenerations)
   const earnBadge = useRewardsStore((s) => s.earnBadge)
   const { plan, isPaid } = useSubscription()
+  const isStudent = useIsStudent()
 
   const hasIllustration = !!page.illustrationData
   const regenCount = page.illustrationRegenCount ?? 0
@@ -154,16 +156,29 @@ export default function IllustrationGenerator({ page }) {
       )}
 
       {atLimit ? (
-        <motion.button
-          onClick={() => navigate('/pricing')}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-body font-semibold bg-galaxy-text-muted/20 text-galaxy-text-muted border border-galaxy-text-muted/20 backdrop-blur-sm cursor-pointer"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          title={t('editor:limits.daily_title')}
-        >
-          <Lock size={12} />
-          {t('editor:limits.daily_label')}
-        </motion.button>
+        isStudent ? (
+          // A class account never sees a pricing link (global constraint) —
+          // same inert, non-navigating treatment as the page-regen limit
+          // below, just for the daily cap instead.
+          <div
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-body font-semibold bg-galaxy-text-muted/20 text-galaxy-text-muted border border-galaxy-text-muted/20 backdrop-blur-sm"
+            title={t('editor:limits.daily_label')}
+          >
+            <Lock size={12} />
+            {t('editor:limits.daily_label')}
+          </div>
+        ) : (
+          <motion.button
+            onClick={() => navigate('/pricing')}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-body font-semibold bg-galaxy-text-muted/20 text-galaxy-text-muted border border-galaxy-text-muted/20 backdrop-blur-sm cursor-pointer"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            title={t('editor:limits.daily_title')}
+          >
+            <Lock size={12} />
+            {t('editor:limits.daily_label')}
+          </motion.button>
+        )
       ) : atPageRegenLimit ? (
         <div
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-body font-semibold bg-galaxy-text-muted/20 text-galaxy-text-muted border border-galaxy-text-muted/20 backdrop-blur-sm"

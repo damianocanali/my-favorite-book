@@ -2,6 +2,16 @@
   "sign_in_link": {
     "label": "I'm in a class"
   },
+  "checkin": {
+    "teacher_can_see": "Your teacher can see this"
+  },
+  "teacher_help": {
+    "in_hours": "Your teacher got your message.",
+    "out_of_hours": "Your teacher will see this at school. If you need help now, tell a grown-up near you.",
+    "failed": "Tell a grown-up near you that you need help.",
+    "seen_named": "{{teacherName}} saw your message 💛",
+    "seen_generic": "Your teacher saw your message 💛"
+  },
   "page_title": "My Class",
   "code_step": {
     "heading": "Type your class code",
