@@ -2,6 +2,7 @@ export const config = { runtime: 'edge' }
 
 import { handleCors, withCors } from './_rateLimit.js'
 import { verifyJwt } from './_auth.js'
+import { rejectStudent } from './_school.js'
 
 function supabaseHeaders(serviceKey) {
   return {
@@ -27,6 +28,8 @@ export default async function handler(req) {
 
   const auth = await verifyJwt(req)
   if (!auth.ok) return auth.response
+  const blocked = rejectStudent(auth, req)
+  if (blocked) return blocked
   const userId = auth.userId
 
   const headers = supabaseHeaders(supabaseKey)

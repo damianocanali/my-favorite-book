@@ -5,7 +5,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { readFileSync, readdirSync } from 'node:fs'
 
 const FENCED = [
-  'api/publish-book.js', 'api/react-book.js', 'api/report-book.js', 'api/create-checkout.js',
+  'api/publish-book.js', 'api/unpublish-book.js', 'api/react-book.js', 'api/report-book.js', 'api/create-checkout.js',
   'api/buy-coins.js', 'api/spend-coins.js', 'api/customer-portal.js', 'api/delete-account.js',
   'api/cancel-deletion.js',
   ...readdirSync('api/print-orders').filter((f) => f.endsWith('.js') && !/ \d+\.js$/.test(f))
