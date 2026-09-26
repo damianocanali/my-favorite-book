@@ -15,8 +15,13 @@ function generateCode() {
   ).join('')
 }
 
+// The service-role key, never the anon one. The anon key ships in the web
+// bundle, and the classrooms/submissions tables had policies letting it read
+// and write every row — so anyone could fetch every class's books straight
+// from the database. The API is now the only way in, and these tables have
+// no policies for anon at all (migration 017).
 function supabaseHeaders() {
-  const key = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY
   return {
     'Content-Type': 'application/json',
     apikey: key,
@@ -32,7 +37,7 @@ export default async function handler(req) {
     new Response(JSON.stringify(o), { status: s, headers: withCors({ 'Content-Type': 'application/json' }, req) })
 
   const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL
-  const supabaseKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY
   if (!supabaseUrl || !supabaseKey) return json(503, { error: 'Classroom feature not configured' })
 
   // ── POST /api/classroom — create a new classroom (teacher, signed in) ──
@@ -75,13 +80,36 @@ export default async function handler(req) {
     const rawCode = url.searchParams.get('code')?.toUpperCase() ?? ''
     if (!CODE_RE.test(rawCode)) return json(400, { error: 'Invalid code' })
 
+    // Only the class's own teacher may read it. This used to need nothing but
+
+    // the code, so anyone who saw or guessed one could read every child's
+
+    // submitted book. A class with no recorded owner (made before owners were
+
+    // tracked) is unreachable — the safe direction to fail.
+
+    const auth = await verifyJwt(req)
+
+    if (!auth.ok) return auth.response
+
+
     const code = encodeURIComponent(rawCode)
+
     const classRes = await fetch(
-      `${supabaseUrl}/rest/v1/classrooms?code=eq.${code}&select=code,name`,
+
+      `${supabaseUrl}/rest/v1/classrooms?code=eq.${code}&owner_user_id=eq.${encodeURIComponent(auth.userId)}&select=code,name`,
+
       { headers: supabaseHeaders() }
+
     )
+
     const classrooms = await classRes.json()
-    if (!classrooms?.length) return json(404, { error: 'Classroom not found' })
+
+    // Same 404 whether the class doesn't exist or belongs to someone else, so
+
+    // the endpoint can't be used to find out which codes are real.
+
+    if (!Array.isArray(classrooms) || !classrooms.length) return json(404, { error: 'Classroom not found' })
 
     const subRes = await fetch(
       `${supabaseUrl}/rest/v1/submissions?classroom_code=eq.${code}&select=id,book,submitted_at&order=submitted_at.asc`,

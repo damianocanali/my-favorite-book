@@ -7,8 +7,13 @@ const CODE_RE = /^[A-Z0-9]{6,8}$/
 // reject anything much larger to stop someone stuffing MBs into submissions.
 const MAX_BOOK_BYTES = 200_000
 
+// The service-role key, never the anon one. The anon key ships in the web
+// bundle, and the classrooms/submissions tables had policies letting it read
+// and write every row — so anyone could fetch every class's books straight
+// from the database. The API is now the only way in, and these tables have
+// no policies for anon at all (migration 017).
 function supabaseHeaders() {
-  const key = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY
   return {
     'Content-Type': 'application/json',
     apikey: key,
@@ -26,7 +31,7 @@ export default async function handler(req) {
   if (req.method !== 'POST') return json(405, { error: 'Method not allowed' })
 
   const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL
-  const supabaseKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY
   if (!supabaseUrl || !supabaseKey) return json(503, { error: 'Classroom feature not configured' })
 
   const ip = getClientIp(req)
