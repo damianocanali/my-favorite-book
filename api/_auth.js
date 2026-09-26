@@ -44,5 +44,7 @@ export async function verifyJwt(req) {
   const user = await res.json().catch(() => null)
   if (!user?.id) return { ok: false, response: unauthorized(req, 'Could not identify user') }
 
-  return { ok: true, userId: user.id, email: user.email, jwt }
+  // app_metadata is writable only with the service role, which makes it the
+  // one place a role can be trusted (user_metadata is user-editable).
+  return { ok: true, userId: user.id, email: user.email, jwt, appMetadata: user.app_metadata ?? {} }
 }
