@@ -72,12 +72,16 @@ export default async function handler(req) {
     if (capErr) return capErr
 
     // Image edits go through FLUX.1-Kontext-Dev (purpose-built for editing
-    // an existing image with a text instruction). Falls back to FLUX.1-schnell
+    // an existing image with a text instruction). Falls back to FLUX.2-dev
     // for plain generation. Edit cost is ~5× schnell — reflected in usage log.
     const isEdit = Boolean(sourceImage)
+    // Together removed FLUX.1-schnell and FLUX.1-kontext-dev from its serverless
+    // tier in September 2026; every call returned 400 model_not_available, which
+    // this endpoint surfaced as a 502. These are the serverless successors,
+    // verified against the same request shapes before switching.
     const model = isEdit
-      ? 'black-forest-labs/FLUX.1-kontext-dev'
-      : 'black-forest-labs/FLUX.1-schnell'
+      ? 'black-forest-labs/FLUX.1-kontext-pro'
+      : 'black-forest-labs/FLUX.2-dev'
 
     const body = isEdit
       ? {
