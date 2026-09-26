@@ -16,6 +16,24 @@ enum AppLanguage {
     /// running the app in English reports "it" and we would read English text
     /// with an Italian voice. preferredLocalizations reports what the bundle
     /// actually resolved to, which is the question being asked.
+
+    /// Languages the app ships, each named in its own language — the way a
+    /// language menu should read, so someone who can't read the current UI
+    /// can still find theirs.
+    static let supported: [(code: String, name: String)] = [("en", "English"), ("it", "Italiano")]
+
+    /// Choose the app's language, independent of the phone's.
+    ///
+    /// iOS reads AppleLanguages from the app's own defaults at launch, so this
+    /// takes effect the next time the app starts — and an app may not restart
+    /// itself, so the caller has to say so. It is the per-app override: it
+    /// works on an English-only phone, where iOS hides the Settings > App >
+    /// Language row entirely, which is why there was previously no way to
+    /// reach Italian at all.
+    static func choose(_ code: String) {
+        UserDefaults.standard.set([code], forKey: "AppleLanguages")
+    }
+
     static var uiLanguage: String {
         Bundle.main.preferredLocalizations.first ?? "en"
     }

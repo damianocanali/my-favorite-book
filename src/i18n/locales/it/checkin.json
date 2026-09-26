@@ -28,7 +28,7 @@
     "aria": "Dicci come stai"
   },
   "constellation": {
-    "title": "Quello che hai notato",
+    "title": "La tua costellazione delle emozioni",
     "empty": "Qui appariranno le tue stelline.",
     "aria": "Le emozioni che hai notato: {{feelings}}"
   }

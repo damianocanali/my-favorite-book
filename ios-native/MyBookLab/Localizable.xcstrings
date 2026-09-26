@@ -5516,6 +5516,56 @@
           }
         }
       }
+    },
+    "Your feelings constellation": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La tua costellazione delle emozioni"
+          }
+        }
+      }
+    },
+    "Language": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lingua"
+          }
+        }
+      }
+    },
+    "Close My Book Lab and open it again to switch language.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chiudi My Book Lab e riaprila per cambiare lingua."
+          }
+        }
+      }
+    },
+    "Up to 50 AI illustrations a day": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fino a 50 illustrazioni con l'IA al giorno"
+          }
+        }
+      }
+    },
+    "Read-aloud stories": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Storie lette ad alta voce"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

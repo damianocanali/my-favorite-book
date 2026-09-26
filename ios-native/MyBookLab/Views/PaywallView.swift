@@ -118,9 +118,13 @@ struct PaywallView: View {
     private var benefits: some View {
         VStack(alignment: .leading, spacing: 10) {
             benefit("📚", "Unlimited books")
-            benefit("🎨", "Unlimited AI illustrations")
-            benefit("🎙️", "Voice input & read aloud")
-            benefit("👨‍👩‍👧", "Up to 4 kid profiles")
+            // Every line here is a promise attached to a subscription, and App
+            // Review rejects claims the app doesn't back up. Three weren't true:
+            // there are no kid profiles, illustrations are capped at 50 a day
+            // (DAILY_IMAGE_LIMIT), and the iOS app has no voice input — it reads
+            // aloud, but nothing listens.
+            benefit("🎨", "Up to 50 AI illustrations a day")
+            benefit("🔊", "Read-aloud stories")
             benefit("📖", "Print real hardcover and softcover books")
         }
         .padding(20)
