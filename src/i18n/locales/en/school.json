@@ -1,0 +1,54 @@
+{
+  "sign_in_link": {
+    "label": "I'm in a class"
+  },
+  "page_title": "My Class",
+  "code_step": {
+    "heading": "Type your class code",
+    "hint": "Ask your teacher for the code.",
+    "input_aria_label": "Class code, 6 letters and numbers",
+    "checking": "Looking for your class…"
+  },
+  "name_step": {
+    "heading": "Which one is you?",
+    "not_my_class": "Not my class"
+  },
+  "picture_step": {
+    "heading": "Pick your 3 pictures",
+    "back": "Back one",
+    "back_aria": "Remove the last picture",
+    "start_over": "Start over",
+    "checking": "Checking…"
+  },
+  "errors": {
+    "class_not_found": "We can't find that class. Check the code with your teacher.",
+    "class_unavailable": "Your class is taking a break. Ask your teacher.",
+    "too_many": "Let's wait a minute and try again.",
+    "wrong_pictures": "Not quite. Try again!",
+    "locked": "Take a little break and try again soon.",
+    "ask_teacher": "Ask your teacher to help you sign in.",
+    "generic": "Something went wrong. Let's try again."
+  },
+  "actions": {
+    "listen": "Read this out loud",
+    "stop_listening": "Stop reading"
+  },
+  "pictures": {
+    "cat": "cat",
+    "dog": "dog",
+    "fish": "fish",
+    "frog": "frog",
+    "lion": "lion",
+    "owl": "owl",
+    "turtle": "turtle",
+    "bee": "bee",
+    "sun": "sun",
+    "moon": "moon",
+    "star": "star",
+    "tree": "tree",
+    "apple": "apple",
+    "boat": "boat",
+    "rocket": "rocket",
+    "ball": "ball"
+  }
+}

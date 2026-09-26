@@ -7,6 +7,7 @@ import PreviewPage from './pages/PreviewPage'
 import BookshelfPage from './pages/BookshelfPage'
 import TeacherPage from './pages/TeacherPage'
 import ClassroomPage from './pages/ClassroomPage'
+import ClassSignInPage from './pages/ClassSignInPage'
 import LoginPage from './pages/LoginPage'
 import SignupPage from './pages/SignupPage'
 import PricingPage from './pages/PricingPage'
@@ -85,6 +86,9 @@ export default function App() {
         <Route path="/preview/:bookId" element={<PreviewPage />} />
         <Route path="/bookshelf" element={<BookshelfPage />} />
         <Route path="/classroom/:code" element={<ClassroomPage />} />
+        {/* Deliberately NOT inside ProtectedRoute: a child signing in here
+            has no session yet — that's the entire point of this route. */}
+        <Route path="/class" element={<ClassSignInPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/pricing" element={<PricingPage />} />

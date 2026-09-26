@@ -118,6 +118,18 @@ export const useAuthStore = create((set, get) => ({
     return data.user
   },
 
+  // Student sign-in (Task 10) never touches email/password — api/school/
+  // sign-in.js already checked the picture secret server-side and handed
+  // back a ready-made session. setSession's own onAuthStateChange fires
+  // from this, which the listener wired up in initialize() picks up
+  // exactly like any other sign-in, so there's nothing else to do here but
+  // surface it if Supabase itself rejects the tokens.
+  signInAsStudent: async ({ access_token, refresh_token }) => {
+    if (!supabase) throw new Error('Auth not configured')
+    const { error } = await supabase.auth.setSession({ access_token, refresh_token })
+    if (error) throw error
+  },
+
   signInWithProvider: async (provider) => {
     if (!supabase) throw new Error('Auth not configured')
     const native = Capacitor.isNativePlatform()
@@ -159,3 +171,9 @@ export const selectDisplayName = (s) => {
 
 export const selectRole = (s) =>
   s.user?.user_metadata?.role ?? null
+
+// `app_metadata` is set only by trusted server code (mirrors api/_school.js's
+// own `isStudent`) — a signed-in student can never write it themselves,
+// unlike `user_metadata` above, which is exactly why selectRole must never
+// be used to gate a class account.
+export const selectIsStudent = (s) => s.user?.app_metadata?.role === 'student'

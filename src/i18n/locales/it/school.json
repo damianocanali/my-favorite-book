@@ -1,0 +1,54 @@
+{
+  "sign_in_link": {
+    "label": "Sono in una classe"
+  },
+  "page_title": "La mia classe",
+  "code_step": {
+    "heading": "Scrivi il codice della tua classe",
+    "hint": "Chiedi il codice all'insegnante.",
+    "input_aria_label": "Codice della classe, 6 lettere e numeri",
+    "checking": "Stiamo cercando la tua classe…"
+  },
+  "name_step": {
+    "heading": "Quale sei tu?",
+    "not_my_class": "Non è la mia classe"
+  },
+  "picture_step": {
+    "heading": "Scegli le tue 3 immagini",
+    "back": "Torna indietro di uno",
+    "back_aria": "Rimuovi l'ultima immagine",
+    "start_over": "Ricomincia",
+    "checking": "Un momento…"
+  },
+  "errors": {
+    "class_not_found": "Non troviamo questa classe. Controlla il codice con l'insegnante.",
+    "class_unavailable": "La tua classe si sta riposando. Chiedi aiuto all'insegnante.",
+    "too_many": "Aspettiamo un minuto e riproviamo.",
+    "wrong_pictures": "Non proprio. Riprova!",
+    "locked": "Fai una piccola pausa e riprova tra poco.",
+    "ask_teacher": "Chiedi all'insegnante di aiutarti ad accedere.",
+    "generic": "Qualcosa non ha funzionato. Riproviamo."
+  },
+  "actions": {
+    "listen": "Leggi ad alta voce",
+    "stop_listening": "Smetti di leggere"
+  },
+  "pictures": {
+    "cat": "gatto",
+    "dog": "cane",
+    "fish": "pesce",
+    "frog": "rana",
+    "lion": "leone",
+    "owl": "gufo",
+    "turtle": "tartaruga",
+    "bee": "ape",
+    "sun": "sole",
+    "moon": "luna",
+    "star": "stella",
+    "tree": "albero",
+    "apple": "mela",
+    "boat": "barca",
+    "rocket": "razzo",
+    "ball": "palla"
+  }
+}
