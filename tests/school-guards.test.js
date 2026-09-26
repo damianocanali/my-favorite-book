@@ -88,4 +88,42 @@ describe('student guards', () => {
     expect(r.ok).toBe(false)
     expect((await r.response.json()).code).toBe('student_removed')
   })
+  it('requireClassOwner returns 503 when fetch throws', async () => {
+    mockSupabase({ id: 'teacher-1', app_metadata: {} })
+    globalThis.fetch = vi.fn(async (url) => {
+      const u = String(url)
+      if (u.endsWith('/auth/v1/user')) return new Response(JSON.stringify({ id: 'teacher-1', app_metadata: {} }))
+      if (u.includes('/rest/v1/classrooms')) throw new Error('Network error')
+      return new Response('[]')
+    })
+    const { requireClassOwner } = await import('../api/_school.js')
+    const r = await requireClassOwner(req(), '6f1c1b1e-0000-4000-8000-000000000001')
+    expect(r.ok).toBe(false)
+    expect(r.response.status).toBe(503)
+    expect((await r.response.json()).code).toBe('upstream')
+  })
+  it('requireStudent returns 503 when fetch returns non-2xx', async () => {
+    mockSupabase({ id: 'kid-auth', app_metadata: { role: 'student' } })
+    globalThis.fetch = vi.fn(async (url) => {
+      const u = String(url)
+      if (u.endsWith('/auth/v1/user')) return new Response(JSON.stringify({ id: 'kid-auth', app_metadata: { role: 'student' } }))
+      if (u.includes('/rest/v1/class_students')) return new Response('Internal Server Error', { status: 500 })
+      return new Response('[]')
+    })
+    const { requireStudent } = await import('../api/_school.js')
+    const r = await requireStudent(req())
+    expect(r.ok).toBe(false)
+    expect(r.response.status).toBe(503)
+    expect((await r.response.json()).code).toBe('upstream')
+  })
+})
+
+describe('requireUser appMetadata', () => {
+  it('returns appMetadata from verifyJwt', async () => {
+    mockSupabase({ id: 'u1', email: 'x@y.z', app_metadata: { custom: 'data' } })
+    const { requireUser } = await import('../api/_aiGuard.js')
+    const r = await requireUser(req())
+    expect(r.ok).toBe(true)
+    expect(r.appMetadata).toEqual({ custom: 'data' })
+  })
 })

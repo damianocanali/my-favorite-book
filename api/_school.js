@@ -46,14 +46,19 @@ export async function requireClassOwner(req, classroomId) {
   const t = await requireTeacher(req)
   if (!t.ok) return t
   if (!isUuid(classroomId)) return fail(req, 400, 'bad_request', 'Invalid class id')
-  const res = await sb(
-    `/rest/v1/classrooms?id=eq.${classroomId}&owner_user_id=eq.${encodeURIComponent(t.auth.userId)}` +
-      `&select=id,code,name,locale,sign_in_open,timezone,school_hours,archived_at`
-  )
-  const rows = await res.json().catch(() => [])
-  // Same answer for "missing" and "someone else's": ids must not be probeable.
-  if (!Array.isArray(rows) || !rows.length) return fail(req, 404, 'class_not_found', 'Class not found')
-  return { ok: true, auth: t.auth, classroom: rows[0] }
+  try {
+    const res = await sb(
+      `/rest/v1/classrooms?id=eq.${classroomId}&owner_user_id=eq.${encodeURIComponent(t.auth.userId)}` +
+        `&select=id,code,name,locale,sign_in_open,timezone,school_hours,archived_at`
+    )
+    if (!res.ok) return fail(req, 503, 'upstream', 'Service unavailable, try again')
+    const rows = await res.json().catch(() => [])
+    // Same answer for "missing" and "someone else's": ids must not be probeable.
+    if (!Array.isArray(rows) || !rows.length) return fail(req, 404, 'class_not_found', 'Class not found')
+    return { ok: true, auth: t.auth, classroom: rows[0] }
+  } catch (e) {
+    return fail(req, 503, 'upstream', 'Service unavailable, try again')
+  }
 }
 
 export async function requireStudent(req) {
@@ -61,12 +66,17 @@ export async function requireStudent(req) {
   const auth = await verifyJwt(req)
   if (!auth.ok) return { ok: false, response: auth.response }
   if (!isStudent(auth)) return fail(req, 403, 'not_a_student', 'Class accounts only')
-  const res = await sb(
-    `/rest/v1/class_students?auth_user_id=eq.${encodeURIComponent(auth.userId)}&status=eq.active` +
-      `&select=id,classroom_id,display_name,classrooms(id,name,timezone,school_hours,owner_user_id)`
-  )
-  const rows = await res.json().catch(() => [])
-  if (!Array.isArray(rows) || !rows.length) return fail(req, 403, 'student_removed', 'Ask your teacher')
-  const { classrooms: classroom, ...student } = rows[0]
-  return { ok: true, auth, student, classroom }
+  try {
+    const res = await sb(
+      `/rest/v1/class_students?auth_user_id=eq.${encodeURIComponent(auth.userId)}&status=eq.active` +
+        `&select=id,classroom_id,display_name,classrooms(id,name,timezone,school_hours,owner_user_id)`
+    )
+    if (!res.ok) return fail(req, 503, 'upstream', 'Service unavailable, try again')
+    const rows = await res.json().catch(() => [])
+    if (!Array.isArray(rows) || !rows.length) return fail(req, 403, 'student_removed', 'Ask your teacher')
+    const { classrooms: classroom, ...student } = rows[0]
+    return { ok: true, auth, student, classroom }
+  } catch (e) {
+    return fail(req, 503, 'upstream', 'Service unavailable, try again')
+  }
 }
