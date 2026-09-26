@@ -114,4 +114,63 @@ describe('purgeUser', () => {
     })
     expect(await purgeUser(USER, ENV)).toEqual({ ok: false })
   })
+
+  // Schools stage 1: a teacher's account can own classrooms (owner_user_id is
+  // now ON DELETE RESTRICT — migration 018), and those classes hold students
+  // whose auth users do NOT cascade from the classroom, only from
+  // class_students. Deleting the teacher's auth user first would either fail
+  // outright (RESTRICT) or, if it somehow didn't, strand those students.
+  it('deletes legacy submissions by user before the auth delete', async () => {
+    mockFetch()
+    await purgeUser(USER, ENV)
+    const submissionsDelete = indexOfCall(`submissions?user_id=eq.${USER}`)
+    const authDelete = indexOfCall('/auth/v1/admin/users/')
+    expect(submissionsDelete).toBeGreaterThanOrEqual(0)
+    expect(authDelete).toBeGreaterThanOrEqual(0)
+    expect(submissionsDelete).toBeLessThan(authDelete)
+  })
+
+  it('purges every class the user owns before deleting the auth user', async () => {
+    mockFetch({
+      [`classrooms?owner_user_id=eq.${USER}&select=id,code`]: {
+        ok: true, status: 200, json: async () => [{ id: 'c1', code: 'ABC234' }], text: async () => '',
+      },
+      'class_students?classroom_id=eq.c1': {
+        ok: true, status: 200, json: async () => [{ auth_user_id: 'kid1' }], text: async () => '',
+      },
+    })
+    await purgeUser(USER, ENV)
+
+    const kidAuthDelete = indexOfCall('DELETE /auth/v1/admin/users/kid1')
+    const classroomDelete = indexOfCall('DELETE /rest/v1/classrooms?id=eq.c1')
+    const teacherAuthDelete = indexOfCall(`DELETE /auth/v1/admin/users/${USER}`)
+    expect(kidAuthDelete).toBeGreaterThanOrEqual(0)
+    expect(classroomDelete).toBeGreaterThanOrEqual(0)
+    expect(teacherAuthDelete).toBeGreaterThanOrEqual(0)
+    // The FK from class_students.auth_user_id cascades on delete, but the
+    // student's OWN books/images/subscriptions do not — those only go away
+    // if the student's account is purged through the same purgeUser path.
+    expect(kidAuthDelete).toBeLessThan(classroomDelete)
+    expect(classroomDelete).toBeLessThan(teacherAuthDelete)
+    expect(indexOfCall('submissions?classroom_code=eq.ABC234')).toBeGreaterThanOrEqual(0)
+  })
+
+  it('aborts without deleting the teacher when a class purge fails', async () => {
+    mockFetch({
+      [`classrooms?owner_user_id=eq.${USER}&select=id,code`]: {
+        ok: true, status: 200, json: async () => [{ id: 'c1', code: 'ABC234' }], text: async () => '',
+      },
+      'class_students?classroom_id=eq.c1': {
+        ok: true, status: 200, json: async () => [{ auth_user_id: 'kid1' }], text: async () => '',
+      },
+      // The kid's auth delete fails, so the class purge fails, so the whole
+      // purge must abort — the owner FK is RESTRICT, so deleting the teacher
+      // here would have failed at the database anyway, but the point is it
+      // must never even be attempted while a class is half-purged.
+      'auth/v1/admin/users/kid1': { ok: false, status: 500, json: async () => ({}), text: async () => 'boom' },
+    })
+    const result = await purgeUser(USER, ENV)
+    expect(result).toEqual({ ok: false })
+    expect(indexOfCall(`/auth/v1/admin/users/${USER}`)).toBe(-1)
+  })
 })

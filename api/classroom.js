@@ -2,17 +2,17 @@ export const config = { runtime: 'edge' }
 
 import { checkRateLimit, getClientIp, handleCors, withCors } from './_rateLimit.js'
 import { verifyJwt } from './_auth.js'
+import { generateClassCode, CODE_RE } from '../lib/school/crypto.js'
 
-// Characters that are unambiguous to read aloud and type.
-const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
-// 6-8 chars only: a 4-char code over 32 symbols is ~1M combinations and
-// brute-forceable; 6 chars is ~1B.
-const CODE_RE = /^[A-Z0-9]{6,8}$/
-
-function generateCode() {
-  return Array.from({ length: 6 }, () =>
-    CODE_CHARS[Math.floor(Math.random() * CODE_CHARS.length)]
-  ).join('')
+// Class codes are unique; a clash is rare (a 6-char code over 32 symbols is
+// ~1B combinations) but possible, so a 409 from the insert retries with a
+// fresh code instead of failing the request outright.
+async function withFreshCode(write) {
+  for (let i = 0; i < 5; i++) {
+    const res = await write(generateClassCode())
+    if (res.status !== 409) return res
+  }
+  return new Response(JSON.stringify({ message: 'code collision' }), { status: 409 })
 }
 
 // The service-role key, never the anon one. The anon key ships in the web
@@ -51,12 +51,13 @@ export default async function handler(req) {
     const { name } = await req.json().catch(() => ({}))
     if (!name?.trim()) return json(400, { error: 'Class name is required' })
 
-    const code = generateCode()
-    const res = await fetch(`${supabaseUrl}/rest/v1/classrooms`, {
-      method: 'POST',
-      headers: { ...supabaseHeaders(), Prefer: 'return=representation' },
-      body: JSON.stringify({ code, name: name.trim().slice(0, 60), owner_user_id: auth.userId }),
-    })
+    const res = await withFreshCode((code) =>
+      fetch(`${supabaseUrl}/rest/v1/classrooms`, {
+        method: 'POST',
+        headers: { ...supabaseHeaders(), Prefer: 'return=representation' },
+        body: JSON.stringify({ code, name: name.trim().slice(0, 60), owner_user_id: auth.userId }),
+      })
+    )
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}))

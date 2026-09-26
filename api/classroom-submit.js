@@ -1,6 +1,8 @@
 export const config = { runtime: 'edge' }
 
 import { checkRateLimit, getClientIp, handleCors, withCors } from './_rateLimit.js'
+import { verifyJwt } from './_auth.js'
+import { isStudent } from './_school.js'
 
 const CODE_RE = /^[A-Z0-9]{6,8}$/
 // After stripping illustrations a book should be well under this; we still
@@ -38,6 +40,21 @@ export default async function handler(req) {
   const { allowed } = checkRateLimit(`classroom-submit:${ip}`, 20)
   if (!allowed) return json(429, { error: 'Too many requests. Try again in an hour.' })
 
+  // A Bearer token identifies the sender for stats (`submissions.user_id`,
+  // nullable), but this endpoint predates student accounts and is not how
+  // they hand in work (Stage 2 assignments are). verifyJwt returns ok:false
+  // for both "no token" and "invalid/expired token" — either way this falls
+  // through to the anonymous submit below exactly as it did before students
+  // existed; only a STUDENT's valid JWT is rejected outright.
+  let submitterId = null
+  const auth = await verifyJwt(req)
+  if (auth.ok) {
+    if (isStudent(auth)) {
+      return json(403, { error: 'Students hand in through assignments, not this form.', code: 'use_hand_in' })
+    }
+    submitterId = auth.userId
+  }
+
   const { code, book } = await req.json().catch(() => ({}))
   const normalizedCode = typeof code === 'string' ? code.toUpperCase() : ''
   if (!CODE_RE.test(normalizedCode)) return json(400, { error: 'Invalid code' })
@@ -70,7 +87,11 @@ export default async function handler(req) {
   const res = await fetch(`${supabaseUrl}/rest/v1/submissions`, {
     method: 'POST',
     headers: { ...supabaseHeaders(), Prefer: 'return=representation' },
-    body: JSON.stringify({ classroom_code: normalizedCode, book: bookToStore }),
+    body: JSON.stringify({
+      classroom_code: normalizedCode,
+      book: bookToStore,
+      ...(submitterId ? { user_id: submitterId } : {}),
+    }),
   })
 
   if (!res.ok) {
