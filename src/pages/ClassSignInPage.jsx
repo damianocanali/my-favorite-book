@@ -115,7 +115,7 @@ export default function ClassSignInPage() {
   }
 
   function handleBackOne() {
-    if (submitting) return
+    if (submitting || shake) return
     setPicks((prev) => prev.slice(0, -1))
   }
 
@@ -150,7 +150,7 @@ export default function ClassSignInPage() {
   }
 
   function handlePick(id) {
-    if (submitting || isBlockingPictureError) return
+    if (submitting || isBlockingPictureError || shake) return
     const next = [...picks, id]
     setPicks(next)
     if (next.length === 3) submitPictures(next)
@@ -268,7 +268,7 @@ export default function ClassSignInPage() {
               <button
                 type="button"
                 onClick={handleNotMyClass}
-                className="w-full text-center text-galaxy-text-muted text-sm font-body hover:text-galaxy-primary transition-colors"
+                className="min-h-[48px] w-full flex items-center justify-center text-center text-galaxy-text-muted text-sm font-body hover:text-galaxy-primary transition-colors"
               >
                 {t('school:name_step.not_my_class')}
               </button>
@@ -297,7 +297,7 @@ export default function ClassSignInPage() {
                 <button
                   type="button"
                   onClick={handleNotMyClass}
-                  className="w-full text-center text-galaxy-text-muted text-sm font-body hover:text-galaxy-primary transition-colors"
+                  className="min-h-[48px] w-full flex items-center justify-center text-center text-galaxy-text-muted text-sm font-body hover:text-galaxy-primary transition-colors"
                 >
                   {t('school:picture_step.start_over')}
                 </button>

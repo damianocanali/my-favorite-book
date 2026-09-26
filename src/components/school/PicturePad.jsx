@@ -39,9 +39,15 @@ export default function PicturePad({ picked, onPick, onBack, shake, disabled }) 
         <button
           type="button"
           onClick={onBack}
-          disabled={disabled || picked.length === 0}
+          // Also disabled while `shake` plays: a tap that lands during the
+          // wrong-guess feedback used to be silently swallowed by onBack
+          // popping a picture the child never saw land (the slots were
+          // about to clear anyway) — better to make the pad visibly
+          // unresponsive for that instant than to accept a tap it can't
+          // act on sensibly.
+          disabled={disabled || shake || picked.length === 0}
           aria-label={t('school:picture_step.back_aria')}
-          className="flex items-center gap-1.5 px-4 py-2 rounded-xl font-body font-semibold text-sm text-galaxy-text-muted border border-galaxy-text-muted/20 hover:text-galaxy-text hover:border-galaxy-text-muted/40 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          className="min-h-[48px] flex items-center gap-1.5 px-4 py-2 rounded-xl font-body font-semibold text-sm text-galaxy-text-muted border border-galaxy-text-muted/20 hover:text-galaxy-text hover:border-galaxy-text-muted/40 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
         >
           <Undo2 size={15} aria-hidden="true" />
           {t('school:picture_step.back')}
@@ -54,7 +60,10 @@ export default function PicturePad({ picked, onPick, onBack, shake, disabled }) 
             key={picture.id}
             type="button"
             onClick={() => onPick(picture.id)}
-            disabled={disabled}
+            // Same reasoning as the back button above: a guess tapped
+            // while the slots are shaking would otherwise be accepted and
+            // silently lost when they clear a moment later.
+            disabled={disabled || shake}
             aria-label={t(`school:pictures.${picture.id}`)}
             className="min-w-[96px] min-h-[96px] w-full aspect-square flex items-center justify-center text-4xl rounded-card glass border border-galaxy-text-muted/10 hover:border-galaxy-secondary/50 hover:bg-white/[0.08] active:scale-[0.95] disabled:opacity-40 disabled:cursor-not-allowed transition-all"
           >
