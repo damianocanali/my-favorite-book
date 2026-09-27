@@ -5,30 +5,10 @@
 // component only renders and confirms.
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { MoreVertical, Lock, HelpCircle, Trash2 } from 'lucide-react'
+import { MoreVertical, Lock, HelpCircle, Trash2, BookOpen } from 'lucide-react'
 import { teacherErrorText } from './teacherErrors'
+import { relativeTime } from './relativeTime'
 import { AVATAR_EMOJI } from '../../../lib/school/pictures.js'
-
-function relativeTime(iso, locale) {
-  if (!iso) return null
-  const diffSec = Math.round((new Date(iso).getTime() - Date.now()) / 1000)
-  const rtf = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' })
-  const divisions = [
-    { amount: 60, unit: 'second' },
-    { amount: 60, unit: 'minute' },
-    { amount: 24, unit: 'hour' },
-    { amount: 7, unit: 'day' },
-    { amount: 4.34524, unit: 'week' },
-    { amount: 12, unit: 'month' },
-    { amount: Infinity, unit: 'year' },
-  ]
-  let duration = diffSec
-  for (const { amount, unit } of divisions) {
-    if (Math.abs(duration) < amount) return rtf.format(Math.round(duration), unit)
-    duration /= amount
-  }
-  return null
-}
 
 function RenameDialog({ student, onCancel, onConfirm }) {
   const { t } = useTranslation()
@@ -161,7 +141,7 @@ function RowMenu({ student, open, onToggle, onAction }) {
   )
 }
 
-export default function RosterTable({ students, onAction }) {
+export default function RosterTable({ students, onAction, onOpenBooks }) {
   const { t, i18n } = useTranslation()
   const [openMenu, setOpenMenu] = useState(null)
   const [renaming, setRenaming] = useState(null)
@@ -196,7 +176,13 @@ export default function RosterTable({ students, onAction }) {
           >
             <span className="text-2xl shrink-0" aria-hidden="true">{s.avatar_emoji}</span>
             <div className="flex-1 min-w-0">
-              <p className="font-body font-semibold text-galaxy-text truncate">{s.display_name}</p>
+              <button
+                type="button"
+                onClick={() => onOpenBooks(s)}
+                className="font-body font-semibold text-galaxy-text truncate hover:text-galaxy-secondary hover:underline transition-colors text-left"
+              >
+                {s.display_name}
+              </button>
               <p className="text-galaxy-text-muted text-xs font-body">
                 {s.last_sign_in_at
                   ? t('school:teacher.roster.last_sign_in', { when: relativeTime(s.last_sign_in_at, i18n.language) })
@@ -222,6 +208,15 @@ export default function RosterTable({ students, onAction }) {
                   <Lock size={12} /> {t('school:teacher.roster.status.locked')}
                 </span>
               )}
+              <button
+                type="button"
+                onClick={() => onOpenBooks(s)}
+                aria-label={t('school:teacher.roster.open_books_aria', { name: s.display_name })}
+                title={t('school:teacher.roster.books_button')}
+                className="p-2 rounded-lg text-galaxy-text-muted hover:text-galaxy-text hover:bg-white/[0.06] transition-colors"
+              >
+                <BookOpen size={18} />
+              </button>
               <RowMenu
                 student={s}
                 open={openMenu === s.id}

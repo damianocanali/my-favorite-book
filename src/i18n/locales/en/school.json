@@ -109,6 +109,7 @@
       "duplicate_name": "already in this class",
       "duplicate_name_full": "Another student already has that name.",
       "student_not_found": "We can't find that student.",
+      "book_not_found": "We can't find that book.",
       "create_failed": "couldn't be created",
       "create_failed_full": "That student couldn't be created. Try again.",
       "not_configured": "Schools aren't set up on this server yet.",
@@ -188,7 +189,15 @@
         "heading": "Rename student",
         "name_label": "Name",
         "emoji_label": "Avatar"
-      }
+      },
+      "books_button": "Books",
+      "open_books_aria": "See {{name}}'s books"
+    },
+    "student_books": {
+      "heading": "{{name}}'s books",
+      "empty": "No books yet.",
+      "updated": "Updated {{when}}",
+      "open_book_aria": "Open {{title}}"
     },
     "cards": {
       "heading": "Sign-in cards",

@@ -8,6 +8,7 @@ import SchoolHoursEditor from '../components/school/SchoolHoursEditor'
 import AddStudents from '../components/school/AddStudents'
 import RosterTable from '../components/school/RosterTable'
 import SignInCards from '../components/school/SignInCards'
+import StudentBooks from '../components/school/StudentBooks'
 import { schoolFetch } from '../lib/schoolApi'
 import { teacherErrorText } from '../components/school/teacherErrors'
 import { MAX_SEATS } from '../../lib/school/license.js'
@@ -35,6 +36,7 @@ export default function TeacherClassPage() {
   // Kept in memory only — never localStorage/sessionStorage — and wiped
   // the moment this page unmounts (see the cleanup effect below).
   const [cardsToShow, setCardsToShow] = useState(null)
+  const [viewingStudent, setViewingStudent] = useState(null)
 
   async function load() {
     setLoading(true)
@@ -325,9 +327,17 @@ export default function TeacherClassPage() {
             </button>
           </div>
         ) : (
-          <RosterTable students={students} onAction={handleStudentAction} />
+          <RosterTable students={students} onAction={handleStudentAction} onOpenBooks={setViewingStudent} />
         )}
       </div>
+
+      {viewingStudent && (
+        <StudentBooks
+          classId={classItem.id}
+          student={viewingStudent}
+          onClose={() => setViewingStudent(null)}
+        />
+      )}
     </div>
   )
 }
