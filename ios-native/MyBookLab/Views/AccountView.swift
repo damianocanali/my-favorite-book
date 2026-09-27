@@ -13,6 +13,7 @@ struct AccountView: View {
     @State private var nameDraft = ""
     @State private var showDeleteConfirm = false
     @State private var deleteConfirmText = ""
+    @State private var showingDashboard = false
 
     /// The word the user must type to arm account deletion.
     ///
@@ -65,6 +66,7 @@ struct AccountView: View {
             VStack(spacing: 16) {
                 deletionBanner
                 profileCard
+                if auth.isTeacher { classroomCard }
                 coinsCard
                 rewardsCard
                 appIconCard
@@ -83,6 +85,40 @@ struct AccountView: View {
         }
         .scrollContentBackground(.hidden)
         .task { await loadDeletionStatus() }
+    }
+
+    /// Teachers manage classes on the web for now; this opens it in Safari
+    /// inside the app rather than rebuilding it natively yet.
+    private var classroomCard: some View {
+        Button {
+            showingDashboard = true
+        } label: {
+            HStack(spacing: 14) {
+                Image(systemName: "graduationcap.fill")
+                    .font(.title2)
+                    .foregroundStyle(.yellow)
+                    .frame(width: 32)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Classroom dashboard")
+                        .font(.headline)
+                        .foregroundStyle(.white)
+                    Text("Classes, students and sign-in cards")
+                        .font(.caption)
+                        .foregroundStyle(.white.opacity(0.65))
+                }
+                Spacer()
+                Image(systemName: "arrow.up.right.square")
+                    .foregroundStyle(.white.opacity(0.6))
+            }
+            .padding(16)
+            .frame(minHeight: 64)
+        }
+        .background(.purple.opacity(0.35), in: RoundedRectangle(cornerRadius: 18))
+        .overlay(RoundedRectangle(cornerRadius: 18).strokeBorder(.purple.opacity(0.6)))
+        .fullScreenCover(isPresented: $showingDashboard) {
+            SafariView(url: URL(string: "https://mybooklab.app/teacher")!)
+                .ignoresSafeArea()
+        }
     }
 
     private var coinsCard: some View {

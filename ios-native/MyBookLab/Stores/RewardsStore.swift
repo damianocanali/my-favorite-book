@@ -133,6 +133,18 @@ final class RewardsStore {
 
     private let lastTouchKey = "streak_last_touch_day"
 
+    /// Drop the outgoing person's badges and streak on sign-out. The
+    /// "already touched today" marker is per person too: left behind, it
+    /// stopped the NEXT person's first writing of the day from counting.
+    func clearLocal() {
+        earnedBadges = []
+        currentStreak = 0
+        longestStreak = 0
+        newBadge = nil
+        UserDefaults.standard.removeObject(forKey: lastTouchKey)
+        SharedData.updateStreak(0)
+    }
+
     // MARK: - Loading
 
     /// Pull earned badges (direct Supabase read, select-own RLS) and the

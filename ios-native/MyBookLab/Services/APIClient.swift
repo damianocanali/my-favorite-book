@@ -398,6 +398,80 @@ actor APIClient {
         try await request(method: "GET", path: "/api/delete-account", bearerToken: bearerToken)
     }
 
+    // MARK: - Schools (children's class sign-in)
+    //
+    // Both endpoints are unauthenticated: a child has no session yet. Errors
+    // come back as { error, code } and the code is what the UI maps to a
+    // child-friendly sentence, so these throw SchoolError rather than
+    // APIError — the raw HTTP body must never reach a child's screen.
+
+    struct SchoolRoster: Decodable {
+        struct Classroom: Decodable {
+            let id: String
+            let name: String?
+            let locale: String?
+        }
+        struct Student: Decodable, Identifiable, Hashable {
+            let id: String
+            let display_name: String
+            let avatar_emoji: String?
+        }
+        let classroom: Classroom
+        let students: [Student]
+    }
+
+    struct SchoolSession: Decodable {
+        let access_token: String
+        let refresh_token: String
+    }
+
+    /// `code` is the server's error code, or nil for a network failure or a
+    /// body that wasn't the documented shape.
+    struct SchoolError: Error {
+        let code: String?
+    }
+
+    private struct SchoolSignInBody: Encodable {
+        let code: String
+        let studentId: String
+        let pictures: [String]
+    }
+
+    func schoolRoster(code: String) async throws -> SchoolRoster {
+        var req = URLRequest(url: makeURL(path: "/api/school/roster", query: ["code": code]))
+        req.httpMethod = "GET"
+        req.setValue("application/json", forHTTPHeaderField: "Accept")
+        return try await schoolPerform(req)
+    }
+
+    func schoolSignIn(code: String, studentId: String, pictures: [String]) async throws -> SchoolSession {
+        var req = URLRequest(url: makeURL(path: "/api/school/sign-in", query: [:]))
+        req.httpMethod = "POST"
+        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        req.httpBody = try encoder.encode(
+            SchoolSignInBody(code: code, studentId: studentId, pictures: pictures)
+        )
+        return try await schoolPerform(req)
+    }
+
+    private struct SchoolErrorBody: Decodable { let code: String? }
+
+    private func schoolPerform<Response: Decodable>(_ req: URLRequest) async throws -> Response {
+        let data: Data
+        let response: URLResponse
+        do {
+            (data, response) = try await session.data(for: req)
+        } catch {
+            throw SchoolError(code: nil)
+        }
+        guard let http = response as? HTTPURLResponse else { throw SchoolError(code: nil) }
+        guard (200..<300).contains(http.statusCode) else {
+            throw SchoolError(code: (try? decoder.decode(SchoolErrorBody.self, from: data))?.code)
+        }
+        do { return try decoder.decode(Response.self, from: data) }
+        catch { throw SchoolError(code: nil) }
+    }
+
     // Intent-based "ideas" helpers (Sentence Starters / Help Me Think).
     // Reuses the same /api/story-buddy endpoint as the web app, which for
     // an intent returns the raw Anthropic message; we parse it to a list.
