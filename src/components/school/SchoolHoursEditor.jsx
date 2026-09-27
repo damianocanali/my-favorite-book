@@ -5,6 +5,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Clock } from 'lucide-react'
+import { teacherErrorText } from './teacherErrors'
 import { DEFAULT_SCHOOL_HOURS, validateSchoolHours } from '../../../lib/school/hours.js'
 
 const DAYS = [1, 2, 3, 4, 5, 6, 7]
@@ -116,8 +117,11 @@ export default function SchoolHoursEditor({ classId, schoolHours, timezone, onSa
       </div>
 
       <div className="space-y-1 pt-2">
-        <label className="text-galaxy-text-muted text-sm font-body font-semibold">{t('school:teacher.hours.timezone_label')}</label>
+        <label htmlFor="school-hours-timezone" className="text-galaxy-text-muted text-sm font-body font-semibold">
+          {t('school:teacher.hours.timezone_label')}
+        </label>
         <select
+          id="school-hours-timezone"
           value={tz}
           onChange={(e) => setTz(e.target.value)}
           className="w-full px-3 py-2.5 glass border border-white/15 rounded-xl text-galaxy-text font-body focus:border-galaxy-primary focus:outline-none"
@@ -130,7 +134,7 @@ export default function SchoolHoursEditor({ classId, schoolHours, timezone, onSa
         </select>
       </div>
 
-      {error && <p className="text-red-400 text-sm font-body">{t(`school:teacher.errors.${error}`)}</p>}
+      {error && <p className="text-red-400 text-sm font-body">{teacherErrorText(t, error)}</p>}
 
       <button
         type="button"

@@ -6,6 +6,7 @@ import { GraduationCap, Plus, Copy, Check, LogOut, ChevronRight } from 'lucide-r
 import SparkleButton from '../components/ui/SparkleButton'
 import LicenseBadge from '../components/school/LicenseBadge'
 import { schoolFetch } from '../lib/schoolApi'
+import { teacherErrorText } from '../components/school/teacherErrors'
 import { useAuthStore } from '../stores/useAuthStore'
 import { MAX_SEATS } from '../../lib/school/license.js'
 
@@ -22,10 +23,6 @@ function loadLegacyClasses() {
   } catch {
     return []
   }
-}
-
-function errorText(t, code) {
-  return t(`school:teacher.errors.${code}`, { defaultValue: t('school:teacher.errors.generic') })
 }
 
 export default function TeacherPage() {
@@ -51,7 +48,7 @@ export default function TeacherPage() {
       const res = await schoolFetch('/api/school/classes')
       setLoading(false)
       if (res.ok) setClasses(res.data?.classes ?? [])
-      else setError(errorText(t, res.code || 'generic'))
+      else setError(teacherErrorText(t, res.code || 'generic'))
     }
     load()
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -82,7 +79,7 @@ export default function TeacherPage() {
     })
     setCreating(false)
     if (!res.ok) {
-      setCreateError(errorText(t, res.code || 'generic'))
+      setCreateError(teacherErrorText(t, res.code || 'generic'))
       return
     }
     setClasses((prev) => [res.data.class, ...prev])

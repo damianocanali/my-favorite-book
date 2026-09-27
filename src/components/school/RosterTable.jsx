@@ -6,6 +6,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { MoreVertical, Lock, HelpCircle, Trash2 } from 'lucide-react'
+import { teacherErrorText } from './teacherErrors'
 import { AVATAR_EMOJI } from '../../../lib/school/pictures.js'
 
 function relativeTime(iso, locale) {
@@ -29,10 +30,6 @@ function relativeTime(iso, locale) {
   return null
 }
 
-function errorText(t, code) {
-  return t(`school:teacher.errors.${code}`, { defaultValue: t('school:teacher.errors.generic') })
-}
-
 function RenameDialog({ student, onCancel, onConfirm }) {
   const { t } = useTranslation()
   const [name, setName] = useState(student.display_name)
@@ -53,10 +50,11 @@ function RenameDialog({ student, onCancel, onConfirm }) {
       <div className="w-full max-w-sm glass rounded-2xl p-6 border border-galaxy-text-muted/10 space-y-4">
         <h3 className="font-heading text-lg font-bold text-galaxy-text">{t('school:teacher.roster.rename_dialog.heading')}</h3>
         <div className="space-y-1">
-          <label className="text-galaxy-text-muted text-sm font-body font-semibold">
+          <label htmlFor="rename-student-name" className="text-galaxy-text-muted text-sm font-body font-semibold">
             {t('school:teacher.roster.rename_dialog.name_label')}
           </label>
           <input
+            id="rename-student-name"
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -65,10 +63,14 @@ function RenameDialog({ student, onCancel, onConfirm }) {
           />
         </div>
         <div className="space-y-1">
-          <label className="text-galaxy-text-muted text-sm font-body font-semibold">
+          <p id="rename-student-emoji-label" className="text-galaxy-text-muted text-sm font-body font-semibold">
             {t('school:teacher.roster.rename_dialog.emoji_label')}
-          </label>
-          <div className="grid grid-cols-8 gap-1 max-h-32 overflow-y-auto p-1 glass rounded-xl border border-white/10">
+          </p>
+          <div
+            role="group"
+            aria-labelledby="rename-student-emoji-label"
+            className="grid grid-cols-8 gap-1 max-h-32 overflow-y-auto p-1 glass rounded-xl border border-white/10"
+          >
             {AVATAR_EMOJI.map((e) => (
               <button
                 key={e}
@@ -84,7 +86,7 @@ function RenameDialog({ student, onCancel, onConfirm }) {
             ))}
           </div>
         </div>
-        {error && <p className="text-red-400 text-sm font-body">{errorText(t, error)}</p>}
+        {error && <p className="text-red-400 text-sm font-body">{teacherErrorText(t, error)}</p>}
         <div className="flex justify-end gap-2 pt-2">
           <button
             type="button"
@@ -201,7 +203,7 @@ export default function RosterTable({ students, onAction }) {
                   : t('school:teacher.roster.last_sign_in_never')}
               </p>
               {rowError?.id === s.id && (
-                <p className="text-red-400 text-xs font-body mt-0.5">{errorText(t, rowError.code)}</p>
+                <p className="text-red-400 text-xs font-body mt-0.5">{teacherErrorText(t, rowError.code)}</p>
               )}
             </div>
             <div className="flex items-center gap-2 shrink-0">

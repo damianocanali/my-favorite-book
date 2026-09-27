@@ -45,6 +45,12 @@ export default function LicenseBadge({ license, now = new Date(), className = ''
     ? t('school:teacher.license.trial_days', { count })
     : t(`school:teacher.license.${key}`)
 
+  // A trial that ran out or a lapsed license both mean the teacher can't
+  // buy their way past this yet — surface that as a hover title rather
+  // than more badge text, since the badge itself must never carry a price
+  // or checkout link.
+  const title = tone === 'warn' ? t('school:teacher.license.coming_soon') : undefined
+
   const toneClasses = {
     ok: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30',
     warn: 'bg-amber-500/15 text-amber-300 border-amber-500/30',
@@ -53,6 +59,7 @@ export default function LicenseBadge({ license, now = new Date(), className = ''
 
   return (
     <span
+      title={title}
       className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-body font-semibold border whitespace-nowrap ${toneClasses[tone]} ${className}`}
     >
       {label}

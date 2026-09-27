@@ -9,11 +9,8 @@ import AddStudents from '../components/school/AddStudents'
 import RosterTable from '../components/school/RosterTable'
 import SignInCards from '../components/school/SignInCards'
 import { schoolFetch } from '../lib/schoolApi'
+import { teacherErrorText } from '../components/school/teacherErrors'
 import { MAX_SEATS } from '../../lib/school/license.js'
-
-function errorText(t, code) {
-  return t(`school:teacher.errors.${code}`, { defaultValue: t('school:teacher.errors.generic') })
-}
 
 export default function TeacherClassPage() {
   const { id } = useParams()
@@ -24,6 +21,12 @@ export default function TeacherClassPage() {
   const [students, setStudents] = useState([])
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
+  // A failed GET is retryable and says so; "not found" means the class
+  // genuinely isn't in this teacher's list (wrong id, someone else's class,
+  // deleted). Conflating the two used to show "we can't find that class"
+  // for what might just be a dropped connection.
+  const [loadError, setLoadError] = useState(null)
+  const [studentsError, setStudentsError] = useState(null)
   const [copiedCode, setCopiedCode] = useState(false)
   const [renamingClass, setRenamingClass] = useState(false)
   const [nameDraft, setNameDraft] = useState('')
@@ -35,12 +38,19 @@ export default function TeacherClassPage() {
 
   async function load() {
     setLoading(true)
+    setNotFound(false)
+    setLoadError(null)
+    setStudentsError(null)
     const [classesRes, studentsRes] = await Promise.all([
       schoolFetch('/api/school/classes'),
       schoolFetch(`/api/school/students?classId=${encodeURIComponent(id)}`),
     ])
     setLoading(false)
-    const found = classesRes.ok ? (classesRes.data?.classes ?? []).find((c) => c.id === id) : null
+    if (!classesRes.ok) {
+      setLoadError(classesRes.code || 'generic')
+      return
+    }
+    const found = (classesRes.data?.classes ?? []).find((c) => c.id === id)
     if (!found) {
       setNotFound(true)
       return
@@ -48,6 +58,7 @@ export default function TeacherClassPage() {
     setClassItem(found)
     setNameDraft(found.name)
     if (studentsRes.ok) setStudents(studentsRes.data?.students ?? [])
+    else setStudentsError(studentsRes.code || 'generic')
   }
 
   useEffect(() => {
@@ -77,12 +88,12 @@ export default function TeacherClassPage() {
   async function handleRotateCode() {
     if (!window.confirm(t('school:teacher.class_page.new_code_confirm'))) return
     const res = await patchClass({ rotate_code: true })
-    if (!res.ok) setBanner(errorText(t, res.code || 'generic'))
+    if (!res.ok) setBanner(teacherErrorText(t, res.code || 'generic'))
   }
 
   async function handleToggleSignIn() {
     const res = await patchClass({ sign_in_open: !classItem.sign_in_open })
-    if (!res.ok) setBanner(errorText(t, res.code || 'generic'))
+    if (!res.ok) setBanner(teacherErrorText(t, res.code || 'generic'))
   }
 
   async function handleSaveClassName() {
@@ -90,7 +101,7 @@ export default function TeacherClassPage() {
     if (!name) { setRenamingClass(false); setNameDraft(classItem.name); return }
     const res = await patchClass({ name })
     if (res.ok) setRenamingClass(false)
-    else setBanner(errorText(t, res.code || 'generic'))
+    else setBanner(teacherErrorText(t, res.code || 'generic'))
   }
 
   async function handleStudentAction(studentId, action, extra) {
@@ -114,6 +125,10 @@ export default function TeacherClassPage() {
   }
 
   function handleStudentsCreated(created) {
+    // A successful create means we now have at least a partial, fresher
+    // roster than whatever the last GET returned — worth showing over a
+    // stale "couldn't load the roster" error.
+    setStudentsError(null)
     const now = new Date().toISOString()
     setStudents((prev) => [
       ...prev,
@@ -137,6 +152,26 @@ export default function TeacherClassPage() {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-galaxy-secondary border-t-transparent rounded-full animate-spin" />
+      </div>
+    )
+  }
+
+  if (loadError) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4 px-4 text-center">
+        <p className="text-red-400 font-body text-lg">{teacherErrorText(t, loadError)}</p>
+        <button
+          onClick={load}
+          className="px-4 py-2.5 rounded-xl font-body font-bold text-white btn-fill-primary transition-colors"
+        >
+          {t('common:actions.retry')}
+        </button>
+        <button
+          onClick={() => navigate('/teacher')}
+          className="flex items-center gap-2 text-galaxy-secondary font-body font-semibold hover:underline"
+        >
+          <ArrowLeft size={16} /> {t('school:teacher.class_page.back')}
+        </button>
       </div>
     )
   }
@@ -201,7 +236,14 @@ export default function TeacherClassPage() {
               <LicenseBadge license={classItem.license} />
               <span className="text-galaxy-text-muted text-sm font-body">
                 {t('school:teacher.card.student_count', {
-                  used: classItem.student_count,
+                  // The roster list is the live source of truth once it's
+                  // loaded — it updates immediately on add/remove/restore,
+                  // where classItem.student_count is only as fresh as the
+                  // last full page load. Fall back to the server's count
+                  // only if the roster itself failed to load.
+                  used: studentsError
+                    ? classItem.student_count
+                    : students.filter((s) => s.status === 'active').length,
                   seats: classItem.license?.seats ?? MAX_SEATS,
                 })}
               </span>
@@ -272,7 +314,19 @@ export default function TeacherClassPage() {
 
       <div className="space-y-3">
         <h2 className="font-heading text-lg font-bold text-galaxy-text">{t('school:teacher.roster.heading')}</h2>
-        <RosterTable students={students} onAction={handleStudentAction} />
+        {studentsError ? (
+          <div className="glass rounded-2xl p-6 border border-red-500/20 flex flex-col items-center gap-3 text-center">
+            <p className="text-red-400 text-sm font-body">{teacherErrorText(t, studentsError)}</p>
+            <button
+              onClick={load}
+              className="px-4 py-2 rounded-xl font-body font-bold text-sm text-white btn-fill-primary transition-colors"
+            >
+              {t('common:actions.retry')}
+            </button>
+          </div>
+        ) : (
+          <RosterTable students={students} onAction={handleStudentAction} />
+        )}
       </div>
     </div>
   )

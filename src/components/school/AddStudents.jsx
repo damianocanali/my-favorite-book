@@ -9,11 +9,8 @@ import { useTranslation } from 'react-i18next'
 import { UserPlus } from 'lucide-react'
 import { parseRosterText } from './rosterText'
 import { schoolFetch } from '../../lib/schoolApi'
+import { teacherErrorText } from './teacherErrors'
 import { isLicenseUsable } from '../../../lib/school/license.js'
-
-function errorText(t, code) {
-  return t(`school:teacher.errors.${code}`, { defaultValue: t('school:teacher.errors.generic') })
-}
 
 export default function AddStudents({ classId, license, onCreated }) {
   const { t } = useTranslation()
@@ -71,7 +68,7 @@ export default function AddStudents({ classId, license, onCreated }) {
         className="w-full px-4 py-3 glass border border-white/15 rounded-xl text-galaxy-text placeholder:text-galaxy-text-muted/40 focus:border-galaxy-primary focus:outline-none font-body resize-y"
       />
 
-      {error && <p className="text-red-400 text-sm font-body">{errorText(t, error)}</p>}
+      {error && <p className="text-red-400 text-sm font-body">{teacherErrorText(t, error)}</p>}
 
       <button
         type="button"
@@ -99,7 +96,7 @@ export default function AddStudents({ classId, license, onCreated }) {
                   <li key={`${s.name}-${i}`} className="text-galaxy-text-muted text-sm font-body">
                     {t('school:teacher.add_students.skipped_line', {
                       name: s.name,
-                      reason: errorText(t, s.code),
+                      reason: teacherErrorText(t, s.code, { standalone: false }),
                     })}
                   </li>
                 ))}

@@ -333,24 +333,30 @@ body.keyboard-open main {
 }
 
 /* ── Sign-in cards print (Task 12) ─────────────────────────
-   Deliberately independent of the .printable-book rules above: those hide
-   siblings via `display`, which can't be undone by a `display` on a
-   descendant once display:none reaches an ancestor. `visibility` doesn't
-   have that problem — a hidden ancestor's descendant can still opt back in
-   — so this works regardless of how deep .signin-cards sits in the app
-   tree, without touching the book-printing rules at all. */
+   Everything below is scoped under html.print-signin-cards — a class
+   src/components/school/printMode.js adds immediately before
+   window.print() and removes on `afterprint` (and on unmount). Without
+   that scope, `body *` would hide every print job in the app, including
+   the .printable-book book-printing flow above (a `display` toggle on a
+   deeply-nested descendant can't undo `display:none` on its own ancestor,
+   which is exactly why this uses `visibility` instead — but it still must
+   never apply to a print job that isn't printing cards). Ordinary printing
+   is byte-for-byte unaffected whenever this class is absent from <html>.
+   See tests/school-print-mode.test.js for the static checks that keep
+   this invariant honest. */
 @media print {
-  body * { visibility: hidden; }
-  .signin-cards, .signin-cards * { visibility: visible; }
+  html.print-signin-cards body * { visibility: hidden; }
+  html.print-signin-cards .signin-cards,
+  html.print-signin-cards .signin-cards * { visibility: visible; }
 
-  .signin-cards {
+  html.print-signin-cards .signin-cards {
     position: absolute;
     top: 0;
     left: 0;
     width: 8.5in;
   }
 
-  .signin-cards .cards-page {
+  html.print-signin-cards .signin-cards .cards-page {
     display: grid !important;
     grid-template-columns: repeat(2, 1fr);
     grid-template-rows: repeat(3, 1fr);
@@ -363,12 +369,12 @@ body.keyboard-open main {
     break-after: page;
   }
 
-  .signin-cards .cards-page:last-child {
+  html.print-signin-cards .signin-cards .cards-page:last-child {
     page-break-after: auto;
     break-after: auto;
   }
 
-  .signin-cards .signin-card {
+  html.print-signin-cards .signin-cards .signin-card {
     overflow: hidden;
   }
 }
