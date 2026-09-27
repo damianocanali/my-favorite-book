@@ -6,7 +6,9 @@
 -- (which ship to browsers) can read nothing. Do not add policies without a
 -- design change: class_students holds the picture-password hash.
 --
--- Apply AFTER migration 017 and after the api/school deploy. Idempotent.
+-- Apply BEFORE deploying the code that uses it: every change here is
+-- additive with defaults, so the previous code keeps working; the new code
+-- needs these tables from its first request (account purge, /teacher).
 
 -- ── Licenses ────────────────────────────────────────────────────────────
 create table if not exists public.class_licenses (
@@ -185,12 +187,14 @@ begin
 end $$;
 
 -- The guess was right: turn the pessimistic failure into a success and clear
--- the counters. Returns ok, or invalid if the attempt is unknown/already used.
+-- the counters. Returns ok, or invalid if the attempt is unknown/already used
+-- or the student is no longer active (removed since the attempt began).
 create or replace function public.school_confirm_attempt(p_attempt_id bigint, p_student_id uuid)
 returns text language plpgsql security definer set search_path = public as $$
 begin
   update student_sign_in_attempts set ok = true
-    where id = p_attempt_id and student_id = p_student_id and not ok;
+    where id = p_attempt_id and student_id = p_student_id and not ok
+      and exists (select 1 from class_students where id = p_student_id and status = 'active');
   if not found then return 'invalid'; end if;
   update class_students
     set failed_attempts = 0, locked_until = null, hard_locked = false, last_sign_in_at = now()
@@ -199,17 +203,21 @@ begin
 end $$;
 
 -- Atomically spend one AI image from the class allowance and the student's
--- daily allowance. Returns false (and spends nothing) if either is used up
--- or the class has no usable license.
+-- daily allowance. Returns false (and spends nothing) if either is used up,
+-- the class has no usable license, or the class is archived.
 create or replace function public.school_bump_image(p_student_id uuid, p_daily_limit int)
 returns boolean language plpgsql security definer set search_path = public as $$
 declare
   st record;
   lic record;
+  archived timestamptz;
 begin
   select id, classroom_id, images_day, images_today into st
     from class_students where id = p_student_id and status = 'active' for update;
   if not found then return false; end if;
+
+  select archived_at into archived from classrooms where id = st.classroom_id;
+  if archived is not null then return false; end if;
 
   select id, status, expires_at, image_allowance, images_used into lic
     from class_licenses where classroom_id = st.classroom_id for update;

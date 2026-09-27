@@ -42,4 +42,19 @@ describe('018_schools_core.sql', () => {
   it('defaults image_allowance to 300 (trial safe)', () => {
     expect(SQL).toMatch(/image_allowance int not null default 300/i)
   })
+
+  it('tells operators to apply before deploying the code that needs the new tables', () => {
+    expect(SQL).toMatch(/Apply BEFORE deploying the code that uses it/i)
+  })
+
+  it('school_confirm_attempt only succeeds for a still-active student', () => {
+    expect(SQL).toMatch(
+      /and not ok\s+and exists \(select 1 from class_students where id = p_student_id and status = 'active'\)/i
+    )
+  })
+
+  it('school_bump_image returns false for an archived class', () => {
+    expect(SQL).toMatch(/select archived_at into archived from classrooms where id = st\.classroom_id/i)
+    expect(SQL).toMatch(/if archived is not null then return false; end if;/i)
+  })
 })

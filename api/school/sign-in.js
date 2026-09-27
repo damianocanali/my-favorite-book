@@ -3,7 +3,7 @@ export const config = { runtime: 'edge' }
 import { handleCors, checkRateLimit, getClientIp } from '../_rateLimit.js'
 import { sb, sbEnv, json, isUuid } from '../_school.js'
 import { openClassByCode } from './roster.js'
-import { hashPictureSecret, hashIp, isValidPictureSecret, timingSafeEqualHex } from '../../lib/school/crypto.js'
+import { hashPictureSecret, hashIp, isValidPictureSecret, timingSafeEqualHex, randomPassword } from '../../lib/school/crypto.js'
 import { mintStudentSession } from '../../lib/school/session.js'
 
 // school_begin_attempt's `state` field, for every outcome other than 'ok'.
@@ -77,9 +77,17 @@ export default async function handler(req) {
     // "ok" and all getting compared. A right guess is un-done by
     // school_confirm_attempt below.
     const begin = await rpc('school_begin_attempt', { p_classroom_id: classroomId, p_student_id: student.id, p_ip_hash: ipHash })
-    if (BEGIN_STATE_REPLY[begin.state]) {
-      const [status, code] = BEGIN_STATE_REPLY[begin.state]
-      return json(req, status, { error: 'Sign-in not available right now', code })
+    // Fail closed on any state other than 'ok': an unrecognised/unexpected
+    // state must never fall through to the picture comparison below — a new
+    // or misspelled state from the RPC is treated the same as a DB error
+    // (503), not silently read as "go ahead and compare".
+    if (begin?.state !== 'ok') {
+      const mapped = BEGIN_STATE_REPLY[begin?.state]
+      if (mapped) {
+        const [status, code] = mapped
+        return json(req, status, { error: 'Sign-in not available right now', code })
+      }
+      throw new Error(`school_begin_attempt returned unexpected state: ${begin?.state}`)
     }
 
     const ok = timingSafeEqualHex(await hashPictureSecret(pepper, student.id, body.pictures), student.secret_hash)
@@ -90,6 +98,17 @@ export default async function handler(req) {
 
     const confirmed = await rpc('school_confirm_attempt', { p_attempt_id: begin.attempt_id, p_student_id: student.id })
     if (confirmed !== 'ok') return json(req, 401, { error: 'Those pictures are not right', code: 'wrong_pictures' })
+
+    // Wipe out any password a signed-in session set via
+    // supabase.auth.updateUser({password}) — done on every successful
+    // sign-in, before minting a new session, so such a password never
+    // survives long enough to let email+password sign-in bypass the picture
+    // throttle.
+    const rotated = await sb(`/auth/v1/admin/users/${student.auth_user_id}`, {
+      method: 'PUT',
+      body: JSON.stringify({ password: randomPassword() }),
+    })
+    if (!rotated.ok) return json(req, 502, { error: 'Could not sign in', code: 'sign_in_failed' })
 
     const user = await sb(`/auth/v1/admin/users/${student.auth_user_id}`).then((r) => r.json()).catch(() => null)
     const session = user?.email && (await mintStudentSession({ url: env.url, serviceKey: env.key, anonKey, email: user.email }))

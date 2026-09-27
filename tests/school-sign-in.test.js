@@ -219,6 +219,7 @@ describe('POST /api/school/sign-in', () => {
         studentsRoute(row),
         beginRoute({ state: 'ok', attempt_id: 42, after: 'ok' }),
         confirmRoute('ok'),
+        { method: 'PUT', match: '/auth/v1/admin/users/auth-kid-1', reply: { status: 200, body: {} } },
         usersRoute('s-kid@students.mybooklab.invalid'),
         generateLinkRoute('th-1'),
         verifyRoute(TOKENS),
@@ -239,11 +240,74 @@ describe('POST /api/school/sign-in', () => {
     expect(confirmCall.body).toEqual({ p_attempt_id: 42, p_student_id: STUDENT_ID })
 
     const confirmIdx = log.findIndex((l) => l.url.includes('/rest/v1/rpc/school_confirm_attempt'))
+    const putIdx = log.findIndex((l) => l.method === 'PUT' && l.url.includes('/auth/v1/admin/users/auth-kid-1'))
     const genIdx = log.findIndex((l) => l.url.includes('/auth/v1/admin/generate_link'))
     const verifyIdx = log.findIndex((l) => l.url.includes('/auth/v1/verify'))
     expect(confirmIdx).toBeGreaterThanOrEqual(0)
-    expect(genIdx).toBeGreaterThan(confirmIdx)
+    expect(putIdx).toBeGreaterThan(confirmIdx)
+    expect(genIdx).toBeGreaterThan(putIdx)
     expect(verifyIdx).toBeGreaterThan(genIdx)
+  })
+
+  it('rotates the student\'s password to a fresh random value before minting, so a self-set password never survives a sign-in', async () => {
+    const row = await studentRow(RIGHT_PICTURES)
+    const log = mockSupabase({
+      user: null,
+      routes: [
+        classroomRoute(classroomRow()),
+        studentsRoute(row),
+        beginRoute({ state: 'ok', attempt_id: 43, after: 'ok' }),
+        confirmRoute('ok'),
+        { method: 'PUT', match: '/auth/v1/admin/users/auth-kid-1', reply: { status: 200, body: {} } },
+        usersRoute('s-kid@students.mybooklab.invalid'),
+        generateLinkRoute('th-4'),
+        verifyRoute(TOKENS),
+      ],
+    })
+    const { default: handler } = await import('../api/school/sign-in.js')
+    const res = await handler(signInCall({ code: CODE, studentId: STUDENT_ID, pictures: RIGHT_PICTURES }))
+    expect(res.status).toBe(200)
+
+    const putCall = log.find((l) => l.method === 'PUT' && l.url.includes('/auth/v1/admin/users/auth-kid-1'))
+    expect(typeof putCall.body.password).toBe('string')
+    expect(putCall.body.password.length).toBeGreaterThan(20)
+  })
+
+  it('returns 502 sign_in_failed and never calls generate_link when the password-rotation PUT fails', async () => {
+    const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const row = await studentRow(RIGHT_PICTURES)
+    const log = mockSupabase({
+      user: null,
+      routes: [
+        classroomRoute(classroomRow()),
+        studentsRoute(row),
+        beginRoute({ state: 'ok', attempt_id: 44, after: 'ok' }),
+        confirmRoute('ok'),
+        { method: 'PUT', match: '/auth/v1/admin/users/auth-kid-1', reply: { status: 500, body: { message: 'nope' } } },
+      ],
+    })
+    const { default: handler } = await import('../api/school/sign-in.js')
+    const res = await handler(signInCall({ code: CODE, studentId: STUDENT_ID, pictures: RIGHT_PICTURES }))
+    expect(res.status).toBe(502)
+    expect((await res.json()).code).toBe('sign_in_failed')
+    expect(log.filter((l) => l.url.includes('/auth/v1/admin/generate_link'))).toHaveLength(0)
+    errSpy.mockRestore()
+  })
+
+  it('returns 503 upstream for an unrecognized begin_attempt state, comparing nothing and never calling confirm_attempt or generate_link', async () => {
+    const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const row = await studentRow(RIGHT_PICTURES)
+    const log = mockSupabase({
+      user: null,
+      routes: [classroomRoute(classroomRow()), studentsRoute(row), beginRoute({ state: 'some_future_state' })],
+    })
+    const { default: handler } = await import('../api/school/sign-in.js')
+    const res = await handler(signInCall({ code: CODE, studentId: STUDENT_ID, pictures: RIGHT_PICTURES }))
+    expect(res.status).toBe(503)
+    expect((await res.json()).code).toBe('upstream')
+    expect(log.filter((l) => l.url.includes('/rest/v1/rpc/school_confirm_attempt'))).toHaveLength(0)
+    expect(log.filter((l) => l.url.includes('/auth/v1/admin/generate_link'))).toHaveLength(0)
+    errSpy.mockRestore()
   })
 
   it('rejects wrong pictures when after is ok: 401 wrong_pictures, no confirm_attempt or generate_link', async () => {
