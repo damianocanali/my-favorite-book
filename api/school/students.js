@@ -49,6 +49,27 @@ async function activeStudents(classroomId) {
   return res.json()
 }
 
+// One extra bulk query for the whole roster, not one per student: the
+// roster shows a small avatar thumbnail when a teacher has made one (Task
+// C req 3), and doing that with N per-row requests on every page load would
+// be its own performance bug. Best-effort — a failed lookup just means no
+// thumbnails show this load, not a broken roster, so it fails OPEN (unlike
+// the class image allowance, this is display-only and not a spend gate).
+async function loadAvatarMap(authUserIds) {
+  const ids = [...new Set(authUserIds.filter(Boolean))]
+  if (!ids.length) return {}
+  try {
+    const res = await sb(`/rest/v1/user_inventory?user_id=in.(${ids.map(encodeURIComponent).join(',')})&select=user_id,avatar_url`)
+    if (!res.ok) return {}
+    const rows = await res.json()
+    const map = {}
+    for (const r of rows) if (r.avatar_url) map[r.user_id] = r.avatar_url
+    return map
+  } catch {
+    return {}
+  }
+}
+
 async function createOne({ classroomId, name, emoji, pepper }) {
   const authRes = await sb('/auth/v1/admin/users', {
     method: 'POST',
@@ -137,10 +158,16 @@ export default async function handler(req) {
       // Fails closed: a non-2xx/thrown lookup must not read as "an empty
       // class" — the outer try/catch turns the thrown error into 503
       // upstream instead.
-      const res = await sb(`/rest/v1/class_students?classroom_id=eq.${o.classroom.id}&select=${PUBLIC}&order=display_name.asc`)
+      const res = await sb(`/rest/v1/class_students?classroom_id=eq.${o.classroom.id}&select=${PUBLIC},auth_user_id&order=display_name.asc`)
       if (!res.ok) throw new Error(`class_students lookup failed: ${res.status}`)
       const rows = await res.json()
-      return json(req, 200, { students: rows.map(publicShape) })
+      const avatarByAuthId = await loadAvatarMap(rows.map((r) => r.auth_user_id))
+      return json(req, 200, {
+        students: rows.map((r) => {
+          const avatar_url = avatarByAuthId[r.auth_user_id]
+          return avatar_url ? { ...publicShape(r), avatar_url } : publicShape(r)
+        }),
+      })
     }
 
     const body = await req.json().catch(() => ({}))

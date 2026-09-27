@@ -115,6 +115,7 @@
       "not_configured": "Schools aren't set up on this server yet.",
       "upstream": "Something went wrong. Try again.",
       "student_forbidden": "Class accounts can't do that.",
+      "class_image_limit": "This class has used today's pictures for this student. Try again tomorrow.",
       "generic": "Something went wrong. Try again."
     },
     "class_page": {
@@ -180,6 +181,7 @@
         "new_pictures": "New pictures",
         "unlock": "Unlock",
         "rename": "Rename",
+        "avatar": "Avatar",
         "sign_out": "Sign out everywhere",
         "remove": "Remove",
         "restore": "Restore"
@@ -191,13 +193,22 @@
         "emoji_label": "Avatar"
       },
       "books_button": "Books",
-      "open_books_aria": "See {{name}}'s books"
+      "open_books_aria": "See {{name}}'s books",
+      "avatar_thumb_alt": "{{name}}'s avatar"
     },
     "student_books": {
       "heading": "{{name}}'s books",
       "empty": "No books yet.",
       "updated": "Updated {{when}}",
       "open_book_aria": "Open {{title}}"
+    },
+    "avatar_editor": {
+      "heading": "{{name}}'s avatar",
+      "current_alt": "{{name}}'s current avatar",
+      "placeholder_alt": "No avatar yet",
+      "create_cta": "Create avatar",
+      "creating": "Creating…",
+      "not_saved": "Couldn't save the avatar, try again."
     },
     "cards": {
       "heading": "Sign-in cards",

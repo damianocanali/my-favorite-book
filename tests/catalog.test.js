@@ -11,7 +11,10 @@ import { readFileSync } from 'node:fs'
 import { CATALOG, priceOf } from '../lib/catalog.js'
 
 const webStyles = () => {
-  const src = readFileSync('src/pages/AvatarPage.jsx', 'utf8')
+  // Extracted from AvatarPage.jsx into a shared module (Task C, teacher
+  // avatar editor) so AvatarPage and StudentAvatarEditor can't drift on the
+  // catalog — the art styles now live here.
+  const src = readFileSync('src/components/avatar/avatarCatalog.js', 'utf8')
   return Object.fromEntries(
     [...src.matchAll(/\{ id: '([a-z]+)', labelKey: 'content:avatar\.art_style\.[a-z]+\.label', emoji: '[^']+', price: (\d+) \}/g)]
       .filter(([, , p]) => Number(p) > 0)
