@@ -141,6 +141,24 @@ export const useAuthStore = create((set, get) => ({
     return data.user
   },
 
+  // Marks a signed-in, non-student account as a class owner so
+  // selectIsTeacher grants it the Classroom link/console from then on.
+  // Called once from TeacherPage — an existing class owner who reached
+  // /teacher directly still has to type the URL every time otherwise —
+  // and from AccountPage's "Use My Book Lab in my classroom" card. Mirrors
+  // updateDisplayName's shape: throws on failure so callers decide how to
+  // handle it (both call sites treat this as best-effort and swallow the
+  // error rather than blocking navigation on it).
+  markClassroomOwner: async () => {
+    if (!supabase) throw new Error('Auth not configured')
+    const { data, error } = await supabase.auth.updateUser({
+      data: { classroom: true },
+    })
+    if (error) throw error
+    set({ user: data.user })
+    return data.user
+  },
+
   // Student sign-in (Task 10) never touches email/password — api/school/
   // sign-in.js already checked the picture secret server-side and handed
   // back a ready-made session. setSession's own onAuthStateChange fires
@@ -209,3 +227,17 @@ export const selectRole = (s) =>
 // unlike `user_metadata` above, which is exactly why selectRole must never
 // be used to gate a class account.
 export const selectIsStudent = (s) => s.user?.app_metadata?.role === 'student'
+
+// Whether this account should see the Classroom link/console: signed in,
+// not a student, and either the email sign-up "teacher" choice or having
+// reached /teacher as an existing class owner (TeacherPage/AccountPage call
+// markClassroomOwner the first time that happens — see above). UI-only,
+// same caveat as selectRole above: `user_metadata` is user-writable, so
+// this can decide whether a link is shown but never whether a request
+// succeeds — every server endpoint that matters (creating/renaming a
+// class, adding students, …) re-checks real class ownership itself
+// (requireClassOwner in api/_school.js).
+export const selectIsTeacher = (s) =>
+  Boolean(s.user) &&
+  !selectIsStudent(s) &&
+  (s.user?.user_metadata?.role === 'teacher' || s.user?.user_metadata?.classroom === true)

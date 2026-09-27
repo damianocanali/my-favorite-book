@@ -2,8 +2,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { motion } from 'motion/react'
 import { useTranslation, Trans } from 'react-i18next'
-import { Trash2, LogOut, AlertTriangle, Loader2, Sparkles, CreditCard, ExternalLink, Pencil, Check, X } from 'lucide-react'
-import { useAuthStore, selectDisplayName } from '../stores/useAuthStore'
+import { Trash2, LogOut, AlertTriangle, Loader2, Sparkles, CreditCard, ExternalLink, Pencil, Check, X, GraduationCap } from 'lucide-react'
+import { useAuthStore, selectDisplayName, selectIsTeacher } from '../stores/useAuthStore'
 import { useSubscription } from '../hooks/useSubscription'
 import { useIsStudent } from '../hooks/useIsStudent'
 import { apiFetchAuthed } from '../lib/api'
@@ -37,7 +37,9 @@ export default function AccountPage() {
   )
   const signOut = useAuthStore((s) => s.signOut)
   const updateDisplayName = useAuthStore((s) => s.updateDisplayName)
+  const markClassroomOwner = useAuthStore((s) => s.markClassroomOwner)
   const displayName = useAuthStore(selectDisplayName)
+  const isTeacher = useAuthStore(selectIsTeacher)
 
   const { planKey, isPaid, loading: subLoading } = useSubscription()
   const isStudent = useIsStudent()
@@ -52,6 +54,20 @@ export default function AccountPage() {
   const [nameDraft, setNameDraft] = useState('')
   const [savingName, setSavingName] = useState(false)
   const [nameError, setNameError] = useState(null)
+  const [classroomLoading, setClassroomLoading] = useState(false)
+
+  const handleUseInClassroom = async () => {
+    setClassroomLoading(true)
+    try {
+      await markClassroomOwner()
+    } catch {
+      // Best-effort — still take them to /teacher; TeacherPage marks the
+      // account again on its own next load if this call failed silently.
+    } finally {
+      setClassroomLoading(false)
+      navigate('/teacher')
+    }
+  }
 
   const startEditingName = () => {
     setNameDraft(displayName ?? '')
@@ -240,17 +256,55 @@ export default function AccountPage() {
             <FeelingConstellation />
           </div>
 
-          {/* Avatar customization */}
-          <div className="border-b border-galaxy-text-muted/20 pb-6 mb-6">
-            <h2 className="font-heading text-lg font-semibold text-galaxy-text mb-3">{t('account:profile.title')}</h2>
-            <Link
-              to="/avatar"
-              className="flex items-center gap-2 px-4 py-2.5 rounded-2xl border border-galaxy-text-muted/30 text-galaxy-text-muted hover:text-galaxy-text hover:border-galaxy-text-muted/60 transition-colors font-body text-sm w-fit"
-            >
-              <Sparkles size={16} />
-              {t('account:profile.customize_avatar')}
-            </Link>
-          </div>
+          {/* Avatar customization — a class (student) account never gets
+              this (global constraint: /avatar itself redirects a student
+              to /bookshelf, so the link would just dead-end for them). */}
+          {!isStudent && (
+            <div className="border-b border-galaxy-text-muted/20 pb-6 mb-6">
+              <h2 className="font-heading text-lg font-semibold text-galaxy-text mb-3">{t('account:profile.title')}</h2>
+              <Link
+                to="/avatar"
+                className="flex items-center gap-2 px-4 py-2.5 rounded-2xl border border-galaxy-text-muted/30 text-galaxy-text-muted hover:text-galaxy-text hover:border-galaxy-text-muted/60 transition-colors font-body text-sm w-fit"
+              >
+                <Sparkles size={16} />
+                {t('account:profile.customize_avatar')}
+              </Link>
+            </div>
+          )}
+
+          {/* Classroom — same discoverability problem as the header link:
+              an existing class owner (signed up as parent, or via Google/
+              Apple) had no way to reach /teacher except typing the URL. */}
+          {!isStudent && (
+            <div className="border-b border-galaxy-text-muted/20 pb-6 mb-6">
+              <h2 className="font-heading text-lg font-semibold text-galaxy-text mb-3">{t('account:classroom.title')}</h2>
+              {isTeacher ? (
+                <Link
+                  to="/teacher"
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-2xl border border-galaxy-text-muted/30 text-galaxy-text-muted hover:text-galaxy-text hover:border-galaxy-text-muted/60 transition-colors font-body text-sm w-fit"
+                >
+                  <GraduationCap size={16} />
+                  {t('account:classroom.dashboard_link')}
+                </Link>
+              ) : (
+                <div className="glass rounded-2xl p-4 border border-galaxy-text-muted/10">
+                  <p className="text-galaxy-text-muted font-body text-sm mb-3">{t('account:classroom.body')}</p>
+                  <button
+                    onClick={handleUseInClassroom}
+                    disabled={classroomLoading}
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-2xl border border-galaxy-text-muted/30 text-galaxy-text-muted hover:text-galaxy-text hover:border-galaxy-text-muted/60 transition-colors font-body text-sm disabled:opacity-60"
+                  >
+                    {classroomLoading ? (
+                      <Loader2 size={16} className="animate-spin" />
+                    ) : (
+                      <GraduationCap size={16} />
+                    )}
+                    {t('account:classroom.use_cta')}
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Language */}
           <div className="border-b border-galaxy-text-muted/20 pb-6 mb-6">

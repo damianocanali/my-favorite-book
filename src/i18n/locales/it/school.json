@@ -109,6 +109,7 @@
       "duplicate_name": "già in questa classe",
       "duplicate_name_full": "Un altro alunno ha già questo nome.",
       "student_not_found": "Non troviamo questo alunno.",
+      "book_not_found": "Non troviamo questo libro.",
       "create_failed": "non è stato possibile crearlo",
       "create_failed_full": "Non è stato possibile creare questo alunno. Riprova.",
       "not_configured": "Le funzioni per le scuole non sono ancora attive su questo server.",
@@ -188,7 +189,15 @@
         "heading": "Rinomina alunno",
         "name_label": "Nome",
         "emoji_label": "Avatar"
-      }
+      },
+      "books_button": "Libri",
+      "open_books_aria": "Vedi i libri di {{name}}"
+    },
+    "student_books": {
+      "heading": "I libri di {{name}}",
+      "empty": "Ancora nessun libro.",
+      "updated": "Aggiornato {{when}}",
+      "open_book_aria": "Apri {{title}}"
     },
     "cards": {
       "heading": "Tessere di accesso",

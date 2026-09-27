@@ -39,6 +39,9 @@
     "title": "Designed with every child in mind",
     "body": "My Book Lab follows Universal Design for Learning (UDL) principles and WCAG/COGA accessibility guidelines. Features like sentence starters, visual progress tracking, effort-based rewards, and multi-modal input are specifically designed to support children with ADHD, dyslexia, and other learning differences — making creative writing achievable and fun for everyone."
   },
+  "teacher_cta": {
+    "label": "For teachers"
+  },
   "pricing": {
     "title": "Plans & Pricing",
     "subtitle": "Start free. Upgrade when you're ready.",

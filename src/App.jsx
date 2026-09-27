@@ -95,7 +95,7 @@ export default function App() {
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/pricing" element={<ConsumerOnlyRoute><PricingPage /></ConsumerOnlyRoute>} />
         <Route path="/success" element={<SuccessPage />} />
-        <Route path="/avatar" element={<AvatarPage />} />
+        <Route path="/avatar" element={<ConsumerOnlyRoute><AvatarPage /></ConsumerOnlyRoute>} />
         <Route path="/privacy" element={<PrivacyPage />} />
         <Route path="/terms" element={<TermsPage />} />
         <Route path="/support" element={<SupportPage />} />

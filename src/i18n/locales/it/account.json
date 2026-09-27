@@ -19,6 +19,12 @@
     "title": "Profilo",
     "customize_avatar": "Personalizza il mio avatar"
   },
+  "classroom": {
+    "title": "Classe",
+    "body": "Crea una classe, aggiungi l'elenco dei tuoi studenti e gestisci tutto da un'unica dashboard.",
+    "use_cta": "Usa My Book Lab nella mia classe",
+    "dashboard_link": "Dashboard della classe"
+  },
   "language": {
     "title": "Lingua"
   },
