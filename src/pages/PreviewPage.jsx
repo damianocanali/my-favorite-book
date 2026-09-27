@@ -105,14 +105,20 @@ export default function PreviewPage() {
           <span className="toolbar-btn__label">{t('editor:preview.bookshelf')}</span>
         </button>
 
-        <button
-          onClick={() => setShowSubmitModal(true)}
-          className="toolbar-btn toolbar-btn--cyan"
-          title={t('editor:preview.submit_title')}
-        >
-          <Send size={15} />
-          <span className="toolbar-btn__label">{t('editor:preview.submit')}</span>
-        </button>
+        {/* Students hand in work through assignments (Stage 2), not this
+            consumer submit-to-class form — it also 403s server-side
+            (api/classroom-submit.js) for a student's own book, but a class
+            account never has one of those to submit anyway. */}
+        {!isStudent && (
+          <button
+            onClick={() => setShowSubmitModal(true)}
+            className="toolbar-btn toolbar-btn--cyan"
+            title={t('editor:preview.submit_title')}
+          >
+            <Send size={15} />
+            <span className="toolbar-btn__label">{t('editor:preview.submit')}</span>
+          </button>
+        )}
 
         {user && !isStudent && !publishedUrl && (
           <button

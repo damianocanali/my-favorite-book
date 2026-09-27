@@ -4,7 +4,7 @@ import { motion } from 'motion/react'
 import { Send, CheckCircle } from 'lucide-react'
 import SparkleButton from '../ui/SparkleButton'
 import { useRewardsStore } from '../../stores/useRewardsStore'
-import { apiFetch } from '../../lib/api'
+import { apiFetchAuthed } from '../../lib/api'
 import { celebrateBig } from '../../lib/celebrate'
 
 export default function SubmitToClassModal({ book, onClose }) {
@@ -21,7 +21,9 @@ export default function SubmitToClassModal({ book, onClose }) {
     setLoading(true)
     setError('')
     try {
-      const res = await apiFetch('/api/classroom-submit', {
+      // Authed so the server can record submissions.user_id against the
+      // signed-in (consumer) account submitting the book.
+      const res = await apiFetchAuthed('/api/classroom-submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code: trimmed, book }),
