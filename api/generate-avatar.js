@@ -5,7 +5,7 @@ import { logUsage, estimateTogetherImageCostCents } from './_usage.js'
 import { requireUser, validateSourceImage, moderatePrompt, enforceDailyCap } from './_aiGuard.js'
 import { classifyAttestation, dailyCapFor, hourlyLimitFor } from './_appAttest.js'
 import { storeIllustration } from './_imageStore.js'
-import { isStudent, rejectStudent, enforceStudentImageCap } from './_school.js'
+import { rejectStudent } from './_school.js'
 import { priceOf } from '../lib/catalog.js'
 
 const TOGETHER_API_URL = 'https://api.together.xyz/v1/images/generations'
@@ -51,6 +51,12 @@ export default async function handler(req) {
 
   const auth = await requireUser(req)
   if (!auth.ok) return auth.response
+  // Teacher-made avatars come later; for now a class account never gets
+  // one, photo or feature-builder alike — there's no consent chain for a
+  // child's likeness on this account type, and text-to-image avatars have
+  // no product reason to exist for a student either.
+  const blocked = rejectStudent(auth, req)
+  if (blocked) return blocked
 
   // Raw body read once: the App Attest assertion signs these exact bytes.
   let rawBody, payload
@@ -87,10 +93,6 @@ export default async function handler(req) {
   try {
     const { features, artStyle, sourceImage } = payload
 
-    // A class account never uploads a photo of a child — no consent chain
-    // for that image exists on this account type.
-    if (isStudent(auth) && sourceImage) return rejectStudent(auth, req)
-
     // A paid style must be owned. This endpoint used to accept any style
     // name, so every paid style was free to anyone calling the API
     // directly — the store only hid them in the UI.
@@ -126,11 +128,10 @@ export default async function handler(req) {
 
     const modErr = await moderatePrompt(prompt, req)
     if (modErr) return modErr
-    // Students draw from their class's shared allowance, not the consumer
-    // daily cap (owner decision D5) — checked before the paid model call.
-    const capErr = isStudent(auth)
-      ? await enforceStudentImageCap(auth, req)
-      : await enforceDailyCap(auth.userId, req, dailyCapFor(attest.attested))
+    // No student-allowance branch here (contrast generate-image.js): a
+    // student is already rejected above, so this is always the consumer
+    // daily cap.
+    const capErr = await enforceDailyCap(auth.userId, req, dailyCapFor(attest.attested))
     if (capErr) return capErr
 
     // FLUX.1-kontext-pro is the serverless image-to-image model on Together.

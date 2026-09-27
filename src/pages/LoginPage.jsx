@@ -3,10 +3,11 @@ import { useNavigate, Link, useSearchParams } from 'react-router-dom'
 import { motion } from 'motion/react'
 import { useTranslation, Trans } from 'react-i18next'
 import { Mail, Lock, Eye, EyeOff, ArrowLeft, CheckCircle } from 'lucide-react'
-import { useAuthStore } from '../stores/useAuthStore'
+import { useAuthStore, selectIsTeacher } from '../stores/useAuthStore'
 import { supabase } from '../lib/supabase'
 import OAuthButtons from '../components/auth/OAuthButtons'
 import { authErrorCode } from '../lib/authErrors'
+import { safeNext } from '../lib/safeNext'
 
 export default function LoginPage() {
   const { t } = useTranslation()
@@ -30,8 +31,13 @@ export default function LoginPage() {
     setError('')
     try {
       const { user } = await signIn(email.trim(), password)
-      const role = user?.user_metadata?.role
-      navigate(role === 'teacher' ? '/teacher' : '/', { replace: true })
+      // A same-site `?next=` (ProtectedRoute's redirect-back, e.g. someone
+      // who typed /teacher signed out) wins over the role-based default;
+      // otherwise a teacher — selectIsTeacher, not just the sign-up
+      // "teacher" role, so an existing class owner lands there too —
+      // still goes straight to /teacher, same as before.
+      const next = safeNext(searchParams.get('next'))
+      navigate(next || (selectIsTeacher({ user }) ? '/teacher' : '/'), { replace: true })
     } catch (err) {
       setError(t(`errors:auth.${authErrorCode(err)}`))
     } finally {
@@ -219,6 +225,13 @@ export default function LoginPage() {
               code, a name tile and three pictures. */}
           <Link to="/class" className="text-galaxy-secondary text-sm font-body font-semibold hover:underline block">
             {t('school:sign_in_link.label')}
+          </Link>
+          {/* Secondary to "I'm in a class" above — same discoverability
+              problem for the adult side: an existing class owner had no
+              way to find /teacher except typing the URL. Signed out, this
+              round-trips through ProtectedRoute's `next` back here. */}
+          <Link to="/teacher" className="text-galaxy-text-muted text-xs font-body hover:text-galaxy-text transition-colors block">
+            {t('auth:shared.for_teachers')}
           </Link>
         </div>
       </motion.div>

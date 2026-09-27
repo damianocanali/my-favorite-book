@@ -37,7 +37,7 @@ vi.mock('../src/lib/supabase', () => ({
 }))
 
 import { supabase } from '../src/lib/supabase'
-import { useAuthStore, selectIsStudent } from '../src/stores/useAuthStore'
+import { useAuthStore, selectIsStudent, selectIsTeacher } from '../src/stores/useAuthStore'
 import { useBookshelfStore } from '../src/stores/useBookshelfStore'
 import { usePrintOrderStore } from '../src/stores/usePrintOrderStore'
 import { useCheckInStore } from '../src/stores/useCheckInStore'
@@ -70,6 +70,30 @@ describe('selectIsStudent', () => {
 
   it('is false with no user at all', () => {
     expect(selectIsStudent({ user: null })).toBe(false)
+  })
+})
+
+describe('selectIsTeacher', () => {
+  it('is true for a signed-in, non-student account with role teacher', () => {
+    expect(selectIsTeacher({ user: { user_metadata: { role: 'teacher' } } })).toBe(true)
+  })
+
+  it('is true for a signed-in, non-student account already marked classroom:true', () => {
+    expect(selectIsTeacher({ user: { user_metadata: { classroom: true } } })).toBe(true)
+  })
+
+  it('is false with no user at all', () => {
+    expect(selectIsTeacher({ user: null })).toBe(false)
+  })
+
+  it('is false for a plain consumer account with neither marker', () => {
+    expect(selectIsTeacher({ user: { user_metadata: {} } })).toBe(false)
+  })
+
+  it('is false for a student even when role/classroom claim teacher — app_metadata wins', () => {
+    expect(selectIsTeacher({
+      user: { app_metadata: { role: 'student' }, user_metadata: { role: 'teacher', classroom: true } },
+    })).toBe(false)
   })
 })
 

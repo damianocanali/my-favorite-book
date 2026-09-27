@@ -8,6 +8,11 @@ const FENCED = [
   'api/publish-book.js', 'api/unpublish-book.js', 'api/react-book.js', 'api/report-book.js', 'api/create-checkout.js',
   'api/buy-coins.js', 'api/spend-coins.js', 'api/customer-portal.js', 'api/delete-account.js',
   'api/cancel-deletion.js', 'api/classroom.js',
+  // generate-avatar.js refuses a class account entirely now (teacher-made
+  // avatars come later) rather than only turning away a photo upload, so
+  // it belongs in the same unconditional-rejectStudent bucket as everything
+  // else here — see the narrower generate-image.js checks below instead.
+  'api/generate-avatar.js',
   ...readdirSync('api/print-orders').filter((f) => f.endsWith('.js') && !/ \d+\.js$/.test(f))
     .map((f) => `api/print-orders/${f}`)
     .filter((f) => /verifyJwt|requireUser/.test(readFileSync(f, 'utf8'))),
@@ -35,13 +40,22 @@ describe('student fence', () => {
     expect(src).toMatch(/rejectStudent\(\s*\{[^}]*appMetadata/)
   })
 
-  it.each(['api/generate-image.js', 'api/generate-avatar.js'])('%s refuses a sourceImage/photo from a student', (file) => {
-    const src = readFileSync(file, 'utf8')
+  // generate-image.js still lets a student make a text-to-image
+  // illustration (metered from the class allowance below) and only turns
+  // away a photo upload — generate-avatar.js no longer needs either
+  // check, since it now rejects every student unconditionally (asserted
+  // via FENCED above), so both checks are generate-image.js only.
+  it('api/generate-image.js refuses a sourceImage/photo from a student', () => {
+    const src = readFileSync('api/generate-image.js', 'utf8')
     expect(src).toMatch(/sourceImage[\s\S]{0,200}isStudent\(|isStudent\([\s\S]{0,200}sourceImage/)
   })
 
-  it.each(['api/generate-image.js', 'api/generate-avatar.js'])('%s meters students from the class allowance', (file) => {
-    expect(readFileSync(file, 'utf8')).toMatch(/enforceStudentImageCap\(/)
+  it('api/generate-image.js meters students from the class allowance', () => {
+    expect(readFileSync('api/generate-image.js', 'utf8')).toMatch(/enforceStudentImageCap\(/)
+  })
+
+  it('api/generate-avatar.js no longer needs the class-allowance meter — a student never gets past rejectStudent', () => {
+    expect(readFileSync('api/generate-avatar.js', 'utf8')).not.toMatch(/enforceStudentImageCap\(/)
   })
 })
 

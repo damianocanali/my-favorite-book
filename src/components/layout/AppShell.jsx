@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { LogOut, GraduationCap, Sparkles, Volume2, VolumeX } from 'lucide-react'
-import { useAuthStore, selectDisplayName, selectRole } from '../../stores/useAuthStore'
+import { useAuthStore, selectDisplayName, selectIsTeacher } from '../../stores/useAuthStore'
 import { useIsStudent } from '../../hooks/useIsStudent'
 import { toggleMute, isMuted } from '../../services/audioService'
 import PlayMenu from './PlayMenu'
@@ -30,7 +30,7 @@ export default function AppShell({ children }) {
   const user = useAuthStore((s) => s.user)
   const signOut = useAuthStore((s) => s.signOut)
   const displayName = useAuthStore(selectDisplayName)
-  const role = useAuthStore(selectRole)
+  const isTeacher = useAuthStore(selectIsTeacher)
   const isStudent = useIsStudent()
 
   const [muted, setMuted] = useState(isMuted())
@@ -87,7 +87,7 @@ export default function AppShell({ children }) {
             </Link>
           )}
 
-          {role === 'teacher' && !isStudent && (
+          {isTeacher && (
             <Link to="/teacher" className={headerLink(location.pathname === '/teacher')}>
               <GraduationCap size={18} />
               <span className="hidden font-body text-sm font-semibold sm:inline">{t('nav:header.classroom')}</span>

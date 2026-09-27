@@ -4,7 +4,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { BookOpen, Library, GraduationCap, Check, Sparkles, Mic, Brain, Palette, Users, Volume2, Wand2 } from 'lucide-react'
 import { useBookshelfStore } from '../stores/useBookshelfStore'
-import { useAuthStore } from '../stores/useAuthStore'
+import { useAuthStore, selectIsTeacher } from '../stores/useAuthStore'
 import { PRICES, PLAN_CURRENCY, formatPlanPrice, formatMonthlyEquivalent } from '../lib/plans'
 import { formatMoneyCents } from '../i18n/formats'
 import SparkleButton from '../components/ui/SparkleButton'
@@ -71,6 +71,7 @@ export default function LandingPage() {
   const { t } = useTranslation()
   const bookCount = useBookshelfStore((state) => state.books.length)
   const user = useAuthStore((s) => s.user)
+  const isTeacher = useAuthStore(selectIsTeacher)
 
   useEffect(() => { playTrack('home') }, [])
 
@@ -229,6 +230,22 @@ export default function LandingPage() {
             {t('marketing:callout.body')}
           </p>
         </div>
+
+        {/* "For teachers" — the owner (an adult account created as a
+            parent or via Google/Apple) had no way to find the classroom
+            console short of typing /teacher. A teacher who already has the
+            header link doesn't need a second one here. */}
+        {!isTeacher && (
+          <div className="text-center mt-6">
+            <Link
+              to="/teacher"
+              className="inline-flex items-center gap-2 rounded-full border border-galaxy-secondary/40 px-4 py-2 font-body text-sm font-semibold text-galaxy-secondary hover:bg-galaxy-secondary/10 transition-colors"
+            >
+              <GraduationCap size={16} />
+              {t('marketing:teacher_cta.label')}
+            </Link>
+          </div>
+        )}
       </motion.div>
 
       {/* Pricing section — guests only */}

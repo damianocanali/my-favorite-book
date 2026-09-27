@@ -19,6 +19,12 @@
     "title": "Profile",
     "customize_avatar": "Customize my avatar"
   },
+  "classroom": {
+    "title": "Classroom",
+    "body": "Create a class, add your roster, and manage it from one dashboard.",
+    "use_cta": "Use My Book Lab in my classroom",
+    "dashboard_link": "Classroom dashboard"
+  },
   "language": {
     "title": "Language"
   },

@@ -7,7 +7,7 @@ import SparkleButton from '../components/ui/SparkleButton'
 import LicenseBadge from '../components/school/LicenseBadge'
 import { schoolFetch } from '../lib/schoolApi'
 import { teacherErrorText } from '../components/school/teacherErrors'
-import { useAuthStore } from '../stores/useAuthStore'
+import { useAuthStore, selectIsTeacher } from '../stores/useAuthStore'
 import { MAX_SEATS } from '../../lib/school/license.js'
 
 // Task 12 replaces the localStorage-only class list this page used to
@@ -30,6 +30,8 @@ export default function TeacherPage() {
   const { t, i18n } = useTranslation()
   const user = useAuthStore((s) => s.user)
   const signOut = useAuthStore((s) => s.signOut)
+  const isTeacher = useAuthStore(selectIsTeacher)
+  const markClassroomOwner = useAuthStore((s) => s.markClassroomOwner)
 
   const [classes, setClasses] = useState([])
   const [loading, setLoading] = useState(true)
@@ -47,12 +49,30 @@ export default function TeacherPage() {
       setLoading(true)
       const res = await schoolFetch('/api/school/classes')
       setLoading(false)
-      if (res.ok) setClasses(res.data?.classes ?? [])
-      else setError(teacherErrorText(t, res.code || 'generic'))
+      if (res.ok) {
+        const list = res.data?.classes ?? []
+        setClasses(list)
+        // An existing class owner who reached /teacher directly (typed
+        // the URL, or followed the "For teachers" link before this task)
+        // never had `role: 'teacher'` or `classroom: true` set — mark them
+        // now so AppShell's Classroom link and selectIsTeacher elsewhere
+        // pick them up from here on.
+        if (list.length > 0) markOwnerIfNeeded()
+      } else {
+        setError(teacherErrorText(t, res.code || 'generic'))
+      }
     }
     load()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  function markOwnerIfNeeded() {
+    if (isTeacher) return
+    // Best-effort: failing here just means the Classroom link doesn't
+    // appear a beat early. It's retried the next time this page loads or
+    // a class is created, so nothing blocks on it.
+    markClassroomOwner().catch(() => {})
+  }
 
   function hideLegacyNote() {
     try {
@@ -85,6 +105,7 @@ export default function TeacherPage() {
     setClasses((prev) => [res.data.class, ...prev])
     setClassName('')
     if (res.data.trial_used_up) setTrialUsedUpNotice(true)
+    markOwnerIfNeeded()
   }
 
   function handleCopy(code) {

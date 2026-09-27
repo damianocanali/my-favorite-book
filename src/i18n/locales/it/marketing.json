@@ -39,6 +39,9 @@
     "title": "Pensato per ogni bambino",
     "body": "My Book Lab segue i principi dell'Universal Design for Learning (UDL) e le linee guida di accessibilità WCAG/COGA. Inizi di frase, mappe visive dei progressi, premi legati all'impegno e modi diversi per scrivere — a voce o con la tastiera — nascono proprio per accompagnare i bambini con ADHD, dislessia e altre differenze di apprendimento, e rendere la scrittura creativa possibile e divertente per tutti."
   },
+  "teacher_cta": {
+    "label": "Per gli insegnanti"
+  },
   "pricing": {
     "title": "Piani e prezzi",
     "subtitle": "Inizia gratis. Passa a un piano più grande quando vuoi.",
