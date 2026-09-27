@@ -26,7 +26,7 @@ struct FeelingConstellation: View {
         let feelings = constellationFeelings(store.entries)
 
         VStack(alignment: .leading, spacing: 10) {
-            Text("How you've been")
+            Text("Your feelings constellation")
                 .font(.system(.headline, design: .rounded))
                 .foregroundStyle(.white)
 
