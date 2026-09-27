@@ -107,6 +107,10 @@ const ART_STYLES = [
   { id: 'anime', labelKey: 'content:avatar.art_style.anime.label', emoji: '🌸', price: 15 },
   { id: 'watercolor', labelKey: 'content:avatar.art_style.watercolor.label', emoji: '🖌️', price: 15 },
   { id: 'pixel', labelKey: 'content:avatar.art_style.pixel.label', emoji: '👾', price: 15 },
+  { id: 'claymation', labelKey: 'content:avatar.art_style.claymation.label', emoji: '🧸', price: 15 },
+  { id: 'comic', labelKey: 'content:avatar.art_style.comic.label', emoji: '💥', price: 15 },
+  { id: 'crayon', labelKey: 'content:avatar.art_style.crayon.label', emoji: '🖍️', price: 15 },
+  { id: 'storybook', labelKey: 'content:avatar.art_style.storybook.label', emoji: '📜', price: 15 },
 ]
 
 // `key` is the wire value posted to /api/buy-coins (and the RevenueCat

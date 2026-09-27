@@ -5,6 +5,7 @@ import { logUsage, estimateTogetherImageCostCents } from './_usage.js'
 import { requireUser, validateSourceImage, moderatePrompt, enforceDailyCap } from './_aiGuard.js'
 import { classifyAttestation, dailyCapFor, hourlyLimitFor } from './_appAttest.js'
 import { storeIllustration } from './_imageStore.js'
+import { priceOf } from '../lib/catalog.js'
 
 const TOGETHER_API_URL = 'https://api.together.xyz/v1/images/generations'
 const AVATAR_LIMIT = 10 // per hour per IP
@@ -15,6 +16,10 @@ const ART_STYLE_PROMPTS = {
   anime: 'anime style, big expressive eyes, colorful, Studio Ghibli inspired',
   watercolor: 'soft watercolor painting style, gentle colors, artistic brushstrokes, storybook illustration',
   pixel: '16-bit pixel art style, retro game character, clean pixel rendering',
+  claymation: 'claymation stop-motion style, sculpted plasticine figure, visible fingerprint texture, soft studio lighting',
+  comic: 'comic book style, bold black ink outlines, halftone dot shading, bright flat colours, dynamic',
+  crayon: "children's crayon drawing style, waxy textured strokes on paper, bright playful colours",
+  storybook: 'classic storybook ink illustration, fine pen linework with soft watercolour wash, vintage picture-book',
 }
 
 function buildAvatarPrompt(features, artStyle) {
@@ -80,6 +85,16 @@ export default async function handler(req) {
 
   try {
     const { features, artStyle, sourceImage } = payload
+
+    // A paid style must be owned. This endpoint used to accept any style
+    // name, so every paid style was free to anyone calling the API
+    // directly — the store only hid them in the UI.
+    if (artStyle && priceOf('style', artStyle) !== null && !(await ownsStyle(auth.userId, artStyle))) {
+      return new Response(JSON.stringify({ error: 'Style not owned' }), {
+        status: 403,
+        headers: withCors({ 'Content-Type': 'application/json' }, req),
+      })
+    }
 
     const imageErr = validateSourceImage(sourceImage, req)
     if (imageErr) return imageErr
@@ -181,5 +196,24 @@ export default async function handler(req) {
     return new Response(JSON.stringify({ error: 'Avatar generation failed.' }), {
       status: 500, headers: withCors({ 'Content-Type': 'application/json' }, req),
     })
+  }
+}
+
+/// Whether this user has bought a paid art style. Fails closed: if the
+/// inventory can't be read, the style is treated as not owned.
+async function ownsStyle(userId, style) {
+  const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY
+  if (!supabaseUrl || !serviceKey) return false
+  try {
+    const res = await fetch(
+      `${supabaseUrl}/rest/v1/user_inventory?user_id=eq.${encodeURIComponent(userId)}&select=owned_styles`,
+      { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } }
+    )
+    if (!res.ok) return false
+    const rows = await res.json()
+    return Array.isArray(rows?.[0]?.owned_styles) && rows[0].owned_styles.includes(style)
+  } catch {
+    return false
   }
 }

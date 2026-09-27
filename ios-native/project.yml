@@ -160,7 +160,7 @@ targets:
         # Alternate icons unlockable in-app (AppIconPickerView). Names
         # match the .appiconset folders in Assets.xcassets; Xcode 13+
         # wires CFBundleAlternateIcons automatically from these.
-        ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES: AppIconRocket AppIconRainbow AppIconNight
+        ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES: AppIconRocket AppIconRainbow AppIconNight AppIconDino AppIconOcean AppIconDragon
         ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS: "YES"
         ENABLE_PREVIEWS: "YES"
     dependencies:
