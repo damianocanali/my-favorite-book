@@ -79,6 +79,13 @@ export default function AccountPage() {
       navigate('/teacher')
     } else {
       setViewMode('family')
+      // Fix round 3: AppShell's banner is keyed on isPreviewingKids()
+      // alone, not on viewMode — it doesn't know "family view" and
+      // "previewing the kids' app mid-teacher-session" apart. Without
+      // this, a teacher who was mid-preview and then deliberately chose
+      // family view here would see the "back to dashboard" banner sitting
+      // on top of their own genuine family view.
+      exitKidsPreview()
       navigate('/')
     }
   }
