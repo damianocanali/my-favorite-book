@@ -332,6 +332,47 @@ body.keyboard-open main {
   }
 }
 
+/* ── Sign-in cards print (Task 12) ─────────────────────────
+   Deliberately independent of the .printable-book rules above: those hide
+   siblings via `display`, which can't be undone by a `display` on a
+   descendant once display:none reaches an ancestor. `visibility` doesn't
+   have that problem — a hidden ancestor's descendant can still opt back in
+   — so this works regardless of how deep .signin-cards sits in the app
+   tree, without touching the book-printing rules at all. */
+@media print {
+  body * { visibility: hidden; }
+  .signin-cards, .signin-cards * { visibility: visible; }
+
+  .signin-cards {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 8.5in;
+  }
+
+  .signin-cards .cards-page {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: 0.25in;
+    width: 8.5in;
+    height: 11in;
+    padding: 0.35in;
+    box-sizing: border-box;
+    page-break-after: always;
+    break-after: page;
+  }
+
+  .signin-cards .cards-page:last-child {
+    page-break-after: auto;
+    break-after: auto;
+  }
+
+  .signin-cards .signin-card {
+    overflow: hidden;
+  }
+}
+
 /* The press-and-hold indicator on a book spine (see useLongPress). It fills
    from the bottom over exactly the hold duration, so the fill reaching the top
    and the action firing are the same moment — a progress bar that lied about

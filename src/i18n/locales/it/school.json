@@ -61,5 +61,138 @@
     "boat": "barca",
     "rocket": "razzo",
     "ball": "palla"
+  },
+  "teacher": {
+    "title": "Le tue classi",
+    "subtitle": "Crea una classe, aggiungi gli alunni e stampa le tessere con le immagini per l'accesso.",
+    "loading": "Caricamento delle tue classi…",
+    "legacy": {
+      "heading": "Le tue vecchie classi sono ancora ai loro link",
+      "hide": "Nascondi"
+    },
+    "create": {
+      "heading": "Crea una classe",
+      "name_label": "Nome della classe",
+      "name_placeholder": "es. Classe 3ª della maestra Rossi",
+      "submit": "Crea classe",
+      "submitting": "Creazione…",
+      "trial_used_up": "Hai usato le tue 3 prove gratuite. L'acquisto di una licenza per la classe sarà presto disponibile."
+    },
+    "list": {
+      "empty": "Ancora nessuna classe — creane una qui sopra per iniziare."
+    },
+    "card": {
+      "code_label": "Codice",
+      "copy_code": "Copia codice",
+      "copied": "Copiato!",
+      "student_count": "{{used}} di {{seats}} alunni",
+      "open": "Apri classe"
+    },
+    "license": {
+      "trial_days_one": "Prova gratuita: {{count}} giorno rimasto",
+      "trial_days_other": "Prova gratuita: {{count}} giorni rimasti",
+      "trial_ended": "Prova terminata",
+      "active": "Attiva",
+      "comped": "Offerta",
+      "expired": "Licenza scaduta",
+      "none": "Nessuna licenza",
+      "coming_soon": "L'acquisto di una licenza per la classe sarà presto disponibile."
+    },
+    "errors": {
+      "name_required": "Inserisci il nome della classe.",
+      "bad_timezone": "Quel fuso orario non è riconosciuto.",
+      "bad_hours": "Controlla l'orario scolastico — ogni ora di fine deve essere dopo l'ora di inizio.",
+      "rate_limited": "Troppe richieste — aspetta un momento e riprova.",
+      "class_not_found": "Non troviamo questa classe.",
+      "license_required": "Questa classe ha bisogno di una licenza attiva. L'acquisto di una licenza per la classe sarà presto disponibile.",
+      "seats_full": "Questa classe è al completo — nessun posto disponibile.",
+      "duplicate_name": "già in questa classe",
+      "student_not_found": "Non troviamo questo alunno.",
+      "create_failed": "non è stato possibile crearlo",
+      "not_configured": "Le funzioni per le scuole non sono ancora attive su questo server.",
+      "upstream": "Qualcosa non ha funzionato. Riprova.",
+      "student_forbidden": "Gli account degli alunni non possono farlo.",
+      "generic": "Qualcosa non ha funzionato. Riprova."
+    },
+    "class_page": {
+      "back": "Torna alle tue classi",
+      "not_found": "Non troviamo questa classe.",
+      "code_heading": "Codice della classe",
+      "new_code": "Nuovo codice",
+      "new_code_confirm": "Gli alunni avranno bisogno del nuovo codice. Le vecchie tessere di accesso smetteranno di funzionare.",
+      "sign_in_open": "Gli alunni possono accedere ora",
+      "sign_in_closed": "L'accesso è chiuso",
+      "rename_aria": "Rinomina questa classe"
+    },
+    "hours": {
+      "heading": "Orario scolastico",
+      "hint": "Decide se \"Ho bisogno di un adulto\" arriva subito o aspetta l'orario di scuola.",
+      "timezone_label": "Fuso orario",
+      "save": "Salva orario",
+      "start_label": "Inizio",
+      "end_label": "Fine",
+      "days": {
+        "1": "Lunedì",
+        "2": "Martedì",
+        "3": "Mercoledì",
+        "4": "Giovedì",
+        "5": "Venerdì",
+        "6": "Sabato",
+        "7": "Domenica"
+      },
+      "timezones": {
+        "America/New_York": "Orientale — New York",
+        "America/Chicago": "Centrale — Chicago",
+        "America/Denver": "Montagne Rocciose — Denver",
+        "America/Phoenix": "Fuso dell'Arizona — Phoenix",
+        "America/Los_Angeles": "Pacifico — Los Angeles",
+        "America/Anchorage": "Fuso dell'Alaska — Anchorage",
+        "Pacific/Honolulu": "Fuso delle Hawaii — Honolulu"
+      }
+    },
+    "add_students": {
+      "heading": "Aggiungi alunni",
+      "placeholder": "Un nome per riga. Nome e iniziale del cognome vanno benissimo.",
+      "preview_count_one": "Aggiungi {{count}} alunno",
+      "preview_count_other": "Aggiungi {{count}} alunni",
+      "submitting": "Aggiunta in corso…",
+      "success_one": "Aggiunto {{count}} alunno.",
+      "success_other": "Aggiunti {{count}} alunni.",
+      "skipped_heading": "Non aggiunti",
+      "skipped_line": "{{name}} — {{reason}}",
+      "license_blocked": "Questa classe ha bisogno di una licenza attiva prima di poter aggiungere alunni. L'acquisto di una licenza per la classe sarà presto disponibile."
+    },
+    "roster": {
+      "heading": "Alunni",
+      "empty": "Ancora nessun alunno — aggiungine qualcuno qui sopra.",
+      "last_sign_in_never": "Non ha ancora effettuato l'accesso",
+      "last_sign_in": "Ultimo accesso: {{when}}",
+      "status": {
+        "locked": "Bloccato",
+        "needs_teacher": "Serve l'insegnante",
+        "removed": "Rimosso"
+      },
+      "menu": {
+        "open_aria": "Opzioni per {{name}}",
+        "new_pictures": "Nuove immagini",
+        "unlock": "Sblocca",
+        "rename": "Rinomina",
+        "sign_out": "Disconnetti ovunque",
+        "remove": "Rimuovi",
+        "restore": "Ripristina"
+      },
+      "remove_confirm": "Rimuovere {{name}} da questa classe? Verrà disconnesso ovunque.",
+      "rename_dialog": {
+        "heading": "Rinomina alunno",
+        "name_label": "Nome",
+        "emoji_label": "Avatar"
+      }
+    },
+    "cards": {
+      "heading": "Tessere di accesso",
+      "safety_note": "Stampale adesso. Per sicurezza non possiamo mostrare di nuovo queste immagini; puoi sempre crearne di nuove.",
+      "print": "Stampa tessere",
+      "footer": "mybooklab.app/class"
+    }
   }
 }

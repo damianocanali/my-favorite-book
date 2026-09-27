@@ -61,5 +61,138 @@
     "boat": "boat",
     "rocket": "rocket",
     "ball": "ball"
+  },
+  "teacher": {
+    "title": "Your classes",
+    "subtitle": "Create a class, add a roster, and print picture sign-in cards for your students.",
+    "loading": "Loading your classes…",
+    "legacy": {
+      "heading": "Your older classes are still at their class links",
+      "hide": "Hide"
+    },
+    "create": {
+      "heading": "Create a class",
+      "name_label": "Class name",
+      "name_placeholder": "e.g. Mrs. Rivera's 3rd Grade",
+      "submit": "Create class",
+      "submitting": "Creating…",
+      "trial_used_up": "You've used your 3 free trials. Buying a class license is coming soon."
+    },
+    "list": {
+      "empty": "No classes yet — create one above to get started."
+    },
+    "card": {
+      "code_label": "Code",
+      "copy_code": "Copy code",
+      "copied": "Copied!",
+      "student_count": "{{used}} of {{seats}} students",
+      "open": "Open class"
+    },
+    "license": {
+      "trial_days_one": "Free trial: {{count}} day left",
+      "trial_days_other": "Free trial: {{count}} days left",
+      "trial_ended": "Trial ended",
+      "active": "Active",
+      "comped": "Comped",
+      "expired": "License expired",
+      "none": "No license yet",
+      "coming_soon": "Buying a class license is coming soon."
+    },
+    "errors": {
+      "name_required": "Enter a class name.",
+      "bad_timezone": "That time zone isn't recognized.",
+      "bad_hours": "Check the school hours — each end time must be after its start time.",
+      "rate_limited": "Too many requests — wait a moment and try again.",
+      "class_not_found": "We can't find that class.",
+      "license_required": "This class needs an active license. Buying a class license is coming soon.",
+      "seats_full": "This class is full — no seats left.",
+      "duplicate_name": "already in this class",
+      "student_not_found": "We can't find that student.",
+      "create_failed": "couldn't be created",
+      "not_configured": "Schools aren't set up on this server yet.",
+      "upstream": "Something went wrong. Try again.",
+      "student_forbidden": "Class accounts can't do that.",
+      "generic": "Something went wrong. Try again."
+    },
+    "class_page": {
+      "back": "Back to your classes",
+      "not_found": "We can't find that class.",
+      "code_heading": "Class code",
+      "new_code": "New code",
+      "new_code_confirm": "Children will need the new code. Old sign-in cards stop working.",
+      "sign_in_open": "Children can sign in now",
+      "sign_in_closed": "Sign-in is closed",
+      "rename_aria": "Rename this class"
+    },
+    "hours": {
+      "heading": "School hours",
+      "hint": "Decides whether \"I need a grown-up\" reaches you right away or waits until school.",
+      "timezone_label": "Time zone",
+      "save": "Save hours",
+      "start_label": "Start",
+      "end_label": "End",
+      "days": {
+        "1": "Monday",
+        "2": "Tuesday",
+        "3": "Wednesday",
+        "4": "Thursday",
+        "5": "Friday",
+        "6": "Saturday",
+        "7": "Sunday"
+      },
+      "timezones": {
+        "America/New_York": "Eastern — New York",
+        "America/Chicago": "Central — Chicago",
+        "America/Denver": "Mountain — Denver",
+        "America/Phoenix": "Arizona — Phoenix",
+        "America/Los_Angeles": "Pacific — Los Angeles",
+        "America/Anchorage": "Alaska — Anchorage",
+        "Pacific/Honolulu": "Hawaii — Honolulu"
+      }
+    },
+    "add_students": {
+      "heading": "Add students",
+      "placeholder": "One name per line. First name and last initial is best.",
+      "preview_count_one": "Add {{count}} student",
+      "preview_count_other": "Add {{count}} students",
+      "submitting": "Adding…",
+      "success_one": "Added {{count}} student.",
+      "success_other": "Added {{count}} students.",
+      "skipped_heading": "Not added",
+      "skipped_line": "{{name}} — {{reason}}",
+      "license_blocked": "This class needs an active license before you can add students. Buying a class license is coming soon."
+    },
+    "roster": {
+      "heading": "Students",
+      "empty": "No students yet — add some above.",
+      "last_sign_in_never": "Never signed in",
+      "last_sign_in": "Last sign-in: {{when}}",
+      "status": {
+        "locked": "Locked",
+        "needs_teacher": "Needs teacher",
+        "removed": "Removed"
+      },
+      "menu": {
+        "open_aria": "Options for {{name}}",
+        "new_pictures": "New pictures",
+        "unlock": "Unlock",
+        "rename": "Rename",
+        "sign_out": "Sign out everywhere",
+        "remove": "Remove",
+        "restore": "Restore"
+      },
+      "remove_confirm": "Remove {{name}} from this class? They'll be signed out everywhere.",
+      "rename_dialog": {
+        "heading": "Rename student",
+        "name_label": "Name",
+        "emoji_label": "Avatar"
+      }
+    },
+    "cards": {
+      "heading": "Sign-in cards",
+      "safety_note": "Print these now. For safety we can't show these pictures again; you can always make new ones.",
+      "print": "Print cards",
+      "footer": "mybooklab.app/class"
+    }
   }
 }

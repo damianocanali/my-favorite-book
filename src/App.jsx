@@ -6,6 +6,7 @@ import CreatePage from './pages/CreatePage'
 import PreviewPage from './pages/PreviewPage'
 import BookshelfPage from './pages/BookshelfPage'
 import TeacherPage from './pages/TeacherPage'
+import TeacherClassPage from './pages/TeacherClassPage'
 import ClassroomPage from './pages/ClassroomPage'
 import ClassSignInPage from './pages/ClassSignInPage'
 import LoginPage from './pages/LoginPage'
@@ -134,6 +135,16 @@ export default function App() {
             <ProtectedRoute>
               <ConsumerOnlyRoute>
                 <TeacherPage />
+              </ConsumerOnlyRoute>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/teacher/class/:id"
+          element={
+            <ProtectedRoute>
+              <ConsumerOnlyRoute>
+                <TeacherClassPage />
               </ConsumerOnlyRoute>
             </ProtectedRoute>
           }
