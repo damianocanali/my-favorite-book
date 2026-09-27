@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { LogOut, GraduationCap, Sparkles, Volume2, VolumeX } from 'lucide-react'
+import { LogOut, GraduationCap, Sparkles, Volume2, VolumeX, ArrowLeft } from 'lucide-react'
 import { useAuthStore, selectDisplayName, selectIsTeacher } from '../../stores/useAuthStore'
 import { useIsStudent } from '../../hooks/useIsStudent'
 import { toggleMute, isMuted } from '../../services/audioService'
@@ -12,6 +12,7 @@ import CosmicBackground from './CosmicBackground'
 import TabBar from './TabBar'
 import LanguageToggle from '../ui/LanguageToggle'
 import { PAGE_ACTIONS_ID } from './PageActions'
+import { isFocusedAuthRoute } from '../../lib/focusedAuthRoutes'
 
 // Shell mirrors the native app: a translucent bottom tab bar for the five
 // primary destinations (see TabBar.jsx), and a slim, mostly-transparent
@@ -46,6 +47,51 @@ export default function AppShell({ children }) {
     `flex items-center gap-2 px-3 py-2 rounded-full transition-colors ${
       active ? 'bg-white/[0.12] text-white' : 'text-white/60 hover:text-white'
     }`
+
+  // /login, /signup, /class, /reset-password and /auth/callback are all
+  // reachable signed-out, mid auth flow — the full app chrome is either
+  // irrelevant there (Pricing on a sign-in screen) or actively unsafe (a
+  // child on /class tapping through to Pricing, per the schools global
+  // constraint that a class account never sees prices or purchase links).
+  // On phones the tab bar also physically covered the bottom of these
+  // forms. isFocusedAuthRoute is the one place that route list lives.
+  const focused = isFocusedAuthRoute(location.pathname)
+
+  if (focused) {
+    return (
+      <div className="min-h-screen relative">
+        <a href="#main-content" className="skip-to-content">{t('nav:a11y.skip_to_content')}</a>
+
+        <CosmicBackground />
+
+        <header className="relative z-20 flex items-center justify-between gap-2 px-3 sm:px-6 py-3">
+          <Link
+            to="/"
+            className="flex items-center gap-2 text-white transition-opacity hover:opacity-80"
+          >
+            <AppLogo size={28} />
+            <span className="hidden bg-gradient-to-br from-word-from via-word-via to-word-to bg-clip-text font-heading text-lg font-bold text-transparent sm:inline">
+              My Book Lab
+            </span>
+          </Link>
+
+          <div className="flex flex-shrink-0 items-center gap-1 sm:gap-2">
+            <LanguageToggle />
+            <button
+              type="button"
+              onClick={() => navigate(-1)}
+              className="flex items-center gap-1.5 rounded-full px-3 py-2 font-body text-sm font-semibold text-white/60 transition-colors hover:text-white"
+            >
+              <ArrowLeft size={16} aria-hidden="true" />
+              {t('common:actions.back')}
+            </button>
+          </div>
+        </header>
+
+        <main id="main-content" className="relative z-10">{children}</main>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen relative">

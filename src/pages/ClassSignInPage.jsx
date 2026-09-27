@@ -2,9 +2,10 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'motion/react'
 import { useTranslation } from 'react-i18next'
-import { GraduationCap, Volume2, VolumeX } from 'lucide-react'
+import { Volume2, VolumeX } from 'lucide-react'
 import NameTiles from '../components/school/NameTiles'
 import PicturePad from '../components/school/PicturePad'
+import Mascot from '../components/ui/Mascot'
 import {
   fetchRoster, signInWithPictures, rememberClassCode, recallClassCode, forgetClassCode,
 } from '../lib/schoolApi'
@@ -182,15 +183,17 @@ export default function ClassSignInPage() {
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-12">
       <motion.div
-        className={`w-full ${wide ? 'max-w-lg' : 'max-w-md'}`}
+        className={`w-full ${wide ? 'max-w-lg md:max-w-xl' : 'max-w-md'}`}
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
       >
         <div className="text-center mb-6">
-          <div className="w-16 h-16 mx-auto mb-3 rounded-full bg-galaxy-secondary/20 flex items-center justify-center">
-            <GraduationCap size={32} className="text-galaxy-secondary" aria-hidden="true" />
-          </div>
+          {/* A big, friendly hello above every step — the same mascot the
+              rest of the app uses for celebrations, here just waving
+              hello, so a pre-reading child recognises this page as
+              welcoming before they've read a single word of it. */}
+          <Mascot mood="wave" size={96} className="mx-auto mb-3" />
           <h1 className="font-heading text-2xl font-bold text-galaxy-text">{t('school:page_title')}</h1>
         </div>
 
@@ -252,7 +255,7 @@ export default function ClassSignInPage() {
                 disabled={checkingCode}
                 aria-label={t('school:code_step.input_aria_label')}
                 placeholder="ABC234"
-                className="w-full text-center text-3xl tracking-[0.4em] font-mono font-bold py-5 glass border border-white/15 rounded-xl text-galaxy-text placeholder:text-galaxy-text-muted/30 focus:border-galaxy-primary focus:outline-none uppercase"
+                className="w-full min-h-[72px] text-center text-4xl tracking-[0.4em] font-mono font-bold py-4 glass border border-white/15 rounded-xl text-galaxy-text placeholder:text-galaxy-text-muted/30 focus:border-galaxy-primary focus:outline-none uppercase"
               />
               {checkingCode && (
                 <p className="text-galaxy-text-muted font-body text-sm text-center">

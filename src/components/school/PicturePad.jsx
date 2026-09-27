@@ -65,7 +65,7 @@ export default function PicturePad({ picked, onPick, onBack, shake, disabled }) 
             // silently lost when they clear a moment later.
             disabled={disabled || shake}
             aria-label={t(`school:pictures.${picture.id}`)}
-            className="min-w-[96px] min-h-[96px] w-full aspect-square flex items-center justify-center text-4xl rounded-card glass border border-galaxy-text-muted/10 hover:border-galaxy-secondary/50 hover:bg-white/[0.08] active:scale-[0.95] disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+            className="min-w-[96px] min-h-[96px] md:min-w-[110px] md:min-h-[110px] w-full aspect-square flex items-center justify-center text-4xl md:text-5xl rounded-card glass border border-galaxy-text-muted/10 hover:border-galaxy-secondary/50 hover:bg-white/[0.08] active:scale-[0.95] disabled:opacity-40 disabled:cursor-not-allowed transition-all"
           >
             <span aria-hidden="true">{picture.emoji}</span>
           </button>

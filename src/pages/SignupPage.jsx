@@ -6,6 +6,7 @@ import { GraduationCap, Mail, Lock, User, Eye, EyeOff, CheckCircle, BookOpen } f
 import { useAuthStore } from '../stores/useAuthStore'
 import OAuthButtons from '../components/auth/OAuthButtons'
 import { authErrorCode } from '../lib/authErrors'
+import { getRememberedWho } from '../lib/signinWho'
 
 export default function SignupPage() {
   const { t } = useTranslation()
@@ -18,7 +19,14 @@ export default function SignupPage() {
     if (user) navigate('/', { replace: true })
   }, [user, navigate])
 
-  const [role, setRole] = useState(searchParams.get('role') === 'teacher' ? 'teacher' : 'student')
+  // ?role=teacher (the chooser's "Create a teacher account" link, and any
+  // other existing link into here) always wins; absent that, fall back to
+  // whichever card the /login chooser last remembered for this device —
+  // 'teacher' preselects the toggle, 'kid'/'family'/no memory all default
+  // to the student/parent side, same as before this existed.
+  const [role, setRole] = useState(
+    searchParams.get('role') === 'teacher' || getRememberedWho() === 'teacher' ? 'teacher' : 'student'
+  )
   const [displayName, setDisplayName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
