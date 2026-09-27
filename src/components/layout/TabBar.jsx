@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Library, Star, PlusCircle, Package, UserCircle } from 'lucide-react'
+import { Library, Star, PlusCircle, Package, UserCircle, LayoutDashboard, Users } from 'lucide-react'
 import { useAuthStore } from '../../stores/useAuthStore'
 import { useIsStudent } from '../../hooks/useIsStudent'
 
@@ -26,7 +26,22 @@ const TABS = [
   { to: '/account', labelKey: 'nav:tabs.account', Icon: UserCircle },
 ]
 
-export default function TabBar() {
+// Teacher mode's three destinations (Task D2 — see AppShell). `match`
+// overrides the generic startsWith check below: '/teacher' is a *prefix* of
+// both '/teacher/classes' and '/teacher/class/:id', so the generic rule
+// would light up Dashboard on every teacher route instead of just its own.
+const TEACHER_TABS = [
+  { to: '/teacher', labelKey: 'nav:tabs.dashboard', Icon: LayoutDashboard, match: (p) => p === '/teacher' },
+  {
+    to: '/teacher/classes',
+    labelKey: 'nav:tabs.classes',
+    Icon: Users,
+    match: (p) => p === '/teacher/classes' || p.startsWith('/teacher/class/'),
+  },
+  { to: '/account', labelKey: 'nav:tabs.account', Icon: UserCircle, match: (p) => p === '/account' },
+]
+
+export default function TabBar({ teacherMode = false }) {
   const { t } = useTranslation()
   const location = useLocation()
   const user = useAuthStore((s) => s.user)
@@ -35,12 +50,14 @@ export default function TabBar() {
   // Print orders are a consumer-only, paid feature — a class (student)
   // account never has one to check on. Filtered rather than a fifth branch
   // per tab: the remaining four still spread evenly via justify-around.
-  const tabs = isStudent ? TABS.filter((tab) => tab.to !== '/orders') : TABS
+  const tabs = teacherMode ? TEACHER_TABS : (isStudent ? TABS.filter((tab) => tab.to !== '/orders') : TABS)
 
-  const isActive = (to) =>
-    to === '/create'
-      ? location.pathname === '/create'
-      : location.pathname === to || location.pathname.startsWith(`${to}/`)
+  const isActive = (tab) =>
+    tab.match
+      ? tab.match(location.pathname)
+      : tab.to === '/create'
+        ? location.pathname === '/create'
+        : location.pathname === tab.to || location.pathname.startsWith(`${tab.to}/`)
 
   return (
     <nav
@@ -49,11 +66,12 @@ export default function TabBar() {
       aria-label={t('nav:tabs.aria_label')}
     >
       <ul className="mx-auto flex max-w-lg items-stretch justify-around px-1">
-        {tabs.map(({ to, labelKey, Icon }) => {
+        {tabs.map((tab) => {
+          const { to, labelKey, Icon } = tab
           // Account sends signed-out visitors to sign-in instead of a
           // page that would only show them a sign-in prompt.
           const href = to === '/account' && !user ? '/login' : to
-          const active = isActive(to) || (to === '/account' && location.pathname === '/login')
+          const active = isActive(tab) || (to === '/account' && location.pathname === '/login')
           return (
             <li key={to} className="flex-1">
               <Link

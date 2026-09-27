@@ -5,6 +5,8 @@
   "header": {
     "pricing": "Pricing",
     "classroom": "Classroom",
+    "dashboard": "Dashboard",
+    "classes": "Classes",
     "mute": "Mute music",
     "unmute": "Unmute music",
     "account": "Account",
@@ -17,7 +19,9 @@
     "gallery": "Gallery",
     "create": "Create",
     "orders": "Orders",
-    "account": "Account"
+    "account": "Account",
+    "dashboard": "Dashboard",
+    "classes": "Classes"
   },
   "play": {
     "trigger": "Play",

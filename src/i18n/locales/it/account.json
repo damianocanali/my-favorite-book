@@ -23,7 +23,9 @@
     "title": "Classe",
     "body": "Crea una classe, aggiungi l'elenco dei tuoi studenti e gestisci tutto da un'unica dashboard.",
     "use_cta": "Usa My Book Lab nella mia classe",
-    "dashboard_link": "Dashboard della classe"
+    "dashboard_link": "Dashboard della classe",
+    "switch_to_family": "Passa alla vista famiglia",
+    "switch_to_teacher": "Passa alla vista insegnante"
   },
   "language": {
     "title": "Lingua"

@@ -67,6 +67,65 @@
     "title": "Le tue classi",
     "subtitle": "Crea una classe, aggiungi gli alunni e stampa le tessere con le immagini per l'accesso.",
     "loading": "Caricamento delle tue classi…",
+    "dashboard": {
+      "title": "Dashboard",
+      "loading": "Caricamento della tua dashboard…",
+      "preview_link": "Prova l'app dei bambini",
+      "class_switcher": {
+        "aria_label": "Scegli una classe"
+      },
+      "empty": {
+        "heading": "Ancora nessuna classe",
+        "body": "Crea la tua prima classe per vedere chi è attivo, i loro libri e ogni messaggio che ha bisogno di te.",
+        "cta": "Crea la tua prima classe"
+      },
+      "needs_you_now": {
+        "heading": "Ha bisogno di te ora",
+        "disclaimer": "My Book Lab inoltra questi messaggi. Non sono monitorati e non sono un servizio di emergenza.",
+        "empty": "Nessuno ha bisogno di te in questo momento.",
+        "grownup_heading": "Ho bisogno di un adulto",
+        "book_heading": "Aiuto con il mio libro",
+        "unknown_student": "Un alunno",
+        "asks_one": "richiesto {{count}} volta",
+        "asks_other": "richiesto {{count}} volte",
+        "seen": "Visto",
+        "seen_aria": "Segna come visto il messaggio di {{name}}"
+      },
+      "glance": {
+        "heading": "La classe a colpo d'occhio",
+        "active_label": "Attivi questa settimana",
+        "active_fraction": "{{active}} su {{total}}",
+        "books_label": "Libri",
+        "books_edited_sub_one": "{{count}} modificato questa settimana",
+        "books_edited_sub_other": "{{count}} modificati questa settimana",
+        "pictures_label": "Immagini usate",
+        "pictures_fraction": "{{used}} su {{allowance}}",
+        "license_label": "Licenza"
+      },
+      "students": {
+        "heading": "Alunni",
+        "empty": "Ancora nessun alunno.",
+        "col_name": "Nome",
+        "col_last_sign_in": "Ultimo accesso",
+        "col_books": "Libri",
+        "col_pictures_today": "Immagini oggi",
+        "col_checkins": "Check-in (7 giorni)",
+        "books_count_one": "{{count}} libro",
+        "books_count_other": "{{count}} libri",
+        "last_edited": "Ultima modifica {{when}}",
+        "pictures_today": "{{count}} immagini oggi",
+        "inactive_chip": "Non visto da 7 giorni",
+        "open_aria": "Vedi i dettagli di {{name}}",
+        "no_checkins": "Nessun check-in"
+      },
+      "drawer": {
+        "tab_books": "Libri",
+        "tab_checkins": "Check-in",
+        "checkins_empty": "Nessun check-in negli ultimi 30 giorni.",
+        "checkin_item": "{{feeling}} · {{when}}",
+        "checkin_item_with_need": "{{feeling}} · {{need}} · {{when}}"
+      }
+    },
     "legacy": {
       "heading": "Le tue vecchie classi sono ancora ai loro link",
       "hide": "Nascondi"

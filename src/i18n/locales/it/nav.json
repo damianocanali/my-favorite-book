@@ -5,6 +5,8 @@
   "header": {
     "pricing": "Prezzi",
     "classroom": "Scuola",
+    "dashboard": "Dashboard",
+    "classes": "Classi",
     "mute": "Disattiva musica",
     "unmute": "Attiva musica",
     "account": "Account",
@@ -17,7 +19,9 @@
     "gallery": "Galleria",
     "create": "Crea",
     "orders": "Ordini",
-    "account": "Account"
+    "account": "Account",
+    "dashboard": "Dashboard",
+    "classes": "Classi"
   },
   "play": {
     "trigger": "Gioca",

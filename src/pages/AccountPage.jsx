@@ -2,10 +2,12 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { motion } from 'motion/react'
 import { useTranslation, Trans } from 'react-i18next'
-import { Trash2, LogOut, AlertTriangle, Loader2, Sparkles, CreditCard, ExternalLink, Pencil, Check, X, GraduationCap } from 'lucide-react'
+import { Trash2, LogOut, AlertTriangle, Loader2, Sparkles, CreditCard, ExternalLink, Pencil, Check, X, GraduationCap, Repeat } from 'lucide-react'
 import { useAuthStore, selectDisplayName, selectIsTeacher } from '../stores/useAuthStore'
 import { useSubscription } from '../hooks/useSubscription'
 import { useIsStudent } from '../hooks/useIsStudent'
+import { useTeacherMode } from '../hooks/useTeacherMode'
+import { setViewMode } from '../lib/viewMode'
 import { apiFetchAuthed } from '../lib/api'
 import { IS_NATIVE } from '../services/purchaseService'
 import AvatarDisplay from '../components/avatar/AvatarDisplay'
@@ -40,6 +42,7 @@ export default function AccountPage() {
   const markClassroomOwner = useAuthStore((s) => s.markClassroomOwner)
   const displayName = useAuthStore(selectDisplayName)
   const isTeacher = useAuthStore(selectIsTeacher)
+  const teacherMode = useTeacherMode()
 
   const { planKey, isPaid, loading: subLoading } = useSubscription()
   const isStudent = useIsStudent()
@@ -55,6 +58,21 @@ export default function AccountPage() {
   const [savingName, setSavingName] = useState(false)
   const [nameError, setNameError] = useState(null)
   const [classroomLoading, setClassroomLoading] = useState(false)
+
+  // Task D2: a teacher who is also a parent can browse either home without
+  // signing out. Persists the choice (see src/lib/viewMode.js) and
+  // navigates so the destination's chrome (AppShell's teacher-mode header/
+  // TabBar vs. the consumer one) is correct on the very next screen, not
+  // just after some later route change happens to re-render AppShell.
+  const handleToggleViewMode = () => {
+    if (teacherMode) {
+      setViewMode('family')
+      navigate('/')
+    } else {
+      setViewMode('teacher')
+      navigate('/teacher')
+    }
+  }
 
   const handleUseInClassroom = async () => {
     setClassroomLoading(true)
@@ -279,13 +297,26 @@ export default function AccountPage() {
             <div className="border-b border-galaxy-text-muted/20 pb-6 mb-6">
               <h2 className="font-heading text-lg font-semibold text-galaxy-text mb-3">{t('account:classroom.title')}</h2>
               {isTeacher ? (
-                <Link
-                  to="/teacher"
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-2xl border border-galaxy-text-muted/30 text-galaxy-text-muted hover:text-galaxy-text hover:border-galaxy-text-muted/60 transition-colors font-body text-sm w-fit"
-                >
-                  <GraduationCap size={16} />
-                  {t('account:classroom.dashboard_link')}
-                </Link>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Link
+                    to="/teacher"
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-2xl border border-galaxy-text-muted/30 text-galaxy-text-muted hover:text-galaxy-text hover:border-galaxy-text-muted/60 transition-colors font-body text-sm w-fit"
+                  >
+                    <GraduationCap size={16} />
+                    {t('account:classroom.dashboard_link')}
+                  </Link>
+                  {/* Task D2: a teacher who is also a parent — sets
+                      viewMode and navigates so the very next screen shows
+                      the right home/nav, not just some later route. */}
+                  <button
+                    type="button"
+                    onClick={handleToggleViewMode}
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-2xl border border-galaxy-text-muted/30 text-galaxy-text-muted hover:text-galaxy-text hover:border-galaxy-text-muted/60 transition-colors font-body text-sm w-fit"
+                  >
+                    <Repeat size={16} />
+                    {teacherMode ? t('account:classroom.switch_to_family') : t('account:classroom.switch_to_teacher')}
+                  </button>
+                </div>
               ) : (
                 <div className="glass rounded-2xl p-4 border border-galaxy-text-muted/10">
                   <p className="text-galaxy-text-muted font-body text-sm mb-3">{t('account:classroom.body')}</p>

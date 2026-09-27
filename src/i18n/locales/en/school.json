@@ -67,6 +67,65 @@
     "title": "Your classes",
     "subtitle": "Create a class, add a roster, and print picture sign-in cards for your students.",
     "loading": "Loading your classes…",
+    "dashboard": {
+      "title": "Dashboard",
+      "loading": "Loading your dashboard…",
+      "preview_link": "Preview the kids' app",
+      "class_switcher": {
+        "aria_label": "Choose a class"
+      },
+      "empty": {
+        "heading": "No classes yet",
+        "body": "Create your first class to see who's active, their books, and any messages that need you.",
+        "cta": "Create your first class"
+      },
+      "needs_you_now": {
+        "heading": "Needs you now",
+        "disclaimer": "My Book Lab passes these messages on. They are not monitored and are not an emergency service.",
+        "empty": "Nothing needs you right now.",
+        "grownup_heading": "I need a grown-up",
+        "book_heading": "Help with my book",
+        "unknown_student": "A student",
+        "asks_one": "asked {{count}} time",
+        "asks_other": "asked {{count}} times",
+        "seen": "Seen",
+        "seen_aria": "Mark {{name}}'s message as seen"
+      },
+      "glance": {
+        "heading": "Class at a glance",
+        "active_label": "Active this week",
+        "active_fraction": "{{active}} of {{total}}",
+        "books_label": "Books",
+        "books_edited_sub_one": "{{count}} edited this week",
+        "books_edited_sub_other": "{{count}} edited this week",
+        "pictures_label": "Pictures used",
+        "pictures_fraction": "{{used}} of {{allowance}}",
+        "license_label": "License"
+      },
+      "students": {
+        "heading": "Students",
+        "empty": "No students yet.",
+        "col_name": "Name",
+        "col_last_sign_in": "Last signed in",
+        "col_books": "Books",
+        "col_pictures_today": "Pictures today",
+        "col_checkins": "Check-ins (7 days)",
+        "books_count_one": "{{count}} book",
+        "books_count_other": "{{count}} books",
+        "last_edited": "Last edited {{when}}",
+        "pictures_today": "{{count}} pictures today",
+        "inactive_chip": "Not seen in 7 days",
+        "open_aria": "See {{name}}'s details",
+        "no_checkins": "No check-ins"
+      },
+      "drawer": {
+        "tab_books": "Books",
+        "tab_checkins": "Check-ins",
+        "checkins_empty": "No check-ins in the last 30 days.",
+        "checkin_item": "{{feeling}} · {{when}}",
+        "checkin_item_with_need": "{{feeling}} · {{need}} · {{when}}"
+      }
+    },
     "legacy": {
       "heading": "Your older classes are still at their class links",
       "hide": "Hide"

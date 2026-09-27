@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { LogOut, GraduationCap, Sparkles, Volume2, VolumeX, ArrowLeft } from 'lucide-react'
+import { LogOut, GraduationCap, Sparkles, Volume2, VolumeX, ArrowLeft, LayoutDashboard, Users } from 'lucide-react'
 import { useAuthStore, selectDisplayName, selectIsTeacher } from '../../stores/useAuthStore'
 import { useIsStudent } from '../../hooks/useIsStudent'
+import { useTeacherMode } from '../../hooks/useTeacherMode'
 import { toggleMute, isMuted } from '../../services/audioService'
 import PlayMenu from './PlayMenu'
 import AvatarDisplay from '../avatar/AvatarDisplay'
@@ -33,6 +34,7 @@ export default function AppShell({ children }) {
   const displayName = useAuthStore(selectDisplayName)
   const isTeacher = useAuthStore(selectIsTeacher)
   const isStudent = useIsStudent()
+  const teacherMode = useTeacherMode()
 
   const [muted, setMuted] = useState(isMuted())
 
@@ -89,6 +91,94 @@ export default function AppShell({ children }) {
         </header>
 
         <main id="main-content" className="relative z-10">{children}</main>
+      </div>
+    )
+  }
+
+  // Task D2: a teacher who hasn't switched to family view (useTeacherMode)
+  // gets a nav built around their three destinations — Dashboard, Classes,
+  // Account — with none of the consumer surfaces (Create/Bookshelf/Gallery/
+  // Play/Pricing) linked. Those routes still work if navigated to directly
+  // (a teacher previewing the kids' app via the dashboard's link), so this
+  // is a chrome decision, not a route guard — same division of labour as
+  // ConsumerOnlyRoute for students. A teacher who switches to family view
+  // (Account page) falls through to the unchanged consumer layout below.
+  if (teacherMode) {
+    return (
+      <div className="min-h-screen relative">
+        <a href="#main-content" className="skip-to-content">{t('nav:a11y.skip_to_content')}</a>
+
+        <CosmicBackground />
+
+        <header className="relative z-20 flex items-center justify-between gap-2 px-3 sm:px-6 py-3">
+          <Link
+            to="/teacher"
+            className="flex items-center gap-2 text-white transition-opacity hover:opacity-80"
+          >
+            <AppLogo size={28} />
+            <span className="hidden bg-gradient-to-br from-word-from via-word-via to-word-to bg-clip-text font-heading text-lg font-bold text-transparent sm:inline">
+              My Book Lab
+            </span>
+          </Link>
+
+          <div
+            id={PAGE_ACTIONS_ID}
+            className="flex min-w-0 flex-1 items-center justify-end gap-1.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          />
+
+          <div className="flex flex-shrink-0 items-center gap-1 sm:gap-2">
+            <Link to="/teacher" className={headerLink(location.pathname === '/teacher')}>
+              <LayoutDashboard size={18} />
+              <span className="hidden font-body text-sm font-semibold sm:inline">{t('nav:header.dashboard')}</span>
+            </Link>
+            <Link
+              to="/teacher/classes"
+              className={headerLink(location.pathname === '/teacher/classes' || location.pathname.startsWith('/teacher/class/'))}
+            >
+              <Users size={18} />
+              <span className="hidden font-body text-sm font-semibold sm:inline">{t('nav:header.classes')}</span>
+            </Link>
+
+            <LanguageToggle />
+
+            <button
+              onClick={handleToggleMute}
+              title={muted ? t('nav:header.unmute') : t('nav:header.mute')}
+              aria-label={muted ? t('nav:header.unmute') : t('nav:header.mute')}
+              className="flex items-center rounded-full p-2 text-white/60 transition-colors hover:text-white"
+            >
+              {muted ? <VolumeX size={18} /> : <Volume2 size={18} />}
+            </button>
+
+            <div className="flex items-center gap-2 border-l border-white/15 pl-2">
+              <Link to="/account" title={t('nav:header.account')} className="transition-opacity hover:opacity-80">
+                <AvatarDisplay size={32} mini />
+              </Link>
+              <Link
+                to="/account"
+                title={t('nav:header.account')}
+                className="hidden max-w-[100px] truncate font-body text-xs text-white/60 transition-colors hover:text-white sm:block"
+              >
+                {displayName}
+              </Link>
+              <button
+                onClick={handleSignOut}
+                title={t('common:actions.sign_out')}
+                aria-label={t('common:actions.sign_out')}
+                className="flex items-center rounded-full p-2 text-white/60 transition-colors hover:text-white"
+              >
+                <LogOut size={16} />
+              </button>
+            </div>
+          </div>
+        </header>
+
+        <main id="main-content" className="relative z-10 pb-[calc(72px+var(--sab,0px))]">{children}</main>
+
+        {/* Reconfigured (not hidden) — same three destinations as the
+            header, so a teacher who prefers thumb reach on a phone doesn't
+            lose Dashboard/Classes/Account. */}
+        <TabBar teacherMode />
       </div>
     )
   }
