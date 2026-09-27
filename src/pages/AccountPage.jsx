@@ -6,8 +6,7 @@ import { Trash2, LogOut, AlertTriangle, Loader2, Sparkles, CreditCard, ExternalL
 import { useAuthStore, selectDisplayName, selectIsTeacher } from '../stores/useAuthStore'
 import { useSubscription } from '../hooks/useSubscription'
 import { useIsStudent } from '../hooks/useIsStudent'
-import { useTeacherMode } from '../hooks/useTeacherMode'
-import { setViewMode } from '../lib/viewMode'
+import { getViewMode, setViewMode, exitKidsPreview } from '../lib/viewMode'
 import { apiFetchAuthed } from '../lib/api'
 import { IS_NATIVE } from '../services/purchaseService'
 import AvatarDisplay from '../components/avatar/AvatarDisplay'
@@ -42,7 +41,12 @@ export default function AccountPage() {
   const markClassroomOwner = useAuthStore((s) => s.markClassroomOwner)
   const displayName = useAuthStore(selectDisplayName)
   const isTeacher = useAuthStore(selectIsTeacher)
-  const teacherMode = useTeacherMode()
+  // The real persisted preference, not useTeacherMode()'s derived boolean:
+  // that also folds in `loading` and "previewing the kids' app", so a
+  // teacher who followed the dashboard's preview link and then wandered
+  // to /account mid-preview would see this button mislabeled "Switch to
+  // teacher view" — as if they'd chosen family view — when they hadn't.
+  const viewMode = getViewMode()
 
   const { planKey, isPaid, loading: subLoading } = useSubscription()
   const isStudent = useIsStudent()
@@ -65,12 +69,17 @@ export default function AccountPage() {
   // TabBar vs. the consumer one) is correct on the very next screen, not
   // just after some later route change happens to re-render AppShell.
   const handleToggleViewMode = () => {
-    if (teacherMode) {
+    if (viewMode === 'family') {
+      setViewMode('teacher')
+      // Also ends any stale "previewing the kids' app" detour (fix round
+      // 2) — without this, choosing "teacher view" from family view could
+      // still land on /teacher with last visit's preview banner logic
+      // primed to reappear the next time teacherMode happens to flip off.
+      exitKidsPreview()
+      navigate('/teacher')
+    } else {
       setViewMode('family')
       navigate('/')
-    } else {
-      setViewMode('teacher')
-      navigate('/teacher')
     }
   }
 
@@ -319,7 +328,7 @@ export default function AccountPage() {
                     className="flex items-center gap-2 px-4 py-2.5 rounded-2xl border border-galaxy-text-muted/30 text-galaxy-text-muted hover:text-galaxy-text hover:border-galaxy-text-muted/60 transition-colors font-body text-sm w-fit"
                   >
                     <Repeat size={16} />
-                    {teacherMode ? t('account:classroom.switch_to_family') : t('account:classroom.switch_to_teacher')}
+                    {viewMode === 'family' ? t('account:classroom.switch_to_teacher') : t('account:classroom.switch_to_family')}
                   </button>
                 </div>
               ) : (

@@ -6,7 +6,19 @@ import { useAvatarStore } from './useAvatarStore'
 import { useRewardsStore } from './useRewardsStore'
 import { useCheckInStore } from './useCheckInStore'
 import { usePrintOrderStore } from './usePrintOrderStore'
+import { exitKidsPreview } from '../lib/viewMode'
 import { Capacitor } from '@capacitor/core'
+
+// getSession() should be near-instant — it reads the stored session and
+// only triggers a background refresh if it's near expiry — but a broken
+// storage shim, a browser extension eating fetch, or Supabase itself
+// wedged on a bad refresh must never leave AppShell/HomeRoute's `loading`
+// gate (Task D2 fix round) spinning forever. This is a last-resort escape
+// hatch, not the expected path: initialize()'s own try/catch/finally
+// already clears `loading` the moment getSession settles, one way or the
+// other, and cancels this timer — it only ever fires if that somehow
+// doesn't happen.
+const INIT_SAFETY_TIMEOUT_MS = 8000
 
 // The local-only, per-person state that must never survive a change of
 // WHO is signed in on this device: a child's books, their in-progress
@@ -28,6 +40,13 @@ function clearLocalUserData() {
   // the app keeps in localStorage, and this is a shared/family device by
   // assumption, so it must not outlive the person who entered it.
   usePrintOrderStore.getState().reset()
+  // Task D2 fix round: "Preview the kids' app" is a teacher-only detour
+  // (AppShell's sticky banner). Without this, signing out of a teacher
+  // account mid-preview — or a child sign-in on the same shared device
+  // right after — would leave the NEXT person's session carrying that
+  // flag, showing them a "you're previewing the kids' app" banner over
+  // their own, completely unrelated session.
+  exitKidsPreview()
 }
 
 export const useAuthStore = create((set, get) => ({
@@ -36,9 +55,32 @@ export const useAuthStore = create((set, get) => ({
 
   initialize: async () => {
     if (!supabase) { set({ loading: false }); return }
-    const { data: { session } } = await supabase.auth.getSession()
-    const user = session?.user ?? null
-    set({ user, loading: false })
+
+    // See INIT_SAFETY_TIMEOUT_MS's own comment: this is the fallback, not
+    // the expected path. Cleared in `finally` below the moment the real
+    // getSession() call settles.
+    const safetyTimer = setTimeout(() => {
+      console.warn('useAuthStore.initialize: getSession did not settle within', INIT_SAFETY_TIMEOUT_MS, 'ms — forcing loading false')
+      set({ loading: false })
+    }, INIT_SAFETY_TIMEOUT_MS)
+
+    let user = null
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      user = session?.user ?? null
+    } catch (e) {
+      // A broken session (corrupted storage, a rejected refresh, Supabase
+      // itself erroring) must never leave `loading` stuck true — that
+      // would hang AppShell/HomeRoute's chrome-decision spinner forever.
+      // Treating it as signed-out is the safe default: every protected
+      // route already re-checks the real session server-side regardless
+      // of what this store believes client-side.
+      console.warn('useAuthStore.initialize: getSession failed, treating as signed-out', e)
+    } finally {
+      clearTimeout(safetyTimer)
+      set({ user, loading: false })
+    }
+
     if (user) {
       setBookshelfUserId(user.id)
       useBookshelfStore.getState().loadCloudBooks(user.id)
