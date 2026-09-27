@@ -11,6 +11,7 @@ import {
 } from '../lib/schoolApi'
 import { useAuthStore } from '../stores/useAuthStore'
 import { useSpeechSynthesis } from '../hooks/useSpeechSynthesis'
+import { clearRememberedWho } from '../lib/signinWho'
 
 // Every code the server can hand back for roster/sign-in, mapped down to
 // one of the seven child-facing messages in school.json's `errors`. Codes
@@ -178,28 +179,56 @@ export default function ClassSignInPage() {
     else speak(speechText)
   }
 
+  // A remembered 'kid' choice sends /login straight to /class (see
+  // LoginPage), so a parent or teacher on the same device would otherwise
+  // have no way back to the adult sign-in forms short of editing the URL
+  // by hand. Forgetting the remembered choice means /login shows the
+  // chooser again rather than bouncing straight back here.
+  function handleGrownUpSignIn() {
+    clearRememberedWho()
+    navigate('/login')
+  }
+
   const wide = step !== 'code'
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-12">
+    <div className="min-h-screen flex items-center justify-center px-4 py-12 md:py-3">
       <motion.div
         className={`w-full ${wide ? 'max-w-lg md:max-w-xl' : 'max-w-md'}`}
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
       >
-        <div className="text-center mb-6">
+        <div className={`text-center ${wide ? 'mb-3 md:mb-1' : 'mb-6'}`}>
           {/* A big, friendly hello above every step — the same mascot the
               rest of the app uses for celebrations, here just waving
               hello, so a pre-reading child recognises this page as
-              welcoming before they've read a single word of it. */}
-          <Mascot mood="wave" size={96} className="mx-auto mb-3" />
-          <h1 className="font-heading text-2xl font-bold text-galaxy-text">{t('school:page_title')}</h1>
+              welcoming before they've read a single word of it. Wrapped in
+              a flex container (rather than relying on Mascot's own
+              mx-auto) because Mascot's root is a block box sized by
+              height with width:auto, which stretches to fill a block
+              parent instead of shrinking to the art's intrinsic width —
+              flex centering sidesteps that regardless of the art's shape.
+              Hidden at md+ on the name/pictures steps only: those two
+              already changed pictures/tiles to fill more of an iPad
+              screen (see NameTiles/PicturePad), and there wasn't room left
+              for a hello too without the picture step needing to scroll. */}
+          <div className={`flex justify-center mb-3 ${wide ? 'md:hidden' : ''}`}>
+            <Mascot mood="wave" size={96} />
+          </div>
+          <h1 className={`font-heading text-2xl font-bold text-galaxy-text ${wide ? 'md:text-xl' : ''}`}>{t('school:page_title')}</h1>
+          <button
+            type="button"
+            onClick={handleGrownUpSignIn}
+            className="mt-1.5 text-xs font-body text-galaxy-text-muted/70 underline underline-offset-2 hover:text-galaxy-text-muted transition-colors"
+          >
+            {t('school:grown_up_link')}
+          </button>
         </div>
 
-        <div className="glass rounded-2xl p-6 border border-galaxy-text-muted/10 space-y-5">
+        <div className="glass rounded-2xl p-6 md:p-3 border border-galaxy-text-muted/10 space-y-5 md:space-y-2">
           {classroom?.name && step !== 'code' && (
-            <p className="text-galaxy-secondary font-body text-xs font-semibold uppercase tracking-wide -mb-2">
+            <p className="text-galaxy-secondary font-body text-xs font-semibold uppercase tracking-wide -mb-2 md:-mb-3">
               {classroom.name}
             </p>
           )}
@@ -266,12 +295,12 @@ export default function ClassSignInPage() {
           )}
 
           {step === 'name' && (
-            <div className="space-y-4">
+            <div className="space-y-4 md:space-y-2">
               <NameTiles students={students} onSelect={handleSelectStudent} />
               <button
                 type="button"
                 onClick={handleNotMyClass}
-                className="min-h-[48px] w-full flex items-center justify-center text-center text-galaxy-text-muted text-sm font-body hover:text-galaxy-primary transition-colors"
+                className="min-h-[48px] md:min-h-[40px] w-full flex items-center justify-center text-center text-galaxy-text-muted text-sm font-body hover:text-galaxy-primary transition-colors"
               >
                 {t('school:name_step.not_my_class')}
               </button>
@@ -279,7 +308,7 @@ export default function ClassSignInPage() {
           )}
 
           {step === 'pictures' && (
-            <div className="space-y-4">
+            <div className="space-y-4 md:space-y-2">
               {!isBlockingPictureError && (
                 <>
                   <PicturePad

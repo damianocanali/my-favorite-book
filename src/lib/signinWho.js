@@ -34,3 +34,18 @@ export function setRememberedWho(who) {
     // ignore — see file header
   }
 }
+
+/**
+ * Forgets the remembered choice. Used by /class's "Grown-up? Sign in
+ * here" escape hatch: a remembered 'kid' choice sends /login straight to
+ * /class (see LoginPage), which would otherwise strand a parent or
+ * teacher on a device that last remembered 'kid' with no way back to the
+ * chooser short of editing the URL by hand.
+ */
+export function clearRememberedWho() {
+  try {
+    localStorage.removeItem(KEY)
+  } catch {
+    // ignore — see file header
+  }
+}

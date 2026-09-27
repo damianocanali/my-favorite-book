@@ -190,7 +190,7 @@ export default function LoginPage() {
                 {who === 'teacher' ? t('auth:chooser.teacher.form_title') : t('auth:sign_in.title')}
               </h1>
               <p className="text-galaxy-text-muted font-body text-sm mt-1">
-                {who === 'teacher' ? t('auth:chooser.teacher.subtitle') : t('auth:sign_in.subtitle')}
+                {who === 'teacher' ? t('auth:chooser.teacher.form_subtitle') : t('auth:sign_in.subtitle')}
               </p>
             </div>
 
