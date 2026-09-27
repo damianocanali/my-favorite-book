@@ -5,6 +5,8 @@ export const config = { runtime: 'edge' }
 // regardless of RLS configuration on the print_orders table — the
 // same pattern as get.js and create.js.
 
+import { rejectStudent } from '../_school.js'
+
 const SUPABASE = process.env.SUPABASE_URL
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
 
@@ -41,6 +43,8 @@ export default async function handler(req) {
       status: 401, headers: { 'Content-Type': 'application/json' },
     })
   }
+  const blocked = rejectStudent({ appMetadata: user.app_metadata ?? {} }, req)
+  if (blocked) return blocked
 
   const r = await fetch(
     `${SUPABASE}/rest/v1/print_orders?user_id=eq.${user.id}&order=created_at.desc&select=${PUBLIC_FIELDS.join(',')}`,

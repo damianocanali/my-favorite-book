@@ -7,10 +7,12 @@ import { motion } from 'motion/react'
 import { Sparkles, X } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { useIsStudent } from '../../hooks/useIsStudent'
 
 export default function BookFinishedModal({ book, open, onClose }) {
   const navigate = useNavigate()
   const { t } = useTranslation()
+  const isStudent = useIsStudent()
 
   // Portalled and unmounted synchronously, for the same reason as
   // WelcomeBackMoment: gating removal of a screen-covering,
@@ -40,13 +42,18 @@ export default function BookFinishedModal({ book, open, onClose }) {
             <div className="text-5xl mb-3">🎉</div>
             <h2 className="font-heading text-2xl font-bold text-galaxy-text">{t('print:finished.title')}</h2>
             <p className="text-galaxy-text-muted mt-2 text-sm">{t('print:finished.subtitle')}</p>
-            <button
-              onClick={() => navigate(`/order/${book?.id}`)}
-              disabled={!book?.id}
-              className="mt-5 w-full flex items-center justify-center gap-2 py-3.5 rounded-xl btn-fill-primary font-heading font-bold transition-colors disabled:opacity-50"
-            >
-              <Sparkles size={16} /> {t('print:finished.order_cta')}
-            </button>
+            {/* Print orders are a paid, consumer-only feature — a class
+                (student) account never gets this entry point (global
+                constraint: no purchase links of any kind). */}
+            {!isStudent && (
+              <button
+                onClick={() => navigate(`/order/${book?.id}`)}
+                disabled={!book?.id}
+                className="mt-5 w-full flex items-center justify-center gap-2 py-3.5 rounded-xl btn-fill-primary font-heading font-bold transition-colors disabled:opacity-50"
+              >
+                <Sparkles size={16} /> {t('print:finished.order_cta')}
+              </button>
+            )}
             <button onClick={onClose} className="mt-2 w-full py-2.5 text-sm text-galaxy-text-muted hover:text-galaxy-text">
               {t('print:finished.later')}
             </button>

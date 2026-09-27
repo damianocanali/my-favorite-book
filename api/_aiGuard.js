@@ -29,7 +29,7 @@ function aiError(status, message, req) {
 export async function requireUser(req) {
   const auth = await verifyJwt(req)
   if (!auth.ok) return { ok: false, response: auth.response }
-  return { ok: true, userId: auth.userId, email: auth.email }
+  return { ok: true, userId: auth.userId, email: auth.email, appMetadata: auth.appMetadata }
 }
 
 /**

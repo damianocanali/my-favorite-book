@@ -20,11 +20,17 @@
 
 import { FEELINGS, NEEDS } from './checkIn'
 
+/// The two needs a class (student) account's need step adds (STUDENT_NEEDS
+/// in lib/checkIn.js) have no illustration of their own — reuse the
+/// existing 'help' art for both rather than drawing new tiles for a split
+/// that's purely about where the ask goes (in-app vs. also the teacher).
+const ART_ALIASES = { help_book: 'help', grownup: 'help' }
+
 /// Where a tile's illustration lives. Vite serves public/ from the root, so
 /// this is a plain runtime URL rather than an import — which is the point:
 /// adding a file must not require a rebuild of this module.
 export function artUrl(id) {
-  return `/checkin/${id}.png`
+  return `/checkin/${ART_ALIASES[id] ?? id}.png`
 }
 
 /// Every id that needs a drawing, in the order they appear on the sheet.

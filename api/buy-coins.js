@@ -3,6 +3,7 @@ export const config = { runtime: 'edge' }
 import { handleCors, withCors } from './_rateLimit.js'
 import { verifyJwt } from './_auth.js'
 import { checkoutBaseUrl } from './_origin.js'
+import { rejectStudent } from './_school.js'
 
 // Creates a Stripe Checkout session for a one-time coin pack purchase.
 // The user identity comes from the verified JWT. Coins are credited by the
@@ -44,6 +45,8 @@ export default async function handler(req) {
 
   const auth = await verifyJwt(req)
   if (!auth.ok) return auth.response
+  const blocked = rejectStudent(auth, req)
+  if (blocked) return blocked
   const { userId, email } = auth
 
   if (!email) {

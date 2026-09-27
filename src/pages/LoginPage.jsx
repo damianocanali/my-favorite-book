@@ -214,6 +214,12 @@ export default function LoginPage() {
           <Link to="/" className="text-galaxy-text-muted text-sm font-body hover:text-galaxy-text transition-colors block">
             {t('auth:shared.back_to_app')}
           </Link>
+          {/* Children never use this email/password form — they land on
+              /class, which is reachable signed-out and needs only a class
+              code, a name tile and three pictures. */}
+          <Link to="/class" className="text-galaxy-secondary text-sm font-body font-semibold hover:underline block">
+            {t('school:sign_in_link.label')}
+          </Link>
         </div>
       </motion.div>
     </div>

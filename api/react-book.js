@@ -1,6 +1,8 @@
 export const config = { runtime: 'edge' }
 
 import { checkRateLimit, getClientIp, handleCors, withCors } from './_rateLimit.js'
+import { verifyJwt } from './_auth.js'
+import { rejectStudent } from './_school.js'
 
 // Kept in sync with the allowlist inside the increment_reaction RPC so we
 // can reject obvious bad input without a round-trip to the DB.
@@ -14,6 +16,18 @@ export default async function handler(req) {
     new Response(JSON.stringify(o), { status: s, headers: withCors({ 'Content-Type': 'application/json' }, req) })
 
   if (req.method !== 'POST') return json(405, { error: 'Method not allowed' })
+
+  // Reactions are open to anonymous readers by design (no Authorization
+  // header at all from the web client). But if a caller DOES present a
+  // bearer token — as a signed-in class account eventually might — a
+  // student must still be fenced out of this consumer feature.
+  if (req.headers.get('authorization')) {
+    const auth = await verifyJwt(req)
+    if (auth.ok) {
+      const blocked = rejectStudent(auth, req)
+      if (blocked) return blocked
+    }
+  }
 
   const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL
   // The RPC is SECURITY DEFINER and granted to anon, so the anon key is enough.

@@ -2,6 +2,7 @@ export const config = { runtime: 'edge' }
 
 import { handleCors, withCors } from './_rateLimit.js'
 import { verifyJwt } from './_auth.js'
+import { rejectStudent } from './_school.js'
 
 // Opens Stripe's hosted billing portal for the signed-in user.
 // Customer ID is looked up by the verified JWT's user id (via the
@@ -54,6 +55,8 @@ export default async function handler(req) {
 
   const auth = await verifyJwt(req)
   if (!auth.ok) return auth.response
+  const blocked = rejectStudent(auth, req)
+  if (blocked) return blocked
   const { userId } = auth
 
   const customerId = await lookupCustomerId(supabaseUrl, serviceKey, userId)

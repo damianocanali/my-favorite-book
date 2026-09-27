@@ -5,6 +5,7 @@ import { useTranslation, Trans } from 'react-i18next'
 import { Trash2, LogOut, AlertTriangle, Loader2, Sparkles, CreditCard, ExternalLink, Pencil, Check, X } from 'lucide-react'
 import { useAuthStore, selectDisplayName } from '../stores/useAuthStore'
 import { useSubscription } from '../hooks/useSubscription'
+import { useIsStudent } from '../hooks/useIsStudent'
 import { apiFetchAuthed } from '../lib/api'
 import { IS_NATIVE } from '../services/purchaseService'
 import AvatarDisplay from '../components/avatar/AvatarDisplay'
@@ -39,6 +40,7 @@ export default function AccountPage() {
   const displayName = useAuthStore(selectDisplayName)
 
   const { planKey, isPaid, loading: subLoading } = useSubscription()
+  const isStudent = useIsStudent()
   const [confirmStep, setConfirmStep] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [error, setError] = useState(null)
@@ -256,8 +258,9 @@ export default function AccountPage() {
             <LanguageSwitcher id="account-language" hideLabel />
           </div>
 
-          {/* Subscription */}
-          {!subLoading && isPaid && (
+          {/* Subscription — a class (student) account never has one
+              (global constraint: no purchase surfaces of any kind). */}
+          {!subLoading && isPaid && !isStudent && (
             <div className="border-b border-galaxy-text-muted/20 pb-6 mb-6">
               <h2 className="font-heading text-lg font-semibold text-galaxy-text mb-1">{t('account:subscription.title')}</h2>
               <p className="text-galaxy-text-muted font-body text-sm mb-3">
@@ -310,7 +313,10 @@ export default function AccountPage() {
             </button>
           </div>
 
-          {/* Delete account */}
+          {/* Delete account — a class (student) account is managed by its
+              teacher (roster remove/restore), not self-service by the
+              child; the teacher console is where that control lives. */}
+          {!isStudent && (
           <div>
             <h2 className="font-heading text-lg font-semibold text-galaxy-text mb-1">{t('account:danger.title')}</h2>
             <p className="text-galaxy-text-muted font-body text-sm mb-4">
@@ -378,6 +384,7 @@ export default function AccountPage() {
               </motion.div>
             )}
           </div>
+          )}
         </motion.div>
       </div>
     </div>

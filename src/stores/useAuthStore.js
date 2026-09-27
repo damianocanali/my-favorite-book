@@ -8,6 +8,28 @@ import { useCheckInStore } from './useCheckInStore'
 import { usePrintOrderStore } from './usePrintOrderStore'
 import { Capacitor } from '@capacitor/core'
 
+// The local-only, per-person state that must never survive a change of
+// WHO is signed in on this device: a child's books, their in-progress
+// draft, their check-in entries, and a parent's shipping address. Shared
+// by signOut() and the onAuthStateChange listener below so the two can't
+// drift — the leak this fixes (student B seeing student A's books, or a
+// child seeing a parent's shipping address) happened specifically because
+// the listener used to run only a subset of this.
+function clearLocalUserData() {
+  // zustand/persist would otherwise leave the previous person's books and
+  // in-progress book sitting in localStorage, so the next person on this
+  // device would see them.
+  useBookshelfStore.setState({ books: [], deletedBookIds: [] })
+  useBookStore.getState().resetBook()
+  // Feelings are per-child and never leave the device.
+  useCheckInStore.getState().clear()
+  // The print-order form persists a full shipping address — name, street,
+  // city, postcode, email and phone. That is the most identifying thing
+  // the app keeps in localStorage, and this is a shared/family device by
+  // assumption, so it must not outlive the person who entered it.
+  usePrintOrderStore.getState().reset()
+}
+
 export const useAuthStore = create((set, get) => ({
   user: null,
   loading: true,
@@ -27,14 +49,27 @@ export const useAuthStore = create((set, get) => ({
     }
     supabase.auth.onAuthStateChange((_event, session) => {
       const newUser = session?.user ?? null
-      // Feelings are per-child and never leave the device. Clearing on every
-      // identity change is how one child's entries stay invisible to the
-      // next person on this browser — simpler and safer than per-user
-      // storage keys, which would leave the first child's feelings sitting
-      // there indefinitely. Guarded on an actual id change so a background
-      // token refresh for the same user doesn't wipe today's entries.
-      if (newUser?.id !== get().user?.id) {
-        useCheckInStore.getState().clear()
+      const previousId = get().user?.id ?? null
+      const newId = newUser?.id ?? null
+      // Guarded on an actual id change so a background token refresh for
+      // the same user doesn't wipe today's data.
+      if (newId !== previousId) {
+        if (previousId) {
+          // Switching identity AWAY from a real signed-in user — to a
+          // different account, or to signed-out — via any path other than
+          // this store's own signOut() (which already does this locally):
+          // another tab signing out, a session expiring, or a student
+          // sign-in that bypasses the email/password signOut() call. That
+          // person's local-only data must not leak to whoever uses this
+          // browser next, same as an explicit sign-out.
+          clearLocalUserData()
+        } else {
+          // Signed-out → signed-in (an ordinary login). A visitor's local
+          // drafts made before they had an account are expected to survive
+          // into their own first session, so only check-in entries — always
+          // per-child regardless — are cleared here, not the full reset.
+          useCheckInStore.getState().clear()
+        }
       }
       set({ user: newUser })
       setBookshelfUserId(newUser?.id ?? null)
@@ -86,19 +121,7 @@ export const useAuthStore = create((set, get) => ({
     if (!supabase) return
     await supabase.auth.signOut()
     setBookshelfUserId(null)
-    // Wipe per-user persisted state. zustand/persist would otherwise
-    // leave the previous user's books and in-progress book sitting in
-    // localStorage, so a signed-out visit to /create would surface them.
-    useBookshelfStore.setState({ books: [], deletedBookIds: [] })
-    useBookStore.getState().resetBook()
-    // Same reasoning as the onAuthStateChange guard above: entries are
-    // per-child and must not carry over to whoever uses this browser next.
-    useCheckInStore.getState().clear()
-    // The print-order form persists a full shipping address — name, street,
-    // city, postcode, email and phone. That is the most identifying thing the
-    // app keeps in localStorage, and this is a family device by assumption, so
-    // it must not outlive the session that entered it.
-    usePrintOrderStore.getState().reset()
+    clearLocalUserData()
     set({ user: null })
   },
 
@@ -116,6 +139,27 @@ export const useAuthStore = create((set, get) => ({
     // UI snappy.
     set({ user: data.user })
     return data.user
+  },
+
+  // Student sign-in (Task 10) never touches email/password — api/school/
+  // sign-in.js already checked the picture secret server-side and handed
+  // back a ready-made session. setSession's own onAuthStateChange fires
+  // from this, which the listener wired up in initialize() picks up
+  // exactly like any other sign-in.
+  //
+  // Devices are shared at school, and often at home too: a parent might be
+  // signed in when a child picks up the same tablet to sign into class, or
+  // one child's session might still be live when the next child sits down.
+  // Signing out FIRST — not just relying on the listener's identity-change
+  // guard — means the outgoing person's books/draft/check-ins/shipping
+  // address are gone from this device before the new session even lands,
+  // rather than for however long setSession's async onAuthStateChange
+  // takes to fire.
+  signInAsStudent: async ({ access_token, refresh_token }) => {
+    if (!supabase) throw new Error('Auth not configured')
+    if (get().user) await get().signOut()
+    const { error } = await supabase.auth.setSession({ access_token, refresh_token })
+    if (error) throw error
   },
 
   signInWithProvider: async (provider) => {
@@ -159,3 +203,9 @@ export const selectDisplayName = (s) => {
 
 export const selectRole = (s) =>
   s.user?.user_metadata?.role ?? null
+
+// `app_metadata` is set only by trusted server code (mirrors api/_school.js's
+// own `isStudent`) — a signed-in student can never write it themselves,
+// unlike `user_metadata` above, which is exactly why selectRole must never
+// be used to gate a class account.
+export const selectIsStudent = (s) => s.user?.app_metadata?.role === 'student'

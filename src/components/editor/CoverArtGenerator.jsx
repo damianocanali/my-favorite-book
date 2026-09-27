@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { ImageIcon, Loader2, RefreshCw, Trash2, Lock, Sparkles } from 'lucide-react'
 import { useBookStore } from '../../stores/useBookStore'
 import { useSubscription } from '../../hooks/useSubscription'
+import { useIsStudent } from '../../hooks/useIsStudent'
 import { generateCoverArt } from '../../services/imageGenerator'
 import { formatNumber } from '../../i18n/formats'
 
@@ -23,6 +24,7 @@ export default function CoverArtGenerator() {
   const getImageGenerationsToday = useBookStore((s) => s.getImageGenerationsToday)
   const incrementImageGenerations = useBookStore((s) => s.incrementImageGenerations)
   const { plan, isPaid } = useSubscription()
+  const isStudent = useIsStudent()
 
   if (!book) return null
 
@@ -100,16 +102,29 @@ export default function CoverArtGenerator() {
                   {t('editor:limits.regen_label')}
                 </div>
               ) : atDailyLimit ? (
-                <motion.button
-                  onClick={() => navigate('/pricing')}
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-body font-semibold bg-galaxy-text-muted/20 text-galaxy-text-muted border border-galaxy-text-muted/20 cursor-pointer"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  title={t('editor:limits.daily_images_title', { max: formatNumber(plan.imagesPerDay) })}
-                >
-                  <Lock size={12} />
-                  {t('editor:limits.daily_reached')}
-                </motion.button>
+                isStudent ? (
+                  // A class account never sees a pricing link (global
+                  // constraint) — same inert, non-navigating treatment as
+                  // the cover-regen limit above, just for the daily cap.
+                  <div
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-body font-semibold bg-galaxy-text-muted/20 text-galaxy-text-muted border border-galaxy-text-muted/20"
+                    title={t('editor:limits.daily_reached')}
+                  >
+                    <Lock size={12} />
+                    {t('editor:limits.daily_reached')}
+                  </div>
+                ) : (
+                  <motion.button
+                    onClick={() => navigate('/pricing')}
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-body font-semibold bg-galaxy-text-muted/20 text-galaxy-text-muted border border-galaxy-text-muted/20 cursor-pointer"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    title={t('editor:limits.daily_images_title', { max: formatNumber(plan.imagesPerDay) })}
+                  >
+                    <Lock size={12} />
+                    {t('editor:limits.daily_reached')}
+                  </motion.button>
+                )
               ) : (
                 <motion.button
                   onClick={handleGenerate}
@@ -141,6 +156,14 @@ export default function CoverArtGenerator() {
                 </motion.button>
               )}
             </>
+          ) : isStudent ? (
+            // Unreachable in practice — a class account's plan (lib/plans.js)
+            // always has isPaid:true, so this branch is never actually taken
+            // for a student — kept only as defense in depth: if `isPaid`
+            // were ever miscomputed for a student, the one affordance this
+            // branch otherwise offers ("Upgrade") must still not appear
+            // (global constraint: no pricing links for a class account).
+            null
           ) : (
             <motion.button
               onClick={() => navigate('/pricing')}

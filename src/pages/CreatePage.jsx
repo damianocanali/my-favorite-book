@@ -8,6 +8,7 @@ import { useBookshelfStore } from '../stores/useBookshelfStore'
 import { useSubscription } from '../hooks/useSubscription'
 import { useRewardsStore } from '../stores/useRewardsStore'
 import { useAuthStore } from '../stores/useAuthStore'
+import { useIsStudent } from '../hooks/useIsStudent'
 import WizardContainer from '../components/wizard/WizardContainer'
 import StoryEditor from '../components/editor/StoryEditor'
 import SparkleButton from '../components/ui/SparkleButton'
@@ -31,6 +32,7 @@ export default function CreatePage() {
   const earnBadge = useRewardsStore((s) => s.earnBadge)
   const recordWritingActivity = useRewardsStore((s) => s.recordWritingActivity)
   const user = useAuthStore((s) => s.user)
+  const isStudent = useIsStudent()
 
   // If currentStep is beyond wizard steps, go straight to editor
   const [phase, setPhase] = useState(
@@ -176,9 +178,15 @@ export default function CreatePage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
         >
-          <SparkleButton onClick={() => navigate('/pricing')} size="large" variant="primary">
-            {t('wizard:gate.upgrade')}
-          </SparkleButton>
+          {/* Unreachable in practice — the student plan's maxBooks is
+              Infinity (lib/plans.js), so this gate never fires for a class
+              account — kept as defense in depth: a class account never
+              sees a pricing link (global constraint), regardless. */}
+          {!isStudent && (
+            <SparkleButton onClick={() => navigate('/pricing')} size="large" variant="primary">
+              {t('wizard:gate.upgrade')}
+            </SparkleButton>
+          )}
           <SparkleButton onClick={() => navigate('/bookshelf')} size="large" variant="secondary">
             {t('wizard:gate.bookshelf')}
           </SparkleButton>

@@ -2,9 +2,11 @@ import { useEffect, useRef, useState } from 'react'
 import { motion } from 'motion/react'
 import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
+import { GraduationCap } from 'lucide-react'
 import { useCheckInStore } from '../../stores/useCheckInStore'
-import { FEELINGS, NEEDS } from '../../lib/checkIn'
+import { FEELINGS, NEEDS, STUDENT_NEEDS } from '../../lib/checkIn'
 import { artUrl, toneFor } from '../../lib/checkInArt'
+import { useIsStudent } from '../../hooks/useIsStudent'
 import Mascot from './Mascot'
 
 // The two-step check-in. Portalled for the same reason WelcomeBackMoment is:
@@ -76,6 +78,7 @@ export default function CheckInSheet() {
   const pickFeeling = useCheckInStore((s) => s.pickFeeling)
   const pickNeed = useCheckInStore((s) => s.pickNeed)
   const dismiss = useCheckInStore((s) => s.dismiss)
+  const isStudent = useIsStudent()
   const panelRef = useRef(null)
   // Keyed on open/closed rather than on `current` itself — `current` gets a
   // new object identity on every step (feeling -> need), and re-running a
@@ -130,10 +133,17 @@ export default function CheckInSheet() {
   if (!current) return null
 
   const isFeelingStep = current.step === 'feeling'
-  const items = isFeelingStep ? FEELINGS : NEEDS
+  const items = isFeelingStep ? FEELINGS : (isStudent ? STUDENT_NEEDS : NEEDS)
   const prefix = isFeelingStep ? 'checkin:feeling.' : 'checkin:need.'
   const choose = isFeelingStep ? pickFeeling : pickNeed
   const title = t(isFeelingStep ? 'checkin:title.feeling' : 'checkin:title.need')
+  // Owner decision D7: a class account's check-in also reaches their
+  // teacher (src/lib/schoolShare.js). The child is told so on-screen —
+  // folded into the dialog's accessible name (not just shown visually) so
+  // it's part of what a screen reader announces the moment the sheet gets
+  // focus, on both steps, not something a child has to keep tabbing to find.
+  const teacherCanSee = isStudent ? t('school:checkin.teacher_can_see') : null
+  const dialogLabel = teacherCanSee ? `${title}. ${teacherCanSee}` : title
 
   return createPortal(
     // No AnimatePresence here: `if (!current) return null` above unmounts
@@ -151,12 +161,18 @@ export default function CheckInSheet() {
         tabIndex={-1}
         role="dialog"
         aria-modal="true"
-        aria-label={title}
+        aria-label={dialogLabel}
         className="w-full max-w-md rounded-modal bg-gradient-to-br from-[#38246B] to-[#662E80] p-6 shadow-glow-modal focus:outline-none"
         initial={{ y: 60, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         onClick={(e) => e.stopPropagation()}
       >
+        {teacherCanSee && (
+          <p className="mb-3 flex items-center justify-center gap-1.5 text-center font-body text-xs font-semibold text-white/70">
+            <GraduationCap size={14} aria-hidden="true" />
+            {teacherCanSee}
+          </p>
+        )}
         <div className="mb-4 flex justify-center">
           <Mascot mood="welcome" size={72} />
         </div>

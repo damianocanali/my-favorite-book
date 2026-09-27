@@ -1,9 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { useCheckInStore } from '../../stores/useCheckInStore'
 import { useAccessibilityStore } from '../../stores/useAccessibilityStore'
+import { useAuthStore } from '../../stores/useAuthStore'
+import { shareCheckIn, askForHelp } from '../../lib/schoolShare'
+import { createRequestToken } from '../../lib/requestToken'
 import CheckInSheet from './CheckInSheet'
 import BreakScreen from './BreakScreen'
 import HelpScreen from './HelpScreen'
+import TeacherHelpScreen from '../school/TeacherHelpScreen'
 
 // Mounted once in App.jsx beside MilestoneHost. Owns both the sheet and what
 // happens after an answer, so no screen has to know the difference between
@@ -12,8 +16,27 @@ import HelpScreen from './HelpScreen'
 export default function CheckInHost() {
   const entries = useCheckInStore((s) => s.entries)
   const setFocusMode = useAccessibilityStore((s) => s.setFocusMode)
+  const user = useAuthStore((s) => s.user)
   const [breaking, setBreaking] = useState(false)
   const [helping, setHelping] = useState(false)
+  // Null while there is nothing to show. `{ pending: true }` the instant a
+  // 'grownup' need lands — so the child sees SOMETHING right away even on
+  // slow wifi, rather than nothing at all until askForHelp resolves — then
+  // replaced with askForHelp's resolved `{ ok, id, inHours }` once it
+  // settles. TeacherHelpScreen itself renders the pending copy or one of
+  // the three fixed end-states (failed / out-of-hours / in-hours) off of
+  // this shape.
+  const [teacherHelp, setTeacherHelp] = useState(null)
+  // Guards askForHelp('grownup')'s promise against resolving late: without
+  // it, closing the pending screen before the promise settles would still
+  // let its eventual `.then` reopen TeacherHelpScreen (stealing focus back,
+  // possibly starting polling), and a second 'grownup' ask started before
+  // the first resolves could have its own state clobbered by the first's
+  // stale result arriving after. See src/lib/requestToken.js for why this
+  // is one ever-incrementing counter rather than a "reset to 0 on clear"
+  // scheme (the latter can reissue a token a still-in-flight call already
+  // holds).
+  const teacherHelpTokenRef = useRef(createRequestToken())
 
   // `entries` is newest-first, so the entry to react to is entries[0]. But
   // this store is persisted, and zustand's persist middleware hydrates
@@ -45,18 +68,48 @@ export default function CheckInHost() {
     if (!at || at === seenAtRef.current) return
     seenAtRef.current = at
 
+    // Owner decision D7: for a class (student) account, a copy of this
+    // check-in also reaches the teacher. shareCheckIn no-ops (and never
+    // fetches) for anyone else, so this call is always safe to make
+    // unconditionally — fire-and-forget, per schoolShare.js's own contract:
+    // any failure is console.warn'd inside it, never surfaced here.
+    shareCheckIn(latest, user)
+
     if (!latest.need) return // dismissed at the feeling step — nothing to respond to
     if (latest.need === 'quiet') setFocusMode(true)
     if (latest.need === 'break') setBreaking(true)
     // The editor owns Story Buddy and doesn't yet expose a handle for
-    // opening it from outside itself, so 'help' can't actually open it here
-    // — that's a real lift, not a quick wire-up. It must not be silent
-    // either way: a child who says they're struggling and gets nothing
-    // back learns the tile does nothing. HelpScreen tells them where to
-    // find it instead. 'keep_going' needs nothing — the sheet already
-    // closed.
+    // opening it from outside itself, so 'help'/'help_book' can't actually
+    // open it here — that's a real lift, not a quick wire-up. It must not
+    // be silent either way: a child who says they're struggling and gets
+    // nothing back learns the tile does nothing. HelpScreen tells them
+    // where to find it instead. 'keep_going' needs nothing — the sheet
+    // already closed.
     if (latest.need === 'help') setHelping(true)
-  }, [latest?.at, latest?.need, setFocusMode])
+    if (latest.need === 'help_book') {
+      askForHelp('book', user)
+      setHelping(true)
+    }
+    // 'grownup' (student-only, see STUDENT_NEEDS) additionally tells the
+    // teacher directly, via a real, separate request — not just the
+    // shareCheckIn copy above — and shows TeacherHelpScreen instead of the
+    // generic HelpScreen so the child sees whether that ask actually went
+    // anywhere. Shown pending immediately, not only once askForHelp
+    // resolves: on slow wifi that request can take a real, noticeable
+    // moment (bounded to 8s by schoolShare.js's own timeout), and a child
+    // who just said they need a grown-up must never be left staring at
+    // nothing in the meantime.
+    if (latest.need === 'grownup') {
+      const token = teacherHelpTokenRef.current.next()
+      setTeacherHelp({ pending: true })
+      askForHelp('grownup', user).then((result) => {
+        // Only act if this is still the current ask — stale if the child
+        // already closed the screen (clear()'d in onDone below) or a
+        // second 'grownup' ask has since started (next()'d again above).
+        if (teacherHelpTokenRef.current.isCurrent(token)) setTeacherHelp(result)
+      })
+    }
+  }, [latest?.at, latest?.need, setFocusMode, user])
 
   return (
     <>
@@ -73,6 +126,20 @@ export default function CheckInHost() {
           depends on. */}
       {breaking && <BreakScreen onDone={() => setBreaking(false)} />}
       {helping && <HelpScreen onDone={() => setHelping(false)} />}
+      {teacherHelp && (
+        <TeacherHelpScreen
+          pending={!!teacherHelp.pending}
+          ok={teacherHelp.ok}
+          id={teacherHelp.id}
+          inHours={teacherHelp.inHours}
+          onDone={() => {
+            // Invalidates the in-flight ask (if any) so its late resolve
+            // can't reopen this screen after the child chose to close it.
+            teacherHelpTokenRef.current.clear()
+            setTeacherHelp(null)
+          }}
+        />
+      )}
     </>
   )
 }

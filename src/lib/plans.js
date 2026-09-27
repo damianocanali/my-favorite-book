@@ -39,6 +39,26 @@ export const PLANS = {
     freeAvatarRegen: true,
     freeStyleChange: true,
   },
+  // A class (student) account, not a purchasable tier — there is no Stripe
+  // price for it and it never appears on PricingPage. imagesPerDay here is
+  // client-side UX only; the real, authoritative limit is the class's own
+  // allowance enforced server-side (api/_school.js's enforceStudentImageCap,
+  // RPC school_bump_image, 15/student/day) regardless of what this number
+  // says. pdfExport is false because printing/PDF export is a consumer
+  // (paid) feature that class accounts are fenced away from, not something
+  // a class license unlocks. No `name` shown as a price anywhere — a
+  // student is never sold anything.
+  student: {
+    name: 'Class',
+    maxBooks: Infinity,
+    storyBuddyPerDay: Infinity,
+    imagesPerDay: 15,
+    pdfExport: false,
+    classroom: false,
+    avatarGenerations: Infinity,
+    freeAvatarRegen: true,
+    freeStyleChange: true,
+  },
 }
 
 // Subscriptions are billed in USD by Stripe and by App Store Connect

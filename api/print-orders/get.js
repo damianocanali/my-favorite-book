@@ -7,6 +7,7 @@ export const config = { runtime: 'edge' }
 // same-origin and would not need them, but the Capacitor webview is not —
 // resolveAllowedOrigin() special-cases capacitor:// for exactly that.
 import { handleCors, withCors } from '../_rateLimit.js'
+import { rejectStudent } from '../_school.js'
 
 const SUPABASE = process.env.SUPABASE_URL
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -41,6 +42,8 @@ export default async function handler(req) {
   const tok = (req.headers.get('authorization') || '').replace(/^Bearer /, '')
   const user = await authUser(tok)
   if (!user?.id) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: withCors({ 'Content-Type': 'application/json' }, req) })
+  const blocked = rejectStudent({ appMetadata: user.app_metadata ?? {} }, req)
+  if (blocked) return blocked
 
   const id = new URL(req.url).searchParams.get('id')
   if (!id) return new Response(JSON.stringify({ error: 'Missing id' }), {

@@ -332,6 +332,66 @@ body.keyboard-open main {
   }
 }
 
+/* ── Sign-in cards print (Task 12) ─────────────────────────
+   The pre-existing book-printing rule above —
+   `body > #root > * { display: none !important }` — always applies
+   during EVERY print job, with no scoping of its own. It hides the
+   app's single wrapper element, and `display:none` on an ancestor can
+   never be undone by anything on a descendant (not `display`, not
+   `visibility`) — there's no box generated for the descendant at all.
+   So an element rendered anywhere inside #root, however it's styled,
+   can never be the thing that ends up on the printed page.
+   That's why SignInCards.jsx renders its printable copy through
+   `createPortal(..., document.body)`: a `.signin-cards` portal is a
+   SIBLING of #root, not a descendant, so it's untouched by that rule.
+   `.signin-cards` is hidden on screen by default (below, unconditional)
+   since it only ever exists to be printed; the print-mode rules here
+   both show it and — independently of whatever the book-printing rule
+   above does or later becomes — explicitly hide #root themselves, so
+   this feature doesn't depend on that unrelated rule to be correct.
+   Everything below only ever fires under html.print-signin-cards, a
+   class src/components/school/printMode.js adds immediately before
+   window.print() and removes on `afterprint` (and on unmount), so
+   ordinary printing — book or otherwise — is completely unaffected
+   whenever that class is absent from <html>. The book-printing rules
+   above are untouched. See tests/school-print-mode.test.js for the
+   static checks that keep this invariant honest. */
+.signin-cards { display: none; }
+
+@media print {
+  html.print-signin-cards body > #root { display: none !important; }
+
+  html.print-signin-cards .signin-cards {
+    display: block !important;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 8.5in;
+  }
+
+  html.print-signin-cards .signin-cards .cards-page {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: 0.25in;
+    width: 8.5in;
+    height: 11in;
+    padding: 0.35in;
+    box-sizing: border-box;
+    page-break-after: always;
+    break-after: page;
+  }
+
+  html.print-signin-cards .signin-cards .cards-page:last-child {
+    page-break-after: auto;
+    break-after: auto;
+  }
+
+  html.print-signin-cards .signin-cards .signin-card {
+    overflow: hidden;
+  }
+}
+
 /* The press-and-hold indicator on a book spine (see useLongPress). It fills
    from the bottom over exactly the hold duration, so the fill reaching the top
    and the action firing are the same moment — a progress bar that lied about

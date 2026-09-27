@@ -7,6 +7,7 @@ export const config = { runtime: 'edge' }
 // same-origin and would not need them, but the Capacitor webview is not —
 // resolveAllowedOrigin() special-cases capacitor:// for exactly that.
 import { handleCors, withCors } from '../_rateLimit.js'
+import { rejectStudent } from '../_school.js'
 
 import { unitPriceCents, totalCents } from '../../lib/print/pricing.js'
 import { getStripeSecretKey, getStripePublishableKey } from '../../lib/print/stripe-key.js'
@@ -93,6 +94,8 @@ export default async function handler(req) {
   if (!tok) return bad(req, 401, 'Missing token')
   const user = await authUser(tok)
   if (!user?.id) return bad(req, 401, 'Invalid token')
+  const blocked = rejectStudent({ appMetadata: user.app_metadata ?? {} }, req)
+  if (blocked) return blocked
 
   const body = await req.json().catch(() => null)
   if (!body) return bad(req, 400, 'Bad JSON')

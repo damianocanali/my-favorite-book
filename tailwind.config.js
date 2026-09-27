@@ -90,6 +90,13 @@ export default {
         'logo-pulse': 'logoPulse 3s ease-in-out infinite alternate',
         'halo-pulse': 'haloPulse 3s ease-in-out infinite alternate',
         'cta-wiggle': 'ctaWiggle 3.75s ease-in-out infinite',
+        // Wrong-pictures feedback on /class (school sign-in). The global
+        // `@media (prefers-reduced-motion: reduce)` rule in index.css forces
+        // every animation's duration to 0.01ms and iteration-count to 1, so
+        // this needs no reduced-motion handling of its own — it already
+        // collapses to an imperceptible blip for anyone who asked for less
+        // motion, same as every other `animate-*` utility in this file.
+        shake: 'shake 0.4s ease-in-out',
       },
       keyframes: {
         float: {
@@ -128,6 +135,12 @@ export default {
           '95%': { transform: 'rotate(18deg)' },
           '96.6%': { transform: 'rotate(-6deg)' },
           '98%': { transform: 'rotate(4deg)' },
+        },
+        shake: {
+          '10%, 90%': { transform: 'translateX(-1px)' },
+          '20%, 80%': { transform: 'translateX(2px)' },
+          '30%, 50%, 70%': { transform: 'translateX(-4px)' },
+          '40%, 60%': { transform: 'translateX(4px)' },
         },
       },
     },

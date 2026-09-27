@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { LogOut, GraduationCap, Sparkles, Volume2, VolumeX } from 'lucide-react'
 import { useAuthStore, selectDisplayName, selectRole } from '../../stores/useAuthStore'
+import { useIsStudent } from '../../hooks/useIsStudent'
 import { toggleMute, isMuted } from '../../services/audioService'
 import PlayMenu from './PlayMenu'
 import AvatarDisplay from '../avatar/AvatarDisplay'
@@ -30,6 +31,7 @@ export default function AppShell({ children }) {
   const signOut = useAuthStore((s) => s.signOut)
   const displayName = useAuthStore(selectDisplayName)
   const role = useAuthStore(selectRole)
+  const isStudent = useIsStudent()
 
   const [muted, setMuted] = useState(isMuted())
 
@@ -76,12 +78,16 @@ export default function AppShell({ children }) {
         <div className="flex flex-shrink-0 items-center gap-1 sm:gap-2">
           <PlayMenu linkClass={headerLink} />
 
-          <Link to="/pricing" className={headerLink(location.pathname === '/pricing')}>
-            <Sparkles size={18} />
-            <span className="hidden font-body text-sm font-semibold sm:inline">{t('nav:header.pricing')}</span>
-          </Link>
+          {/* Children see no prices, no purchase links (global constraint):
+              a class (student) account never gets this destination. */}
+          {!isStudent && (
+            <Link to="/pricing" className={headerLink(location.pathname === '/pricing')}>
+              <Sparkles size={18} />
+              <span className="hidden font-body text-sm font-semibold sm:inline">{t('nav:header.pricing')}</span>
+            </Link>
+          )}
 
-          {role === 'teacher' && (
+          {role === 'teacher' && !isStudent && (
             <Link to="/teacher" className={headerLink(location.pathname === '/teacher')}>
               <GraduationCap size={18} />
               <span className="hidden font-body text-sm font-semibold sm:inline">{t('nav:header.classroom')}</span>

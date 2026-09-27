@@ -7,6 +7,7 @@ import { useBookshelfStore } from '../stores/useBookshelfStore'
 import { useBookStore } from '../stores/useBookStore'
 import { useSubscription } from '../hooks/useSubscription'
 import { useAuthStore } from '../stores/useAuthStore'
+import { useIsStudent } from '../hooks/useIsStudent'
 import BookPreview from '../components/book/BookPreview'
 import PageActions from '../components/layout/PageActions'
 import PrintableBook from '../components/print/PrintableBook'
@@ -34,6 +35,7 @@ export default function PreviewPage() {
   const [finishedOpen, setFinishedOpen] = useState(searchParams.get('celebrate') === '1')
   const { plan } = useSubscription()
   const user = useAuthStore((s) => s.user)
+  const isStudent = useIsStudent()
 
   const book = getBook(bookId)
 
@@ -103,16 +105,22 @@ export default function PreviewPage() {
           <span className="toolbar-btn__label">{t('editor:preview.bookshelf')}</span>
         </button>
 
-        <button
-          onClick={() => setShowSubmitModal(true)}
-          className="toolbar-btn toolbar-btn--cyan"
-          title={t('editor:preview.submit_title')}
-        >
-          <Send size={15} />
-          <span className="toolbar-btn__label">{t('editor:preview.submit')}</span>
-        </button>
+        {/* Students hand in work through assignments (Stage 2), not this
+            consumer submit-to-class form — it also 403s server-side
+            (api/classroom-submit.js) for a student's own book, but a class
+            account never has one of those to submit anyway. */}
+        {!isStudent && (
+          <button
+            onClick={() => setShowSubmitModal(true)}
+            className="toolbar-btn toolbar-btn--cyan"
+            title={t('editor:preview.submit_title')}
+          >
+            <Send size={15} />
+            <span className="toolbar-btn__label">{t('editor:preview.submit')}</span>
+          </button>
+        )}
 
-        {user && !publishedUrl && (
+        {user && !isStudent && !publishedUrl && (
           <button
             onClick={handlePublish}
             disabled={publishing}
@@ -125,7 +133,7 @@ export default function PreviewPage() {
             </span>
           </button>
         )}
-        {publishedUrl && (
+        {!isStudent && publishedUrl && (
           <button
             onClick={() => {
               navigator.clipboard.writeText(publishedUrl)
@@ -139,16 +147,27 @@ export default function PreviewPage() {
           </button>
         )}
 
-        <button
-          onClick={() => navigate(`/order/${book.id}`)}
-          className="toolbar-btn"
-          title={t('editor:preview.order_print_title')}
-        >
-          <Printer size={15} />
-          <span className="toolbar-btn__label">{t('common:actions.print')}</span>
-        </button>
+        {/* Print orders are a paid, consumer-only feature — a class
+            (student) account never gets this entry point (it also redirects
+            server-side and via ConsumerOnlyRoute if reached directly). */}
+        {!isStudent && (
+          <button
+            onClick={() => navigate(`/order/${book.id}`)}
+            className="toolbar-btn"
+            title={t('editor:preview.order_print_title')}
+          >
+            <Printer size={15} />
+            <span className="toolbar-btn__label">{t('common:actions.print')}</span>
+          </button>
+        )}
 
-        {!isNative && (
+        {/* A locked (pdfExport:false) plan's button otherwise falls through
+            to navigate('/pricing') in handlePrint — true for the free plan,
+            and also for the student plan by design (lib/plans.js: printing
+            is a consumer feature class accounts are fenced away from). A
+            class account never sees a pricing link (global constraint), so
+            this button is hidden entirely rather than shown disabled. */}
+        {!isNative && !isStudent && (
           <button
             onClick={handlePrint}
             className="toolbar-btn"
