@@ -207,7 +207,8 @@
       "current_alt": "{{name}}'s current avatar",
       "placeholder_alt": "No avatar yet",
       "create_cta": "Create avatar",
-      "creating": "Creating…"
+      "creating": "Creating…",
+      "not_saved": "Couldn't save the avatar, try again."
     },
     "cards": {
       "heading": "Sign-in cards",

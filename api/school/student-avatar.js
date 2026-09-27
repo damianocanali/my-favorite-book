@@ -12,10 +12,9 @@ export const config = { runtime: 'edge' }
 //     server-side from classId+studentId), never the teacher's, so the
 //     avatar follows the child's account exactly like a self-made one would.
 import { handleCors, checkRateLimit } from '../_rateLimit.js'
-import { requireClassOwner, sb, json, isUuid } from '../_school.js'
-import { STUDENT_DAILY_IMAGES } from '../../lib/school/license.js'
+import { requireClassOwner, sb, json, isUuid, bumpStudentImage } from '../_school.js'
 import { buildAvatarPrompt, isValidFeatures, isValidArtStyle } from '../../lib/avatarPrompt.js'
-import { storeIllustration } from '../_imageStore.js'
+import { storeIllustration, isFetchableImage } from '../_imageStore.js'
 import { logUsage, estimateTogetherImageCostCents } from '../_usage.js'
 
 const TOGETHER_API_URL = 'https://api.together.xyz/v1/images/generations'
@@ -23,26 +22,6 @@ const TOGETHER_API_URL = 'https://api.together.xyz/v1/images/generations'
 // feature-builder path (contrast its photo-cartoonify path, which this
 // endpoint has no equivalent of — teachers never upload a child's photo).
 const MODEL = 'black-forest-labs/FLUX.2-dev'
-
-// Spends one image from the CLASS's daily allowance for a specific student.
-// Unlike api/_school.js's enforceStudentImageCap (which reads the student id
-// off the caller's own JWT), the caller here is the teacher, spending a
-// student's allowance on their behalf, so the id is whatever was already
-// validated to belong to this class. Fails closed: any RPC error must never
-// read as "allowed".
-async function bumpClassImageAllowance(studentId) {
-  try {
-    const res = await sb('/rest/v1/rpc/school_bump_image', {
-      method: 'POST',
-      body: JSON.stringify({ p_student_id: studentId, p_daily_limit: STUDENT_DAILY_IMAGES }),
-    })
-    if (!res.ok) return { ok: false }
-    const allowed = await res.json()
-    return { ok: true, allowed: allowed !== false }
-  } catch {
-    return { ok: false }
-  }
-}
 
 export default async function handler(req) {
   const cors = handleCors(req)
@@ -61,7 +40,13 @@ export default async function handler(req) {
     const o = await requireClassOwner(req, classId)
     if (!o.ok) return o.response
 
-    if (!checkRateLimit(`school-avatar:${o.auth.userId}`, 60).allowed) {
+    // Separate buckets: the editor's GET (loading the current avatar to
+    // show it, e.g. every time the modal opens) is much more frequent and
+    // much cheaper than a POST (a real Together generation), so it must not
+    // eat into the same 60/hour budget a burst of creates would need.
+    const rateLimitKey = isGet ? `school-avatar-read:${o.auth.userId}` : `school-avatar:${o.auth.userId}`
+    const rateLimitMax = isGet ? 300 : 60
+    if (!checkRateLimit(rateLimitKey, rateLimitMax).allowed) {
       return json(req, 429, { error: 'Too many requests', code: 'rate_limited' })
     }
 
@@ -104,11 +89,8 @@ export default async function handler(req) {
     // enforceStudentImageCap already makes); metering after would let a
     // class burn unlimited Together calls while the allowance check itself
     // is slow or retried.
-    const allowance = await bumpClassImageAllowance(studentId)
-    if (!allowance.ok) return json(req, 503, { error: 'Try again in a minute', code: 'upstream' })
-    if (!allowance.allowed) {
-      return json(req, 429, { error: "That's all the pictures for today. Ask your teacher.", code: 'class_image_limit' })
-    }
+    const meterErr = await bumpStudentImage(studentId, req)
+    if (meterErr) return meterErr
 
     const apiKey = process.env.TOGETHER_API_KEY
     if (!apiKey) return json(req, 500, { error: 'API key not configured', code: 'upstream' })
@@ -151,6 +133,18 @@ export default async function handler(req) {
     const stored = await storeIllustration(b64, student.auth_user_id, 'avatar')
     const avatar_url = stored ?? `data:image/png;base64,${b64}`
 
+    // storeIllustration falls back to a data: URI when Storage is
+    // unreachable (best-effort upload — see api/_imageStore.js). That's
+    // fine to hand back for an immediate preview, but it must NEVER be
+    // written to user_inventory: a few-hundred-KB base64 blob in a database
+    // row is exactly the bloat storeIllustration exists to avoid, and this
+    // student's account would carry it forever. Same guard api/sync-books.js
+    // and useAvatarStore.setAvatarImage already apply before persisting an
+    // avatar/illustration URL.
+    if (!isFetchableImage(avatar_url)) {
+      return json(req, 200, { avatar_url, saved: false })
+    }
+
     const upsertRes = await sb('/rest/v1/user_inventory?on_conflict=user_id', {
       method: 'POST',
       headers: { Prefer: 'resolution=merge-duplicates' },
@@ -158,7 +152,7 @@ export default async function handler(req) {
     })
     if (!upsertRes.ok) return json(req, 503, { error: 'Try again in a minute', code: 'upstream' })
 
-    return json(req, 200, { avatar_url })
+    return json(req, 200, { avatar_url, saved: true })
   } catch (e) {
     console.error('school/student-avatar: unhandled error', e)
     return json(req, 503, { error: 'Service unavailable, try again', code: 'upstream' })

@@ -225,9 +225,30 @@ describe('POST /api/school/student-avatar — happy path', () => {
     expect(upsertCall.url).toContain('on_conflict=user_id')
     expect(upsertCall.body.user_id).toBe(AUTH_USER_ID)
     expect(upsertCall.body.avatar_url).toEqual(expect.any(String))
+    expect(body.saved).toBe(true)
   })
 
-  it('rate limits at 60/hour per teacher', async () => {
+  it('never upserts a data: URI fallback into user_inventory, and reports saved:false', async () => {
+    const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const log = mockSupabase({
+      user: TEACHER,
+      routes: [
+        classroomRoute, studentRoute([studentRow()]), allowanceRoute(true), togetherRoute('BASE64DATA'),
+        // storeIllustration's upload fails -> it falls back to a data: URI.
+        { method: 'POST', match: '/storage/v1/object/', reply: { status: 500, body: { message: 'storage down' } } },
+      ],
+    })
+    const { default: handler } = await import('../api/school/student-avatar.js')
+    const res = await handler(postReq({ classId: CLASS_ID, studentId: STUDENT_ID, features: FEATURES, artStyle: 'cartoon' }))
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body.avatar_url).toMatch(/^data:image\/png;base64,/)
+    expect(body.saved).toBe(false)
+    expect(log.some((l) => l.method === 'POST' && l.url.includes('/rest/v1/user_inventory'))).toBe(false)
+    errSpy.mockRestore()
+  })
+
+  it('rate limits POST at 60/hour per teacher', async () => {
     mockSupabase({
       user: TEACHER,
       routes: [classroomRoute, studentRoute([studentRow()]), allowanceRoute(true), togetherRoute(), inventoryUpsertRoute()],
@@ -239,6 +260,23 @@ describe('POST /api/school/student-avatar — happy path', () => {
     }
     expect(last.status).toBe(429)
     expect((await last.json()).code).toBe('rate_limited')
+  })
+
+  it('does not count the GET (read) rate limit against the POST (create) budget, or vice versa', async () => {
+    mockSupabase({
+      user: TEACHER,
+      routes: [
+        classroomRoute, studentRoute([studentRow()]), allowanceRoute(true), togetherRoute(), inventoryUpsertRoute(),
+        { method: 'GET', match: '/rest/v1/user_inventory', reply: { body: [] } },
+      ],
+    })
+    const { default: handler } = await import('../api/school/student-avatar.js')
+    // Well past the 60/hour create limit, but under the 300/hour read limit.
+    for (let i = 0; i < 65; i++) {
+      await handler(getReq(`?classId=${CLASS_ID}&studentId=${STUDENT_ID}`))
+    }
+    const res = await handler(postReq({ classId: CLASS_ID, studentId: STUDENT_ID, features: FEATURES }))
+    expect(res.status).toBe(200)
   })
 })
 
@@ -290,6 +328,20 @@ describe('GET /api/school/student-avatar', () => {
     expect(res.status).toBe(503)
     expect((await res.json()).code).toBe('upstream')
     errSpy.mockRestore()
+  })
+
+  it('rate limits GET at 300/hour per teacher, on its own bucket', async () => {
+    mockSupabase({
+      user: TEACHER,
+      routes: [classroomRoute, studentRoute([studentRow()]), { method: 'GET', match: '/rest/v1/user_inventory', reply: { body: [] } }],
+    })
+    const { default: handler } = await import('../api/school/student-avatar.js')
+    let last
+    for (let i = 0; i < 301; i++) {
+      last = await handler(getReq(`?classId=${CLASS_ID}&studentId=${STUDENT_ID}`))
+    }
+    expect(last.status).toBe(429)
+    expect((await last.json()).code).toBe('rate_limited')
   })
 })
 

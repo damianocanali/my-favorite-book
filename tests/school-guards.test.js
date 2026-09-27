@@ -146,3 +146,40 @@ describe('requireUser appMetadata', () => {
     expect(r.appMetadata).toEqual({ custom: 'data' })
   })
 })
+
+// bumpStudentImage is the shared meter both enforceStudentImageCap (student
+// spending their own allowance) and api/school/student-avatar.js (a teacher
+// spending a specific student's allowance) call — tested directly here so
+// neither caller needs to re-prove the RPC contract.
+describe('bumpStudentImage', () => {
+  it('spends the allowance and returns null when allowed', async () => {
+    globalThis.fetch = vi.fn(async () => new Response('true'))
+    const { bumpStudentImage } = await import('../api/_school.js')
+    expect(await bumpStudentImage('s1', new Request('https://app.test/x'))).toBeNull()
+    const [url, init] = globalThis.fetch.mock.calls[0]
+    expect(String(url)).toContain('/rest/v1/rpc/school_bump_image')
+    expect(JSON.parse(init.body)).toEqual({ p_student_id: 's1', p_daily_limit: 15 })
+  })
+
+  it('429s with class_image_limit when the allowance is used up', async () => {
+    globalThis.fetch = vi.fn(async () => new Response('false'))
+    const { bumpStudentImage } = await import('../api/_school.js')
+    const r = await bumpStudentImage('s1', new Request('https://app.test/x'))
+    expect(r.status).toBe(429)
+    expect((await r.json()).code).toBe('class_image_limit')
+  })
+
+  it('fails closed (503) when the RPC errors', async () => {
+    globalThis.fetch = vi.fn(async () => new Response('boom', { status: 500 }))
+    const { bumpStudentImage } = await import('../api/_school.js')
+    const r = await bumpStudentImage('s1', new Request('https://app.test/x'))
+    expect(r.status).toBe(503)
+  })
+
+  it('fails closed (503) when the fetch throws', async () => {
+    globalThis.fetch = vi.fn(async () => { throw new Error('network down') })
+    const { bumpStudentImage } = await import('../api/_school.js')
+    const r = await bumpStudentImage('s1', new Request('https://app.test/x'))
+    expect(r.status).toBe(503)
+  })
+})

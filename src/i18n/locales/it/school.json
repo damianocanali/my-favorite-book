@@ -205,9 +205,10 @@
     "avatar_editor": {
       "heading": "Avatar di {{name}}",
       "current_alt": "Avatar attuale di {{name}}",
-      "placeholder_alt": "Nessun avatar ancora",
+      "placeholder_alt": "Ancora nessun avatar",
       "create_cta": "Crea avatar",
-      "creating": "Creazione in corso…"
+      "creating": "Creazione in corso…",
+      "not_saved": "Non è stato possibile salvare l'avatar, riprova."
     },
     "cards": {
       "heading": "Tessere di accesso",

@@ -10,6 +10,30 @@ import { teacherErrorText } from './teacherErrors'
 import { relativeTime } from './relativeTime'
 import { AVATAR_EMOJI } from '../../../lib/school/pictures.js'
 
+// The roster row's avatar: the stored picture when there is one, falling
+// back to the student's emoji — same broken-image pattern as AvatarPage.jsx's
+// StoreIcon. The fallback now stands in for "this student's avatar" rather
+// than being purely decorative next to their name, so it carries the same
+// alt text via role="img" instead of aria-hidden.
+function RosterAvatarThumb({ url, emoji, alt }) {
+  const [failed, setFailed] = useState(false)
+  if (url && !failed) {
+    return (
+      <img
+        src={url}
+        alt={alt}
+        onError={() => setFailed(true)}
+        className="w-8 h-8 rounded-full object-cover shrink-0"
+      />
+    )
+  }
+  return (
+    <span className="text-2xl shrink-0" role="img" aria-label={alt}>
+      {emoji}
+    </span>
+  )
+}
+
 function RenameDialog({ student, onCancel, onConfirm }) {
   const { t } = useTranslation()
   const [name, setName] = useState(student.display_name)
@@ -179,15 +203,11 @@ export default function RosterTable({ students, onAction, onOpenBooks, onOpenAva
             key={s.id}
             className={`glass rounded-xl p-3 border border-galaxy-text-muted/10 flex items-center gap-3 ${removed ? 'opacity-60' : ''}`}
           >
-            {s.avatar_url ? (
-              <img
-                src={s.avatar_url}
-                alt={t('school:teacher.roster.avatar_thumb_alt', { name: s.display_name })}
-                className="w-8 h-8 rounded-full object-cover shrink-0"
-              />
-            ) : (
-              <span className="text-2xl shrink-0" aria-hidden="true">{s.avatar_emoji}</span>
-            )}
+            <RosterAvatarThumb
+              url={s.avatar_url}
+              emoji={s.avatar_emoji}
+              alt={t('school:teacher.roster.avatar_thumb_alt', { name: s.display_name })}
+            />
             <div className="flex-1 min-w-0">
               <button
                 type="button"

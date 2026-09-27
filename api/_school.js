@@ -35,12 +35,15 @@ export function rejectStudent(auth, req) {
     : null
 }
 
-// Students draw AI images from their class's allowance (owner decision D5),
-// not the consumer daily cap. Fails CLOSED: an unmetered class is a bill.
-export async function enforceStudentImageCap(auth, req) {
-  if (!isStudent(auth)) return null
-  const studentId = auth.appMetadata?.student_id
-  if (!studentId) return json(req, 403, { error: 'Not available for class accounts', code: 'student_forbidden' })
+// Atomically spends one image from a student's class allowance via
+// school_bump_image. Shared by enforceStudentImageCap (the student id comes
+// from the CALLER's own JWT — a student spending their own allowance) and
+// api/school/student-avatar.js (the id is an explicit param — a teacher
+// spending a specific student's allowance on their behalf), so the two
+// callers can never drift on the RPC call, the fail-closed behaviour, or
+// the error copy. Returns a Response to return immediately (503 on RPC
+// failure, 429 once the allowance is used up), or null to continue.
+export async function bumpStudentImage(studentId, req) {
   try {
     const res = await sb('/rest/v1/rpc/school_bump_image', {
       method: 'POST',
@@ -55,6 +58,15 @@ export async function enforceStudentImageCap(auth, req) {
   } catch {
     return json(req, 503, { error: 'Try again in a minute', code: 'upstream' })
   }
+}
+
+// Students draw AI images from their class's allowance (owner decision D5),
+// not the consumer daily cap. Fails CLOSED: an unmetered class is a bill.
+export async function enforceStudentImageCap(auth, req) {
+  if (!isStudent(auth)) return null
+  const studentId = auth.appMetadata?.student_id
+  if (!studentId) return json(req, 403, { error: 'Not available for class accounts', code: 'student_forbidden' })
+  return bumpStudentImage(studentId, req)
 }
 
 export async function requireTeacher(req) {

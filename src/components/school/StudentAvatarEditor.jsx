@@ -64,10 +64,15 @@ export default function StudentAvatarEditor({ classId, student, onClose, onSaved
   const [features, setFeatures] = useState(DEFAULT_FEATURES)
   const [artStyle, setArtStyle] = useState('cartoon')
   const [avatarUrl, setAvatarUrl] = useState(student.avatar_url ?? null)
+  const [imgFailed, setImgFailed] = useState(false)
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState(null)
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState(null)
+  // Set on a 200 response whose avatar_url is a data: URI (Storage upload
+  // failed) — the preview above still shows it, but nothing was persisted,
+  // so the roster thumbnail and next load won't have it either.
+  const [notSaved, setNotSaved] = useState(false)
 
   function setFeature(key, value) {
     setFeatures((f) => ({ ...f, [key]: value }))
@@ -80,8 +85,12 @@ export default function StudentAvatarEditor({ classId, student, onClose, onSaved
       `/api/school/student-avatar?classId=${encodeURIComponent(classId)}&studentId=${encodeURIComponent(student.id)}`
     )
     setLoading(false)
-    if (res.ok) setAvatarUrl(res.data?.avatar_url ?? null)
-    else setLoadError(res.code || 'generic')
+    if (res.ok) {
+      setAvatarUrl(res.data?.avatar_url ?? null)
+      setImgFailed(false)
+    } else {
+      setLoadError(res.code || 'generic')
+    }
   }
 
   useEffect(() => {
@@ -106,6 +115,7 @@ export default function StudentAvatarEditor({ classId, student, onClose, onSaved
   async function handleCreate() {
     setSaving(true)
     setSaveError(null)
+    setNotSaved(false)
     const res = await schoolFetch('/api/school/student-avatar', {
       method: 'POST',
       body: JSON.stringify({ classId, studentId: student.id, features, artStyle }),
@@ -113,7 +123,15 @@ export default function StudentAvatarEditor({ classId, student, onClose, onSaved
     setSaving(false)
     if (res.ok) {
       setAvatarUrl(res.data?.avatar_url ?? null)
-      onSaved?.(student.id, res.data?.avatar_url ?? null)
+      setImgFailed(false)
+      if (res.data?.saved === false) {
+        // Generated, but not persisted (Storage was unreachable) — the
+        // roster thumbnail must not be told about a URL that only exists
+        // as this response's data: URI, so onSaved is skipped.
+        setNotSaved(true)
+      } else {
+        onSaved?.(student.id, res.data?.avatar_url ?? null)
+      }
     } else {
       setSaveError(res.code || 'generic')
     }
@@ -151,14 +169,19 @@ export default function StudentAvatarEditor({ classId, student, onClose, onSaved
 
         <div className="flex flex-col items-center gap-4 mb-5">
           <div className="relative w-32 h-32 rounded-full overflow-hidden shrink-0 glass border-2 border-galaxy-text-muted/20 flex items-center justify-center">
-            {avatarUrl ? (
+            {avatarUrl && !imgFailed ? (
               <img
                 src={avatarUrl}
                 alt={t('school:teacher.avatar_editor.current_alt', { name: student.display_name })}
+                onError={() => setImgFailed(true)}
                 className="w-full h-full object-cover"
               />
             ) : (
-              <span className="text-5xl" aria-label={t('school:teacher.avatar_editor.placeholder_alt')}>
+              <span
+                role="img"
+                aria-label={t('school:teacher.avatar_editor.placeholder_alt')}
+                className="text-5xl"
+              >
                 {student.avatar_emoji}
               </span>
             )}
@@ -171,6 +194,10 @@ export default function StudentAvatarEditor({ classId, student, onClose, onSaved
 
           {loadError && (
             <p className="text-red-400 text-sm font-body text-center">{teacherErrorText(t, loadError)}</p>
+          )}
+
+          {notSaved && (
+            <p className="text-red-400 text-sm font-body text-center">{t('school:teacher.avatar_editor.not_saved')}</p>
           )}
 
           <button
