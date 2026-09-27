@@ -68,22 +68,20 @@ export default function LoginPage() {
   // user picks "Choose again") would undo that choice.
   useEffect(() => {
     const remembered = getRememberedWho()
-    if (remembered === 'kid') {
-      const next = searchParams.get('next')
-      navigate(next ? `/class?next=${encodeURIComponent(next)}` : '/class', { replace: true })
-      return
-    }
+    // `next` is deliberately NOT forwarded here: a child always lands on
+    // /bookshelf (ClassSignInPage's own post-sign-in redirect), so passing
+    // through this attacker-controlled, unsanitised query param would only
+    // ever be dead weight ClassSignInPage never reads.
+    if (remembered === 'kid') { navigate('/class', { replace: true }); return }
     if (remembered === 'family' || remembered === 'teacher') setWho(remembered)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   function handleChoose(choice) {
     setRememberedWho(choice)
-    if (choice === 'kid') {
-      const next = searchParams.get('next')
-      navigate(next ? `/class?next=${encodeURIComponent(next)}` : '/class')
-      return
-    }
+    // Same reasoning as the mount effect above: a child always lands on
+    // /bookshelf, so `next` is never forwarded for 'kid'.
+    if (choice === 'kid') { navigate('/class'); return }
     setWho(choice)
   }
 
