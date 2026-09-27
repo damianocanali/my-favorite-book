@@ -98,6 +98,22 @@ describe('GET /api/school/students', () => {
     expect(bodyText).not.toContain('secret_hash')
     expect(bodyText).not.toContain('auth_user_id')
   })
+
+  it('returns 503 upstream (not an empty class) when the class_students list query fails', async () => {
+    const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    mockSupabase({
+      user: TEACHER,
+      routes: [
+        classroomRoute,
+        { method: 'GET', match: '/rest/v1/class_students', reply: { status: 500, body: { message: 'down' } } },
+      ],
+    })
+    const { default: handler } = await import('../api/school/students.js')
+    const res = await handler(call('GET', undefined, `?classId=${CLASS_ID}`))
+    expect(res.status).toBe(503)
+    expect((await res.json()).code).toBe('upstream')
+    errSpy.mockRestore()
+  })
 })
 
 describe('POST /api/school/students', () => {
@@ -208,6 +224,43 @@ describe('POST /api/school/students', () => {
     }
   })
 
+  it('creates 7 students with bounded concurrency, preserving input order in `created` regardless of completion order', async () => {
+    const names = ['Ann', 'Ben', 'Cy', 'Dee', 'Eve', 'Fay', 'Gus']
+    const log = []
+    globalThis.fetch = vi.fn(async (url, init = {}) => {
+      const u = String(url), method = init.method || 'GET'
+      const body = init.body ? JSON.parse(init.body) : undefined
+      log.push({ method, url: u, body })
+      if (u.endsWith('/auth/v1/user')) return new Response(JSON.stringify(TEACHER))
+      if (method === 'GET' && u.includes('/rest/v1/class_licenses')) return new Response(JSON.stringify([usableLicense]))
+      if (method === 'GET' && u.includes('status=eq.active')) return new Response(JSON.stringify([]))
+      if (method === 'GET' && u.includes('/rest/v1/classrooms')) return new Response(JSON.stringify([classroomRow]))
+      if (method === 'POST' && u === `${URL_}/auth/v1/admin/users`) {
+        const name = body.user_metadata.display_name
+        // Reverse the delay so names later in the input finish FIRST — this
+        // proves `created` is ordered by input position, not by whichever
+        // create call happens to resolve first.
+        const delayMs = (names.length - names.indexOf(name)) * 3
+        await new Promise((resolve) => setTimeout(resolve, delayMs))
+        return new Response(JSON.stringify({ id: `auth-${name}` }), { status: 201 })
+      }
+      if (method === 'POST' && u.includes('/rest/v1/class_students')) return new Response('[]', { status: 201 })
+      if (method === 'PUT' && u.includes('/auth/v1/admin/users/')) return new Response('{}', { status: 200 })
+      return new Response('[]')
+    })
+
+    const { default: handler } = await import('../api/school/students.js')
+    const res = await handler(call('POST', { classId: CLASS_ID, students: names.map((name) => ({ name })) }))
+    expect(res.status).toBe(201)
+    const body = await res.json()
+    expect(body.created).toHaveLength(7)
+    expect(body.created.map((c) => c.display_name)).toEqual(names)
+    expect(body.skipped).toEqual([])
+
+    const authCreateCalls = log.filter((l) => l.method === 'POST' && l.url === `${URL_}/auth/v1/admin/users`)
+    expect(authCreateCalls).toHaveLength(7)
+  })
+
   it('stores secret_hash equal to hashPictureSecret(pepper, insertedId, returnedPictures)', async () => {
     let authCounter = 0
     const log = mockSupabase({
@@ -303,6 +356,19 @@ describe('PATCH /api/school/students', () => {
     expect((await res.json()).code).toBe('student_not_found')
   })
 
+  it('returns 503 upstream (not 404) when the student lookup query fails', async () => {
+    const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    mockSupabase({
+      user: TEACHER,
+      routes: [classroomRoute, { method: 'GET', match: '/rest/v1/class_students', reply: { status: 500, body: { message: 'down' } } }],
+    })
+    const { default: handler } = await import('../api/school/students.js')
+    const res = await handler(call('PATCH', { classId: CLASS_ID, id: STUDENT_ID, action: 'unlock' }))
+    expect(res.status).toBe(503)
+    expect((await res.json()).code).toBe('upstream')
+    errSpy.mockRestore()
+  })
+
   it('remove returns 502 upstream and never bans or signs out when the row update fails', async () => {
     const log = mockSupabase({
       user: TEACHER,
@@ -344,6 +410,47 @@ describe('PATCH /api/school/students', () => {
     expect(rpcCall.body.p_user_id).toBe('auth-kid-1')
   })
 
+  it('remove reverts the row to active and returns 502 upstream when the ban PUT fails', async () => {
+    const log = mockSupabase({
+      user: TEACHER,
+      routes: [
+        classroomRoute,
+        { method: 'GET', match: '/rest/v1/class_students', reply: { body: [fullStudentRow()] } },
+        { method: 'PATCH', match: '/rest/v1/class_students?id=eq.', reply: { status: 200, body: [fullStudentRow({ status: 'removed' })] } },
+        { method: 'PUT', match: '/auth/v1/admin/users/auth-kid-1', reply: { status: 500, body: { message: 'nope' } } },
+      ],
+    })
+    const { default: handler } = await import('../api/school/students.js')
+    const res = await handler(call('PATCH', { classId: CLASS_ID, id: STUDENT_ID, action: 'remove' }))
+    expect(res.status).toBe(502)
+    expect((await res.json()).code).toBe('upstream')
+
+    const patches = log.filter((l) => l.method === 'PATCH' && l.url.includes('/rest/v1/class_students?id=eq.'))
+    expect(patches).toHaveLength(2)
+    expect(patches[0].body).toMatchObject({ status: 'removed' })
+    expect(patches[1].body).toEqual({ status: 'active', removed_at: null })
+    expect(log.filter((l) => l.method === 'POST' && l.url.includes('/rest/v1/rpc/school_sign_out_user'))).toHaveLength(0)
+  })
+
+  it('remove logs a warning but still returns 200 when the sign-out RPC fails', async () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    mockSupabase({
+      user: TEACHER,
+      routes: [
+        classroomRoute,
+        { method: 'GET', match: '/rest/v1/class_students', reply: { body: [fullStudentRow()] } },
+        { method: 'PATCH', match: '/rest/v1/class_students?id=eq.', reply: { status: 200, body: [fullStudentRow({ status: 'removed' })] } },
+        { method: 'PUT', match: '/auth/v1/admin/users/auth-kid-1', reply: { status: 200, body: {} } },
+        { method: 'POST', match: '/rest/v1/rpc/school_sign_out_user', reply: { status: 500, body: { message: 'nope' } } },
+      ],
+    })
+    const { default: handler } = await import('../api/school/students.js')
+    const res = await handler(call('PATCH', { classId: CLASS_ID, id: STUDENT_ID, action: 'remove' }))
+    expect(res.status).toBe(200)
+    expect(warnSpy).toHaveBeenCalled()
+    warnSpy.mockRestore()
+  })
+
   it('reset_secret returns 3 pictures and patches hard_locked:false, failed_attempts:0, without leaking secret_hash/auth_user_id', async () => {
     const log = mockSupabase({
       user: TEACHER,
@@ -369,6 +476,45 @@ describe('PATCH /api/school/students', () => {
     expect(typeof patchCall.body.secret_hash).toBe('string')
   })
 
+  it('reset_secret sends a password-rotation PUT before the row PATCH', async () => {
+    const log = mockSupabase({
+      user: TEACHER,
+      routes: [
+        classroomRoute,
+        { method: 'GET', match: '/rest/v1/class_students', reply: { body: [fullStudentRow()] } },
+        { method: 'PUT', match: '/auth/v1/admin/users/auth-kid-1', reply: { status: 200, body: {} } },
+        { method: 'PATCH', match: '/rest/v1/class_students?id=eq.', reply: { status: 200, body: [fullStudentRow()] } },
+      ],
+    })
+    const { default: handler } = await import('../api/school/students.js')
+    const res = await handler(call('PATCH', { classId: CLASS_ID, id: STUDENT_ID, action: 'reset_secret' }))
+    expect(res.status).toBe(200)
+
+    const putCall = log.find((l) => l.method === 'PUT' && l.url.includes('/auth/v1/admin/users/auth-kid-1'))
+    expect(typeof putCall.body.password).toBe('string')
+    expect(putCall.body.password.length).toBeGreaterThan(20)
+    const putIdx = log.findIndex((l) => l.method === 'PUT' && l.url.includes('/auth/v1/admin/users/auth-kid-1'))
+    const patchIdx = log.findIndex((l) => l.method === 'PATCH' && l.url.includes('/rest/v1/class_students?id=eq.'))
+    expect(putIdx).toBeGreaterThanOrEqual(0)
+    expect(patchIdx).toBeGreaterThan(putIdx)
+  })
+
+  it('reset_secret returns 502 upstream and writes no new secret_hash when the password rotation fails', async () => {
+    const log = mockSupabase({
+      user: TEACHER,
+      routes: [
+        classroomRoute,
+        { method: 'GET', match: '/rest/v1/class_students', reply: { body: [fullStudentRow()] } },
+        { method: 'PUT', match: '/auth/v1/admin/users/auth-kid-1', reply: { status: 500, body: { message: 'nope' } } },
+      ],
+    })
+    const { default: handler } = await import('../api/school/students.js')
+    const res = await handler(call('PATCH', { classId: CLASS_ID, id: STUDENT_ID, action: 'reset_secret' }))
+    expect(res.status).toBe(502)
+    expect((await res.json()).code).toBe('upstream')
+    expect(log.filter((l) => l.method === 'PATCH' && l.url.includes('/rest/v1/class_students?id=eq.'))).toHaveLength(0)
+  })
+
   it('sign_out does not send an empty-body PATCH, re-selecting the row instead after the RPC', async () => {
     const log = mockSupabase({
       user: TEACHER,
@@ -391,6 +537,44 @@ describe('PATCH /api/school/students', () => {
     expect(rpcCall.body.p_user_id).toBe('auth-kid-1')
     const getCalls = log.filter((l) => l.method === 'GET' && l.url.includes('/rest/v1/class_students'))
     expect(getCalls.length).toBeGreaterThanOrEqual(2)
+  })
+
+  it('sign_out sends a password-rotation PUT before the sign-out RPC', async () => {
+    const log = mockSupabase({
+      user: TEACHER,
+      routes: [
+        classroomRoute,
+        { method: 'GET', match: '/rest/v1/class_students', reply: { body: [fullStudentRow()] } },
+        { method: 'PUT', match: '/auth/v1/admin/users/auth-kid-1', reply: { status: 200, body: {} } },
+        { method: 'POST', match: '/rest/v1/rpc/school_sign_out_user', reply: { status: 200, body: {} } },
+      ],
+    })
+    const { default: handler } = await import('../api/school/students.js')
+    const res = await handler(call('PATCH', { classId: CLASS_ID, id: STUDENT_ID, action: 'sign_out' }))
+    expect(res.status).toBe(200)
+
+    const putCall = log.find((l) => l.method === 'PUT' && l.url.includes('/auth/v1/admin/users/auth-kid-1'))
+    expect(typeof putCall.body.password).toBe('string')
+    const putIdx = log.findIndex((l) => l.method === 'PUT' && l.url.includes('/auth/v1/admin/users/auth-kid-1'))
+    const rpcIdx = log.findIndex((l) => l.method === 'POST' && l.url.includes('/rest/v1/rpc/school_sign_out_user'))
+    expect(putIdx).toBeGreaterThanOrEqual(0)
+    expect(rpcIdx).toBeGreaterThan(putIdx)
+  })
+
+  it('sign_out returns 502 upstream and never calls the sign-out RPC when the password rotation fails', async () => {
+    const log = mockSupabase({
+      user: TEACHER,
+      routes: [
+        classroomRoute,
+        { method: 'GET', match: '/rest/v1/class_students', reply: { body: [fullStudentRow()] } },
+        { method: 'PUT', match: '/auth/v1/admin/users/auth-kid-1', reply: { status: 500, body: { message: 'nope' } } },
+      ],
+    })
+    const { default: handler } = await import('../api/school/students.js')
+    const res = await handler(call('PATCH', { classId: CLASS_ID, id: STUDENT_ID, action: 'sign_out' }))
+    expect(res.status).toBe(502)
+    expect((await res.json()).code).toBe('upstream')
+    expect(log.filter((l) => l.method === 'POST' && l.url.includes('/rest/v1/rpc/school_sign_out_user'))).toHaveLength(0)
   })
 
   it('restore returns 409 seats_full when there is no free seat, sending no PATCH or PUT', async () => {
@@ -446,6 +630,29 @@ describe('PATCH /api/school/students', () => {
     expect(res.status).toBe(502)
     expect((await res.json()).code).toBe('upstream')
     expect(log.filter((l) => l.method === 'PUT' && l.url.includes('/auth/v1/admin/users/'))).toHaveLength(0)
+  })
+
+  it('restore reverts the row to removed and returns 502 upstream when the unban PUT fails', async () => {
+    const log = mockSupabase({
+      user: TEACHER,
+      routes: [
+        classroomRoute,
+        { method: 'GET', match: `id=eq.${STUDENT_ID}`, reply: { body: [fullStudentRow({ status: 'removed' })] } },
+        licenseRoute({ status: 'trial', expires_at: '2099-01-01T00:00:00.000Z', seats: 35 }),
+        activeStudentsRoute([]),
+        { method: 'PATCH', match: '/rest/v1/class_students?id=eq.', reply: { status: 200, body: [fullStudentRow({ status: 'active' })] } },
+        { method: 'PUT', match: '/auth/v1/admin/users/auth-kid-1', reply: { status: 500, body: { message: 'nope' } } },
+      ],
+    })
+    const { default: handler } = await import('../api/school/students.js')
+    const res = await handler(call('PATCH', { classId: CLASS_ID, id: STUDENT_ID, action: 'restore' }))
+    expect(res.status).toBe(502)
+    expect((await res.json()).code).toBe('upstream')
+
+    const patches = log.filter((l) => l.method === 'PATCH' && l.url.includes('/rest/v1/class_students?id=eq.'))
+    expect(patches).toHaveLength(2)
+    expect(patches[0].body).toMatchObject({ status: 'active', removed_at: null })
+    expect(patches[1].body).toMatchObject({ status: 'removed' })
   })
 
   it('rename to an existing active student\'s name returns 409 duplicate_name', async () => {

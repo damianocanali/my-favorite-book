@@ -81,6 +81,25 @@ describe('student guards', () => {
     expect(r.student.id).toBe('s1')
     expect(r.classroom.id).toBe('c1')
   })
+  it('requireStudent refuses an archived class with 403 class_resting', async () => {
+    mockSupabase(
+      { id: 'kid-auth', app_metadata: { role: 'student', student_id: 's1', classroom_id: 'c1' } },
+      {
+        '/rest/v1/class_students': [
+          {
+            id: 's1', classroom_id: 'c1', display_name: 'Maya R', status: 'active',
+            classrooms: { id: 'c1', name: '3B', timezone: 'America/New_York', school_hours: {}, archived_at: '2026-01-01T00:00:00.000Z' },
+          },
+        ],
+      }
+    )
+    const { requireStudent } = await import('../api/_school.js')
+    const r = await requireStudent(req())
+    expect(r.ok).toBe(false)
+    expect(r.response.status).toBe(403)
+    expect((await r.response.json()).code).toBe('class_resting')
+  })
+
   it('requireStudent refuses a removed student', async () => {
     mockSupabase({ id: 'kid-auth', app_metadata: { role: 'student' } }, { '/rest/v1/class_students': [] })
     const { requireStudent } = await import('../api/_school.js')

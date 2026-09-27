@@ -7,7 +7,7 @@ import { readFileSync, readdirSync } from 'node:fs'
 const FENCED = [
   'api/publish-book.js', 'api/unpublish-book.js', 'api/react-book.js', 'api/report-book.js', 'api/create-checkout.js',
   'api/buy-coins.js', 'api/spend-coins.js', 'api/customer-portal.js', 'api/delete-account.js',
-  'api/cancel-deletion.js',
+  'api/cancel-deletion.js', 'api/classroom.js',
   ...readdirSync('api/print-orders').filter((f) => f.endsWith('.js') && !/ \d+\.js$/.test(f))
     .map((f) => `api/print-orders/${f}`)
     .filter((f) => /verifyJwt|requireUser/.test(readFileSync(f, 'utf8'))),
@@ -35,8 +35,8 @@ describe('student fence', () => {
     expect(src).toMatch(/rejectStudent\(\s*\{[^}]*appMetadata/)
   })
 
-  it('generate-avatar refuses a photo from a student', () => {
-    const src = readFileSync('api/generate-avatar.js', 'utf8')
+  it.each(['api/generate-image.js', 'api/generate-avatar.js'])('%s refuses a sourceImage/photo from a student', (file) => {
+    const src = readFileSync(file, 'utf8')
     expect(src).toMatch(/sourceImage[\s\S]{0,200}isStudent\(|isStudent\([\s\S]{0,200}sourceImage/)
   })
 

@@ -92,12 +92,15 @@ export async function requireStudent(req) {
   try {
     const res = await sb(
       `/rest/v1/class_students?auth_user_id=eq.${encodeURIComponent(auth.userId)}&status=eq.active` +
-        `&select=id,classroom_id,display_name,classrooms(id,name,timezone,school_hours,owner_user_id)`
+        `&select=id,classroom_id,display_name,classrooms(id,name,timezone,school_hours,owner_user_id,archived_at)`
     )
     if (!res.ok) return fail(req, 503, 'upstream', 'Service unavailable, try again')
     const rows = await res.json().catch(() => [])
     if (!Array.isArray(rows) || !rows.length) return fail(req, 403, 'student_removed', 'Ask your teacher')
     const { classrooms: classroom, ...student } = rows[0]
+    // An archived class gets nothing — same "ask your teacher" framing as a
+    // resting (unpaid) license, never "your class was archived".
+    if (classroom?.archived_at) return fail(req, 403, 'class_resting', 'Ask your teacher')
     return { ok: true, auth, student, classroom }
   } catch (e) {
     return fail(req, 503, 'upstream', 'Service unavailable, try again')

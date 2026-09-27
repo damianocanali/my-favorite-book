@@ -208,6 +208,24 @@ describe('POST /api/school/classes', () => {
     errSpy.mockRestore()
   })
 
+  it('returns 503 upstream (never class:null with a 2xx) when the post-create reload fails', async () => {
+    const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    mockSupabase({
+      user: TEACHER,
+      routes: [
+        { method: 'POST', match: '/rest/v1/classrooms', reply: { status: 201, body: [{ ...baseClassRow, id: 'new-class-10' }] } },
+        { method: 'GET', match: '/rest/v1/class_licenses', reply: { body: [] } },
+        { method: 'POST', match: '/rest/v1/class_licenses', reply: { status: 201, body: [licenseRow] } },
+        { method: 'GET', match: '/rest/v1/classrooms', reply: { status: 500, body: { message: 'down' } } },
+      ],
+    })
+    const { default: handler } = await import('../api/school/classes.js')
+    const res = await handler(call('POST', { name: 'Room 10' }))
+    expect(res.status).toBe(503)
+    expect((await res.json()).code).toBe('upstream')
+    errSpy.mockRestore()
+  })
+
   it('returns 429 rate_limited once the hourly cap is exceeded', async () => {
     mockSupabase({
       user: TEACHER,
@@ -288,6 +306,23 @@ describe('PATCH /api/school/classes', () => {
     expect(res.status).toBe(400)
     expect((await res.json()).code).toBe('bad_hours')
     expect(log.filter((l) => l.method === 'PATCH').length).toBe(0)
+  })
+
+  it('returns 503 upstream (never class:null with a 2xx) when the post-update reload fails', async () => {
+    const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    mockSupabase({
+      user: TEACHER,
+      routes: [
+        { method: 'GET', match: 'owner_user_id=eq.', reply: { body: [{ id: CLASS_ID, code: 'OLDCOD', name: 'Room 5', locale: 'en', sign_in_open: false, timezone: 'America/New_York', school_hours: {}, archived_at: null }] } },
+        { method: 'PATCH', match: '/rest/v1/classrooms?id=eq.', reply: { status: 200, body: [] } },
+        { method: 'GET', match: 'class_students.status=eq.active', reply: { status: 500, body: { message: 'down' } } },
+      ],
+    })
+    const { default: handler } = await import('../api/school/classes.js')
+    const res = await handler(call('PATCH', { id: CLASS_ID, name: 'New name' }))
+    expect(res.status).toBe(503)
+    expect((await res.json()).code).toBe('upstream')
+    errSpy.mockRestore()
   })
 })
 

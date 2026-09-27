@@ -33,9 +33,15 @@ async function withFreshCode(write) {
   return new Response(JSON.stringify({ message: 'code collision' }), { status: 409 })
 }
 
+// Fails closed: a failed reload must never surface as `class: null` with a
+// 2xx status — that would read as "the class you just created/updated is
+// gone" instead of the transient upstream failure it actually is. Thrown
+// here, it's caught by each caller's top-level try/catch and turned into a
+// 503 upstream response instead.
 async function loadOne(id) {
   const r = await sb(`/rest/v1/classrooms?id=eq.${id}&class_students.status=eq.active&select=${SELECT}`)
-  const rows = await r.json().catch(() => [])
+  if (!r.ok) throw new Error(`classroom reload failed: ${r.status}`)
+  const rows = await r.json()
   return rows?.[0] ? summarize(rows[0]) : null
 }
 
@@ -95,7 +101,9 @@ export default async function handler(req) {
           }),
         })
         // Don't fail class creation over a license hiccup — the class is
-        // already created; the teacher can retry the trial from the UI.
+        // already created. But there is no retry path yet: a failed trial
+        // insert leaves the class without a license until Stage 4 adds
+        // purchasing / manual comping.
         if (!licenseRes.ok) console.error('school/classes: trial license insert failed', licenseRes.status)
       }
       return json(req, 201, { class: await loadOne(classroom.id), ...(trialUsedUp ? { trial_used_up: true } : {}) })

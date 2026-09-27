@@ -3,7 +3,7 @@ import { logUsage, estimateTogetherImageCostCents } from './_usage.js'
 import { requireUser, validatePrompt, validateSourceImage, moderatePrompt, enforceDailyCap } from './_aiGuard.js'
 import { classifyAttestation, dailyCapFor, hourlyLimitFor } from './_appAttest.js'
 import { storeIllustration } from './_imageStore.js'
-import { isStudent, enforceStudentImageCap } from './_school.js'
+import { isStudent, rejectStudent, enforceStudentImageCap } from './_school.js'
 
 export const config = { runtime: 'edge' }
 
@@ -62,6 +62,11 @@ export default async function handler(req) {
 
   try {
     const { prompt, sourceImage, strength } = payload
+
+    // A class account never uploads a photo of a child to a model — no
+    // consent chain for that image exists on this account type (same guard
+    // as generate-avatar.js).
+    if (isStudent(auth) && sourceImage) return rejectStudent(auth, req)
 
     const promptErr = validatePrompt(prompt, req)
     if (promptErr) return promptErr

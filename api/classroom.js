@@ -2,6 +2,7 @@ export const config = { runtime: 'edge' }
 
 import { checkRateLimit, getClientIp, handleCors, withCors } from './_rateLimit.js'
 import { verifyJwt } from './_auth.js'
+import { rejectStudent } from './_school.js'
 import { generateClassCode, CODE_RE } from '../lib/school/crypto.js'
 
 // Class codes are unique; a clash is rare (a 6-char code over 32 symbols is
@@ -44,6 +45,9 @@ export default async function handler(req) {
   if (req.method === 'POST') {
     const auth = await verifyJwt(req)
     if (!auth.ok) return auth.response
+    // Students never own classes — this is the teacher-only creation path.
+    const rejected = rejectStudent(auth, req)
+    if (rejected) return rejected
 
     const { allowed } = checkRateLimit(`classroom-create:${auth.userId}`, 10)
     if (!allowed) return json(429, { error: 'Too many requests. Try again in an hour.' })

@@ -2,7 +2,7 @@ export const config = { runtime: 'edge' }
 
 import { handleCors, checkRateLimit } from '../_rateLimit.js'
 import { requireClassOwner, sb, json, isUuid } from '../_school.js'
-import { generatePictureSecret, hashPictureSecret, syntheticStudentEmail } from '../../lib/school/crypto.js'
+import { generatePictureSecret, hashPictureSecret, syntheticStudentEmail, randomPassword } from '../../lib/school/crypto.js'
 import { AVATAR_EMOJI } from '../../lib/school/pictures.js'
 import { isLicenseUsable, MAX_SEATS } from '../../lib/school/license.js'
 
@@ -29,11 +29,6 @@ function publicShape(row) {
 }
 
 const cleanName = (n) => String(n ?? '').trim().replace(/\s+/g, ' ').slice(0, 24)
-
-function randomPassword() {
-  const b = crypto.getRandomValues(new Uint8Array(48))
-  return btoa(String.fromCharCode(...b)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
-}
 
 // These two reads guard invariants (license validity, seat count, name
 // clashes) that the rest of the handler trusts without re-checking. A
@@ -107,6 +102,27 @@ async function createOne({ classroomId, name, emoji, pepper }) {
   }
 }
 
+// A class of 35 created sequentially is ~105 round trips (auth create,
+// row insert, metadata PUT) — long enough to risk running past the Edge
+// Function time limit partway through, which would lose the one-time
+// picture secrets for every student after the cutoff. A small bounded pool
+// (no dependency: just N workers pulling from a shared cursor) overlaps
+// those round trips while keeping `results` indexed the same as `items`, so
+// callers can rebuild output in the original input order regardless of
+// which request happens to finish first.
+async function mapWithConcurrency(items, limit, fn) {
+  const results = new Array(items.length)
+  let next = 0
+  async function worker() {
+    while (next < items.length) {
+      const i = next++
+      results[i] = await fn(items[i], i)
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker))
+  return results
+}
+
 export default async function handler(req) {
   const cors = handleCors(req)
   if (cors) return cors
@@ -118,8 +134,12 @@ export default async function handler(req) {
       const classId = new URL(req.url).searchParams.get('classId')
       const o = await requireClassOwner(req, classId)
       if (!o.ok) return o.response
-      const rows = await sb(`/rest/v1/class_students?classroom_id=eq.${o.classroom.id}&select=${PUBLIC}&order=display_name.asc`)
-        .then((r) => r.json()).catch(() => [])
+      // Fails closed: a non-2xx/thrown lookup must not read as "an empty
+      // class" — the outer try/catch turns the thrown error into 503
+      // upstream instead.
+      const res = await sb(`/rest/v1/class_students?classroom_id=eq.${o.classroom.id}&select=${PUBLIC}&order=display_name.asc`)
+      if (!res.ok) throw new Error(`class_students lookup failed: ${res.status}`)
+      const rows = await res.json()
       return json(req, 200, { students: rows.map(publicShape) })
     }
 
@@ -158,19 +178,25 @@ export default async function handler(req) {
         return json(req, 409, { error: 'Not enough seats in this class', code: 'seats_full', seats: license.seats, used: existing.length })
       }
 
+      // Bounded concurrency (5 at a time): see mapWithConcurrency above.
+      const results = await mapWithConcurrency(todo, 5, (s) => createOne({ classroomId, name: s.name, emoji: s.emoji, pepper }))
       const created = []
-      for (const s of todo) {
-        const c = await createOne({ classroomId, name: s.name, emoji: s.emoji, pepper })
+      results.forEach((c, i) => {
         if (c) created.push(c)
-        else skipped.push({ name: s.name, code: 'create_failed' })
-      }
+        else skipped.push({ name: todo[i].name, code: 'create_failed' })
+      })
       return json(req, 201, { created, skipped })
     }
 
     if (req.method === 'PATCH') {
       if (!isUuid(body.id)) return json(req, 400, { error: 'Invalid student id', code: 'bad_request' })
       const scopedPath = `/rest/v1/class_students?id=eq.${body.id}&classroom_id=eq.${classroomId}`
-      const rows = await sb(`${scopedPath}&select=${SELECT_WITH_AUTH}`).then((r) => r.json()).catch(() => [])
+      // Fails closed: a non-2xx/thrown lookup must not read as "no such
+      // student" — the outer try/catch turns the thrown error into 503
+      // upstream instead of the wrong 404.
+      const lookupRes = await sb(`${scopedPath}&select=${SELECT_WITH_AUTH}`)
+      if (!lookupRes.ok) throw new Error(`class_students lookup failed: ${lookupRes.status}`)
+      const rows = await lookupRes.json()
       const student = rows?.[0]
       if (!student) return json(req, 404, { error: 'Student not found', code: 'student_not_found' })
       const { auth_user_id: authId } = student
@@ -183,6 +209,12 @@ export default async function handler(req) {
         })
       const reselect = () => sb(`${scopedPath}&select=${SELECT_WITH_AUTH}`).then((r) => r.json()).catch(() => [])
       const signOut = () => sb('/rest/v1/rpc/school_sign_out_user', { method: 'POST', body: JSON.stringify({ p_user_id: authId }) })
+      // A signed-in student session can call supabase.auth.updateUser({password})
+      // and later sign back in with email+password, bypassing the picture
+      // throttle entirely. Rotating the password to a random, never-shown
+      // value on every picture reset and sign-out wipes out anything a child
+      // (or anyone with their access token) set.
+      const rotatePassword = () => sb(`/auth/v1/admin/users/${authId}`, { method: 'PUT', body: JSON.stringify({ password: randomPassword() }) })
       const reply = async (res, extra = {}) => {
         if (!res.ok) return json(req, 502, { error: 'Could not update student', code: 'upstream' })
         const [row] = await res.json()
@@ -192,6 +224,12 @@ export default async function handler(req) {
 
       switch (body.action) {
         case 'reset_secret': {
+          // Rotate the password FIRST: if it fails, bail out entirely — the
+          // new pictures are never generated or returned, so a stale
+          // child-set password can't survive alongside a "reset" the teacher
+          // was told succeeded.
+          const rotated = await rotatePassword()
+          if (!rotated.ok) return json(req, 502, { error: 'Could not update student', code: 'upstream' })
           const pictures = generatePictureSecret()
           return reply(
             await patchRow({ ...UNLOCK, secret_hash: await hashPictureSecret(pepper, student.id, pictures), secret_version: 1 }),
@@ -215,6 +253,11 @@ export default async function handler(req) {
           return reply(await patchRow(p))
         }
         case 'sign_out': {
+          // Rotate the password too — "sign out" must actually end the
+          // child's ability to sign back in with a self-set password, not
+          // just drop their current sessions.
+          const rotated = await rotatePassword()
+          if (!rotated.ok) return json(req, 502, { error: 'Could not update student', code: 'upstream' })
           // No empty-body PATCH: RPC-sign-out, then re-select the row to
           // build the reply, rather than issuing a no-op write.
           const res = await signOut()
@@ -228,8 +271,18 @@ export default async function handler(req) {
           // write must not ban or sign the student out anyway.
           const res = await patchRow({ status: 'removed', removed_at: new Date().toISOString() })
           if (!res.ok) return json(req, 502, { error: 'Could not update student', code: 'upstream' })
-          await sb(`/auth/v1/admin/users/${authId}`, { method: 'PUT', body: JSON.stringify({ ban_duration: BAN_FOREVER }) })
-          await signOut()
+          const ban = await sb(`/auth/v1/admin/users/${authId}`, { method: 'PUT', body: JSON.stringify({ ban_duration: BAN_FOREVER }) })
+          if (!ban.ok) {
+            // The row says "removed" but the account can still sign in —
+            // revert rather than leave the two disagreeing.
+            await patchRow({ status: 'active', removed_at: null })
+            return json(req, 502, { error: 'Could not update student', code: 'upstream' })
+          }
+          const out = await signOut()
+          // Best-effort: the student is already banned and the row already
+          // says removed, so a stuck session (until its access token
+          // expires) is not worth failing the whole request over.
+          if (!out.ok) console.warn('[school/students] sign-out RPC failed after remove', authId, out.status)
           return reply(res)
         }
         case 'restore': {
@@ -238,7 +291,13 @@ export default async function handler(req) {
           if (!license || used + 1 > license.seats) return json(req, 409, { error: 'Not enough seats in this class', code: 'seats_full' })
           const res = await patchRow({ status: 'active', removed_at: null })
           if (!res.ok) return json(req, 502, { error: 'Could not update student', code: 'upstream' })
-          await sb(`/auth/v1/admin/users/${authId}`, { method: 'PUT', body: JSON.stringify({ ban_duration: 'none' }) })
+          const unban = await sb(`/auth/v1/admin/users/${authId}`, { method: 'PUT', body: JSON.stringify({ ban_duration: 'none' }) })
+          if (!unban.ok) {
+            // The row says "active" but the account is still banned —
+            // revert rather than leave the two disagreeing.
+            await patchRow({ status: 'removed', removed_at: new Date().toISOString() })
+            return json(req, 502, { error: 'Could not update student', code: 'upstream' })
+          }
           return reply(res)
         }
         default:

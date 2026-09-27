@@ -223,6 +223,19 @@ describe('purgeUser', () => {
     expect(licensesDelete).toBeLessThan(authDelete)
   })
 
+  it('aborts without deleting the teacher when the owned-classrooms list is a 2xx with invalid JSON', async () => {
+    mockFetch({
+      [`classrooms?owner_user_id=eq.${USER}&select=id,code`]: {
+        ok: true, status: 200, json: async () => { throw new SyntaxError('Unexpected token') }, text: async () => 'not json',
+      },
+    })
+    const result = await purgeUser(USER, ENV)
+    expect(result).toEqual({ ok: false })
+    // A malformed 2xx body must abort, exactly like a non-2xx response —
+    // never be read as "no classes" (which `.catch(() => [])` used to do).
+    expect(indexOfCall(`DELETE /auth/v1/admin/users/${USER}`)).toBe(-1)
+  })
+
   it("purgeClassroom's student list has no status filter, so removed students are still purged", async () => {
     mockFetch({
       [`classrooms?owner_user_id=eq.${USER}&select=id,code`]: {
