@@ -4,6 +4,7 @@ import { motion } from 'motion/react'
 import { useTranslation, Trans } from 'react-i18next'
 import { Mail, Lock, Eye, EyeOff, ArrowLeft, CheckCircle } from 'lucide-react'
 import { useAuthStore, selectIsTeacher } from '../stores/useAuthStore'
+import { useIsStudent } from '../hooks/useIsStudent'
 import { supabase } from '../lib/supabase'
 import OAuthButtons from '../components/auth/OAuthButtons'
 import { authErrorCode } from '../lib/authErrors'
@@ -14,6 +15,7 @@ export default function LoginPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const signIn = useAuthStore((s) => s.signIn)
+  const isStudent = useIsStudent()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -229,10 +231,16 @@ export default function LoginPage() {
           {/* Secondary to "I'm in a class" above — same discoverability
               problem for the adult side: an existing class owner had no
               way to find /teacher except typing the URL. Signed out, this
-              round-trips through ProtectedRoute's `next` back here. */}
-          <Link to="/teacher" className="text-galaxy-text-muted text-xs font-body hover:text-galaxy-text transition-colors block">
-            {t('auth:shared.for_teachers')}
-          </Link>
+              round-trips through ProtectedRoute's `next` back here. Gated
+              on !isStudent for the edge case of an already-signed-in
+              student landing on this page — /teacher is wrapped in
+              ConsumerOnlyRoute and would just bounce them straight back
+              out, so there's no reason to invite the tap. */}
+          {!isStudent && (
+            <Link to="/teacher" className="text-galaxy-text-muted text-xs font-body hover:text-galaxy-text transition-colors block">
+              {t('auth:shared.for_teachers')}
+            </Link>
+          )}
         </div>
       </motion.div>
     </div>

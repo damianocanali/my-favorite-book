@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { BookOpen, Library, GraduationCap, Check, Sparkles, Mic, Brain, Palette, Users, Volume2, Wand2 } from 'lucide-react'
 import { useBookshelfStore } from '../stores/useBookshelfStore'
 import { useAuthStore, selectIsTeacher } from '../stores/useAuthStore'
+import { useIsStudent } from '../hooks/useIsStudent'
 import { PRICES, PLAN_CURRENCY, formatPlanPrice, formatMonthlyEquivalent } from '../lib/plans'
 import { formatMoneyCents } from '../i18n/formats'
 import SparkleButton from '../components/ui/SparkleButton'
@@ -72,6 +73,7 @@ export default function LandingPage() {
   const bookCount = useBookshelfStore((state) => state.books.length)
   const user = useAuthStore((s) => s.user)
   const isTeacher = useAuthStore(selectIsTeacher)
+  const isStudent = useIsStudent()
 
   useEffect(() => { playTrack('home') }, [])
 
@@ -234,8 +236,12 @@ export default function LandingPage() {
         {/* "For teachers" — the owner (an adult account created as a
             parent or via Google/Apple) had no way to find the classroom
             console short of typing /teacher. A teacher who already has the
-            header link doesn't need a second one here. */}
-        {!isTeacher && (
+            header link doesn't need a second one here, and a student
+            account (global constraint: no purchase/consumer surfaces of
+            any kind) shouldn't be invited toward /teacher at all — it's
+            wrapped in ConsumerOnlyRoute and would just bounce them to
+            /bookshelf. */}
+        {!isTeacher && !isStudent && (
           <div className="text-center mt-6">
             <Link
               to="/teacher"
