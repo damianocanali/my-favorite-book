@@ -24,7 +24,11 @@ vi.mock('../src/lib/supabase', () => ({
     auth: {
       setSession: vi.fn(async () => ({ data: {}, error: null })),
       signOut: vi.fn(async () => ({ error: null })),
-      getSession: async () => ({ data: { session: null } }),
+      // A vi.fn(), not a bare async function, so tests below can override
+      // just one call with mockResolvedValueOnce/mockRejectedValueOnce/
+      // mockImplementationOnce (self-consuming — the queued override is
+      // used once, then future calls fall back to this default).
+      getSession: vi.fn(async () => ({ data: { session: null } })),
       onAuthStateChange: vi.fn(),
     },
     from: () => ({
@@ -42,6 +46,7 @@ import { useBookshelfStore } from '../src/stores/useBookshelfStore'
 import { usePrintOrderStore } from '../src/stores/usePrintOrderStore'
 import { useCheckInStore } from '../src/stores/useCheckInStore'
 import { fetchRoster } from '../src/lib/schoolApi.js'
+import { isPreviewingKids, enterKidsPreview } from '../src/lib/viewMode.js'
 import enSchool from '../src/i18n/locales/en/school.json'
 import itSchool from '../src/i18n/locales/it/school.json'
 
@@ -148,6 +153,47 @@ describe('signInAsStudent', () => {
   })
 })
 
+// Fix round 2: initialize()'s `loading` gate (AppShell/HomeRoute's
+// chrome-decision spinner) must always resolve to false, whether
+// getSession() rejects outright or never settles at all — either one used
+// to leave the whole app stuck on the loading spinner forever.
+describe('initialize() — loading must never hang', () => {
+  it('sets loading false (and stays signed-out) when getSession rejects', async () => {
+    stubNetwork()
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    supabase.auth.getSession.mockRejectedValueOnce(new Error('storage corrupted'))
+    useAuthStore.setState({ user: null, loading: true })
+
+    await useAuthStore.getState().initialize()
+
+    expect(useAuthStore.getState().loading).toBe(false)
+    expect(useAuthStore.getState().user).toBeNull()
+    expect(warnSpy).toHaveBeenCalled()
+    warnSpy.mockRestore()
+  })
+
+  it('forces loading false via the safety timeout if getSession never settles', async () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    vi.useFakeTimers()
+    try {
+      supabase.auth.getSession.mockImplementationOnce(() => new Promise(() => {})) // never resolves
+      useAuthStore.setState({ user: null, loading: true })
+
+      // Not awaited: getSession() never resolves, so initialize() itself
+      // never returns — only the independent safety timer inside it can
+      // still flip `loading`, which is exactly what this test is for.
+      useAuthStore.getState().initialize()
+
+      await vi.advanceTimersByTimeAsync(8000)
+
+      expect(useAuthStore.getState().loading).toBe(false)
+    } finally {
+      vi.useRealTimers()
+      warnSpy.mockRestore()
+    }
+  })
+})
+
 describe('onAuthStateChange listener — shared-device cleanup', () => {
   it('does NOT run the full reset on signed-out → signed-in (a visitor\'s local drafts must survive an ordinary login)', async () => {
     stubNetwork()
@@ -185,6 +231,37 @@ describe('onAuthStateChange listener — shared-device cleanup', () => {
     expect(useBookshelfStore.getState().books).toEqual([])
     expect(useBookshelfStore.getState().deletedBookIds).toEqual([])
     expect(usePrintOrderStore.getState().shipping.email).toBe('')
+  })
+
+  // Fix round 2: a teacher who followed "Preview the kids' app" and then
+  // this device changes identity — another tab signs out, the session
+  // expires, or (as here) a child signs in — must not hand the next
+  // person a stale "you're previewing the kids' app" banner.
+  it('also ends a "previewing the kids app" detour on the full local reset', async () => {
+    stubNetwork()
+    useAuthStore.setState({ user: null })
+    await useAuthStore.getState().initialize()
+    const onAuthChange = supabase.auth.onAuthStateChange.mock.calls.at(-1)[0]
+
+    onAuthChange('SIGNED_IN', { user: { id: 'teacher-A' } })
+    enterKidsPreview()
+    expect(isPreviewingKids()).toBe(true)
+
+    onAuthChange('SIGNED_IN', { user: { id: 'student-B' } })
+
+    expect(isPreviewingKids()).toBe(false)
+  })
+})
+
+describe('signOut()', () => {
+  it('ends a "previewing the kids app" detour', async () => {
+    useAuthStore.setState({ user: { id: 'teacher-A' } })
+    enterKidsPreview()
+    expect(isPreviewingKids()).toBe(true)
+
+    await useAuthStore.getState().signOut()
+
+    expect(isPreviewingKids()).toBe(false)
   })
 })
 

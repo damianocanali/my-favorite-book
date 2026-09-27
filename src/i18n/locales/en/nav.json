@@ -5,6 +5,8 @@
   "header": {
     "pricing": "Pricing",
     "classroom": "Classroom",
+    "dashboard": "Dashboard",
+    "classes": "Classes",
     "mute": "Mute music",
     "unmute": "Unmute music",
     "account": "Account",
@@ -17,7 +19,9 @@
     "gallery": "Gallery",
     "create": "Create",
     "orders": "Orders",
-    "account": "Account"
+    "account": "Account",
+    "dashboard": "Dashboard",
+    "classes": "Classes"
   },
   "play": {
     "trigger": "Play",
@@ -29,5 +33,9 @@
     "builder_hint": "Drag pictures into a story",
     "example_title": "See an Example",
     "example_hint": "A finished book"
+  },
+  "preview_kids": {
+    "banner": "You're previewing the kids' app",
+    "back_to_dashboard": "Back to dashboard"
   }
 }
