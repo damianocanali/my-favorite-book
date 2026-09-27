@@ -7,37 +7,10 @@ import { classifyAttestation, dailyCapFor, hourlyLimitFor } from './_appAttest.j
 import { storeIllustration } from './_imageStore.js'
 import { rejectStudent } from './_school.js'
 import { priceOf } from '../lib/catalog.js'
+import { ART_STYLE_PROMPTS, buildAvatarPrompt } from '../lib/avatarPrompt.js'
 
 const TOGETHER_API_URL = 'https://api.together.xyz/v1/images/generations'
 const AVATAR_LIMIT = 10 // per hour per IP
-
-const ART_STYLE_PROMPTS = {
-  cartoon: 'cute cartoon style, bold outlines, bright colors, Cartoon Network style',
-  pixar: '3D Pixar animation style, soft lighting, expressive features, Disney Pixar render',
-  anime: 'anime style, big expressive eyes, colorful, Studio Ghibli inspired',
-  watercolor: 'soft watercolor painting style, gentle colors, artistic brushstrokes, storybook illustration',
-  pixel: '16-bit pixel art style, retro game character, clean pixel rendering',
-  claymation: 'claymation stop-motion style, sculpted plasticine figure, visible fingerprint texture, soft studio lighting',
-  comic: 'comic book style, bold black ink outlines, halftone dot shading, bright flat colours, dynamic',
-  crayon: "children's crayon drawing style, waxy textured strokes on paper, bright playful colours",
-  storybook: 'classic storybook ink illustration, fine pen linework with soft watercolour wash, vintage picture-book',
-}
-
-function buildAvatarPrompt(features, artStyle) {
-  const style = ART_STYLE_PROMPTS[artStyle] || ART_STYLE_PROMPTS.cartoon
-
-  const parts = [
-    'Portrait of a friendly child character',
-    `${features.skinTone || 'medium'} skin tone`,
-    features.hairStyle && features.hairStyle !== 'none' ? `${features.hairColor || ''} ${features.hairStyle} hair` : 'no hair',
-    features.clothing ? `wearing a ${features.clothing}` : '',
-    features.hat && features.hat !== 'none' ? `wearing a ${features.hat}` : '',
-    features.accessory && features.accessory !== 'none' ? `with ${features.accessory}` : '',
-    features.expression || 'happy smiling expression',
-  ].filter(Boolean).join(', ')
-
-  return `${parts}. ${style}. Centered circular avatar portrait, simple clean background, child-friendly, no text, no watermark, safe for kids.`
-}
 
 export default async function handler(req) {
   const corsResponse = handleCors(req)
