@@ -114,6 +114,74 @@ describe('GET /api/school/students', () => {
     expect((await res.json()).code).toBe('upstream')
     errSpy.mockRestore()
   })
+
+  // Task C req 3: the roster shows a thumbnail without N per-row requests.
+  describe('avatar thumbnails', () => {
+    it('includes avatar_url from a single bulk user_inventory lookup, keyed by auth_user_id', async () => {
+      const log = mockSupabase({
+        user: TEACHER,
+        routes: [
+          classroomRoute,
+          { method: 'GET', match: '/rest/v1/class_students', reply: { body: [fullStudentRow()] } },
+          { method: 'GET', match: '/rest/v1/user_inventory', reply: { body: [{ user_id: 'auth-kid-1', avatar_url: 'https://cdn.test/a.png' }] } },
+        ],
+      })
+      const { default: handler } = await import('../api/school/students.js')
+      const res = await handler(call('GET', undefined, `?classId=${CLASS_ID}`))
+      expect(res.status).toBe(200)
+      const body = await res.json()
+      expect(body.students[0].avatar_url).toBe('https://cdn.test/a.png')
+
+      const invCalls = log.filter((l) => l.url.includes('/rest/v1/user_inventory'))
+      expect(invCalls).toHaveLength(1) // one bulk call, not one per student
+      expect(invCalls[0].url).toContain('auth-kid-1')
+    })
+
+    it('omits avatar_url when the student has none', async () => {
+      mockSupabase({
+        user: TEACHER,
+        routes: [
+          classroomRoute,
+          { method: 'GET', match: '/rest/v1/class_students', reply: { body: [fullStudentRow()] } },
+          { method: 'GET', match: '/rest/v1/user_inventory', reply: { body: [] } },
+        ],
+      })
+      const { default: handler } = await import('../api/school/students.js')
+      const res = await handler(call('GET', undefined, `?classId=${CLASS_ID}`))
+      const body = await res.json()
+      expect(body.students[0]).not.toHaveProperty('avatar_url')
+    })
+
+    it('fails open (an empty roster, not a broken one) when the user_inventory lookup errors', async () => {
+      mockSupabase({
+        user: TEACHER,
+        routes: [
+          classroomRoute,
+          { method: 'GET', match: '/rest/v1/class_students', reply: { body: [fullStudentRow()] } },
+          { method: 'GET', match: '/rest/v1/user_inventory', reply: { status: 500, body: { message: 'down' } } },
+        ],
+      })
+      const { default: handler } = await import('../api/school/students.js')
+      const res = await handler(call('GET', undefined, `?classId=${CLASS_ID}`))
+      expect(res.status).toBe(200)
+      const body = await res.json()
+      expect(body.students[0]).not.toHaveProperty('avatar_url')
+    })
+
+    it('still never leaks auth_user_id in the response', async () => {
+      mockSupabase({
+        user: TEACHER,
+        routes: [
+          classroomRoute,
+          { method: 'GET', match: '/rest/v1/class_students', reply: { body: [fullStudentRow()] } },
+          { method: 'GET', match: '/rest/v1/user_inventory', reply: { body: [{ user_id: 'auth-kid-1', avatar_url: 'https://cdn.test/a.png' }] } },
+        ],
+      })
+      const { default: handler } = await import('../api/school/students.js')
+      const res = await handler(call('GET', undefined, `?classId=${CLASS_ID}`))
+      expect(JSON.stringify(await res.json())).not.toContain('auth_user_id')
+    })
+  })
 })
 
 describe('POST /api/school/students', () => {

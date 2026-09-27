@@ -130,6 +130,7 @@ function RowMenu({ student, open, onToggle, onAction }) {
             {item(t('school:teacher.roster.menu.new_pictures'), 'reset_secret')}
             {(student.locked || student.hard_locked) && item(t('school:teacher.roster.menu.unlock'), 'unlock')}
             {item(t('school:teacher.roster.menu.rename'), 'rename')}
+            {item(t('school:teacher.roster.menu.avatar'), 'avatar')}
             {item(t('school:teacher.roster.menu.sign_out'), 'sign_out')}
             {item(t('school:teacher.roster.menu.remove'), 'remove')}
           </>
@@ -141,7 +142,7 @@ function RowMenu({ student, open, onToggle, onAction }) {
   )
 }
 
-export default function RosterTable({ students, onAction, onOpenBooks }) {
+export default function RosterTable({ students, onAction, onOpenBooks, onOpenAvatar }) {
   const { t, i18n } = useTranslation()
   const [openMenu, setOpenMenu] = useState(null)
   const [renaming, setRenaming] = useState(null)
@@ -151,6 +152,10 @@ export default function RosterTable({ students, onAction, onOpenBooks }) {
     setOpenMenu(null)
     if (action === 'rename') {
       setRenaming(student)
+      return
+    }
+    if (action === 'avatar') {
+      onOpenAvatar(student)
       return
     }
     if (action === 'remove') {
@@ -174,7 +179,15 @@ export default function RosterTable({ students, onAction, onOpenBooks }) {
             key={s.id}
             className={`glass rounded-xl p-3 border border-galaxy-text-muted/10 flex items-center gap-3 ${removed ? 'opacity-60' : ''}`}
           >
-            <span className="text-2xl shrink-0" aria-hidden="true">{s.avatar_emoji}</span>
+            {s.avatar_url ? (
+              <img
+                src={s.avatar_url}
+                alt={t('school:teacher.roster.avatar_thumb_alt', { name: s.display_name })}
+                className="w-8 h-8 rounded-full object-cover shrink-0"
+              />
+            ) : (
+              <span className="text-2xl shrink-0" aria-hidden="true">{s.avatar_emoji}</span>
+            )}
             <div className="flex-1 min-w-0">
               <button
                 type="button"

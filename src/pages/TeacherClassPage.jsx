@@ -9,6 +9,7 @@ import AddStudents from '../components/school/AddStudents'
 import RosterTable from '../components/school/RosterTable'
 import SignInCards from '../components/school/SignInCards'
 import StudentBooks from '../components/school/StudentBooks'
+import StudentAvatarEditor from '../components/school/StudentAvatarEditor'
 import { schoolFetch } from '../lib/schoolApi'
 import { teacherErrorText } from '../components/school/teacherErrors'
 import { MAX_SEATS } from '../../lib/school/license.js'
@@ -37,6 +38,7 @@ export default function TeacherClassPage() {
   // the moment this page unmounts (see the cleanup effect below).
   const [cardsToShow, setCardsToShow] = useState(null)
   const [viewingStudent, setViewingStudent] = useState(null)
+  const [viewingAvatarStudent, setViewingAvatarStudent] = useState(null)
 
   async function load() {
     setLoading(true)
@@ -124,6 +126,10 @@ export default function TeacherClassPage() {
       }
     }
     return res
+  }
+
+  function handleAvatarSaved(studentId, avatar_url) {
+    setStudents((prev) => prev.map((s) => (s.id === studentId ? { ...s, avatar_url } : s)))
   }
 
   function handleStudentsCreated(created) {
@@ -327,7 +333,12 @@ export default function TeacherClassPage() {
             </button>
           </div>
         ) : (
-          <RosterTable students={students} onAction={handleStudentAction} onOpenBooks={setViewingStudent} />
+          <RosterTable
+            students={students}
+            onAction={handleStudentAction}
+            onOpenBooks={setViewingStudent}
+            onOpenAvatar={setViewingAvatarStudent}
+          />
         )}
       </div>
 
@@ -336,6 +347,15 @@ export default function TeacherClassPage() {
           classId={classItem.id}
           student={viewingStudent}
           onClose={() => setViewingStudent(null)}
+        />
+      )}
+
+      {viewingAvatarStudent && (
+        <StudentAvatarEditor
+          classId={classItem.id}
+          student={viewingAvatarStudent}
+          onClose={() => setViewingAvatarStudent(null)}
+          onSaved={handleAvatarSaved}
         />
       )}
     </div>

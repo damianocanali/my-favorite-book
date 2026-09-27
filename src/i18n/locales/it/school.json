@@ -115,6 +115,7 @@
       "not_configured": "Le funzioni per le scuole non sono ancora attive su questo server.",
       "upstream": "Qualcosa non ha funzionato. Riprova.",
       "student_forbidden": "Gli account degli alunni non possono farlo.",
+      "class_image_limit": "Questa classe ha già usato le immagini di oggi per questo alunno. Riprova domani.",
       "generic": "Qualcosa non ha funzionato. Riprova."
     },
     "class_page": {
@@ -180,6 +181,7 @@
         "new_pictures": "Nuove immagini",
         "unlock": "Sblocca",
         "rename": "Rinomina",
+        "avatar": "Avatar",
         "sign_out": "Disconnetti ovunque",
         "remove": "Rimuovi",
         "restore": "Ripristina"
@@ -191,13 +193,21 @@
         "emoji_label": "Avatar"
       },
       "books_button": "Libri",
-      "open_books_aria": "Vedi i libri di {{name}}"
+      "open_books_aria": "Vedi i libri di {{name}}",
+      "avatar_thumb_alt": "Avatar di {{name}}"
     },
     "student_books": {
       "heading": "I libri di {{name}}",
       "empty": "Ancora nessun libro.",
       "updated": "Aggiornato {{when}}",
       "open_book_aria": "Apri {{title}}"
+    },
+    "avatar_editor": {
+      "heading": "Avatar di {{name}}",
+      "current_alt": "Avatar attuale di {{name}}",
+      "placeholder_alt": "Nessun avatar ancora",
+      "create_cta": "Crea avatar",
+      "creating": "Creazione in corso…"
     },
     "cards": {
       "heading": "Tessere di accesso",
