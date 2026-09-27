@@ -5,6 +5,7 @@
 // response as a prop and the page that renders it is responsible for
 // discarding that state on unmount. Nothing here writes to storage.
 import { useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import { Printer } from 'lucide-react'
 import { chunk } from './rosterText'
@@ -32,6 +33,18 @@ function Card({ student, classInfo, footer }) {
       <p className="text-[10px] font-body opacity-50 mt-2">{footer}</p>
     </div>
   )
+}
+
+// Shared by the on-screen preview and the print-only portal below, so the
+// two never drift out of sync with each other.
+function CardPages({ pages, classInfo, footer }) {
+  return pages.map((pageStudents, pageIdx) => (
+    <div key={pageIdx} className="cards-page grid grid-cols-2 sm:grid-cols-3 gap-4">
+      {pageStudents.map((s) => (
+        <Card key={s.id} student={s} classInfo={classInfo} footer={footer} />
+      ))}
+    </div>
+  ))
 }
 
 export default function SignInCards({ classInfo, students, onDismiss }) {
@@ -89,15 +102,22 @@ export default function SignInCards({ classInfo, students, onDismiss }) {
         </div>
       </div>
 
-      <div className="signin-cards">
-        {pages.map((pageStudents, pageIdx) => (
-          <div key={pageIdx} className="cards-page grid grid-cols-2 sm:grid-cols-3 gap-4">
-            {pageStudents.map((s) => (
-              <Card key={s.id} student={s} classInfo={classInfo} footer={footer} />
-            ))}
-          </div>
-        ))}
+      {/* On-screen preview, in the normal page flow so the teacher can see
+          it before printing. This is NOT what actually prints — it lives
+          inside #root, which the pre-existing book-printing rule in
+          index.css hides during every print job, cards included. The
+          portal below (a sibling of #root, via createPortal) is the
+          element the print CSS actually targets. */}
+      <div className="cards-preview">
+        <CardPages pages={pages} classInfo={classInfo} footer={footer} />
       </div>
+
+      {createPortal(
+        <div className="signin-cards">
+          <CardPages pages={pages} classInfo={classInfo} footer={footer} />
+        </div>,
+        document.body
+      )}
     </div>
   )
 }
