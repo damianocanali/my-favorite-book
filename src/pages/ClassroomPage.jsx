@@ -6,6 +6,7 @@ import { GraduationCap, ArrowLeft, BookOpen, X, RefreshCw } from 'lucide-react'
 import BookPreview from '../components/book/BookPreview'
 import SparkleButton from '../components/ui/SparkleButton'
 import { formatDate } from '../i18n/formats'
+import { apiFetchAuthed } from '../lib/api'
 
 function BookCard({ submission, onClick }) {
   const { t } = useTranslation()
@@ -82,7 +83,7 @@ export default function ClassroomPage() {
     setLoading(true)
     setError('')
     try {
-      const res = await fetch(`/api/classroom?code=${code}`)
+      const res = await apiFetchAuthed(`/api/classroom?code=${code}`)
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || t('gallery:classroom.load_failed'))
       setClassroom(data)

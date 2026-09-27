@@ -28,7 +28,7 @@
     "aria": "Check in on how you are doing"
   },
   "constellation": {
-    "title": "Feelings you've noticed",
+    "title": "Your feelings constellation",
     "empty": "Your feelings will show up here as stars.",
     "aria": "Feelings you have noticed: {{feelings}}"
   }
