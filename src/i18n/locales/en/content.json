@@ -319,6 +319,18 @@
       },
       "pixel": {
         "label": "Pixel Art"
+      },
+      "claymation": {
+        "label": "Claymation"
+      },
+      "comic": {
+        "label": "Comic Book"
+      },
+      "crayon": {
+        "label": "Crayon"
+      },
+      "storybook": {
+        "label": "Storybook Ink"
       }
     }
   }

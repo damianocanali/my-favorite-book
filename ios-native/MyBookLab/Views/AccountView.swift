@@ -70,6 +70,7 @@ struct AccountView: View {
                 appIconCard
                 rowsCard
                 musicCard
+                languageCard
                 signOutCard
                 // Below the badges and above the danger zone: something to look
                 // at, never something to act on.
@@ -163,6 +164,45 @@ struct AccountView: View {
             }
             .padding(16)
         }
+        .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 18))
+    }
+
+    /// Set when the child picks a language this session: iOS only switches
+    /// on the next launch, so until then the card says what to do.
+    @State private var pendingLanguage: String?
+
+    private var languageCard: some View {
+        let current = pendingLanguage ?? AppLanguage.uiLanguage
+        return VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 14) {
+                Image(systemName: "globe")
+                    .foregroundStyle(.cyan)
+                    .frame(width: 24)
+                Text("Language").foregroundStyle(.white)
+                Spacer()
+                Picker("Language", selection: Binding(
+                    get: { current },
+                    set: { code in
+                        guard code != current else { return }
+                        AppLanguage.choose(code)
+                        pendingLanguage = code
+                    }
+                )) {
+                    ForEach(AppLanguage.supported, id: \.code) { lang in
+                        // Verbatim: a language's own name is never translated.
+                        Text(verbatim: lang.name).tag(lang.code)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .frame(width: 190)
+            }
+            if pendingLanguage != nil, pendingLanguage != AppLanguage.uiLanguage {
+                Text("Close My Book Lab and open it again to switch language.")
+                    .font(.caption)
+                    .foregroundStyle(.yellow.opacity(0.9))
+            }
+        }
+        .padding(16)
         .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 18))
     }
 
@@ -483,6 +523,12 @@ struct AccountView: View {
             }
             .frame(maxWidth: 360)
             .padding(.horizontal, 32)
+
+            // Before signing in too: a child who can't read English has to be
+            // able to find Italian before they can find the sign-in button.
+            languageCard
+                .frame(maxWidth: 360)
+                .padding(.horizontal, 32)
         }
         .contentColumn(maxWidth: ContentWidth.form)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
