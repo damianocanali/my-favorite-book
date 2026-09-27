@@ -5,7 +5,8 @@ import FeelingIcon from './FeelingIcon'
 // The teacher dashboard's roster (Task D2): a table on sm+ screens, cards
 // on phones, per the brief. No feeling totals, no sorting by feelings, no
 // scores anywhere (owner decision D7) — check-ins are just small coloured
-// icons, one per entry, oldest to newest.
+// icons, one per entry, newest-first (matches api/school/dashboard.js's
+// own order — it's never re-sorted here).
 function Avatar({ student }) {
   if (student.avatar_url) {
     return (

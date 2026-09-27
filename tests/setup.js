@@ -23,3 +23,17 @@ if (typeof globalThis.localStorage === 'undefined') {
     get length() { return mem.size },
   }
 }
+
+// Same stub, same reason, for sessionStorage (src/lib/viewMode.js's kids-
+// preview flag).
+if (typeof globalThis.sessionStorage === 'undefined') {
+  const mem = new Map()
+  globalThis.sessionStorage = {
+    getItem: (k) => (mem.has(k) ? mem.get(k) : null),
+    setItem: (k, v) => { mem.set(k, String(v)) },
+    removeItem: (k) => { mem.delete(k) },
+    clear: () => { mem.clear() },
+    key: (i) => [...mem.keys()][i] ?? null,
+    get length() { return mem.size },
+  }
+}

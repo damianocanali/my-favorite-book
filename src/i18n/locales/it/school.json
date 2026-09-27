@@ -76,11 +76,11 @@
       },
       "empty": {
         "heading": "Ancora nessuna classe",
-        "body": "Crea la tua prima classe per vedere chi è attivo, i loro libri e ogni messaggio che ha bisogno di te.",
+        "body": "Crea la tua prima classe per vedere chi è attivo, i loro libri e i messaggi che richiedono la tua attenzione.",
         "cta": "Crea la tua prima classe"
       },
       "needs_you_now": {
-        "heading": "Ha bisogno di te ora",
+        "heading": "Da gestire ora",
         "disclaimer": "My Book Lab inoltra questi messaggi. Non sono monitorati e non sono un servizio di emergenza.",
         "empty": "Nessuno ha bisogno di te in questo momento.",
         "grownup_heading": "Ho bisogno di un adulto",
@@ -113,12 +113,14 @@
         "books_count_one": "{{count}} libro",
         "books_count_other": "{{count}} libri",
         "last_edited": "Ultima modifica {{when}}",
-        "pictures_today": "{{count}} immagini oggi",
+        "pictures_today_one": "{{count}} immagine oggi",
+        "pictures_today_other": "{{count}} immagini oggi",
         "inactive_chip": "Non visto da 7 giorni",
         "open_aria": "Vedi i dettagli di {{name}}",
         "no_checkins": "Nessun check-in"
       },
       "drawer": {
+        "heading": "Dettagli di {{name}}",
         "tab_books": "Libri",
         "tab_checkins": "Check-in",
         "checkins_empty": "Nessun check-in negli ultimi 30 giorni.",

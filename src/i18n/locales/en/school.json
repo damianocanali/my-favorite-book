@@ -113,12 +113,14 @@
         "books_count_one": "{{count}} book",
         "books_count_other": "{{count}} books",
         "last_edited": "Last edited {{when}}",
-        "pictures_today": "{{count}} pictures today",
+        "pictures_today_one": "{{count}} picture today",
+        "pictures_today_other": "{{count}} pictures today",
         "inactive_chip": "Not seen in 7 days",
         "open_aria": "See {{name}}'s details",
         "no_checkins": "No check-ins"
       },
       "drawer": {
+        "heading": "{{name}}'s details",
         "tab_books": "Books",
         "tab_checkins": "Check-ins",
         "checkins_empty": "No check-ins in the last 30 days.",

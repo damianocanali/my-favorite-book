@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { sortHelp, groupHelp } from '../src/lib/dashboardHelp.js'
+import { sortHelp, groupHelp, filterRecentlySeen, SEEN_SUPPRESS_MS } from '../src/lib/dashboardHelp.js'
 
 const row = (over) => ({ id: 'x', kind: 'book', created_at: '2026-09-27T00:00:00.000Z', ...over })
 
@@ -35,5 +35,30 @@ describe('groupHelp', () => {
 
   it('returns empty lists for no rows', () => {
     expect(groupHelp([])).toEqual({ grownup: [], book: [] })
+  })
+})
+
+describe('filterRecentlySeen', () => {
+  const NOW = 1_700_000_000_000
+
+  it('drops a row still inside its suppression window', () => {
+    const rows = [row({ id: 'a' }), row({ id: 'b' })]
+    const until = new Map([['a', NOW + SEEN_SUPPRESS_MS]])
+    expect(filterRecentlySeen(rows, until, NOW).map((r) => r.id)).toEqual(['b'])
+  })
+
+  it('keeps a row once its suppression window has passed', () => {
+    const rows = [row({ id: 'a' })]
+    const until = new Map([['a', NOW - 1]])
+    expect(filterRecentlySeen(rows, until, NOW).map((r) => r.id)).toEqual(['a'])
+  })
+
+  it('keeps every row when the map is empty', () => {
+    const rows = [row({ id: 'a' }), row({ id: 'b' })]
+    expect(filterRecentlySeen(rows, new Map(), NOW).map((r) => r.id)).toEqual(['a', 'b'])
+  })
+
+  it('is exactly a 60s window', () => {
+    expect(SEEN_SUPPRESS_MS).toBe(60_000)
   })
 })

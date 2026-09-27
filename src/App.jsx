@@ -50,8 +50,22 @@ import { resumeOnGesture } from './services/audioService'
 // is what keeps the logo link and any other "/" reference consistent with
 // that. A teacher who switches to family view (useTeacherMode false) sees
 // the ordinary landing page here, same as any consumer.
+//
+// `user` (and therefore useTeacherMode's selectIsTeacher) is a false
+// negative for a moment on every load, while auth is still hydrating —
+// waiting on the same `loading` flag ProtectedRoute already gates on, with
+// its same neutral spinner, means a signed-in teacher never flashes the
+// consumer LandingPage before this redirects them.
 function HomeRoute() {
+  const authLoading = useAuthStore((s) => s.loading)
   const teacherMode = useTeacherMode()
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-galaxy-secondary border-t-transparent rounded-full animate-spin" />
+      </div>
+    )
+  }
   if (teacherMode) return <Navigate to="/teacher" replace />
   return <LandingPage />
 }

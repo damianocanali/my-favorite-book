@@ -32,3 +32,28 @@ export function groupHelp(rows) {
     book: rows.filter((h) => h.kind === 'book'),
   }
 }
+
+/// How long a just-marked-Seen id is kept out of poll results, once the
+/// POST that marked it succeeds. Long enough to outlast the poll interval
+/// (30s) plus request latency, so the ONE poll that could plausibly have
+/// been in flight before the PATCH committed never gets to resurrect it.
+export const SEEN_SUPPRESS_MS = 60 * 1000
+
+/**
+ * Drops any row whose id is still within its post-Seen suppression window.
+ * TeacherDashboardPage's 30s poll replaces `help` wholesale from the
+ * server; without this, a poll that started fetching a beat before this
+ * tab's own "Seen" PATCH committed can win the race and hand back a
+ * response that still includes the row the teacher just dismissed,
+ * re-adding it right after the optimistic removal took it away.
+ * @param {Array<{id: string}>} rows
+ * @param {Map<string, number>} recentlySeenUntil id -> ms timestamp the
+ *   suppression ends at (see SEEN_SUPPRESS_MS)
+ * @param {number} [nowMs]
+ */
+export function filterRecentlySeen(rows, recentlySeenUntil, nowMs = Date.now()) {
+  return rows.filter((row) => {
+    const until = recentlySeenUntil.get(row.id)
+    return !(until && nowMs < until)
+  })
+}

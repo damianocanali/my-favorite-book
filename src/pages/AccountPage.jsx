@@ -79,11 +79,16 @@ export default function AccountPage() {
     try {
       await markClassroomOwner()
     } catch {
-      // Best-effort — still take them to /teacher; TeacherPage marks the
-      // account again on its own next load if this call failed silently.
+      // Best-effort — still take them to /teacher/classes; TeacherPage
+      // marks the account again on its own next load if this call failed
+      // silently.
     } finally {
       setClassroomLoading(false)
-      navigate('/teacher')
+      // A brand-new teacher has zero classes yet — send them straight to
+      // where they create the first one, not to the (now separate)
+      // Dashboard, which would just show its own empty state pointing
+      // back here.
+      navigate('/teacher/classes')
     }
   }
 

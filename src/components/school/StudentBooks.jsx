@@ -20,7 +20,7 @@ import BookPreview from '../book/BookPreview'
 // Same modal treatment as TeacherHelpScreen/HelpScreen/BreakScreen: portal,
 // role="dialog" + aria-modal, focus moved onto the panel and given back on
 // close, Escape alongside the Close button.
-export default function StudentBooks({ classId, student, onClose, headerExtra }) {
+export default function StudentBooks({ classId, student, onClose }) {
   const { t, i18n } = useTranslation()
   const panelRef = useRef(null)
 
@@ -119,14 +119,6 @@ export default function StudentBooks({ classId, student, onClose, headerExtra })
               {openBook ? openBook.title : heading}
             </h2>
           </div>
-          {/* Injected by the teacher dashboard's student detail drawer
-              (Task D2) to switch to the Check-ins tab without this
-              component needing to know that tab exists. Absent everywhere
-              else (TeacherClassPage's roster), so this stays undefined and
-              renders nothing there. Hidden once a specific book is open —
-              the back arrow is already this view's way out, and swapping
-              to Check-ins mid-book would be a surprising place to land. */}
-          {!openBook && headerExtra}
           <button
             type="button"
             onClick={onClose}

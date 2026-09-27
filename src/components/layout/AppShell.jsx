@@ -5,6 +5,7 @@ import { LogOut, GraduationCap, Sparkles, Volume2, VolumeX, ArrowLeft, LayoutDas
 import { useAuthStore, selectDisplayName, selectIsTeacher } from '../../stores/useAuthStore'
 import { useIsStudent } from '../../hooks/useIsStudent'
 import { useTeacherMode } from '../../hooks/useTeacherMode'
+import { isPreviewingKids, exitKidsPreview } from '../../lib/viewMode'
 import { toggleMute, isMuted } from '../../services/audioService'
 import PlayMenu from './PlayMenu'
 import AvatarDisplay from '../avatar/AvatarDisplay'
@@ -30,11 +31,13 @@ export default function AppShell({ children }) {
   const navigate = useNavigate()
 
   const user = useAuthStore((s) => s.user)
+  const authLoading = useAuthStore((s) => s.loading)
   const signOut = useAuthStore((s) => s.signOut)
   const displayName = useAuthStore(selectDisplayName)
   const isTeacher = useAuthStore(selectIsTeacher)
   const isStudent = useIsStudent()
   const teacherMode = useTeacherMode()
+  const previewingKids = isPreviewingKids()
 
   const [muted, setMuted] = useState(isMuted())
 
@@ -44,6 +47,16 @@ export default function AppShell({ children }) {
   }
 
   const handleToggleMute = () => setMuted(toggleMute())
+
+  // "Preview the kids' app" (TeacherDashboardPage) sets the sessionStorage
+  // flag this reads and lands on /bookshelf; this is the way back —
+  // clearing it and returning to the dashboard is the only thing this
+  // button does, so the very next render already has the teacher chrome
+  // back (computeTeacherMode reads previewingKids fresh every render).
+  const handleExitPreview = () => {
+    exitKidsPreview()
+    navigate('/teacher')
+  }
 
   const headerLink = (active) =>
     `flex items-center gap-2 px-3 py-2 rounded-full transition-colors ${
@@ -95,6 +108,21 @@ export default function AppShell({ children }) {
     )
   }
 
+  // The chrome decision below (teacher nav vs. consumer nav) must not
+  // flash the wrong one while auth is still hydrating: `user` starts null
+  // on every load, so useTeacherMode() reads as false for a moment even
+  // for an account that turns out to be a signed-in teacher. Same neutral
+  // spinner and same `loading` flag ProtectedRoute already gates on —
+  // this is that same wait, one level up, for the chrome itself rather
+  // than a single protected page.
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-galaxy-secondary border-t-transparent rounded-full animate-spin" />
+      </div>
+    )
+  }
+
   // Task D2: a teacher who hasn't switched to family view (useTeacherMode)
   // gets a nav built around their three destinations — Dashboard, Classes,
   // Account — with none of the consumer surfaces (Create/Bookshelf/Gallery/
@@ -127,16 +155,24 @@ export default function AppShell({ children }) {
           />
 
           <div className="flex flex-shrink-0 items-center gap-1 sm:gap-2">
-            <Link to="/teacher" className={headerLink(location.pathname === '/teacher')}>
+            {/* aria-label: the text label is `hidden` below `sm`, which
+                would otherwise leave these as icon-only links with no
+                accessible name on a phone. */}
+            <Link
+              to="/teacher"
+              aria-label={t('nav:header.dashboard')}
+              className={headerLink(location.pathname === '/teacher')}
+            >
               <LayoutDashboard size={18} />
-              <span className="hidden font-body text-sm font-semibold sm:inline">{t('nav:header.dashboard')}</span>
+              <span className="hidden font-body text-sm font-semibold sm:inline" aria-hidden="true">{t('nav:header.dashboard')}</span>
             </Link>
             <Link
               to="/teacher/classes"
+              aria-label={t('nav:header.classes')}
               className={headerLink(location.pathname === '/teacher/classes' || location.pathname.startsWith('/teacher/class/'))}
             >
               <Users size={18} />
-              <span className="hidden font-body text-sm font-semibold sm:inline">{t('nav:header.classes')}</span>
+              <span className="hidden font-body text-sm font-semibold sm:inline" aria-hidden="true">{t('nav:header.classes')}</span>
             </Link>
 
             <LanguageToggle />
@@ -282,6 +318,23 @@ export default function AppShell({ children }) {
           )}
         </div>
       </header>
+
+      {/* A teacher who followed "Preview the kids' app" from the dashboard
+          gets the ordinary consumer chrome above (computeTeacherMode reads
+          this same flag and reports false), but needs an obvious way back —
+          without this they'd have to know to type /teacher again. */}
+      {previewingKids && (
+        <div className="sticky top-0 z-30 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 border-b border-galaxy-secondary/30 bg-galaxy-secondary/15 px-3 py-2 text-center backdrop-blur-sm">
+          <span className="font-body text-sm text-galaxy-text">{t('nav:preview_kids.banner')}</span>
+          <button
+            type="button"
+            onClick={handleExitPreview}
+            className="font-body text-sm font-semibold text-galaxy-secondary hover:underline"
+          >
+            {t('nav:preview_kids.back_to_dashboard')}
+          </button>
+        </div>
+      )}
 
       {/* pb clears the fixed tab bar (56px bar + label) plus the home indicator */}
       <main id="main-content" className="relative z-10 pb-[calc(72px+var(--sab,0px))]">{children}</main>

@@ -33,5 +33,9 @@
     "builder_hint": "Drag pictures into a story",
     "example_title": "See an Example",
     "example_hint": "A finished book"
+  },
+  "preview_kids": {
+    "banner": "You're previewing the kids' app",
+    "back_to_dashboard": "Back to dashboard"
   }
 }

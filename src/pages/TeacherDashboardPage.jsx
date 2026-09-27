@@ -5,8 +5,9 @@ import { motion } from 'motion/react'
 import { GraduationCap, BookOpenCheck, ChevronRight } from 'lucide-react'
 import { schoolFetch } from '../lib/schoolApi'
 import { teacherErrorText } from '../components/school/teacherErrors'
-import { sortHelp } from '../lib/dashboardHelp'
+import { sortHelp, filterRecentlySeen, SEEN_SUPPRESS_MS } from '../lib/dashboardHelp'
 import { getRememberedClassId, setRememberedClassId, pickClassId } from '../lib/dashboardClass'
+import { enterKidsPreview } from '../lib/viewMode'
 import NeedsYouNow from '../components/school/NeedsYouNow'
 import ClassGlance from '../components/school/ClassGlance'
 import StudentsTable from '../components/school/StudentsTable'
@@ -38,6 +39,12 @@ export default function TeacherDashboardPage() {
   const [openStudent, setOpenStudent] = useState(null)
   const [helpActionError, setHelpActionError] = useState(null)
 
+  // id -> ms timestamp a just-marked-Seen row stays excluded from poll
+  // results (see filterRecentlySeen's own comment for the race this
+  // closes). A ref, not state: it's read/written from callbacks and must
+  // never itself trigger a re-render.
+  const recentlySeenUntil = useRef(new Map())
+
   const loadDashboard = useCallback(async () => {
     setDashError(null)
     const res = await schoolFetch('/api/school/dashboard')
@@ -47,7 +54,7 @@ export default function TeacherDashboardPage() {
     }
     const nextClasses = res.data?.classes ?? []
     setClasses(nextClasses)
-    setHelp(res.data?.help ?? [])
+    setHelp(filterRecentlySeen(res.data?.help ?? [], recentlySeenUntil.current))
     setSelectedClassId((prev) => {
       // Keep whatever the teacher already has open if it's still valid —
       // only re-derive from the remembered id on the very first load (prev
@@ -93,6 +100,11 @@ export default function TeacherDashboardPage() {
   function handleSelectClass(classId) {
     setSelectedClassId(classId)
     setRememberedClassId(classId)
+    // Without this, the previous class's summary/roster stays on screen
+    // (classData is only replaced once the new fetch resolves), which
+    // reads as "this is Room 6's data" for however long the request takes
+    // rather than as a loading state.
+    setClassData(null)
   }
 
   async function handleSeen(item) {
@@ -102,7 +114,11 @@ export default function TeacherDashboardPage() {
       method: 'POST',
       body: JSON.stringify({ id: item.id }),
     })
-    if (!res.ok) {
+    if (res.ok) {
+      // Only on confirmed success — a failed Seen restores the row below
+      // and must not also suppress it from the very next poll.
+      recentlySeenUntil.current.set(item.id, Date.now() + SEEN_SUPPRESS_MS)
+    } else {
       setHelp((prev) => sortHelp([...prev, item]))
       setHelpActionError(teacherErrorText(t, res.code || 'generic'))
     }
@@ -178,6 +194,7 @@ export default function TeacherDashboardPage() {
           )}
           <Link
             to="/bookshelf"
+            onClick={enterKidsPreview}
             className="flex items-center gap-1.5 font-body text-sm font-semibold text-galaxy-secondary hover:underline"
           >
             <BookOpenCheck size={16} />
