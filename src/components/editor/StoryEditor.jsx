@@ -1,10 +1,11 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { useTranslation } from 'react-i18next'
 import { useBookStore } from '../../stores/useBookStore'
 import { useBookshelfStore } from '../../stores/useBookshelfStore'
 import { useAccessibilityStore } from '../../stores/useAccessibilityStore'
 import { useAgeAdaptive } from '../../hooks/useAgeAdaptive'
+import { useSpeechSynthesis } from '../../hooks/useSpeechSynthesis'
 import PageEditor from './PageEditor'
 import PageThumbnailStrip from './PageThumbnailStrip'
 import PageToolbar from './PageToolbar'
@@ -12,9 +13,55 @@ import StoryProgressMap from './StoryProgressMap'
 import SparkleButton from '../ui/SparkleButton'
 import CheckInButton from '../ui/CheckInButton'
 import CoverArtGenerator from './CoverArtGenerator'
-import { Eye } from 'lucide-react'
+import { Eye, Volume2, VolumeX, X } from 'lucide-react'
 import AppLogo from '../ui/AppLogo'
 import { formatNumber } from '../../i18n/formats'
+
+// The assignment's writing prompt, shown as a dismissible hint while a
+// student writes a book tagged with one (brief S3 #2 — see useBookStore's
+// tagAssignment). Local dismiss state only: it's meant to get out of the
+// way for this sitting, not to remember itself across a reload the way the
+// tag itself does.
+function AssignmentPromptHint({ prompt }) {
+  const { t } = useTranslation()
+  const [dismissed, setDismissed] = useState(false)
+  const { speak, stop, isSpeaking, isSupported: ttsSupported } = useSpeechSynthesis()
+
+  if (dismissed) return null
+
+  return (
+    <motion.div
+      className="glass rounded-2xl p-4 border border-galaxy-secondary/30 mb-6 flex items-start gap-3"
+      initial={{ opacity: 0, y: -8 }}
+      animate={{ opacity: 1, y: 0 }}
+    >
+      <div className="flex-1 min-w-0">
+        <p className="text-galaxy-secondary font-body text-xs font-semibold uppercase tracking-wide mb-1">
+          {t('school:student.assignments.prompt_hint.heading')}
+        </p>
+        <p className="text-galaxy-text font-body text-sm">{prompt}</p>
+      </div>
+      {ttsSupported && (
+        <button
+          type="button"
+          onClick={() => (isSpeaking ? stop() : speak(prompt))}
+          aria-label={isSpeaking ? t('school:actions.stop_listening') : t('school:student.assignments.prompt_listen_aria')}
+          className="shrink-0 p-2 rounded-xl text-galaxy-secondary hover:bg-white/[0.08] transition-colors min-w-[40px] min-h-[40px] flex items-center justify-center"
+        >
+          {isSpeaking ? <VolumeX size={18} aria-hidden="true" /> : <Volume2 size={18} aria-hidden="true" />}
+        </button>
+      )}
+      <button
+        type="button"
+        onClick={() => setDismissed(true)}
+        aria-label={t('school:student.assignments.prompt_hint.dismiss_aria')}
+        className="shrink-0 p-2 rounded-lg text-galaxy-text-muted hover:text-galaxy-text transition-colors"
+      >
+        <X size={16} aria-hidden="true" />
+      </button>
+    </motion.div>
+  )
+}
 
 export default function StoryEditor({ onPreview }) {
   const { t } = useTranslation()
@@ -69,6 +116,10 @@ export default function StoryEditor({ onPreview }) {
             </span>
           </SparkleButton>
         </div>
+
+        {/* Assignment prompt hint — only for a book tagged via
+            MyAssignments' "Start writing" (schools Task S3). */}
+        {book.assignmentPrompt && <AssignmentPromptHint prompt={book.assignmentPrompt} />}
 
         {/* Story progress map — persistent visual progress for ADHD scaffolding */}
         <StoryProgressMap />

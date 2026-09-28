@@ -358,5 +358,58 @@
         }
       }
     }
+  },
+  "student": {
+    "assignments": {
+      "heading": "I miei compiti",
+      "prompt_listen_aria": "Leggi il compito ad alta voce",
+      "due": {
+        "none": "Nessuna scadenza",
+        "today": "Scade oggi",
+        "tomorrow": "Scade domani",
+        "weekday": "Scade {{weekday}}",
+        "date": "Scade {{date}}",
+        "late_ok": "Puoi consegnarlo in ritardo",
+        "past_due": "Scaduto"
+      },
+      "status": {
+        "not_started": "Non iniziato",
+        "handed_in": "Consegnato ✓",
+        "closed": "Chiuso"
+      },
+      "start_writing": "Inizia a scrivere",
+      "open_handed_in": "Apri il mio libro",
+      "hand_in_again": "Consegna di nuovo",
+      "new_feedback": "Nuovi commenti!",
+      "see_feedback": "Vedi i commenti",
+      "prompt_hint": {
+        "heading": "Il tuo compito",
+        "dismiss_aria": "Nascondi la traccia del compito"
+      }
+    },
+    "hand_in": {
+      "picker_title": "Consegna a…",
+      "picker_hint": "Per quale compito è questo libro?",
+      "picker_empty": "Nessun compito aperto al momento.",
+      "button": "Consegna",
+      "button_pick": "Consegna a…",
+      "saving": "Sto salvando il tuo libro…",
+      "sending": "Consegna in corso…",
+      "success_title": "Consegnato!",
+      "success_body": "La tua maestra o il tuo maestro lo leggerà.",
+      "errors": {
+        "assignment_closed": "Questo compito è chiuso. Chiedi al tuo insegnante.",
+        "past_due": "È scaduto il tempo per consegnarlo. Chiedi al tuo insegnante.",
+        "book_too_large": "Questo libro è troppo grande da consegnare. Chiedi al tuo insegnante.",
+        "assignment_not_found": "Non troviamo questo compito. Chiedi al tuo insegnante.",
+        "book_not_found": "Non troviamo questo libro. Riprova.",
+        "generic": "Qualcosa non ha funzionato. Chiedi al tuo insegnante."
+      }
+    },
+    "feedback": {
+      "heading": "Commenti della tua maestra o del tuo maestro",
+      "empty": "Ancora nessun commento.",
+      "close_aria": "Chiudi i commenti"
+    }
   }
 }

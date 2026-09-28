@@ -358,5 +358,58 @@
         }
       }
     }
+  },
+  "student": {
+    "assignments": {
+      "heading": "My assignments",
+      "prompt_listen_aria": "Read the assignment out loud",
+      "due": {
+        "none": "No due date",
+        "today": "Due today",
+        "tomorrow": "Due tomorrow",
+        "weekday": "Due {{weekday}}",
+        "date": "Due {{date}}",
+        "late_ok": "Late is OK",
+        "past_due": "Past due"
+      },
+      "status": {
+        "not_started": "Not started",
+        "handed_in": "Handed in ✓",
+        "closed": "Closed"
+      },
+      "start_writing": "Start writing",
+      "open_handed_in": "Open my book",
+      "hand_in_again": "Hand in again",
+      "new_feedback": "New feedback!",
+      "see_feedback": "See feedback",
+      "prompt_hint": {
+        "heading": "Your assignment",
+        "dismiss_aria": "Hide the assignment prompt"
+      }
+    },
+    "hand_in": {
+      "picker_title": "Hand in to…",
+      "picker_hint": "Which assignment is this book for?",
+      "picker_empty": "No open assignments right now.",
+      "button": "Hand in",
+      "button_pick": "Hand in to…",
+      "saving": "Saving your book…",
+      "sending": "Handing in…",
+      "success_title": "Handed in!",
+      "success_body": "Your teacher will read it.",
+      "errors": {
+        "assignment_closed": "This assignment is closed. Ask your teacher.",
+        "past_due": "It's past the due date. Ask your teacher.",
+        "book_too_large": "This book is too big to hand in. Ask your teacher.",
+        "assignment_not_found": "We can't find that assignment. Ask your teacher.",
+        "book_not_found": "We can't find that book. Try again.",
+        "generic": "Something went wrong. Ask your teacher."
+      }
+    },
+    "feedback": {
+      "heading": "Feedback from your teacher",
+      "empty": "No feedback yet.",
+      "close_aria": "Close feedback"
+    }
   }
 }
