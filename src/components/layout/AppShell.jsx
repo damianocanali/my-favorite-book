@@ -13,6 +13,7 @@ import AppLogo from '../ui/AppLogo'
 import CosmicBackground from './CosmicBackground'
 import TabBar from './TabBar'
 import LanguageToggle from '../ui/LanguageToggle'
+import NotificationBell from '../school/NotificationBell'
 import { PAGE_ACTIONS_ID } from './PageActions'
 import { isFocusedAuthRoute } from '../../lib/focusedAuthRoutes'
 
@@ -174,6 +175,8 @@ export default function AppShell({ children }) {
               <Users size={18} />
               <span className="hidden font-body text-sm font-semibold sm:inline" aria-hidden="true">{t('nav:header.classes')}</span>
             </Link>
+
+            <NotificationBell />
 
             <LanguageToggle />
 

@@ -13,6 +13,7 @@ import AvatarDisplay from '../components/avatar/AvatarDisplay'
 import LanguageSwitcher from '../components/ui/LanguageSwitcher'
 import { useRewardsStore, BADGE_DEFINITIONS } from '../stores/useRewardsStore'
 import FeelingConstellation from '../components/ui/FeelingConstellation'
+import NotificationSettings from '../components/school/NotificationSettings'
 import { formatDate, formatNumber } from '../i18n/formats'
 
 // Mirrors GRACE_DAYS in lib/deleteUser.js. Duplicated rather than imported:
@@ -337,6 +338,9 @@ export default function AccountPage() {
                     <Repeat size={16} />
                     {viewMode === 'family' ? t('account:classroom.switch_to_teacher') : t('account:classroom.switch_to_family')}
                   </button>
+                  <div className="basis-full">
+                    <NotificationSettings />
+                  </div>
                 </div>
               ) : (
                 <div className="glass rounded-2xl p-4 border border-galaxy-text-muted/10">

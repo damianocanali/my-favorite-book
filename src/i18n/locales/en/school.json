@@ -414,5 +414,44 @@
       "empty": "No feedback yet.",
       "close_aria": "Close feedback"
     }
+  },
+  "notifications": {
+    "bell_label": "Notifications",
+    "bell_label_unread": "Notifications ({{count}} unread)",
+    "title": "Notifications",
+    "mark_all_read": "Mark all read",
+    "empty": "Nothing new yet.",
+    "error": "Couldn't load notifications.",
+    "disclaimer": "My Book Lab passes these messages on. They are not monitored and are not an emergency service.",
+    "kinds": {
+      "hand_in": "{{student}} handed in “{{assignment}}”",
+      "hand_in_late": "{{student}} handed in “{{assignment}}” late",
+      "resubmit": "{{student}} handed in “{{assignment}}” again",
+      "all_handed_in": "Everyone in {{className}} has handed in “{{assignment}}”",
+      "help_book": "{{student}} would like help with their book",
+      "help_grownup": "{{student}} asked for a grown-up",
+      "generic": "Something new in {{className}}"
+    },
+    "push": {
+      "turn_on": "Turn on alerts on this computer",
+      "hint": "Get a pop-up when a student asks for a grown-up during school hours.",
+      "on": "Alerts are on for this computer",
+      "turn_off": "Turn off",
+      "blocked": "Alerts are blocked in this browser's settings",
+      "error": "Couldn't turn on alerts. Try again."
+    },
+    "settings": {
+      "title": "Class notifications",
+      "summary_label": "Summary email",
+      "summary_daily": "Daily summary",
+      "summary_weekly": "Weekly (Fridays)",
+      "summary_off": "Off",
+      "urgent_label": "When a student asks for a grown-up during school hours",
+      "push_urgent": "Alert me with a notification",
+      "email_urgent": "Alert me by email",
+      "saved": "Saved",
+      "error": "Couldn't save. Try again.",
+      "load_error": "Couldn't load your notification settings."
+    }
   }
 }

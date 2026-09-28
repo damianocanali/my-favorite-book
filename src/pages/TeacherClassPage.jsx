@@ -27,6 +27,12 @@ export default function TeacherClassPage() {
   // doesn't keep reopening it.
   const [searchParams, setSearchParams] = useSearchParams()
   const [reviewAssignmentId, setReviewAssignmentId] = useState(() => searchParams.get('review'))
+  // The bell can deep-link here while this page is already open (same
+  // route, new ?review=), which the initializer above never sees again.
+  const reviewParam = searchParams.get('review')
+  useEffect(() => {
+    if (reviewParam) setReviewAssignmentId(reviewParam)
+  }, [reviewParam])
 
   const [classItem, setClassItem] = useState(null)
   const [students, setStudents] = useState([])
