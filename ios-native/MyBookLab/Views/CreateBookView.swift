@@ -12,13 +12,16 @@ import PhotosUI
 private let storybookImageStyle = "children's storybook illustration, colorful, friendly, whimsical, cute cartoon style, soft colors, safe for kids, no text, no words, no letters"
 
 /// A class (student) account that has used its daily picture allowance: the
-/// server answers 429 (code class_image_limit). A class account is never sold
+/// server answers 429 with code "class_image_limit". Any other 429 (a rate
+/// limit) keeps the normal error. A class account is never sold
 /// anything, so it gets this neutral line instead of an upsell or raw error.
 private let classImageLimitMessage: LocalizedStringResource = "That's all for today. Ask your teacher."
 
 private func isClassImageLimit(_ error: Error, isStudent: Bool) -> Bool {
-    guard isStudent, case APIError.http(let status, _) = error else { return false }
-    return status == 429
+    guard isStudent, case APIError.http(let status, let body) = error, status == 429 else { return false }
+    struct ErrorBody: Decodable { let code: String? }
+    let code = (try? JSONDecoder().decode(ErrorBody.self, from: Data(body.utf8)))?.code
+    return code == "class_image_limit"
 }
 
 struct CreateBookView: View {

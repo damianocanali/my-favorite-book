@@ -42,12 +42,12 @@ final class SubscriptionStore {
     private var isStudent: Bool { AuthStore.shared.isStudent }
 
     /// The class plan, mirroring `student` in src/lib/plans.js. Not a tier
-    /// anyone buys: the school's licence covers it. `imagesPerDay` is UX
-    /// only — the server's per-student allowance is what actually counts.
+    /// anyone buys: the school's licence covers it. Unlimited books and no
+    /// upsell come from `isPaid` being true; the 15 pictures a day are
+    /// enforced by the server's per-student allowance, not by the app, so
+    /// the only rule this app applies itself is no print / PDF export.
     enum ClassPlan {
-        static let maxBooks: Int? = nil     // unlimited
-        static let imagesPerDay = 15
-        static let pdfExport = false        // no print, no PDF export
+        static let pdfExport = false
     }
 
     /// Whether printed copies / PDF export are on offer. Only a class account

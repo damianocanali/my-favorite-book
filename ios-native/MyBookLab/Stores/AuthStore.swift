@@ -82,19 +82,18 @@ final class AuthStore: NSObject {
             user = session?.user
             loadStoredAvatar()
         } catch {
-            // No active session — fine, user just needs to sign in. But the
-            // session may have gone stale (expired or revoked refresh token)
-            // rather than never existing, and then the last person's shelf,
-            // draft, inventory and badges are still on the device. Clear them
-            // now: the next sign-in may be a different person — a child's
-            // class sign-in on the family iPad, whose inventory would
-            // otherwise be unioned with the parent's owned styles and items.
-            // Not on a network failure, though: an offline launch with an
-            // expired access token lands here too, and wiping a signed-in
-            // parent's unsaved draft because the wifi dropped is worse.
+            // No active session — fine, user just needs to sign in. But if
+            // the session is really gone (missing, or its refresh token was
+            // rejected) the last person's check-ins, owned items and rewards
+            // are still on the device, and the next sign-in may be someone
+            // else — a child's class sign-in on the family iPad, whose
+            // inventory would otherwise be unioned with the parent's.
+            // Anything else (offline, a 5xx, a decoding hiccup) keeps the
+            // data: check-in history exists only on this device, and a parent
+            // must not lose it because the wifi dropped at launch.
             session = nil
             user = nil
-            if !(error is URLError) { clearLocalUserData() }
+            if Self.sessionIsGone(error) { clearLocalUserData() }
         }
 
         // Listen for future auth changes (sign in / sign out from any flow).
@@ -119,6 +118,21 @@ final class AuthStore: NSObject {
                     }
                 }
             }
+        }
+    }
+
+    /// True only for errors meaning the stored session can never work again:
+    /// no session at all, or the auth server refusing it with a 4xx (an
+    /// invalid or revoked refresh token). A 429 is "try later", not "gone".
+    private static func sessionIsGone(_ error: Error) -> Bool {
+        guard let authError = error as? AuthError else { return false }
+        switch authError {
+        case .sessionMissing:
+            return true
+        case .api(_, _, _, let response):
+            return (400..<500).contains(response.statusCode) && response.statusCode != 429
+        default:
+            return false
         }
     }
 

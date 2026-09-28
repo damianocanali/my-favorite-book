@@ -4,6 +4,7 @@ import SwiftUI
 
 struct BadgesView: View {
     @Environment(RewardsStore.self) private var rewards
+    @Environment(AuthStore.self) private var auth
 
     var body: some View {
         ZStack {
@@ -65,7 +66,8 @@ struct BadgesView: View {
                 .font(.caption2)
                 .foregroundStyle(.white.opacity(0.55))
                 .multilineTextAlignment(.center)
-            if badge.coins > 0 {
+            // A class account has no coins to earn or spend.
+            if badge.coins > 0 && !auth.isStudent {
                 // A bare count: locale-formatted number, no catalog key.
                 Label {
                     Text(badge.coins, format: .number)

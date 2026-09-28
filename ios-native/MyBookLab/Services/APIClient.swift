@@ -93,11 +93,12 @@ actor APIClient {
         return try await perform(req, url: url)
     }
 
-    private func perform<Response: Decodable>(_ req: URLRequest, url: URL) async throws -> Response {
+    private func perform<Response: Decodable>(_ req: URLRequest, url: URL,
+                                              using urlSession: URLSession? = nil) async throws -> Response {
         let data: Data
         let response: URLResponse
         do {
-            (data, response) = try await session.data(for: req)
+            (data, response) = try await (urlSession ?? session).data(for: req)
         } catch {
             throw APIError.transport(url: url.absoluteString, underlying: error)
         }
@@ -481,6 +482,16 @@ actor APIClient {
 
     private static let schoolTimeout: TimeInterval = 8
 
+    /// A session whose resource timeout caps the WHOLE request at 8 s — a
+    /// request's own timeoutInterval is only an idle timeout, which a slow
+    /// trickle of bytes can keep resetting.
+    private static let schoolSession: URLSession = {
+        let config = URLSessionConfiguration.default
+        config.timeoutIntervalForRequest = schoolTimeout
+        config.timeoutIntervalForResource = schoolTimeout
+        return URLSession(configuration: config)
+    }()
+
     private struct SchoolCheckInBody: Encodable {
         let feeling: String
         /// Omitted (not null) when the child closed the sheet after step 1.
@@ -533,7 +544,7 @@ actor APIClient {
             req.setValue("application/json", forHTTPHeaderField: "Content-Type")
             req.httpBody = try encoder.encode(body)
         }
-        return try await perform(req, url: url)
+        return try await perform(req, url: url, using: Self.schoolSession)
     }
 
     // Intent-based "ideas" helpers (Sentence Starters / Help Me Think).
