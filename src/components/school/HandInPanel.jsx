@@ -38,7 +38,11 @@ function AssignmentPickerModal({ assignments, onPick, onClose }) {
         role="dialog"
         aria-modal="true"
         aria-label={t('school:student.hand_in.picker_title')}
-        className="w-full max-w-md max-h-[80vh] overflow-y-auto glass rounded-2xl p-6 border border-galaxy-text-muted/10 focus:outline-none space-y-3"
+        // bg-galaxy-bg-light, not `.glass`: opens over the book preview
+        // (dense art/text), which bled through `.glass`'s 8%-white tint —
+        // same fix as AssignmentReview's panel (d9afe25) and
+        // StudentFeedbackModal's own panel, above.
+        className="w-full max-w-md max-h-[80vh] overflow-y-auto bg-galaxy-bg-light rounded-2xl p-6 border border-galaxy-text-muted/10 focus:outline-none space-y-3"
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
       >
@@ -152,7 +156,12 @@ export default function HandInPanel({ book }) {
         {success ? (
           <motion.div
             key="success"
-            className="rounded-2xl p-5 text-center bg-green-400/10 border border-green-400/30"
+            // bg-galaxy-bg-light, not a translucent green tint: this sits
+            // right under the book preview's own cover art (and under the
+            // confetti burst), which bled through — same opaque-panel fix
+            // as the two modals above, kept a green border for the
+            // success cue.
+            className="rounded-2xl p-5 text-center bg-galaxy-bg-light border border-green-400/40"
             initial={{ opacity: 0, scale: 0.9, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={{ type: 'spring', stiffness: 200, damping: 15 }}

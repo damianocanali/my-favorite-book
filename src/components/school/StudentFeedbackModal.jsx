@@ -36,7 +36,9 @@ function FeedbackItem({ item }) {
       {item.sticker && (
         <motion.span
           aria-hidden="true"
-          className="text-4xl shrink-0"
+          // ≥48px per the brief — the sticker is the reward, not a bullet
+          // point next to the comment.
+          className="text-6xl leading-none shrink-0"
           initial={{ scale: 0, rotate: -20 }}
           animate={{ scale: 1, rotate: 0 }}
           transition={{ type: 'spring', stiffness: 300, damping: 12 }}
@@ -125,7 +127,11 @@ export default function StudentFeedbackModal({ submissionId, onSeen, onClose }) 
         role="dialog"
         aria-modal="true"
         aria-label={t('school:student.feedback.heading')}
-        className="w-full max-w-lg max-h-[85vh] overflow-y-auto glass rounded-2xl p-6 border border-galaxy-text-muted/10 focus:outline-none space-y-4"
+        // bg-galaxy-bg-light, not `.glass`: this panel opens over the
+        // bookshelf's own assignment cards (or the book preview), which
+        // bled through `.glass`'s 8%-white tint and read as two screens
+        // superimposed — same fix as AssignmentReview's panel (d9afe25).
+        className="w-full max-w-lg max-h-[85vh] overflow-y-auto bg-galaxy-bg-light rounded-2xl p-6 border border-galaxy-text-muted/10 focus:outline-none space-y-4"
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
       >
