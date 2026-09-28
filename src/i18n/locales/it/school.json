@@ -117,7 +117,9 @@
         "pictures_today_other": "{{count}} immagini oggi",
         "inactive_chip": "Non visto da 7 giorni",
         "open_aria": "Vedi i dettagli di {{name}}",
-        "no_checkins": "Nessun check-in"
+        "no_checkins": "Nessun check-in",
+        "assignment_hint": "Crea un compito",
+        "assignment_review_aria": "Correggi {{title}}"
       },
       "drawer": {
         "heading": "Dettagli di {{name}}",
@@ -178,6 +180,13 @@
       "upstream": "Qualcosa non ha funzionato. Riprova.",
       "student_forbidden": "Gli account degli alunni non possono farlo.",
       "class_image_limit": "Questa classe ha già usato le immagini di oggi per questo alunno. Riprova domani.",
+      "assignment_not_found": "Non troviamo questo compito.",
+      "submission_not_found": "Non troviamo questo elaborato.",
+      "has_submissions": "Alcuni alunni lo hanno già consegnato. Chiudilo invece di eliminarlo.",
+      "invalid_transition": "Questo cambio di stato non è consentito.",
+      "assignment_closed": "Questo compito è chiuso.",
+      "past_due": "Questo compito ha superato la scadenza.",
+      "book_too_large": "Questo libro è troppo grande per essere consegnato.",
       "generic": "Qualcosa non ha funzionato. Riprova."
     },
     "class_page": {
@@ -277,6 +286,77 @@
       "safety_note": "Stampale adesso. Per sicurezza non possiamo mostrare di nuovo queste immagini; puoi sempre crearne di nuove.",
       "print": "Stampa tessere",
       "footer": "mybooklab.app/class"
+    },
+    "assignments": {
+      "heading": "Compiti",
+      "new": "Nuovo compito",
+      "empty": "Ancora nessun compito.",
+      "no_due_date": "Nessuna scadenza",
+      "due": "Scade {{when}}",
+      "handed_in_count": "{{handed_in}} di {{total}} consegnati",
+      "status": {
+        "draft": "Bozza",
+        "open": "Aperto",
+        "closed": "Chiuso"
+      },
+      "errors": {
+        "title_required": "Inserisci un titolo.",
+        "prompt_required": "Inserisci una traccia di scrittura."
+      },
+      "actions": {
+        "publish": "Pubblica",
+        "close": "Chiudi",
+        "reopen": "Riapri",
+        "delete_confirm": "Eliminare \"{{title}}\"? Non si può annullare.",
+        "review_aria": "Correggi {{title}}"
+      },
+      "form": {
+        "new_heading": "Nuovo compito",
+        "edit_heading": "Modifica compito",
+        "title_label": "Titolo",
+        "prompt_label": "Traccia di scrittura",
+        "due_label": "Scadenza (facoltativa)",
+        "allow_late_label": "Consenti consegne in ritardo",
+        "listen": "Leggi ad alta voce",
+        "save_draft": "Salva come bozza",
+        "publish_now": "Pubblica ora",
+        "saving": "Salvataggio…"
+      },
+      "review": {
+        "heading": "Correzione: {{title}}",
+        "empty": "Ancora nessun alunno.",
+        "handed_in_at": "Consegnato {{when}}",
+        "version": "Aggiornato {{count}}×",
+        "feedback_count_one": "{{count}} commento",
+        "feedback_count_other": "{{count}} commenti",
+        "next": "Alunno successivo",
+        "previous": "Alunno precedente",
+        "open_aria": "Apri l'elaborato di {{name}}",
+        "status": {
+          "handed_in": "Consegnato",
+          "late": "In ritardo",
+          "not_started": "Non iniziato"
+        }
+      },
+      "feedback": {
+        "heading": "Commenti",
+        "sticker_label": "Adesivo",
+        "comment_label": "Commento",
+        "comment_placeholder": "Scrivi qualcosa di incoraggiante…",
+        "send": "Invia",
+        "sending": "Invio…",
+        "seen": "Visto",
+        "not_seen": "Non ancora visto",
+        "need_content": "Aggiungi un commento o scegli un adesivo.",
+        "sticker": {
+          "star": "Stella",
+          "rocket": "Razzo",
+          "heart": "Cuore",
+          "wow": "Wow",
+          "keep_going": "Continua così",
+          "rainbow": "Arcobaleno"
+        }
+      }
     }
   }
 }

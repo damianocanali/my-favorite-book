@@ -232,7 +232,13 @@ export default function TeacherDashboardPage() {
             <h2 id="students-heading" className="font-heading text-lg font-bold text-galaxy-text mb-3">
               {t('school:teacher.dashboard.students.heading')}
             </h2>
-            <StudentsTable students={classData.students} locale={i18n.language} onOpen={setOpenStudent} />
+            <StudentsTable
+              students={classData.students}
+              locale={i18n.language}
+              onOpen={setOpenStudent}
+              classId={selectedClassId}
+              latestAssignment={classData.assignments?.[0] ?? null}
+            />
           </section>
         </>
       ) : null}

@@ -1,6 +1,8 @@
 import { useTranslation } from 'react-i18next'
+import { Link } from 'react-router-dom'
 import { relativeTime } from './relativeTime'
 import FeelingIcon from './FeelingIcon'
+import HandInChip from './HandInChip'
 
 // The teacher dashboard's roster (Task D2): a table on sm+ screens, cards
 // on phones, per the brief. No feeling totals, no sorting by feelings, no
@@ -76,7 +78,31 @@ function BooksCell({ student, locale }) {
   )
 }
 
-export default function StudentsTable({ students, locale, onOpen }) {
+// The dashboard column for "the latest assignment" (StudentsTable's own
+// header cell + per-row chip). No assignment at all: the header carries a
+// "Create an assignment" link to the class page instead of a title, and
+// rows show nothing — there's no id to look a student's state up by.
+function AssignmentHeaderCell({ classId, latestAssignment }) {
+  const { t } = useTranslation()
+  if (!latestAssignment) {
+    return (
+      <Link to={`/teacher/class/${classId}`} className="text-galaxy-secondary hover:underline">
+        {t('school:teacher.dashboard.students.assignment_hint')}
+      </Link>
+    )
+  }
+  return (
+    <Link
+      to={`/teacher/class/${classId}?review=${latestAssignment.id}`}
+      className="text-galaxy-secondary hover:underline"
+      aria-label={t('school:teacher.dashboard.students.assignment_review_aria', { title: latestAssignment.title })}
+    >
+      {latestAssignment.title}
+    </Link>
+  )
+}
+
+export default function StudentsTable({ students, locale, onOpen, classId, latestAssignment = null }) {
   const { t } = useTranslation()
 
   if (students.length === 0) {
@@ -93,7 +119,10 @@ export default function StudentsTable({ students, locale, onOpen }) {
             <th className="pb-2 pr-3">{t('school:teacher.dashboard.students.col_last_sign_in')}</th>
             <th className="pb-2 pr-3">{t('school:teacher.dashboard.students.col_books')}</th>
             <th className="pb-2 pr-3">{t('school:teacher.dashboard.students.col_pictures_today')}</th>
-            <th className="pb-2">{t('school:teacher.dashboard.students.col_checkins')}</th>
+            <th className="pb-2 pr-3">{t('school:teacher.dashboard.students.col_checkins')}</th>
+            <th className="pb-2">
+              <AssignmentHeaderCell classId={classId} latestAssignment={latestAssignment} />
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -127,8 +156,11 @@ export default function StudentsTable({ students, locale, onOpen }) {
                 <BooksCell student={s} locale={locale} />
               </td>
               <td className="py-3 pr-3 font-body text-sm text-galaxy-text-muted">{s.images_today}</td>
-              <td className="py-3">
+              <td className="py-3 pr-3">
                 <CheckinIcons checkins={s.checkins_7d} locale={locale} />
+              </td>
+              <td className="py-3">
+                {latestAssignment && <HandInChip row={s.assignments?.[latestAssignment.id] ?? 'not_started'} />}
               </td>
             </tr>
           ))}
@@ -136,6 +168,9 @@ export default function StudentsTable({ students, locale, onOpen }) {
       </table>
 
       {/* Cards — phones */}
+      <div className="mb-2 font-body text-xs font-semibold uppercase tracking-wide text-galaxy-text-muted sm:hidden">
+        <AssignmentHeaderCell classId={classId} latestAssignment={latestAssignment} />
+      </div>
       <ul className="space-y-3 sm:hidden">
         {students.map((s) => (
           <li key={s.id}>
@@ -154,6 +189,7 @@ export default function StudentsTable({ students, locale, onOpen }) {
                   </p>
                 </div>
                 {s.inactive_7d && <InactiveChip />}
+                {latestAssignment && <HandInChip row={s.assignments?.[latestAssignment.id] ?? 'not_started'} />}
               </div>
               <div className="flex items-center justify-between gap-2 font-body text-xs text-galaxy-text-muted">
                 <span>{t('school:teacher.dashboard.students.books_count', { count: s.books_count })}</span>

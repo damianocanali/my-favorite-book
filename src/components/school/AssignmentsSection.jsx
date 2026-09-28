@@ -1,0 +1,206 @@
+import { useCallback, useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import { Plus, Pencil, Trash2 } from 'lucide-react'
+import { schoolFetch } from '../../lib/schoolApi'
+import { teacherErrorText } from './teacherErrors'
+import { STATUS_CHIP_KEY, formatDueDate, canDeleteAssignment, nextStatusActions } from './assignmentUi'
+import AssignmentForm from './AssignmentForm'
+
+const STATUS_TONE = {
+  draft: 'bg-galaxy-text-muted/10 text-galaxy-text-muted border-galaxy-text-muted/20',
+  open: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30',
+  closed: 'bg-galaxy-text-muted/10 text-galaxy-text-muted border-galaxy-text-muted/20',
+}
+
+function StatusChip({ status }) {
+  const { t } = useTranslation()
+  const key = STATUS_CHIP_KEY[status] ?? 'draft'
+  return (
+    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-body font-semibold border ${STATUS_TONE[key]}`}>
+      {t(`school:teacher.assignments.status.${key}`)}
+    </span>
+  )
+}
+
+// The class page's "Assignments" section (Task S2): list, "New assignment"
+// modal, and the per-row status actions (Publish/Close/Reopen/Edit/Delete).
+// Clicking a row (not a button inside it) opens the Review drawer, owned by
+// the caller (TeacherClassPage) since it also needs to be reachable from a
+// dashboard link — see that page's `?review=` query param handling.
+export default function AssignmentsSection({ classId, locale, onOpenReview }) {
+  const { t } = useTranslation()
+  const [assignments, setAssignments] = useState(null)
+  const [error, setError] = useState(null)
+  const [banner, setBanner] = useState(null)
+  const [formTarget, setFormTarget] = useState(null) // null (closed) | 'new' | an assignment (edit)
+  const [busyId, setBusyId] = useState(null)
+
+  const load = useCallback(async () => {
+    setError(null)
+    const res = await schoolFetch(`/api/school/assignments?classId=${encodeURIComponent(classId)}`)
+    if (res.ok) setAssignments(res.data?.assignments ?? [])
+    else setError(res.code || 'generic')
+  }, [classId])
+
+  useEffect(() => {
+    load()
+  }, [load])
+
+  function upsert(updated) {
+    setAssignments((prev) => {
+      const list = prev ?? []
+      const i = list.findIndex((a) => a.id === updated.id)
+      if (i === -1) return [{ ...updated, counts: updated.counts ?? { handed_in: 0, total_students: 0 } }, ...list]
+      const next = [...list]
+      // A PATCH response doesn't repeat `counts` (assignments.js's teacherShape
+      // only adds it in the list read) — keep whatever the row already had.
+      next[i] = { ...next[i], ...updated }
+      return next
+    })
+  }
+
+  async function handleStatus(assignment, status) {
+    setBusyId(assignment.id)
+    setBanner(null)
+    const res = await schoolFetch('/api/school/assignments', {
+      method: 'PATCH',
+      body: JSON.stringify({ classId, id: assignment.id, status }),
+    })
+    setBusyId(null)
+    if (res.ok) upsert(res.data.assignment)
+    else setBanner(teacherErrorText(t, res.code || 'generic'))
+  }
+
+  async function handleDelete(assignment) {
+    if (!window.confirm(t('school:teacher.assignments.actions.delete_confirm', { title: assignment.title }))) return
+    setBusyId(assignment.id)
+    setBanner(null)
+    const res = await schoolFetch(
+      `/api/school/assignments?classId=${encodeURIComponent(classId)}&id=${encodeURIComponent(assignment.id)}`,
+      { method: 'DELETE' }
+    )
+    setBusyId(null)
+    if (res.ok) setAssignments((prev) => (prev ?? []).filter((a) => a.id !== assignment.id))
+    else setBanner(teacherErrorText(t, res.code || 'generic'))
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="font-heading text-lg font-bold text-galaxy-text">{t('school:teacher.assignments.heading')}</h2>
+        <button
+          type="button"
+          onClick={() => setFormTarget('new')}
+          className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-body font-bold text-white btn-fill-primary transition-colors"
+        >
+          <Plus size={16} /> {t('school:teacher.assignments.new')}
+        </button>
+      </div>
+
+      {banner && <p className="text-red-400 text-sm font-body">{banner}</p>}
+
+      {error ? (
+        <div className="glass rounded-2xl p-6 border border-red-500/20 flex flex-col items-center gap-3 text-center">
+          <p className="text-red-400 text-sm font-body">{teacherErrorText(t, error)}</p>
+          <button
+            onClick={load}
+            className="px-4 py-2 rounded-xl font-body font-bold text-sm text-white btn-fill-primary transition-colors"
+          >
+            {t('common:actions.retry')}
+          </button>
+        </div>
+      ) : assignments === null ? (
+        <div className="flex items-center justify-center py-8">
+          <div className="w-6 h-6 border-2 border-galaxy-secondary border-t-transparent rounded-full animate-spin" />
+        </div>
+      ) : assignments.length === 0 ? (
+        <p className="glass rounded-2xl p-6 border border-galaxy-text-muted/10 text-center font-body text-sm text-galaxy-text-muted">
+          {t('school:teacher.assignments.empty')}
+        </p>
+      ) : (
+        <ul className="space-y-2">
+          {assignments.map((a) => {
+            const due = formatDueDate(a.due_at, locale)
+            const actions = nextStatusActions(a.status)
+            const busy = busyId === a.id
+            return (
+              <li key={a.id} className="glass rounded-2xl border border-galaxy-text-muted/10 overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => onOpenReview(a.id)}
+                  aria-label={t('school:teacher.assignments.actions.review_aria', { title: a.title })}
+                  className="w-full text-left p-4 hover:bg-white/[0.04] transition-colors"
+                >
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-body font-semibold text-galaxy-text truncate">{a.title}</span>
+                    <StatusChip status={a.status} />
+                  </div>
+                  <div className="mt-1 flex items-center gap-2 flex-wrap text-xs font-body text-galaxy-text-muted">
+                    <span>{due ? t('school:teacher.assignments.due', { when: due }) : t('school:teacher.assignments.no_due_date')}</span>
+                    <span aria-hidden="true">·</span>
+                    <span>
+                      {t('school:teacher.assignments.handed_in_count', {
+                        handed_in: a.counts?.handed_in ?? 0,
+                        total: a.counts?.total_students ?? 0,
+                      })}
+                    </span>
+                  </div>
+                </button>
+
+                <div className="flex flex-wrap items-center gap-2 px-4 pb-3">
+                  {actions.map((status) => (
+                    <button
+                      key={status}
+                      type="button"
+                      disabled={busy}
+                      onClick={() => handleStatus(a, status)}
+                      className="px-3 py-1.5 rounded-lg text-xs font-body font-semibold text-galaxy-text border border-galaxy-text-muted/25 hover:border-galaxy-secondary/50 transition-colors disabled:opacity-60"
+                    >
+                      {status === 'published' && a.status === 'closed'
+                        ? t('school:teacher.assignments.actions.reopen')
+                        : status === 'published'
+                          ? t('school:teacher.assignments.actions.publish')
+                          : t('school:teacher.assignments.actions.close')}
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={() => setFormTarget(a)}
+                    aria-label={t('common:actions.edit')}
+                    className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-body font-semibold text-galaxy-text-muted hover:text-galaxy-text transition-colors disabled:opacity-60"
+                  >
+                    <Pencil size={13} /> {t('common:actions.edit')}
+                  </button>
+                  {canDeleteAssignment(a.counts) && (
+                    <button
+                      type="button"
+                      disabled={busy}
+                      onClick={() => handleDelete(a)}
+                      aria-label={t('common:actions.delete')}
+                      className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-body font-semibold text-red-400 hover:text-red-300 transition-colors disabled:opacity-60"
+                    >
+                      <Trash2 size={13} /> {t('common:actions.delete')}
+                    </button>
+                  )}
+                </div>
+              </li>
+            )
+          })}
+        </ul>
+      )}
+
+      {formTarget && (
+        <AssignmentForm
+          classId={classId}
+          assignment={formTarget === 'new' ? null : formTarget}
+          onClose={() => setFormTarget(null)}
+          onSaved={(saved) => {
+            upsert(saved)
+            setFormTarget(null)
+          }}
+        />
+      )}
+    </div>
+  )
+}
