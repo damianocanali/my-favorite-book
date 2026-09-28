@@ -32,7 +32,7 @@ export function mockSupabase({ user, routes }) {
     for (const r of routes) {
       if (r.method === method && u.includes(r.match)) {
         const next = typeof r.reply === 'function' ? r.reply(log.at(-1)) : r.reply
-        return new Response(JSON.stringify(next.body ?? []), { status: next.status ?? 200 })
+        return new Response(JSON.stringify(next.body ?? []), { status: next.status ?? 200, headers: next.headers })
       }
     }
     return new Response('[]')

@@ -414,5 +414,45 @@
       "empty": "Ancora nessun commento.",
       "close_aria": "Chiudi i commenti"
     }
+  },
+  "notifications": {
+    "bell_label": "Notifiche",
+    "bell_label_unread": "Notifiche ({{count}} da leggere)",
+    "title": "Notifiche",
+    "mark_all_read": "Segna tutte come lette",
+    "empty": "Ancora niente di nuovo.",
+    "error": "Impossibile caricare le notifiche.",
+    "disclaimer": "My Book Lab inoltra questi messaggi. Non sono monitorati e non sono un servizio di emergenza.",
+    "kinds": {
+      "hand_in": "{{student}} ha consegnato “{{assignment}}”",
+      "hand_in_late": "{{student}} ha consegnato “{{assignment}}” in ritardo",
+      "resubmit": "{{student}} ha consegnato di nuovo “{{assignment}}”",
+      "all_handed_in": "Tutta la classe {{className}} ha consegnato “{{assignment}}”",
+      "help_book": "{{student}} vorrebbe aiuto con il suo libro",
+      "help_grownup": "{{student}} ha chiesto un adulto",
+      "generic": "Novità in {{className}}"
+    },
+    "push": {
+      "turn_on": "Attiva gli avvisi su questo computer",
+      "hint": "Ricevi un avviso quando uno studente chiede un adulto durante l'orario scolastico.",
+      "on": "Gli avvisi sono attivi su questo computer",
+      "turn_off": "Disattiva",
+      "blocked": "Gli avvisi sono bloccati nelle impostazioni del browser",
+      "error": "Impossibile attivare gli avvisi. Riprova."
+    },
+    "settings": {
+      "title": "Notifiche della classe",
+      "summary_label": "Email di riepilogo",
+      "summary_daily": "Riepilogo giornaliero",
+      "summary_weekly": "Settimanale (il venerdì)",
+      "summary_off": "Disattivato",
+      "urgent_label": "Quando uno studente chiede un adulto durante l'orario scolastico",
+      "push_urgent": "Avvisami con una notifica",
+      "email_urgent": "Avvisami via email",
+      "saved": "Salvato",
+      "error": "Impossibile salvare. Riprova.",
+      "load_error": "Impossibile caricare le impostazioni delle notifiche."
+    },
+    "unknown_student": "Uno studente"
   }
 }

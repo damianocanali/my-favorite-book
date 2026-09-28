@@ -12,6 +12,7 @@ import NeedsYouNow from '../components/school/NeedsYouNow'
 import ClassGlance from '../components/school/ClassGlance'
 import StudentsTable from '../components/school/StudentsTable'
 import StudentDetailDrawer from '../components/school/StudentDetailDrawer'
+import PushAlertsButton from '../components/school/PushAlertsButton'
 
 const POLL_MS = 30 * 1000
 
@@ -215,6 +216,8 @@ export default function TeacherDashboardPage() {
       </motion.div>
 
       {helpActionError && <p className="text-red-400 text-sm font-body">{helpActionError}</p>}
+
+      <PushAlertsButton />
 
       <NeedsYouNow help={help} onSeen={handleSeen} locale={i18n.language} />
 

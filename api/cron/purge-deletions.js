@@ -3,6 +3,7 @@ export const config = { runtime: 'edge' }
 import { purgeUser, GRACE_DAYS } from '../../lib/deleteUser.js'
 
 const CRON_SECRET = process.env.CRON_SECRET
+const NOTIFICATION_RETENTION_DAYS = 90
 
 function safeEqual(a, b) {
   if (typeof a !== 'string' || typeof b !== 'string' || a.length !== b.length) return false
@@ -55,7 +56,22 @@ export default async function handler(req) {
     }
   }
 
-  return new Response(JSON.stringify({ considered: list.length, purged, failed }), {
+  // Bell rows (teacher_notifications) are kept for 90 days. Best effort: a
+  // failed prune is reported and simply retried by tomorrow's run.
+  const notifCutoff = new Date(Date.now() - NOTIFICATION_RETENTION_DAYS * 86400000).toISOString()
+  let notificationsPruned = false
+  try {
+    const pr = await fetch(
+      `${supabaseUrl}/rest/v1/teacher_notifications?created_at=lt.${encodeURIComponent(notifCutoff)}`,
+      { method: 'DELETE', headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}`, Prefer: 'return=minimal' } }
+    )
+    notificationsPruned = pr.ok
+    if (!pr.ok) console.error('[purge-deletions] could not prune teacher_notifications', pr.status)
+  } catch (e) {
+    console.error('[purge-deletions] prune error:', e?.message)
+  }
+
+  return new Response(JSON.stringify({ considered: list.length, purged, failed, notifications_pruned: notificationsPruned }), {
     status: 200, headers: { 'Content-Type': 'application/json' },
   })
 }
