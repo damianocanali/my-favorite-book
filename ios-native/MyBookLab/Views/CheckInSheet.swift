@@ -9,20 +9,28 @@
 // tile shows a tinted dot, so the six feelings still read as six distinct
 // things. Dropping Feeling<Name>/Need<Name> imagesets into Assets.xcassets is
 // the only change the art needs.
+//
+// A class (student) account gets the student needs and, on both steps, a line
+// saying their teacher can see this — the check-in is copied to the teacher
+// (SchoolShare), and a child must never be read without being told.
 
 import SwiftUI
 
 struct CheckInSheet: View {
     @Environment(CheckInStore.self) private var store
+    @Environment(AuthStore.self) private var auth
 
     var body: some View {
         ZStack {
             CosmicBackground()
             if case .need = store.stage {
+                // Five student needs sit in three columns — two rows, the
+                // same height as the family sheet's two-by-two.
                 tiles(
                     title: "What would help?",
-                    items: Need.allCases.map { (id: $0.rawValue, label: label(for: $0), tone: nil as String?) },
-                    columns: 2
+                    items: (auth.isStudent ? Need.student : Need.consumer)
+                        .map { (id: $0.rawValue, label: label(for: $0), tone: nil as String?) },
+                    columns: auth.isStudent ? 3 : 2
                 ) { id in
                     if let need = Need(rawValue: id) { store.choose(need) }
                 }
@@ -51,6 +59,8 @@ struct CheckInSheet: View {
                 .font(.system(.title3, design: .rounded).bold())
                 .foregroundStyle(.white)
                 .multilineTextAlignment(.center)
+
+            if auth.isStudent { teacherCanSee }
 
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 12), count: columns), spacing: 12) {
                 ForEach(items, id: \.id) { item in
@@ -88,6 +98,22 @@ struct CheckInSheet: View {
         .frame(maxWidth: ContentWidth.form)
     }
 
+    private var teacherCanSee: some View {
+        HStack(spacing: 6) {
+            Image(systemName: "graduationcap.fill")
+                .font(.caption)
+                .accessibilityHidden(true)
+            Text("Your teacher can see this")
+                .font(.system(.footnote, design: .rounded).weight(.semibold))
+                .multilineTextAlignment(.center)
+        }
+        .foregroundStyle(.white.opacity(0.8))
+        .padding(.horizontal, 12)
+        .padding(.vertical, 6)
+        .background(.white.opacity(0.1), in: Capsule())
+        .accessibilityElement(children: .combine)
+    }
+
     // The labels are separate literals rather than interpolated ids so the
     // String Catalog can extract each one and Italian can author them.
     // Italian uses NOUNS — rabbia, tristezza — never adjectives: adjectives
@@ -110,6 +136,8 @@ struct CheckInSheet: View {
         case .quiet:     return "Make it quiet"
         case .help:      return "I need help"
         case .keepGoing: return "Keep going"
+        case .helpBook:  return "Help with my book"
+        case .grownup:   return "I need a grown-up"
         }
     }
 }

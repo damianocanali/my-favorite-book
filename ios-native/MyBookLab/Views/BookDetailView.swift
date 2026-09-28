@@ -10,6 +10,7 @@ struct BookDetailView: View {
     @Environment(AudioService.self) private var audio
     @Environment(AuthStore.self) private var auth
     @Environment(AppRouter.self) private var router
+    @Environment(SubscriptionStore.self) private var subs
     @Environment(\.dismiss) private var dismiss
     @State private var draft = BookDraftStore.shared
     @State private var pageIndex = 0
@@ -87,12 +88,16 @@ struct BookDetailView: View {
                         .accessibilityLabel("Edit book")
                     }
 
-                    NavigationLink {
-                        PrintOrderView(book: book)
-                    } label: {
-                        Image(systemName: "printer.fill")
+                    // Printing is a paid family feature; a class account's
+                    // plan has none (SubscriptionStore.ClassPlan).
+                    if subs.allowsPrint {
+                        NavigationLink {
+                            PrintOrderView(book: book)
+                        } label: {
+                            Image(systemName: "printer.fill")
+                        }
+                        .accessibilityLabel("Order printed copy")
                     }
-                    .accessibilityLabel("Order printed copy")
                 }
                 .foregroundStyle(.white)
             }

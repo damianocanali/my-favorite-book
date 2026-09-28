@@ -35,6 +35,7 @@ struct MainTabView: View {
 
     @Environment(AppRouter.self) private var router
     @Environment(AudioService.self) private var audio
+    @Environment(AuthStore.self) private var auth
 
     var body: some View {
         @Bindable var router = router
@@ -51,9 +52,13 @@ struct MainTabView: View {
                 .tabItem { Label("Create", systemImage: "plus.circle.fill") }
                 .tag(AppTab.create)
 
-            OrdersListView()
-                .tabItem { Label("Orders", systemImage: "shippingbox.fill") }
-                .tag(AppTab.orders)
+            // Print orders are a paid family feature; a class account never
+            // has one to check on (the web's TabBar drops it the same way).
+            if !auth.isStudent {
+                OrdersListView()
+                    .tabItem { Label("Orders", systemImage: "shippingbox.fill") }
+                    .tag(AppTab.orders)
+            }
 
             AccountView()
                 .tabItem { Label("Account", systemImage: "person.crop.circle.fill") }
@@ -63,7 +68,16 @@ struct MainTabView: View {
         .background(Color.clear)
         .overlay { BadgePopup() }
         .overlay { WelcomeBackMoment() }
+        // A widget link or a stale selection must not land a class account
+        // on a tab that isn't there.
+        .onChange(of: auth.isStudent) { _, student in
+            if student, router.selectedTab == .orders { router.selectedTab = .create }
+        }
         .onChange(of: router.selectedTab) { _, newValue in
+            if newValue == .orders, auth.isStudent {
+                router.selectedTab = .create
+                return
+            }
             // Match the web behavior — different scenes get different
             // moods. Each tab change crossfades to its own track.
             switch newValue {

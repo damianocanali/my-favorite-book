@@ -15,6 +15,7 @@ struct PaywallView: View {
     var context: Context = .standard
 
     @Environment(SubscriptionStore.self) private var subs
+    @Environment(AuthStore.self) private var auth
     @Environment(\.dismiss) private var dismiss
 
     @State private var purchasing: String?
@@ -26,6 +27,33 @@ struct PaywallView: View {
     @State private var pendingPackage: Package?
 
     var body: some View {
+        // Every entry point is hidden from a class account; this is the
+        // backstop. No plans, prices or restore — a neutral line instead.
+        if auth.isStudent {
+            classAccountNotice
+        } else {
+            paywall
+        }
+    }
+
+    private var classAccountNotice: some View {
+        ZStack {
+            CosmicBackground()
+            VStack(spacing: 16) {
+                Mascot(mood: .welcome, size: 96)
+                Text("That's all for today. Ask your teacher.")
+                    .font(.system(.title3, design: .rounded).bold())
+                    .foregroundStyle(.white)
+                    .multilineTextAlignment(.center)
+                SparkleButton(action: { dismiss() }) { Text("Okay") }
+                    .padding(.top, 8)
+            }
+            .padding(28)
+            .frame(maxWidth: ContentWidth.form)
+        }
+    }
+
+    private var paywall: some View {
         ZStack {
             CosmicBackground()
             Confetti(trigger: confettiTrigger).allowsHitTesting(false)

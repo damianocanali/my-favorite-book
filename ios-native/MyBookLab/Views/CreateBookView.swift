@@ -11,6 +11,16 @@ import PhotosUI
 // sentence as printed text inside the illustration. Mirrors the web app.
 private let storybookImageStyle = "children's storybook illustration, colorful, friendly, whimsical, cute cartoon style, soft colors, safe for kids, no text, no words, no letters"
 
+/// A class (student) account that has used its daily picture allowance: the
+/// server answers 429 (code class_image_limit). A class account is never sold
+/// anything, so it gets this neutral line instead of an upsell or raw error.
+private let classImageLimitMessage: LocalizedStringResource = "That's all for today. Ask your teacher."
+
+private func isClassImageLimit(_ error: Error, isStudent: Bool) -> Bool {
+    guard isStudent, case APIError.http(let status, _) = error else { return false }
+    return status == 429
+}
+
 struct CreateBookView: View {
     @Environment(AuthStore.self) private var auth
     @Environment(BookshelfStore.self) private var bookshelf
@@ -143,7 +153,8 @@ struct CreateBookView: View {
             // moment as a celebration ("Your first book is done! 🎉")
             // rather than a wall. Strong conversion lift, no friction
             // for paying users (skipped).
-            if wasFirstBook && !subs.isPaid {
+            // Never for a class account, which is never sold anything.
+            if wasFirstBook && !subs.isPaid && !auth.isStudent {
                 try? await Task.sleep(for: .milliseconds(600)) // wait for navigation
                 showingCelebrationPaywall = true
             }
@@ -401,20 +412,24 @@ private struct CharacterStep: View {
             .overlay(Circle().strokeBorder(.white.opacity(0.25), lineWidth: 2).frame(width: 120, height: 120))
             .shadow(color: .purple.opacity(0.5), radius: 14, y: 6)
 
-            Button {
-                if auth.isSignedIn { showParentalGate = true }
-            } label: {
-                HStack(spacing: 6) {
-                    Image(systemName: "camera.fill")
-                    // Ternary between two `Text`s, not between two bare
-                    // literals: the literal has to sit directly inside a
-                    // localizing initializer to be extracted.
-                    heroImage == nil
-                        ? Text("Turn a photo into your hero")
-                        : Text("Change hero photo")
+            // Not for a class account: it sits behind the grown-up gate, and
+            // generate-avatar refuses class accounts anyway.
+            if !auth.isStudent {
+                Button {
+                    if auth.isSignedIn { showParentalGate = true }
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: "camera.fill")
+                        // Ternary between two `Text`s, not between two bare
+                        // literals: the literal has to sit directly inside a
+                        // localizing initializer to be extracted.
+                        heroImage == nil
+                            ? Text("Turn a photo into your hero")
+                            : Text("Change hero photo")
+                    }
+                    .font(.callout.bold())
+                    .foregroundStyle(.yellow)
                 }
-                .font(.callout.bold())
-                .foregroundStyle(.yellow)
             }
 
             if let heroError {
@@ -964,6 +979,8 @@ private struct PagesStep: View {
             draft.book = b
             AudioService.shared.playSFX(.sparkle)
             await RewardsStore.shared.earn("added_illustration")
+        } catch let error where isClassImageLimit(error, isStudent: auth.isStudent) {
+            generationError = classImageLimitMessage
         } catch {
             generationError = LocalizedStringResource(
                 "create.page.error.illustration_failed",
@@ -1127,6 +1144,8 @@ private struct ReadyStep: View {
             var b = book
             b.coverImage = res.image
             draft.book = b
+        } catch let error where isClassImageLimit(error, isStudent: auth.isStudent) {
+            coverError = classImageLimitMessage
         } catch {
             coverError = LocalizedStringResource(
                 "create.cover.error.generation_failed",

@@ -82,9 +82,19 @@ final class AuthStore: NSObject {
             user = session?.user
             loadStoredAvatar()
         } catch {
-            // No active session — fine, user just needs to sign in.
+            // No active session — fine, user just needs to sign in. But the
+            // session may have gone stale (expired or revoked refresh token)
+            // rather than never existing, and then the last person's shelf,
+            // draft, inventory and badges are still on the device. Clear them
+            // now: the next sign-in may be a different person — a child's
+            // class sign-in on the family iPad, whose inventory would
+            // otherwise be unioned with the parent's owned styles and items.
+            // Not on a network failure, though: an offline launch with an
+            // expired access token lands here too, and wiping a signed-in
+            // parent's unsaved draft because the wifi dropped is worse.
             session = nil
             user = nil
+            if !(error is URLError) { clearLocalUserData() }
         }
 
         // Listen for future auth changes (sign in / sign out from any flow).
@@ -329,14 +339,21 @@ final class AuthStore: NSObject {
     /// it. Never offers or writes a Face ID login (see saveBiometricLogin).
     func signInAsStudent(accessToken: String, refreshToken: String) async throws {
         if isSignedIn { await signOut() }
-        // Check-ins are per-child even when nobody was signed in.
-        CheckInStore.shared.clear()
+        // Unconditionally, not only when someone was signed in: a session
+        // that went stale leaves nobody signed in in memory but the previous
+        // person's draft, badges and owned items still on the device, and
+        // CoinsStore.loadInventory would union those into the child's.
+        clearLocalUserData()
         let s = try await supabase.auth.setSession(
             accessToken: accessToken, refreshToken: refreshToken
         )
         self.session = s
         self.user = s.user
         loadStoredAvatar()
+        // RevenueCat is not logged out by signOut(), so it may still hold the
+        // previous parent's customer and cached entitlements. A class account
+        // never reads them and never buys anything; drop the identity now.
+        await SubscriptionStore.shared.enterStudentMode()
     }
 
     /// Records that this account runs a classroom, so the Classroom

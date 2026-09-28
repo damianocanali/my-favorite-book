@@ -415,10 +415,15 @@ struct ClassSignInView: View {
     /// 4 × 4. On a phone the cells touch edge to edge with the tile drawn
     /// inset inside each one, so the whole cell is the tap target: a 390pt
     /// screen gives ~97pt per target, where 12pt gaps would have dropped
-    /// them below 96. The iPad has room for real gaps and bigger tiles.
+    /// them below 96. A 375pt iPhone SE cannot fit four 96pt cells at all,
+    /// so the phone grid is adaptive with a 96pt floor — four columns where
+    /// they fit, three (125pt targets, tiles capped at 104pt) where they
+    /// don't. The iPad has room for real gaps and bigger tiles.
     private var pad: some View {
         let spacing: CGFloat = regular ? 16 : 0
-        let columns = Array(repeating: GridItem(.flexible(minimum: regular ? 110 : 90), spacing: spacing), count: 4)
+        let columns = regular
+            ? Array(repeating: GridItem(.flexible(minimum: 110), spacing: spacing), count: 4)
+            : [GridItem(.adaptive(minimum: 96), spacing: 0)]
         let disabled = submitting || shaking
         return LazyVGrid(columns: columns, spacing: spacing) {
             ForEach(SchoolPicture.all) { picture in
@@ -435,7 +440,7 @@ struct ClassSignInView: View {
                         .padding(regular ? 0 : 4)
                         .aspectRatio(1, contentMode: .fit)
                         // Capped so all 16 fit on a portrait iPad without scrolling.
-                        .frame(maxWidth: regular ? 120 : .infinity)
+                        .frame(maxWidth: regular ? 120 : 104)
                         .frame(maxWidth: .infinity)
                         .frame(minHeight: 96)
                         .contentShape(Rectangle())
@@ -497,6 +502,9 @@ struct ClassSignInView: View {
             picks = []
             return
         }
+        // Cleared here too, not only on failure: the cover can linger a beat
+        // after isSignedIn flips, and a pad left disabled looks broken.
+        submitting = false
         UserDefaults.standard.set(code, forKey: Self.classCodeKey)
         Haptics.celebrate()
         speaker.stop()

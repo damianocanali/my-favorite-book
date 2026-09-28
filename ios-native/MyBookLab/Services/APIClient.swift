@@ -472,6 +472,70 @@ actor APIClient {
         catch { throw SchoolError(code: nil) }
     }
 
+    // MARK: - Schools (a signed-in class account's check-ins and help asks)
+    //
+    // Student-session endpoints; SchoolShare is the only caller and decides
+    // whether to call at all. Each request gives up after 8 s, like the web's
+    // AbortSignal.timeout(8000): a check-in copy must never hang, and "I need
+    // a grown-up" must always reach a real end state on slow wifi.
+
+    private static let schoolTimeout: TimeInterval = 8
+
+    private struct SchoolCheckInBody: Encodable {
+        let feeling: String
+        /// Omitted (not null) when the child closed the sheet after step 1.
+        let need: String?
+    }
+    private struct SchoolHelpBody: Encodable { let kind: String }
+
+    struct SchoolHelpAsk: Decodable {
+        let id: String
+        let in_hours: Bool
+    }
+    struct SchoolHelpStatus: Decodable {
+        let seen: Bool
+        let teacher_name: String?
+    }
+    private struct Ignored: Decodable {}
+
+    func schoolCheckIn(feeling: String, need: String?, bearerToken: String) async throws {
+        let _: Ignored = try await schoolAuthed(
+            method: "POST", path: "/api/school/checkin", query: [:],
+            body: SchoolCheckInBody(feeling: feeling, need: need), bearerToken: bearerToken
+        )
+    }
+
+    /// `kind` is "book" or "grownup".
+    func schoolHelp(kind: String, bearerToken: String) async throws -> SchoolHelpAsk {
+        try await schoolAuthed(
+            method: "POST", path: "/api/school/help", query: [:],
+            body: SchoolHelpBody(kind: kind), bearerToken: bearerToken
+        )
+    }
+
+    func schoolHelpStatus(id: String, bearerToken: String) async throws -> SchoolHelpStatus {
+        try await schoolAuthed(
+            method: "GET", path: "/api/school/help", query: ["id": id],
+            body: Optional<EmptyBody>.none, bearerToken: bearerToken
+        )
+    }
+
+    private func schoolAuthed<Body: Encodable, Response: Decodable>(
+        method: String, path: String, query: [String: String],
+        body: Body?, bearerToken: String
+    ) async throws -> Response {
+        let url = makeURL(path: path, query: query)
+        var req = URLRequest(url: url, timeoutInterval: Self.schoolTimeout)
+        req.httpMethod = method
+        req.setValue("application/json", forHTTPHeaderField: "Accept")
+        req.setValue("Bearer \(bearerToken)", forHTTPHeaderField: "Authorization")
+        if let body {
+            req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            req.httpBody = try encoder.encode(body)
+        }
+        return try await perform(req, url: url)
+    }
+
     // Intent-based "ideas" helpers (Sentence Starters / Help Me Think).
     // Reuses the same /api/story-buddy endpoint as the web app, which for
     // an intent returns the raw Anthropic message; we parse it to a list.

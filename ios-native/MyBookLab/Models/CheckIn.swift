@@ -1,9 +1,11 @@
 // The emotional check-in, mirrored from the web implementation.
 //
-// The ids here MUST match src/lib/checkIn.js exactly. Nothing syncs them —
-// entries never leave the device, so there is no server to disagree with — but
-// the two platforms share a spec, a set of illustrations and a translation
-// catalogue, and an id that drifts silently breaks all three.
+// The ids here MUST match src/lib/checkIn.js exactly. For a family account
+// nothing syncs them — entries never leave the device — but the two platforms
+// share a spec, a set of illustrations and a translation catalogue, and an id
+// that drifts silently breaks all three. A class (student) account is the one
+// exception: SchoolShare sends a copy of each check-in to the teacher, and the
+// server rejects any feeling or need id it does not know.
 //
 // This is not a wellbeing feature and must never be described as one. See
 // docs/superpowers/specs/2026-09-20-emotional-check-in-design.md: software
@@ -39,8 +41,21 @@ enum Need: String, CaseIterable, Codable, Sendable, Identifiable {
     case quiet
     case help
     case keepGoing = "keep_going"
+    // Class (student) accounts only — STUDENT_NEEDS on the web. The raw values
+    // are what api/school/checkin accepts, so they must not change.
+    case helpBook = "help_book"
+    case grownup
 
     var id: String { rawValue }
+
+    /// What a family account is offered. Spelled out rather than `allCases`,
+    /// which now also holds the class-only needs.
+    static let consumer: [Need] = [.takeBreak, .quiet, .help, .keepGoing]
+
+    /// What a class account is offered: "I need help" splits into help with
+    /// the book (Story Buddy, and the teacher is told) and "I need a grown-up"
+    /// (the teacher is told directly). Order matches STUDENT_NEEDS.
+    static let student: [Need] = [.takeBreak, .quiet, .helpBook, .grownup, .keepGoing]
 }
 
 /// One check-in. Three fields, deliberately: no free text, no book id, no page

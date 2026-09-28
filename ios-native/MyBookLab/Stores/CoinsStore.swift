@@ -195,6 +195,9 @@ final class CoinsStore {
     /// up to ~12 seconds, expecting to see at least `expectedCoins`
     /// more than we had before.
     func purchaseCoinPack(productId: String, expectedCoins: Int) async -> PurchaseResult {
+        // Backstop: a class account never sees a coin pack, and the server
+        // cannot refuse an App Store purchase made on the device.
+        if AuthStore.shared.isStudent { return .cancelled }
         do {
             let products = await Purchases.shared.products([productId])
             guard let product = products.first else {

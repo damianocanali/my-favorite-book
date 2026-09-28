@@ -6504,6 +6504,116 @@
           }
         }
       }
+    },
+    "Help with my book": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aiuto con il mio libro"
+          }
+        }
+      }
+    },
+    "I need a grown-up": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ho bisogno di un adulto"
+          }
+        }
+      }
+    },
+    "Your teacher can see this": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La tua maestra o il tuo maestro può vederlo"
+          }
+        }
+      }
+    },
+    "Sending your message…": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sto mandando il tuo messaggio…"
+          }
+        }
+      }
+    },
+    "Your teacher got your message.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La tua maestra o il tuo maestro ha ricevuto il tuo messaggio."
+          }
+        }
+      }
+    },
+    "Your teacher will see this at school. If you need help now, tell a grown-up near you.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La tua maestra o il tuo maestro lo vedrà a scuola. Se hai bisogno di aiuto adesso, dillo a un adulto vicino a te."
+          }
+        }
+      }
+    },
+    "Tell a grown-up near you that you need help.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Di' a un adulto vicino a te che hai bisogno di aiuto."
+          }
+        }
+      }
+    },
+    "%@ saw your message": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ ha visto il tuo messaggio"
+          }
+        }
+      }
+    },
+    "Your teacher saw your message": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La tua maestra o il tuo maestro ha visto il tuo messaggio"
+          }
+        }
+      }
+    },
+    "That's all for today. Ask your teacher.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Per oggi è tutto. Chiedi alla tua maestra o al tuo maestro."
+          }
+        }
+      }
+    },
+    "Pick a look for your app icon": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scegli come sarà l'icona dell'app"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

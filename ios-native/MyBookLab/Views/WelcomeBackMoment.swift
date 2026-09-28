@@ -46,7 +46,10 @@ struct WelcomeBackMoment: View {
 
                     HStack(spacing: 12) {
                         StatPill(icon: "🔥", value: rewards.currentStreak, label: "Day streak", tone: .flame)
-                        StatPill(icon: "🪙", value: coins.balance, label: "Coins")
+                        // No coins for a class account — it has no store.
+                        if !auth.isStudent {
+                            StatPill(icon: "🪙", value: coins.balance, label: "Coins")
+                        }
                     }
 
                     // Two complete, separately keyed sentences rather than
