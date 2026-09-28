@@ -4,6 +4,7 @@ import { handleCors, checkRateLimit } from '../_rateLimit.js'
 import { requireStudent, sb, json, isUuid } from '../_school.js'
 import { snapshotBook } from '../../lib/school/snapshot.js'
 import { isLate, isPastDue, raisedName } from '../../lib/school/assignments.js'
+import { notifyHandIn } from '../../lib/notify/notify.js'
 
 const MAX_BOOK_ID_LEN = 128
 const MAX_TITLE_LEN = 200
@@ -27,7 +28,7 @@ export default async function handler(req) {
     if (req.method !== 'POST') return json(req, 405, { error: 'Method not allowed', code: 'method_not_allowed' })
     const s = await requireStudent(req)
     if (!s.ok) return s.response
-    const { auth, student } = s
+    const { auth, student, classroom } = s
     if (!checkRateLimit(`school-submit:${student.id}`, 60).allowed) {
       return json(req, 429, { error: 'Too many requests', code: 'rate_limited' })
     }
@@ -43,7 +44,7 @@ export default async function handler(req) {
     // the database clock (RPC_ERRORS below). Scoped to the student's own
     // class. Fails closed.
     const aRes = await sb(
-      `/rest/v1/assignments?id=eq.${assignmentId}&classroom_id=eq.${student.classroom_id}&select=id,status,due_at,allow_late`
+      `/rest/v1/assignments?id=eq.${assignmentId}&classroom_id=eq.${student.classroom_id}&select=id,title,status,due_at,allow_late`
     )
     if (!aRes.ok) throw new Error(`assignment lookup failed: ${aRes.status}`)
     const [assignment] = await aRes.json()
@@ -89,11 +90,14 @@ export default async function handler(req) {
       return json(req, 502, { error: 'Could not hand in', code: 'upstream' })
     }
     const row = await res.json()
+    const late = isLate(row.submitted_at, assignment.due_at)
+    // Bell row for the teacher (+ "everyone has handed in"). Never throws.
+    await notifyHandIn({ classroom, student, assignment, submission: row, late })
     return json(req, 200, {
       id: row.id,
       version: row.version,
       submitted_at: row.submitted_at,
-      late: isLate(row.submitted_at, assignment.due_at),
+      late,
     })
   } catch (e) {
     console.error('school/submit: unhandled error', e)

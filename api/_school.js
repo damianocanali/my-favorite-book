@@ -104,7 +104,7 @@ export async function requireStudent(req) {
   try {
     const res = await sb(
       `/rest/v1/class_students?auth_user_id=eq.${encodeURIComponent(auth.userId)}&status=eq.active` +
-        `&select=id,classroom_id,display_name,classrooms(id,name,timezone,school_hours,owner_user_id,archived_at)`
+        `&select=id,classroom_id,display_name,classrooms(id,name,timezone,school_hours,owner_user_id,archived_at,locale)`
     )
     if (!res.ok) return fail(req, 503, 'upstream', 'Service unavailable, try again')
     const rows = await res.json().catch(() => [])
