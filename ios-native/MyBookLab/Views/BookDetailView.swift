@@ -9,6 +9,7 @@ struct BookDetailView: View {
 
     @Environment(AudioService.self) private var audio
     @Environment(AuthStore.self) private var auth
+    @Environment(BookshelfStore.self) private var bookshelf
     @Environment(AppRouter.self) private var router
     @Environment(SubscriptionStore.self) private var subs
     @Environment(\.dismiss) private var dismiss
@@ -56,6 +57,18 @@ struct BookDetailView: View {
                     .tabViewStyle(.page(indexDisplayMode: .never))
 
                     pageControls
+                }
+
+                // Schools: a class account hands its own book in to an
+                // assignment from here. Never mounted for a family account,
+                // and only for a book on the child's own shelf: the gallery
+                // opens this view too, and the hand-in's sync step must never
+                // copy someone else's book into this account.
+                if auth.isStudent && isEditable && bookshelf.books.contains(where: { $0.id == book.id }) {
+                    HandInPanel(book: book) {
+                        endConfetti += 1
+                        audio.playSFX(.celebrate)
+                    }
                 }
             }
             .padding(.bottom, 32)
