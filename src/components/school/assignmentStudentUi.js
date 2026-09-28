@@ -78,3 +78,31 @@ export function dueWording(assignment, now = Date.now()) {
   if (diffDays <= 6) return { kind: 'weekday', date: due }
   return { kind: 'date', date: due }
 }
+
+/**
+ * The Hand-in button's control flow (brief S3 #3: "make sure the latest
+ * version is synced … then POST /api/school/submit"), extracted out of
+ * HandInPanel so it's unit-testable without mocking React state, fetch, or
+ * the Supabase client — just two injected functions.
+ *
+ * `syncFn` and `submitFn` are called in sequence, and submitFn is only
+ * ever called once syncFn resolves true. A failed sync must never fall
+ * through to handing in a stale (or entirely un-uploaded) copy of the
+ * book — that would show "Handed in!" over a book the teacher's
+ * class_submissions row doesn't actually match, since school/submit reads
+ * the book straight out of user_books, not off whatever the request sent.
+ *
+ * Returns the same `{ok, code?}` shape schoolFetch already returns, so a
+ * caller never needs a separate branch for "the sync failed" vs "the
+ * submit failed" — both surface as one `{ok: false, code}` to render with
+ * the same error-copy lookup (`school:student.hand_in.errors.<code>`).
+ *
+ * @param {() => Promise<boolean>} syncFn
+ * @param {() => Promise<{ok: boolean, code?: string}>} submitFn
+ * @returns {Promise<{ok: boolean, code?: string}>}
+ */
+export async function runHandInSequence(syncFn, submitFn) {
+  const synced = await syncFn()
+  if (!synced) return { ok: false, code: 'sync_failed' }
+  return submitFn()
+}

@@ -398,6 +398,7 @@
       "success_title": "Consegnato!",
       "success_body": "La tua maestra o il tuo maestro lo leggerà.",
       "errors": {
+        "sync_failed": "Non siamo riusciti a salvare il tuo libro. Controlla la connessione e riprova.",
         "assignment_closed": "Questo compito è chiuso. Chiedi al tuo insegnante.",
         "past_due": "È scaduto il tempo per consegnarlo. Chiedi al tuo insegnante.",
         "book_too_large": "Questo libro è troppo grande da consegnare. Chiedi al tuo insegnante.",

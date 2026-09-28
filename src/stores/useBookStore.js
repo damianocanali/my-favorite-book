@@ -66,15 +66,17 @@ export const useBookStore = create(
 
       // Schools Task S3: "Start writing" on an assignment card creates a
       // book the normal way (startNewBook, above) and then tags it with
-      // this. assignmentId/assignmentPrompt/assignmentTitle live as plain
-      // fields on the book object itself — the SAME object addBook/
-      // updateBook already persist (zustand persist) and push to
-      // /api/sync-books (useBookshelfStore's syncBookToCloud), so the tag
-      // survives reloads for free rather than needing its own storage or
-      // its own sync call. Never read by, or sent to, anything other than
-      // this app's own UI (PreviewPage's Hand-in flow) — in particular
-      // never sent to /api/school/submit itself, which only takes
-      // {assignmentId, bookId} in the request body, not the book blob.
+      // this. assignmentId/assignmentPrompt live as plain fields on the
+      // book object itself (the assignment's title is written straight
+      // into the book's own `title` field below, not kept as a separate
+      // field) — the SAME object addBook/updateBook already persist
+      // (zustand persist) and push to /api/sync-books (useBookshelfStore's
+      // syncBookToCloud), so the tag survives reloads for free rather than
+      // needing its own storage or its own sync call. Never read by, or
+      // sent to, anything other than this app's own UI (PreviewPage's
+      // Hand-in flow) — in particular never sent to /api/school/submit
+      // itself, which only takes {assignmentId, bookId} in the request
+      // body, not the book blob.
       tagAssignment: ({ id, title, prompt }) =>
         set((state) => ({
           book: state.book

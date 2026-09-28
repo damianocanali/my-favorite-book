@@ -8,7 +8,7 @@ import { syncBookToCloud, useBookshelfStore } from '../../stores/useBookshelfSto
 import { celebrateBig } from '../../lib/celebrate'
 import Mascot from '../ui/Mascot'
 import StudentFeedbackModal from './StudentFeedbackModal'
-import { canSubmitTo } from './assignmentStudentUi'
+import { canSubmitTo, runHandInSequence } from './assignmentStudentUi'
 
 // "Hand in to…" picker for a book that isn't tagged with an assignment yet
 // (brief S3 #3's second bullet). Lists every assignment still open to hand
@@ -111,27 +111,38 @@ export default function HandInPanel({ book }) {
     setError(null)
     setSuccess(false)
     setPhase('syncing')
-    // "Make sure the latest version is synced" (brief) — reuses the SAME
-    // upload addBook/updateBook already fire off, just awaited here so
-    // user_books definitely has this version before school/submit reads it.
-    await syncBookToCloud(book)
-    setPhase('sending')
-    const res = await schoolFetch('/api/school/submit', {
-      method: 'POST',
-      body: JSON.stringify({ assignmentId, bookId: book.id }),
-    })
+    // runHandInSequence (assignmentStudentUi.js) never calls submitFn
+    // unless syncFn resolves true — a failed upload must not fall through
+    // to handing in a stale/un-uploaded copy while still showing "Handed
+    // in!": school/submit reads the book straight out of user_books, not
+    // off this request, so a book that didn't save is a hand-in that
+    // doesn't match what the student actually wrote.
+    const result = await runHandInSequence(
+      () => syncBookToCloud(book),
+      () => {
+        setPhase('sending')
+        return schoolFetch('/api/school/submit', {
+          method: 'POST',
+          body: JSON.stringify({ assignmentId, bookId: book.id }),
+        })
+      }
+    )
     setPhase('idle')
-    if (res.ok) {
+    if (result.ok) {
       setSuccess(true)
       celebrateBig()
       // An untagged book that was just handed in through the picker is
-      // tagged now too, so it reads consistently (state, "Hand in again")
-      // next time — same field useBookStore's tagAssignment sets when a
-      // book starts life already tagged.
-      if (book.assignmentId !== assignmentId) updateBookOnShelf(book.id, { assignmentId })
+      // tagged now too, so it reads consistently (state, "Hand in again",
+      // the prompt hint on reopening the editor) next time — same fields
+      // useBookStore's tagAssignment sets when a book starts life already
+      // tagged.
+      if (book.assignmentId !== assignmentId) {
+        const picked = assignments.find((a) => a.id === assignmentId)
+        updateBookOnShelf(book.id, { assignmentId, assignmentPrompt: picked?.prompt ?? null })
+      }
       await refresh()
     } else {
-      setError(res.code || 'generic')
+      setError(result.code || 'generic')
     }
   }
 

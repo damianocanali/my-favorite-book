@@ -1,13 +1,14 @@
 // Pure helpers behind the assignments STUDENT UI (Task S3) — see
 // src/components/school/assignmentStudentUi.js's own header comment for why
 // these are unit-tested in isolation rather than through the components.
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import {
   assignmentCardStatus,
   canHandInAgain,
   canSubmitTo,
   hasUnseenFeedback,
   dueWording,
+  runHandInSequence,
 } from '../src/components/school/assignmentStudentUi.js'
 
 const base = (overrides = {}) => ({
@@ -117,5 +118,30 @@ describe('dueWording', () => {
     // past_due — the server's DB clock wins.
     const r = dueWording(base({ due_at: new Date('2026-05-09T09:00:00').toISOString(), past_due: true, allow_late: true }), NOW)
     expect(r.kind).toBe('late_ok')
+  })
+})
+
+describe('runHandInSequence', () => {
+  it('never calls submitFn when syncFn resolves false, and reports sync_failed', async () => {
+    const syncFn = vi.fn().mockResolvedValue(false)
+    const submitFn = vi.fn().mockResolvedValue({ ok: true })
+    const result = await runHandInSequence(syncFn, submitFn)
+    expect(submitFn).not.toHaveBeenCalled()
+    expect(result).toEqual({ ok: false, code: 'sync_failed' })
+  })
+
+  it('calls submitFn and returns its result unchanged once syncFn resolves true', async () => {
+    const syncFn = vi.fn().mockResolvedValue(true)
+    const submitFn = vi.fn().mockResolvedValue({ ok: true, data: { id: 'sub-1' } })
+    const result = await runHandInSequence(syncFn, submitFn)
+    expect(submitFn).toHaveBeenCalledTimes(1)
+    expect(result).toEqual({ ok: true, data: { id: 'sub-1' } })
+  })
+
+  it("surfaces submitFn's own failure code untouched", async () => {
+    const syncFn = vi.fn().mockResolvedValue(true)
+    const submitFn = vi.fn().mockResolvedValue({ ok: false, code: 'past_due' })
+    const result = await runHandInSequence(syncFn, submitFn)
+    expect(result).toEqual({ ok: false, code: 'past_due' })
   })
 })

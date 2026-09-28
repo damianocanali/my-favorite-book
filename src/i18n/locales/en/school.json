@@ -398,6 +398,7 @@
       "success_title": "Handed in!",
       "success_body": "Your teacher will read it.",
       "errors": {
+        "sync_failed": "We couldn't save your book. Check the internet and try again.",
         "assignment_closed": "This assignment is closed. Ask your teacher.",
         "past_due": "It's past the due date. Ask your teacher.",
         "book_too_large": "This book is too big to hand in. Ask your teacher.",
