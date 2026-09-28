@@ -121,9 +121,12 @@ describe('student POST /api/school/feedback {id} (mark seen)', () => {
     expect(log.some((l) => l.method === 'PATCH')).toBe(false)
   })
 
-  it('404 for a malformed or missing id', async () => {
-    mockSupabase({ user: STUDENT_USER, routes: [studentSelfRoute, lookup(), patchRoute] })
-    expect((await (await load())(post({ id: 'nope' }))).status).toBe(404)
+  it.each([['malformed', 'nope'], ['missing', undefined]])('400 bad_request for a %s id, without a lookup', async (_, id) => {
+    const log = mockSupabase({ user: STUDENT_USER, routes: [studentSelfRoute, lookup(), patchRoute] })
+    const res = await (await load())(post({ id }))
+    expect(res.status).toBe(400)
+    expect((await res.json()).code).toBe('bad_request')
+    expect(log.some((l) => l.url.includes('submission_feedback'))).toBe(false)
   })
 
   it('403 not_a_student for a teacher without classId', async () => {

@@ -160,6 +160,17 @@ describe('POST /api/school/submit', () => {
       expect(log.some((l) => l.url.includes('school_submit'))).toBe(false)
     })
 
+  it.each([
+    ['assignment_not_found', 404],
+    ['assignment_closed', 409],
+    ['past_due', 409],
+  ])('maps the RPC\'s %s error (closed/due re-checked under lock, DB clock) to %i', async (message, status) => {
+    mockSupabase({ user: STUDENT_USER, routes: routes({ rpc: { method: 'POST', match: '/rest/v1/rpc/school_submit', reply: { status: 400, body: { code: 'P0001', message, details: null, hint: null } } } }) })
+    const res = await (await load())(submit())
+    expect(res.status).toBe(status)
+    expect((await res.json()).code).toBe(message)
+  })
+
   it('502 when the upsert fails', async () => {
     mockSupabase({ user: STUDENT_USER, routes: routes({ rpc: err500('POST', '/rest/v1/rpc/school_submit') }) })
     const res = await (await load())(submit())

@@ -3,7 +3,7 @@ export const config = { runtime: 'edge' }
 import { handleCors, checkRateLimit } from '../_rateLimit.js'
 import { requireClassOwner, requireStudent, sb, json, isUuid } from '../_school.js'
 import {
-  TITLE_MAX, PROMPT_MAX, STATUSES, canTransition, cleanText, parseDue, isLate, isPastDue,
+  TITLE_MAX, PROMPT_MAX, STATUSES, canTransition, cleanText, parseDue, isLate, isPastDue, raisedName,
 } from '../../lib/school/assignments.js'
 
 const SELECT = 'id,title,prompt,due_at,status,allow_late,created_at,updated_at'
@@ -135,29 +135,36 @@ async function update(req, classroomId, body) {
   }
   patch.updated_at = new Date().toISOString()
 
-  const res = await sb(`${scoped}&select=${SELECT}`, {
+  // A status change only applies if the status is still the one checked
+  // above: two tabs racing (close vs reopen) can't skip the transition rules.
+  const guard = patch.status ? `&status=eq.${current.status}` : ''
+  const res = await sb(`${scoped}${guard}&select=${SELECT}`, {
     method: 'PATCH',
     headers: { Prefer: 'return=representation' },
     body: JSON.stringify(patch),
   })
   if (!res.ok) return json(req, 502, { error: 'Could not save assignment', code: 'upstream' })
   const [row] = await res.json()
+  if (!row && guard) return json(req, 409, { error: 'The assignment changed, reload and try again', code: 'invalid_transition' })
   if (!row) return json(req, 404, { error: 'Assignment not found', code: 'assignment_not_found' })
   return json(req, 200, { assignment: teacherShape(row) })
 }
 
 async function remove(req, classroomId, id) {
   if (!isUuid(id)) return bad(req, 'Invalid assignment id')
-  const scoped = `/rest/v1/assignments?id=eq.${id}&classroom_id=eq.${classroomId}`
-  const [current] = await read(`${scoped}&select=id`, 'assignment')
-  if (!current) return json(req, 404, { error: 'Assignment not found', code: 'assignment_not_found' })
-  // Children's work is never deleted as a side effect of tidying up: once
-  // anyone has handed in, the teacher closes the assignment instead.
-  const subs = await read(`/rest/v1/class_submissions?assignment_id=eq.${id}&select=id&limit=1`, 'class_submissions')
-  if (subs.length) return json(req, 409, { error: 'Students have handed this in. Close it instead.', code: 'has_submissions' })
-  const res = await sb(scoped, { method: 'DELETE' })
-  if (!res.ok) return json(req, 502, { error: 'Could not delete assignment', code: 'upstream' })
-  return json(req, 200, { ok: true })
+  // One locked transaction (migration 019): the "nobody handed in" check and
+  // the delete can't be split by a hand-in landing in between, so children's
+  // work is never deleted as a side effect of tidying up. Once anyone has
+  // handed in, the teacher closes the assignment instead.
+  const res = await sb('/rest/v1/rpc/school_delete_assignment', {
+    method: 'POST',
+    body: JSON.stringify({ p_classroom_id: classroomId, p_assignment_id: id }),
+  })
+  if (res.ok) return json(req, 200, { ok: true })
+  const name = await raisedName(res)
+  if (name === 'has_submissions') return json(req, 409, { error: 'Students have handed this in. Close it instead.', code: 'has_submissions' })
+  if (name === 'assignment_not_found') return json(req, 404, { error: 'Assignment not found', code: 'assignment_not_found' })
+  throw new Error(`school_delete_assignment failed: ${res.status}`)
 }
 
 const limited = (req, key, n) =>

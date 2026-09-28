@@ -3,10 +3,17 @@ export const config = { runtime: 'edge' }
 import { handleCors, checkRateLimit } from '../_rateLimit.js'
 import { requireStudent, sb, json, isUuid } from '../_school.js'
 import { snapshotBook } from '../../lib/school/snapshot.js'
-import { isLate, isPastDue } from '../../lib/school/assignments.js'
+import { isLate, isPastDue, raisedName } from '../../lib/school/assignments.js'
 
 const MAX_BOOK_ID_LEN = 128
 const MAX_TITLE_LEN = 200
+
+// Raised by school_submit (migration 019) when the lock-time re-check fails.
+const RPC_ERRORS = {
+  assignment_not_found: [404, 'Assignment not found', 'assignment_not_found'],
+  assignment_closed: [409, 'This assignment is closed', 'assignment_closed'],
+  past_due: [409, 'This assignment is past its due date', 'past_due'],
+}
 
 // A student hands in one of their own books for an assignment. Everything
 // that decides WHAT is stored comes from the server: the class and student
@@ -32,7 +39,9 @@ export default async function handler(req) {
       return json(req, 400, { error: 'Invalid book', code: 'bad_request' })
     }
 
-    // Scoped to the student's own class. Fails closed.
+    // Fast path only: school_submit re-checks all of this under a lock with
+    // the database clock (RPC_ERRORS below). Scoped to the student's own
+    // class. Fails closed.
     const aRes = await sb(
       `/rest/v1/assignments?id=eq.${assignmentId}&classroom_id=eq.${student.classroom_id}&select=id,status,due_at,allow_late`
     )
@@ -74,7 +83,11 @@ export default async function handler(req) {
         p_book_snapshot: snapshot,
       }),
     })
-    if (!res.ok) return json(req, 502, { error: 'Could not hand in', code: 'upstream' })
+    if (!res.ok) {
+      const mapped = RPC_ERRORS[await raisedName(res)]
+      if (mapped) return json(req, mapped[0], { error: mapped[1], code: mapped[2] })
+      return json(req, 502, { error: 'Could not hand in', code: 'upstream' })
+    }
     const row = await res.json()
     return json(req, 200, {
       id: row.id,

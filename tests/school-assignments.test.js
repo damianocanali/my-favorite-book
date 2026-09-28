@@ -171,6 +171,25 @@ describe('teacher PATCH /api/school/assignments', () => {
     expect(log.some((l) => l.method === 'PATCH')).toBe(false)
   })
 
+  it('a status change is conditional on the status it was checked against', async () => {
+    const log = mockSupabase({ user: TEACHER, routes: [ownerRoute, lookup('published'), patchRoute] })
+    await (await load())(req('assignments', { method: 'PATCH', body: { classId: CLASS_ID, id: ASSIGN_ID, status: 'closed' } }))
+    expect(log.find((l) => l.method === 'PATCH').url).toContain('status=eq.published')
+  })
+
+  it('409 invalid_transition when the status changed underneath (conditional PATCH matched nothing)', async () => {
+    mockSupabase({ user: TEACHER, routes: [ownerRoute, lookup('published'), { method: 'PATCH', match: '/rest/v1/assignments', reply: { body: [] } }] })
+    const res = await (await load())(req('assignments', { method: 'PATCH', body: { classId: CLASS_ID, id: ASSIGN_ID, status: 'closed' } }))
+    expect(res.status).toBe(409)
+    expect((await res.json()).code).toBe('invalid_transition')
+  })
+
+  it('an edit without a status change is not status-conditional', async () => {
+    const log = mockSupabase({ user: TEACHER, routes: [ownerRoute, lookup('published'), patchRoute] })
+    await (await load())(req('assignments', { method: 'PATCH', body: { classId: CLASS_ID, id: ASSIGN_ID, title: 'x' } }))
+    expect(log.find((l) => l.method === 'PATCH').url).not.toContain('status=eq.')
+  })
+
   it('edits title/prompt/due_at/allow_late, and due_at: null clears it', async () => {
     const log = mockSupabase({ user: TEACHER, routes: [ownerRoute, lookup('draft'), patchRoute] })
     const res = await (await load())(req('assignments', { method: 'PATCH', body: {
@@ -211,46 +230,54 @@ describe('teacher PATCH /api/school/assignments', () => {
 })
 
 describe('teacher DELETE /api/school/assignments?classId=&id=', () => {
-  const lookup = { method: 'GET', match: '/rest/v1/assignments?id=eq.', reply: { body: [{ id: ASSIGN_ID, status: 'draft' }] } }
-  const noSubs = { method: 'GET', match: '/rest/v1/class_submissions', reply: { body: [] } }
-  const del = { method: 'DELETE', match: '/rest/v1/assignments', reply: { body: [] } }
+  const rpc = (reply) => ({ method: 'POST', match: '/rest/v1/rpc/school_delete_assignment', reply })
+  const pgErr = (message) => ({ status: 400, body: { code: 'P0001', message, details: null, hint: null } })
   const q = `?classId=${CLASS_ID}&id=${ASSIGN_ID}`
 
-  it('deletes an assignment with no hand-ins, scoped to the class', async () => {
-    const log = mockSupabase({ user: TEACHER, routes: [ownerRoute, lookup, noSubs, del] })
+  it('deletes through the locking RPC, scoped to the class', async () => {
+    const log = mockSupabase({ user: TEACHER, routes: [ownerRoute, rpc({ body: null })] })
     const res = await (await load())(req('assignments', { method: 'DELETE', query: q }))
     expect(res.status).toBe(200)
     expect(await res.json()).toEqual({ ok: true })
-    const d = log.find((l) => l.method === 'DELETE')
-    expect(d.url).toContain(`id=eq.${ASSIGN_ID}`)
-    expect(d.url).toContain(`classroom_id=eq.${CLASS_ID}`)
+    const call = log.find((l) => l.url.includes('school_delete_assignment'))
+    expect(call.body).toEqual({ p_classroom_id: CLASS_ID, p_assignment_id: ASSIGN_ID })
+    // No direct table delete: the has-submissions check and the delete are one locked transaction.
+    expect(log.some((l) => l.method === 'DELETE')).toBe(false)
   })
 
-  it('409 has_submissions when anyone has handed in', async () => {
-    const log = mockSupabase({ user: TEACHER, routes: [ownerRoute, lookup, { method: 'GET', match: '/rest/v1/class_submissions', reply: { body: [{ id: SUB_ID }] } }, del] })
+  it('409 has_submissions when the RPC refuses', async () => {
+    mockSupabase({ user: TEACHER, routes: [ownerRoute, rpc(pgErr('has_submissions'))] })
     const res = await (await load())(req('assignments', { method: 'DELETE', query: q }))
     expect(res.status).toBe(409)
     expect((await res.json()).code).toBe('has_submissions')
-    expect(log.some((l) => l.method === 'DELETE')).toBe(false)
   })
 
-  it('fails closed (503, no delete) when the submissions check errors', async () => {
-    const log = mockSupabase({ user: TEACHER, routes: [ownerRoute, lookup, err500('GET', '/rest/v1/class_submissions'), del] })
-    const res = await (await load())(req('assignments', { method: 'DELETE', query: q }))
-    expect(res.status).toBe(503)
-    expect(log.some((l) => l.method === 'DELETE')).toBe(false)
-  })
-
-  it('404 for an assignment not in this class', async () => {
-    mockSupabase({ user: TEACHER, routes: [ownerRoute, { method: 'GET', match: '/rest/v1/assignments?id=eq.', reply: { body: [] } }, noSubs, del] })
+  it('404 assignment_not_found when the RPC finds nothing in this class', async () => {
+    mockSupabase({ user: TEACHER, routes: [ownerRoute, rpc(pgErr('assignment_not_found'))] })
     const res = await (await load())(req('assignments', { method: 'DELETE', query: q }))
     expect(res.status).toBe(404)
+    expect((await res.json()).code).toBe('assignment_not_found')
+  })
+
+  it('503 upstream for any other RPC failure', async () => {
+    mockSupabase({ user: TEACHER, routes: [ownerRoute, rpc({ status: 500, body: {} })] })
+    const res = await (await load())(req('assignments', { method: 'DELETE', query: q }))
+    expect(res.status).toBe(503)
+    expect((await res.json()).code).toBe('upstream')
+  })
+
+  it('400 for a malformed id, without calling the RPC', async () => {
+    const log = mockSupabase({ user: TEACHER, routes: [ownerRoute, rpc({ body: null })] })
+    const res = await (await load())(req('assignments', { method: 'DELETE', query: `?classId=${CLASS_ID}&id=nope` }))
+    expect(res.status).toBe(400)
+    expect(log.some((l) => l.url.includes('rpc/'))).toBe(false)
   })
 
   it('404 for another teacher\'s class', async () => {
-    mockSupabase({ user: TEACHER, routes: [notOwnerRoute] })
+    const log = mockSupabase({ user: TEACHER, routes: [notOwnerRoute, rpc({ body: null })] })
     const res = await (await load())(req('assignments', { method: 'DELETE', query: q }))
     expect(res.status).toBe(404)
+    expect(log.some((l) => l.url.includes('rpc/'))).toBe(false)
   })
 })
 

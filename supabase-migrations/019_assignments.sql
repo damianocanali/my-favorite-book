@@ -40,6 +40,9 @@ create table if not exists public.class_submissions (
   unique (assignment_id, student_id)
 );
 create index if not exists class_submissions_class_time_idx on public.class_submissions (classroom_id, submitted_at desc);
+-- Student reads ("my hand-ins") and the student-FK cascade; account purge by user.
+create index if not exists class_submissions_student_idx on public.class_submissions (student_id);
+create index if not exists class_submissions_user_idx on public.class_submissions (user_id);
 alter table public.class_submissions enable row level security;
 
 -- ── Teacher feedback: a short comment and/or one sticker from a fixed set ──
@@ -56,19 +59,34 @@ create table if not exists public.submission_feedback (
 create index if not exists submission_feedback_sub_time_idx on public.submission_feedback (submission_id, created_at desc);
 alter table public.submission_feedback enable row level security;
 
--- ── RPC (service role only) ─────────────────────────────────────────────
+-- ── RPCs (service role only) ────────────────────────────────────────────
+-- Errors are raised with a bare message (SQLSTATE P0001); PostgREST returns
+-- it as {code:'P0001', message:'<name>'} and api/ maps the name to a status.
 
--- Hand in (or hand in again). One statement, so two taps at once can never
--- both read version N and both write N+1: the row lock taken by ON CONFLICT
--- serialises them. Returns {id, version, submitted_at}.
+-- Hand in (or hand in again). The assignment is re-checked here, under a
+-- share lock and against the database clock, so a teacher closing it (or the
+-- due date passing) between the API's fast pre-check and this write can't
+-- let a hand-in through. The upsert is one statement, so two taps at once
+-- can never both write the same version: ON CONFLICT serialises them.
+-- Returns {id, version, submitted_at}.
 create or replace function public.school_submit(
   p_classroom_id uuid, p_assignment_id uuid, p_student_id uuid, p_user_id uuid,
   p_book_id text, p_book_title text, p_book_snapshot jsonb
 )
 returns jsonb language plpgsql security definer set search_path = public as $$
 declare
+  a record;
   r record;
 begin
+  select status, due_at, allow_late into a
+    from assignments where id = p_assignment_id and classroom_id = p_classroom_id
+    for share;
+  if not found or a.status = 'draft' then raise exception 'assignment_not_found'; end if;
+  if a.status = 'closed' then raise exception 'assignment_closed'; end if;
+  if not a.allow_late and a.due_at is not null and now() > a.due_at then
+    raise exception 'past_due';
+  end if;
+
   insert into class_submissions (classroom_id, assignment_id, student_id, user_id, book_id, book_title, book_snapshot)
     values (p_classroom_id, p_assignment_id, p_student_id, p_user_id, p_book_id, coalesce(p_book_title, ''), p_book_snapshot)
   on conflict (assignment_id, student_id) do update set
@@ -82,5 +100,23 @@ begin
   return jsonb_build_object('id', r.id, 'version', r.version, 'submitted_at', r.submitted_at);
 end $$;
 
+-- Delete an assignment nobody has handed in. The row lock (FOR UPDATE)
+-- conflicts with school_submit's FOR SHARE, so a hand-in can't land between
+-- the "no submissions" check and the delete and then vanish in the cascade.
+create or replace function public.school_delete_assignment(p_classroom_id uuid, p_assignment_id uuid)
+returns void language plpgsql security definer set search_path = public as $$
+begin
+  perform 1
+    from assignments where id = p_assignment_id and classroom_id = p_classroom_id
+    for update;
+  if not found then raise exception 'assignment_not_found'; end if;
+  if exists (select 1 from class_submissions where assignment_id = p_assignment_id) then
+    raise exception 'has_submissions';
+  end if;
+  delete from assignments where id = p_assignment_id;
+end $$;
+
 revoke all on function public.school_submit(uuid, uuid, uuid, uuid, text, text, jsonb) from public, anon, authenticated;
+revoke all on function public.school_delete_assignment(uuid, uuid) from public, anon, authenticated;
 grant execute on function public.school_submit(uuid, uuid, uuid, uuid, text, text, jsonb) to service_role;
+grant execute on function public.school_delete_assignment(uuid, uuid) to service_role;

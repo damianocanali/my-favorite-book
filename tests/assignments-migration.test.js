@@ -6,7 +6,7 @@ import { readFileSync } from 'node:fs'
 
 const SQL = readFileSync('supabase-migrations/019_assignments.sql', 'utf8')
 const NEW_TABLES = ['assignments', 'class_submissions', 'submission_feedback']
-const RPCS = ['school_submit']
+const RPCS = ['school_submit', 'school_delete_assignment']
 
 // The body of one `create table` statement, up to its closing `);`.
 function tableBody(name) {
@@ -78,6 +78,24 @@ describe('019_assignments.sql', () => {
     expect(SQL).toMatch(/on conflict \(assignment_id, student_id\) do update set/i)
     expect(SQL).toMatch(/version = class_submissions\.version \+ 1/i)
     expect(SQL).toMatch(/submitted_at = now\(\)/i)
+  })
+
+  it('school_submit re-checks the assignment under a share lock with the DB clock', () => {
+    expect(SQL).toMatch(/select status, due_at, allow_late into a\s+from assignments where id = p_assignment_id and classroom_id = p_classroom_id\s+for share/i)
+    expect(SQL).toMatch(/raise exception 'assignment_not_found'/i)
+    expect(SQL).toMatch(/raise exception 'assignment_closed'/i)
+    expect(SQL).toMatch(/not a\.allow_late and a\.due_at is not null and now\(\) > a\.due_at then\s+raise exception 'past_due'/i)
+  })
+
+  it('school_delete_assignment locks the row and refuses when anyone has handed in', () => {
+    expect(SQL).toMatch(/from assignments where id = p_assignment_id and classroom_id = p_classroom_id\s+for update/i)
+    expect(SQL).toMatch(/if exists \(select 1 from class_submissions where assignment_id = p_assignment_id\) then\s+raise exception 'has_submissions'/i)
+    expect(SQL).toMatch(/delete from assignments where id = p_assignment_id/i)
+  })
+
+  it('indexes class_submissions by student and by user', () => {
+    expect(SQL).toMatch(/create index if not exists \w+ on public\.class_submissions \(student_id\)/i)
+    expect(SQL).toMatch(/create index if not exists \w+ on public\.class_submissions \(user_id\)/i)
   })
 
   it('is idempotent (if not exists / or replace everywhere)', () => {

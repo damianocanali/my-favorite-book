@@ -43,8 +43,9 @@ async function teacherPost(req, o, body) {
 
 // Student: mark one piece of feedback on their own hand-in as seen.
 async function studentSeen(req, student, id) {
-  // Same answer for malformed, foreign and missing ids — not probeable.
-  if (!isUuid(id)) return json(req, 404, { error: 'Not found', code: 'not_found' })
+  // Malformed is a client bug (400, like every other student route); a
+  // well-formed foreign id and a missing one get the same 404.
+  if (!isUuid(id)) return bad(req, 'Invalid id')
   const res = await sb(`/rest/v1/submission_feedback?id=eq.${id}&select=id,class_submissions(student_id)`)
   if (!res.ok) throw new Error(`submission_feedback lookup failed: ${res.status}`)
   const [row] = await res.json()
