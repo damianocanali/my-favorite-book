@@ -13,6 +13,7 @@ import PageActions from '../components/layout/PageActions'
 import PrintableBook from '../components/print/PrintableBook'
 import SubmitToClassModal from '../components/classroom/SubmitToClassModal'
 import BookFinishedModal from '../components/print/BookFinishedModal'
+import HandInPanel from '../components/school/HandInPanel'
 import SparkleButton from '../components/ui/SparkleButton'
 import { isNative } from '../capacitor'
 import { apiFetchAuthed } from '../lib/api'
@@ -205,6 +206,12 @@ export default function PreviewPage() {
       <div className={isNative ? 'flex-1 flex items-center justify-center' : ''}>
         <BookPreview book={book} />
       </div>
+
+      {/* Hand in to an assignment — student accounts only (brief S3 #3/#4).
+          The legacy "Submit to class" toolbar button above is already
+          hidden for students; this is its replacement, tied to a specific
+          assignment rather than a bare class code. */}
+      {isStudent && <HandInPanel book={book} />}
 
       {/* Published celebration */}
       <AnimatePresence>

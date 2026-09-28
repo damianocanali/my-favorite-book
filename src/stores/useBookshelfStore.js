@@ -121,17 +121,26 @@ export const useBookshelfStore = create(
   )
 )
 
-// Standalone sync functions — no circular imports
-async function syncBookToCloud(book) {
-  if (!_currentUserId) return
+// Standalone sync functions — no circular imports. Exported (rather than
+// kept module-private like deleteCloudBook) so the schools Hand-in flow
+// (PreviewPage) can await this SAME upload before POSTing school/submit —
+// user_books has to have the current version before the server reads it —
+// instead of growing a second, parallel way to push a book to the cloud.
+// Returns whether the upload actually went through, so a caller that needs
+// to know (unlike addBook/updateBook's fire-and-forget callers) can tell a
+// child rather than silently handing in a stale snapshot.
+export async function syncBookToCloud(book) {
+  if (!_currentUserId) return false
   try {
-    await apiFetchAuthed('/api/sync-books', {
+    const res = await apiFetchAuthed('/api/sync-books', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ book }),
     })
+    return res.ok
   } catch (err) {
     console.warn('[bookshelf] upload failed', err)
+    return false
   }
 }
 

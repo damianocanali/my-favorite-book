@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { motion } from 'motion/react'
 import { ArrowLeft, Copy, Check, Pencil, RefreshCw } from 'lucide-react'
@@ -10,6 +10,8 @@ import RosterTable from '../components/school/RosterTable'
 import SignInCards from '../components/school/SignInCards'
 import StudentBooks from '../components/school/StudentBooks'
 import StudentAvatarEditor from '../components/school/StudentAvatarEditor'
+import AssignmentsSection from '../components/school/AssignmentsSection'
+import AssignmentReview from '../components/school/AssignmentReview'
 import { schoolFetch } from '../lib/schoolApi'
 import { teacherErrorText } from '../components/school/teacherErrors'
 import { MAX_SEATS } from '../../lib/school/license.js'
@@ -17,7 +19,14 @@ import { MAX_SEATS } from '../../lib/school/license.js'
 export default function TeacherClassPage() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+  // Deep link from the dashboard's assignment column (StudentsTable ->
+  // `/teacher/class/:id?review=<assignmentId>`) opens the Review drawer
+  // straight away; opening a row in AssignmentsSection does the same
+  // without touching the URL. Cleared on close either way so a refresh
+  // doesn't keep reopening it.
+  const [searchParams, setSearchParams] = useSearchParams()
+  const [reviewAssignmentId, setReviewAssignmentId] = useState(() => searchParams.get('review'))
 
   const [classItem, setClassItem] = useState(null)
   const [students, setStudents] = useState([])
@@ -312,6 +321,12 @@ export default function TeacherClassPage() {
 
       <AddStudents classId={classItem.id} license={classItem.license} onCreated={handleStudentsCreated} />
 
+      <AssignmentsSection
+        classId={classItem.id}
+        locale={i18n.language}
+        onOpenReview={(assignmentId) => setReviewAssignmentId(assignmentId)}
+      />
+
       {cardsToShow && (
         <SignInCards
           classInfo={{ name: classItem.name, code: classItem.code }}
@@ -356,6 +371,21 @@ export default function TeacherClassPage() {
           student={viewingAvatarStudent}
           onClose={() => setViewingAvatarStudent(null)}
           onSaved={handleAvatarSaved}
+        />
+      )}
+
+      {reviewAssignmentId && (
+        <AssignmentReview
+          classId={classItem.id}
+          assignmentId={reviewAssignmentId}
+          onClose={() => {
+            setReviewAssignmentId(null)
+            if (searchParams.get('review')) {
+              const next = new URLSearchParams(searchParams)
+              next.delete('review')
+              setSearchParams(next, { replace: true })
+            }
+          }}
         />
       )}
     </div>

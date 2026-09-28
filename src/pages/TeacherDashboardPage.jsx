@@ -232,7 +232,19 @@ export default function TeacherDashboardPage() {
             <h2 id="students-heading" className="font-heading text-lg font-bold text-galaxy-text mb-3">
               {t('school:teacher.dashboard.students.heading')}
             </h2>
-            <StudentsTable students={classData.students} locale={i18n.language} onOpen={setOpenStudent} />
+            <StudentsTable
+              students={classData.students}
+              locale={i18n.language}
+              onOpen={setOpenStudent}
+              classId={selectedClassId}
+              // dashboard.js's `assignments` is published+closed, newest
+              // first — assignments[0] could be a closed one sitting ahead
+              // of a still-open assignment a teacher would rather see
+              // hand-in status for. The first PUBLISHED one is "the open
+              // assignment" the column is meant to track; null (the hint
+              // link) only when there isn't one at all.
+              latestAssignment={classData.assignments?.find((a) => a.status === 'published') ?? null}
+            />
           </section>
         </>
       ) : null}

@@ -7,7 +7,7 @@
 // whole fix, so ordering is what these assert.
 
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { purgeUser } from '../lib/deleteUser.js'
+import { purgeUser, purgeClassroom } from '../lib/deleteUser.js'
 
 const ENV = {
   supabaseUrl: 'https://example.supabase.co',
@@ -246,5 +246,47 @@ describe('purgeUser', () => {
     const studentListCall = calls.find((c) => c.includes('class_students?classroom_id=eq.c1'))
     expect(studentListCall).toBeDefined()
     expect(studentListCall).not.toContain('status=')
+  })
+  it('deletes a student\'s class_submissions (hand-ins) before the auth delete', async () => {
+    mockFetch()
+    await purgeUser(USER, ENV)
+    const subs = indexOfCall(`DELETE /rest/v1/class_submissions?user_id=eq.${USER}`)
+    const authDelete = indexOfCall(`DELETE /auth/v1/admin/users/${USER}`)
+    expect(subs).toBeGreaterThanOrEqual(0)
+    expect(subs).toBeLessThan(authDelete)
+  })
+
+  it('a failed class_submissions delete is best-effort (the FK cascades from auth.users) and does not block the purge', async () => {
+    mockFetch({
+      'class_submissions?user_id=eq.': { ok: false, status: 500, json: async () => ({}), text: async () => 'boom' },
+    })
+    const result = await purgeUser(USER, ENV)
+    expect(result).toEqual({ ok: true })
+    expect(indexOfCall(`DELETE /auth/v1/admin/users/${USER}`)).toBeGreaterThanOrEqual(0)
+  })
+})
+
+describe('purgeClassroom with assignments (migration 019)', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks()
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+  })
+
+  it('still purges students then deletes the class; assignments/hand-ins/feedback go by cascade, not extra deletes', async () => {
+    mockFetch({
+      'class_students?classroom_id=eq.c1': {
+        ok: true, status: 200, json: async () => [{ auth_user_id: 'kid-1' }], text: async () => '',
+      },
+    })
+    const result = await purgeClassroom({ id: 'c1', code: 'ABC234' }, ENV)
+    expect(result).toEqual({ ok: true })
+    const kidDelete = indexOfCall('DELETE /auth/v1/admin/users/kid-1')
+    const classDelete = indexOfCall('DELETE /rest/v1/classrooms?id=eq.c1')
+    expect(kidDelete).toBeGreaterThanOrEqual(0)
+    expect(classDelete).toBeGreaterThan(kidDelete)
+    // Nothing new has to be deleted first: every 019 FK cascades.
+    expect(calls.some((c) => c.includes('/rest/v1/assignments'))).toBe(false)
+    expect(calls.some((c) => c.includes('/rest/v1/submission_feedback'))).toBe(false)
   })
 })

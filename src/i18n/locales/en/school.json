@@ -117,7 +117,9 @@
         "pictures_today_other": "{{count}} pictures today",
         "inactive_chip": "Not seen in 7 days",
         "open_aria": "See {{name}}'s details",
-        "no_checkins": "No check-ins"
+        "no_checkins": "No check-ins",
+        "assignment_hint": "Create an assignment",
+        "assignment_review_aria": "Review {{title}}"
       },
       "drawer": {
         "heading": "{{name}}'s details",
@@ -178,6 +180,13 @@
       "upstream": "Something went wrong. Try again.",
       "student_forbidden": "Class accounts can't do that.",
       "class_image_limit": "This class has used today's pictures for this student. Try again tomorrow.",
+      "assignment_not_found": "We can't find that assignment.",
+      "submission_not_found": "We can't find that hand-in.",
+      "has_submissions": "Students have handed this in. Close it instead.",
+      "invalid_transition": "That status change isn't allowed.",
+      "assignment_closed": "This assignment is closed.",
+      "past_due": "This assignment is past its due date.",
+      "book_too_large": "This book is too big to hand in.",
       "generic": "Something went wrong. Try again."
     },
     "class_page": {
@@ -277,6 +286,131 @@
       "safety_note": "Print these now. For safety we can't show these pictures again; you can always make new ones.",
       "print": "Print cards",
       "footer": "mybooklab.app/class"
+    },
+    "assignments": {
+      "heading": "Assignments",
+      "new": "New assignment",
+      "empty": "No assignments yet.",
+      "no_due_date": "No due date",
+      "due": "Due {{when}}",
+      "handed_in_count": "{{handed_in}} of {{total}} handed in",
+      "status": {
+        "draft": "Draft",
+        "open": "Open",
+        "closed": "Closed"
+      },
+      "errors": {
+        "title_required": "Enter a title.",
+        "prompt_required": "Enter a writing prompt."
+      },
+      "actions": {
+        "publish": "Publish",
+        "close": "Close",
+        "reopen": "Reopen",
+        "delete_confirm": "Delete \"{{title}}\"? This can't be undone.",
+        "review_aria": "Review {{title}}"
+      },
+      "form": {
+        "new_heading": "New assignment",
+        "edit_heading": "Edit assignment",
+        "title_label": "Title",
+        "prompt_label": "Writing prompt",
+        "due_label": "Due date (optional)",
+        "allow_late_label": "Allow late hand-in",
+        "listen": "Read aloud",
+        "save_draft": "Save as draft",
+        "publish_now": "Publish now",
+        "saving": "Saving…"
+      },
+      "review": {
+        "heading": "Review: {{title}}",
+        "empty": "No students yet.",
+        "handed_in_at": "Handed in {{when}}",
+        "version": "Updated {{count}}×",
+        "feedback_count_one": "{{count}} feedback",
+        "feedback_count_other": "{{count}} feedback",
+        "next": "Next student",
+        "previous": "Previous student",
+        "open_aria": "Open {{name}}'s hand-in",
+        "status": {
+          "handed_in": "Handed in",
+          "late": "Late",
+          "not_started": "Not started"
+        }
+      },
+      "feedback": {
+        "heading": "Feedback",
+        "sticker_label": "Sticker",
+        "comment_label": "Comment",
+        "comment_placeholder": "Write something encouraging…",
+        "send": "Send",
+        "sending": "Sending…",
+        "seen": "Seen",
+        "not_seen": "Not seen yet",
+        "need_content": "Add a comment or pick a sticker.",
+        "sticker": {
+          "star": "Star",
+          "rocket": "Rocket",
+          "heart": "Heart",
+          "wow": "Wow",
+          "keep_going": "Keep going",
+          "rainbow": "Rainbow"
+        }
+      }
+    }
+  },
+  "student": {
+    "assignments": {
+      "heading": "My assignments",
+      "prompt_listen_aria": "Read the assignment out loud",
+      "due": {
+        "none": "No due date",
+        "today": "Due today",
+        "tomorrow": "Due tomorrow",
+        "weekday": "Due {{weekday}}",
+        "date": "Due {{date}}",
+        "late_ok": "Late is OK",
+        "past_due": "Past due"
+      },
+      "status": {
+        "not_started": "Not started",
+        "handed_in": "Handed in ✓",
+        "closed": "Closed"
+      },
+      "start_writing": "Start writing",
+      "open_handed_in": "Open my book",
+      "hand_in_again": "Hand in again",
+      "new_feedback": "New feedback!",
+      "see_feedback": "See feedback",
+      "prompt_hint": {
+        "heading": "Your assignment",
+        "dismiss_aria": "Hide the assignment prompt"
+      }
+    },
+    "hand_in": {
+      "picker_title": "Hand in to…",
+      "picker_hint": "Which assignment is this book for?",
+      "picker_empty": "No open assignments right now.",
+      "button": "Hand in",
+      "button_pick": "Hand in to…",
+      "saving": "Saving your book…",
+      "sending": "Handing in…",
+      "success_title": "Handed in!",
+      "success_body": "Your teacher will read it.",
+      "errors": {
+        "sync_failed": "We couldn't save your book. Check the internet and try again.",
+        "assignment_closed": "This assignment is closed. Ask your teacher.",
+        "past_due": "It's past the due date. Ask your teacher.",
+        "book_too_large": "This book is too big to hand in. Ask your teacher.",
+        "assignment_not_found": "We can't find that assignment. Ask your teacher.",
+        "book_not_found": "We can't find that book. Try again.",
+        "generic": "Something went wrong. Ask your teacher."
+      }
+    },
+    "feedback": {
+      "heading": "Feedback from your teacher",
+      "empty": "No feedback yet.",
+      "close_aria": "Close feedback"
     }
   }
 }

@@ -2,9 +2,11 @@ export const config = { runtime: 'edge' }
 
 import { handleCors, checkRateLimit } from '../_rateLimit.js'
 import { requireTeacher, requireClassOwner, sb, json } from '../_school.js'
+import { isLate } from '../../lib/school/assignments.js'
 
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000
 const MAX_CHECKINS_PER_STUDENT = 20
+const DASHBOARD_ASSIGNMENTS = 5
 const HELP_SELECT = 'id,student_id,classroom_id,kind,asks,in_hours,created_at,updated_at,class_students(display_name)'
 
 // class_help_requests.student_id -> class_students(id) is a to-one embed;
@@ -135,6 +137,33 @@ async function oneClassDashboard(req, o) {
   if (!helpRes.ok) throw new Error(`help lookup failed: ${helpRes.status}`)
   const helpRows = await helpRes.json()
 
+  // The newest few assignments students can see, and every hand-in for
+  // them in ONE query (not one per assignment or per student) — both fail
+  // closed: "nobody handed in" must never be a DB hiccup.
+  const assignmentsRes = await sb(
+    `/rest/v1/assignments?classroom_id=eq.${classroomId}&status=in.(published,closed)` +
+      `&select=id,title,status,due_at&order=created_at.desc&limit=${DASHBOARD_ASSIGNMENTS}`
+  )
+  if (!assignmentsRes.ok) throw new Error(`assignments lookup failed: ${assignmentsRes.status}`)
+  const assignments = (await assignmentsRes.json()).map(({ id, title, status, due_at }) => ({ id, title, status, due_at }))
+  const subRows = assignments.length
+    ? await (async () => {
+        const r = await sb(
+          `/rest/v1/class_submissions?classroom_id=eq.${classroomId}` +
+            `&assignment_id=in.(${assignments.map((a) => a.id).join(',')})&select=assignment_id,student_id,submitted_at`
+        )
+        if (!r.ok) throw new Error(`class_submissions lookup failed: ${r.status}`)
+        return r.json()
+      })()
+    : []
+  const dueById = new Map(assignments.map((a) => [a.id, a.due_at]))
+  const handInState = new Map() // `${student_id}:${assignment_id}` -> 'handed_in' | 'late'
+  for (const r of subRows) {
+    handInState.set(`${r.student_id}:${r.assignment_id}`, isLate(r.submitted_at, dueById.get(r.assignment_id)) ? 'late' : 'handed_in')
+  }
+  const assignmentMap = (studentId) =>
+    Object.fromEntries(assignments.map((a) => [a.id, handInState.get(`${studentId}:${a.id}`) ?? 'not_started']))
+
   const avatarByAuthId = await loadAvatarMap(authIds)
 
   const booksByStudent = new Map()
@@ -177,6 +206,7 @@ async function oneClassDashboard(req, o) {
       images_today: s.images_day === today ? s.images_today : 0,
       checkins_7d: checkinsByStudent.get(s.id) ?? [],
       inactive_7d: !activeThisWeekFlag,
+      assignments: assignmentMap(s.id),
     }
   })
 
@@ -200,6 +230,7 @@ async function oneClassDashboard(req, o) {
     },
     students: outStudents,
     help,
+    assignments,
   })
 }
 
