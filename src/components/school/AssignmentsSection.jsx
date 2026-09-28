@@ -196,8 +196,18 @@ export default function AssignmentsSection({ classId, locale, onOpenReview }) {
           assignment={formTarget === 'new' ? null : formTarget}
           onClose={() => setFormTarget(null)}
           onSaved={(saved) => {
-            upsert(saved)
+            // A freshly-created assignment's POST response has no `counts`
+            // (assignments.js's teacherShape only adds that on the list
+            // read) — upsert()'s own fallback used to show a hardcoded
+            // "0 of 0", which reads wrong the moment the class has any
+            // students at all. Reloading the list gets the real
+            // `{handed_in, total_students}` instead of guessing at it.
+            // An edit's PATCH response only changes fields the row already
+            // has real counts for, so that path keeps using upsert().
+            const wasNew = formTarget === 'new'
             setFormTarget(null)
+            if (wasNew) load()
+            else upsert(saved)
           }}
         />
       )}

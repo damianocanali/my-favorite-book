@@ -47,13 +47,15 @@ function FeedbackPanel({ classId, submissionId, feedback, onSent, locale }) {
     <div className="space-y-3 border-t border-galaxy-text-muted/10 pt-4">
       <h3 className="font-heading text-sm font-bold text-galaxy-text">{t('school:teacher.assignments.feedback.heading')}</h3>
 
-      <div role="radiogroup" aria-label={t('school:teacher.assignments.feedback.sticker_label')} className="flex flex-wrap gap-2">
+      {/* A group of toggle buttons, not a radio group: unlike a real radio
+          group (exactly one always selected), clicking the selected sticker
+          again deselects it — "no sticker" is a valid, reachable state. */}
+      <div role="group" aria-label={t('school:teacher.assignments.feedback.sticker_label')} className="flex flex-wrap gap-2">
         {STICKERS.map((id) => (
           <button
             key={id}
             type="button"
-            role="radio"
-            aria-checked={sticker === id}
+            aria-pressed={sticker === id}
             aria-label={t(`school:teacher.assignments.feedback.sticker.${id}`)}
             onClick={() => setSticker((prev) => (prev === id ? null : id))}
             className={`text-2xl w-11 h-11 flex items-center justify-center rounded-xl border transition-colors ${
@@ -200,6 +202,16 @@ export default function AssignmentReview({ classId, assignmentId, onClose }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  // Whenever which student is open changes — including back to the list,
+  // where openIndex becomes null — the panel itself (the scrollable
+  // element: it's `overflow-y-auto`) jumps back to its own top. Otherwise
+  // a teacher who scrolled down to a feedback panel, then hit Next, lands
+  // on the new student already scrolled past the header — Back/Prev/Next/
+  // Close would be off-screen until they scrolled back up themselves.
+  useEffect(() => {
+    panelRef.current?.scrollTo(0, 0)
+  }, [openIndex])
+
   const handedIn = (rows ?? []).filter((r) => r.status === 'handed_in')
 
   const loadDetail = useCallback(async (submissionId) => {
@@ -341,6 +353,11 @@ export default function AssignmentReview({ classId, assignmentId, onClose }) {
               </div>
               <div className="max-w-xl mx-auto">
                 <FeedbackPanel
+                  // Remounts FeedbackPanel for each student — otherwise its
+                  // own comment/sticker/error state (React state, not props)
+                  // would survive Next/Previous and leak one student's
+                  // half-written draft onto the next student's panel.
+                  key={detail.submission.id}
                   classId={classId}
                   submissionId={detail.submission.id}
                   feedback={detail.feedback}

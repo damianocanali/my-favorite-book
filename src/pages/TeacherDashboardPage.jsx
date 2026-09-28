@@ -237,7 +237,13 @@ export default function TeacherDashboardPage() {
               locale={i18n.language}
               onOpen={setOpenStudent}
               classId={selectedClassId}
-              latestAssignment={classData.assignments?.[0] ?? null}
+              // dashboard.js's `assignments` is published+closed, newest
+              // first — assignments[0] could be a closed one sitting ahead
+              // of a still-open assignment a teacher would rather see
+              // hand-in status for. The first PUBLISHED one is "the open
+              // assignment" the column is meant to track; null (the hint
+              // link) only when there isn't one at all.
+              latestAssignment={classData.assignments?.find((a) => a.status === 'published') ?? null}
             />
           </section>
         </>
