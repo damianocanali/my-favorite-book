@@ -137,7 +137,7 @@ function buildCorsHeaders(req) {
   if (!cached) req[ORIGIN_KEY] = allowOrigin
   const headers = {
     'Access-Control-Allow-Origin': allowOrigin,
-    'Access-Control-Allow-Methods': 'GET,POST,PATCH,DELETE,OPTIONS',
+    'Access-Control-Allow-Methods': 'GET,POST,PUT,PATCH,DELETE,OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
   }
   if (allowOrigin !== '*') headers['Vary'] = 'Origin'
@@ -160,7 +160,7 @@ export function handleCors(req) {
 export function withCors(headers = {}, req) {
   const cors = req ? buildCorsHeaders(req) : {
     'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET,POST,PATCH,DELETE,OPTIONS',
+    'Access-Control-Allow-Methods': 'GET,POST,PUT,PATCH,DELETE,OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
   }
   return { ...cors, ...headers }
