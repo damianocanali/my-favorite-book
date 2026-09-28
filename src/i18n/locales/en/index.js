@@ -16,8 +16,9 @@ import content from './content.json'
 import errors from './errors.json'
 import checkin from './checkin.json'
 import school from './school.json'
+import worksheets from './worksheets.json'
 
 export default {
   common, nav, auth, account, wizard, editor, games,
-  gallery, print, pricing, marketing, legal, content, errors, checkin, school,
+  gallery, print, pricing, marketing, legal, content, errors, checkin, school, worksheets,
 }

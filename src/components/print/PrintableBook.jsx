@@ -1,7 +1,28 @@
 /**
  * PrintableBook — hidden on screen, shown only during window.print().
  * Each page uses .print-page which triggers a page break in @media print.
+ *
+ * Task WS book-printing fix: index.css's book-printing rule —
+ * `body > #root > * { display: none !important }` — hides #root's one
+ * direct child during every print job (whatever it currently is), and
+ * `display:none` on an ancestor can never be undone by a descendant's own
+ * styling, however that descendant is styled. PreviewPage renders this
+ * component several levels *inside* #root (#root > AppShell's wrapper div >
+ * main > PreviewPage's own div > .printable-book) rather than as a direct
+ * child, so `.printable-book { display: block !important }` was fighting an
+ * ancestor it could never win against — window.print() produced blank
+ * pages. Confirmed with a real headless-Chrome print-to-PDF of a stubbed
+ * book: 1 page, no extractable text, before this fix.
+ *
+ * Same dodge as SignInCards.jsx (Task 12): when this is the hidden,
+ * print-only instance (`visible` false — PreviewPage's usage), portal it to
+ * document.body, a SIBLING of #root rather than a descendant, so the
+ * book-printing rule can't touch it. PrintOrderPage's `visible` usage is a
+ * genuine inline on-screen preview (scrollable, inside its own container)
+ * and must stay exactly where it's rendered — only the hidden/print variant
+ * is portaled.
  */
+import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
 
 export default function PrintableBook({ book, printMode = 'browser', visible = false }) {
@@ -12,7 +33,7 @@ export default function PrintableBook({ book, printMode = 'browser', visible = f
   const accent = book.colors?.accent ?? '#06B6D4'
   const textColor = book.colors?.text ?? '#F1F5F9'
 
-  return (
+  const content = (
     <div className={`printable-book ${visible ? 'block' : 'hidden'}`} data-print-mode={printMode}>
 
       {/* ── Cover page ── */}
@@ -139,4 +160,6 @@ export default function PrintableBook({ book, printMode = 'browser', visible = f
 
     </div>
   )
+
+  return visible ? content : createPortal(content, document.body)
 }

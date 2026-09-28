@@ -90,6 +90,24 @@ const NUDGES = [
 const startersFor = (position) =>
   STARTERS_BY_POSITION[position].map((en, i) => tr(`games:starters.${position}.s${i + 1}`, en))
 
+/**
+ * Every starter for a story position, in a stable (non-random) order —
+ * unlike getPromptsForPage's random subset of 4 for in-editor use, the
+ * Sentence starters worksheet (task WS) prints the whole strip.
+ *
+ * `translate` defaults to this module's own `tr` (the active app language,
+ * same as everywhere else in this file), but the worksheet's "sheet
+ * language, independent of the site language" control needs a FIXED
+ * language regardless of what the UI chrome is showing — i18next.t always
+ * resolves against the current active language, so the only way to get a
+ * different one is to hand in a fixed translator
+ * (i18next.getFixedT(sheetLocale, 'games')) instead of relying on the
+ * global instance's current language.
+ */
+export function getAllStartersForPosition(position, translate = tr) {
+  return STARTERS_BY_POSITION[position].map((en, i) => translate(`games:starters.${position}.s${i + 1}`, en))
+}
+
 const feelingWords = () => FEELING_WORDS.map((w) => tr(`games:feeling_words.${wordKey(w)}`, w))
 const actionWords = () => ACTION_WORDS.map((w) => tr(`games:action_words.${wordKey(w)}`, w))
 

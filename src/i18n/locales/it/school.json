@@ -71,6 +71,7 @@
       "title": "Dashboard",
       "loading": "Caricamento della tua dashboard…",
       "preview_link": "Prova l'app dei bambini",
+      "worksheets_link": "Schede stampabili gratuite",
       "class_switcher": {
         "aria_label": "Scegli una classe"
       },
@@ -308,7 +309,8 @@
         "close": "Chiudi",
         "reopen": "Riapri",
         "delete_confirm": "Eliminare \"{{title}}\"? Non si può annullare.",
-        "review_aria": "Correggi {{title}}"
+        "review_aria": "Correggi {{title}}",
+        "print_worksheet": "Stampa una scheda"
       },
       "form": {
         "new_heading": "Nuovo compito",

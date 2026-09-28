@@ -19,7 +19,7 @@ const STORAGE_KEY = 'mybooklab.locale'
 export const NAMESPACES = [
   'common', 'nav', 'auth', 'account', 'wizard', 'editor',
   'games', 'gallery', 'print', 'pricing', 'marketing', 'legal',
-  'content', 'errors', 'checkin', 'school',
+  'content', 'errors', 'checkin', 'school', 'worksheets',
 ]
 
 /// Narrow a full BCP-47 tag ("it-CH") to a locale we ship ("it").

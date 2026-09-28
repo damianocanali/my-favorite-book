@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { motion } from 'motion/react'
-import { GraduationCap, BookOpenCheck, ChevronRight } from 'lucide-react'
+import { GraduationCap, BookOpenCheck, ChevronRight, Printer } from 'lucide-react'
 import { schoolFetch } from '../lib/schoolApi'
 import { teacherErrorText } from '../components/school/teacherErrors'
 import { sortHelp, filterRecentlySeen, SEEN_SUPPRESS_MS } from '../lib/dashboardHelp'
@@ -199,6 +199,17 @@ export default function TeacherDashboardPage() {
           >
             <BookOpenCheck size={16} />
             {t('school:teacher.dashboard.preview_link')}
+          </Link>
+          {/* Task WS: a small, low-key entry point to the free public
+              worksheets library (brief §4) — not a headline action, so it
+              gets the muted treatment rather than sharing the primary
+              link's styling. */}
+          <Link
+            to="/worksheets"
+            className="flex items-center gap-1.5 font-body text-sm font-semibold text-galaxy-text-muted hover:text-galaxy-text transition-colors"
+          >
+            <Printer size={16} />
+            {t('school:teacher.dashboard.worksheets_link')}
           </Link>
         </div>
       </motion.div>

@@ -1,0 +1,116 @@
+{
+  "page": {
+    "title": "Free printable story worksheets",
+    "meta_description": "Eight free printable story worksheets for K-5 classrooms — story maps, character profiles, storyboards, book reports and more. No sign-in needed.",
+    "intro": "Eight ready-to-print pages for story writing, free and with no sign-in. Print one for the whole class as-is, or customize it first."
+  },
+  "grid": {
+    "grade_band": {
+      "k2": "Grades K–2",
+      "g35": "Grades 3–5"
+    }
+  },
+  "templates": {
+    "story_map": {
+      "title": "Story map",
+      "description": "Beginning, middle and end, each with room to draw and write."
+    },
+    "character_profile": {
+      "title": "Character profile",
+      "description": "Draw a character, then describe how they look, what they like, want and fear."
+    },
+    "setting_sketch": {
+      "title": "Setting sketch",
+      "description": "Draw the place a story happens, then describe what you'd see, hear and smell there."
+    },
+    "storyboard": {
+      "title": "Storyboard",
+      "description": "Six panels to sketch out a story in order, with two lines under each one."
+    },
+    "sentence_starters": {
+      "title": "Sentence starters",
+      "description": "A strip of starter phrases to finish in your own words."
+    },
+    "book_report": {
+      "title": "Book report",
+      "description": "Title, author, favorite part and character, a star rating, and a scene to draw."
+    },
+    "feelings_checkin": {
+      "title": "Feelings check-in card",
+      "description": "Circle how you feel and what would help — no scores, just faces and words."
+    },
+    "about_author": {
+      "title": "About the author",
+      "description": "A page about the person who wrote the book: you."
+    }
+  },
+  "sheet": {
+    "header": {
+      "name": "Name",
+      "date": "Date",
+      "class": "Class",
+      "teacher": "Teacher"
+    },
+    "footer": "Make it a real book at mybooklab.app",
+    "today_prompt": "Today's prompt: {{prompt}}",
+    "story_map": {
+      "beginning": "Beginning",
+      "middle": "Middle",
+      "end": "End"
+    },
+    "character_profile": {
+      "name_label": "Name",
+      "looks_like": "Looks like",
+      "likes": "Likes",
+      "wants": "Wants",
+      "afraid_of": "Afraid of"
+    },
+    "setting_sketch": {
+      "draw_prompt": "Draw the place",
+      "question": "What can you see / hear / smell?"
+    },
+    "storyboard": {
+      "panel": "Panel {{number}}"
+    },
+    "sentence_starters": {
+      "finish_prompt": "Finish each sentence in your own words."
+    },
+    "book_report": {
+      "title_label": "Title",
+      "author_label": "Author",
+      "favorite_part": "Favorite part",
+      "favorite_character": "Favorite character",
+      "rating_label": "How many stars?",
+      "draw_scene": "Draw a scene from the book"
+    },
+    "feelings_checkin": {
+      "how_feeling": "Circle how you feel",
+      "i_need": "I need…"
+    },
+    "about_author": {
+      "draw_yourself": "Draw yourself",
+      "my_name_is": "My name is…",
+      "i_like_to_write_about": "I like to write about…",
+      "my_next_book": "My next book will be about…"
+    }
+  },
+  "customize": {
+    "heading": "Customize",
+    "title_label": "Title / prompt",
+    "title_hint": "Changes the sheet's own prompt line — for example, the story map's writing cue.",
+    "class_label": "Class name",
+    "teacher_label": "Teacher name",
+    "sheet_language": "Sheet language",
+    "prefill_heading": "Pre-fill names",
+    "prefill_hint": "Paste a class list, one name per line (or comma-separated), and print one copy per name with the name already filled in.",
+    "prefill_placeholder": "Ava\nBen\nCleo",
+    "prefill_count_one": "{{count}} copy will print",
+    "prefill_count_other": "{{count}} copies will print",
+    "apply": "Apply",
+    "close": "Close"
+  },
+  "actions": {
+    "print": "Print",
+    "customize": "Customize"
+  }
+}
