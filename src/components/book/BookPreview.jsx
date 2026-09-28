@@ -139,20 +139,31 @@ function useFittedBookSize(containerRef, spread) {
   return dimensions
 }
 
-export default function BookPreview({ book, includeBackMatter = false }) {
+// `forceSinglePage`: every existing caller (ViewBookPage, PreviewPage,
+// ClassroomPage, ExampleBookPage, StudentBooks) renders this as the page's
+// main content, so canSpread()'s window.innerWidth check is the right read
+// of "is there room" — a spread is allowed to use nearly the full window
+// width (see useFittedBookSize's `maxW`), which is exactly what those pages
+// want. A caller embedding this in a narrower fixed-width panel (a modal)
+// doesn't have that room even on a wide desktop window, and spread mode's
+// window-width-based sizing would overflow the panel rather than fit it —
+// this prop pins single-page mode, whose sizing is already container-width-
+// based (`el.clientWidth`), so it fits whatever box it's given instead.
+export default function BookPreview({ book, includeBackMatter = false, forceSinglePage = false }) {
   const { t } = useTranslation()
   const flipBookRef = useRef(null)
   const containerRef = useRef(null)
   const [currentPage, setCurrentPage] = useState(0)
   const [totalPages, setTotalPages] = useState(0)
-  const [spread, setSpread] = useState(canSpread)
+  const [spread, setSpread] = useState(() => !forceSinglePage && canSpread())
   const dims = useFittedBookSize(containerRef, spread)
 
   useEffect(() => {
+    if (forceSinglePage) return
     const onResize = () => setSpread(canSpread())
     window.addEventListener('resize', onResize)
     return () => window.removeEventListener('resize', onResize)
-  }, [])
+  }, [forceSinglePage])
 
   const onFlip = useCallback((e) => {
     setCurrentPage(e.data)

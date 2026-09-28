@@ -86,7 +86,11 @@ export default function AssignmentForm({ classId, assignment, onClose, onSaved }
         role="dialog"
         aria-modal="true"
         aria-label={heading}
-        className="w-full max-w-lg max-h-[90vh] overflow-y-auto glass rounded-2xl p-6 border border-galaxy-text-muted/10 focus:outline-none space-y-4"
+        // bg-galaxy-bg-light rather than `.glass` — see AssignmentReview.jsx's
+        // panel for why: this sits directly over the class page's own
+        // Assignments list, and `.glass`'s translucent white/8% let that
+        // list's text show through underneath this form's own fields.
+        className="w-full max-w-lg max-h-[90vh] overflow-y-auto bg-galaxy-bg-light rounded-2xl p-6 border border-galaxy-text-muted/10 focus:outline-none space-y-4"
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
       >

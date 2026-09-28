@@ -246,7 +246,15 @@ export default function AssignmentReview({ classId, assignmentId, onClose }) {
         role="dialog"
         aria-modal="true"
         aria-label={currentRow ? currentRow.display_name : heading}
-        className={`w-full ${currentRow ? 'max-w-4xl' : 'max-w-2xl'} max-h-[90vh] overflow-y-auto glass rounded-2xl p-6 border border-galaxy-text-muted/10 focus:outline-none`}
+        // bg-galaxy-bg-light, not `.glass`: this panel shows dense text
+        // (a whole roster, or a book page) over the class page's own dense
+        // text (the assignments list, the roster) sitting right behind it.
+        // `.glass` is a deliberately translucent white/8% — fine over empty
+        // starfield, but stacked over another screen's text it reads as two
+        // layers of text superimposed. bg-galaxy-bg-light is index.css's own
+        // "pre-blended OPAQUE equivalent" of glass, kept exactly for cases
+        // like this (see tailwind.config.js's comment on that token).
+        className={`w-full ${currentRow ? 'max-w-4xl' : 'max-w-2xl'} max-h-[90vh] overflow-y-auto bg-galaxy-bg-light rounded-2xl p-6 border border-galaxy-text-muted/10 focus:outline-none`}
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
       >
@@ -317,15 +325,19 @@ export default function AssignmentReview({ classId, assignmentId, onClose }) {
               </button>
             </div>
           ) : detail ? (
-            // Stacked, not side-by-side: BookPreview sizes its two-page
-            // spread off window.innerWidth once the viewport is wide enough
-            // (see its own useFittedBookSize/canSpread), not off whatever
-            // column it's given — squeezing a feedback sidebar next to it
-            // (tried first) just made the book overlap it. Same "book gets
-            // the full row" layout as StudentBooks.jsx's open-book view.
+            // Stacked, not side-by-side (a sidebar next to the book, tried
+            // first, doesn't work — see forceSinglePage below for why), and
+            // forceSinglePage: unforced, BookPreview goes two-page-spread and
+            // sizes off window.innerWidth once the viewport is wide enough
+            // (its own canSpread/useFittedBookSize), not off this panel's
+            // actual width — on a desktop-width window that made the book
+            // wider than the modal itself and overflow past its edge.
+            // Single-page mode's sizing is container-width-based instead
+            // (`el.clientWidth`), so it fits whatever width this panel
+            // actually has.
             <div className="space-y-6">
               <div className="flex justify-center">
-                <BookPreview book={detail.submission.book_snapshot} />
+                <BookPreview book={detail.submission.book_snapshot} forceSinglePage />
               </div>
               <div className="max-w-xl mx-auto">
                 <FeedbackPanel
