@@ -13,8 +13,10 @@
 -- Apply BEFORE deploying the code that uses it. Idempotent: safe to re-run.
 
 -- ── The bell: one row per event a teacher should hear about ─────────────
--- payload carries display text only (student name, class name, assignment
--- title/id). Never a feeling or a need.
+-- payload carries ids and display text only (student_id — the name is
+-- resolved at read time — class name, assignment title/id). Never a
+-- feeling or a need. Rows older than 90 days are pruned by
+-- api/cron/purge-deletions.js.
 -- dedup_key: set only for events that must fire once ("everyone has handed
 -- in <assignment>"); the insert uses ON CONFLICT DO NOTHING on it, so two
 -- last hand-ins landing at once cannot both alert. NULLs never conflict.
@@ -32,6 +34,8 @@ create index if not exists teacher_notifications_teacher_time_idx
   on public.teacher_notifications (teacher_user_id, created_at desc);
 -- The classroom-FK cascade.
 create index if not exists teacher_notifications_class_idx on public.teacher_notifications (classroom_id);
+-- The 90-day prune.
+create index if not exists teacher_notifications_created_idx on public.teacher_notifications (created_at);
 alter table public.teacher_notifications enable row level security;
 revoke all on public.teacher_notifications from anon, authenticated;
 

@@ -32,6 +32,8 @@ describe('020_notifications.sql', () => {
     expect(b).toMatch(/read_at timestamptz/i)
     expect(b).toMatch(/dedup_key text unique/i)
     expect(SQL).toMatch(/on public\.teacher_notifications \(teacher_user_id, created_at desc\)/i)
+    // The 90-day prune in api/cron/purge-deletions.js deletes by created_at.
+    expect(SQL).toMatch(/on public\.teacher_notifications \(created_at\)/i)
   })
 
   it('push_subscriptions: user cascade, unique endpoint, keys not null', () => {
