@@ -45,6 +45,16 @@
     }
   },
   "sheet": {
+    "heading": {
+      "story_map": "My Story Map",
+      "character_profile": "My Character",
+      "setting_sketch": "My Story's Setting",
+      "storyboard": "My Storyboard",
+      "sentence_starters": "Finish My Story",
+      "book_report": "My Book Report",
+      "feelings_checkin": "How I Feel Today",
+      "about_author": "All About Me"
+    },
     "header": {
       "name": "Name",
       "date": "Date",
@@ -85,7 +95,9 @@
     },
     "feelings_checkin": {
       "how_feeling": "Circle how you feel",
-      "i_need": "I need…"
+      "i_need": "I need…",
+      "draw_prompt": "Draw how you feel",
+      "why_prompt": "Why do I feel this way?"
     },
     "about_author": {
       "draw_yourself": "Draw yourself",
@@ -106,7 +118,6 @@
     "prefill_placeholder": "Ava\nBen\nCleo",
     "prefill_count_one": "{{count}} copy will print",
     "prefill_count_other": "{{count}} copies will print",
-    "apply": "Apply",
     "close": "Close"
   },
   "actions": {

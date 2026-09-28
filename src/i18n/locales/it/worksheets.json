@@ -45,6 +45,16 @@
     }
   },
   "sheet": {
+    "heading": {
+      "story_map": "La Mia Mappa della Storia",
+      "character_profile": "Il Mio Personaggio",
+      "setting_sketch": "L'Ambientazione della Mia Storia",
+      "storyboard": "Il Mio Storyboard",
+      "sentence_starters": "Completa la Mia Storia",
+      "book_report": "La Mia Recensione del Libro",
+      "feelings_checkin": "Come Mi Sento Oggi",
+      "about_author": "Tutto Su Di Me"
+    },
     "header": {
       "name": "Nome",
       "date": "Data",
@@ -85,7 +95,9 @@
     },
     "feelings_checkin": {
       "how_feeling": "Cerchia come ti senti",
-      "i_need": "Ho bisogno di…"
+      "i_need": "Ho bisogno di…",
+      "draw_prompt": "Disegna come ti senti",
+      "why_prompt": "Perché mi sento così?"
     },
     "about_author": {
       "draw_yourself": "Disegna te stesso",
@@ -106,7 +118,6 @@
     "prefill_placeholder": "Aurora\nMarco\nGiulia",
     "prefill_count_one": "{{count}} copia verrà stampata",
     "prefill_count_other": "{{count}} copie verranno stampate",
-    "apply": "Applica",
     "close": "Chiudi"
   },
   "actions": {

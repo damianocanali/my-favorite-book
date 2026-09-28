@@ -173,27 +173,35 @@ function BookReportBody({ t, prompt }) {
   )
 }
 
+// Review round 1: bigger circles (a page that only used its top third
+// looked unfinished) plus a draw box and a couple of "why" lines, so the
+// sheet actually uses the page it's printed on rather than leaving most of
+// it blank.
 function FeelingsCheckinBody({ t, tCheckin }) {
   return (
-    <div className="flex flex-col h-full gap-4">
-      <p className="font-bold text-base">{t('sheet.feelings_checkin.how_feeling')}</p>
-      <div className="grid grid-cols-3 gap-4">
+    <div className="flex flex-col h-full gap-5">
+      <p className="font-bold text-lg">{t('sheet.feelings_checkin.how_feeling')}</p>
+      <div className="grid grid-cols-3 gap-6">
         {FEELINGS.map((f) => (
           <div key={f.id} className="flex flex-col items-center gap-1">
-            <div className="w-20 h-20 rounded-full border-2 border-black flex items-center justify-center text-center px-1">
-              <span className="text-sm font-semibold">{tCheckin(`feeling.${f.id}`)}</span>
+            <div className="w-28 h-28 rounded-full border-2 border-black flex items-center justify-center text-center px-2">
+              <span className="text-base font-semibold">{tCheckin(`feeling.${f.id}`)}</span>
             </div>
           </div>
         ))}
       </div>
-      <p className="font-bold text-base mt-2">{t('sheet.feelings_checkin.i_need')}</p>
+      <p className="font-bold text-lg">{t('sheet.feelings_checkin.i_need')}</p>
       <div className="flex flex-wrap gap-3">
         {NEEDS.map((n) => (
-          <span key={n.id} className="border-2 border-black rounded-full px-4 py-2 text-sm font-semibold">
+          <span key={n.id} className="border-2 border-black rounded-full px-4 py-2 text-base font-semibold">
             {tCheckin(`need.${n.id}`)}
           </span>
         ))}
       </div>
+      <p className="font-bold text-lg">{t('sheet.feelings_checkin.draw_prompt')}</p>
+      <DrawBox style={{ minHeight: '2.2in' }} />
+      <p className="font-bold text-base">{t('sheet.feelings_checkin.why_prompt')}</p>
+      <WriteLines count={2} />
     </div>
   )
 }
@@ -249,6 +257,12 @@ export default function WorksheetSheet({
 
   return (
     <div className="worksheet-sheet font-body flex flex-col">
+      {/* Review round 1: a big, kid-friendly title ("My Story Map", "How I
+          Feel Today") from the template registry's own sheetTitleKey — a
+          deliberately different, friendlier string from the grid card's
+          plain titleKey. In the sheet language, same as everything else
+          `t` renders here. */}
+      <h1 className="text-2xl font-heading font-bold text-center mb-2">{t(template.sheetTitleKey)}</h1>
       <WorksheetHeader t={t} className={className} teacherName={teacherName} studentName={studentName} />
       <div className="worksheet-body flex-1 min-h-0">
         <Body t={t} tCheckin={tCheckin} tGames={tGames} prompt={prompt} />

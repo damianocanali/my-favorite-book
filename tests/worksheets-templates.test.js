@@ -16,11 +16,17 @@ describe('WORKSHEET_TEMPLATES', () => {
     for (const id of ids) expect(id).toMatch(/^[a-z]+(-[a-z]+)*$/)
   })
 
-  it('every template has a title key, description key and a valid grade band', () => {
+  it('every template has a title key, description key, sheet-heading key and a valid grade band', () => {
     const bands = new Set(Object.values(GRADE_BANDS))
     for (const t of WORKSHEET_TEMPLATES) {
       expect(t.titleKey).toMatch(/^worksheets:templates\..+\.title$/)
       expect(t.descriptionKey).toMatch(/^worksheets:templates\..+\.description$/)
+      // The big friendly title printed on the sheet itself (review round
+      // 1) is deliberately a DIFFERENT key from titleKey — "My Story Map"
+      // on the page vs. "Story map" on the grid card — not the same string
+      // reused in two places.
+      expect(t.sheetTitleKey).toMatch(/^worksheets:sheet\.heading\..+$/)
+      expect(t.sheetTitleKey).not.toBe(t.titleKey)
       expect(bands.has(t.gradeBand)).toBe(true)
     }
   })

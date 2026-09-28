@@ -7,13 +7,20 @@ import { useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { X, Printer } from 'lucide-react'
 import { parseNameList, MAX_NAMES } from '../../lib/worksheets/names.js'
+import { enterInertBackground, exitInertBackground } from '../../lib/worksheets/inert.js'
 
 export default function CustomizePanel({ t, template, values, onChange, onPrint, onClose }) {
   const panelRef = useRef(null)
   const names = parseNameList(values.namesRaw)
 
+  // Review round 1: #root goes `inert` for as long as this panel is open —
+  // see inert.js's own comment for why that's preferred over hand-rolling a
+  // Tab/Shift+Tab cycle. Paired enter/exit, with exit repeated on both the
+  // Escape/close path and unmount, same belt-and-suspenders as
+  // SignInCards.jsx's print-mode cleanup.
   useEffect(() => {
     const previouslyFocused = document.activeElement
+    enterInertBackground(document)
     panelRef.current?.focus()
     const onKey = (e) => {
       if (e.key === 'Escape') onClose()
@@ -21,18 +28,18 @@ export default function CustomizePanel({ t, template, values, onChange, onPrint,
     window.addEventListener('keydown', onKey)
     return () => {
       window.removeEventListener('keydown', onKey)
+      exitInertBackground(document)
       if (previouslyFocused instanceof HTMLElement) previouslyFocused.focus()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // No names pasted yet prints 1 (default) copy — still singular, not "1
-  // copies" — so only the count actually drives which key, never length===0
-  // on its own.
+  // No names pasted yet still prints 1 (default) copy. i18next resolves the
+  // _one/_other plural form itself from `count` (both keys exist in
+  // worksheets.json) — review round 1 removed the manual singular/plural
+  // branch this used to hand-roll alongside it.
   const copyCount = names.length || 1
-  const copyLabel = copyCount === 1
-    ? t('customize.prefill_count_one', { count: 1 })
-    : t('customize.prefill_count_other', { count: copyCount })
+  const copyLabel = t('customize.prefill_count', { count: copyCount })
 
   return createPortal(
     <div className="fixed inset-0 z-[70] flex items-center justify-end bg-black/60 px-4 py-4">
