@@ -114,6 +114,35 @@ describe('sendEmail (Resend)', () => {
   })
 })
 
+describe('sendEmailBatch (Resend batch, for the daily summary)', () => {
+  it('POSTs up to 100 emails in one call with an idempotency key', async () => {
+    process.env.RESEND_API_KEY = 're_test'
+    process.env.EMAIL_FROM = 'My Book Lab <hello@mybooklab.app>'
+    const calls = []
+    globalThis.fetch = vi.fn(async (url, init) => { calls.push({ url, init }); return new Response('{"data":[]}') })
+    const { sendEmailBatch } = await import('../lib/notify/email.js')
+    const r = await sendEmailBatch([{ to: 'a@x.test', subject: 's', text: 't' }, { to: 'b@x.test', subject: 's', text: 't', html: '<p>t</p>' }], { idempotencyKey: 'k' })
+    expect(r.ok).toBe(true)
+    expect(calls[0].url).toBe('https://api.resend.com/emails/batch')
+    expect(calls[0].init.headers['Idempotency-Key']).toBe('k')
+    expect(JSON.parse(calls[0].init.body)).toEqual([
+      { from: 'My Book Lab <hello@mybooklab.app>', to: ['a@x.test'], subject: 's', text: 't' },
+      { from: 'My Book Lab <hello@mybooklab.app>', to: ['b@x.test'], subject: 's', text: 't', html: '<p>t</p>' },
+    ])
+  })
+
+  it('refuses more than 100 and is a no-op without keys', async () => {
+    vi.spyOn(console, 'info').mockImplementation(() => {})
+    globalThis.fetch = vi.fn()
+    const { sendEmailBatch } = await import('../lib/notify/email.js')
+    expect(await sendEmailBatch([{ to: 'a', subject: 's', text: 't' }])).toMatchObject({ skipped: true })
+    process.env.RESEND_API_KEY = 're_test'
+    process.env.EMAIL_FROM = 'x@y.z'
+    await expect(sendEmailBatch(Array(101).fill({ to: 'a', subject: 's', text: 't' }))).rejects.toThrow()
+    expect(globalThis.fetch).not.toHaveBeenCalled()
+  })
+})
+
 describe('APNs provider token', () => {
   it('is ES256 with kid=key id, iss=team id, and verifies with the key', async () => {
     setApnsEnv()
