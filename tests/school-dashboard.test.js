@@ -86,6 +86,20 @@ const helpFixture = [
 ]
 const helpRoute = (rows = helpFixture) => ({ method: 'GET', match: '/rest/v1/class_help_requests', reply: { body: rows } })
 
+const A1 = '6f1c1b1e-0000-4000-8000-0000000000b1'
+const A2 = '6f1c1b1e-0000-4000-8000-0000000000b2'
+const assignmentsFixture = [
+  { id: A2, title: 'Space', status: 'published', due_at: '2026-09-26T00:00:00.000Z' },
+  { id: A1, title: 'My pet', status: 'closed', due_at: null },
+]
+const assignmentsRoute = (rows = assignmentsFixture) => ({ method: 'GET', match: '/rest/v1/assignments', reply: { body: rows } })
+const subsFixture = [
+  { assignment_id: A2, student_id: S1_ID, submitted_at: '2026-09-27T09:00:00.000Z' }, // after due -> late
+  { assignment_id: A1, student_id: S1_ID, submitted_at: '2026-09-20T00:00:00.000Z' },
+  { assignment_id: A1, student_id: S2_ID, submitted_at: '2026-09-21T00:00:00.000Z' },
+]
+const subsRoute = (rows = subsFixture) => ({ method: 'GET', match: '/rest/v1/class_submissions', reply: { body: rows } })
+
 const avatarRoute = (rows = [{ user_id: 'auth-ann', avatar_url: 'https://cdn.test/ann.png' }]) =>
   ({ method: 'GET', match: '/rest/v1/user_inventory', reply: { body: rows } })
 
@@ -98,6 +112,8 @@ function fullRoutes(overrides = {}) {
     overrides.checkins ?? checkinsRoute(),
     overrides.help ?? helpRoute(),
     overrides.avatar ?? avatarRoute(),
+    overrides.assignments ?? assignmentsRoute(),
+    overrides.subs ?? subsRoute(),
   ]
 }
 
@@ -158,6 +174,40 @@ describe('GET /api/school/dashboard?classId= (class owner view)', () => {
     expect(ben).not.toHaveProperty('avatar_url')
   })
 
+  it('adds the newest published/closed assignments and a per-student status map, one query each', async () => {
+    const log = mockSupabase({ user: TEACHER, routes: fullRoutes() })
+    const { default: handler } = await import('../api/school/dashboard.js')
+    const body = await (await handler(call(`?classId=${CLASS_ID}`))).json()
+    expect(body.assignments).toEqual([
+      { id: A2, title: 'Space', status: 'published', due_at: '2026-09-26T00:00:00.000Z' },
+      { id: A1, title: 'My pet', status: 'closed', due_at: null },
+    ])
+    const ann = body.students.find((s) => s.id === S1_ID)
+    const ben = body.students.find((s) => s.id === S2_ID)
+    expect(ann.assignments).toEqual({ [A2]: 'late', [A1]: 'handed_in' })
+    expect(ben.assignments).toEqual({ [A2]: 'not_started', [A1]: 'handed_in' })
+
+    const aCalls = log.filter((l) => l.url.includes('/rest/v1/assignments'))
+    expect(aCalls).toHaveLength(1)
+    expect(aCalls[0].url).toContain(`classroom_id=eq.${CLASS_ID}`)
+    expect(aCalls[0].url).toContain('status=in.(published,closed)')
+    expect(aCalls[0].url).toContain('order=created_at.desc')
+    expect(aCalls[0].url).toContain('limit=5')
+    const sCalls = log.filter((l) => l.url.includes('/rest/v1/class_submissions'))
+    expect(sCalls).toHaveLength(1)
+    expect(sCalls[0].url).toContain(`classroom_id=eq.${CLASS_ID}`)
+    expect(sCalls[0].url).toContain(`assignment_id=in.(${A2},${A1})`)
+  })
+
+  it('skips the submissions query when the class has no visible assignments', async () => {
+    const log = mockSupabase({ user: TEACHER, routes: fullRoutes({ assignments: assignmentsRoute([]) }) })
+    const { default: handler } = await import('../api/school/dashboard.js')
+    const body = await (await handler(call(`?classId=${CLASS_ID}`))).json()
+    expect(body.assignments).toEqual([])
+    expect(body.students[0].assignments).toEqual({})
+    expect(log.some((l) => l.url.includes('/rest/v1/class_submissions'))).toBe(false)
+  })
+
   it('never selects book_data from user_books', async () => {
     const log = mockSupabase({ user: TEACHER, routes: fullRoutes() })
     const { default: handler } = await import('../api/school/dashboard.js')
@@ -203,6 +253,8 @@ describe('GET /api/school/dashboard?classId= (class owner view)', () => {
     ['books', 'user_books'],
     ['checkins', 'class_checkins'],
     ['help', 'class_help_requests'],
+    ['assignments', '/rest/v1/assignments'],
+    ['subs', '/rest/v1/class_submissions'],
   ])('fails closed (503, not an empty/partial dashboard) when the %s lookup errors', async (key, match) => {
     const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
     mockSupabase({ user: TEACHER, routes: fullRoutes({ [key]: { method: 'GET', match, reply: { status: 500, body: {} } } }) })
