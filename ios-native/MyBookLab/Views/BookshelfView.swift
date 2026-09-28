@@ -81,6 +81,12 @@ struct BookshelfView: View {
                 .padding(.horizontal, 20)
                 .padding(.top, 8)
 
+                // Schools: a class account's assignments sit above the
+                // shelf. Renders nothing for a family account.
+                if auth.isStudent {
+                    MyAssignmentsSection()
+                }
+
                 Shelves(books: bookshelf.books)
             }
             .padding(.bottom, 24)
@@ -168,6 +174,11 @@ struct BookshelfView: View {
     private var emptyShelfWithExample: some View {
         ScrollView {
             VStack(spacing: 24) {
+                // A class account with no books yet still needs its
+                // assignments' "Start writing".
+                if auth.isStudent {
+                    MyAssignmentsSection()
+                }
                 VStack(spacing: 8) {
                     Text("📖").font(.system(size: 56))
                     Text("Your bookshelf is empty")

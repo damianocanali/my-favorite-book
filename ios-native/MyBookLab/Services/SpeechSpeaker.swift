@@ -10,8 +10,31 @@ import Observation
 
 @Observable
 @MainActor
-final class SpeechSpeaker {
+final class SpeechSpeaker: NSObject, AVSpeechSynthesizerDelegate {
     private let synth = AVSpeechSynthesizer()
+
+    /// True while an utterance started here is still being read, so a
+    /// speaker button can become a stop button. `currentText` is what is
+    /// being read, for views with several buttons sharing one speaker.
+    private(set) var isSpeaking = false
+    private(set) var currentText: String?
+    /// Identity of the utterance in flight: a cancelled earlier utterance's
+    /// delegate callback lands after the next one started, and must not
+    /// flip the new one's state off.
+    @ObservationIgnored private var currentUtterance: ObjectIdentifier?
+
+    override init() {
+        super.init()
+        synth.delegate = self
+    }
+
+    /// Whether `text` is the thing being read right now.
+    func isSpeaking(_ text: String) -> Bool { isSpeaking && currentText == text }
+
+    /// Speaks `text`, or stops it if it is already being read.
+    func toggle(_ text: String, language: String? = nil) {
+        if isSpeaking(text) { stop() } else { speak(text, language: language) }
+    }
 
     /// Speaks `text` in `language` (a BCP-47 tag like "it" or "en-US").
     ///
@@ -30,11 +53,34 @@ final class SpeechSpeaker {
         let utterance = AVSpeechUtterance(string: text)
         utterance.rate = 0.45
         utterance.voice = Self.bestVoice(for: tag)
+        currentUtterance = ObjectIdentifier(utterance)
+        currentText = text
+        isSpeaking = true
         synth.speak(utterance)
     }
 
     func stop() {
         if synth.isSpeaking { synth.stopSpeaking(at: .immediate) }
+        currentUtterance = nil
+        currentText = nil
+        isSpeaking = false
+    }
+
+    nonisolated func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
+        let id = ObjectIdentifier(utterance)
+        Task { @MainActor in self.utteranceEnded(id) }
+    }
+
+    nonisolated func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didCancel utterance: AVSpeechUtterance) {
+        let id = ObjectIdentifier(utterance)
+        Task { @MainActor in self.utteranceEnded(id) }
+    }
+
+    private func utteranceEnded(_ id: ObjectIdentifier) {
+        guard currentUtterance == id else { return }
+        currentUtterance = nil
+        currentText = nil
+        isSpeaking = false
     }
 
     /// Picks the nicest installed voice for a language.

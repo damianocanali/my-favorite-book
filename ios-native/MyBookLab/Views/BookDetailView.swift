@@ -9,6 +9,7 @@ struct BookDetailView: View {
 
     @Environment(AudioService.self) private var audio
     @Environment(AuthStore.self) private var auth
+    @Environment(BookshelfStore.self) private var bookshelf
     @Environment(AppRouter.self) private var router
     @Environment(SubscriptionStore.self) private var subs
     @Environment(\.dismiss) private var dismiss
@@ -56,6 +57,17 @@ struct BookDetailView: View {
                     .tabViewStyle(.page(indexDisplayMode: .never))
 
                     pageControls
+                }
+
+                // Schools: a class account hands its own book in to an
+                // assignment from here. Never mounted for a family account;
+                // isEditable already limits it to a book on the child's own
+                // shelf, so the sync step can never copy someone else's book.
+                if auth.isStudent && isEditable {
+                    HandInPanel(book: book) {
+                        endConfetti += 1
+                        audio.playSFX(.celebrate)
+                    }
                 }
             }
             .padding(.bottom, 32)
@@ -125,8 +137,14 @@ struct BookDetailView: View {
     // Editable only when signed in and this isn't the read-only sample
     // book (gallery books also use slugs / different ids and aren't the
     // user's own — they simply won't appear from the user's shelf).
+    //
+    // It must also be on the user's own shelf: the gallery opens this view
+    // for other people's published books, and saving an "edit" of one
+    // would silently copy it into this account (and let a class account
+    // hand it in as its own).
     private var isEditable: Bool {
         auth.isSignedIn && book.id != SampleBook.book.id
+            && bookshelf.books.contains { $0.id == book.id }
     }
 
     private var pageControls: some View {
