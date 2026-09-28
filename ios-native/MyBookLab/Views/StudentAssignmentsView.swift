@@ -26,6 +26,23 @@ enum AssignmentCopy {
     static let feedbackEmpty = LocalizedStringResource("school.student.feedback.empty", defaultValue: "No feedback yet.")
     static let feedbackClose = LocalizedStringResource("school.student.feedback.close_aria", defaultValue: "Close feedback")
     static let readAloud = LocalizedStringResource("school.actions.listen", defaultValue: "Read this out loud")
+    static let stopReading = LocalizedStringResource("school.actions.stop_listening", defaultValue: "Stop reading")
+    static let replaceDraftTitle = LocalizedStringResource("school.student.assignments.replace_draft", defaultValue: "Start a new book? Your unsaved book will be lost.")
+    static let replaceDraftConfirm = LocalizedStringResource("school.student.assignments.start_writing", defaultValue: "Start writing")
+
+    static let stickerFallback = LocalizedStringResource("school.teacher.assignments.feedback.sticker_label", defaultValue: "Sticker")
+
+    static func sticker(_ id: String) -> LocalizedStringResource? {
+        switch id {
+        case "star": LocalizedStringResource("school.teacher.assignments.feedback.sticker.star", defaultValue: "Star")
+        case "rocket": LocalizedStringResource("school.teacher.assignments.feedback.sticker.rocket", defaultValue: "Rocket")
+        case "heart": LocalizedStringResource("school.teacher.assignments.feedback.sticker.heart", defaultValue: "Heart")
+        case "wow": LocalizedStringResource("school.teacher.assignments.feedback.sticker.wow", defaultValue: "Wow")
+        case "keep_going": LocalizedStringResource("school.teacher.assignments.feedback.sticker.keep_going", defaultValue: "Keep going")
+        case "rainbow": LocalizedStringResource("school.teacher.assignments.feedback.sticker.rainbow", defaultValue: "Rainbow")
+        default: nil
+        }
+    }
 
     static func status(_ s: StudentAssignment.CardStatus) -> LocalizedStringResource {
         switch s {
@@ -64,9 +81,14 @@ struct MyAssignmentsSection: View {
     @Environment(AppRouter.self) private var router
     @State private var assignments: [StudentAssignment]?
     @State private var feedbackFor: StudentAssignment?
+    /// The assignment waiting on "replace your unsaved book?".
+    @State private var pendingStart: StudentAssignment?
 
     var body: some View {
-        Group {
+        // A real container, not a Group: modifiers on a Group that starts
+        // empty land on no view, so .task would never run and nothing
+        // would ever load.
+        VStack(spacing: 0) {
             if auth.isStudent, let assignments, !assignments.isEmpty {
                 VStack(alignment: .leading, spacing: 14) {
                     Label {
@@ -78,7 +100,7 @@ struct MyAssignmentsSection: View {
                     .font(.system(.title3, design: .rounded).bold())
                     .foregroundStyle(.white)
 
-                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 300), spacing: 16)], spacing: 16) {
+                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 260), spacing: 16)], spacing: 16) {
                         ForEach(assignments) { assignment in
                             AssignmentCard(
                                 assignment: assignment,
@@ -103,6 +125,23 @@ struct MyAssignmentsSection: View {
                 StudentFeedbackSheet(submissionId: submissionId) { markSeen(assignment.id) }
             }
         }
+        .confirmationDialog(
+            Text(AssignmentCopy.replaceDraftTitle),
+            isPresented: Binding(
+                get: { pendingStart != nil },
+                set: { if !$0 { pendingStart = nil } }
+            ),
+            titleVisibility: .visible,
+            presenting: pendingStart
+        ) { assignment in
+            Button(role: .destructive) {
+                pendingStart = nil
+                startNew(assignment)
+            } label: {
+                Text(AssignmentCopy.replaceDraftConfirm)
+            }
+            Button("Cancel", role: .cancel) { pendingStart = nil }
+        }
     }
 
     /// A book already tagged for this assignment: "Start writing" resumes it
@@ -114,7 +153,24 @@ struct MyAssignmentsSection: View {
     /// A new book made the app's normal way (the Create wizard), tagged with
     /// the assignment and titled after it — or the tagged book reopened in
     /// the editor, same as the Edit button on a book.
+    ///
+    /// Never silently wipes work: a draft already open for this assignment
+    /// is just returned to, and any other draft with something in it is
+    /// only replaced after the child says so.
     private func startOrContinue(_ assignment: StudentAssignment) {
+        let draft = BookDraftStore.shared
+        if draft.book?.assignmentId == assignment.id {
+            router.selectedTab = .create
+            return
+        }
+        if let open = draft.book, Self.hasWork(open) {
+            pendingStart = assignment
+            return
+        }
+        startNew(assignment)
+    }
+
+    private func startNew(_ assignment: StudentAssignment) {
         let draft = BookDraftStore.shared
         if let existing = taggedBook(for: assignment) {
             draft.edit(existing)
@@ -125,6 +181,16 @@ struct MyAssignmentsSection: View {
             draft.book?.assignmentPrompt = assignment.prompt
         }
         router.selectedTab = .create
+    }
+
+    /// Whether an open draft holds anything a child would miss.
+    private static func hasWork(_ b: Book) -> Bool {
+        !b.title.trimmingCharacters(in: .whitespaces).isEmpty
+            || !b.authorName.trimmingCharacters(in: .whitespaces).isEmpty
+            || !b.characters.isEmpty
+            || b.setting != nil
+            || b.pages.contains { !$0.text.trimmingCharacters(in: .whitespaces).isEmpty || $0.illustrationData != nil }
+            || b.coverImage != nil
     }
 
     private func markSeen(_ assignmentId: String) {
@@ -176,15 +242,15 @@ private struct AssignmentCard: View {
                         .foregroundStyle(.white.opacity(0.8))
                         .frame(maxWidth: .infinity, alignment: .leading)
                     Button {
-                        speaker.speak(prompt)
+                        speaker.toggle(prompt)
                     } label: {
-                        Image(systemName: "speaker.wave.2.fill")
+                        Image(systemName: speaker.isSpeaking(prompt) ? "stop.fill" : "speaker.wave.2.fill")
                             .font(.body)
                             .frame(width: 44, height: 44)
                             .background(.cyan.opacity(0.18), in: Circle())
                             .foregroundStyle(.cyan)
                     }
-                    .accessibilityLabel(Text(AssignmentCopy.listen))
+                    .accessibilityLabel(Text(speaker.isSpeaking(prompt) ? AssignmentCopy.stopReading : AssignmentCopy.listen))
                 }
             }
 
@@ -219,9 +285,22 @@ private struct AssignmentCard: View {
         .onDisappear { speaker.stop() }
     }
 
-    @ViewBuilder
+    /// One row when it fits; stacked at large Dynamic Type or with longer
+    /// (Italian) labels.
     private var actions: some View {
-        HStack(spacing: 10) {
+        ViewThatFits(in: .horizontal) {
+            HStack(spacing: 10) {
+                actionButtons
+                Spacer(minLength: 0)
+            }
+            VStack(alignment: .leading, spacing: 8) {
+                actionButtons
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var actionButtons: some View {
             switch status {
             case .notStarted:
                 SparkleButton(action: onWrite, size: .small) {
@@ -255,8 +334,6 @@ private struct AssignmentCard: View {
                 }
                 .buttonStyle(.plain)
             }
-            Spacer(minLength: 0)
-        }
     }
 
     private func secondaryLabel(_ text: LocalizedStringResource) -> some View {
@@ -379,7 +456,7 @@ private struct FeedbackRow: View {
                     .font(.system(size: 64))
                     .scaleEffect(popped ? 1 : 0.2)
                     .rotationEffect(.degrees(popped ? 0 : -20))
-                    .accessibilityHidden(true)
+                    .accessibilityLabel(Text(AssignmentCopy.sticker(item.sticker ?? "") ?? AssignmentCopy.stickerFallback))
                     .onAppear {
                         guard !popped else { return }
                         if reduceMotion {
@@ -404,13 +481,13 @@ private struct FeedbackRow: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             if let comment = item.comment, !comment.isEmpty {
                 Button {
-                    speaker.speak(comment)
+                    speaker.toggle(comment)
                 } label: {
-                    Image(systemName: "speaker.wave.2.fill")
+                    Image(systemName: speaker.isSpeaking(comment) ? "stop.fill" : "speaker.wave.2.fill")
                         .frame(width: 44, height: 44)
                         .foregroundStyle(.cyan)
                 }
-                .accessibilityLabel(Text(AssignmentCopy.readAloud))
+                .accessibilityLabel(Text(speaker.isSpeaking(comment) ? AssignmentCopy.stopReading : AssignmentCopy.readAloud))
             }
         }
         .padding(14)
@@ -441,12 +518,12 @@ struct AssignmentPromptHint: View {
                     .foregroundStyle(.white)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            Button { speaker.speak(prompt) } label: {
-                Image(systemName: "speaker.wave.2.fill")
+            Button { speaker.toggle(prompt) } label: {
+                Image(systemName: speaker.isSpeaking(prompt) ? "stop.fill" : "speaker.wave.2.fill")
                     .frame(width: 44, height: 44)
                     .foregroundStyle(.cyan)
             }
-            .accessibilityLabel(Text(AssignmentCopy.listen))
+            .accessibilityLabel(Text(speaker.isSpeaking(prompt) ? AssignmentCopy.stopReading : AssignmentCopy.listen))
             Button {
                 speaker.stop()
                 onDismiss()

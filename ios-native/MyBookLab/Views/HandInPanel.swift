@@ -65,7 +65,10 @@ struct HandInPanel: View {
     private var busy: Bool { phase != .idle }
 
     var body: some View {
-        Group {
+        // A real container, not a Group: modifiers on a Group that starts
+        // empty land on no view, so .task would never run and the panel
+        // would never load.
+        VStack(spacing: 0) {
             // Quiet while loading, same as the web.
             if let assignments {
                 content(assignments)

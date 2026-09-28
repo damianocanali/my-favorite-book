@@ -68,11 +68,18 @@ struct StudentAssignment: Decodable, Identifiable, Hashable, Sendable {
     /// Postgres timestamps come back with or without fractional seconds.
     static func parseDate(_ raw: String?) -> Date? {
         guard let raw, !raw.isEmpty else { return nil }
-        let withFraction = ISO8601DateFormatter()
-        withFraction.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        if let d = withFraction.date(from: raw) { return d }
-        return ISO8601DateFormatter().date(from: raw)
+        return isoWithFraction.date(from: raw) ?? isoPlain.date(from: raw)
     }
+
+    // Built once: ISO8601DateFormatter is expensive to create, and every
+    // card re-parses its due date on each render. Only read on the main
+    // actor (views), and date(from:) doesn't mutate the formatter.
+    nonisolated(unsafe) private static let isoWithFraction: ISO8601DateFormatter = {
+        let f = ISO8601DateFormatter()
+        f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return f
+    }()
+    nonisolated(unsafe) private static let isoPlain = ISO8601DateFormatter()
 }
 
 /// POST /api/school/submit's success body.
