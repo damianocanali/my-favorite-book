@@ -531,6 +531,68 @@ actor APIClient {
         )
     }
 
+    // MARK: - Schools (a class account's assignments, hand-ins and feedback)
+    //
+    // Same student bearer token and 8 s session as the check-in calls above.
+    // Failures come back as SchoolError carrying the server's `code`
+    // (assignment_closed, past_due, book_too_large, ...), nil for a network
+    // failure or timeout, so the UI can pick the child-friendly sentence and
+    // a raw HTTP body never reaches a child's screen. Shapes mirror
+    // api/school/{assignments,submit,submissions,feedback}.js.
+
+    private struct SchoolSubmitBody: Encodable {
+        let assignmentId: String
+        let bookId: String
+    }
+    private struct SchoolFeedbackSeenBody: Encodable { let id: String }
+    private struct StudentAssignmentsResponse: Decodable { let assignments: [StudentAssignment]? }
+
+    func studentAssignments(bearerToken: String) async throws -> [StudentAssignment] {
+        let res: StudentAssignmentsResponse = try await schoolStudent(
+            method: "GET", path: "/api/school/assignments", query: [:],
+            body: Optional<EmptyBody>.none, bearerToken: bearerToken
+        )
+        return res.assignments ?? []
+    }
+
+    func submitAssignment(assignmentId: String, bookId: String, bearerToken: String) async throws -> SubmitResult {
+        try await schoolStudent(
+            method: "POST", path: "/api/school/submit", query: [:],
+            body: SchoolSubmitBody(assignmentId: assignmentId, bookId: bookId), bearerToken: bearerToken
+        )
+    }
+
+    func studentSubmission(id: String, bearerToken: String) async throws -> StudentSubmission {
+        try await schoolStudent(
+            method: "GET", path: "/api/school/submissions", query: ["id": id],
+            body: Optional<EmptyBody>.none, bearerToken: bearerToken
+        )
+    }
+
+    func markFeedbackSeen(id: String, bearerToken: String) async throws {
+        let _: Ignored = try await schoolStudent(
+            method: "POST", path: "/api/school/feedback", query: [:],
+            body: SchoolFeedbackSeenBody(id: id), bearerToken: bearerToken
+        )
+    }
+
+    /// schoolAuthed, with every failure turned into a SchoolError carrying
+    /// the server's error code.
+    private func schoolStudent<Body: Encodable, Response: Decodable>(
+        method: String, path: String, query: [String: String],
+        body: Body?, bearerToken: String
+    ) async throws -> Response {
+        do {
+            return try await schoolAuthed(
+                method: method, path: path, query: query, body: body, bearerToken: bearerToken
+            )
+        } catch APIError.http(_, let body) {
+            throw SchoolError(code: (try? decoder.decode(SchoolErrorBody.self, from: Data(body.utf8)))?.code)
+        } catch {
+            throw SchoolError(code: nil)
+        }
+    }
+
     private func schoolAuthed<Body: Encodable, Response: Decodable>(
         method: String, path: String, query: [String: String],
         body: Body?, bearerToken: String

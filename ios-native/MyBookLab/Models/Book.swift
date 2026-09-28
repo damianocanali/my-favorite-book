@@ -27,6 +27,15 @@ struct Book: Codable, Identifiable, Hashable, Sendable {
     /// aloud. Optional because every book created before 2.1 predates the
     /// field — SpeechSpeaker falls back to the UI language for those.
     var language: String?
+    /// Schools: the class assignment this book was started for (or handed in
+    /// to), and that assignment's prompt, shown as a hint while writing. Same
+    /// field names the web writes into book_data, so a tag set on either
+    /// platform survives the cloud sync. Optional, and only ever set on a
+    /// class account's books: nil fields are left out when encoding, so a
+    /// family book's JSON is unchanged, and every book saved before these
+    /// existed simply decodes them as nil.
+    var assignmentId: String?
+    var assignmentPrompt: String?
 
     init(
         id: String,
@@ -41,7 +50,9 @@ struct Book: Codable, Identifiable, Hashable, Sendable {
         characters: [BookCharacter] = [],
         setting: BookSetting? = nil,
         pages: [BookPage] = [],
-        language: String? = nil
+        language: String? = nil,
+        assignmentId: String? = nil,
+        assignmentPrompt: String? = nil
     ) {
         self.id = id
         self.title = title
@@ -56,12 +67,15 @@ struct Book: Codable, Identifiable, Hashable, Sendable {
         self.setting = setting
         self.pages = pages
         self.language = language
+        self.assignmentId = assignmentId
+        self.assignmentPrompt = assignmentPrompt
     }
 
     enum CodingKeys: String, CodingKey {
         case id, title, authorName, authorAge, authorAvatar
         case createdAt, updatedAt, colors, coverImage, characters, setting, pages
         case language
+        case assignmentId, assignmentPrompt
     }
 
     init(from decoder: Decoder) throws {
@@ -86,6 +100,8 @@ struct Book: Codable, Identifiable, Hashable, Sendable {
         self.setting = try? c.decode(BookSetting.self, forKey: .setting)
         self.pages = (try? c.decode([BookPage].self, forKey: .pages)) ?? []
         self.language = try? c.decode(String.self, forKey: .language)
+        self.assignmentId = try? c.decode(String.self, forKey: .assignmentId)
+        self.assignmentPrompt = try? c.decode(String.self, forKey: .assignmentPrompt)
     }
 }
 

@@ -32,6 +32,8 @@ struct CreateBookView: View {
     @State private var showingSignIn = false
     @State private var wizardStarted = false
     @State private var showingCelebrationPaywall = false
+    /// The book whose assignment-prompt hint the child hid (schools).
+    @State private var promptHintDismissedFor: String?
 
     var body: some View {
         NavigationStack {
@@ -50,6 +52,19 @@ struct CreateBookView: View {
                                 removal: .move(edge: .leading).combined(with: .opacity)
                             ))
                             .id(draft.step)
+                    }
+                }
+                // Schools: a book started from an assignment shows its
+                // prompt as a dismissible hint. Empty (no inset) for every
+                // other book, so the family wizard is unchanged.
+                .safeAreaInset(edge: .top, spacing: 0) {
+                    if let book = draft.book,
+                       let prompt = book.assignmentPrompt, !prompt.isEmpty,
+                       book.assignmentId != nil,
+                       promptHintDismissedFor != book.id {
+                        AssignmentPromptHint(prompt: prompt) {
+                            withAnimation { promptHintDismissedFor = book.id }
+                        }
                     }
                 }
             }
@@ -651,6 +666,15 @@ private struct TitleStep: View {
                 .padding(.horizontal)
             }
             .contentColumn(maxWidth: ContentWidth.form)
+        }
+        .onAppear {
+            // Schools: a book started from an assignment arrives already
+            // titled after it; keep that title rather than blanking it.
+            // Only ever true for an assignment book.
+            if title.isEmpty, draft.book?.assignmentId != nil,
+               let existing = draft.book?.title, !existing.isEmpty {
+                title = existing
+            }
         }
     }
 }
