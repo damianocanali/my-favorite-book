@@ -139,6 +139,22 @@ final class CoinsStore {
 
     // MARK: - Local inventory
 
+    /// Forget the outgoing person's balance and owned styles/items on
+    /// sign-out. These keys are not per-account, so without this the next
+    /// person on a shared iPad — a child signing into class after a parent —
+    /// inherited everything the last one had bought, and loadInventory then
+    /// unioned it into the cache as theirs. user_inventory is the source of
+    /// truth; the next sign-in's loadInventory brings the real set back.
+    func clearLocal() {
+        balance = 0
+        error = nil
+        ownedStyles = ["cartoon"]
+        ownedItems = []
+        UserDefaults.standard.removeObject(forKey: ownedStylesKey)
+        UserDefaults.standard.removeObject(forKey: ownedItemsKey)
+    }
+
+
     func markStyleOwned(_ id: String) {
         ownedStyles.insert(id)
         UserDefaults.standard.set(Array(ownedStyles), forKey: ownedStylesKey)
@@ -179,6 +195,9 @@ final class CoinsStore {
     /// up to ~12 seconds, expecting to see at least `expectedCoins`
     /// more than we had before.
     func purchaseCoinPack(productId: String, expectedCoins: Int) async -> PurchaseResult {
+        // Backstop: a class account never sees a coin pack, and the server
+        // cannot refuse an App Store purchase made on the device.
+        if AuthStore.shared.isStudent { return .cancelled }
         do {
             let products = await Purchases.shared.products([productId])
             guard let product = products.first else {

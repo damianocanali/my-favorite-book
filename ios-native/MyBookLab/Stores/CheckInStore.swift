@@ -8,6 +8,11 @@
 // gains a network call; the equivalent discipline here is that this file
 // imports Foundation and nothing else.
 //
+// The one exception is a class (student) account, whose teacher sees its
+// check-ins (owner decision; the child is told on the sheet). That copy is
+// sent by SchoolShare, called from CheckInHost — never from here — so for a
+// family account this store is still the whole story and nothing leaves.
+//
 // Deliberately NOT in the App Group suite that WidgetShared uses. The widget
 // has no business reading a child's feelings, and putting them in the shared
 // container is how it would start.
@@ -71,9 +76,10 @@ final class CheckInStore {
 
     // MARK: - Lifecycle
 
-    /// Entries are per-child and never leave the device, so they must not
-    /// survive a change of who is using the app. Called on sign-out and on any
-    /// identity change, matching the web's useAuthStore.
+    /// Entries are per-child and (for a family account) never leave the
+    /// device, so they must not survive a change of who is using the app.
+    /// Called on sign-out and on any identity change, matching the web's
+    /// useAuthStore.
     func clear() {
         entries = []
         stage = nil

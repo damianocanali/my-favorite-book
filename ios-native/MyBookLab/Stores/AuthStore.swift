@@ -38,6 +38,26 @@ final class AuthStore: NSObject {
 
     var accessToken: String? { session?.accessToken }
 
+    /// A child signed in through their class (picture password). Read from
+    /// `app_metadata` ONLY: that is set by the server's service role and a
+    /// user can't write it. `user_metadata` is user-writable, so trusting it
+    /// here would let anyone mark themselves a student — or, worse, let a
+    /// student clear the flag and get the adult treatment (Face ID save,
+    /// shop, grown-up screens).
+    var isStudent: Bool {
+        user?.appMetadata["role"]?.stringValue == "student"
+    }
+
+    /// A teacher account. UI-only, same as the web's selectIsTeacher:
+    /// `user_metadata` is user-writable, so this may decide whether a link
+    /// is shown but never whether a request succeeds — the server re-checks
+    /// class ownership on every classroom endpoint.
+    var isTeacher: Bool {
+        guard let user, !isStudent else { return false }
+        return user.userMetadata["role"]?.stringValue == "teacher"
+            || user.userMetadata["classroom"]?.boolValue == true
+    }
+
     /// What to show as the user's name. Mirrors selectDisplayName on
     /// the web — prefer the explicitly-set display_name, fall back to
     /// OAuth full_name / name, then to email-prefix.
@@ -62,9 +82,18 @@ final class AuthStore: NSObject {
             user = session?.user
             loadStoredAvatar()
         } catch {
-            // No active session — fine, user just needs to sign in.
+            // No active session — fine, user just needs to sign in. But if
+            // the session is really gone (missing, or its refresh token was
+            // rejected) the last person's check-ins, owned items and rewards
+            // are still on the device, and the next sign-in may be someone
+            // else — a child's class sign-in on the family iPad, whose
+            // inventory would otherwise be unioned with the parent's.
+            // Anything else (offline, a 5xx, a decoding hiccup) keeps the
+            // data: check-in history exists only on this device, and a parent
+            // must not lose it because the wifi dropped at launch.
             session = nil
             user = nil
+            if Self.sessionIsGone(error) { clearLocalUserData() }
         }
 
         // Listen for future auth changes (sign in / sign out from any flow).
@@ -79,11 +108,31 @@ final class AuthStore: NSObject {
                     // refresh, so a saved biometric login goes stale
                     // unless we re-save the newest pair. Keychain
                     // writes don't prompt Face ID, so this is free.
-                    if change.session != nil, BiometricCredentials.hasStoredCredentials {
+                    // Never for a student: the saved login belongs to whoever
+                    // chose "remember me" (usually a parent), and overwriting
+                    // it with a child's class session would hand the parent's
+                    // Face ID button to the child's account.
+                    if change.session != nil, !self.isStudent,
+                       BiometricCredentials.hasStoredCredentials {
                         self.saveBiometricLogin()
                     }
                 }
             }
+        }
+    }
+
+    /// True only for errors meaning the stored session can never work again:
+    /// no session at all, or the auth server refusing it with a 4xx (an
+    /// invalid or revoked refresh token). A 429 is "try later", not "gone".
+    private static func sessionIsGone(_ error: Error) -> Bool {
+        guard let authError = error as? AuthError else { return false }
+        switch authError {
+        case .sessionMissing:
+            return true
+        case .api(_, _, _, let response):
+            return (400..<500).contains(response.statusCode) && response.statusCode != 429
+        default:
+            return false
         }
     }
 
@@ -103,7 +152,9 @@ final class AuthStore: NSObject {
     /// back in with one tap. Works for email AND OAuth accounts — we
     /// keep tokens, never the password.
     func saveBiometricLogin() {
-        guard let session, BiometricCredentials.isAvailable else { return }
+        // Class iPads are shared: a child's session must never outlive them
+        // behind somebody's Face ID.
+        guard let session, !isStudent, BiometricCredentials.isAvailable else { return }
         try? BiometricCredentials.save(
             email: user?.email ?? "",
             accessToken: session.accessToken,
@@ -174,11 +225,15 @@ final class AuthStore: NSObject {
     }
 
     @discardableResult
-    func signUp(email: String, password: String, displayName: String?) async throws -> SignUpOutcome {
+    func signUp(email: String, password: String, displayName: String?,
+                role: String? = nil) async throws -> SignUpOutcome {
         var data: [String: AnyJSON] = [:]
         if let displayName, !displayName.isEmpty {
             data["display_name"] = .string(displayName)
         }
+        // "teacher" from the Teacher sign-up, matching the web's /signup
+        // role toggle. UI hint only — see isTeacher.
+        if let role { data["role"] = .string(role) }
         let response = try await supabase.auth.signUp(
             email: email, password: password, data: data.isEmpty ? nil : data
         )
@@ -236,11 +291,18 @@ final class AuthStore: NSObject {
     }
 
     func signOut() async {
-        // Feelings are per-child and never leave the device; clearing here is
-        // how one child's entries stay invisible to the next person to use
-        // this iPad. Matches the web's useAuthStore.
-        CheckInStore.shared.clear()
-        if BiometricCredentials.hasStoredCredentials {
+        // Everything this device keeps about the outgoing person goes BEFORE
+        // the session does — class iPads and family iPads are shared, and
+        // the next person must not see the last one's books, draft, feelings
+        // or picture. Matches clearLocalUserData() in the web's useAuthStore.
+        clearLocalUserData()
+
+        if isStudent {
+            // A class session is never kept for Face ID. Local scope ends
+            // this device's session only, so the child stays signed in on
+            // the other class iPad they may be using.
+            try? await supabase.auth.signOut(scope: .local)
+        } else if BiometricCredentials.hasStoredCredentials {
             // Keep the saved biometric login so the user can Face-ID
             // back in. Snapshot the freshest tokens, then sign out
             // LOCALLY only — a global sign-out would revoke the very
@@ -254,6 +316,69 @@ final class AuthStore: NSObject {
         }
         session = nil
         user = nil
+        storedAvatar = nil
+    }
+
+    /// Per-person data held on this device. Some of it was already dropped
+    /// by MyBookLabApp's `onChange(of: auth.user?.id)` — but that fires
+    /// after the fact and can coalesce an A → nil → B switch into A → B,
+    /// and the draft and inventory were never cleared at all.
+    ///
+    /// Deliberately NOT cleared: on-device illustrations (IllustrationStore).
+    /// The cloud copy of a book holds only "[saved-locally]" markers, so
+    /// deleting them would destroy the owner's pictures for good; they are
+    /// keyed by book id and unreachable without that person's book rows.
+    private func clearLocalUserData() {
+        // Feelings are per-child and never leave the device.
+        CheckInStore.shared.clear()
+        BookshelfStore.shared.clear()
+        BookDraftStore.shared.clear()
+        CoinsStore.shared.clearLocal()
+        RewardsStore.shared.clearLocal()
+        // The avatar may be a photo-derived picture of a child. It is also
+        // saved to user_inventory, and CoinsStore.loadInventory adopts it
+        // back on the next sign-in.
+        if user != nil {
+            UserDefaults.standard.removeObject(forKey: avatarDefaultsKey)
+        }
+        storedAvatar = nil
+    }
+
+    /// Children's class sign-in. api/school/sign-in has already checked the
+    /// picture password and handed back a session for the student's account.
+    ///
+    /// Whoever was signed in goes first — a parent's session or the previous
+    /// child's — with the full signOut(), so their local data is gone before
+    /// the new session lands rather than whenever the auth listener gets to
+    /// it. Never offers or writes a Face ID login (see saveBiometricLogin).
+    func signInAsStudent(accessToken: String, refreshToken: String) async throws {
+        if isSignedIn { await signOut() }
+        // Unconditionally, not only when someone was signed in: a session
+        // that went stale leaves nobody signed in in memory but the previous
+        // person's draft, badges and owned items still on the device, and
+        // CoinsStore.loadInventory would union those into the child's.
+        clearLocalUserData()
+        let s = try await supabase.auth.setSession(
+            accessToken: accessToken, refreshToken: refreshToken
+        )
+        self.session = s
+        self.user = s.user
+        loadStoredAvatar()
+        // RevenueCat is not logged out by signOut(), so it may still hold the
+        // previous parent's customer and cached entitlements. A class account
+        // never reads them and never buys anything; drop the identity now.
+        await SubscriptionStore.shared.enterStudentMode()
+    }
+
+    /// Records that this account runs a classroom, so the Classroom
+    /// dashboard shows up. Same flag the web sets (markClassroomOwner).
+    func markClassroomOwner() async {
+        guard user != nil, !isStudent, !isTeacher else { return }
+        if let updated = try? await supabase.auth.update(
+            user: UserAttributes(data: ["classroom": .bool(true)])
+        ) {
+            self.user = updated
+        }
     }
 
     func updateDisplayName(_ newName: String) async throws {

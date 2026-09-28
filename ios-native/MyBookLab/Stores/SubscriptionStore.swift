@@ -5,7 +5,8 @@
 //
 // State exposed:
 //   isPaid    — convenience boolean for any premium gate
-//   planKey   — "free" | "family" | "classroom" (matches the web's plan keys)
+//   planKey   — "free" | "family" | "classroom" | "student" (matches the
+//               web's plan keys; "student" is a class account, see ClassPlan)
 //   offerings — current offering from RevenueCat (use for the paywall UI)
 //
 // Methods:
@@ -34,7 +35,29 @@ final class SubscriptionStore {
     private(set) var serverPlan: String = "free"
     private(set) var serverStatusActive: Bool = false
 
+    /// A class (student) account. It is never on a RevenueCat or Stripe plan:
+    /// it gets the fixed ClassPlan, is never shown a price, and this store
+    /// never reads entitlements for it — RevenueCat is not logged out on
+    /// sign-out, so its cached customer may still be the previous parent's.
+    private var isStudent: Bool { AuthStore.shared.isStudent }
+
+    /// The class plan, mirroring `student` in src/lib/plans.js. Not a tier
+    /// anyone buys: the school's licence covers it. Unlimited books and no
+    /// upsell come from `isPaid` being true; the 15 pictures a day are
+    /// enforced by the server's per-student allowance, not by the app, so
+    /// the only rule this app applies itself is no print / PDF export.
+    enum ClassPlan {
+        static let pdfExport = false
+    }
+
+    /// Whether printed copies / PDF export are on offer. Only a class account
+    /// says no; family behaviour is unchanged.
+    var allowsPrint: Bool { isStudent ? ClassPlan.pdfExport : true }
+
     var isPaid: Bool {
+        // A class account is fully unlocked (never upsold), like the web's
+        // `student` plan being !== 'free'.
+        if isStudent { return true }
         let rcActive = !(customerInfo?.entitlements.active.isEmpty ?? true)
         return rcActive || serverStatusActive
     }
@@ -42,6 +65,7 @@ final class SubscriptionStore {
     /// Best-known plan key: prefer an active RevenueCat entitlement,
     /// else the server (web/Stripe) plan, else free.
     var planKey: String {
+        if isStudent { return "student" }
         if let info = customerInfo {
             if info.entitlements["family"]?.isActive == true { return "family" }
             if info.entitlements["classroom"]?.isActive == true { return "classroom" }
@@ -51,6 +75,10 @@ final class SubscriptionStore {
     }
 
     func bootstrap() async {
+        if isStudent {
+            await enterStudentMode()
+            return
+        }
         // Sync RevenueCat user ID with Supabase user ID if signed in,
         // so web + iOS see the same RevenueCat customer.
         if let id = AuthStore.shared.user?.id.uuidString {
@@ -61,6 +89,9 @@ final class SubscriptionStore {
     }
 
     func refresh() async {
+        // Nothing to fetch for a class account, and fetching RevenueCat's
+        // customer would read whatever parent was here before.
+        if isStudent { return }
         loading = true
         error = nil
         defer { loading = false }
@@ -69,6 +100,23 @@ final class SubscriptionStore {
         await withTaskGroup(of: Void.self) { group in
             group.addTask { await self.refreshRevenueCat() }
             group.addTask { await self.refreshServerSubscription() }
+        }
+    }
+
+    /// Called when a class account signs in (and from bootstrap for one).
+    /// Drops RevenueCat's identity so no cached customer info from the
+    /// previous parent leaks into the child's session, and forgets what
+    /// this store knew about that parent. A family account signing in next
+    /// goes through bootstrap(), which logs RevenueCat back in as them.
+    func enterStudentMode() async {
+        customerInfo = nil
+        currentOffering = nil
+        serverPlan = "free"
+        serverStatusActive = false
+        error = nil
+        // logOut() throws for an anonymous user, so only when identified.
+        if !Purchases.shared.isAnonymous {
+            _ = try? await Purchases.shared.logOut()
         }
     }
 
@@ -116,6 +164,9 @@ final class SubscriptionStore {
     }
 
     func purchase(_ package: Package) async throws {
+        // Never reachable from the UI for a class account; this is the
+        // backstop, since the server cannot stop an on-device purchase.
+        guard !isStudent else { return }
         let result = try await Purchases.shared.purchase(package: package)
         if !result.userCancelled {
             self.customerInfo = result.customerInfo
@@ -123,6 +174,7 @@ final class SubscriptionStore {
     }
 
     func restore() async {
+        guard !isStudent else { return }
         loading = true
         error = nil
         defer { loading = false }

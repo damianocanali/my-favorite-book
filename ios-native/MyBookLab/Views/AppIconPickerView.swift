@@ -18,6 +18,7 @@ struct AppIconOption: Identifiable {
 struct AppIconPickerView: View {
     @Environment(CoinsStore.self) private var coins
     @Environment(RewardsStore.self) private var rewards
+    @Environment(AuthStore.self) private var auth
 
     /// Two kinds of failure text. `app` is our own copy and must be
     /// translated; `system` is an OS/URLSession message that iOS has
@@ -74,7 +75,9 @@ struct AppIconPickerView: View {
             CosmicBackground()
             ScrollView {
                 VStack(spacing: 14) {
-                    Text("Pick a look for your app icon. Earn more with coins and streaks!")
+                    (auth.isStudent
+                        ? Text("Pick a look for your app icon")
+                        : Text("Pick a look for your app icon. Earn more with coins and streaks!"))
                         .font(.subheadline)
                         .foregroundStyle(.white.opacity(0.75))
                         .multilineTextAlignment(.center)
@@ -87,7 +90,7 @@ struct AppIconPickerView: View {
                     }
 
                     LazyVGrid(columns: [GridItem(.adaptive(minimum: 150), spacing: 12)], spacing: 12) {
-                        ForEach(options) { option in
+                        ForEach(visibleOptions) { option in
                             iconCell(option)
                         }
                     }
@@ -100,6 +103,12 @@ struct AppIconPickerView: View {
         .navigationTitle("App Icon")
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(.hidden, for: .navigationBar)
+    }
+
+    /// A class account never spends coins, so it only sees the icons that
+    /// cost nothing (the badge-earned one included — no money involved).
+    private var visibleOptions: [AppIconOption] {
+        auth.isStudent ? options.filter { $0.price == 0 } : options
     }
 
     private func errorText(_ message: Message) -> Text {
@@ -207,6 +216,8 @@ struct AppIconPickerView: View {
         }
 
         if !isOwned(option) {
+            // Backstop for the filter above: no coin purchase for a class account.
+            guard !auth.isStudent else { return }
             busyId = option.id
             defer { busyId = nil }
             switch await coins.spend(option.price, kind: "item", id: option.id) {

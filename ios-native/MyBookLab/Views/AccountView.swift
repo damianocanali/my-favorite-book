@@ -13,6 +13,7 @@ struct AccountView: View {
     @State private var nameDraft = ""
     @State private var showDeleteConfirm = false
     @State private var deleteConfirmText = ""
+    @State private var showingDashboard = false
 
     /// The word the user must type to arm account deletion.
     ///
@@ -63,12 +64,17 @@ struct AccountView: View {
     private var signedInView: some View {
         ScrollView {
             VStack(spacing: 16) {
-                deletionBanner
+                // A class (student) account is never sold anything and owns
+                // nothing it could delete — the teacher manages it — so it
+                // gets no deletion, coins or subscription (the web's
+                // AccountPage hides the same sections).
+                if !auth.isStudent { deletionBanner }
                 profileCard
-                coinsCard
+                if auth.isTeacher { classroomCard }
+                if !auth.isStudent { coinsCard }
                 rewardsCard
                 appIconCard
-                rowsCard
+                if !auth.isStudent { rowsCard }
                 musicCard
                 languageCard
                 signOutCard
@@ -76,13 +82,49 @@ struct AccountView: View {
                 // at, never something to act on.
                 FeelingConstellation()
 
-                deleteAccountCard
+                if !auth.isStudent { deleteAccountCard }
             }
             .padding()
             .contentColumn(maxWidth: ContentWidth.form)
         }
         .scrollContentBackground(.hidden)
-        .task { await loadDeletionStatus() }
+        .task {
+            if !auth.isStudent { await loadDeletionStatus() }
+        }
+    }
+
+    /// Teachers manage classes on the web for now; this opens it in Safari
+    /// inside the app rather than rebuilding it natively yet.
+    private var classroomCard: some View {
+        Button {
+            showingDashboard = true
+        } label: {
+            HStack(spacing: 14) {
+                Image(systemName: "graduationcap.fill")
+                    .font(.title2)
+                    .foregroundStyle(.yellow)
+                    .frame(width: 32)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Classroom dashboard")
+                        .font(.headline)
+                        .foregroundStyle(.white)
+                    Text("Classes, students and sign-in cards")
+                        .font(.caption)
+                        .foregroundStyle(.white.opacity(0.65))
+                }
+                Spacer()
+                Image(systemName: "arrow.up.right.square")
+                    .foregroundStyle(.white.opacity(0.6))
+            }
+            .padding(16)
+            .frame(minHeight: 64)
+        }
+        .background(.purple.opacity(0.35), in: RoundedRectangle(cornerRadius: 18))
+        .overlay(RoundedRectangle(cornerRadius: 18).strokeBorder(.purple.opacity(0.6)))
+        .fullScreenCover(isPresented: $showingDashboard) {
+            SafariView(url: URL(string: "https://mybooklab.app/teacher")!)
+                .ignoresSafeArea()
+        }
     }
 
     private var coinsCard: some View {
@@ -155,7 +197,10 @@ struct AccountView: View {
                 Image(systemName: "app.gift.fill").foregroundStyle(.yellow).frame(width: 24)
                 VStack(alignment: .leading, spacing: 2) {
                     Text("App icon").foregroundStyle(.white)
-                    Text("Unlock new looks with coins and streaks")
+                    // A class account only sees the free icons.
+                    (auth.isStudent
+                        ? Text("Pick a look for your app icon")
+                        : Text("Unlock new looks with coins and streaks"))
                         .font(.caption)
                         .foregroundStyle(.white.opacity(0.65))
                 }
@@ -233,25 +278,34 @@ struct AccountView: View {
     private var profileCard: some View {
         VStack(spacing: 16) {
             // Tappable avatar — opens the editor where the user can
-            // pick a photo (cartoonified by AI) or an emoji.
-            NavigationLink {
-                AvatarEditorView()
-            } label: {
-                ZStack(alignment: .bottomTrailing) {
-                    AvatarView(
-                        urlString: auth.avatarURL,
-                        fallbackInitial: auth.displayName?.first.map { String($0).uppercased() },
-                        size: 128
-                    )
-                    Image(systemName: "pencil.circle.fill")
-                        .symbolRenderingMode(.palette)
-                        .foregroundStyle(.white, .purple)
-                        .font(.title2)
-                        .background(Circle().fill(.black.opacity(0.001))) // expand tap area
-                        .offset(x: -4, y: -4)
+            // pick a photo (cartoonified by AI) or an emoji. A class account
+            // just sees theirs: the teacher makes it.
+            if auth.isStudent {
+                AvatarView(
+                    urlString: auth.avatarURL,
+                    fallbackInitial: auth.displayName?.first.map { String($0).uppercased() },
+                    size: 128
+                )
+            } else {
+                NavigationLink {
+                    AvatarEditorView()
+                } label: {
+                    ZStack(alignment: .bottomTrailing) {
+                        AvatarView(
+                            urlString: auth.avatarURL,
+                            fallbackInitial: auth.displayName?.first.map { String($0).uppercased() },
+                            size: 128
+                        )
+                        Image(systemName: "pencil.circle.fill")
+                            .symbolRenderingMode(.palette)
+                            .foregroundStyle(.white, .purple)
+                            .font(.title2)
+                            .background(Circle().fill(.black.opacity(0.001))) // expand tap area
+                            .offset(x: -4, y: -4)
+                    }
                 }
+                .buttonStyle(.plain)
             }
-            .buttonStyle(.plain)
 
             // Name + email — centered, name editable inline.
             VStack(spacing: 4) {
@@ -285,19 +339,27 @@ struct AccountView: View {
                         Text(auth.displayName ?? "—")
                             .font(.system(.title2, design: .rounded).bold())
                             .foregroundStyle(.white)
-                        Button {
-                            nameDraft = auth.displayName ?? ""
-                            editingName = true
-                        } label: {
-                            Image(systemName: "pencil")
-                                .font(.subheadline)
-                                .foregroundStyle(.white.opacity(0.6))
+                        // The teacher sets a class account's name — it is
+                        // what the class sign-in tiles show.
+                        if !auth.isStudent {
+                            Button {
+                                nameDraft = auth.displayName ?? ""
+                                editingName = true
+                            } label: {
+                                Image(systemName: "pencil")
+                                    .font(.subheadline)
+                                    .foregroundStyle(.white.opacity(0.6))
+                            }
                         }
                     }
                 }
-                Text(auth.user?.email ?? "")
-                    .font(.caption)
-                    .foregroundStyle(.white.opacity(0.7))
+                // A class account's email is a generated placeholder that
+                // means nothing to a child.
+                if !auth.isStudent {
+                    Text(auth.user?.email ?? "")
+                        .font(.caption)
+                        .foregroundStyle(.white.opacity(0.7))
+                }
             }
         }
         .frame(maxWidth: .infinity)

@@ -93,11 +93,12 @@ actor APIClient {
         return try await perform(req, url: url)
     }
 
-    private func perform<Response: Decodable>(_ req: URLRequest, url: URL) async throws -> Response {
+    private func perform<Response: Decodable>(_ req: URLRequest, url: URL,
+                                              using urlSession: URLSession? = nil) async throws -> Response {
         let data: Data
         let response: URLResponse
         do {
-            (data, response) = try await session.data(for: req)
+            (data, response) = try await (urlSession ?? session).data(for: req)
         } catch {
             throw APIError.transport(url: url.absoluteString, underlying: error)
         }
@@ -396,6 +397,154 @@ actor APIClient {
     /// Returns whether the account is scheduled for deletion (and when).
     func deletionStatus(bearerToken: String) async throws -> DeletionStatus {
         try await request(method: "GET", path: "/api/delete-account", bearerToken: bearerToken)
+    }
+
+    // MARK: - Schools (children's class sign-in)
+    //
+    // Both endpoints are unauthenticated: a child has no session yet. Errors
+    // come back as { error, code } and the code is what the UI maps to a
+    // child-friendly sentence, so these throw SchoolError rather than
+    // APIError — the raw HTTP body must never reach a child's screen.
+
+    struct SchoolRoster: Decodable {
+        struct Classroom: Decodable {
+            let id: String
+            let name: String?
+            let locale: String?
+        }
+        struct Student: Decodable, Identifiable, Hashable {
+            let id: String
+            let display_name: String
+            let avatar_emoji: String?
+        }
+        let classroom: Classroom
+        let students: [Student]
+    }
+
+    struct SchoolSession: Decodable {
+        let access_token: String
+        let refresh_token: String
+    }
+
+    /// `code` is the server's error code, or nil for a network failure or a
+    /// body that wasn't the documented shape.
+    struct SchoolError: Error {
+        let code: String?
+    }
+
+    private struct SchoolSignInBody: Encodable {
+        let code: String
+        let studentId: String
+        let pictures: [String]
+    }
+
+    func schoolRoster(code: String) async throws -> SchoolRoster {
+        var req = URLRequest(url: makeURL(path: "/api/school/roster", query: ["code": code]))
+        req.httpMethod = "GET"
+        req.setValue("application/json", forHTTPHeaderField: "Accept")
+        return try await schoolPerform(req)
+    }
+
+    func schoolSignIn(code: String, studentId: String, pictures: [String]) async throws -> SchoolSession {
+        var req = URLRequest(url: makeURL(path: "/api/school/sign-in", query: [:]))
+        req.httpMethod = "POST"
+        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        req.httpBody = try encoder.encode(
+            SchoolSignInBody(code: code, studentId: studentId, pictures: pictures)
+        )
+        return try await schoolPerform(req)
+    }
+
+    private struct SchoolErrorBody: Decodable { let code: String? }
+
+    private func schoolPerform<Response: Decodable>(_ req: URLRequest) async throws -> Response {
+        let data: Data
+        let response: URLResponse
+        do {
+            (data, response) = try await session.data(for: req)
+        } catch {
+            throw SchoolError(code: nil)
+        }
+        guard let http = response as? HTTPURLResponse else { throw SchoolError(code: nil) }
+        guard (200..<300).contains(http.statusCode) else {
+            throw SchoolError(code: (try? decoder.decode(SchoolErrorBody.self, from: data))?.code)
+        }
+        do { return try decoder.decode(Response.self, from: data) }
+        catch { throw SchoolError(code: nil) }
+    }
+
+    // MARK: - Schools (a signed-in class account's check-ins and help asks)
+    //
+    // Student-session endpoints; SchoolShare is the only caller and decides
+    // whether to call at all. Each request gives up after 8 s, like the web's
+    // AbortSignal.timeout(8000): a check-in copy must never hang, and "I need
+    // a grown-up" must always reach a real end state on slow wifi.
+
+    private static let schoolTimeout: TimeInterval = 8
+
+    /// A session whose resource timeout caps the WHOLE request at 8 s — a
+    /// request's own timeoutInterval is only an idle timeout, which a slow
+    /// trickle of bytes can keep resetting.
+    private static let schoolSession: URLSession = {
+        let config = URLSessionConfiguration.default
+        config.timeoutIntervalForRequest = schoolTimeout
+        config.timeoutIntervalForResource = schoolTimeout
+        return URLSession(configuration: config)
+    }()
+
+    private struct SchoolCheckInBody: Encodable {
+        let feeling: String
+        /// Omitted (not null) when the child closed the sheet after step 1.
+        let need: String?
+    }
+    private struct SchoolHelpBody: Encodable { let kind: String }
+
+    struct SchoolHelpAsk: Decodable {
+        let id: String
+        let in_hours: Bool
+    }
+    struct SchoolHelpStatus: Decodable {
+        let seen: Bool
+        let teacher_name: String?
+    }
+    private struct Ignored: Decodable {}
+
+    func schoolCheckIn(feeling: String, need: String?, bearerToken: String) async throws {
+        let _: Ignored = try await schoolAuthed(
+            method: "POST", path: "/api/school/checkin", query: [:],
+            body: SchoolCheckInBody(feeling: feeling, need: need), bearerToken: bearerToken
+        )
+    }
+
+    /// `kind` is "book" or "grownup".
+    func schoolHelp(kind: String, bearerToken: String) async throws -> SchoolHelpAsk {
+        try await schoolAuthed(
+            method: "POST", path: "/api/school/help", query: [:],
+            body: SchoolHelpBody(kind: kind), bearerToken: bearerToken
+        )
+    }
+
+    func schoolHelpStatus(id: String, bearerToken: String) async throws -> SchoolHelpStatus {
+        try await schoolAuthed(
+            method: "GET", path: "/api/school/help", query: ["id": id],
+            body: Optional<EmptyBody>.none, bearerToken: bearerToken
+        )
+    }
+
+    private func schoolAuthed<Body: Encodable, Response: Decodable>(
+        method: String, path: String, query: [String: String],
+        body: Body?, bearerToken: String
+    ) async throws -> Response {
+        let url = makeURL(path: path, query: query)
+        var req = URLRequest(url: url, timeoutInterval: Self.schoolTimeout)
+        req.httpMethod = method
+        req.setValue("application/json", forHTTPHeaderField: "Accept")
+        req.setValue("Bearer \(bearerToken)", forHTTPHeaderField: "Authorization")
+        if let body {
+            req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            req.httpBody = try encoder.encode(body)
+        }
+        return try await perform(req, url: url, using: Self.schoolSession)
     }
 
     // Intent-based "ideas" helpers (Sentence Starters / Help Me Think).

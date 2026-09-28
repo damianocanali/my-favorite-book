@@ -4,6 +4,7 @@ import SwiftUI
 
 struct BadgePopup: View {
     @Environment(RewardsStore.self) private var rewards
+    @Environment(AuthStore.self) private var auth
     @State private var confettiTrigger = 0
 
     var body: some View {
@@ -32,7 +33,8 @@ struct BadgePopup: View {
                         .foregroundStyle(.white.opacity(0.8))
                         .multilineTextAlignment(.center)
 
-                    if badge.coins > 0 {
+                    // A class account has no coins to earn or spend.
+                    if badge.coins > 0 && !auth.isStudent {
                         Label("+\(badge.coins) coins", systemImage: "star.circle.fill")
                             .font(.system(.headline, design: .rounded))
                             .foregroundStyle(.yellow)
