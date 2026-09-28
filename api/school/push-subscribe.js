@@ -45,7 +45,12 @@ export default async function handler(req) {
     if (!t.ok) return t.response
     const me = t.auth.userId
 
-    if (req.method === 'GET') return json(req, 200, { vapidPublicKey: vapidPublicKey() })
+    if (req.method === 'GET') {
+      if (!checkRateLimit(`school-push-subscribe-read:${me}`, 300).allowed) {
+        return json(req, 429, { error: 'Too many requests', code: 'rate_limited' })
+      }
+      return json(req, 200, { vapidPublicKey: vapidPublicKey() })
+    }
 
     if (!checkRateLimit(`school-push-subscribe:${me}`, 60).allowed) {
       return json(req, 429, { error: 'Too many requests', code: 'rate_limited' })
@@ -66,8 +71,16 @@ export default async function handler(req) {
     if (!validKey(p256dh, 65) || !validKey(auth, 16)) {
       return json(req, 400, { error: 'Invalid subscription', code: 'bad_request' })
     }
-    // Keyed on the endpoint: a shared computer's browser belongs to
-    // whichever teacher turned alerts on last.
+    // A browser (endpoint) belongs to one teacher: whoever turned alerts on
+    // in it last, e.g. on a shared classroom computer. If another user holds
+    // it, their row is DELETED first and a fresh row created for the caller
+    // — never re-pointed in place — so the upsert below can only ever merge
+    // into the caller's own row. If that delete fails, nothing is written.
+    const release = await sb(
+      `/rest/v1/push_subscriptions?endpoint=eq.${encodeURIComponent(body.endpoint)}&user_id=neq.${encodeURIComponent(me)}`,
+      { method: 'DELETE' }
+    )
+    if (!release.ok) return json(req, 502, { error: 'Could not save', code: 'upstream' })
     const res = await sb('/rest/v1/push_subscriptions?on_conflict=endpoint', {
       method: 'POST',
       headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },

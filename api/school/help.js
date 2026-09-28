@@ -3,12 +3,14 @@ export const config = { runtime: 'edge' }
 import { handleCors, checkRateLimit } from '../_rateLimit.js'
 import { requireStudent, sb, json, isUuid } from '../_school.js'
 import { isWithinSchoolHours } from '../../lib/school/hours.js'
-import { notifyTeacher } from '../../lib/notify/notify.js'
+import { startNotification, runAfterResponse } from '../../lib/notify/notify.js'
 
 const DEDUP_MS = 15 * 60 * 1000
 const KINDS = ['book', 'grownup']
 
-export default async function handler(req) {
+// ctx: Vercel Edge's { waitUntil } — the push/email fan-out runs after the
+// child already has their answer.
+export default async function handler(req, ctx) {
   const cors = handleCors(req)
   if (cors) return cors
   try {
@@ -72,23 +74,31 @@ export default async function handler(req) {
     if (!res.ok) return json(req, 502, { error: 'Could not send', code: 'upstream' })
     const [row] = await res.json()
 
-    // Only a NEW ask notifies (a dedup bump returned above). A grown-up ask
-    // is urgent and pushed only inside school hours; a book ask is a bell
-    // row. notifyTeacher never throws, and its result never changes what
-    // the child is told.
-    const sent = await notifyTeacher({
+    // Only a NEW ask notifies (a dedup bump returned above). The bell row is
+    // written now; a grown-up ask inside school hours is also pushed, after
+    // the response (ctx.waitUntil), and notified_at is set once it was.
+    // Never throws, and never changes what the child is told.
+    const n = await startNotification({
       teacherUserId: classroom.owner_user_id,
       kind: kind === 'grownup' ? 'help_grownup' : 'help_book',
       classroom,
+      studentId: student.id,
       studentName: student.display_name,
       urgent: kind === 'grownup',
       payload: { help_id: row.id },
     })
-    if (sent.fannedOut) {
-      await sb(`/rest/v1/class_help_requests?id=eq.${row.id}`, {
-        method: 'PATCH',
-        body: JSON.stringify({ notified_at: new Date().toISOString() }),
-      }).catch((e) => console.error('school/help: notified_at not saved', e?.message))
+    if (n.fannedOut) {
+      await runAfterResponse(
+        ctx,
+        n.done
+          .then(() =>
+            sb(`/rest/v1/class_help_requests?id=eq.${row.id}`, {
+              method: 'PATCH',
+              body: JSON.stringify({ notified_at: new Date().toISOString() }),
+            })
+          )
+          .catch((e) => console.error('school/help: notified_at not saved', e?.message))
+      )
     }
     return json(req, 200, { id: row.id, in_hours: inHours })
   } catch (e) {

@@ -28,6 +28,9 @@ export default async function handler(req) {
     const me = t.auth.userId
 
     if (req.method === 'GET') {
+      if (!checkRateLimit(`school-notification-settings-read:${me}`, 300).allowed) {
+        return json(req, 429, { error: 'Too many requests', code: 'rate_limited' })
+      }
       const res = await sb(`/rest/v1/teacher_settings?user_id=eq.${encodeURIComponent(me)}&select=${FIELDS}`)
       if (!res.ok) throw new Error(`teacher_settings read failed: ${res.status}`)
       const rows = await res.json()

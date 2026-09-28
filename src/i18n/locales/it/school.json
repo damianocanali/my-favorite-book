@@ -452,6 +452,7 @@
       "saved": "Salvato",
       "error": "Impossibile salvare. Riprova.",
       "load_error": "Impossibile caricare le impostazioni delle notifiche."
-    }
+    },
+    "unknown_student": "Uno studente"
   }
 }

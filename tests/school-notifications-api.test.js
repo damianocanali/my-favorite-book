@@ -54,6 +54,29 @@ describe('GET/POST /api/school/notifications', () => {
     expect(listCall.url).not.toContain('dedup_key')
   })
 
+  it('names students at read time from their id (a removed student reads as null)', async () => {
+    const S1 = '6f1c1b1e-0000-4000-8000-0000000000a1'
+    const S2 = '6f1c1b1e-0000-4000-8000-0000000000a2'
+    const rows = [
+      { id: N1, classroom_id: 'c', kind: 'hand_in', payload: { student_id: S1, class_name: 'Room 5' }, created_at: 'x', read_at: null },
+      { id: N2, classroom_id: 'c', kind: 'help_book', payload: { student_id: S2 }, created_at: 'x', read_at: null },
+    ]
+    const log = mockSupabase({
+      user: TEACHER,
+      routes: [
+        { method: 'GET', match: 'read_at=is.null', reply: { body: [], headers: { 'content-range': '0-0/2' } } },
+        { method: 'GET', match: '/rest/v1/teacher_notifications', reply: { body: rows } },
+        { method: 'GET', match: '/rest/v1/class_students', reply: { body: [{ id: S1, display_name: 'Ann' }] } },
+      ],
+    })
+    const body = await (await (await load())(call('school/notifications'))).json()
+    expect(body.notifications.map((n) => n.payload.student_name)).toEqual(['Ann', null])
+    const lookup = log.find((l) => l.url.includes('/rest/v1/class_students'))
+    expect(lookup.url).toContain(`id=in.(${S1},${S2})`)
+    // Only names in the caller's own classes.
+    expect(lookup.url).toContain(`classrooms.owner_user_id=eq.${TEACHER.id}`)
+  })
+
   it('fails closed (503) when the read errors', async () => {
     mockSupabase({ user: TEACHER, routes: [err500('GET', '/rest/v1/teacher_notifications')] })
     expect((await (await load())(call('school/notifications'))).status).toBe(503)
@@ -140,6 +163,14 @@ describe('GET/PUT /api/school/notification-settings', () => {
     expect((await (await load())(call('school/notification-settings', { method: 'PUT', body }))).status).toBe(400)
   })
 
+  it('rate-limits GET too', async () => {
+    mockSupabase({ user: TEACHER, routes: [] })
+    const handler = await load()
+    let last
+    for (let i = 0; i < 301; i++) last = await handler(call('school/notification-settings'))
+    expect(last.status).toBe(429)
+  })
+
   it('403s a student; 503 when the read errors', async () => {
     mockSupabase({ user: STUDENT_USER, routes: [] })
     expect((await (await load())(call('school/notification-settings'))).status).toBe(403)
@@ -163,10 +194,22 @@ describe('/api/school/push-subscribe', () => {
     expect(await (await (await load())(call('school/push-subscribe'))).json()).toEqual({ vapidPublicKey: 'PUB' })
   })
 
-  it('POST upserts the browser subscription for the caller', async () => {
+  it('rate-limits GET', async () => {
+    mockSupabase({ user: TEACHER, routes: [] })
+    const handler = await load()
+    let last
+    for (let i = 0; i < 301; i++) last = await handler(call('school/push-subscribe'))
+    expect(last.status).toBe(429)
+  })
+
+  it('POST first releases the endpoint from any OTHER user, then upserts it for the caller', async () => {
     const log = mockSupabase({ user: TEACHER, routes: [{ method: 'POST', match: '/rest/v1/push_subscriptions', reply: { status: 201, body: [] } }] })
     const res = await (await load())(call('school/push-subscribe', { method: 'POST', body: sub() }))
     expect(res.status).toBe(200)
+    const writes = log.filter((l) => l.url.includes('push_subscriptions'))
+    expect(writes.map((w) => w.method)).toEqual(['DELETE', 'POST'])
+    expect(writes[0].url).toContain(`endpoint=eq.${encodeURIComponent(sub().endpoint)}`)
+    expect(writes[0].url).toContain(`user_id=neq.${TEACHER.id}`)
     const up = log.find((l) => l.method === 'POST')
     expect(up.url).toContain('on_conflict=endpoint')
     expect(up.body).toEqual({ user_id: TEACHER.id, endpoint: sub().endpoint, p256dh: P256DH, auth: AUTH })
@@ -217,10 +260,14 @@ describe('/api/school/push-subscribe', () => {
 describe('/api/device-token', () => {
   const load = async () => (await import('../api/device-token.js')).default
 
-  it('POST registers an iOS token for the caller, env defaults to production', async () => {
+  it('POST registers an iOS token for the caller (after releasing it from any other user), env defaults to production', async () => {
     const log = mockSupabase({ user: TEACHER, routes: [] })
     const res = await (await load())(call('device-token', { method: 'POST', body: { token: TOKEN } }))
     expect(res.status).toBe(200)
+    const writes = log.filter((l) => l.url.includes('device_tokens'))
+    expect(writes.map((w) => w.method)).toEqual(['DELETE', 'POST'])
+    expect(writes[0].url).toContain(`token=eq.${TOKEN}`)
+    expect(writes[0].url).toContain(`user_id=neq.${TEACHER.id}`)
     const up = log.find((l) => l.method === 'POST')
     expect(up.url).toContain('/rest/v1/device_tokens?on_conflict=token')
     expect(up.body).toEqual({ user_id: TEACHER.id, token: TOKEN, platform: 'ios', env: 'production' })

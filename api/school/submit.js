@@ -4,7 +4,7 @@ import { handleCors, checkRateLimit } from '../_rateLimit.js'
 import { requireStudent, sb, json, isUuid } from '../_school.js'
 import { snapshotBook } from '../../lib/school/snapshot.js'
 import { isLate, isPastDue, raisedName } from '../../lib/school/assignments.js'
-import { notifyHandIn } from '../../lib/notify/notify.js'
+import { startHandIn, runAfterResponse } from '../../lib/notify/notify.js'
 
 const MAX_BOOK_ID_LEN = 128
 const MAX_TITLE_LEN = 200
@@ -20,7 +20,9 @@ const RPC_ERRORS = {
 // that decides WHAT is stored comes from the server: the class and student
 // ids from requireStudent, the book from user_books read by the caller's own
 // auth id. The request only names which assignment and which of their books.
-export default async function handler(req) {
+// ctx: Vercel Edge's { waitUntil } — the "everyone handed in" check and its
+// alert run after the child already has their answer.
+export default async function handler(req, ctx) {
   const cors = handleCors(req)
   if (cors) return cors
 
@@ -91,8 +93,10 @@ export default async function handler(req) {
     }
     const row = await res.json()
     const late = isLate(row.submitted_at, assignment.due_at)
-    // Bell row for the teacher (+ "everyone has handed in"). Never throws.
-    await notifyHandIn({ classroom, student, assignment, submission: row, late })
+    // Bell row for the teacher now; the "everyone has handed in" check after
+    // the response. Never throws.
+    const h = await startHandIn({ classroom, student, assignment, submission: row, late })
+    await runAfterResponse(ctx, h.done)
     return json(req, 200, {
       id: row.id,
       version: row.version,

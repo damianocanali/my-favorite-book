@@ -42,7 +42,7 @@ function mockAll({ settings = [], subs = [], pushStatus = {}, insertReply, stude
   const log = []
   globalThis.fetch = vi.fn(async (url, init = {}) => {
     const u = String(url), method = init.method || 'GET'
-    const entry = { method, url: u, headers: init.headers, rawBody: init.body }
+    const entry = { method, url: u, headers: init.headers, rawBody: init.body, redirect: init.redirect }
     try { entry.body = typeof init.body === 'string' ? JSON.parse(init.body) : undefined } catch { /* binary */ }
     log.push(entry)
     if (failAll) throw new Error('network down')
@@ -104,12 +104,14 @@ describe('notifyTeacher', () => {
     await configureAll()
     const log = mockAll()
     const { notifyTeacher } = await load()
-    const r = await notifyTeacher({ teacherUserId: TEACHER_ID, kind: 'help_book', classroom: classroom(), studentName: 'Ann', payload: { help_id: 'h1' } })
+    const r = await notifyTeacher({ teacherUserId: TEACHER_ID, kind: 'help_book', classroom: classroom(), studentId: 's1', studentName: 'Ann', payload: { help_id: 'h1' } })
     expect(r).toEqual({ stored: true, fannedOut: false })
+    // The bell stores the student's id, never their name (resolved at read time).
     expect(bellRows(log)[0].body).toEqual({
       teacher_user_id: TEACHER_ID, classroom_id: CLASS_ID, kind: 'help_book',
-      payload: { student_name: 'Ann', class_name: 'Room 5', help_id: 'h1' },
+      payload: { student_id: 's1', class_name: 'Room 5', help_id: 'h1' },
     })
+    expect(JSON.stringify(bellRows(log)[0].body)).not.toContain('Ann')
     expect(pushes(log)).toHaveLength(0)
     expect(emails(log)).toHaveLength(0)
     expect(apns(log)).toHaveLength(0)
@@ -126,7 +128,8 @@ describe('notifyTeacher', () => {
     expect(pushes(log).map((p) => p.url).sort()).toEqual(['https://push.example/a', 'https://push.example/b'])
     const msg = JSON.parse(await decryptPush(new Uint8Array(pushes(log)[0].rawBody), s1.endpoint === pushes(log)[0].url ? s1.authSecret : s2.authSecret))
     expect(msg).toMatchObject({ title: 'My Book Lab', body: 'Ann in Room 5 asked for a grown-up.', url: '/teacher' })
-    expect(apns(log)[0].body).toMatchObject({ userId: TEACHER_ID, body: 'Ann in Room 5 asked for a grown-up.', kind: 'help_grownup' })
+    expect(apns(log)[0].body).toMatchObject({ userId: TEACHER_ID, body: 'Ann in Room 5 asked for a grown-up.', kind: 'help_grownup', tag: 'help_grownup:' })
+    expect(pushes(log)[0].redirect).toBe('error')
     const mail = emails(log)[0].body
     expect(mail.to).toEqual(['teacher@school.test'])
     expect(mail.subject).toBe('Ann in Room 5 asked for a grown-up.')
@@ -193,6 +196,10 @@ describe('notifyTeacher', () => {
     expect(del).toHaveLength(1)
     expect(del[0].url).toContain(`/rest/v1/push_subscriptions?id=in.(${SUB1})`)
     expect(del[0].url).toContain(`user_id=eq.${TEACHER_ID}`)
+    // The one that worked is marked as used.
+    const used = log.find((l) => l.method === 'PATCH' && l.url.includes('/rest/v1/push_subscriptions'))
+    expect(used.url).toContain(`id=in.(${SUB2})`)
+    expect(used.body.last_used_at).toMatch(/^\d{4}-/)
   })
 
   it('with no keys at all: the bell row is written and nothing else is attempted', async () => {
@@ -257,7 +264,7 @@ describe('notifyHandIn', () => {
     const { notifyHandIn } = await load()
     await notifyHandIn({ classroom: classroom(), student, assignment, submission: { id: 'sub', ...submission }, late })
     expect(kinds(log)).toEqual([kind])
-    expect(bellRows(log)[0].body.payload).toMatchObject({ student_name: 'Ann', assignment_id: ASSIGN_ID, assignment_title: 'My pet' })
+    expect(bellRows(log)[0].body.payload).toMatchObject({ student_id: 's1', assignment_id: ASSIGN_ID, assignment_title: 'My pet' })
   })
 
   it('adds all_handed_in when every active student has now handed in', async () => {
@@ -289,5 +296,38 @@ describe('notifyHandIn', () => {
     ;({ notifyHandIn } = await load())
     await notifyHandIn({ classroom: classroom(), student, assignment, submission: { id: 'sub', version: 1 }, late: false })
     expect(kinds(log)).toEqual(['hand_in'])
+  })
+})
+
+describe('startNotification (bell now, fan-out deferrable)', () => {
+  it('returns once the bell row is written, with the fan-out still pending in `done`', async () => {
+    await configureAll()
+    let release
+    const gate = new Promise((r) => { release = r })
+    const log = mockAll()
+    const inner = globalThis.fetch
+    globalThis.fetch = vi.fn(async (url, init) => {
+      if (String(url).includes('/rest/v1/teacher_settings')) await gate
+      return inner(url, init)
+    })
+    const { startNotification } = await load()
+    const r = await startNotification({ teacherUserId: TEACHER_ID, kind: 'help_grownup', classroom: classroom(), studentId: 's1', studentName: 'Ann', urgent: true })
+    expect(r).toMatchObject({ stored: true, fannedOut: true })
+    expect(bellRows(log)).toHaveLength(1)
+    expect(emails(log)).toHaveLength(0)
+    release()
+    await r.done
+    expect(emails(log)).toHaveLength(1)
+  })
+
+  it('runAfterResponse hands the work to ctx.waitUntil, or awaits it without one', async () => {
+    const { runAfterResponse } = await load()
+    const seen = []
+    const p = Promise.resolve('x')
+    await runAfterResponse({ waitUntil: (q) => seen.push(q) }, p)
+    expect(seen).toEqual([p])
+    let done = false
+    await runAfterResponse(undefined, new Promise((r) => setTimeout(() => { done = true; r() }, 5)))
+    expect(done).toBe(true)
   })
 })

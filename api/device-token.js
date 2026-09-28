@@ -40,8 +40,13 @@ export default async function handler(req) {
 
     const env = body.env ?? (process.env.APNS_ENV === 'sandbox' ? 'sandbox' : 'production')
     if (!ENVS.includes(env)) return json(req, 400, { error: 'Invalid env', code: 'bad_request' })
-    // Keyed on the token: a device handed to another grown-up follows
-    // whoever signed in on it last.
+    // A device (token) belongs to whoever signed in on it last, e.g. a
+    // school iPad handed to another teacher. If another user holds it, their
+    // row is DELETED first and a fresh row created for the caller — never
+    // re-pointed in place — so the upsert below can only ever merge into the
+    // caller's own row. If that delete fails, nothing is written.
+    const release = await sb(`/rest/v1/device_tokens?token=eq.${token}&user_id=neq.${encodeURIComponent(auth.userId)}`, { method: 'DELETE' })
+    if (!release.ok) return json(req, 502, { error: 'Could not save', code: 'upstream' })
     const res = await sb('/rest/v1/device_tokens?on_conflict=token', {
       method: 'POST',
       headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },

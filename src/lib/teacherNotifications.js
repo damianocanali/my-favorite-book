@@ -6,7 +6,9 @@
 // key. The bell only ever says who, which class and which assignment.
 export function notificationText(t, n) {
   const vars = {
-    student: n?.payload?.student_name ?? '',
+    // Names are resolved at read time; a student no longer on the roster
+    // comes back null.
+    student: n?.payload?.student_name || t('school:notifications.unknown_student'),
     className: n?.payload?.class_name ?? '',
     assignment: n?.payload?.assignment_title ?? '',
   }

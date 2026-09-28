@@ -452,6 +452,7 @@
       "saved": "Saved",
       "error": "Couldn't save. Try again.",
       "load_error": "Couldn't load your notification settings."
-    }
+    },
+    "unknown_student": "A student"
   }
 }

@@ -27,6 +27,12 @@ describe('notificationText', () => {
     expect(JSON.parse(out.split('|')[1])).toEqual({ student: 'Ann', className: 'Room 5', assignment: 'My pet' })
   })
 
+  it('a student who is no longer on the roster reads as "a student"', () => {
+    const tt = (key, vars) => (vars ? `${key}:${vars.student}` : `<${key}>`)
+    const out = notificationText(tt, n('hand_in', { student_name: null, assignment_title: 'My pet' }))
+    expect(out).toBe('school:notifications.kinds.hand_in:<school:notifications.unknown_student>')
+  })
+
   it('falls back to a generic line for an unknown kind', () => {
     expect(notificationText(t, n('mystery')).startsWith('school:notifications.kinds.generic|')).toBe(true)
   })
@@ -99,27 +105,74 @@ describe('public/sw.js', () => {
     expect(src).not.toMatch(/caches\./)
   })
 
-  it('shows the pushed title/body and opens only same-origin paths on click', async () => {
+  function loadSw(clients = []) {
     const listeners = {}
     const shown = []
     const opened = []
     const self = {
       addEventListener: (type, fn) => { listeners[type] = fn },
       registration: { showNotification: vi.fn(async (title, opts) => shown.push({ title, opts })) },
-      clients: { matchAll: vi.fn(async () => []), openWindow: vi.fn(async (u) => opened.push(u)) },
+      clients: { matchAll: vi.fn(async () => clients), openWindow: vi.fn(async (u) => opened.push(u)) },
       location: { origin: 'https://mybooklab.app' },
-      skipWaiting: () => {},
     }
     new Function('self', src)(self)
+    const click = async (url) => {
+      let waited
+      const close = vi.fn()
+      listeners.notificationclick({ notification: { close, data: { url } }, waitUntil: (p) => { waited = p } })
+      await waited
+      return close
+    }
+    return { listeners, shown, opened, click }
+  }
+  const client = (url, { navigateFails = false } = {}) => {
+    const c = { url, focused: false, navigatedTo: null }
+    c.focus = vi.fn(async () => { c.focused = true; return c })
+    c.navigate = vi.fn(async (u) => {
+      if (navigateFails) throw new TypeError('not controlled')
+      c.navigatedTo = u
+      return c
+    })
+    return c
+  }
+
+  it('shows the pushed title/body', async () => {
+    const { listeners, shown } = loadSw()
     let waited
     listeners.push({ data: { json: () => ({ title: 'My Book Lab', body: 'Ann in Room 5 asked for a grown-up.', url: '/teacher', tag: 'x' }) }, waitUntil: (p) => { waited = p } })
     await waited
-    expect(shown[0]).toMatchObject({ title: 'My Book Lab', opts: { body: 'Ann in Room 5 asked for a grown-up.', data: { url: '/teacher' } } })
+    expect(shown[0]).toMatchObject({ title: 'My Book Lab', opts: { body: 'Ann in Room 5 asked for a grown-up.', tag: 'x', data: { url: '/teacher' } } })
+  })
 
-    const close = vi.fn()
-    listeners.notificationclick({ notification: { close, data: { url: 'https://evil.example/' } }, waitUntil: (p) => { waited = p } })
-    await waited
+  it.each([
+    ['https://evil.example/', '/teacher'],
+    ['//evil.example/x', '/teacher'],
+    ['javascript:alert(1)', '/teacher'],
+    [undefined, '/teacher'],
+    ['/teacher/class/c1?review=a1', '/teacher/class/c1?review=a1'],
+    ['https://mybooklab.app/teacher?x=1', '/teacher?x=1'],
+  ])('click on %s opens %s (same origin only) when no window is open', async (url, expected) => {
+    const { opened, click } = loadSw([])
+    const close = await click(url)
     expect(close).toHaveBeenCalled()
+    expect(opened).toEqual([expected])
+  })
+
+  it('prefers an open /teacher window: navigates it there and focuses it', async () => {
+    const other = client('https://mybooklab.app/bookshelf')
+    const teacher = client('https://mybooklab.app/teacher/classes')
+    const { opened, click } = loadSw([other, teacher])
+    await click('/teacher/class/c1?review=a1')
+    expect(teacher.navigatedTo).toBe('/teacher/class/c1?review=a1')
+    expect(teacher.focused).toBe(true)
+    expect(other.navigate).not.toHaveBeenCalled()
+    expect(opened).toEqual([])
+  })
+
+  it('falls back to a new window when navigating the open one fails', async () => {
+    const teacher = client('https://mybooklab.app/teacher', { navigateFails: true })
+    const { opened, click } = loadSw([teacher])
+    await click('/teacher')
     expect(opened).toEqual(['/teacher'])
   })
 })

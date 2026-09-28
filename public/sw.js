@@ -19,19 +19,43 @@ self.addEventListener('push', (event) => {
   )
 })
 
+// Only ever a path on this site: anything that resolves to another origin
+// (absolute URL, protocol-relative, javascript:, …) becomes /teacher.
+function safePath(raw) {
+  try {
+    const u = new URL(typeof raw === 'string' ? raw : '/teacher', self.location.origin)
+    if (u.origin !== self.location.origin) return '/teacher'
+    return u.pathname + u.search + u.hash
+  } catch {
+    return '/teacher'
+  }
+}
+
+function isTeacherPage(client) {
+  try {
+    const u = new URL(client.url)
+    return u.origin === self.location.origin && (u.pathname === '/teacher' || u.pathname.startsWith('/teacher/'))
+  } catch {
+    return false
+  }
+}
+
+async function openAlert(url) {
+  const wins = await self.clients.matchAll({ type: 'window', includeUncontrolled: true })
+  const existing = wins.find(isTeacherPage)
+  if (existing) {
+    try {
+      const navigated = await existing.navigate(url)
+      await (navigated || existing).focus()
+      return
+    } catch {
+      // Not controlled by this worker (or navigation refused): new window.
+    }
+  }
+  await self.clients.openWindow(url)
+}
+
 self.addEventListener('notificationclick', (event) => {
   event.notification.close()
-  // Only ever a path on this site — never an absolute URL from a payload.
-  const raw = event.notification.data && event.notification.data.url
-  const url = typeof raw === 'string' && raw.startsWith('/') && !raw.startsWith('//') ? raw : '/teacher'
-  event.waitUntil(
-    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((wins) => {
-      for (const w of wins) {
-        if ('focus' in w && 'navigate' in w) {
-          return w.navigate(url).then((c) => (c || w).focus())
-        }
-      }
-      return self.clients.openWindow(url)
-    })
-  )
+  event.waitUntil(openAlert(safePath(event.notification.data && event.notification.data.url)))
 })

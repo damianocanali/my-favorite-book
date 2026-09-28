@@ -28,8 +28,12 @@ beforeEach(() => {
   process.env.SUPABASE_URL = 'https://example.supabase.co'
   process.env.SUPABASE_SERVICE_ROLE_KEY = 'service'
   process.env.PUBLIC_BASE_URL = 'https://mybooklab.app'
+  for (const k of ['NOTIFY_WORKER_SECRET', 'VERCEL_ENV', 'VERCEL_URL', 'VERCEL_PROJECT_PRODUCTION_URL']) delete process.env[k]
 })
-afterEach(() => vi.restoreAllMocks())
+afterEach(() => {
+  vi.useRealTimers()
+  vi.restoreAllMocks()
+})
 
 describe('message text', () => {
   it('urgent help says only who and which class, plus the not-monitored line', async () => {
@@ -183,18 +187,62 @@ describe('requestApns (Edge side: hands off to the Node HTTP/2 worker)', () => {
     expect(info).toHaveBeenCalledTimes(1)
   })
 
-  it('POSTs to /api/notify/apns with a secret derived from the service key (never the key itself)', async () => {
+  it('POSTs to /api/notify/apns signed with HMAC(secret, ts + "." + sha256(body)), never sending the secret', async () => {
     setApnsEnv()
+    process.env.NOTIFY_WORKER_SECRET = 'worker-secret'
     const calls = []
     globalThis.fetch = vi.fn(async (url, init) => { calls.push({ url, init }); return new Response('{"sent":1}') })
-    const { requestApns, apnsWorkerSecret } = await import('../lib/notify/apns.js')
-    await requestApns({ userId: 'u1', title: 'My Book Lab', body: 'Ann in Room 5 asked for a grown-up.', url: '/teacher', kind: 'help_grownup' })
+    const { requestApns, verifyWorkerRequest } = await import('../lib/notify/apns.js')
+    await requestApns({ userId: 'u1', title: 'My Book Lab', body: 'Ann in Room 5 asked for a grown-up.', url: '/teacher', kind: 'help_grownup', tag: 'help_grownup:h1' })
     expect(calls[0].url).toBe('https://mybooklab.app/api/notify/apns')
-    const secret = calls[0].init.headers['x-notify-secret']
-    expect(secret).toBe(await apnsWorkerSecret())
-    expect(secret).toMatch(/^[0-9a-f]{64}$/)
+    const h = calls[0].init.headers
+    expect(h['x-notify-ts']).toMatch(/^\d+$/)
+    expect(h['x-notify-sig']).toMatch(/^[0-9a-f]{64}$/)
+    expect(JSON.stringify(calls[0].init)).not.toContain('worker-secret')
     expect(JSON.stringify(calls[0].init)).not.toContain('service')
-    expect(JSON.parse(calls[0].init.body)).toEqual({ userId: 'u1', title: 'My Book Lab', body: 'Ann in Room 5 asked for a grown-up.', url: '/teacher', kind: 'help_grownup' })
+    expect(await verifyWorkerRequest(h['x-notify-ts'], h['x-notify-sig'], calls[0].init.body)).toBe(true)
+    // A changed body no longer verifies.
+    expect(await verifyWorkerRequest(h['x-notify-ts'], h['x-notify-sig'], calls[0].init.body.replace('Ann', 'Bob'))).toBe(false)
+    expect(JSON.parse(calls[0].init.body)).toEqual({ userId: 'u1', title: 'My Book Lab', body: 'Ann in Room 5 asked for a grown-up.', url: '/teacher', kind: 'help_grownup', tag: 'help_grownup:h1' })
+  })
+
+  it('falls back to a key derived from the service-role key when NOTIFY_WORKER_SECRET is unset', async () => {
+    const { workerSecret } = await import('../lib/notify/apns.js')
+    const derived = await workerSecret()
+    expect(derived).toMatch(/^[0-9a-f]{64}$/)
+    expect(derived).not.toContain('service')
+    process.env.NOTIFY_WORKER_SECRET = 'worker-secret'
+    expect(await workerSecret()).toBe('worker-secret')
+  })
+
+  it('rejects a signature older (or newer) than 300 s', async () => {
+    process.env.NOTIFY_WORKER_SECRET = 'worker-secret'
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-09-27T12:00:00Z'))
+    const { signWorkerRequest, verifyWorkerRequest } = await import('../lib/notify/apns.js')
+    const h = await signWorkerRequest('{"a":1}')
+    expect(await verifyWorkerRequest(h['x-notify-ts'], h['x-notify-sig'], '{"a":1}')).toBe(true)
+    vi.setSystemTime(new Date('2026-09-27T12:05:01Z'))
+    expect(await verifyWorkerRequest(h['x-notify-ts'], h['x-notify-sig'], '{"a":1}')).toBe(false)
+    vi.setSystemTime(new Date('2026-09-27T11:54:59Z'))
+    expect(await verifyWorkerRequest(h['x-notify-ts'], h['x-notify-sig'], '{"a":1}')).toBe(false)
+  })
+
+  it.each([
+    [{ VERCEL_ENV: 'production', VERCEL_PROJECT_PRODUCTION_URL: 'mybooklab.app', VERCEL_URL: 'x-123.vercel.app' }, null, 'https://mybooklab.app'],
+    [{ VERCEL_ENV: 'production', VERCEL_URL: 'x-123.vercel.app' }, 'https://www.mybooklab.app', 'https://www.mybooklab.app'],
+    [{ VERCEL_ENV: 'preview', VERCEL_PROJECT_PRODUCTION_URL: 'mybooklab.app', VERCEL_URL: 'x-123.vercel.app' }, 'https://mybooklab.app', 'https://x-123.vercel.app'],
+    [{}, 'https://local.test/', 'https://local.test'],
+  ])('worker URL for %o (PUBLIC_BASE_URL=%s) is %s — previews never call production', async (env, base, expected) => {
+    setApnsEnv()
+    Object.assign(process.env, env)
+    if (base) process.env.PUBLIC_BASE_URL = base
+    else delete process.env.PUBLIC_BASE_URL
+    const calls = []
+    globalThis.fetch = vi.fn(async (url) => { calls.push(String(url)); return new Response('{}') })
+    const { requestApns } = await import('../lib/notify/apns.js')
+    await requestApns({ userId: 'u1', title: 't', body: 'b' })
+    expect(calls[0]).toBe(`${expected}/api/notify/apns`)
   })
 })
 
@@ -233,12 +281,12 @@ describe('sendApnsBatch (node:http2)', () => {
     const results = await sendApnsBatch(
       [{ token: 'good', env: 'production' }, { token: 'dead', env: 'production' }, { token: 'bad', env: 'sandbox' }, { token: 'busy', env: 'production' }],
       { aps: { alert: { title: 't', body: 'b' } } },
-      { jwt: 'JWT', topic: 'app.mybooklab.ios', connect }
+      { jwt: 'JWT', topic: 'app.mybooklab.ios', connect, collapseId: 'help_grownup:h1' }
     )
     expect(connect).toHaveBeenCalledWith('https://api.push.apple.com')
     expect(connect).toHaveBeenCalledWith('https://api.sandbox.push.apple.com')
     const h = seen.find((s) => s.headers[':path'] === '/3/device/good').headers
-    expect(h).toMatchObject({ ':method': 'POST', authorization: 'bearer JWT', 'apns-topic': 'app.mybooklab.ios', 'apns-push-type': 'alert', 'apns-priority': '10' })
+    expect(h).toMatchObject({ ':method': 'POST', authorization: 'bearer JWT', 'apns-topic': 'app.mybooklab.ios', 'apns-push-type': 'alert', 'apns-priority': '10', 'apns-collapse-id': 'help_grownup:h1' })
     expect(Object.fromEntries(results.map((r) => [r.token, r.gone]))).toEqual({ good: false, dead: true, bad: true, busy: false })
     expect(results.find((r) => r.token === 'good').ok).toBe(true)
   })
@@ -264,25 +312,14 @@ describe('sendApnsBatch (node:http2)', () => {
 
 describe('POST /api/notify/apns (Node runtime worker)', () => {
   const load = async () => (await import('../api/notify/apns.js'))
-  const call = (headers = {}, body = { userId: '6f1c1b1e-0000-4000-8000-000000000009', title: 'My Book Lab', body: 'Ann in Room 5 asked for a grown-up.', url: '/teacher', kind: 'help_grownup' }) =>
+  const BODY = { userId: '6f1c1b1e-0000-4000-8000-000000000009', title: 'My Book Lab', body: 'Ann in Room 5 asked for a grown-up.', url: '/teacher', kind: 'help_grownup', tag: 'help_grownup:h1' }
+  const call = (headers = {}, body = BODY) =>
     new Request('https://mybooklab.app/api/notify/apns', { method: 'POST', headers: { 'content-type': 'application/json', ...headers }, body: JSON.stringify(body) })
-
-  it('runs on the Node runtime (HTTP/2 is not available from Edge fetch)', async () => {
-    expect((await load()).config.runtime).toBe('nodejs')
-  })
-
-  it('401s without the derived secret', async () => {
-    setApnsEnv()
-    globalThis.fetch = vi.fn()
-    const mod = await load()
-    expect((await mod.POST(call())).status).toBe(401)
-    expect((await mod.POST(call({ 'x-notify-secret': 'nope' }))).status).toBe(401)
-    expect(globalThis.fetch).not.toHaveBeenCalled()
-  })
-
-  it('sends to the user\'s tokens and deletes the dead ones', async () => {
-    setApnsEnv()
-    const log = []
+  const signed = async (body = BODY) => {
+    const { signWorkerRequest } = await import('../lib/notify/apns.js')
+    return call(await signWorkerRequest(JSON.stringify(body)), body)
+  }
+  function tokensFetch(log) {
     globalThis.fetch = vi.fn(async (url, init = {}) => {
       log.push({ url: String(url), method: init.method || 'GET' })
       if (String(url).includes('/rest/v1/device_tokens') && (init.method || 'GET') === 'GET') {
@@ -293,23 +330,59 @@ describe('POST /api/notify/apns (Node runtime worker)', () => {
       }
       return new Response('[]')
     })
+  }
+
+  it('runs on the Node runtime (HTTP/2 is not available from Edge fetch)', async () => {
+    expect((await load()).config.runtime).toBe('nodejs')
+  })
+
+  it('401s unsigned, badly signed, stale, or body-tampered requests', async () => {
+    setApnsEnv()
+    process.env.NOTIFY_WORKER_SECRET = 'worker-secret'
+    globalThis.fetch = vi.fn()
+    const mod = await load()
+    const { signWorkerRequest } = await import('../lib/notify/apns.js')
+    expect((await mod.POST(call())).status).toBe(401)
+    expect((await mod.POST(call({ 'x-notify-ts': String(Math.floor(Date.now() / 1000)), 'x-notify-sig': 'f'.repeat(64) }))).status).toBe(401)
+    const h = await signWorkerRequest(JSON.stringify(BODY))
+    expect((await mod.POST(call(h, { ...BODY, userId: '6f1c1b1e-0000-4000-8000-000000000008' }))).status).toBe(401)
+    const stale = { ...h, 'x-notify-ts': String(Number(h['x-notify-ts']) - 301) }
+    expect((await mod.POST(call(stale))).status).toBe(401)
+    expect(globalThis.fetch).not.toHaveBeenCalled()
+  })
+
+  it('a request signed with the derived key is refused once NOTIFY_WORKER_SECRET is set', async () => {
+    setApnsEnv()
+    const { signWorkerRequest } = await import('../lib/notify/apns.js')
+    const h = await signWorkerRequest(JSON.stringify(BODY)) // derived key
+    process.env.NOTIFY_WORKER_SECRET = 'worker-secret'
+    globalThis.fetch = vi.fn()
+    expect((await (await load()).POST(call(h))).status).toBe(401)
+  })
+
+  it('sends to the user\'s tokens (collapse id = tag, capped text) and deletes the dead ones', async () => {
+    setApnsEnv()
+    const log = []
+    tokensFetch(log)
     const seen = []
     const mod = await load()
-    const { apnsWorkerSecret } = await import('../lib/notify/apns.js')
-    const res = await mod.POST(call({ 'x-notify-secret': await apnsWorkerSecret() }), { connect: fakeConnect({ dead: [410, 'Unregistered'] }, seen) })
+    const long = { ...BODY, title: 'T'.repeat(500), body: 'B'.repeat(5000) }
+    const res = await mod.POST(await signed(long), { connect: fakeConnect({ dead: [410, 'Unregistered'] }, seen) })
     expect(res.status).toBe(200)
     expect(await res.json()).toEqual({ sent: 1, removed: 1 })
     expect(log[0].url).toContain('user_id=eq.6f1c1b1e-0000-4000-8000-000000000009')
     const del = log.find((l) => l.method === 'DELETE')
     expect(del.url).toContain('/rest/v1/device_tokens?id=in.(6f1c1b1e-0000-4000-8000-0000000000e2)')
-    expect(seen[0].body).toEqual({ aps: { alert: { title: 'My Book Lab', body: 'Ann in Room 5 asked for a grown-up.' }, sound: 'default' }, url: '/teacher', kind: 'help_grownup' })
+    expect(seen[0].headers['apns-collapse-id']).toBe('help_grownup:h1')
+    expect(seen[0].body.aps.alert.title.length).toBeLessThanOrEqual(100)
+    expect(seen[0].body.aps.alert.body.length).toBeLessThanOrEqual(300)
+    expect(seen[0].body).toMatchObject({ aps: { sound: 'default' }, url: '/teacher', kind: 'help_grownup' })
   })
 
   it('is a 200 no-op when APNs is not configured', async () => {
-    const { apnsWorkerSecret } = await import('../lib/notify/apns.js')
     vi.spyOn(console, 'info').mockImplementation(() => {})
     globalThis.fetch = vi.fn()
-    const res = await (await load()).POST(call({ 'x-notify-secret': await apnsWorkerSecret() }))
+    const res = await (await load()).POST(await signed())
     expect(res.status).toBe(200)
     expect(await res.json()).toMatchObject({ skipped: true })
     expect(globalThis.fetch).not.toHaveBeenCalled()
@@ -317,9 +390,8 @@ describe('POST /api/notify/apns (Node runtime worker)', () => {
 
   it('400s a bad user id', async () => {
     setApnsEnv()
-    const { apnsWorkerSecret } = await import('../lib/notify/apns.js')
     globalThis.fetch = vi.fn()
-    const res = await (await load()).POST(call({ 'x-notify-secret': await apnsWorkerSecret() }, { userId: 'x' }))
+    const res = await (await load()).POST(await signed({ ...BODY, userId: 'x' }))
     expect(res.status).toBe(400)
   })
 })
