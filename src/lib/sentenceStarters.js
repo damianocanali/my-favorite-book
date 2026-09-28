@@ -90,6 +90,38 @@ const NUDGES = [
 const startersFor = (position) =>
   STARTERS_BY_POSITION[position].map((en, i) => tr(`games:starters.${position}.s${i + 1}`, en))
 
+// Default translator for getAllStartersForPosition when no `translate` is
+// given: this module's own `tr` against the active app language, same as
+// everywhere else in this file. `tr` takes a fully-namespaced key, so this
+// is the one place that adds "games:" — see getAllStartersForPosition's own
+// comment for why the function itself must NOT do that.
+const defaultGamesTranslate = (key, fallback) => tr(`games:${key}`, fallback)
+
+/**
+ * Every starter for a story position, in a stable (non-random) order —
+ * unlike getPromptsForPage's random subset of 4 for in-editor use, the
+ * Sentence starters worksheet (task WS) prints the whole strip.
+ *
+ * Produces UNPREFIXED keys ("starters.opening.s1", not "games:starters...")
+ * — namespacing is entirely the caller's `translate` function's job. Two
+ * different callers need this: the worksheet's print path hands in a
+ * translator already fixed to the 'games' namespace
+ * (i18next.getFixedT(sheetLocale, 'games')), which resolves a bare key
+ * directly; the on-screen thumbnail's site-language path instead has a `t`
+ * whose default namespace is 'worksheets' and must add "games:" itself to
+ * reach this catalogue. A version of this function that added "games:"
+ * itself used to silently double that prefix for the second caller
+ * ("games:games:starters..."), which never resolves in either language and
+ * so always rendered the English fallback regardless of site language —
+ * exactly the class of bug a namespace prefix baked into a supposedly
+ * reusable key generator invites. `translate` defaults to
+ * defaultGamesTranslate (this module's own `tr`, active app language) for
+ * any caller that doesn't need a different one.
+ */
+export function getAllStartersForPosition(position, translate = defaultGamesTranslate) {
+  return STARTERS_BY_POSITION[position].map((en, i) => translate(`starters.${position}.s${i + 1}`, en))
+}
+
 const feelingWords = () => FEELING_WORDS.map((w) => tr(`games:feeling_words.${wordKey(w)}`, w))
 const actionWords = () => ACTION_WORDS.map((w) => tr(`games:action_words.${wordKey(w)}`, w))
 

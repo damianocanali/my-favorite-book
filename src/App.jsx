@@ -19,6 +19,7 @@ import PrivacyPage from './pages/PrivacyPage'
 import TermsPage from './pages/TermsPage'
 import SupportPage from './pages/SupportPage'
 import GalleryPage from './pages/GalleryPage'
+import WorksheetsPage from './pages/WorksheetsPage'
 import ViewBookPage from './pages/ViewBookPage'
 import ResetPasswordPage from './pages/ResetPasswordPage'
 import AuthCallbackPage from './pages/AuthCallbackPage'
@@ -133,6 +134,10 @@ export default function App() {
         <Route path="/account" element={<AccountPage />} />
         <Route path="/admin" element={<AdminPage />} />
         <Route path="/gallery" element={<GalleryPage />} />
+        {/* Public, no sign-in — the teacher-acquisition surface (spec §11).
+            Deliberately outside every auth/consumer-only guard, same tier
+            as /gallery and /example. */}
+        <Route path="/worksheets" element={<WorksheetsPage />} />
         <Route path="/view/:slug" element={<ViewBookPage />} />
         <Route path="/order/:bookId" element={<ConsumerOnlyRoute><PrintOrderPage /></ConsumerOnlyRoute>} />
         <Route path="/orders" element={<ConsumerOnlyRoute><OrdersListPage /></ConsumerOnlyRoute>} />

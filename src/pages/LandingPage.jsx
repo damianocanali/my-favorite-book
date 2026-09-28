@@ -362,6 +362,13 @@ export default function LandingPage() {
             {t('marketing:footer.terms')}
           </Link>
           <span>·</span>
+          {/* Task WS: the free public worksheets library, linked from the
+              landing page footer as another teacher-acquisition entry
+              point alongside the teacher dashboard's own link. */}
+          <Link to="/worksheets" className="hover:text-galaxy-text-muted transition-colors">
+            {t('marketing:footer.worksheets')}
+          </Link>
+          <span>·</span>
           {/* The year is deliberately NOT run through formatNumber — Intl
               would group it as "2.026" in Italian. */}
           <span>{t('marketing:footer.copyright', { year: String(new Date().getFullYear()) })}</span>

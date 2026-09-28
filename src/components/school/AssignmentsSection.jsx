@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Plus, Pencil, Trash2 } from 'lucide-react'
+import { Plus, Pencil, Trash2, Printer } from 'lucide-react'
 import { schoolFetch } from '../../lib/schoolApi'
 import { teacherErrorText } from './teacherErrors'
 import { STATUS_CHIP_KEY, formatDueDate, canDeleteAssignment, nextStatusActions } from './assignmentUi'
@@ -27,7 +28,7 @@ function StatusChip({ status }) {
 // Clicking a row (not a button inside it) opens the Review drawer, owned by
 // the caller (TeacherClassPage) since it also needs to be reachable from a
 // dashboard link — see that page's `?review=` query param handling.
-export default function AssignmentsSection({ classId, locale, onOpenReview }) {
+export default function AssignmentsSection({ classId, className, locale, onOpenReview }) {
   const { t } = useTranslation()
   const [assignments, setAssignments] = useState(null)
   const [error, setError] = useState(null)
@@ -172,6 +173,24 @@ export default function AssignmentsSection({ classId, locale, onOpenReview }) {
                   >
                     <Pencil size={13} /> {t('common:actions.edit')}
                   </button>
+                  {/* Task WS teacher hook: opens the free public worksheets
+                      library pre-filled with this assignment's own prompt
+                      and the class name, straight into the Customize panel
+                      (WorksheetsPage reads these same query params via
+                      parseWorksheetParams). */}
+                  <Link
+                    to={{
+                      pathname: '/worksheets',
+                      search: new URLSearchParams({
+                        template: 'story-map',
+                        prompt: a.prompt ?? '',
+                        class: className ?? '',
+                      }).toString(),
+                    }}
+                    className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-body font-semibold text-galaxy-secondary hover:text-galaxy-text transition-colors"
+                  >
+                    <Printer size={13} /> {t('school:teacher.assignments.actions.print_worksheet')}
+                  </Link>
                   {canDeleteAssignment(a.counts) && (
                     <button
                       type="button"

@@ -323,6 +323,7 @@ export default function TeacherClassPage() {
 
       <AssignmentsSection
         classId={classItem.id}
+        className={classItem.name}
         locale={i18n.language}
         onOpenReview={(assignmentId) => setReviewAssignmentId(assignmentId)}
       />

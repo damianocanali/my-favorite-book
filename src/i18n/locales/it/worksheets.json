@@ -1,0 +1,127 @@
+{
+  "page": {
+    "title": "Schede stampabili gratuite per scrivere storie",
+    "meta_description": "Otto schede stampabili gratuite per le classi dalla materna alla quinta elementare: mappe della storia, profili dei personaggi, storyboard, recensioni di libri e altro. Non serve registrarsi.",
+    "intro": "Otto pagine pronte da stampare per scrivere storie, gratis e senza bisogno di registrarsi. Stampane una per tutta la classe così com'è, oppure personalizzala prima."
+  },
+  "grid": {
+    "grade_band": {
+      "k2": "Materna–2ª elementare",
+      "g35": "3ª–5ª elementare"
+    }
+  },
+  "templates": {
+    "story_map": {
+      "title": "Mappa della storia",
+      "description": "Inizio, centro e fine, ciascuno con spazio per disegnare e scrivere."
+    },
+    "character_profile": {
+      "title": "Profilo del personaggio",
+      "description": "Disegna un personaggio, poi descrivi come appare, cosa gli piace, cosa desidera e cosa teme."
+    },
+    "setting_sketch": {
+      "title": "Schizzo dell'ambientazione",
+      "description": "Disegna il luogo in cui si svolge la storia, poi descrivi cosa vedresti, sentiresti e annuseresti lì."
+    },
+    "storyboard": {
+      "title": "Storyboard",
+      "description": "Sei riquadri per abbozzare una storia in ordine, con due righe sotto ciascuno."
+    },
+    "sentence_starters": {
+      "title": "Inizi di frase",
+      "description": "Una striscia di frasi da completare con parole tue."
+    },
+    "book_report": {
+      "title": "Recensione del libro",
+      "description": "Titolo, autore, parte preferita, personaggio preferito, un punteggio a stelle e una scena da disegnare."
+    },
+    "feelings_checkin": {
+      "title": "Scheda delle emozioni",
+      "description": "Cerchia come ti senti e cosa potrebbe aiutarti: niente punteggi, solo facce e parole."
+    },
+    "about_author": {
+      "title": "Chi è l'autore",
+      "description": "Una pagina su chi ha scritto il libro: tu."
+    }
+  },
+  "sheet": {
+    "heading": {
+      "story_map": "La Mia Mappa della Storia",
+      "character_profile": "Il Mio Personaggio",
+      "setting_sketch": "L'Ambientazione della Mia Storia",
+      "storyboard": "Il Mio Storyboard",
+      "sentence_starters": "Completa la Mia Storia",
+      "book_report": "La Mia Recensione del Libro",
+      "feelings_checkin": "Come Mi Sento Oggi",
+      "about_author": "Tutto Su Di Me"
+    },
+    "header": {
+      "name": "Nome",
+      "date": "Data",
+      "class": "Classe",
+      "teacher": "Insegnante"
+    },
+    "footer": "Trasformalo in un libro vero su mybooklab.app",
+    "today_prompt": "Traccia di oggi: {{prompt}}",
+    "story_map": {
+      "beginning": "Inizio",
+      "middle": "Centro",
+      "end": "Fine"
+    },
+    "character_profile": {
+      "name_label": "Nome",
+      "looks_like": "Aspetto",
+      "likes": "Cosa gli piace",
+      "wants": "Cosa desidera",
+      "afraid_of": "Di cosa ha paura"
+    },
+    "setting_sketch": {
+      "draw_prompt": "Disegna il luogo",
+      "question": "Cosa puoi vedere / sentire / annusare?"
+    },
+    "storyboard": {
+      "panel": "Riquadro {{number}}"
+    },
+    "sentence_starters": {
+      "finish_prompt": "Completa ogni frase con parole tue."
+    },
+    "book_report": {
+      "title_label": "Titolo",
+      "author_label": "Autore",
+      "favorite_part": "Parte preferita",
+      "favorite_character": "Personaggio preferito",
+      "rating_label": "Quante stelle?",
+      "draw_scene": "Disegna una scena del libro"
+    },
+    "feelings_checkin": {
+      "how_feeling": "Cerchia come ti senti",
+      "i_need": "Ho bisogno di…",
+      "draw_prompt": "Disegna come ti senti",
+      "why_prompt": "Perché mi sento così?"
+    },
+    "about_author": {
+      "draw_yourself": "Disegna te stesso",
+      "my_name_is": "Mi chiamo…",
+      "i_like_to_write_about": "Mi piace scrivere di…",
+      "my_next_book": "Il mio prossimo libro parlerà di…"
+    }
+  },
+  "customize": {
+    "heading": "Personalizza",
+    "title_label": "Titolo / traccia",
+    "title_hint": "Modifica la riga della traccia sulla scheda, ad esempio lo spunto di scrittura della mappa della storia.",
+    "class_label": "Nome della classe",
+    "teacher_label": "Nome dell'insegnante",
+    "sheet_language": "Lingua della scheda",
+    "prefill_heading": "Precompila i nomi",
+    "prefill_hint": "Incolla un elenco della classe, un nome per riga (o separati da virgola), e stampa una copia per ogni nome con il nome già inserito.",
+    "prefill_placeholder": "Aurora\nMarco\nGiulia",
+    "prefill_count_one": "{{count}} copia verrà stampata",
+    "prefill_count_other": "{{count}} copie verranno stampate",
+    "close": "Chiudi"
+  },
+  "actions": {
+    "print": "Stampa",
+    "customize": "Personalizza"
+  }
+}

@@ -71,6 +71,7 @@
       "title": "Dashboard",
       "loading": "Loading your dashboard…",
       "preview_link": "Preview the kids' app",
+      "worksheets_link": "Free printable worksheets",
       "class_switcher": {
         "aria_label": "Choose a class"
       },
@@ -308,7 +309,8 @@
         "close": "Close",
         "reopen": "Reopen",
         "delete_confirm": "Delete \"{{title}}\"? This can't be undone.",
-        "review_aria": "Review {{title}}"
+        "review_aria": "Review {{title}}",
+        "print_worksheet": "Print a worksheet"
       },
       "form": {
         "new_heading": "New assignment",

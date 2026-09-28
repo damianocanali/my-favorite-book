@@ -282,8 +282,15 @@ body.keyboard-open main {
 
 /* ── Print styles ──────────────────────────────────────── */
 @media print {
-  /* Hide everything on screen except the printable book */
-  body > #root > * { display: none !important; }
+  /* Hide everything on screen except the printable book. Hides #root
+     ITSELF, not just its children (task WS book-printing fix) — #root
+     keeps `min-height: 100vh` (below) whether or not its children are
+     hidden, so hiding only `#root > *` left #root as an empty full-height
+     box that printed as a leading blank page once PrintableBook.jsx started
+     portaling `.printable-book` to document.body (a sibling of #root, so it
+     prints AFTER whatever space #root itself still occupies). See
+     PrintableBook.jsx's own comment for why that portal exists at all. */
+  body > #root { display: none !important; }
   .printable-book { display: block !important; }
 
   body {
@@ -389,6 +396,63 @@ body.keyboard-open main {
 
   html.print-signin-cards .signin-cards .signin-card {
     overflow: hidden;
+  }
+}
+
+/* Worksheet sheet base — one definition used both for the on-screen
+   thumbnail (scaled down via a CSS transform inside a fixed-size,
+   overflow-hidden wrapper — see WorksheetThumbnail) and, portaled to
+   document.body, for the actual print job below. Sharing this rule is what
+   keeps the thumbnail an honest live preview rather than a second copy that
+   can drift out of sync with what actually prints. */
+.worksheet-sheet {
+  width: 8.5in;
+  height: 11in;
+  box-sizing: border-box;
+  padding: 0.5in;
+  background: white;
+  color: black;
+  overflow: hidden;
+}
+
+/* ── Worksheets print (Task WS, §11) ───────────────────────
+   Same bug class the sign-in cards section above exists to dodge: the
+   pre-existing book-printing rule — `body > #root > * { display: none
+   !important }` — always applies during EVERY print job and hides #root's
+   one direct child (whatever it currently is), and `display:none` on an
+   ancestor can never be undone by anything on a descendant. So
+   WorksheetsPage renders its print-only sheets through
+   `createPortal(..., document.body)`: a `.worksheets-print` portal is a
+   SIBLING of #root, not a descendant, so it's untouched by that rule.
+   `.worksheets-print` is hidden on screen by default (below, unconditional)
+   since it only ever exists to be printed; the print-mode rules here both
+   show it and explicitly hide #root themselves — independent of whatever
+   the book-printing rule above does or later becomes — exactly like the
+   sign-in cards section. Everything below only ever fires under
+   html.print-worksheets, a class src/components/school/printMode.js adds
+   immediately before window.print() and removes on `afterprint` (and on
+   unmount), so ordinary printing is unaffected whenever that class is
+   absent. See tests/worksheets-print-mode.test.js for the static checks. */
+.worksheets-print { display: none; }
+
+@media print {
+  html.print-worksheets body > #root { display: none !important; }
+
+  html.print-worksheets .worksheets-print {
+    display: block !important;
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+
+  html.print-worksheets .worksheets-print .worksheet-sheet {
+    page-break-after: always;
+    break-after: page;
+  }
+
+  html.print-worksheets .worksheets-print .worksheet-sheet:last-child {
+    page-break-after: auto;
+    break-after: auto;
   }
 }
 
