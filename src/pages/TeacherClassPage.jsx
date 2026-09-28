@@ -175,7 +175,7 @@ export default function TeacherClassPage() {
           {t('common:actions.retry')}
         </button>
         <button
-          onClick={() => navigate('/teacher')}
+          onClick={() => navigate('/teacher/classes')}
           className="flex items-center gap-2 text-galaxy-secondary font-body font-semibold hover:underline"
         >
           <ArrowLeft size={16} /> {t('school:teacher.class_page.back')}
@@ -189,7 +189,7 @@ export default function TeacherClassPage() {
       <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4 px-4 text-center">
         <p className="text-galaxy-text-muted font-body text-xl">{t('school:teacher.class_page.not_found')}</p>
         <button
-          onClick={() => navigate('/teacher')}
+          onClick={() => navigate('/teacher/classes')}
           className="flex items-center gap-2 text-galaxy-secondary font-body font-semibold hover:underline"
         >
           <ArrowLeft size={16} /> {t('school:teacher.class_page.back')}
@@ -202,7 +202,7 @@ export default function TeacherClassPage() {
     <div className="max-w-2xl mx-auto px-4 py-8 space-y-6">
       <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
         <button
-          onClick={() => navigate('/teacher')}
+          onClick={() => navigate('/teacher/classes')}
           className="flex items-center gap-2 text-galaxy-text-muted hover:text-galaxy-text transition-colors font-body text-sm mb-4"
         >
           <ArrowLeft size={16} /> {t('school:teacher.class_page.back')}

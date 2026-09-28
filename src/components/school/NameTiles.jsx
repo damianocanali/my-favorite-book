@@ -19,15 +19,15 @@ export default function NameTiles({ students, onSelect }) {
           role="listitem"
           onClick={() => onSelect(student)}
           aria-label={student.display_name}
-          className="min-w-[96px] min-h-[96px] flex flex-col items-center justify-center gap-1 rounded-card glass border border-galaxy-text-muted/10 hover:border-galaxy-primary/50 hover:bg-white/[0.08] active:scale-[0.97] transition-all p-3"
+          className="min-w-[96px] min-h-[96px] md:min-w-[120px] md:min-h-[120px] flex flex-col items-center justify-center gap-1 rounded-card glass border border-galaxy-text-muted/10 hover:border-galaxy-primary/50 hover:bg-white/[0.08] active:scale-[0.97] transition-all p-3 md:p-4"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: Math.min(i * 0.03, 0.3) }}
         >
-          <span className="text-4xl leading-none" aria-hidden="true">
+          <span className="text-4xl md:text-5xl leading-none" aria-hidden="true">
             {student.avatar_emoji}
           </span>
-          <span className="font-heading font-semibold text-galaxy-text text-sm text-center line-clamp-1">
+          <span className="font-heading font-semibold text-galaxy-text text-sm md:text-base text-center line-clamp-1">
             {student.display_name}
           </span>
         </motion.button>

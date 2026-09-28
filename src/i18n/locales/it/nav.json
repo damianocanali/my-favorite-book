@@ -5,6 +5,8 @@
   "header": {
     "pricing": "Prezzi",
     "classroom": "Scuola",
+    "dashboard": "Dashboard",
+    "classes": "Classi",
     "mute": "Disattiva musica",
     "unmute": "Attiva musica",
     "account": "Account",
@@ -17,7 +19,9 @@
     "gallery": "Galleria",
     "create": "Crea",
     "orders": "Ordini",
-    "account": "Account"
+    "account": "Account",
+    "dashboard": "Dashboard",
+    "classes": "Classi"
   },
   "play": {
     "trigger": "Gioca",
@@ -29,5 +33,9 @@
     "builder_hint": "Trascina le figure dentro una storia",
     "example_title": "Guarda un esempio",
     "example_hint": "Un libro finito"
+  },
+  "preview_kids": {
+    "banner": "Stai provando l'app dei bambini",
+    "back_to_dashboard": "Torna alla dashboard"
   }
 }
