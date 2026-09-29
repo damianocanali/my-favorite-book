@@ -6,6 +6,7 @@ struct AccountView: View {
     @Environment(AudioService.self) private var audio
     @Environment(CoinsStore.self) private var coins
     @Environment(RewardsStore.self) private var rewards
+    @Environment(TeacherStore.self) private var teacher
     @State private var showingSignIn = false
     @State private var showingPaywall = false
     @State private var showingBuyCoins = false
@@ -70,11 +71,16 @@ struct AccountView: View {
                 // AccountPage hides the same sections).
                 if !auth.isStudent { deletionBanner }
                 profileCard
-                if auth.isTeacher { classroomCard }
-                if !auth.isStudent { coinsCard }
+                // A teacher who is also a parent picks which home they see.
+                if auth.isTeacher { viewModeCard }
+                if auth.isTeacher { TeacherNotificationSettingsCard() }
+                // In teacher mode the classroom is the app itself.
+                if auth.isTeacher && !teacherMode { classroomCard }
+                // No shop and no prices anywhere in the teacher area.
+                if !auth.isStudent && !teacherMode { coinsCard }
                 rewardsCard
                 appIconCard
-                if !auth.isStudent { rowsCard }
+                if !auth.isStudent && !teacherMode { rowsCard }
                 musicCard
                 languageCard
                 signOutCard
@@ -91,6 +97,32 @@ struct AccountView: View {
         .task {
             if !auth.isStudent { await loadDeletionStatus() }
         }
+    }
+
+    private var teacherMode: Bool { teacher.isTeacherMode(auth) }
+
+    /// "Switch to family view" / "Switch to teacher view" (web: viewMode).
+    private var viewModeCard: some View {
+        Button {
+            if teacherMode {
+                teacher.setViewMode(.family)
+                // Land on the same Account screen in the family tabs.
+                AppRouter.shared.selectedTab = .account
+            } else {
+                teacher.setViewMode(.teacher)
+            }
+        } label: {
+            HStack(spacing: 14) {
+                Image(systemName: teacherMode ? "house.fill" : "graduationcap.fill")
+                    .foregroundStyle(.yellow).frame(width: 24)
+                Text(teacherMode ? TeacherCopy.switchToFamily : TeacherCopy.switchToTeacher)
+                    .foregroundStyle(.white)
+                Spacer()
+                Image(systemName: "arrow.left.arrow.right").foregroundStyle(.white.opacity(0.5)).font(.caption)
+            }
+            .padding(16)
+        }
+        .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 18))
     }
 
     /// Teachers manage classes on the web for now; this opens it in Safari

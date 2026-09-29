@@ -6,6 +6,9 @@ import AVFoundation
 
 struct BookDetailView: View {
     let book: Book
+    /// A teacher reading a student's book (or hand-in): no editing, no
+    /// printing — just the reader.
+    var readOnly: Bool = false
 
     @Environment(AudioService.self) private var audio
     @Environment(AuthStore.self) private var auth
@@ -102,7 +105,7 @@ struct BookDetailView: View {
 
                     // Printing is a paid family feature; a class account's
                     // plan has none (SubscriptionStore.ClassPlan).
-                    if subs.allowsPrint {
+                    if subs.allowsPrint && !readOnly {
                         NavigationLink {
                             PrintOrderView(book: book)
                         } label: {
@@ -143,7 +146,7 @@ struct BookDetailView: View {
     // would silently copy it into this account (and let a class account
     // hand it in as its own).
     private var isEditable: Bool {
-        auth.isSignedIn && book.id != SampleBook.book.id
+        !readOnly && auth.isSignedIn && book.id != SampleBook.book.id
             && bookshelf.books.contains { $0.id == book.id }
     }
 
