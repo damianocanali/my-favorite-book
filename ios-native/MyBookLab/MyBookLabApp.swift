@@ -4,6 +4,8 @@ import RevenueCat
 
 @main
 struct MyBookLabApp: App {
+    // APNs token callbacks and notification taps (teacher alerts).
+    @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @State private var auth = AuthStore.shared
     @State private var bookshelf = BookshelfStore.shared
     @State private var router = AppRouter.shared
@@ -12,6 +14,9 @@ struct MyBookLabApp: App {
     @State private var coins = CoinsStore.shared
     @State private var rewards = RewardsStore.shared
     @State private var checkIn = CheckInStore.shared
+    @State private var teacher = TeacherStore.shared
+    @State private var teacherBell = TeacherNotificationsStore.shared
+    @State private var push = PushRegistrar.shared
 
     init() {
         Purchases.logLevel = .warn
@@ -35,6 +40,9 @@ struct MyBookLabApp: App {
                 .environment(coins)
                 .environment(rewards)
                 .environment(checkIn)
+                .environment(teacher)
+                .environment(teacherBell)
+                .environment(push)
                 .task {
                     audio.play(.home)
                     PrintOrderActivityManager.cleanup()
@@ -46,6 +54,9 @@ struct MyBookLabApp: App {
                     await coins.refresh()
                     await coins.loadInventory()
                     await rewards.refresh()
+                    // A teacher who already allowed alerts is re-registered
+                    // on every launch (the token can rotate). No-op otherwise.
+                    await push.registerIfAllowed()
                 }
                 .onChange(of: auth.user?.id) { _, newValue in
                     Task {
@@ -54,6 +65,7 @@ struct MyBookLabApp: App {
                             await subs.bootstrap()
                             await coins.refresh()
                             await coins.loadInventory()
+                            await push.registerIfAllowed()
                         } else {
                             bookshelf.clear()
                         }

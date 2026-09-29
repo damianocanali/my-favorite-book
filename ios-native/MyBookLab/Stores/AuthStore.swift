@@ -295,6 +295,14 @@ final class AuthStore: NSObject {
         // the session does — class iPads and family iPads are shared, and
         // the next person must not see the last one's books, draft, feelings
         // or picture. Matches clearLocalUserData() in the web's useAuthStore.
+        //
+        // A teacher's push token is forgotten first, while the session can
+        // still authorize the DELETE: the next person on this iPad must not
+        // get their alerts. Bounded to a few seconds; a class account never
+        // registered one.
+        if !isStudent { await PushRegistrar.shared.forget() }
+        TeacherStore.shared.reset()
+        TeacherNotificationsStore.shared.clear()
         clearLocalUserData()
 
         if isStudent {
