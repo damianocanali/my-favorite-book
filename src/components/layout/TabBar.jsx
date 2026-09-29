@@ -41,16 +41,26 @@ const TEACHER_TABS = [
   { to: '/account', labelKey: 'nav:tabs.account', Icon: UserCircle, match: (p) => p === '/account' },
 ]
 
+// Pure and exported so the student/consumer split is unit-testable without
+// rendering the tab bar (no jsdom in this project's test environment — see
+// vitest.config.js). Print orders are a consumer-only, paid feature a class
+// (student) account never has one to check on; the Gallery is the public
+// showcase of *other families'* published books, which a class account must
+// never see (owner decision, schools Stage 1). Both filtered out rather than
+// branching per tab: the remaining three still spread evenly via
+// justify-around.
+export function getTabs({ teacherMode = false, isStudent = false } = {}) {
+  if (teacherMode) return TEACHER_TABS
+  return isStudent ? TABS.filter((tab) => tab.to !== '/orders' && tab.to !== '/gallery') : TABS
+}
+
 export default function TabBar({ teacherMode = false }) {
   const { t } = useTranslation()
   const location = useLocation()
   const user = useAuthStore((s) => s.user)
   const isStudent = useIsStudent()
 
-  // Print orders are a consumer-only, paid feature — a class (student)
-  // account never has one to check on. Filtered rather than a fifth branch
-  // per tab: the remaining four still spread evenly via justify-around.
-  const tabs = teacherMode ? TEACHER_TABS : (isStudent ? TABS.filter((tab) => tab.to !== '/orders') : TABS)
+  const tabs = getTabs({ teacherMode, isStudent })
 
   const isActive = (tab) =>
     tab.match
