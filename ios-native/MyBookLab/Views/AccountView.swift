@@ -14,7 +14,6 @@ struct AccountView: View {
     @State private var nameDraft = ""
     @State private var showDeleteConfirm = false
     @State private var deleteConfirmText = ""
-    @State private var showingDashboard = false
 
     /// The word the user must type to arm account deletion.
     ///
@@ -126,11 +125,13 @@ struct AccountView: View {
         .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 18))
     }
 
-    /// Teachers manage classes on the web for now; this opens it in Safari
-    /// inside the app rather than rebuilding it natively yet.
+    /// The web classroom, for a teacher in family view (teacher mode has the
+    /// native area). Opens in Safari.
     private var classroomCard: some View {
+        // Safari itself, not an in-app sheet: nothing sold on the web can
+        // ever appear inside the app (App Store 3.1.3).
         Button {
-            showingDashboard = true
+            TeacherWeb.open("/teacher")
         } label: {
             HStack(spacing: 14) {
                 Image(systemName: "graduationcap.fill")
@@ -154,10 +155,6 @@ struct AccountView: View {
         }
         .background(.purple.opacity(0.35), in: RoundedRectangle(cornerRadius: 18))
         .overlay(RoundedRectangle(cornerRadius: 18).strokeBorder(.purple.opacity(0.6)))
-        .fullScreenCover(isPresented: $showingDashboard) {
-            SafariView(url: URL(string: "https://mybooklab.app/teacher")!)
-                .ignoresSafeArea()
-        }
     }
 
     private var coinsCard: some View {

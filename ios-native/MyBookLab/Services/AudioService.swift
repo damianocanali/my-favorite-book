@@ -35,6 +35,13 @@ final class AudioService {
     private var player: AVAudioPlayer?
     private var sfxPlayers: [SFX: AVAudioPlayer] = [:]
     private var fadeTimer: Timer?
+    /// Outgoing players still fading down. Kept so stop() (and a new
+    /// crossfade) can silence them — an invalidated timer alone left them
+    /// playing at whatever volume they had reached.
+    private var fadingOut: [AVAudioPlayer] = []
+    /// Bumped per fade and on stop(), so a late timer tick from an old fade
+    /// can't touch a newer one.
+    private var fadeGeneration = 0
     private let targetVolume: Float = 0.25
     private let sfxVolume: Float = 0.6
     private let fadeDuration: TimeInterval = 0.8
@@ -72,6 +79,12 @@ final class AudioService {
         newPlayer.play()
 
         fadeTimer?.invalidate()
+        // A fade that was still running is cut short: its outgoing players
+        // stop now rather than linger.
+        fadingOut.forEach { $0.stop() }
+        fadingOut = oldPlayer.map { [$0] } ?? []
+        fadeGeneration += 1
+        let generation = fadeGeneration
         let steps = 20
         let interval = fadeDuration / Double(steps)
         var step = 0
@@ -81,12 +94,14 @@ final class AudioService {
             step += 1
             let progress = Float(step) / Float(steps)
             Task { @MainActor in
+                guard let self, self.fadeGeneration == generation else { return }
                 newPlayer.volume = progress * endVolume
                 oldPlayer?.volume = (1 - progress) * (oldPlayer?.volume ?? 0)
                 if step >= steps {
                     timer.invalidate()
                     oldPlayer?.stop()
-                    self?.fadeTimer = nil
+                    self.fadingOut.removeAll()
+                    self.fadeTimer = nil
                 }
             }
         }
@@ -96,6 +111,10 @@ final class AudioService {
 
     func stop() {
         fadeTimer?.invalidate()
+        fadeTimer = nil
+        fadeGeneration += 1
+        fadingOut.forEach { $0.stop() }
+        fadingOut.removeAll()
         player?.stop()
         player = nil
         currentTrack = nil
