@@ -66,9 +66,14 @@ struct MainTabView: View {
                 .tabItem { Label("Books", systemImage: "books.vertical.fill") }
                 .tag(AppTab.books)
 
-            GalleryView()
-                .tabItem { Label("Gallery", systemImage: "star.fill") }
-                .tag(AppTab.gallery)
+            // Owner decision: a class (student) account must never see the
+            // public Gallery of other families' published books (the web's
+            // TabBar drops it the same way — see ConsumerOnlyRoute).
+            if !auth.isStudent {
+                GalleryView()
+                    .tabItem { Label("Gallery", systemImage: "star.fill") }
+                    .tag(AppTab.gallery)
+            }
 
             CreateBookView()
                 .tabItem { Label("Create", systemImage: "plus.circle.fill") }
@@ -91,13 +96,21 @@ struct MainTabView: View {
         .overlay { BadgePopup() }
         .overlay { WelcomeBackMoment() }
         // A widget link or a stale selection must not land a class account
-        // on a tab that isn't there.
+        // on a tab that isn't there. Orders moves to Create (the middle,
+        // always-visible tab); Gallery moves to Books, matching the web's
+        // ConsumerOnlyRoute redirect to /bookshelf.
         .onChange(of: auth.isStudent) { _, student in
-            if student, router.selectedTab == .orders { router.selectedTab = .create }
+            guard student else { return }
+            if router.selectedTab == .orders { router.selectedTab = .create }
+            if router.selectedTab == .gallery { router.selectedTab = .books }
         }
         .onChange(of: router.selectedTab) { _, newValue in
             if newValue == .orders, auth.isStudent {
                 router.selectedTab = .create
+                return
+            }
+            if newValue == .gallery, auth.isStudent {
+                router.selectedTab = .books
                 return
             }
             // Match the web behavior — different scenes get different

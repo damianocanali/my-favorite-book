@@ -133,12 +133,17 @@ export default function App() {
         <Route path="/auth/callback" element={<AuthCallbackPage />} />
         <Route path="/account" element={<AccountPage />} />
         <Route path="/admin" element={<AdminPage />} />
-        <Route path="/gallery" element={<GalleryPage />} />
+        {/* Owner decision: a class (student) account must never see the
+            public Gallery of other families' published books — the same
+            division of labour as every other consumer-only surface:
+            ConsumerOnlyRoute redirects to /bookshelf, the server-side fence
+            (rejectStudent in api/publish-book.js) is the real one. */}
+        <Route path="/gallery" element={<ConsumerOnlyRoute><GalleryPage /></ConsumerOnlyRoute>} />
         {/* Public, no sign-in — the teacher-acquisition surface (spec §11).
             Deliberately outside every auth/consumer-only guard, same tier
             as /gallery and /example. */}
         <Route path="/worksheets" element={<WorksheetsPage />} />
-        <Route path="/view/:slug" element={<ViewBookPage />} />
+        <Route path="/view/:slug" element={<ConsumerOnlyRoute><ViewBookPage /></ConsumerOnlyRoute>} />
         <Route path="/order/:bookId" element={<ConsumerOnlyRoute><PrintOrderPage /></ConsumerOnlyRoute>} />
         <Route path="/orders" element={<ConsumerOnlyRoute><OrdersListPage /></ConsumerOnlyRoute>} />
         <Route path="/orders/:id" element={<ConsumerOnlyRoute><OrderDetailPage /></ConsumerOnlyRoute>} />
