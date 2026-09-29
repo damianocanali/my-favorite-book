@@ -58,6 +58,11 @@ final class PushRegistrar {
     /// both register the same person.
     private var registeredForUser: String?
 
+    /// Bumped by forget(). A token POST that started before a sign-out must
+    /// not leave the device registered to the person who just left.
+    private var generation = 0
+    private var registrationTask: Task<Void, Never>?
+
     private var storedToken: String? {
         get { UserDefaults.standard.string(forKey: Self.tokenKey) }
         set { UserDefaults.standard.set(newValue, forKey: Self.tokenKey) }
@@ -97,8 +102,11 @@ final class PushRegistrar {
         guard teacherToken != nil, let userId = AuthStore.shared.user?.id.uuidString else { return }
         guard registeredForUser != userId else { return }
         registeredForUser = userId
+        let gen = generation
         await refreshPermission()
-        guard permission == .authorized else { return }
+        // Signed out (or someone else signed in) while we were asking.
+        guard permission == .authorized, gen == generation,
+              AuthStore.shared.user?.id.uuidString == userId else { return }
         UIApplication.shared.registerForRemoteNotifications()
     }
 
@@ -107,13 +115,27 @@ final class PushRegistrar {
     func didRegister(deviceToken: Data) {
         let hex = deviceToken.map { String(format: "%02x", $0) }.joined()
         storedToken = hex
-        guard let bearer = teacherToken else { return }
-        Task {
+        guard let bearer = teacherToken, let userId = AuthStore.shared.user?.id.uuidString else { return }
+        let gen = generation
+        registrationTask?.cancel()
+        registrationTask = Task {
             do {
                 try await APIClient.shared.registerDeviceToken(hex, env: Self.apnsEnv, bearerToken: bearer)
+                // The teacher signed out (or another person signed in) while
+                // this was in flight: undo it, best effort, with the token
+                // that made it.
+                guard gen == generation, AuthStore.shared.user?.id.uuidString == userId else {
+                    _ = await Self.delete(token: hex, bearer: bearer)
+                    return
+                }
                 registered = true
                 failed = false
             } catch {
+                guard gen == generation else {
+                    // Cancelled by forget(); the POST may still have landed.
+                    _ = await Self.delete(token: hex, bearer: bearer)
+                    return
+                }
                 Self.log.warning("device-token POST failed: \(String(describing: error), privacy: .public)")
                 registered = false
                 failed = true
@@ -138,6 +160,12 @@ final class PushRegistrar {
     /// so any further push to the old token fails (410) and the server prunes
     /// it. registerIfAllowed() registers again for the next teacher.
     func forget() async {
+        generation += 1
+        if let inFlight = registrationTask {
+            inFlight.cancel()
+            await inFlight.value
+            registrationTask = nil
+        }
         defer {
             registered = false
             registeredForUser = nil

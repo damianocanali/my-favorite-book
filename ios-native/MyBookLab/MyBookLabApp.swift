@@ -44,9 +44,12 @@ struct MyBookLabApp: App {
                 .environment(teacherBell)
                 .environment(push)
                 .task {
-                    audio.play(.home)
                     PrintOrderActivityManager.cleanup()
                     await auth.bootstrap()
+                    // Music only once the session is known, and never for a
+                    // teacher landing in the teacher area. Family users,
+                    // students and the signed-out still get it.
+                    if !teacher.isTeacherMode(auth) { audio.play(.home) }
                     if let id = auth.user?.id.uuidString {
                         await bookshelf.load(userId: id)
                     }
