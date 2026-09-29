@@ -153,7 +153,17 @@ targets:
         # exact id in the Apple Developer portal before building).
         com.apple.security.application-groups:
           - group.com.myfavoritebook.app
+        # Push alerts for teachers (Services/PushRegistrar.swift). Resolved
+        # per configuration from APS_ENVIRONMENT below: development-signed
+        # Debug builds use the APNs sandbox, Release (TestFlight / App Store)
+        # production. Needs Push Notifications enabled on the App ID.
+        aps-environment: $(APS_ENVIRONMENT)
     settings:
+      configs:
+        Debug:
+          APS_ENVIRONMENT: development
+        Release:
+          APS_ENVIRONMENT: production
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.myfavoritebook.app
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon

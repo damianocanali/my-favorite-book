@@ -609,6 +609,222 @@ actor APIClient {
         return try await perform(req, url: url, using: Self.schoolSession)
     }
 
+    // MARK: - Schools (the teacher area)
+    //
+    // The teacher's own bearer token. Every classroom endpoint re-checks class
+    // ownership server-side; nothing here is trusted for access. Failures come
+    // back as TeacherError carrying the server's `code` (nil for a network
+    // failure or an unexpected body), which the UI maps to the web's
+    // teacher.errors.* copy — a raw HTTP body never reaches the screen.
+    // Shapes: Models/TeacherModels.swift.
+
+    struct TeacherError: Error, Sendable {
+        let code: String?
+    }
+
+    func teacherOverview(bearerToken: String) async throws -> TeacherOverview {
+        try await teacherCall(method: "GET", path: "/api/school/dashboard", query: [:],
+                              body: Optional<EmptyBody>.none, bearerToken: bearerToken)
+    }
+
+    func teacherClassDashboard(classId: String, bearerToken: String) async throws -> TeacherClassDashboard {
+        try await teacherCall(method: "GET", path: "/api/school/dashboard", query: ["classId": classId],
+                              body: Optional<EmptyBody>.none, bearerToken: bearerToken)
+    }
+
+    private struct IdBody: Encodable { let id: String }
+
+    func teacherMarkHelpSeen(id: String, bearerToken: String) async throws {
+        let _: Ignored = try await teacherCall(method: "POST", path: "/api/school/help-seen", query: [:],
+                                               body: IdBody(id: id), bearerToken: bearerToken)
+    }
+
+    func teacherClasses(bearerToken: String) async throws -> [TeacherClass] {
+        let res: TeacherClassesResponse = try await teacherCall(
+            method: "GET", path: "/api/school/classes", query: [:],
+            body: Optional<EmptyBody>.none, bearerToken: bearerToken)
+        return res.classes ?? []
+    }
+
+    func teacherStudentBooks(classId: String, studentId: String, bearerToken: String) async throws -> [TeacherStudentBook] {
+        let res: TeacherStudentBooksResponse = try await teacherCall(
+            method: "GET", path: "/api/school/student-books",
+            query: ["classId": classId, "studentId": studentId],
+            body: Optional<EmptyBody>.none, bearerToken: bearerToken)
+        return res.books ?? []
+    }
+
+    func teacherStudentBook(classId: String, studentId: String, bookId: String, bearerToken: String) async throws -> Book? {
+        let res: TeacherStudentBookResponse = try await teacherCall(
+            method: "GET", path: "/api/school/student-books",
+            query: ["classId": classId, "studentId": studentId, "bookId": bookId],
+            body: Optional<EmptyBody>.none, bearerToken: bearerToken)
+        return res.book
+    }
+
+    func teacherStudentCheckins(classId: String, studentId: String, bearerToken: String) async throws -> [TeacherCheckin] {
+        let res: TeacherStudentCheckinsResponse = try await teacherCall(
+            method: "GET", path: "/api/school/student-checkins",
+            query: ["classId": classId, "studentId": studentId],
+            body: Optional<EmptyBody>.none, bearerToken: bearerToken)
+        return res.checkins ?? []
+    }
+
+    func teacherAssignments(classId: String, bearerToken: String) async throws -> [TeacherAssignment] {
+        let res: TeacherAssignmentsResponse = try await teacherCall(
+            method: "GET", path: "/api/school/assignments", query: ["classId": classId],
+            body: Optional<EmptyBody>.none, bearerToken: bearerToken)
+        return res.assignments ?? []
+    }
+
+    /// Create (POST, `status` "draft" or "published") or edit (PATCH, with
+    /// `id`) — the same bodies the web's AssignmentForm and status buttons
+    /// send. `dueAt` .some(nil) clears the due date (JSON null); nil leaves
+    /// it out of the body entirely.
+    struct AssignmentWrite: Encodable, Sendable {
+        let classId: String
+        var id: String?
+        var title: String?
+        var prompt: String?
+        var dueAt: String??
+        var allowLate: Bool?
+        var status: String?
+
+        enum CodingKeys: String, CodingKey {
+            case classId, id, title, prompt, due_at, allow_late, status
+        }
+
+        func encode(to encoder: Encoder) throws {
+            var c = encoder.container(keyedBy: CodingKeys.self)
+            try c.encode(classId, forKey: .classId)
+            try c.encodeIfPresent(id, forKey: .id)
+            try c.encodeIfPresent(title, forKey: .title)
+            try c.encodeIfPresent(prompt, forKey: .prompt)
+            if let dueAt {
+                if let value = dueAt { try c.encode(value, forKey: .due_at) } else { try c.encodeNil(forKey: .due_at) }
+            }
+            try c.encodeIfPresent(allowLate, forKey: .allow_late)
+            try c.encodeIfPresent(status, forKey: .status)
+        }
+    }
+
+    func teacherSaveAssignment(_ body: AssignmentWrite, bearerToken: String) async throws -> TeacherAssignment {
+        let res: TeacherAssignmentResponse = try await teacherCall(
+            method: body.id == nil ? "POST" : "PATCH", path: "/api/school/assignments", query: [:],
+            body: body, bearerToken: bearerToken)
+        return res.assignment
+    }
+
+    func teacherDeleteAssignment(classId: String, id: String, bearerToken: String) async throws {
+        let _: Ignored = try await teacherCall(
+            method: "DELETE", path: "/api/school/assignments", query: ["classId": classId, "id": id],
+            body: Optional<EmptyBody>.none, bearerToken: bearerToken)
+    }
+
+    func teacherReviewList(classId: String, assignmentId: String, bearerToken: String) async throws -> TeacherReviewList {
+        try await teacherCall(method: "GET", path: "/api/school/submissions",
+                              query: ["classId": classId, "assignmentId": assignmentId],
+                              body: Optional<EmptyBody>.none, bearerToken: bearerToken)
+    }
+
+    func teacherSubmission(classId: String, id: String, bearerToken: String) async throws -> TeacherSubmissionDetail {
+        try await teacherCall(method: "GET", path: "/api/school/submissions",
+                              query: ["classId": classId, "id": id],
+                              body: Optional<EmptyBody>.none, bearerToken: bearerToken)
+    }
+
+    private struct FeedbackBody: Encodable {
+        let classId: String
+        let submissionId: String
+        let comment: String?
+        let sticker: String?
+    }
+
+    func teacherSendFeedback(classId: String, submissionId: String, comment: String?, sticker: String?,
+                             bearerToken: String) async throws -> TeacherFeedback {
+        let res: TeacherFeedbackResponse = try await teacherCall(
+            method: "POST", path: "/api/school/feedback", query: [:],
+            body: FeedbackBody(classId: classId, submissionId: submissionId, comment: comment, sticker: sticker),
+            bearerToken: bearerToken)
+        return res.feedback
+    }
+
+    func teacherNotifications(bearerToken: String) async throws -> TeacherNotificationsResponse {
+        try await teacherCall(method: "GET", path: "/api/school/notifications", query: [:],
+                              body: Optional<EmptyBody>.none, bearerToken: bearerToken)
+    }
+
+    private struct MarkReadBody: Encodable {
+        var action = "read"
+        let ids: [String]?
+    }
+
+    /// `ids` nil marks everything read.
+    func teacherMarkNotificationsRead(ids: [String]?, bearerToken: String) async throws {
+        let _: Ignored = try await teacherCall(
+            method: "POST", path: "/api/school/notifications", query: [:],
+            body: MarkReadBody(ids: ids), bearerToken: bearerToken)
+    }
+
+    func teacherNotificationSettings(bearerToken: String) async throws -> TeacherNotificationSettings {
+        try await teacherCall(method: "GET", path: "/api/school/notification-settings", query: [:],
+                              body: Optional<EmptyBody>.none, bearerToken: bearerToken)
+    }
+
+    struct NotificationSettingsPatch: Encodable, Sendable {
+        var summary: String?
+        var push_urgent: Bool?
+        var email_urgent: Bool?
+    }
+
+    func teacherSaveNotificationSettings(_ patch: NotificationSettingsPatch,
+                                         bearerToken: String) async throws -> TeacherNotificationSettings {
+        try await teacherCall(method: "PUT", path: "/api/school/notification-settings", query: [:],
+                              body: patch, bearerToken: bearerToken)
+    }
+
+    // MARK: - Push (a grown-up's APNs device token)
+
+    private struct DeviceTokenBody: Encodable {
+        let token: String
+        let env: String?
+    }
+
+    /// `env` is "sandbox" for development-signed builds, else "production".
+    func registerDeviceToken(_ token: String, env: String, bearerToken: String) async throws {
+        let _: Ignored = try await teacherCall(
+            method: "POST", path: "/api/device-token", query: [:],
+            body: DeviceTokenBody(token: token, env: env), bearerToken: bearerToken)
+    }
+
+    func forgetDeviceToken(_ token: String, bearerToken: String) async throws {
+        let _: Ignored = try await teacherCall(
+            method: "DELETE", path: "/api/device-token", query: [:],
+            body: DeviceTokenBody(token: token, env: nil), bearerToken: bearerToken)
+    }
+
+    private func teacherCall<Body: Encodable, Response: Decodable>(
+        method: String, path: String, query: [String: String],
+        body: Body?, bearerToken: String
+    ) async throws -> Response {
+        let url = makeURL(path: path, query: query)
+        var req = URLRequest(url: url, timeoutInterval: 20)
+        req.httpMethod = method
+        req.setValue("application/json", forHTTPHeaderField: "Accept")
+        req.setValue("Bearer \(bearerToken)", forHTTPHeaderField: "Authorization")
+        if let body {
+            req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            req.httpBody = try encoder.encode(body)
+        }
+        do {
+            return try await perform(req, url: url)
+        } catch APIError.http(_, let body) {
+            throw TeacherError(code: (try? decoder.decode(SchoolErrorBody.self, from: Data(body.utf8)))?.code)
+        } catch {
+            throw TeacherError(code: nil)
+        }
+    }
+
     // Intent-based "ideas" helpers (Sentence Starters / Help Me Think).
     // Reuses the same /api/story-buddy endpoint as the web app, which for
     // an intent returns the raw Anthropic message; we parse it to a list.

@@ -13,6 +13,10 @@ import SwiftUI
 import PhotosUI
 
 struct AvatarEditorView: View {
+    /// Teacher mode: no Coin Store link and no locked (coin-priced) styles —
+    /// the teacher area shows no prices anywhere.
+    var hidesStore: Bool = false
+
     @Environment(AuthStore.self) private var auth
     @Environment(CoinsStore.self) private var coins
     @Environment(\.dismiss) private var dismiss
@@ -167,12 +171,14 @@ struct AvatarEditorView: View {
                     .foregroundStyle(.white.opacity(0.7))
                     .textCase(.uppercase)
                 Spacer()
-                NavigationLink {
-                    CoinStoreView()
-                } label: {
-                    Text("Unlock more →")
-                        .font(.caption.bold())
-                        .foregroundStyle(.yellow)
+                if !hidesStore {
+                    NavigationLink {
+                        CoinStoreView()
+                    } label: {
+                        Text("Unlock more →")
+                            .font(.caption.bold())
+                            .foregroundStyle(.yellow)
+                    }
                 }
             }
             .padding(.horizontal)
@@ -180,7 +186,7 @@ struct AvatarEditorView: View {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 10) {
                     styleChip(id: "cartoon", label: "Cartoon", emoji: "🎨", owned: true)
-                    ForEach(AvatarStyle.purchasable) { style in
+                    ForEach(AvatarStyle.purchasable.filter { !hidesStore || coins.owns(style: $0.id) }) { style in
                         styleChip(
                             id: style.id,
                             label: style.label,

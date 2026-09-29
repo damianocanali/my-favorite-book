@@ -6,6 +6,7 @@ struct AccountView: View {
     @Environment(AudioService.self) private var audio
     @Environment(CoinsStore.self) private var coins
     @Environment(RewardsStore.self) private var rewards
+    @Environment(TeacherStore.self) private var teacher
     @State private var showingSignIn = false
     @State private var showingPaywall = false
     @State private var showingBuyCoins = false
@@ -13,7 +14,6 @@ struct AccountView: View {
     @State private var nameDraft = ""
     @State private var showDeleteConfirm = false
     @State private var deleteConfirmText = ""
-    @State private var showingDashboard = false
 
     /// The word the user must type to arm account deletion.
     ///
@@ -70,11 +70,17 @@ struct AccountView: View {
                 // AccountPage hides the same sections).
                 if !auth.isStudent { deletionBanner }
                 profileCard
-                if auth.isTeacher { classroomCard }
-                if !auth.isStudent { coinsCard }
+                // A teacher who is also a parent picks which home they see.
+                if auth.isTeacher { viewModeCard }
+                if auth.isTeacher { TeacherNotificationSettingsCard() }
+                // In teacher mode the classroom is the app itself.
+                if auth.isTeacher && !teacherMode { classroomCard }
+                // No shop and no prices anywhere in the teacher area.
+                if !auth.isStudent && !teacherMode { coinsCard }
                 rewardsCard
-                appIconCard
-                if !auth.isStudent { rowsCard }
+                // Locked icons are unlocked with coins: not in teacher mode.
+                if !teacherMode { appIconCard }
+                if !auth.isStudent && !teacherMode { rowsCard }
                 musicCard
                 languageCard
                 signOutCard
@@ -93,11 +99,39 @@ struct AccountView: View {
         }
     }
 
-    /// Teachers manage classes on the web for now; this opens it in Safari
-    /// inside the app rather than rebuilding it natively yet.
-    private var classroomCard: some View {
+    private var teacherMode: Bool { teacher.isTeacherMode(auth) }
+
+    /// "Switch to family view" / "Switch to teacher view" (web: viewMode).
+    private var viewModeCard: some View {
         Button {
-            showingDashboard = true
+            if teacherMode {
+                teacher.setViewMode(.family)
+                // Land on the same Account screen in the family tabs.
+                AppRouter.shared.selectedTab = .account
+            } else {
+                teacher.setViewMode(.teacher)
+            }
+        } label: {
+            HStack(spacing: 14) {
+                Image(systemName: teacherMode ? "house.fill" : "graduationcap.fill")
+                    .foregroundStyle(.yellow).frame(width: 24)
+                Text(teacherMode ? TeacherCopy.switchToFamily : TeacherCopy.switchToTeacher)
+                    .foregroundStyle(.white)
+                Spacer()
+                Image(systemName: "arrow.left.arrow.right").foregroundStyle(.white.opacity(0.5)).font(.caption)
+            }
+            .padding(16)
+        }
+        .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 18))
+    }
+
+    /// The web classroom, for a teacher in family view (teacher mode has the
+    /// native area). Opens in Safari.
+    private var classroomCard: some View {
+        // Safari itself, not an in-app sheet: nothing sold on the web can
+        // ever appear inside the app (App Store 3.1.3).
+        Button {
+            TeacherWeb.open("/teacher")
         } label: {
             HStack(spacing: 14) {
                 Image(systemName: "graduationcap.fill")
@@ -121,10 +155,6 @@ struct AccountView: View {
         }
         .background(.purple.opacity(0.35), in: RoundedRectangle(cornerRadius: 18))
         .overlay(RoundedRectangle(cornerRadius: 18).strokeBorder(.purple.opacity(0.6)))
-        .fullScreenCover(isPresented: $showingDashboard) {
-            SafariView(url: URL(string: "https://mybooklab.app/teacher")!)
-                .ignoresSafeArea()
-        }
     }
 
     private var coinsCard: some View {
@@ -288,7 +318,7 @@ struct AccountView: View {
                 )
             } else {
                 NavigationLink {
-                    AvatarEditorView()
+                    AvatarEditorView(hidesStore: teacherMode)
                 } label: {
                     ZStack(alignment: .bottomTrailing) {
                         AvatarView(

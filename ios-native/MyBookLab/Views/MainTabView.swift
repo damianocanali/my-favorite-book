@@ -36,8 +36,30 @@ struct MainTabView: View {
     @Environment(AppRouter.self) private var router
     @Environment(AudioService.self) private var audio
     @Environment(AuthStore.self) private var auth
+    @Environment(TeacherStore.self) private var teacher
 
+    /// A teacher gets Dashboard · Classes · Account instead of the family
+    /// tabs (TeacherStore decides; a class account never does). "Preview the
+    /// kids' app" shows the family tabs under a slim way back.
     var body: some View {
+        // Until the session is known, neither set of tabs: a teacher must
+        // not glimpse the family tabs (and their music) on every launch.
+        if auth.loading {
+            ZStack {
+                CosmicBackground()
+                ProgressView().tint(.white)
+            }
+        } else if teacher.isTeacherMode(auth) {
+            TeacherTabView()
+        } else {
+            familyTabs
+                .safeAreaInset(edge: .top, spacing: 0) {
+                    if teacher.showsPreviewBanner(auth) { KidsPreviewBanner() }
+                }
+        }
+    }
+
+    @ViewBuilder private var familyTabs: some View {
         @Bindable var router = router
         TabView(selection: $router.selectedTab) {
             BookshelfView()
