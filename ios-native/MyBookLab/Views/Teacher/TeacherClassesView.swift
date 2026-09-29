@@ -20,7 +20,6 @@ struct TeacherClassesView: View {
     @State private var path: [TeacherClassesDest] = []
     @State private var classes: [TeacherClass]?
     @State private var error: String??
-    @State private var webPage: TeacherWebPage?
 
     var body: some View {
         NavigationStack(path: $path) {
@@ -41,9 +40,6 @@ struct TeacherClassesView: View {
                 case .review(let classId, let assignmentId):
                     TeacherReviewView(classId: classId, assignmentId: assignmentId)
                 }
-            }
-            .sheet(item: $webPage) { page in
-                SafariView(url: page.url).ignoresSafeArea()
             }
         }
         .task { await load() }
@@ -72,7 +68,7 @@ struct TeacherClassesView: View {
                         .buttonStyle(.plain)
                     }
                     Button {
-                        webPage = TeacherWebPage(url: TeacherWeb.url("/teacher/classes"))
+                        TeacherWeb.open("/teacher/classes")
                     } label: {
                         Label { Text(TeacherCopy.createOnWeb) } icon: { Image(systemName: "safari") }
                             .font(.subheadline.weight(.semibold))
@@ -139,9 +135,16 @@ struct TeacherClassesView: View {
 
 struct TeacherClassDetailView: View {
     let classId: String
-    let summary: TeacherClass?
 
     @Environment(AuthStore.self) private var auth
+    /// From the list when there is one; fetched when this screen was opened
+    /// straight from a bell row or an alert.
+    @State private var summary: TeacherClass?
+
+    init(classId: String, summary: TeacherClass?) {
+        self.classId = classId
+        _summary = State(initialValue: summary)
+    }
 
     @State private var assignments: [TeacherAssignment]?
     @State private var loadError: String??
@@ -149,7 +152,6 @@ struct TeacherClassDetailView: View {
     @State private var busyId: String?
     @State private var formTarget: FormTarget?
     @State private var pendingDelete: TeacherAssignment?
-    @State private var webPage: TeacherWebPage?
 
     enum FormTarget: Identifiable {
         case new
@@ -199,9 +201,6 @@ struct TeacherClassDetailView: View {
                 if wasNew { Task { await load() } } else { upsert(saved) }
             }
         }
-        .sheet(item: $webPage) { page in
-            SafariView(url: page.url).ignoresSafeArea()
-        }
         .confirmationDialog(
             Text(TeacherCopy.deleteConfirm(pendingDelete?.title ?? "")),
             isPresented: Binding(get: { pendingDelete != nil }, set: { if !$0 { pendingDelete = nil } }),
@@ -232,7 +231,7 @@ struct TeacherClassDetailView: View {
 
     private var rosterLink: some View {
         Button {
-            webPage = TeacherWebPage(url: TeacherWeb.url("/teacher/class/\(classId)"))
+            TeacherWeb.open("/teacher/class/\(classId)")
         } label: {
             TeacherCard(tint: .purple) {
                 HStack(spacing: 12) {
@@ -343,6 +342,9 @@ struct TeacherClassDetailView: View {
 
     private func load() async {
         guard let token = auth.accessToken else { return }
+        if summary == nil {
+            summary = try? await APIClient.shared.teacherClasses(bearerToken: token).first { $0.id == classId }
+        }
         do {
             assignments = try await APIClient.shared.teacherAssignments(classId: classId, bearerToken: token)
             loadError = nil
@@ -416,17 +418,23 @@ struct TeacherAssignmentForm: View {
             Form {
                 Section {
                     TextField(text: $title) { Text(TeacherCopy.formTitle) }
-                        .onChange(of: title) { _, v in if v.count > TeacherStickers.titleMax { title = String(v.prefix(TeacherStickers.titleMax)) } }
+                        .onChange(of: title) { _, v in
+                            let cut = TeacherStickers.truncated(v, max: TeacherStickers.titleMax)
+                            if cut != v { title = cut }
+                        }
                 } header: { Text(TeacherCopy.formTitle) }
 
                 Section {
                     TextField(text: $prompt, axis: .vertical) { Text(TeacherCopy.formPrompt) }
                         .lineLimit(4...10)
-                        .onChange(of: prompt) { _, v in if v.count > TeacherStickers.promptMax { prompt = String(v.prefix(TeacherStickers.promptMax)) } }
+                        .onChange(of: prompt) { _, v in
+                            let cut = TeacherStickers.truncated(v, max: TeacherStickers.promptMax)
+                            if cut != v { prompt = cut }
+                        }
                 } header: {
                     Text(TeacherCopy.formPrompt)
                 } footer: {
-                    Text(verbatim: "\(prompt.count)/\(TeacherStickers.promptMax)")
+                    Text(verbatim: "\(prompt.utf16.count)/\(TeacherStickers.promptMax)")
                         .frame(maxWidth: .infinity, alignment: .trailing)
                 }
 

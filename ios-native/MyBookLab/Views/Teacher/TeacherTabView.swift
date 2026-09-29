@@ -12,6 +12,7 @@ struct TeacherTabView: View {
     @Environment(TeacherStore.self) private var teacher
     @Environment(TeacherNotificationsStore.self) private var bell
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(AudioService.self) private var audio
 
     var body: some View {
         @Bindable var teacher = teacher
@@ -29,17 +30,17 @@ struct TeacherTabView: View {
                 .tag(TeacherTab.account)
         }
         .tint(.white)
-        .task {
+        // No kids' background music in the teacher area.
+        .onAppear { audio.stop() }
+        // Restarts on every scene-phase change and only loops while active,
+        // so nothing polls from the background.
+        .task(id: scenePhase) {
+            guard scenePhase == .active else { return }
             while !Task.isCancelled {
-                if scenePhase == .active {
-                    await bell.load()
-                    try? await UNUserNotificationCenter.current().setBadgeCount(bell.unread)
-                }
+                await bell.load()
+                try? await UNUserNotificationCenter.current().setBadgeCount(bell.unread)
                 try? await Task.sleep(for: TeacherNotificationsStore.pollInterval)
             }
-        }
-        .onChange(of: scenePhase) { _, phase in
-            if phase == .active { Task { await bell.load() } }
         }
     }
 }

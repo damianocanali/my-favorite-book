@@ -251,6 +251,21 @@ enum TeacherStickers {
     static let titleMax = 80
     static let promptMax = 1000
 
+    /// Cut to at most `max` UTF-16 code units — what the server's JS
+    /// `.length` counts — without splitting a character (an emoji is 2+).
+    static func truncated(_ s: String, max: Int) -> String {
+        guard s.utf16.count > max else { return s }
+        var out = ""
+        var used = 0
+        for ch in s {
+            let n = String(ch).utf16.count
+            if used + n > max { break }
+            out.append(ch)
+            used += n
+        }
+        return out
+    }
+
     static func emoji(_ id: String) -> String {
         [
             "star": "⭐", "rocket": "🚀", "heart": "❤️",

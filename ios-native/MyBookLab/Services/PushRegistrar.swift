@@ -28,6 +28,9 @@ final class PushRegistrar {
         subsystem: Bundle.main.bundleIdentifier ?? "MyBookLab", category: "PushRegistrar"
     )
     private static let tokenKey = "apnsDeviceToken"
+    /// A sign-out whose DELETE never reached the server: [token, userId].
+    /// Retried the next time that same teacher is signed in.
+    private static let pendingForgetKey = "apnsPendingForget"
 
     enum Permission { case unknown, notDetermined, denied, authorized }
 
@@ -50,6 +53,10 @@ final class PushRegistrar {
         let auth = AuthStore.shared
         return auth.isTeacher && !auth.isStudent ? auth.accessToken : nil
     }
+
+    /// Who this launch already registered for, so launch and sign-in don't
+    /// both register the same person.
+    private var registeredForUser: String?
 
     private var storedToken: String? {
         get { UserDefaults.standard.string(forKey: Self.tokenKey) }
@@ -84,8 +91,12 @@ final class PushRegistrar {
     }
 
     /// Launch / sign-in: re-register silently when a teacher already said yes.
+    /// Once per launch per person.
     func registerIfAllowed() async {
-        guard teacherToken != nil else { return }
+        await retryPendingForget()
+        guard teacherToken != nil, let userId = AuthStore.shared.user?.id.uuidString else { return }
+        guard registeredForUser != userId else { return }
+        registeredForUser = userId
         await refreshPermission()
         guard permission == .authorized else { return }
         UIApplication.shared.registerForRemoteNotifications()
@@ -119,19 +130,58 @@ final class PushRegistrar {
     // MARK: Sign-out
 
     /// Best effort and bounded: a dead network must never hold up signing out
-    /// on a shared iPad for more than a few seconds.
+    /// on a shared iPad for more than a few seconds. The delivered alerts and
+    /// the badge go too — the next person must not read the last teacher's.
+    ///
+    /// If the DELETE doesn't make it, the token is remembered for a retry the
+    /// next time this teacher signs in, and this device unregisters from APNs,
+    /// so any further push to the old token fails (410) and the server prunes
+    /// it. registerIfAllowed() registers again for the next teacher.
     func forget() async {
-        defer { registered = false }
-        guard let token = storedToken, let bearer = teacherToken else { return }
-        await withTaskGroup(of: Void.self) { group in
+        defer {
+            registered = false
+            registeredForUser = nil
+        }
+        let center = UNUserNotificationCenter.current()
+        center.removeAllDeliveredNotifications()
+        try? await center.setBadgeCount(0)
+
+        guard let token = storedToken, let bearer = teacherToken,
+              let userId = AuthStore.shared.user?.id.uuidString else { return }
+        if await Self.delete(token: token, bearer: bearer) { return }
+        UserDefaults.standard.set([token, userId], forKey: Self.pendingForgetKey)
+        UIApplication.shared.unregisterForRemoteNotifications()
+        storedToken = nil
+    }
+
+    private func retryPendingForget() async {
+        guard let pending = UserDefaults.standard.stringArray(forKey: Self.pendingForgetKey),
+              pending.count == 2,
+              AuthStore.shared.user?.id.uuidString == pending[1],
+              let bearer = teacherToken else { return }
+        if await Self.delete(token: pending[0], bearer: bearer) {
+            UserDefaults.standard.removeObject(forKey: Self.pendingForgetKey)
+        }
+    }
+
+    /// true only when the server confirmed the DELETE within 5 s.
+    private static func delete(token: String, bearer: String) async -> Bool {
+        await withTaskGroup(of: Bool.self) { group in
             group.addTask {
-                try? await APIClient.shared.forgetDeviceToken(token, bearerToken: bearer)
+                do {
+                    try await APIClient.shared.forgetDeviceToken(token, bearerToken: bearer)
+                    return true
+                } catch {
+                    return false
+                }
             }
             group.addTask {
                 try? await Task.sleep(for: .seconds(5))
+                return false
             }
-            await group.next()
+            let first = await group.next() ?? false
             group.cancelAll()
+            return first
         }
     }
 }
@@ -157,13 +207,22 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
         Task { @MainActor in PushRegistrar.shared.didFailToRegister(error) }
     }
 
-    /// In the foreground: still show the banner (an urgent ask must never be
-    /// swallowed because the app happened to be open), and refresh the bell.
+    /// In the foreground, for a signed-in teacher: still show the banner (an
+    /// urgent ask must never be swallowed because the app happened to be
+    /// open), and refresh the bell. Anyone else on this iPad — a child, a
+    /// parent, nobody — sees nothing: it was meant for the teacher.
     func userNotificationCenter(_ center: UNUserNotificationCenter,
                                 willPresent notification: UNNotification,
                                 withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
-        Task { @MainActor in await TeacherNotificationsStore.shared.load() }
-        completionHandler([.banner, .list, .sound])
+        Task { @MainActor in
+            let auth = AuthStore.shared
+            guard auth.isTeacher, !auth.isStudent else {
+                completionHandler([])
+                return
+            }
+            completionHandler([.banner, .list, .sound])
+            await TeacherNotificationsStore.shared.load()
+        }
     }
 
     /// A tap: `url` (a same-origin web path) decides the screen; `kind` is
@@ -179,7 +238,7 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
             if let url { route = TeacherRoute.from(pushURL: url) }
             else if kind == "help_grownup" || kind == "help_book" { route = .dashboard }
             else { route = nil }
-            if let route, !AuthStore.shared.isStudent {
+            if let route, AuthStore.shared.isTeacher, !AuthStore.shared.isStudent {
                 TeacherStore.shared.open(route)
             }
             completionHandler()

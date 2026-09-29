@@ -42,7 +42,14 @@ struct MainTabView: View {
     /// tabs (TeacherStore decides; a class account never does). "Preview the
     /// kids' app" shows the family tabs under a slim way back.
     var body: some View {
-        if teacher.isTeacherMode(auth) {
+        // Until the session is known, neither set of tabs: a teacher must
+        // not glimpse the family tabs (and their music) on every launch.
+        if auth.loading {
+            ZStack {
+                CosmicBackground()
+                ProgressView().tint(.white)
+            }
+        } else if teacher.isTeacherMode(auth) {
             TeacherTabView()
         } else {
             familyTabs

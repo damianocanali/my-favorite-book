@@ -117,11 +117,12 @@ struct BookDetailView: View {
                 .foregroundStyle(.white)
             }
         }
-        .onAppear { audio.play(.editor) }
+        // A teacher reading a student's book gets no kids' music.
+        .onAppear { if !readOnly { audio.play(.editor) } }
         .onDisappear {
             speaker.stop()
             speakingPage = nil
-            audio.play(.bookshelf)
+            if !readOnly { audio.play(.bookshelf) }
         }
         .onChange(of: pageIndex) { _, newIndex in
             Haptics.tap()

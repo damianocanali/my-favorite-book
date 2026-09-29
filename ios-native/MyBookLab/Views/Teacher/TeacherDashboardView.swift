@@ -26,7 +26,7 @@ struct TeacherDashboardView: View {
     @State private var helpActionError: String??
     /// id -> when its post-Seen suppression ends (web: filterRecentlySeen).
     @State private var recentlySeenUntil: [String: Date] = [:]
-    @State private var webPage: TeacherWebPage?
+    @Environment(\.horizontalSizeClass) private var hSize
 
     private static let pollInterval: Duration = .seconds(30)
 
@@ -48,27 +48,31 @@ struct TeacherDashboardView: View {
                     Button {
                         teacher.enterKidsPreview()
                     } label: {
-                        Label { Text(TeacherCopy.previewLink) } icon: { Image(systemName: "eye") }
-                            .labelStyle(.titleAndIcon)
-                            .font(.subheadline.weight(.semibold))
+                        // Icon only on a phone-width bar, where the title and
+                        // the class switcher already compete for room.
+                        if hSize == .compact {
+                            Image(systemName: "eye")
+                        } else {
+                            Label { Text(TeacherCopy.previewLink) } icon: { Image(systemName: "eye") }
+                                .labelStyle(.titleAndIcon)
+                                .font(.subheadline.weight(.semibold))
+                        }
                     }
                     .tint(.cyan)
+                    .accessibilityLabel(Text(TeacherCopy.previewLink))
                 }
             }
-            .sheet(item: $webPage) { page in
-                SafariView(url: page.url).ignoresSafeArea()
-            }
         }
-        // Polls while this tab is on screen: .task is cancelled when the tab
-        // goes away, and the loop skips its turn while the app is inactive.
-        .task {
+        // Polls while this tab is on screen and the app is active: the task
+        // restarts on every scene-phase change (loading at once on coming
+        // back) and is cancelled when the tab goes away or the app leaves
+        // the foreground.
+        .task(id: scenePhase) {
+            guard scenePhase == .active else { return }
             while !Task.isCancelled {
-                if scenePhase == .active { await loadOverview() }
+                await loadOverview()
                 try? await Task.sleep(for: Self.pollInterval)
             }
-        }
-        .onChange(of: scenePhase) { _, phase in
-            if phase == .active { Task { await loadOverview() } }
         }
         .onChange(of: selectedClassId) { _, id in
             if let id { Task { await loadClass(id) } }
@@ -125,7 +129,7 @@ struct TeacherDashboardView: View {
                 .font(.subheadline)
                 .foregroundStyle(.white.opacity(0.75))
                 .multilineTextAlignment(.center)
-            SparkleButton(action: { webPage = TeacherWebPage(url: TeacherWeb.url("/teacher/classes")) }) {
+            SparkleButton(action: { TeacherWeb.open("/teacher/classes") }) {
                 Text(TeacherCopy.emptyCta)
             }
             .frame(maxWidth: 360)
@@ -317,7 +321,9 @@ struct TeacherDashboardView: View {
                             studentCard(student, latest: latest)
                         }
                         .buttonStyle(.plain)
-                        .accessibilityLabel(Text(TeacherCopy.openStudentAria(student.display_name)))
+                        // One element that reads the card, with the action as a hint.
+                        .accessibilityElement(children: .combine)
+                        .accessibilityHint(Text(TeacherCopy.openStudentAria(student.display_name)))
                     }
                 }
             }
@@ -438,7 +444,8 @@ struct TeacherDashboardView: View {
             try await APIClient.shared.teacherMarkHelpSeen(id: item.id, bearerToken: token)
             recentlySeenUntil[item.id] = Date().addingTimeInterval(TeacherHelpRules.seenSuppress)
         } catch {
-            help = TeacherHelpRules.sort(help + [item])
+            // A poll may have brought it back meanwhile: never twice.
+            help = TeacherHelpRules.sort(help.filter { $0.id != item.id } + [item])
             helpActionError = .some((error as? APIClient.TeacherError)?.code)
         }
     }
@@ -451,18 +458,18 @@ struct TeacherDashboardView: View {
     }
 }
 
-/// Pages that stay on the web (App Store 3.1.3: roster, purchasing), opened
-/// in an in-app Safari sheet on the same host the API uses.
+/// Pages that stay on the web (App Store 3.1.3: roster, purchasing), on the
+/// same host the API uses. Opened in Safari itself, never inside the app,
+/// so nothing sold on the web can ever appear in it.
+@MainActor
 enum TeacherWeb {
     static func url(_ path: String) -> URL {
         var comps = URLComponents(url: AppConfig.shared.apiBase, resolvingAgainstBaseURL: false)!
         comps.path = path
         return comps.url!
     }
-}
 
-/// A web page to show in a sheet (`.sheet(item:)` needs Identifiable).
-struct TeacherWebPage: Identifiable {
-    let url: URL
-    var id: String { url.absoluteString }
+    static func open(_ path: String) {
+        UIApplication.shared.open(url(path))
+    }
 }

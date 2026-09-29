@@ -242,23 +242,11 @@ struct TeacherFeedbackPanel: View {
             VStack(alignment: .leading, spacing: 12) {
                 Text(TeacherCopy.feedbackHeading).font(.headline).foregroundStyle(.white)
 
-                HStack(spacing: 8) {
-                    ForEach(TeacherStickers.all, id: \.self) { id in
-                        Button {
-                            sticker = sticker == id ? nil : id
-                        } label: {
-                            Text(verbatim: TeacherStickers.emoji(id))
-                                .font(.title2)
-                                .frame(width: 46, height: 46)
-                                .background(sticker == id ? Color.cyan.opacity(0.3) : .clear,
-                                            in: RoundedRectangle(cornerRadius: 12))
-                                .overlay(RoundedRectangle(cornerRadius: 12)
-                                    .strokeBorder(sticker == id ? Color.cyan : .white.opacity(0.2)))
-                        }
-                        .buttonStyle(.plain)
-                        .accessibilityLabel(Text(AssignmentCopy.sticker(id) ?? AssignmentCopy.stickerFallback))
-                        .accessibilityAddTraits(sticker == id ? .isSelected : [])
-                    }
+                // Full-size stickers where they fit; smaller on a 375 pt phone.
+                ViewThatFits(in: .horizontal) {
+                    stickerRow(size: 46, spacing: 8)
+                    stickerRow(size: 38, spacing: 6)
+                    stickerRow(size: 34, spacing: 4)
                 }
 
                 TextField(text: $comment, axis: .vertical) { Text(TeacherCopy.feedbackPlaceholder) }
@@ -267,9 +255,10 @@ struct TeacherFeedbackPanel: View {
                     .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
                     .foregroundStyle(.white)
                     .onChange(of: comment) { _, v in
-                        if v.count > TeacherStickers.commentMax { comment = String(v.prefix(TeacherStickers.commentMax)) }
+                        let cut = TeacherStickers.truncated(v, max: TeacherStickers.commentMax)
+                        if cut != v { comment = cut }
                     }
-                Text(verbatim: "\(comment.count)/\(TeacherStickers.commentMax)")
+                Text(verbatim: "\(comment.utf16.count)/\(TeacherStickers.commentMax)")
                     .font(.caption2).foregroundStyle(.white.opacity(0.5))
                     .frame(maxWidth: .infinity, alignment: .trailing)
 
@@ -310,6 +299,28 @@ struct TeacherFeedbackPanel: View {
                 }
             }
         }
+    }
+
+    private func stickerRow(size: CGFloat, spacing: CGFloat) -> some View {
+        HStack(spacing: spacing) {
+            ForEach(TeacherStickers.all, id: \.self) { id in
+                Button {
+                    sticker = sticker == id ? nil : id
+                } label: {
+                    Text(verbatim: TeacherStickers.emoji(id))
+                        .font(.system(size: size * 0.5))
+                        .frame(width: size, height: size)
+                        .background(sticker == id ? Color.cyan.opacity(0.3) : .clear,
+                                    in: RoundedRectangle(cornerRadius: 12))
+                        .overlay(RoundedRectangle(cornerRadius: 12)
+                            .strokeBorder(sticker == id ? Color.cyan : .white.opacity(0.2)))
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(Text(AssignmentCopy.sticker(id) ?? AssignmentCopy.stickerFallback))
+                .accessibilityAddTraits(sticker == id ? .isSelected : [])
+            }
+        }
+        .fixedSize()
     }
 
     private func send() async {

@@ -77,6 +77,11 @@ final class TeacherStore {
     /// right tab; the screen there picks up `pendingRoute`.
     func open(_ route: TeacherRoute) {
         previewingKids = false
+        // A teacher in family view who taps an alert wants the teacher area.
+        if viewMode == .family {
+            viewMode = .teacher
+            UserDefaults.standard.set(ViewMode.teacher.rawValue, forKey: Self.viewModeKey)
+        }
         switch route {
         case .dashboard: selectedTab = .dashboard
         case .classDetail, .review: selectedTab = .classes

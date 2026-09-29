@@ -79,7 +79,8 @@ struct AccountView: View {
                 // No shop and no prices anywhere in the teacher area.
                 if !auth.isStudent && !teacherMode { coinsCard }
                 rewardsCard
-                appIconCard
+                // Locked icons are unlocked with coins: not in teacher mode.
+                if !teacherMode { appIconCard }
                 if !auth.isStudent && !teacherMode { rowsCard }
                 musicCard
                 languageCard
@@ -320,7 +321,7 @@ struct AccountView: View {
                 )
             } else {
                 NavigationLink {
-                    AvatarEditorView()
+                    AvatarEditorView(hidesStore: teacherMode)
                 } label: {
                     ZStack(alignment: .bottomTrailing) {
                         AvatarView(
