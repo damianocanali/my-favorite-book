@@ -4,7 +4,7 @@
 import { describe, it, expect, vi } from 'vitest'
 import { readFileSync } from 'node:fs'
 import {
-  notificationText, notificationHref, urlBase64ToUint8Array, pushSupport, unreadBadge,
+  notificationText, notificationHref, urlBase64ToUint8Array, pushSupport, unreadBadge, bellActionError,
 } from '../src/lib/teacherNotifications.js'
 
 const t = (key, vars) => `${key}|${JSON.stringify(vars ?? {})}`
@@ -174,5 +174,37 @@ describe('public/sw.js', () => {
     const { opened, click } = loadSw([teacher])
     await click('/teacher')
     expect(opened).toEqual(['/teacher'])
+  })
+})
+
+describe('bellActionError (the bell\'s remove / clear-all failure banner)', () => {
+  const tt = (key) => key
+
+  it('is null when the delete worked (or there is no result)', () => {
+    expect(bellActionError(tt, 'clear', { ok: true, status: 200 })).toBeNull()
+    expect(bellActionError(tt, 'remove', undefined)).toBeNull()
+  })
+
+  it('names the failed action for network / upstream / bad-request failures', () => {
+    expect(bellActionError(tt, 'clear', { ok: false, status: 0 })).toBe('school:notifications.clear_failed')
+    expect(bellActionError(tt, 'clear', { ok: false, status: 400, code: 'bad_request' })).toBe('school:notifications.clear_failed')
+    expect(bellActionError(tt, 'remove', { ok: false, status: 502, code: 'upstream' })).toBe('school:notifications.remove_failed')
+  })
+
+  it('says the session ended on a 401', () => {
+    expect(bellActionError(tt, 'clear', { ok: false, status: 401 })).toBe('school:notifications.session_ended')
+  })
+
+  it('keeps the wording of a code the teacher can act on', () => {
+    expect(bellActionError(tt, 'remove', { ok: false, status: 429, code: 'rate_limited' })).toBe('school:teacher.errors.rate_limited')
+  })
+
+  it('every message it can return exists in EN and IT', () => {
+    const en = JSON.parse(readFileSync('src/i18n/locales/en/school.json', 'utf8'))
+    const it_ = JSON.parse(readFileSync('src/i18n/locales/it/school.json', 'utf8'))
+    for (const k of ['clear_failed', 'remove_failed', 'session_ended', 'error_dismiss']) {
+      expect(typeof en.notifications[k]).toBe('string')
+      expect(typeof it_.notifications[k]).toBe('string')
+    }
   })
 })

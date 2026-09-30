@@ -463,6 +463,10 @@
     "clear_all": "Clear all",
     "clear_confirm": "Clear all notifications?",
     "clear_confirm_action": "Clear",
-    "dismiss": "Remove: {{text}}"
+    "dismiss": "Remove: {{text}}",
+    "clear_failed": "Couldn't clear the notifications. Try again.",
+    "remove_failed": "Couldn't remove that notification. Try again.",
+    "session_ended": "Your session ended — please sign in again.",
+    "error_dismiss": "Dismiss"
   }
 }

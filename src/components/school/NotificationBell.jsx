@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Bell, X } from 'lucide-react'
 import { schoolFetch } from '../../lib/schoolApi'
-import { notificationText, notificationHref, unreadBadge } from '../../lib/teacherNotifications'
+import { notificationText, notificationHref, unreadBadge, bellActionError } from '../../lib/teacherNotifications'
 import { relativeTime } from './relativeTime'
 
 const POLL_MS = 60 * 1000
@@ -18,6 +18,8 @@ export default function NotificationBell() {
   const [error, setError] = useState(false)
   const [open, setOpen] = useState(false)
   const [confirmingClear, setConfirmingClear] = useState(false)
+  // Why the last remove / clear-all failed (the rows are back by then).
+  const [actionError, setActionError] = useState(null)
   const confirmCancelRef = useRef(null)
   const clearAllRef = useRef(null)
   const rootRef = useRef(null)
@@ -47,7 +49,10 @@ export default function NotificationBell() {
   }, [load])
 
   useEffect(() => {
-    if (!open) setConfirmingClear(false)
+    if (!open) {
+      setConfirmingClear(false)
+      setActionError(null)
+    }
   }, [open])
 
   // The inline confirm takes focus (on its safe choice), so keyboard and
@@ -85,10 +90,14 @@ export default function NotificationBell() {
 
   // Optimistic, like mark-read; a failed delete reloads the truth.
   async function dismiss(n) {
+    setActionError(null)
     setItems((prev) => prev.filter((x) => x.id !== n.id))
     if (!n.read_at) setUnread((c) => Math.max(0, c - 1))
     const res = await schoolFetch(`/api/school/notifications?id=${encodeURIComponent(n.id)}`, { method: 'DELETE' })
-    if (!res.ok) load()
+    if (!res.ok) {
+      setActionError(bellActionError(t, 'remove', res))
+      load()
+    }
   }
 
   // Only what the teacher could see: rows up to the newest one loaded, so
@@ -97,9 +106,11 @@ export default function NotificationBell() {
     setConfirmingClear(false)
     const before = items[0]?.created_at
     if (!before) return
+    setActionError(null)
     setItems([])
     setUnread(0)
-    await schoolFetch(`/api/school/notifications?before=${encodeURIComponent(before)}`, { method: 'DELETE' })
+    const res = await schoolFetch(`/api/school/notifications?before=${encodeURIComponent(before)}`, { method: 'DELETE' })
+    setActionError(bellActionError(t, 'clear', res))
     // Either way, re-read: a failure brings the rows back, a success
     // brings in anything newer that arrived meanwhile.
     load()
@@ -170,6 +181,21 @@ export default function NotificationBell() {
               )}
             </div>
           </div>
+
+          {actionError && (
+            <div role="alert" className="flex items-start gap-2 border-b border-white/10 bg-red-500/15 py-2 pl-4 pr-1">
+              <span className="flex-1 pt-2 font-body text-xs text-galaxy-text">{actionError}</span>
+              <button
+                type="button"
+                onClick={() => setActionError(null)}
+                aria-label={t('school:notifications.error_dismiss')}
+                title={t('school:notifications.error_dismiss')}
+                className="flex h-9 w-9 flex-shrink-0 items-center justify-center text-galaxy-text-muted hover:text-galaxy-text"
+              >
+                <X size={14} aria-hidden="true" />
+              </button>
+            </div>
+          )}
 
           {confirmingClear && (
             <div role="alertdialog" aria-label={t('school:notifications.clear_confirm')} className="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 bg-red-500/10 px-4 py-2">

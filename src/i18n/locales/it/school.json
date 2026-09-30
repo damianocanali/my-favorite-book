@@ -463,6 +463,10 @@
     "clear_all": "Cancella tutte",
     "clear_confirm": "Cancellare tutte le notifiche?",
     "clear_confirm_action": "Cancella",
-    "dismiss": "Rimuovi: {{text}}"
+    "dismiss": "Rimuovi: {{text}}",
+    "clear_failed": "Non è stato possibile cancellare le notifiche. Riprova.",
+    "remove_failed": "Non è stato possibile rimuovere la notifica. Riprova.",
+    "session_ended": "La tua sessione è terminata: accedi di nuovo.",
+    "error_dismiss": "Chiudi"
   }
 }
