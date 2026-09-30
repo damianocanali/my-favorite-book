@@ -66,23 +66,34 @@ final class AuthStore: NSObject {
         }
     }
 
+    /// What a refresh after a 401 came to.
+    enum RefreshOutcome: Sendable {
+        /// A new token to retry with.
+        case fresh(String)
+        /// The session can never work again (missing, or its refresh token
+        /// refused): only signing in again helps.
+        case gone
+        /// The refresh itself failed for a passing reason (offline, auth
+        /// 5xx, 429). The session may be fine; report a network failure.
+        case transient(Error)
+    }
+
     /// Called by APIClient after the server answered 401 to `rejected`.
     /// Another call may already have refreshed the session meanwhile — then
     /// its token is used as is, rather than rotating the refresh token again.
-    /// Otherwise the session is refreshed now. nil when no new token can be
-    /// had; the caller then reports the session as ended.
-    func tokenAfterUnauthorized(rejected: String) async -> String? {
+    /// Otherwise the session is refreshed now.
+    func tokenAfterUnauthorized(rejected: String) async -> RefreshOutcome {
         if let current = supabase.auth.currentSession,
            current.accessToken != rejected, !current.isExpired {
             adopt(current)
-            return current.accessToken
+            return .fresh(current.accessToken)
         }
         do {
             let fresh = try await supabase.auth.refreshSession()
             adopt(fresh)
-            return fresh.accessToken == rejected ? nil : fresh.accessToken
+            return fresh.accessToken == rejected ? .gone : .fresh(fresh.accessToken)
         } catch {
-            return nil
+            return Self.sessionIsGone(error) ? .gone : .transient(error)
         }
     }
 
@@ -99,14 +110,33 @@ final class AuthStore: NSObject {
     /// didBecomeActive notification observed AFTER the client exists — and
     /// AuthStore.shared is created after launch's first one, so without this
     /// the refresher never ran until the app had been backgrounded once.
-    /// Wired to scenePhase in MyBookLabApp. Both calls are idempotent.
-    func setAutoRefresh(active: Bool) async {
-        if active {
-            await supabase.auth.startAutoRefresh()
-        } else {
-            await supabase.auth.stopAutoRefresh()
+    /// Wired to scenePhase in MyBookLabApp.
+    ///
+    /// Serialized, latest wins: a fast active → inactive → active flip must
+    /// not end with the refresher stopped. Each call waits for the previous
+    /// one and does nothing if a newer call has superseded it. The SDK's own
+    /// start/stop each hop through an unstructured Task, so their order
+    /// isn't guaranteed either; the wanted state is therefore applied again
+    /// once things have settled (both calls are idempotent).
+    func setAutoRefresh(active: Bool) {
+        wantsAutoRefresh = active
+        let previous = autoRefreshTask
+        autoRefreshTask = Task { [weak self] in
+            await previous?.value
+            for pass in 0..<2 {
+                if pass == 1 { try? await Task.sleep(for: .milliseconds(300)) }
+                guard let self, self.wantsAutoRefresh == active else { return }
+                if active {
+                    await self.supabase.auth.startAutoRefresh()
+                } else {
+                    await self.supabase.auth.stopAutoRefresh()
+                }
+            }
         }
     }
+
+    @ObservationIgnored private var wantsAutoRefresh = false
+    @ObservationIgnored private var autoRefreshTask: Task<Void, Never>?
 
     /// A child signed in through their class (picture password). Read from
     /// `app_metadata` ONLY: that is set by the server's service role and a

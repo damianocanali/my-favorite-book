@@ -1,4 +1,4 @@
-import { describe, it, expect, afterEach } from 'vitest'
+import { describe, it, expect, afterEach, vi } from 'vitest'
 import { createHash, createSign, generateKeyPairSync } from 'node:crypto'
 import {
   decodeCbor,
@@ -194,5 +194,33 @@ describe('classifyAttestation off-mode is a true no-op kill switch', () => {
     process.env.ATTEST_MODE = 'off'
     const result = await classifyAttestation(req, body, 'user-1')
     expect(result).toEqual({ attested: true })
+  })
+})
+
+describe('classifyAttestation enforce-mode rejection', () => {
+  const saved = { ...process.env }
+  const realFetch = globalThis.fetch
+  afterEach(() => {
+    process.env = { ...saved }
+    globalThis.fetch = realFetch
+    vi.restoreAllMocks()
+  })
+
+  it('rejects an invalid assertion with 401 and code attest_failed (not a session error)', async () => {
+    process.env.ATTEST_MODE = 'enforce'
+    process.env.SUPABASE_URL = 'https://sb.test'
+    process.env.SUPABASE_SERVICE_ROLE_KEY = 'service'
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
+    // Key lookup finds nothing → "unknown key" → invalid.
+    globalThis.fetch = vi.fn(async () => new Response('[]'))
+    const req = {
+      headers: {
+        get: (h) => ({ 'x-attest-key-id': 'k1', 'x-attest-assertion': 'AAAA', origin: '' })[h.toLowerCase()] ?? '',
+      },
+    }
+    const result = await classifyAttestation(req, new Uint8Array([1]), 'user-1')
+    expect(result.attested).toBe(false)
+    expect(result.reject.status).toBe(401)
+    expect(await result.reject.json()).toEqual({ error: 'App verification failed', code: 'attest_failed' })
   })
 })

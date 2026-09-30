@@ -130,20 +130,45 @@ actor APIClient {
     ) async throws -> Response {
         do {
             return try await send(bearerToken)
-        } catch APIError.http(let status, _) where status == 401 && bearerToken != nil {
-            guard let rejected = bearerToken,
-                  let fresh = await AuthStore.shared.tokenAfterUnauthorized(rejected: rejected) else {
-                Self.log.error("\(method, privacy: .public) \(path, privacy: .public): 401 and no fresh token — session ended")
+        } catch APIError.http(let status, let body) where status == 401 && bearerToken != nil {
+            // App Attest refused the device proof: the token was fine, so a
+            // refresh would change nothing and a retry would burn another
+            // assertion. Surfaces as the plain 401 it is.
+            if Self.isAttestFailure(body) {
+                Self.log.error("\(method, privacy: .public) \(path, privacy: .public): 401 attest_failed — not retried")
+                throw APIError.http(status: status, body: body)
+            }
+            guard let rejected = bearerToken else { throw APIError.http(status: status, body: body) }
+            let fresh: String
+            switch await AuthStore.shared.tokenAfterUnauthorized(rejected: rejected) {
+            case .fresh(let token):
+                fresh = token
+            case .gone:
+                Self.log.error("\(method, privacy: .public) \(path, privacy: .public): 401 and the session is gone — session ended")
                 throw APIError.sessionExpired
+            case .transient(let refreshError):
+                // Couldn't reach the auth server: a network failure, not a
+                // signed-out user.
+                let ns = refreshError as NSError
+                Self.log.error("\(method, privacy: .public) \(path, privacy: .public): 401, refresh failed transiently (\(ns.domain, privacy: .public) \(ns.code, privacy: .public))")
+                throw APIError.transport(url: path, underlying: refreshError)
             }
             Self.log.info("\(method, privacy: .public) \(path, privacy: .public): 401, retrying once with a refreshed token")
             do {
                 return try await send(fresh)
-            } catch APIError.http(let status, _) where status == 401 {
+            } catch APIError.http(let status, let body) where status == 401 && !Self.isAttestFailure(body) {
+                // A token minted a moment ago was refused too.
                 Self.log.error("\(method, privacy: .public) \(path, privacy: .public): 401 again after refresh — session ended")
                 throw APIError.sessionExpired
             }
         }
+    }
+
+    private struct ErrorCodeBody: Decodable { let code: String? }
+
+    /// api/_appAttest.js's enforce-mode rejection.
+    private static func isAttestFailure(_ body: String) -> Bool {
+        (try? JSONDecoder().decode(ErrorCodeBody.self, from: Data(body.utf8)))?.code == "attest_failed"
     }
 
     private func perform<Response: Decodable>(_ req: URLRequest, url: URL,

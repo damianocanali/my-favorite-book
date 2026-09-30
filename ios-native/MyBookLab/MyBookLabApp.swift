@@ -83,7 +83,7 @@ struct MyBookLabApp: App {
                 // Keep the access token fresh while the app is in front, and
                 // stop the refresher in the background (see setAutoRefresh).
                 .onChange(of: scenePhase, initial: true) { _, phase in
-                    Task { await auth.setAutoRefresh(active: phase == .active) }
+                    auth.setAutoRefresh(active: phase == .active)
                 }
                 // A role change on the same account (e.g. metadata refresh
                 // marking it a teacher) must silence the music too.
