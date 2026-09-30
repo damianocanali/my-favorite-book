@@ -209,9 +209,13 @@ struct MyAssignmentsSection: View {
         }
         .confirmationDialog(
             Text(AssignmentCopy.replaceDraftTitle),
-            // State is cleared only by the two actions below (a tap outside
-            // the dialog runs the Cancel action).
-            isPresented: Binding(get: { pendingStart != nil }, set: { _ in }),
+            // Any dismissal (a button, a tap outside, the system) clears the
+            // pending start. Replace still acts on the `presenting:` value
+            // SwiftUI captured, so clearing here can't lose the nudge.
+            isPresented: Binding(
+                get: { pendingStart != nil },
+                set: { if !$0 { pendingStart = nil } }
+            ),
             titleVisibility: .visible,
             presenting: pendingStart
         ) { pending in
