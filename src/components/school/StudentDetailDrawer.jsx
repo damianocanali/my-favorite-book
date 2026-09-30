@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { X } from 'lucide-react'
 import BooksPanelContent from './BooksPanelContent'
 import CheckInsPanelContent from './CheckInsPanelContent'
+import { NudgeChip } from './StudentsTable'
 
 const TAB_IDS = ['books', 'checkins']
 
@@ -59,7 +60,7 @@ function Tabs({ active, onChange }) {
   )
 }
 
-export default function StudentDetailDrawer({ classId, student, onClose }) {
+export default function StudentDetailDrawer({ classId, student, nudge = null, onNudge, onClose }) {
   const { t } = useTranslation()
   const panelRef = useRef(null)
   const [tab, setTab] = useState('books')
@@ -108,6 +109,24 @@ export default function StudentDetailDrawer({ classId, student, onClose }) {
             <X size={18} />
           </button>
         </div>
+
+        {onNudge && (
+          <div className="flex flex-wrap items-center gap-3 mb-4">
+            <button
+              type="button"
+              onClick={onNudge}
+              aria-label={t('school:nudges.teacher.button_one_aria', { name: student.display_name })}
+              className="inline-flex items-center gap-1.5 min-h-[44px] px-4 rounded-full bg-galaxy-secondary/15 text-galaxy-secondary font-body text-sm font-semibold hover:bg-galaxy-secondary/25 transition-colors"
+            >
+              <span aria-hidden="true">👋</span> {t('school:nudges.teacher.button')}
+            </button>
+            {nudge && (
+              <span className="flex items-center gap-2 font-body text-xs text-galaxy-text-muted">
+                {t('school:nudges.teacher.last_nudge')} <NudgeChip nudge={nudge} />
+              </span>
+            )}
+          </div>
+        )}
 
         {/* Both panels stay mounted for the drawer's whole lifetime —
             `hidden` only toggles CSS display, never React's mount tree —

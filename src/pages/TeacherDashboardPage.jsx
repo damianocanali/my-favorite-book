@@ -13,6 +13,8 @@ import ClassGlance from '../components/school/ClassGlance'
 import StudentsTable from '../components/school/StudentsTable'
 import StudentDetailDrawer from '../components/school/StudentDetailDrawer'
 import PushAlertsButton from '../components/school/PushAlertsButton'
+import NudgeSheet from '../components/school/NudgeSheet'
+import { nudgeResultText } from '../components/school/nudgeUi'
 
 const POLL_MS = 30 * 1000
 
@@ -39,6 +41,11 @@ export default function TeacherDashboardPage() {
 
   const [openStudent, setOpenStudent] = useState(null)
   const [helpActionError, setHelpActionError] = useState(null)
+
+  // Latest nudge per student id for the selected class ("Sent" / "Seen ✓").
+  const [nudges, setNudges] = useState({})
+  const [nudgeFor, setNudgeFor] = useState(null) // null | 'class' | a student
+  const [nudgeResult, setNudgeResult] = useState(null)
 
   // id -> ms timestamp a just-marked-Seen row stays excluded from poll
   // results (see filterRecentlySeen's own comment for the race this
@@ -92,7 +99,20 @@ export default function TeacherDashboardPage() {
     setClassLoading(false)
     if (res.ok) setClassData(res.data)
     else setClassError(res.code || 'generic')
+    loadNudges(classId)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // Best-effort: a failed read just shows no nudge chips.
+  const loadNudges = useCallback(async (classId) => {
+    const res = await schoolFetch(`/api/school/nudges?classId=${encodeURIComponent(classId)}`)
+    if (res.ok) setNudges(Object.fromEntries((res.data?.nudges ?? []).map((n) => [n.student_id, n])))
+  }, [])
+
+  function handleNudgeSent(result) {
+    setNudgeResult(nudgeResultText(t, result))
+    if (selectedClassId) loadNudges(selectedClassId)
+  }
 
   useEffect(() => {
     if (selectedClassId) loadClass(selectedClassId)
@@ -106,6 +126,8 @@ export default function TeacherDashboardPage() {
     // reads as "this is Room 6's data" for however long the request takes
     // rather than as a loading state.
     setClassData(null)
+    setNudges({})
+    setNudgeResult(null)
   }
 
   async function handleSeen(item) {
@@ -243,9 +265,21 @@ export default function TeacherDashboardPage() {
           <ClassGlance classInfo={classData.class} summary={classData.summary} />
 
           <section aria-labelledby="students-heading">
-            <h2 id="students-heading" className="font-heading text-lg font-bold text-galaxy-text mb-3">
-              {t('school:teacher.dashboard.students.heading')}
-            </h2>
+            <div className="flex items-center justify-between gap-3 mb-3">
+              <h2 id="students-heading" className="font-heading text-lg font-bold text-galaxy-text">
+                {t('school:teacher.dashboard.students.heading')}
+              </h2>
+              {classData.students.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => { setNudgeResult(null); setNudgeFor('class') }}
+                  className="inline-flex items-center gap-1.5 min-h-[44px] px-4 rounded-full bg-galaxy-secondary/15 text-galaxy-secondary font-body text-sm font-semibold hover:bg-galaxy-secondary/25 transition-colors"
+                >
+                  <span aria-hidden="true">👋</span> {t('school:nudges.teacher.button')}
+                </button>
+              )}
+            </div>
+            {nudgeResult && <p className="mb-3 font-body text-sm text-galaxy-text-muted" role="status">{nudgeResult}</p>}
             <StudentsTable
               students={classData.students}
               locale={i18n.language}
@@ -258,6 +292,7 @@ export default function TeacherDashboardPage() {
               // assignment" the column is meant to track; null (the hint
               // link) only when there isn't one at all.
               latestAssignment={classData.assignments?.find((a) => a.status === 'published') ?? null}
+              nudges={nudges}
             />
           </section>
         </>
@@ -267,7 +302,20 @@ export default function TeacherDashboardPage() {
         <StudentDetailDrawer
           classId={selectedClassId}
           student={openStudent}
+          nudge={nudges[openStudent.id] ?? null}
+          onNudge={() => setNudgeFor(openStudent)}
           onClose={() => setOpenStudent(null)}
+        />
+      )}
+
+      {nudgeFor && classData && (
+        <NudgeSheet
+          classId={classData.class.id}
+          students={nudgeFor === 'class' ? classData.students : [nudgeFor]}
+          assignments={classData.assignments ?? []}
+          single={nudgeFor !== 'class'}
+          onSent={handleNudgeSent}
+          onClose={() => setNudgeFor(null)}
         />
       )}
     </div>

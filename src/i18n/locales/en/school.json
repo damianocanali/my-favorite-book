@@ -490,5 +490,52 @@
     "unavailable": "This device's class isn't available — ask your teacher",
     "try_again": "Try again",
     "network": "We can't reach My Book Lab. Check the internet and try again."
+  },
+  "nudges": {
+    "presets": {
+      "story_waiting": "Your story is waiting for you! ✏️",
+      "one_more_page": "Let's add one more page today!",
+      "cant_wait": "I can't wait to read what happens next!",
+      "hand_in": "Don't forget to hand in \"{{title}}\"",
+      "hand_in_generic": "Don't forget to hand in your assignment!"
+    },
+    "student": {
+      "your_teacher": "Your teacher",
+      "says": "{{name}} says:",
+      "spoken": "A note from {{name}}: {{message}}",
+      "got_it": "Got it",
+      "keep_writing": "Keep writing my book",
+      "create_book": "Make a book",
+      "listen_aria": "Read the note out loud"
+    },
+    "teacher": {
+      "button": "Nudge",
+      "button_one_aria": "Send {{name}} a nudge",
+      "title": "Send a friendly nudge",
+      "intro": "Children see it on their home screen the next time they open the app. No notifications are sent.",
+      "who_heading": "Who",
+      "suggested_note": "We ticked the children who might like a nudge. Change it however you like.",
+      "select_all": "Select all",
+      "select_none": "Clear",
+      "reason_quiet": "No writing for 3 days",
+      "reason_not_handed_in": "Assignment not handed in",
+      "message_heading": "Message",
+      "write_own": "Write your own",
+      "placeholder": "Something encouraging…",
+      "assignment_label": "Link to an assignment",
+      "assignment_none": "No assignment",
+      "signed_note": "Signed with your name from your account.",
+      "send": "Send to {{count}}",
+      "sending": "Sending…",
+      "need_students": "Tick at least one name.",
+      "need_message": "Pick a message or write one.",
+      "sent_count": "Nudge sent to {{count}}.",
+      "capped_count": "{{count}} already had 3 nudges today, so they were skipped.",
+      "status_sent": "Sent",
+      "status_seen": "Seen ✓",
+      "chip_sent": "Nudge sent",
+      "chip_seen": "Nudge seen ✓",
+      "last_nudge": "Last nudge"
+    }
   }
 }

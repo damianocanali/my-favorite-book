@@ -490,5 +490,52 @@
     "unavailable": "La classe di questo dispositivo non è disponibile — chiedi all'insegnante",
     "try_again": "Riprova",
     "network": "Non riusciamo a collegarci a My Book Lab. Controlla la connessione e riprova."
+  },
+  "nudges": {
+    "presets": {
+      "story_waiting": "La tua storia ti aspetta! ✏️",
+      "one_more_page": "Aggiungiamo un'altra pagina oggi!",
+      "cant_wait": "Non vedo l'ora di leggere cosa succede dopo!",
+      "hand_in": "Non dimenticare di consegnare “{{title}}”",
+      "hand_in_generic": "Non dimenticare di consegnare il compito!"
+    },
+    "student": {
+      "your_teacher": "L'insegnante",
+      "says": "{{name}} dice:",
+      "spoken": "{{name}} ti scrive: {{message}}",
+      "got_it": "Ok, capito!",
+      "keep_writing": "Continua il mio libro",
+      "create_book": "Crea un libro",
+      "listen_aria": "Leggi il messaggio ad alta voce"
+    },
+    "teacher": {
+      "button": "Incoraggia",
+      "button_one_aria": "Manda un incoraggiamento a {{name}}",
+      "title": "Manda un incoraggiamento",
+      "intro": "I bambini lo vedono nella schermata iniziale la prossima volta che aprono l'app. Non viene inviata nessuna notifica.",
+      "who_heading": "A chi",
+      "suggested_note": "Abbiamo selezionato i bambini a cui potrebbe servire un incoraggiamento. Puoi cambiare come preferisci.",
+      "select_all": "Seleziona tutti",
+      "select_none": "Deseleziona",
+      "reason_quiet": "Nessuna scrittura da 3 giorni",
+      "reason_not_handed_in": "Compito non consegnato",
+      "message_heading": "Messaggio",
+      "write_own": "Scrivi il tuo messaggio",
+      "placeholder": "Qualcosa di incoraggiante…",
+      "assignment_label": "Collega a un compito",
+      "assignment_none": "Nessun compito",
+      "signed_note": "Firmato con il nome del tuo account.",
+      "send": "Invia a {{count}}",
+      "sending": "Invio…",
+      "need_students": "Seleziona almeno un nome.",
+      "need_message": "Scegli un messaggio o scrivine uno.",
+      "sent_count": "Incoraggiamento inviato a {{count}}.",
+      "capped_count": "{{count}} avevano già ricevuto 3 incoraggiamenti oggi e sono stati saltati.",
+      "status_sent": "Inviato",
+      "status_seen": "Visto ✓",
+      "chip_sent": "Incoraggiamento inviato",
+      "chip_seen": "Incoraggiamento visto ✓",
+      "last_nudge": "Ultimo incoraggiamento"
+    }
   }
 }

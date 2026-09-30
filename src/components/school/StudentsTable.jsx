@@ -39,6 +39,18 @@ function InactiveChip() {
   )
 }
 
+// "Nudge sent" / "Nudge seen ✓" — the latest nudge to this child, if any.
+export function NudgeChip({ nudge }) {
+  const { t } = useTranslation()
+  if (!nudge) return null
+  const seen = !!nudge.seen_at
+  return (
+    <span className={`inline-flex shrink-0 items-center whitespace-nowrap rounded-full border px-2 py-0.5 font-body text-[11px] font-semibold ${seen ? 'border-emerald-500/30 text-emerald-300' : 'border-galaxy-text-muted/20 text-galaxy-text-muted'}`}>
+      {t(seen ? 'school:nudges.teacher.chip_seen' : 'school:nudges.teacher.chip_sent')}
+    </span>
+  )
+}
+
 function CheckinIcons({ checkins, locale }) {
   const { t } = useTranslation()
   if (!checkins.length) {
@@ -104,7 +116,7 @@ function AssignmentHeaderCell({ classId, latestAssignment }) {
   )
 }
 
-export default function StudentsTable({ students, locale, onOpen, classId, latestAssignment = null }) {
+export default function StudentsTable({ students, locale, onOpen, classId, latestAssignment = null, nudges = {} }) {
   const { t } = useTranslation()
 
   if (students.length === 0) {
@@ -147,7 +159,10 @@ export default function StudentsTable({ students, locale, onOpen, classId, lates
                   <Avatar student={s} />
                   <span className="min-w-0">
                     <span className="block truncate font-body font-semibold text-galaxy-text">{s.display_name}</span>
-                    {s.inactive_7d && <InactiveChip />}
+                    <span className="flex flex-wrap gap-1">
+                      {s.inactive_7d && <InactiveChip />}
+                      <NudgeChip nudge={nudges[s.id]} />
+                    </span>
                   </span>
                 </span>
               </td>
@@ -193,6 +208,7 @@ export default function StudentsTable({ students, locale, onOpen, classId, lates
                   </p>
                 </div>
                 {s.inactive_7d && <InactiveChip />}
+                <NudgeChip nudge={nudges[s.id]} />
                 {latestAssignment && <HandInChip row={s.assignments?.[latestAssignment.id] ?? 'not_started'} />}
               </div>
               <div className="flex h-4 items-center justify-between gap-2 whitespace-nowrap font-body text-xs text-galaxy-text-muted">
