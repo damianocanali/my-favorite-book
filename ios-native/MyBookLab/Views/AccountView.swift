@@ -68,6 +68,8 @@ struct AccountView: View {
                 // A teacher who is also a parent picks which home they see.
                 if auth.isTeacher { viewModeCard }
                 if auth.isTeacher { TeacherNotificationSettingsCard() }
+                // Which class this iPad opens on when nobody is signed in.
+                if auth.isTeacher { ClassDeviceAccountCard() }
                 // In teacher mode the classroom is the app itself.
                 if auth.isTeacher && !teacherMode { classroomCard }
                 // No shop and no prices anywhere in the teacher area.
