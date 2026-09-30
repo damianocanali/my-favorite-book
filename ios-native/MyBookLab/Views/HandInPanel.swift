@@ -6,32 +6,32 @@
 import SwiftUI
 
 enum HandInCopy {
-    static let pickerTitle = LocalizedStringResource("school.student.hand_in.picker_title", defaultValue: "Hand in to…")
-    static let pickerHint = LocalizedStringResource("school.student.hand_in.picker_hint", defaultValue: "Which assignment is this book for?")
-    static let pickerEmpty = LocalizedStringResource("school.student.hand_in.picker_empty", defaultValue: "No open assignments right now.")
-    static let button = LocalizedStringResource("school.student.hand_in.button", defaultValue: "Hand in")
-    static let buttonPick = LocalizedStringResource("school.student.hand_in.button_pick", defaultValue: "Hand in to…")
-    static let saving = LocalizedStringResource("school.student.hand_in.saving", defaultValue: "Saving your book…")
-    static let sending = LocalizedStringResource("school.student.hand_in.sending", defaultValue: "Handing in…")
-    static let successTitle = LocalizedStringResource("school.student.hand_in.success_title", defaultValue: "Handed in!")
-    static let successBody = LocalizedStringResource("school.student.hand_in.success_body", defaultValue: "Your teacher will read it.")
+    static var pickerTitle: LocalizedStringResource { AppText("school.student.hand_in.picker_title", defaultValue: "Hand in to…") }
+    static var pickerHint: LocalizedStringResource { AppText("school.student.hand_in.picker_hint", defaultValue: "Which assignment is this book for?") }
+    static var pickerEmpty: LocalizedStringResource { AppText("school.student.hand_in.picker_empty", defaultValue: "No open assignments right now.") }
+    static var button: LocalizedStringResource { AppText("school.student.hand_in.button", defaultValue: "Hand in") }
+    static var buttonPick: LocalizedStringResource { AppText("school.student.hand_in.button_pick", defaultValue: "Hand in to…") }
+    static var saving: LocalizedStringResource { AppText("school.student.hand_in.saving", defaultValue: "Saving your book…") }
+    static var sending: LocalizedStringResource { AppText("school.student.hand_in.sending", defaultValue: "Handing in…") }
+    static var successTitle: LocalizedStringResource { AppText("school.student.hand_in.success_title", defaultValue: "Handed in!") }
+    static var successBody: LocalizedStringResource { AppText("school.student.hand_in.success_body", defaultValue: "Your teacher will read it.") }
 
     static func error(_ code: String) -> LocalizedStringResource {
         switch code {
         case "sync_failed":
-            LocalizedStringResource("school.student.hand_in.errors.sync_failed", defaultValue: "We couldn't save your book. Check the internet and try again.")
+            AppText("school.student.hand_in.errors.sync_failed", defaultValue: "We couldn't save your book. Check the internet and try again.")
         case "assignment_closed":
-            LocalizedStringResource("school.student.hand_in.errors.assignment_closed", defaultValue: "This assignment is closed. Ask your teacher.")
+            AppText("school.student.hand_in.errors.assignment_closed", defaultValue: "This assignment is closed. Ask your teacher.")
         case "past_due":
-            LocalizedStringResource("school.student.hand_in.errors.past_due", defaultValue: "It's past the due date. Ask your teacher.")
+            AppText("school.student.hand_in.errors.past_due", defaultValue: "It's past the due date. Ask your teacher.")
         case "book_too_large":
-            LocalizedStringResource("school.student.hand_in.errors.book_too_large", defaultValue: "This book is too big to hand in. Ask your teacher.")
+            AppText("school.student.hand_in.errors.book_too_large", defaultValue: "This book is too big to hand in. Ask your teacher.")
         case "assignment_not_found":
-            LocalizedStringResource("school.student.hand_in.errors.assignment_not_found", defaultValue: "We can't find that assignment. Ask your teacher.")
+            AppText("school.student.hand_in.errors.assignment_not_found", defaultValue: "We can't find that assignment. Ask your teacher.")
         case "book_not_found":
-            LocalizedStringResource("school.student.hand_in.errors.book_not_found", defaultValue: "We can't find that book. Try again.")
+            AppText("school.student.hand_in.errors.book_not_found", defaultValue: "We can't find that book. Try again.")
         default:
-            LocalizedStringResource("school.student.hand_in.errors.generic", defaultValue: "Something went wrong. Ask your teacher.")
+            AppText("school.student.hand_in.errors.generic", defaultValue: "Something went wrong. Ask your teacher.")
         }
     }
 }

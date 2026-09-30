@@ -23,8 +23,8 @@ struct AccountView: View {
     /// button gated on "DELETE" — account deletion becomes impossible, which
     /// is also an App Store Guideline 5.1.1(v) failure.
     private var deleteConfirmWord: String {
-        String(localized: "account.delete.confirm_word", defaultValue: "DELETE",
-               comment: "Typed by the user to confirm account deletion. MUST match the placeholder; uppercase.")
+        String(appLocalized: AppText("account.delete.confirm_word", defaultValue: "DELETE",
+               comment: "Typed by the user to confirm account deletion. MUST match the placeholder; uppercase."))
     }
     @State private var deleteBusy = false
     @State private var deletionScheduledFor: String?   // ISO date when pending
@@ -81,7 +81,9 @@ struct AccountView: View {
                 // Locked icons are unlocked with coins: not in teacher mode.
                 if !teacherMode { appIconCard }
                 if !auth.isStudent && !teacherMode { rowsCard }
-                musicCard
+                // A teacher account never hears music (AudioService), so a
+                // music switch would be a control that does nothing.
+                if !auth.isTeacher { musicCard }
                 languageCard
                 signOutCard
                 // Below the badges and above the danger zone: something to look
@@ -125,13 +127,12 @@ struct AccountView: View {
         .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 18))
     }
 
-    /// The web classroom, for a teacher in family view (teacher mode has the
-    /// native area). Opens in Safari.
+    /// For a teacher in family view: straight back to their classes, in the
+    /// app (the teacher area is fully native).
     private var classroomCard: some View {
-        // Safari itself, not an in-app sheet: nothing sold on the web can
-        // ever appear inside the app (App Store 3.1.3).
         Button {
-            TeacherWeb.open("/teacher")
+            teacher.setViewMode(.teacher)
+            teacher.selectedTab = .classes
         } label: {
             HStack(spacing: 14) {
                 Image(systemName: "graduationcap.fill")
@@ -147,8 +148,8 @@ struct AccountView: View {
                         .foregroundStyle(.white.opacity(0.65))
                 }
                 Spacer()
-                Image(systemName: "arrow.up.right.square")
-                    .foregroundStyle(.white.opacity(0.6))
+                Image(systemName: "chevron.right")
+                    .foregroundStyle(.white.opacity(0.7))
             }
             .padding(16)
             .frame(minHeight: 64)
@@ -242,12 +243,10 @@ struct AccountView: View {
         .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 18))
     }
 
-    /// Set when the child picks a language this session: iOS only switches
-    /// on the next launch, so until then the card says what to do.
-    @State private var pendingLanguage: String?
-
+    /// Switching is live (AppLanguage.choose rebuilds the app in the new
+    /// language), so there is nothing to tell the user afterwards.
     private var languageCard: some View {
-        let current = pendingLanguage ?? AppLanguage.uiLanguage
+        let current = AppLanguage.uiLanguage
         return VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 14) {
                 Image(systemName: "globe")
@@ -260,7 +259,6 @@ struct AccountView: View {
                     set: { code in
                         guard code != current else { return }
                         AppLanguage.choose(code)
-                        pendingLanguage = code
                     }
                 )) {
                     ForEach(AppLanguage.supported, id: \.code) { lang in
@@ -270,11 +268,6 @@ struct AccountView: View {
                 }
                 .pickerStyle(.segmented)
                 .frame(width: 190)
-            }
-            if pendingLanguage != nil, pendingLanguage != AppLanguage.uiLanguage {
-                Text("Close My Book Lab and open it again to switch language.")
-                    .font(.caption)
-                    .foregroundStyle(.yellow.opacity(0.9))
             }
         }
         .padding(16)
@@ -430,14 +423,14 @@ struct AccountView: View {
     private var planDisplayName: String {
         switch subs.planKey {
         case "family":
-            return String(localized: "plan.family.name", defaultValue: "Family")
+            return String(appLocalized: AppText("plan.family.name", defaultValue: "Family"))
         case "classroom":
-            return String(localized: "plan.classroom.name", defaultValue: "Classroom")
+            return String(appLocalized: AppText("plan.classroom.name", defaultValue: "Classroom"))
         case "free":
-            return String(localized: "plan.free.name", defaultValue: "Free")
+            return String(appLocalized: AppText("plan.free.name", defaultValue: "Free"))
         default:
             // Unknown/new server plan: a neutral word beats a raw key.
-            return String(localized: "plan.unknown.name", defaultValue: "Premium")
+            return String(appLocalized: AppText("plan.unknown.name", defaultValue: "Premium"))
         }
     }
 
@@ -517,7 +510,7 @@ struct AccountView: View {
             try await APIClient.shared.cancelAccountDeletion(bearerToken: token)
             deletionScheduledFor = nil
         } catch {
-            deleteError = LocalizedStringResource(
+            deleteError = AppText(
                 "account.delete.cancel_failed",
                 defaultValue: "Couldn't cancel. Please try again.")
         }
@@ -588,7 +581,7 @@ struct AccountView: View {
             deletionScheduledFor = scheduledFor ?? ""
             showDeleteConfirm = false
         } catch {
-            deleteError = LocalizedStringResource(
+            deleteError = AppText(
                 "account.delete.schedule_failed",
                 defaultValue: "Couldn't schedule deletion. Please try again.")
         }

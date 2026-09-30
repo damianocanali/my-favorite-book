@@ -178,7 +178,7 @@ struct CoinStoreView: View {
             } else {
                 // No web steering — Apple's anti-steering rule forbids
                 // pointing users to buy elsewhere from inside the app.
-                self.error = .app(LocalizedStringResource(
+                self.error = .app(AppText(
                     "store.style.insufficient_coins",
                     defaultValue: "You need \(style.price) coins for this. Earn more coins by creating books and using features!"))
             }
@@ -384,14 +384,14 @@ struct BuyCoinsSheet: View {
         case .cancelled:
             break
         case .pending:
-            pendingMessage = LocalizedStringResource(
+            pendingMessage = AppText(
                 "coins.purchase.pending",
                 defaultValue: "Payment confirmed. Your coins will appear in a moment — pull to refresh if they don't show up.")
         case .failed(let msg):
             // One sentence, one key; the StoreKit message (already
             // localized by iOS) goes in as an argument so a translation
             // can put it wherever the language wants it.
-            error = LocalizedStringResource(
+            error = AppText(
                 "coins.purchase.failed",
                 defaultValue: "Purchase failed: \(msg)")
         }
@@ -414,55 +414,55 @@ struct AvatarStyle: Identifiable, Hashable {
     /// catalog here means that screen gets the translation too, without
     /// this file duplicating the literal. Callers that can take a
     /// `LocalizedStringResource` should use `displayLabel` directly.
-    var label: String { String(localized: displayLabel) }
+    var label: String { String(appLocalized: displayLabel) }
 
     static func == (lhs: AvatarStyle, rhs: AvatarStyle) -> Bool { lhs.id == rhs.id }
     func hash(into hasher: inout Hasher) { hasher.combine(id) }
 
     /// Mirrors the web's ART_STYLES catalog. `cartoon` is free + owned
     /// by default, so it doesn't appear here.
-    static let purchasable: [AvatarStyle] = [
+    static var purchasable: [AvatarStyle] { [
         .init(id: "pixar",
-              displayLabel: LocalizedStringResource("avatar_style.pixar.label", defaultValue: "Pixar 3D"),
+              displayLabel: AppText("avatar_style.pixar.label", defaultValue: "Pixar 3D"),
               emoji: "✨",
-              description: LocalizedStringResource("avatar_style.pixar.description", defaultValue: "Polished 3D render. Big eyes, soft lighting."),
+              description: AppText("avatar_style.pixar.description", defaultValue: "Polished 3D render. Big eyes, soft lighting."),
               price: 15),
         .init(id: "anime",
-              displayLabel: LocalizedStringResource("avatar_style.anime.label", defaultValue: "Anime"),
+              displayLabel: AppText("avatar_style.anime.label", defaultValue: "Anime"),
               emoji: "🌸",
-              description: LocalizedStringResource("avatar_style.anime.description", defaultValue: "Vivid colors, expressive lines, Ghibli-inspired."),
+              description: AppText("avatar_style.anime.description", defaultValue: "Vivid colors, expressive lines, Ghibli-inspired."),
               price: 15),
         .init(id: "watercolor",
-              displayLabel: LocalizedStringResource("avatar_style.watercolor.label", defaultValue: "Watercolor"),
+              displayLabel: AppText("avatar_style.watercolor.label", defaultValue: "Watercolor"),
               emoji: "🖌️",
-              description: LocalizedStringResource("avatar_style.watercolor.description", defaultValue: "Soft painted brushstrokes, storybook look."),
+              description: AppText("avatar_style.watercolor.description", defaultValue: "Soft painted brushstrokes, storybook look."),
               price: 15),
         .init(id: "pixel",
-              displayLabel: LocalizedStringResource("avatar_style.pixel.label", defaultValue: "Pixel Art"),
+              displayLabel: AppText("avatar_style.pixel.label", defaultValue: "Pixel Art"),
               emoji: "👾",
-              description: LocalizedStringResource("avatar_style.pixel.description", defaultValue: "16-bit retro game character vibes."),
+              description: AppText("avatar_style.pixel.description", defaultValue: "16-bit retro game character vibes."),
               price: 15),
         .init(id: "claymation",
-              displayLabel: LocalizedStringResource("avatar_style.claymation.label", defaultValue: "Claymation"),
+              displayLabel: AppText("avatar_style.claymation.label", defaultValue: "Claymation"),
               emoji: "🧸",
-              description: LocalizedStringResource("avatar_style.claymation.description", defaultValue: "Sculpted plasticine, like a stop-motion film."),
+              description: AppText("avatar_style.claymation.description", defaultValue: "Sculpted plasticine, like a stop-motion film."),
               price: 15),
         .init(id: "comic",
-              displayLabel: LocalizedStringResource("avatar_style.comic.label", defaultValue: "Comic Book"),
+              displayLabel: AppText("avatar_style.comic.label", defaultValue: "Comic Book"),
               emoji: "💥",
-              description: LocalizedStringResource("avatar_style.comic.description", defaultValue: "Bold ink lines and halftone dots, like a superhero comic."),
+              description: AppText("avatar_style.comic.description", defaultValue: "Bold ink lines and halftone dots, like a superhero comic."),
               price: 15),
         .init(id: "crayon",
-              displayLabel: LocalizedStringResource("avatar_style.crayon.label", defaultValue: "Crayon"),
+              displayLabel: AppText("avatar_style.crayon.label", defaultValue: "Crayon"),
               emoji: "🖍️",
-              description: LocalizedStringResource("avatar_style.crayon.description", defaultValue: "Waxy crayon strokes, like your best drawing."),
+              description: AppText("avatar_style.crayon.description", defaultValue: "Waxy crayon strokes, like your best drawing."),
               price: 15),
         .init(id: "storybook",
-              displayLabel: LocalizedStringResource("avatar_style.storybook.label", defaultValue: "Storybook Ink"),
+              displayLabel: AppText("avatar_style.storybook.label", defaultValue: "Storybook Ink"),
               emoji: "📜",
-              description: LocalizedStringResource("avatar_style.storybook.description", defaultValue: "Fine pen lines and soft paint, like an old fairy tale."),
+              description: AppText("avatar_style.storybook.description", defaultValue: "Fine pen lines and soft paint, like an old fairy tale."),
               price: 15),
-    ]
+    ] }
 }
 
 struct CoinPack: Identifiable, Hashable {
@@ -480,20 +480,20 @@ struct CoinPack: Identifiable, Hashable {
     func hash(into hasher: inout Hasher) { hasher.combine(id) }
 
     /// Same coin packs as the web's BuyCoinsPanel + ios IAP product IDs.
-    static let all: [CoinPack] = [
+    static var all: [CoinPack] { [
         .init(id: "com.myfavoritebook.app.coins.small",
               coins: 50,
-              label: LocalizedStringResource("coin_pack.small.label", defaultValue: "Small pack"),
+              label: AppText("coin_pack.small.label", defaultValue: "Small pack"),
               emoji: "🪙", popular: false),
         .init(id: "com.myfavoritebook.app.coins.medium",
               coins: 200,
-              label: LocalizedStringResource("coin_pack.medium.label", defaultValue: "Medium pack"),
+              label: AppText("coin_pack.medium.label", defaultValue: "Medium pack"),
               emoji: "💰", popular: true),
         .init(id: "com.myfavoritebook.app.coins.large",
               coins: 500,
-              label: LocalizedStringResource("coin_pack.large.label", defaultValue: "Large pack"),
+              label: AppText("coin_pack.large.label", defaultValue: "Large pack"),
               emoji: "💎", popular: false),
-    ]
+    ] }
 }
 
 

@@ -106,17 +106,155 @@ struct TeacherClassDashboard: Decodable, Sendable {
 
 // MARK: - Classes
 
-/// One row of GET /api/school/classes.
+/// One row of GET /api/school/classes (and the `class` of POST/PATCH).
 struct TeacherClass: Decodable, Identifiable, Hashable, Sendable {
     let id: String
     let name: String?
     let code: String?
     let license: TeacherLicense?
     let student_count: Int?
+    /// "en" | "it"
+    let locale: String?
+    let sign_in_open: Bool?
+    /// IANA zone the school hours are read in.
+    let timezone: String?
+    /// ISO weekday ("1" = Monday … "7" = Sunday) -> ["HH:MM", "HH:MM"].
+    let school_hours: [String: [String]]?
 }
 
 struct TeacherClassesResponse: Decodable, Sendable {
     let classes: [TeacherClass]?
+}
+
+struct TeacherClassResponse: Decodable, Sendable {
+    let `class`: TeacherClass?
+    /// POST only: the class was made, but this teacher's free trials are
+    /// used up, so it has no license.
+    let trial_used_up: Bool?
+}
+
+// MARK: - Roster (api/school/students.js)
+
+/// GET /api/school/students — never a secret, only these public fields.
+struct TeacherRosterStudent: Decodable, Identifiable, Hashable, Sendable {
+    let id: String
+    var display_name: String
+    let avatar_emoji: String?
+    let avatar_url: String?
+    /// "active" | "removed"
+    let status: String?
+    let hard_locked: Bool?
+    let locked: Bool?
+    let last_sign_in_at: String?
+
+    var isActive: Bool { (status ?? "active") == "active" }
+    var needsUnlock: Bool { locked == true || hard_locked == true }
+}
+
+struct TeacherRosterResponse: Decodable, Sendable {
+    let students: [TeacherRosterStudent]?
+}
+
+/// A child whose picture password was just made (added, or reset). The only
+/// moment the three picture ids exist outside the server's hash: shown and
+/// printed now, then dropped — they can't be fetched again.
+struct TeacherNewPictures: Decodable, Identifiable, Hashable, Sendable {
+    let id: String
+    let display_name: String
+    let avatar_emoji: String?
+    let pictures: [String]
+}
+
+struct TeacherAddStudentsResponse: Decodable, Sendable {
+    struct Skipped: Decodable, Hashable, Sendable {
+        let name: String
+        let code: String?
+    }
+    let created: [TeacherNewPictures]?
+    let skipped: [Skipped]?
+}
+
+struct TeacherStudentActionResponse: Decodable, Sendable {
+    let student: TeacherRosterStudent?
+    /// reset_secret only.
+    let pictures: [String]?
+}
+
+/// The web's rosterText / cleanName rules, so the iPad sends what the server
+/// would keep anyway: split on newlines and commas, trim, collapse spaces,
+/// cut to 24 UTF-16 units (JS `.length`), drop blanks and case-insensitive
+/// repeats (first spelling wins).
+enum TeacherRosterRules {
+    static let studentNameMax = 24
+    static let classNameMax = 60
+    static let maxStudents = 35
+
+    static func cleanName(_ raw: String, max: Int = studentNameMax) -> String {
+        let collapsed = raw.split(whereSeparator: { $0.isWhitespace }).joined(separator: " ")
+        return TeacherStickers.truncated(collapsed, max: max).trimmingCharacters(in: .whitespaces)
+    }
+
+    static func parse(_ text: String) -> [String] {
+        var seen = Set<String>()
+        var out: [String] = []
+        for raw in text.split(whereSeparator: { $0.isNewline || $0 == "," }) {
+            let name = cleanName(String(raw))
+            guard !name.isEmpty else { continue }
+            let key = name.lowercased()
+            if seen.insert(key).inserted { out.append(name) }
+        }
+        return out
+    }
+}
+
+// MARK: - School hours
+
+/// One weekday's span in the editor. ISO weekday: 1 = Monday … 7 = Sunday.
+struct SchoolDayHours: Identifiable, Hashable, Sendable {
+    let weekday: Int
+    var enabled: Bool
+    var start: String
+    var end: String
+    var id: Int { weekday }
+
+    static let defaultSpan = ("08:00", "15:30")
+
+    /// Server shape -> seven editor rows (a missing day is off, pre-filled
+    /// with the default span so turning it on starts somewhere sensible).
+    static func rows(from hours: [String: [String]]?) -> [SchoolDayHours] {
+        (1...7).map { d in
+            if let span = hours?[String(d)], span.count == 2 {
+                return SchoolDayHours(weekday: d, enabled: true, start: span[0], end: span[1])
+            }
+            return SchoolDayHours(weekday: d, enabled: false, start: defaultSpan.0, end: defaultSpan.1)
+        }
+    }
+
+    /// Editor rows -> server shape; nil when a span is invalid (the same
+    /// check as lib/school/hours.js validateSchoolHours: HH:MM, start < end).
+    static func payload(_ rows: [SchoolDayHours]) -> [String: [String]]? {
+        var out: [String: [String]] = [:]
+        for r in rows where r.enabled {
+            guard isHHMM(r.start), isHHMM(r.end), r.start < r.end else { return nil }
+            out[String(r.weekday)] = [r.start, r.end]
+        }
+        return out
+    }
+
+    static func isHHMM(_ s: String) -> Bool {
+        s.range(of: #"^([01]\d|2[0-3]):[0-5]\d$"#, options: .regularExpression) != nil
+    }
+
+    /// "08:00" <-> a Date today, for the time pickers.
+    static func date(_ hhmm: String) -> Date {
+        let parts = hhmm.split(separator: ":").compactMap { Int($0) }
+        return Calendar.current.date(bySettingHour: parts.first ?? 8, minute: parts.count > 1 ? parts[1] : 0, second: 0, of: Date()) ?? Date()
+    }
+
+    static func hhmm(_ date: Date) -> String {
+        let c = Calendar.current.dateComponents([.hour, .minute], from: date)
+        return String(format: "%02d:%02d", c.hour ?? 0, c.minute ?? 0)
+    }
 }
 
 // MARK: - A student's books and check-ins
@@ -298,6 +436,10 @@ struct TeacherNotification: Decodable, Identifiable, Hashable, Sendable {
         let class_name: String?
         let assignment_id: String?
         let assignment_title: String?
+        /// Help asks only: whether it arrived inside the class's school
+        /// hours. false = only the bell got it (no push was sent); nil =
+        /// unknown or not a help ask.
+        let in_hours: Bool?
     }
     let id: String
     let classroom_id: String?
@@ -446,7 +588,7 @@ enum TeacherDates {
     static func relative(_ raw: String?, now: Date = Date()) -> String? {
         guard let date = parse(raw) else { return nil }
         let f = RelativeDateTimeFormatter()
-        f.locale = Locale(identifier: AppLanguage.uiLanguage)
+        f.locale = AppLanguage.locale
         f.dateTimeStyle = .named
         f.unitsStyle = .full
         return f.localizedString(for: date, relativeTo: now)
@@ -457,7 +599,7 @@ enum TeacherDates {
         guard let date = parse(raw) else { return nil }
         return date.formatted(
             .dateTime.day().month(.abbreviated).year().hour().minute()
-                .locale(Locale(identifier: AppLanguage.uiLanguage))
+                .locale(AppLanguage.locale)
         )
     }
 }

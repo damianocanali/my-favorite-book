@@ -32,6 +32,32 @@ async function nameStudents(notifications, me) {
   }
 }
 
+// Help rows say whether the ask arrived inside the class's school hours
+// (class_help_requests.in_hours, decided when the child asked), so the bell
+// can explain "Outside school hours — no alert sent". Looked up at read time
+// by help_id, only among the caller's own classes; unknown reads as null
+// (the bell then says nothing either way). Fails open: display-only.
+async function markHours(notifications, me) {
+  const helpRows = notifications.filter((n) => String(n?.kind ?? '').startsWith('help_'))
+  for (const n of helpRows) n.payload = { ...(n.payload ?? {}), in_hours: null }
+  const ids = [...new Set(helpRows.map((n) => n.payload.help_id).filter(isUuid))]
+  if (!ids.length) return
+  try {
+    const res = await sb(
+      `/rest/v1/class_help_requests?id=in.(${ids.join(',')})` +
+        `&select=id,in_hours,classrooms!inner(owner_user_id)&classrooms.owner_user_id=eq.${me}`
+    )
+    if (!res.ok) throw new Error(`class_help_requests ${res.status}`)
+    const hours = new Map(((await res.json()) || []).map((r) => [r.id, typeof r.in_hours === 'boolean' ? r.in_hours : null]))
+    for (const n of helpRows) {
+      const id = n.payload.help_id
+      if (hours.has(id)) n.payload.in_hours = hours.get(id)
+    }
+  } catch (e) {
+    console.error('school/notifications: help hours unavailable', e?.message)
+  }
+}
+
 // The teacher's bell (spec §12.4): latest 50 + unread count, and "mark
 // read". Every query is filtered by the caller's own auth id, so a
 // notification id from someone else's bell simply matches nothing.
@@ -63,7 +89,7 @@ export default async function handler(req) {
       if (!listRes.ok || !countRes.ok) throw new Error(`notifications read failed: ${listRes.status}/${countRes.status}`)
       const list = await listRes.json()
       const notifications = Array.isArray(list) ? list : []
-      await nameStudents(notifications, me)
+      await Promise.all([nameStudents(notifications, me), markHours(notifications, me)])
       // PostgREST puts the exact count in Content-Range: "0-0/<total>".
       const total = Number((countRes.headers.get('content-range') || '').split('/')[1])
       return json(req, 200, {

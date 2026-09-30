@@ -70,7 +70,7 @@ struct BookshelfView: View {
                     // books"; Italian wants "1 libro" / "%lld libri".
                     // Until those variations are filled in, English reads
                     // "1 books" for a single book.
-                    Text(LocalizedStringResource(
+                    Text(AppText(
                         "bookshelf.book_count",
                         defaultValue: "\(bookshelf.books.count) books",
                         comment: "Count of books on the shelf. MUST be varied by plural: one = \"1 book\", other = \"%lld books\"."))

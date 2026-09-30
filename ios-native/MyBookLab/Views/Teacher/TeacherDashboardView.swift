@@ -26,7 +26,12 @@ struct TeacherDashboardView: View {
     @State private var helpActionError: String??
     /// id -> when its post-Seen suppression ends (web: filterRecentlySeen).
     @State private var recentlySeenUntil: [String: Date] = [:]
+    @State private var creatingClass = false
     @Environment(\.horizontalSizeClass) private var hSize
+    // Scaled with Dynamic Type, so larger text grows every card equally.
+    @ScaledMetric(relativeTo: .body) private var studentCardHeight: CGFloat = 176
+    @ScaledMetric(relativeTo: .caption) private var badgeRowHeight: CGFloat = 22
+    @ScaledMetric(relativeTo: .caption) private var checkinRowHeight: CGFloat = 20
 
     private static let pollInterval: Duration = .seconds(30)
 
@@ -43,23 +48,6 @@ struct TeacherDashboardView: View {
                 ToolbarItemGroup(placement: .topBarTrailing) {
                     if let classes, classes.count > 1 { classSwitcher(classes) }
                     TeacherBellButton()
-                }
-                ToolbarItem(placement: .topBarLeading) {
-                    Button {
-                        teacher.enterKidsPreview()
-                    } label: {
-                        // Icon only on a phone-width bar, where the title and
-                        // the class switcher already compete for room.
-                        if hSize == .compact {
-                            Image(systemName: "eye")
-                        } else {
-                            Label { Text(TeacherCopy.previewLink) } icon: { Image(systemName: "eye") }
-                                .labelStyle(.titleAndIcon)
-                                .font(.subheadline.weight(.semibold))
-                        }
-                    }
-                    .tint(.cyan)
-                    .accessibilityLabel(Text(TeacherCopy.previewLink))
                 }
             }
         }
@@ -79,6 +67,12 @@ struct TeacherDashboardView: View {
         }
         .onAppear { consumeRoute() }
         .onChange(of: teacher.pendingRoute) { _, _ in consumeRoute() }
+        .sheet(isPresented: $creatingClass) {
+            TeacherCreateClassSheet { created in
+                if let created { teacher.rememberedClassId = created.id }
+                Task { await loadOverview() }
+            }
+        }
     }
 
     // MARK: - Layout
@@ -129,7 +123,7 @@ struct TeacherDashboardView: View {
                 .font(.subheadline)
                 .foregroundStyle(.white.opacity(0.75))
                 .multilineTextAlignment(.center)
-            SparkleButton(action: { TeacherWeb.open("/teacher/classes") }) {
+            SparkleButton(action: { creatingClass = true }) {
                 Text(TeacherCopy.emptyCta)
             }
             .frame(maxWidth: 360)
@@ -199,11 +193,11 @@ struct TeacherDashboardView: View {
     }
 
     private func helpRow(_ item: TeacherHelpItem, urgent: Bool) -> some View {
-        let name = item.display_name ?? String(localized: TeacherCopy.unknownStudent)
+        let name = item.display_name ?? String(appLocalized: TeacherCopy.unknownStudent)
         let detail = [
             item.class_name,
             TeacherDates.relative(item.created_at),
-            (item.asks ?? 1) > 1 ? String(localized: TeacherCopy.asks(item.asks ?? 1)) : nil,
+            (item.asks ?? 1) > 1 ? String(appLocalized: TeacherCopy.asks(item.asks ?? 1)) : nil,
         ].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " · ")
         return HStack(spacing: 12) {
             if urgent {
@@ -254,34 +248,30 @@ struct TeacherDashboardView: View {
         }
     }
 
+    /// Four pills, all the same size: equal flexible columns (4 across on
+    /// a regular-width iPad, 2×2 on a phone or a narrow split view), a fixed
+    /// minimum height, and every line's space reserved — so a label that
+    /// wraps to two lines, or the one pill with a sub-line, never makes its
+    /// pill bigger than its neighbours.
     private func glance(_ data: TeacherClassDashboard) -> some View {
         let s = data.summary
+        let columns = Array(repeating: GridItem(.flexible(), spacing: 12), count: hSize == .regular ? 4 : 2)
         return VStack(alignment: .leading, spacing: 12) {
             TeacherSectionHeading(text: TeacherCopy.glanceHeading)
-            LazyVGrid(columns: [GridItem(.adaptive(minimum: 150), spacing: 12)], spacing: 12) {
-                statCard(Text(TeacherCopy.fraction(s.active_this_week ?? 0, s.total_students ?? 0)), TeacherCopy.glanceActive)
-                statCard(Text(verbatim: String(s.books_total ?? 0)), TeacherCopy.glanceBooks,
-                         sub: TeacherCopy.booksEdited(s.books_edited_this_week ?? 0))
-                statCard(Text(TeacherCopy.fraction(s.images_used ?? 0, s.image_allowance ?? 0)), TeacherCopy.glancePictures)
-                TeacherCard {
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text(TeacherCopy.glanceLicense).font(.caption).foregroundStyle(.white.opacity(0.65))
-                        LicenseBadge(license: data.class.license)
-                    }
+            LazyVGrid(columns: columns, spacing: 12) {
+                GlancePill(label: TeacherCopy.glanceActive) {
+                    Text(TeacherCopy.fraction(s.active_this_week ?? 0, s.total_students ?? 0))
+                }
+                GlancePill(label: TeacherCopy.glanceBooks, sub: TeacherCopy.booksEdited(s.books_edited_this_week ?? 0)) {
+                    Text(verbatim: String(s.books_total ?? 0))
+                }
+                GlancePill(label: TeacherCopy.glancePictures) {
+                    Text(TeacherCopy.fraction(s.images_used ?? 0, s.image_allowance ?? 0))
+                }
+                GlancePill(label: TeacherCopy.glanceLicense) {
+                    LicenseBadge(license: data.class.license)
                 }
             }
-        }
-    }
-
-    private func statCard(_ value: Text, _ label: LocalizedStringResource,
-                          sub: LocalizedStringResource? = nil) -> some View {
-        TeacherCard {
-            VStack(alignment: .leading, spacing: 2) {
-                value.font(.system(.title2, design: .rounded).bold()).foregroundStyle(.white)
-                Text(label).font(.caption).foregroundStyle(.white.opacity(0.65))
-                if let sub { Text(sub).font(.caption2).foregroundStyle(.white.opacity(0.5)) }
-            }
-            .accessibilityElement(children: .combine)
         }
     }
 
@@ -313,7 +303,10 @@ struct TeacherDashboardView: View {
                     .font(.subheadline).foregroundStyle(.white.opacity(0.7))
                     .frame(maxWidth: .infinity).padding(.vertical, 24)
             } else {
-                LazyVGrid(columns: [GridItem(.adaptive(minimum: 300), spacing: 12)], spacing: 12) {
+                // Equal flexible columns and one fixed card height, so a
+                // check-in, a chip or a long name never makes one card bigger.
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 12, alignment: .top),
+                                         count: hSize == .regular ? 2 : 1), spacing: 12) {
                     ForEach(data.students) { student in
                         NavigationLink {
                             TeacherStudentDetailView(classId: data.class.id, student: student)
@@ -337,7 +330,7 @@ struct TeacherDashboardView: View {
                     TeacherStudentAvatar(emoji: s.avatar_emoji, url: s.avatar_url)
                     VStack(alignment: .leading, spacing: 2) {
                         Text(verbatim: s.display_name)
-                            .font(.headline).foregroundStyle(.white).lineLimit(1)
+                            .font(.headline).foregroundStyle(.white).lineLimit(1).truncationMode(.tail)
                         Group {
                             if let when = TeacherDates.relative(s.last_sign_in_at) {
                                 Text(TeacherCopy.lastSignedIn(when))
@@ -345,6 +338,7 @@ struct TeacherDashboardView: View {
                                 Text(TeacherCopy.neverSignedIn)
                             }
                         }
+                        .lineLimit(1)
                         .font(.caption).foregroundStyle(.white.opacity(0.65))
                     }
                     Spacer(minLength: 4)
@@ -352,14 +346,23 @@ struct TeacherDashboardView: View {
                         HandInChip(state: HandInState(dashboardValue: s.assignments?[latest.id]))
                     }
                 }
-                if s.inactive_7d == true {
-                    TeacherChip(text: TeacherCopy.inactiveChip, tone: .muted)
+                // Badge row: always there, so its space is reserved even empty.
+                HStack(spacing: 6) {
+                    if s.inactive_7d == true {
+                        TeacherChip(text: TeacherCopy.inactiveChip, tone: .muted)
+                    }
+                    Spacer(minLength: 0)
                 }
+                .frame(height: badgeRowHeight)
                 HStack {
                     VStack(alignment: .leading, spacing: 1) {
                         Text(TeacherCopy.booksCount(s.books_count ?? 0))
+                        // Always a second line (blank when never edited) so
+                        // every card keeps the same layout.
                         if let when = TeacherDates.relative(s.last_book_edited_at) {
                             Text(TeacherCopy.lastEdited(when)).opacity(0.7)
+                        } else {
+                            Text(verbatim: " ").accessibilityHidden(true)
                         }
                     }
                     Spacer()
@@ -367,8 +370,17 @@ struct TeacherDashboardView: View {
                 }
                 .font(.caption)
                 .foregroundStyle(.white.opacity(0.75))
+                .lineLimit(1)
                 checkinIcons(s.checkins_7d ?? [])
+                    .fixedSize(horizontal: true, vertical: false)
+                    .frame(maxWidth: .infinity, maxHeight: checkinRowHeight, alignment: .leading)
+                    .frame(height: checkinRowHeight)
+                    .clipped()
             }
+            .frame(height: studentCardHeight, alignment: .top)
+            // At accessibility sizes, content is cut at the card's edge
+            // rather than spilling into the neighbouring card.
+            .clipped()
         }
     }
 
@@ -458,18 +470,40 @@ struct TeacherDashboardView: View {
     }
 }
 
-/// Pages that stay on the web (App Store 3.1.3: roster, purchasing), on the
-/// same host the API uses. Opened in Safari itself, never inside the app,
-/// so nothing sold on the web can ever appear in it.
-@MainActor
-enum TeacherWeb {
-    static func url(_ path: String) -> URL {
-        var comps = URLComponents(url: AppConfig.shared.apiBase, resolvingAgainstBaseURL: false)!
-        comps.path = path
-        return comps.url!
-    }
+/// One "Class at a glance" pill: the value big and centred, the label under
+/// it (up to two lines, space always reserved), and an optional sub-line
+/// (space reserved too, so every pill in the grid is the same height).
+private struct GlancePill<Value: View>: View {
+    let label: LocalizedStringResource
+    var sub: LocalizedStringResource? = nil
+    @ViewBuilder var value: () -> Value
 
-    static func open(_ path: String) {
-        UIApplication.shared.open(url(path))
+    var body: some View {
+        VStack(spacing: 4) {
+            value()
+                .font(.system(.title2, design: .rounded).bold())
+                .foregroundStyle(.white)
+                .lineLimit(1)
+                .minimumScaleFactor(0.6)
+            Text(label)
+                .font(.footnote.weight(.semibold))
+                .foregroundStyle(.white.opacity(0.85))
+                .multilineTextAlignment(.center)
+                .lineLimit(2, reservesSpace: true)
+            Group {
+                if let sub { Text(sub) } else { Text(verbatim: " ") }
+            }
+            .font(.caption2)
+            .foregroundStyle(.white.opacity(0.75))
+            .lineLimit(1, reservesSpace: true)
+            .minimumScaleFactor(0.8)
+            .accessibilityHidden(sub == nil)
+        }
+        .frame(maxWidth: .infinity, minHeight: 118)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 12)
+        .background(TeacherTheme.cardFill, in: RoundedRectangle(cornerRadius: 18))
+        .overlay(RoundedRectangle(cornerRadius: 18).strokeBorder(TeacherTheme.cardStroke))
+        .accessibilityElement(children: .combine)
     }
 }

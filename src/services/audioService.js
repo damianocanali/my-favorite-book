@@ -3,6 +3,7 @@
 // On web/Android: uses HTMLAudioElement (requires user gesture)
 
 import { Capacitor } from '@capacitor/core'
+import { useAuthStore, selectIsTeacher } from '../stores/useAuthStore'
 
 const MUTE_KEY = 'myBookLab_musicMuted'
 const TARGET_VOLUME = 0.25
@@ -91,9 +92,41 @@ function webPlayTrack(trackKey) {
   current.fadeTimer = fadeIn(audio)
 }
 
+// ─── Teacher accounts: no music ───────────────────────────────────────────────
+// A teacher's screens are a grown-up's workspace, often on a classroom
+// projector: the kids' background music never plays for a teacher account,
+// in any view (same rule as the native iPad app's AudioService).
+
+function silencedForAccount() {
+  try { return selectIsTeacher(useAuthStore.getState()) } catch { return false }
+}
+
+function stopAll() {
+  if (IS_NATIVE) {
+    nativeSetMuted(true)
+    return
+  }
+  if (!current) return
+  clearTimer(current)
+  current.audio.pause()
+  current.audio.src = ''
+  current = null
+}
+
+// Signing in as a teacher mid-song stops it at once, not on the next page.
+try {
+  useAuthStore.subscribe((state, prev) => {
+    if (selectIsTeacher(state) && !selectIsTeacher(prev ?? {})) stopAll()
+  })
+} catch {}
+
 // ─── Public API ───────────────────────────────────────────────────────────────
 
 export function playTrack(trackKey) {
+  if (silencedForAccount()) {
+    stopAll()
+    return
+  }
   if (IS_NATIVE) {
     nativePlayTrack(trackKey)
   } else {
@@ -128,7 +161,7 @@ export function isMuted() {
 
 // Web only — called on user gestures to unlock autoplay
 export function resumeOnGesture() {
-  if (IS_NATIVE || !current || getMuted()) return
+  if (IS_NATIVE || !current || getMuted() || silencedForAccount()) return
   if (current.audio.paused) {
     clearTimer(current)
     current.audio.volume = TARGET_VOLUME

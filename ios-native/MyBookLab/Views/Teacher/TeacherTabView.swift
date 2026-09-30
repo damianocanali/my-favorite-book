@@ -30,6 +30,8 @@ struct TeacherTabView: View {
                 .tag(TeacherTab.account)
         }
         .tint(.white)
+        // A still backdrop everywhere in the teacher area, sheets included.
+        .environment(\.cosmicStyle, .calm)
         // No kids' background music in the teacher area.
         .onAppear { audio.stop() }
         // Restarts on every scene-phase change and only loops while active,
@@ -42,32 +44,5 @@ struct TeacherTabView: View {
                 try? await Task.sleep(for: TeacherNotificationsStore.pollInterval)
             }
         }
-    }
-}
-
-/// The slim strip over the kids' app while a teacher previews it.
-struct KidsPreviewBanner: View {
-    @Environment(TeacherStore.self) private var teacher
-
-    var body: some View {
-        HStack(spacing: 10) {
-            Image(systemName: "eye.fill").accessibilityHidden(true)
-            Text(TeacherCopy.previewBanner).lineLimit(1).minimumScaleFactor(0.8)
-            Spacer(minLength: 8)
-            Button {
-                teacher.exitKidsPreview()
-            } label: {
-                Text(TeacherCopy.previewBack)
-                    .font(.footnote.bold())
-                    .padding(.horizontal, 12).padding(.vertical, 5)
-                    .background(.white.opacity(0.2), in: Capsule())
-            }
-            .buttonStyle(.plain)
-        }
-        .font(.footnote)
-        .foregroundStyle(.white)
-        .padding(.horizontal, 16)
-        .padding(.vertical, 8)
-        .background(Color.purple.opacity(0.85))
     }
 }

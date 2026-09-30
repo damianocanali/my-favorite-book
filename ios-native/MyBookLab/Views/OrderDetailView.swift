@@ -143,9 +143,9 @@ struct OrderDetailView: View {
             sectionHeader("Summary")
             // Single format string with positional arguments instead of
             // interpolating a capitalized rawValue into an ad-hoc sentence.
-            row("Format", String(localized: LocalizedStringResource(
+            row("Format", String(appLocalized: AppText(
                 "order.summary.format_quantity",
-                defaultValue: "\(String(localized: o.format.displayName)) × \(o.quantity)",
+                defaultValue: "\(String(appLocalized: o.format.displayName)) × \(o.quantity)",
                 comment: "Order summary value, e.g. \"Hardcover × 2\"")))
             row("Subtotal", (o.unitPriceCents * o.quantity).asPrice)
             row("Shipping", (o.shippingCents).asPrice)
@@ -229,7 +229,7 @@ struct OrderDetailView: View {
         } catch {
             // Don't blow away an existing order on a transient network blip.
             if self.order == nil {
-                self.error = LocalizedStringResource(
+                self.error = AppText(
                     "order.detail.error.load_failed",
                     defaultValue: "Couldn't load this order.",
                     comment: "Shown when the order row cannot be fetched")

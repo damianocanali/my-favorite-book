@@ -467,7 +467,7 @@ private struct CharacterStep: View {
         do {
             guard let data = try await item.loadTransferable(type: Data.self),
                   let original = UIImage(data: data) else {
-                heroError = LocalizedStringResource(
+                heroError = AppText(
                     "create.hero.error.unreadable_photo",
                     defaultValue: "Couldn't read that photo.",
                     comment: "Shown when the picked photo can't be decoded")
@@ -475,7 +475,7 @@ private struct CharacterStep: View {
             }
             let resized = original.resizedSquare(to: 768)
             guard let jpeg = resized.jpegData(compressionQuality: 0.85) else {
-                heroError = LocalizedStringResource(
+                heroError = AppText(
                     "create.hero.error.unprocessable_photo",
                     defaultValue: "Couldn't process that photo.",
                     comment: "Shown when the picked photo can't be re-encoded for upload")
@@ -489,7 +489,7 @@ private struct CharacterStep: View {
             heroImage = res.image
             Haptics.celebrate()
         } catch {
-            heroError = LocalizedStringResource(
+            heroError = AppText(
                 "create.hero.error.generation_failed",
                 defaultValue: "Couldn't create your hero: \(error.localizedDescription)",
                 comment: "%@ is the underlying network/server error, already localized by iOS")
@@ -522,45 +522,45 @@ private struct SettingStep: View {
     private let presets: [(name: String, emoji: String, description: String,
                            title: LocalizedStringResource, blurb: LocalizedStringResource)] = [
         ("The Glowing Forest", "🌲", "A magical forest where stars come down at night.",
-         LocalizedStringResource("create.setting.glowing_forest.title",
+         AppText("create.setting.glowing_forest.title",
                                  defaultValue: "The Glowing Forest",
                                  comment: "Name of a story world a child can pick"),
-         LocalizedStringResource("create.setting.glowing_forest.blurb",
+         AppText("create.setting.glowing_forest.blurb",
                                  defaultValue: "A magical forest where stars come down at night.",
                                  comment: "One-line description of the Glowing Forest world")),
         ("The Cloud Kingdom", "☁️", "A floating land high above the world.",
-         LocalizedStringResource("create.setting.cloud_kingdom.title",
+         AppText("create.setting.cloud_kingdom.title",
                                  defaultValue: "The Cloud Kingdom",
                                  comment: "Name of a story world a child can pick"),
-         LocalizedStringResource("create.setting.cloud_kingdom.blurb",
+         AppText("create.setting.cloud_kingdom.blurb",
                                  defaultValue: "A floating land high above the world.",
                                  comment: "One-line description of the Cloud Kingdom world")),
         ("The Coral City", "🐠", "An underwater city of bright coral towers.",
-         LocalizedStringResource("create.setting.coral_city.title",
+         AppText("create.setting.coral_city.title",
                                  defaultValue: "The Coral City",
                                  comment: "Name of a story world a child can pick"),
-         LocalizedStringResource("create.setting.coral_city.blurb",
+         AppText("create.setting.coral_city.blurb",
                                  defaultValue: "An underwater city of bright coral towers.",
                                  comment: "One-line description of the Coral City world")),
         ("The Cookie Planet", "🍪", "A planet made of every dessert imaginable.",
-         LocalizedStringResource("create.setting.cookie_planet.title",
+         AppText("create.setting.cookie_planet.title",
                                  defaultValue: "The Cookie Planet",
                                  comment: "Name of a story world a child can pick"),
-         LocalizedStringResource("create.setting.cookie_planet.blurb",
+         AppText("create.setting.cookie_planet.blurb",
                                  defaultValue: "A planet made of every dessert imaginable.",
                                  comment: "One-line description of the Cookie Planet world")),
         ("The Snow Castle", "🏰", "A castle of ice and silver moonlight.",
-         LocalizedStringResource("create.setting.snow_castle.title",
+         AppText("create.setting.snow_castle.title",
                                  defaultValue: "The Snow Castle",
                                  comment: "Name of a story world a child can pick"),
-         LocalizedStringResource("create.setting.snow_castle.blurb",
+         AppText("create.setting.snow_castle.blurb",
                                  defaultValue: "A castle of ice and silver moonlight.",
                                  comment: "One-line description of the Snow Castle world")),
         ("The Dinosaur Valley", "🦕", "A hidden valley where dinosaurs still play.",
-         LocalizedStringResource("create.setting.dinosaur_valley.title",
+         AppText("create.setting.dinosaur_valley.title",
                                  defaultValue: "The Dinosaur Valley",
                                  comment: "Name of a story world a child can pick"),
-         LocalizedStringResource("create.setting.dinosaur_valley.blurb",
+         AppText("create.setting.dinosaur_valley.blurb",
                                  defaultValue: "A hidden valley where dinosaurs still play.",
                                  comment: "One-line description of the Dinosaur Valley world")),
     ]
@@ -782,10 +782,10 @@ private struct PagesStep: View {
 
                 // Otherwise nobody finds the shake: there is no button for it.
                 Label(UIDevice.current.userInterfaceIdiom == .pad
-                      ? LocalizedStringResource("story.idea.hint.pad.writing",
+                      ? AppText("story.idea.hint.pad.writing",
                             defaultValue: "Shake your iPad while you write for a new idea ✨",
                             comment: "Footnote on the story-idea popup, iPad wording")
-                      : LocalizedStringResource("story.idea.hint.phone.writing",
+                      : AppText("story.idea.hint.phone.writing",
                             defaultValue: "Shake your phone while you write for a new idea ✨",
                             comment: "Footnote on the story-idea popup, iPhone wording"),
                       systemImage: "iphone.radiowaves.left.and.right")
@@ -977,7 +977,7 @@ private struct PagesStep: View {
             Haptics.celebrate()
             await RewardsStore.shared.earn("added_illustration")
         } catch {
-            generationError = LocalizedStringResource(
+            generationError = AppText(
                 "create.page.error.drawing_save_failed",
                 defaultValue: "Couldn't save your drawing: \(error.localizedDescription)",
                 comment: "%@ is the underlying upload error, already localized by iOS")
@@ -1009,7 +1009,7 @@ private struct PagesStep: View {
         } catch let error where isClassImageLimit(error, isStudent: auth.isStudent) {
             generationError = classImageLimitMessage
         } catch {
-            generationError = LocalizedStringResource(
+            generationError = AppText(
                 "create.page.error.illustration_failed",
                 defaultValue: "Couldn't generate illustration: \(error.localizedDescription)",
                 comment: "%@ is the underlying network/server error, already localized by iOS")
@@ -1174,7 +1174,7 @@ private struct ReadyStep: View {
         } catch let error where isClassImageLimit(error, isStudent: auth.isStudent) {
             coverError = classImageLimitMessage
         } catch {
-            coverError = LocalizedStringResource(
+            coverError = AppText(
                 "create.cover.error.generation_failed",
                 defaultValue: "Couldn't paint the cover: \(error.localizedDescription)",
                 comment: "%@ is the underlying network/server error, already localized by iOS")

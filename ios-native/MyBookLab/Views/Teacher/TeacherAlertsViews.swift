@@ -76,8 +76,11 @@ struct TeacherNotificationSettingsCard: View {
     @State private var settings: TeacherNotificationSettings?
     @State private var loadError = false
     @State private var status: Status?
+    @State private var testing = false
+    @State private var testResult: TestResult?
 
     enum Status { case saved, error }
+    enum TestResult: Equatable { case sent(Int), noDevice, failed(String?) }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -124,7 +127,8 @@ struct TeacherNotificationSettingsCard: View {
                 case .error: Text(TeacherCopy.settingsError).font(.caption).foregroundStyle(.red)
                 case nil: EmptyView()
                 }
-                Text(TeacherCopy.needsDisclaimer).font(.caption2).foregroundStyle(.white.opacity(0.55))
+                testAlert
+                Text(TeacherCopy.needsDisclaimer).font(.caption).foregroundStyle(.white.opacity(0.72))
             } else if !loadError {
                 ProgressView().tint(.white)
             }
@@ -133,6 +137,63 @@ struct TeacherNotificationSettingsCard: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 18))
         .task { await load() }
+    }
+
+    /// Why an alert may not have arrived (school hours) and a way to check
+    /// this device right now.
+    private var testAlert: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Label {
+                Text(TeacherCopy.settingsHoursNote)
+            } icon: {
+                Image(systemName: "clock.fill").foregroundStyle(.cyan)
+            }
+            .font(.subheadline)
+            .foregroundStyle(.white.opacity(0.85))
+            .fixedSize(horizontal: false, vertical: true)
+
+            Button {
+                Task { await sendTest() }
+            } label: {
+                HStack(spacing: 8) {
+                    if testing { ProgressView().tint(.white) } else { Image(systemName: "bell.and.waves.left.and.right.fill") }
+                    Text(testing ? TeacherCopy.testSending : TeacherCopy.testButton)
+                }
+                .font(.subheadline.bold())
+                .padding(.horizontal, 16).padding(.vertical, 12)
+                .frame(minHeight: 44)
+                .background(Color.purple.opacity(0.55), in: Capsule())
+                .foregroundStyle(.white)
+            }
+            .buttonStyle(.plain)
+            .disabled(testing)
+
+            switch testResult {
+            case .sent(let n):
+                Text(TeacherCopy.testSent(n)).font(.footnote).foregroundStyle(Color(red: 0.43, green: 0.91, blue: 0.72))
+            case .noDevice:
+                Text(TeacherCopy.testNone).font(.footnote).foregroundStyle(Color(red: 0.99, green: 0.83, blue: 0.45))
+            case .failed(let code):
+                Text(code == "not_configured" ? TeacherCopy.testUnavailable : TeacherCopy.error(code))
+                    .font(.footnote).foregroundStyle(TeacherTheme.urgent)
+            case nil:
+                EmptyView()
+            }
+        }
+        .padding(.top, 4)
+    }
+
+    private func sendTest() async {
+        guard let token = auth.accessToken else { return }
+        testing = true
+        testResult = nil
+        defer { testing = false }
+        do {
+            let n = try await APIClient.shared.teacherSendTestAlert(bearerToken: token)
+            testResult = n > 0 ? .sent(n) : .noDevice
+        } catch {
+            testResult = .failed((error as? APIClient.TeacherError)?.code)
+        }
     }
 
     private func load() async {

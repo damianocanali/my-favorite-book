@@ -34,37 +34,37 @@ struct AppIconPickerView: View {
 
     private let options: [AppIconOption] = [
         AppIconOption(id: "icon_classic", assetName: nil,
-                      label: LocalizedStringResource("app_icon.classic.label", defaultValue: "Classic"),
+                      label: AppText("app_icon.classic.label", defaultValue: "Classic"),
                       emoji: "📖",
                       swatch: [Color(red: 0.30, green: 0.15, blue: 0.55), .purple],
                       price: 0, requiredBadge: nil),
         AppIconOption(id: "icon_rocket", assetName: "AppIconRocket",
-                      label: LocalizedStringResource("app_icon.rocket.label", defaultValue: "Rocket"),
+                      label: AppText("app_icon.rocket.label", defaultValue: "Rocket"),
                       emoji: "🚀",
                       swatch: [Color(red: 0.04, green: 0.12, blue: 0.35), .cyan],
                       price: 100, requiredBadge: nil),
         AppIconOption(id: "icon_rainbow", assetName: "AppIconRainbow",
-                      label: LocalizedStringResource("app_icon.rainbow.label", defaultValue: "Rainbow"),
+                      label: AppText("app_icon.rainbow.label", defaultValue: "Rainbow"),
                       emoji: "🌈",
                       swatch: [.pink, .orange],
                       price: 100, requiredBadge: nil),
         AppIconOption(id: "icon_dino", assetName: "AppIconDino",
-                      label: LocalizedStringResource("app_icon.dino.label", defaultValue: "Dinosaur"),
+                      label: AppText("app_icon.dino.label", defaultValue: "Dinosaur"),
                       emoji: "🦕",
                       swatch: [.green, .orange],
                       price: 100, requiredBadge: nil),
         AppIconOption(id: "icon_ocean", assetName: "AppIconOcean",
-                      label: LocalizedStringResource("app_icon.ocean.label", defaultValue: "Ocean"),
+                      label: AppText("app_icon.ocean.label", defaultValue: "Ocean"),
                       emoji: "🐳",
                       swatch: [.cyan, .blue],
                       price: 100, requiredBadge: nil),
         AppIconOption(id: "icon_dragon", assetName: "AppIconDragon",
-                      label: LocalizedStringResource("app_icon.dragon.label", defaultValue: "Dragon"),
+                      label: AppText("app_icon.dragon.label", defaultValue: "Dragon"),
                       emoji: "🐉",
                       swatch: [.purple, .indigo],
                       price: 100, requiredBadge: nil),
         AppIconOption(id: "icon_night", assetName: "AppIconNight",
-                      label: LocalizedStringResource("app_icon.night.label", defaultValue: "Night Owl"),
+                      label: AppText("app_icon.night.label", defaultValue: "Night Owl"),
                       emoji: "🌙",
                       swatch: [Color(red: 0.04, green: 0.03, blue: 0.16), .indigo],
                       price: 0, requiredBadge: "streak_7"),
@@ -194,9 +194,9 @@ struct AppIconPickerView: View {
     /// to a translatable noun phrase rather than leaking the wire id.
     private static func badgeName(_ badgeId: String) -> String {
         guard let badge = RewardsStore.catalog.first(where: { $0.id == badgeId }) else {
-            return String(localized: "badge.generic.name", defaultValue: "this badge")
+            return String(appLocalized: AppText("badge.generic.name", defaultValue: "this badge"))
         }
-        return String(localized: badge.label)
+        return String(appLocalized: badge.label)
     }
 
     private func isOwned(_ option: AppIconOption) -> Bool {
@@ -209,7 +209,7 @@ struct AppIconPickerView: View {
         error = nil
 
         if let badgeId = option.requiredBadge, !rewards.earnedBadges.contains(badgeId) {
-            error = .app(LocalizedStringResource(
+            error = .app(AppText(
                 "app_icon.locked_by_badge",
                 defaultValue: "Keep your streak going to earn \(Self.badgeName(badgeId)) first!"))
             return
@@ -224,7 +224,7 @@ struct AppIconPickerView: View {
             case .ok:
                 coins.markItemOwned(option.id)
             case .insufficient:
-                error = .app(LocalizedStringResource(
+                error = .app(AppText(
                     "coins.insufficient",
                     defaultValue: "Not enough coins yet — keep creating to earn more!"))
                 return
@@ -236,7 +236,7 @@ struct AppIconPickerView: View {
         }
 
         guard UIApplication.shared.supportsAlternateIcons else {
-            error = .app(LocalizedStringResource(
+            error = .app(AppText(
                 "app_icon.unsupported_device",
                 defaultValue: "This device doesn't support changing the icon."))
             return
@@ -247,7 +247,7 @@ struct AppIconPickerView: View {
             Haptics.celebrate()
             AudioService.shared.playSFX(.sparkle)
         } catch {
-            self.error = .app(LocalizedStringResource(
+            self.error = .app(AppText(
                 "app_icon.change_failed",
                 defaultValue: "Couldn't change the icon. Please try again."))
         }

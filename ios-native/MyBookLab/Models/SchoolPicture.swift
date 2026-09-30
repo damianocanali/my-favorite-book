@@ -15,24 +15,24 @@ struct SchoolPicture: Identifiable, Hashable {
     static func == (a: SchoolPicture, b: SchoolPicture) -> Bool { a.id == b.id }
     func hash(into hasher: inout Hasher) { hasher.combine(id) }
 
-    static let all: [SchoolPicture] = [
-        .init(id: "cat", emoji: "🐱", name: LocalizedStringResource("school.picture.cat", defaultValue: "cat")),
-        .init(id: "dog", emoji: "🐶", name: LocalizedStringResource("school.picture.dog", defaultValue: "dog")),
-        .init(id: "fish", emoji: "🐟", name: LocalizedStringResource("school.picture.fish", defaultValue: "fish")),
-        .init(id: "frog", emoji: "🐸", name: LocalizedStringResource("school.picture.frog", defaultValue: "frog")),
-        .init(id: "lion", emoji: "🦁", name: LocalizedStringResource("school.picture.lion", defaultValue: "lion")),
-        .init(id: "owl", emoji: "🦉", name: LocalizedStringResource("school.picture.owl", defaultValue: "owl")),
-        .init(id: "turtle", emoji: "🐢", name: LocalizedStringResource("school.picture.turtle", defaultValue: "turtle")),
-        .init(id: "bee", emoji: "🐝", name: LocalizedStringResource("school.picture.bee", defaultValue: "bee")),
-        .init(id: "sun", emoji: "☀️", name: LocalizedStringResource("school.picture.sun", defaultValue: "sun")),
-        .init(id: "moon", emoji: "🌙", name: LocalizedStringResource("school.picture.moon", defaultValue: "moon")),
-        .init(id: "star", emoji: "⭐", name: LocalizedStringResource("school.picture.star", defaultValue: "star")),
-        .init(id: "tree", emoji: "🌳", name: LocalizedStringResource("school.picture.tree", defaultValue: "tree")),
-        .init(id: "apple", emoji: "🍎", name: LocalizedStringResource("school.picture.apple", defaultValue: "apple")),
-        .init(id: "boat", emoji: "⛵", name: LocalizedStringResource("school.picture.boat", defaultValue: "boat")),
-        .init(id: "rocket", emoji: "🚀", name: LocalizedStringResource("school.picture.rocket", defaultValue: "rocket")),
-        .init(id: "ball", emoji: "⚽", name: LocalizedStringResource("school.picture.ball", defaultValue: "ball")),
-    ]
+    static var all: [SchoolPicture] { [
+        .init(id: "cat", emoji: "🐱", name: AppText("school.picture.cat", defaultValue: "cat")),
+        .init(id: "dog", emoji: "🐶", name: AppText("school.picture.dog", defaultValue: "dog")),
+        .init(id: "fish", emoji: "🐟", name: AppText("school.picture.fish", defaultValue: "fish")),
+        .init(id: "frog", emoji: "🐸", name: AppText("school.picture.frog", defaultValue: "frog")),
+        .init(id: "lion", emoji: "🦁", name: AppText("school.picture.lion", defaultValue: "lion")),
+        .init(id: "owl", emoji: "🦉", name: AppText("school.picture.owl", defaultValue: "owl")),
+        .init(id: "turtle", emoji: "🐢", name: AppText("school.picture.turtle", defaultValue: "turtle")),
+        .init(id: "bee", emoji: "🐝", name: AppText("school.picture.bee", defaultValue: "bee")),
+        .init(id: "sun", emoji: "☀️", name: AppText("school.picture.sun", defaultValue: "sun")),
+        .init(id: "moon", emoji: "🌙", name: AppText("school.picture.moon", defaultValue: "moon")),
+        .init(id: "star", emoji: "⭐", name: AppText("school.picture.star", defaultValue: "star")),
+        .init(id: "tree", emoji: "🌳", name: AppText("school.picture.tree", defaultValue: "tree")),
+        .init(id: "apple", emoji: "🍎", name: AppText("school.picture.apple", defaultValue: "apple")),
+        .init(id: "boat", emoji: "⛵", name: AppText("school.picture.boat", defaultValue: "boat")),
+        .init(id: "rocket", emoji: "🚀", name: AppText("school.picture.rocket", defaultValue: "rocket")),
+        .init(id: "ball", emoji: "⚽", name: AppText("school.picture.ball", defaultValue: "ball")),
+    ] }
 
     static func byId(_ id: String) -> SchoolPicture? { all.first { $0.id == id } }
 }

@@ -77,6 +77,47 @@ describe('GET/POST /api/school/notifications', () => {
     expect(lookup.url).toContain(`classrooms.owner_user_id=eq.${TEACHER.id}`)
   })
 
+  it('says whether each help ask arrived in school hours (only the caller\'s classes; unknown is null)', async () => {
+    const H1 = '6f1c1b1e-0000-4000-8000-0000000000f1'
+    const H2 = '6f1c1b1e-0000-4000-8000-0000000000f2'
+    const H3 = '6f1c1b1e-0000-4000-8000-0000000000f3'
+    const rows = [
+      { id: N1, classroom_id: 'c', kind: 'help_grownup', payload: { help_id: H1 }, created_at: 'x', read_at: null },
+      { id: N2, classroom_id: 'c', kind: 'help_book', payload: { help_id: H2 }, created_at: 'x', read_at: null },
+      { id: 'n3', classroom_id: 'c', kind: 'help_grownup', payload: { help_id: H3 }, created_at: 'x', read_at: null },
+      { id: 'n4', classroom_id: 'c', kind: 'hand_in', payload: { assignment_id: 'a' }, created_at: 'x', read_at: null },
+    ]
+    const log = mockSupabase({
+      user: TEACHER,
+      routes: [
+        { method: 'GET', match: 'read_at=is.null', reply: { body: [], headers: { 'content-range': '0-0/4' } } },
+        { method: 'GET', match: '/rest/v1/teacher_notifications', reply: { body: rows } },
+        { method: 'GET', match: '/rest/v1/class_help_requests', reply: { body: [{ id: H1, in_hours: false }, { id: H2, in_hours: true }] } },
+      ],
+    })
+    const body = await (await (await load())(call('school/notifications'))).json()
+    expect(body.notifications.map((n) => n.payload.in_hours)).toEqual([false, true, null, undefined])
+    const lookup = log.find((l) => l.url.includes('/rest/v1/class_help_requests'))
+    expect(lookup.url).toContain(`id=in.(${H1},${H2},${H3})`)
+    expect(lookup.url).toContain(`classrooms.owner_user_id=eq.${TEACHER.id}`)
+  })
+
+  it('still answers when the hours lookup fails (in_hours reads as null)', async () => {
+    const H1 = '6f1c1b1e-0000-4000-8000-0000000000f1'
+    const rows = [{ id: N1, classroom_id: 'c', kind: 'help_grownup', payload: { help_id: H1 }, created_at: 'x', read_at: null }]
+    mockSupabase({
+      user: TEACHER,
+      routes: [
+        { method: 'GET', match: 'read_at=is.null', reply: { body: [], headers: { 'content-range': '0-0/1' } } },
+        { method: 'GET', match: '/rest/v1/teacher_notifications', reply: { body: rows } },
+        err500('GET', '/rest/v1/class_help_requests'),
+      ],
+    })
+    const res = await (await load())(call('school/notifications'))
+    expect(res.status).toBe(200)
+    expect((await res.json()).notifications[0].payload.in_hours).toBeNull()
+  })
+
   it('fails closed (503) when the read errors', async () => {
     mockSupabase({ user: TEACHER, routes: [err500('GET', '/rest/v1/teacher_notifications')] })
     expect((await (await load())(call('school/notifications'))).status).toBe(503)

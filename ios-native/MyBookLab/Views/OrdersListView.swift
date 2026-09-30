@@ -108,9 +108,9 @@ struct OrdersListView: View {
             // It used to splice a capitalized rawValue straight into the
             // sentence, which both leaked a wire value into the UI and
             // left the order of the parts frozen in English.
-            Text(LocalizedStringResource(
+            Text(AppText(
                 "orders.card.quantity_line",
-                defaultValue: "\(o.quantity) × \(String(localized: o.format.displayName)) · \(o.totalCents.asPrice)",
+                defaultValue: "\(o.quantity) × \(String(appLocalized: o.format.displayName)) · \(o.totalCents.asPrice)",
                 comment: "Order card subtitle, e.g. \"2 × Hardcover · $44.98\""))
                 .font(.caption).foregroundStyle(.white.opacity(0.7))
             Text(formattedDate(o.createdAt))
@@ -164,7 +164,7 @@ struct OrdersListView: View {
         } catch let urlError as URLError where urlError.code == .cancelled {
             // Same.
         } catch {
-            self.error = LocalizedStringResource(
+            self.error = AppText(
                 "orders.list.error.load_failed",
                 defaultValue: "Couldn't load orders: \(error.localizedDescription)",
                 comment: "%@ is the underlying network/server error, already localized by iOS")
@@ -176,6 +176,6 @@ struct OrdersListView: View {
         let formatter = ISO8601DateFormatter()
         formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         let date = formatter.date(from: iso) ?? ISO8601DateFormatter().date(from: iso) ?? Date()
-        return date.formatted(date: .abbreviated, time: .omitted)
+        return date.formatted(.dateTime.day().month(.abbreviated).year().locale(AppLanguage.locale))
     }
 }

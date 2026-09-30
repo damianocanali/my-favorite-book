@@ -102,7 +102,7 @@ struct TeacherReviewView: View {
             HStack(spacing: 12) {
                 TeacherStudentAvatar(emoji: row.avatar_emoji, size: 36)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(verbatim: row.display_name ?? String(localized: TeacherCopy.unknownStudent))
+                    Text(verbatim: row.display_name ?? String(appLocalized: TeacherCopy.unknownStudent))
                         .font(.headline).foregroundStyle(.white).lineLimit(1)
                     if let when = TeacherDates.relative(row.submitted_at) {
                         HStack(spacing: 4) {

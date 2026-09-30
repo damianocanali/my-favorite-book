@@ -327,7 +327,7 @@ struct PrintOrderView: View {
             // live/test mode — using a key from the wrong mode fails at
             // confirmation with "No such payment_intent".
             guard let pk = res.publishableKey, !pk.isEmpty else {
-                self.error = LocalizedStringResource(
+                self.error = AppText(
                     "print.order.error.payments_unavailable",
                     defaultValue: "Payments are temporarily unavailable. Please try again later.",
                     comment: "Shown when the server did not return a Stripe publishable key")
@@ -356,7 +356,7 @@ struct PrintOrderView: View {
         } catch {
             // One format string with the OS-localized reason as an
             // argument, so a translator can reorder or reword around it.
-            self.error = LocalizedStringResource(
+            self.error = AppText(
                 "print.order.error.create_failed",
                 defaultValue: "Couldn't create order: \(error.localizedDescription)",
                 comment: "%@ is the underlying network/server error, already localized by iOS")
@@ -385,7 +385,7 @@ struct PrintOrderView: View {
         case .canceled:
             break
         case .failed(let err):
-            self.error = LocalizedStringResource(
+            self.error = AppText(
                 "print.order.error.payment_failed",
                 defaultValue: "Payment failed: \(err.localizedDescription)",
                 comment: "%@ is Stripe's decline/failure reason, already localized by the SDK")

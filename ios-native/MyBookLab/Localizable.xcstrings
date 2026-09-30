@@ -5713,16 +5713,6 @@
         }
       }
     },
-    "Close My Book Lab and open it again to switch language.": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Chiudi My Book Lab e riaprila per cambiare lingua."
-          }
-        }
-      }
-    },
     "Up to 50 AI illustrations a day": {
       "localizations": {
         "it": {
@@ -7482,57 +7472,6 @@
         }
       }
     },
-    "school.teacher.dashboard.preview_link": {
-      "extractionState": "extracted_with_value",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "new",
-            "value": "Preview the kids' app"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Prova l'app dei bambini"
-          }
-        }
-      }
-    },
-    "school.teacher.preview.banner": {
-      "extractionState": "extracted_with_value",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "new",
-            "value": "You're previewing the kids' app"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Stai provando l'app dei bambini"
-          }
-        }
-      }
-    },
-    "school.teacher.preview.back_to_dashboard": {
-      "extractionState": "extracted_with_value",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "new",
-            "value": "Back to dashboard"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Torna alla dashboard"
-          }
-        }
-      }
-    },
     "school.teacher.view.switch_to_family": {
       "extractionState": "extracted_with_value",
       "localizations": {
@@ -8514,69 +8453,17 @@
       }
     },
     "school.teacher.classes.empty": {
-      "extractionState": "extracted_with_value",
       "localizations": {
         "en": {
           "stringUnit": {
-            "state": "new",
-            "value": "No classes yet — create one on the web to get started."
+            "state": "translated",
+            "value": "No classes yet. Create your first one to get started."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ancora nessuna classe — creane una sul web per iniziare."
-          }
-        }
-      }
-    },
-    "school.teacher.classes.create_on_web": {
-      "extractionState": "extracted_with_value",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "new",
-            "value": "Create a class on the web"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Crea una classe sul web"
-          }
-        }
-      }
-    },
-    "school.teacher.classes.manage_roster": {
-      "extractionState": "extracted_with_value",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "new",
-            "value": "Manage roster on the web"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Gestisci gli alunni sul web"
-          }
-        }
-      }
-    },
-    "school.teacher.classes.manage_roster_hint": {
-      "extractionState": "extracted_with_value",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "new",
-            "value": "Add students, make new picture passwords and print sign-in cards on mybooklab.app."
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Aggiungi alunni, crea nuove password con le immagini e stampa le tessere di accesso su mybooklab.app."
+            "value": "Ancora nessuna classe. Crea la prima per iniziare."
           }
         }
       }
@@ -9606,35 +9493,17 @@
       }
     },
     "school.notifications.mark_all_read": {
-      "extractionState": "extracted_with_value",
       "localizations": {
         "en": {
           "stringUnit": {
-            "state": "new",
-            "value": "Mark all read"
+            "state": "translated",
+            "value": "Mark all as read"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
             "value": "Segna tutte come lette"
-          }
-        }
-      }
-    },
-    "school.notifications.empty": {
-      "extractionState": "extracted_with_value",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "new",
-            "value": "Nothing new yet."
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ancora niente di nuovo."
           }
         }
       }
@@ -9703,125 +9572,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Notifiche"
-          }
-        }
-      }
-    },
-    "school.notifications.kinds.hand_in": {
-      "extractionState": "extracted_with_value",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "new",
-            "value": "%1$@ handed in “%2$@”"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%1$@ ha consegnato “%2$@”"
-          }
-        }
-      }
-    },
-    "school.notifications.kinds.hand_in_late": {
-      "extractionState": "extracted_with_value",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "new",
-            "value": "%1$@ handed in “%2$@” late"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%1$@ ha consegnato “%2$@” in ritardo"
-          }
-        }
-      }
-    },
-    "school.notifications.kinds.resubmit": {
-      "extractionState": "extracted_with_value",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "new",
-            "value": "%1$@ handed in “%2$@” again"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%1$@ ha consegnato di nuovo “%2$@”"
-          }
-        }
-      }
-    },
-    "school.notifications.kinds.all_handed_in": {
-      "extractionState": "extracted_with_value",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "new",
-            "value": "Everyone in %1$@ has handed in “%2$@”"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tutta la classe %1$@ ha consegnato “%2$@”"
-          }
-        }
-      }
-    },
-    "school.notifications.kinds.help_book": {
-      "extractionState": "extracted_with_value",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "new",
-            "value": "%@ would like help with their book"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ vorrebbe aiuto con il suo libro"
-          }
-        }
-      }
-    },
-    "school.notifications.kinds.help_grownup": {
-      "extractionState": "extracted_with_value",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "new",
-            "value": "%@ asked for a grown-up"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ ha chiesto un adulto"
-          }
-        }
-      }
-    },
-    "school.notifications.kinds.generic": {
-      "extractionState": "extracted_with_value",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "new",
-            "value": "Something new in %@"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Novità in %@"
           }
         }
       }
@@ -10047,23 +9797,6 @@
         }
       }
     },
-    "school.teacher.errors.license_required": {
-      "extractionState": "extracted_with_value",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "new",
-            "value": "This class needs an active license."
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Questa classe ha bisogno di una licenza attiva."
-          }
-        }
-      }
-    },
     "school.teacher.errors.student_not_found": {
       "extractionState": "extracted_with_value",
       "localizations": {
@@ -10264,6 +9997,1726 @@
           "stringUnit": {
             "state": "translated",
             "value": "Qualcosa non ha funzionato. Riprova."
+          }
+        }
+      }
+    },
+    "school.notifications.section.today": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Today"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oggi"
+          }
+        }
+      }
+    },
+    "school.notifications.section.earlier": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Earlier"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prima"
+          }
+        }
+      }
+    },
+    "school.notifications.empty_title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You're all caught up"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nessuna nuova notifica"
+          }
+        }
+      }
+    },
+    "school.notifications.empty_body": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hand-ins and requests for help will show up here."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Qui vedrai le consegne e le richieste di aiuto."
+          }
+        }
+      }
+    },
+    "school.notifications.unread": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unread"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Da leggere"
+          }
+        }
+      }
+    },
+    "school.notifications.outside_hours": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Outside school hours — no alert sent"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fuori dall'orario scolastico: nessun avviso inviato"
+          }
+        }
+      }
+    },
+    "school.notifications.short.hand_in": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "handed in “%@”"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ha consegnato “%@”"
+          }
+        }
+      }
+    },
+    "school.notifications.short.hand_in_late": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "handed in “%@” late"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ha consegnato “%@” in ritardo"
+          }
+        }
+      }
+    },
+    "school.notifications.short.resubmit": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "handed in a new version of “%@”"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ha consegnato una nuova versione di “%@”"
+          }
+        }
+      }
+    },
+    "school.notifications.short.all_handed_in": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Everyone has handed in “%@”"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hanno consegnato tutti “%@”"
+          }
+        }
+      }
+    },
+    "school.notifications.short.help_book": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "would like help with their book"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "vorrebbe aiuto con il suo libro"
+          }
+        }
+      }
+    },
+    "school.notifications.short.help_grownup": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "asked for a grown-up"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ha chiesto un adulto"
+          }
+        }
+      }
+    },
+    "school.notifications.short.generic": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Something new"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Una novità"
+          }
+        }
+      }
+    },
+    "school.teacher.day.today": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Today"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oggi"
+          }
+        }
+      }
+    },
+    "school.teacher.day.yesterday": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yesterday"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ieri"
+          }
+        }
+      }
+    },
+    "school.teacher.checkins.spoken": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, at %2$@"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, alle %2$@"
+          }
+        }
+      }
+    },
+    "school.teacher.checkins.spoken_with_need": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, %2$@, at %3$@"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, %2$@, alle %3$@"
+          }
+        }
+      }
+    },
+    "school.teacher.checkins.need.grownup": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Needs a grown-up"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ha bisogno di un adulto"
+          }
+        }
+      }
+    },
+    "school.teacher.checkins.need.help_book": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wants help with their book"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vuole aiuto con il libro"
+          }
+        }
+      }
+    },
+    "school.teacher.checkins.need.help": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wants help"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vuole aiuto"
+          }
+        }
+      }
+    },
+    "school.teacher.checkins.need.break": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wants a break"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vuole una pausa"
+          }
+        }
+      }
+    },
+    "school.teacher.checkins.need.quiet": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wants some quiet"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vuole un po' di silenzio"
+          }
+        }
+      }
+    },
+    "school.teacher.checkins.need.keep_going": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wants to keep going"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vuole continuare"
+          }
+        }
+      }
+    },
+    "school.notifications.settings.hours_note": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Urgent alerts arrive during school hours. Outside them they wait in the bell."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gli avvisi urgenti arrivano durante l'orario scolastico. Fuori orario restano nella campanella."
+          }
+        }
+      }
+    },
+    "school.notifications.test.button": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Send a test alert"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invia un avviso di prova"
+          }
+        }
+      }
+    },
+    "school.notifications.test.sending": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sending…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invio in corso…"
+          }
+        }
+      }
+    },
+    "school.notifications.test.none": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No device got it. Turn on alerts on this device from the Dashboard, then try again."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nessun dispositivo l'ha ricevuto. Attiva gli avvisi su questo dispositivo dalla Dashboard, poi riprova."
+          }
+        }
+      }
+    },
+    "school.notifications.test.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Test alerts aren't available right now."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gli avvisi di prova non sono disponibili al momento."
+          }
+        }
+      }
+    },
+    "school.notifications.test.sent": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Test alert sent to %lld device. It should arrive in a few seconds."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Test alert sent to %lld devices. It should arrive in a few seconds."
+                }
+              }
+            }
+          }
+        },
+        "it": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Avviso di prova inviato a %lld dispositivo. Dovrebbe arrivare tra pochi secondi."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Avviso di prova inviato a %lld dispositivi. Dovrebbe arrivare tra pochi secondi."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "school.teacher.classes.students_card": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Students and sign-in"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alunni e accesso"
+          }
+        }
+      }
+    },
+    "school.teacher.classes.students_card_hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add children, rename or remove them, and make new picture passwords."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aggiungi i bambini, rinominali o rimuovili e crea nuove password a immagini."
+          }
+        }
+      }
+    },
+    "school.teacher.classes.settings_card": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Class settings"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impostazioni della classe"
+          }
+        }
+      }
+    },
+    "school.teacher.classes.settings_card_hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Name, sign-in, school hours and time zone."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nome, accesso, orario scolastico e fuso orario."
+          }
+        }
+      }
+    },
+    "school.teacher.create.heading": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Create a class"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Crea una classe"
+          }
+        }
+      }
+    },
+    "school.teacher.create.name_label": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Class name"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nome della classe"
+          }
+        }
+      }
+    },
+    "school.teacher.create.name_placeholder": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "e.g. Mrs. Rivera's 3rd Grade"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "es. 3ª B della maestra Rossi"
+          }
+        }
+      }
+    },
+    "school.teacher.create.timezone_label": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Time zone"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fuso orario"
+          }
+        }
+      }
+    },
+    "school.teacher.create.language_label": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Class language"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lingua della classe"
+          }
+        }
+      }
+    },
+    "school.teacher.create.language_hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The language the children's sign-in and your alerts use."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La lingua usata per l'accesso dei bambini e per i tuoi avvisi."
+          }
+        }
+      }
+    },
+    "school.teacher.create.trial_note": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A new class starts with a free trial."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ogni nuova classe inizia con una prova gratuita."
+          }
+        }
+      }
+    },
+    "school.teacher.create.submit": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Create class"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Crea la classe"
+          }
+        }
+      }
+    },
+    "school.teacher.create.submitting": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Creating…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Creazione in corso…"
+          }
+        }
+      }
+    },
+    "school.teacher.license.ended_note": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This class's license has ended."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La licenza di questa classe è scaduta."
+          }
+        }
+      }
+    },
+    "school.teacher.class_settings.name": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Class name"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nome della classe"
+          }
+        }
+      }
+    },
+    "school.teacher.class_settings.sign_in_open": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Children can sign in"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I bambini possono accedere"
+          }
+        }
+      }
+    },
+    "school.teacher.class_settings.sign_in_hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Turn this off to pause picture sign-in for the whole class."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disattivalo per sospendere l'accesso con le immagini per tutta la classe."
+          }
+        }
+      }
+    },
+    "school.teacher.hours.heading": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "School hours"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Orario scolastico"
+          }
+        }
+      }
+    },
+    "school.teacher.hours.hint_alerts": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Urgent “I need a grown-up” alerts reach you only during these hours; outside them they wait in the bell."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gli avvisi urgenti “Ho bisogno di un adulto” ti arrivano solo in questi orari; fuori orario restano nella campanella."
+          }
+        }
+      }
+    },
+    "school.teacher.hours.start_label": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inizio"
+          }
+        }
+      }
+    },
+    "school.teacher.hours.end_label": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "End"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fine"
+          }
+        }
+      }
+    },
+    "school.teacher.roster.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Students"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alunni"
+          }
+        }
+      }
+    },
+    "school.teacher.roster.empty_native": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No students yet. Tap + to add your class."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ancora nessun alunno. Tocca + per aggiungere la tua classe."
+          }
+        }
+      }
+    },
+    "school.teacher.roster.add": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add students"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aggiungi alunni"
+          }
+        }
+      }
+    },
+    "school.teacher.add_students.one": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add a child"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aggiungi un bambino"
+          }
+        }
+      }
+    },
+    "school.teacher.add_students.many": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add several at once"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aggiungine diversi insieme"
+          }
+        }
+      }
+    },
+    "school.teacher.add_students.name_label": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Child's name"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nome del bambino"
+          }
+        }
+      }
+    },
+    "school.teacher.add_students.placeholder": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "One name per line. First name and last initial is best."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un nome per riga. L'ideale è nome e iniziale del cognome."
+          }
+        }
+      }
+    },
+    "school.teacher.add_students.submitting": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adding…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aggiunta in corso…"
+          }
+        }
+      }
+    },
+    "school.teacher.add_students.skipped_heading": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not added"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non aggiunti"
+          }
+        }
+      }
+    },
+    "school.teacher.add_students.preview_count": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Add %lld student"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Add %lld students"
+                }
+              }
+            }
+          }
+        },
+        "it": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Aggiungi %lld alunno"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Aggiungi %lld alunni"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "school.teacher.add_students.success": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Added %lld student."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Added %lld students."
+                }
+              }
+            }
+          }
+        },
+        "it": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Aggiunto %lld alunno."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Aggiunti %lld alunni."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "school.teacher.errors.duplicate_name": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "already in this class"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "già in questa classe"
+          }
+        }
+      }
+    },
+    "school.teacher.errors.create_failed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "couldn't be created"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "non è stato possibile crearlo"
+          }
+        }
+      }
+    },
+    "school.teacher.roster.name_required": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a name."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inserisci un nome."
+          }
+        }
+      }
+    },
+    "school.teacher.roster.menu.rename": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rename"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rinomina"
+          }
+        }
+      }
+    },
+    "school.teacher.roster.rename_dialog.heading": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rename student"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rinomina l'alunno"
+          }
+        }
+      }
+    },
+    "school.teacher.roster.menu.new_pictures": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New pictures"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nuove immagini"
+          }
+        }
+      }
+    },
+    "school.teacher.roster.menu.unlock": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unlock"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sblocca"
+          }
+        }
+      }
+    },
+    "school.teacher.roster.menu.sign_out": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign out everywhere"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disconnetti ovunque"
+          }
+        }
+      }
+    },
+    "school.teacher.roster.menu.remove": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rimuovi"
+          }
+        }
+      }
+    },
+    "school.teacher.roster.menu.restore": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ripristina"
+          }
+        }
+      }
+    },
+    "school.teacher.roster.status.removed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Removed"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rimossi"
+          }
+        }
+      }
+    },
+    "school.teacher.roster.status.locked": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Locked"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bloccato"
+          }
+        }
+      }
+    },
+    "school.teacher.roster.save": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salva"
+          }
+        }
+      }
+    },
+    "school.teacher.roster.menu.open_aria": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Options for %@"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opzioni per %@"
+          }
+        }
+      }
+    },
+    "school.teacher.roster.remove_confirm": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove %@ from this class? They'll be signed out everywhere."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rimuovere %@ da questa classe? Verrà disconnesso ovunque."
+          }
+        }
+      }
+    },
+    "school.teacher.roster.new_pictures_confirm": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Make new pictures for %@? Their old pictures stop working."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Creare nuove immagini per %@? Quelle vecchie smetteranno di funzionare."
+          }
+        }
+      }
+    },
+    "school.teacher.roster.signed_out": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ was signed out everywhere."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ è stato disconnesso ovunque."
+          }
+        }
+      }
+    },
+    "school.teacher.cards.heading": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign-in cards"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schede di accesso"
+          }
+        }
+      }
+    },
+    "school.teacher.cards.safety_note": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Print these now. For safety we can't show these pictures again; you can always make new ones."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stampale adesso. Per sicurezza non possiamo mostrare di nuovo queste immagini; puoi sempre crearne di nuove."
+          }
+        }
+      }
+    },
+    "school.teacher.cards.print_native": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Print sign-in cards"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stampa le schede di accesso"
+          }
+        }
+      }
+    },
+    "school.teacher.cards.order_hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tap the pictures in this order"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tocca le immagini in quest'ordine"
+          }
+        }
+      }
+    },
+    "school.teacher.cards.close_confirm": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close without printing? These pictures can't be shown again."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chiudere senza stampare? Queste immagini non si potranno più vedere."
+          }
+        }
+      }
+    },
+    "school.teacher.cards.close": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chiudi"
+          }
+        }
+      }
+    },
+    "school.teacher.cards.pictures_aria": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pictures, in order: %@"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Immagini, in ordine: %@"
+          }
+        }
+      }
+    },
+    "school.teacher.errors.name_required": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a class name."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inserisci il nome della classe."
+          }
+        }
+      }
+    },
+    "school.teacher.errors.bad_timezone": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That time zone isn't recognized."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quel fuso orario non è riconosciuto."
+          }
+        }
+      }
+    },
+    "school.teacher.errors.bad_hours": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check the school hours — each end time must be after its start time."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Controlla l'orario scolastico: ogni ora di fine deve essere dopo l'ora di inizio."
+          }
+        }
+      }
+    },
+    "school.teacher.errors.seats_full_native": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This class is full — a class can have up to 35 students."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questa classe è al completo: può avere al massimo 35 alunni."
+          }
+        }
+      }
+    },
+    "school.teacher.errors.duplicate_name_full": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Another student already has that name."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un altro alunno ha già questo nome."
+          }
+        }
+      }
+    },
+    "school.teacher.errors.create_failed_full": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That student couldn't be created. Try again."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non è stato possibile creare questo alunno. Riprova."
+          }
+        }
+      }
+    },
+    "school.teacher.create.ready_no_license": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your class is ready, but it can't add students yet — contact My Book Lab."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La tua classe è pronta, ma non puoi ancora aggiungere alunni: contatta My Book Lab."
+          }
+        }
+      }
+    },
+    "school.teacher.create.already_inactive": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You already have a class that isn't active yet. Contact My Book Lab before creating another."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hai già una classe non ancora attiva. Contatta My Book Lab prima di crearne un'altra."
+          }
+        }
+      }
+    },
+    "school.teacher.license.not_active_note": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This class isn't active yet — contact My Book Lab."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questa classe non è ancora attiva: contatta My Book Lab."
+          }
+        }
+      }
+    },
+    "school.teacher.hours.save_with_zone": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save hours and time zone"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salva orario e fuso orario"
+          }
+        }
+      }
+    },
+    "school.teacher.class_settings.unsaved": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You have unsaved changes."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hai modifiche non salvate."
+          }
+        }
+      }
+    },
+    "school.teacher.class_settings.unsaved_save": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save changes"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salva le modifiche"
+          }
+        }
+      }
+    },
+    "school.teacher.class_settings.unsaved_discard": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Discard changes"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annulla le modifiche"
+          }
+        }
+      }
+    },
+    "school.teacher.back": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Indietro"
+          }
+        }
+      }
+    },
+    "school.teacher.cards.save_pdf": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save as PDF"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salva come PDF"
+          }
+        }
+      }
+    },
+    "school.teacher.cards.pending": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign-in cards not printed yet"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schede di accesso non ancora stampate"
+          }
+        }
+      }
+    },
+    "school.teacher.cards.show": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show cards"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostra le schede"
+          }
+        }
+      }
+    },
+    "school.teacher.roster.class_load_failed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't load this class's details, so adding children is paused."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossibile caricare i dettagli della classe, quindi l'aggiunta dei bambini è sospesa."
           }
         }
       }

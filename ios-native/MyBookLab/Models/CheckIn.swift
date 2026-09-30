@@ -93,12 +93,12 @@ extension Feeling {
     /// back to the raw English id for its VoiceOver label.
     var displayName: LocalizedStringResource {
         switch self {
-        case .happy:   return "Happy"
-        case .proud:   return "Proud"
-        case .tired:   return "Tired"
-        case .worried: return "Worried"
-        case .angry:   return "Angry"
-        case .sad:     return "Sad"
+        case .happy:   return AppText("Happy")
+        case .proud:   return AppText("Proud")
+        case .tired:   return AppText("Tired")
+        case .worried: return AppText("Worried")
+        case .angry:   return AppText("Angry")
+        case .sad:     return AppText("Sad")
         }
     }
 }

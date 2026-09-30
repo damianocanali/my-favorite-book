@@ -17,8 +17,13 @@ struct MyBookLabApp: App {
     @State private var teacher = TeacherStore.shared
     @State private var teacherBell = TeacherNotificationsStore.shared
     @State private var push = PushRegistrar.shared
+    @State private var language = AppLanguageState.shared
 
     init() {
+        // Before any string is looked up: the chosen language's .lproj.
+        AppLanguage.bootstrap()
+        // Leftover sign-in card PDFs from a previous run never outlive it.
+        SignInCardsFiles.purge()
         Purchases.logLevel = .warn
         Purchases.configure(withAPIKey: AppConfig.shared.revenueCatAPIKey)
     }
@@ -43,13 +48,19 @@ struct MyBookLabApp: App {
                 .environment(teacher)
                 .environment(teacherBell)
                 .environment(push)
+                // Live language switch: every Text resolves in this locale,
+                // and a new id rebuilds the tree so nothing already on
+                // screen stays in the old language. Navigation state lives
+                // in the stores (AppRouter, TeacherStore), so it survives.
+                .environment(\.locale, language.locale)
+                .id(language.code)
                 .task {
                     PrintOrderActivityManager.cleanup()
                     await auth.bootstrap()
-                    // Music only once the session is known, and never for a
-                    // teacher landing in the teacher area. Family users,
-                    // students and the signed-out still get it.
-                    if !teacher.isTeacherMode(auth) { audio.play(.home) }
+                    // Music only once the session is known. AudioService
+                    // itself refuses for a teacher account (any view mode);
+                    // family users, students and the signed-out get it.
+                    audio.play(.home)
                     if let id = auth.user?.id.uuidString {
                         await bookshelf.load(userId: id)
                     }
@@ -61,7 +72,14 @@ struct MyBookLabApp: App {
                     // on every launch (the token can rotate). No-op otherwise.
                     await push.registerIfAllowed()
                 }
+                // A role change on the same account (e.g. metadata refresh
+                // marking it a teacher) must silence the music too.
+                .onChange(of: auth.isTeacher) { _, _ in audio.applyAccountPolicy() }
                 .onChange(of: auth.user?.id) { _, newValue in
+                    audio.applyAccountPolicy()
+                    // Any change of who is signed in — including a session
+                    // that simply expired — drops unprinted picture cards.
+                    teacher.clearPendingCards()
                     Task {
                         if let id = newValue?.uuidString {
                             await bookshelf.load(userId: id)
