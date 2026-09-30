@@ -105,3 +105,30 @@ describe('buildCoverHtml', () => {
     expect(html).toContain('9.445in')
   })
 })
+
+describe('printed back matter language', () => {
+  it('prints English by default', async () => {
+    const html = await buildInteriorHtml(fixtureBook)
+    expect(html).toContain('The End')
+    expect(html).toContain('Meet the Characters')
+  })
+
+  it('prints Italian for an Italian book, with catalogue names in Italian and custom ones as typed', async () => {
+    const html = await buildInteriorHtml({
+      ...fixtureBook,
+      language: 'it',
+      characters: [
+        { id: 'grandma', name: 'Grandma Rosa', emoji: '👵', description: 'A cheerful grandma who knows a story for everything' },
+        { id: 'custom-1', name: 'La Presidente', emoji: '🧑', description: 'con un grande cappello', custom: true },
+      ],
+    })
+    expect(html).toContain('Fine')
+    expect(html).toContain('I personaggi')
+    expect(html).toContain('Nonna Rosa')
+    expect(html).not.toContain('Grandma Rosa')
+    expect(html).toContain('La Presidente')
+    expect(html).toContain('con un grande cappello')
+    expect(html).not.toContain('Meet the Characters')
+    expect(html).not.toContain('Story Reflection')
+  })
+})

@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { nanoid } from 'nanoid'
 import { MAX_CHARACTERS } from '../data/characters'
+import i18next from '../i18n'
 
 const createBlankPage = (pageNumber) => ({
   id: nanoid(),
@@ -23,6 +24,10 @@ const createBlankBook = () => ({
     text: '#F1F5F9',
     palette: 'starlight',
   },
+  // The language the child writes in (iPad: BookDraftStore stamps the same
+  // field): the printed back matter follows it, not the UI of whoever
+  // later orders the print.
+  language: (i18next.language || 'en').slice(0, 2),
   characters: [],
   setting: null,
   timePeriod: null,

@@ -1,3 +1,4 @@
+import { friendlyAiError } from '../../lib/aiErrors'
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { useTranslation } from 'react-i18next'
@@ -42,7 +43,7 @@ export default function StoryBuddy({ page, onInsertText }) {
       }
       setResults({ type: mode, data: result })
     } catch (err) {
-      setError(err.message)
+      setError(friendlyAiError(err, t))
     } finally {
       setLoading(false)
     }

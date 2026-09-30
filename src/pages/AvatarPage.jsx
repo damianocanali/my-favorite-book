@@ -1,3 +1,4 @@
+import { friendlyAiError } from '../lib/aiErrors'
 import { useState, useEffect } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'motion/react'
@@ -137,7 +138,7 @@ export default function AvatarPage() {
       earnBadge('made_avatar')
       incrementGenerations()
     } catch (err) {
-      setError(err.message)
+      setError(friendlyAiError(err, t))
       // Refresh balance so the UI reflects the debit even though the
       // generation failed — we don't refund automatically.
       refreshCoins()
