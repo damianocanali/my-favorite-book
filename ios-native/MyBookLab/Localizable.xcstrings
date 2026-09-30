@@ -7482,57 +7482,6 @@
         }
       }
     },
-    "school.teacher.dashboard.preview_link": {
-      "extractionState": "extracted_with_value",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "new",
-            "value": "Preview the kids' app"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Prova l'app dei bambini"
-          }
-        }
-      }
-    },
-    "school.teacher.preview.banner": {
-      "extractionState": "extracted_with_value",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "new",
-            "value": "You're previewing the kids' app"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Stai provando l'app dei bambini"
-          }
-        }
-      }
-    },
-    "school.teacher.preview.back_to_dashboard": {
-      "extractionState": "extracted_with_value",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "new",
-            "value": "Back to dashboard"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Torna alla dashboard"
-          }
-        }
-      }
-    },
     "school.teacher.view.switch_to_family": {
       "extractionState": "extracted_with_value",
       "localizations": {

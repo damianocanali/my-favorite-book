@@ -39,8 +39,7 @@ struct MainTabView: View {
     @Environment(TeacherStore.self) private var teacher
 
     /// A teacher gets Dashboard · Classes · Account instead of the family
-    /// tabs (TeacherStore decides; a class account never does). "Preview the
-    /// kids' app" shows the family tabs under a slim way back.
+    /// tabs (TeacherStore decides; a class account never does).
     var body: some View {
         // Until the session is known, neither set of tabs: a teacher must
         // not glimpse the family tabs (and their music) on every launch.
@@ -53,9 +52,6 @@ struct MainTabView: View {
             TeacherTabView()
         } else {
             familyTabs
-                .safeAreaInset(edge: .top, spacing: 0) {
-                    if teacher.showsPreviewBanner(auth) { KidsPreviewBanner() }
-                }
         }
     }
 

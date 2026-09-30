@@ -44,23 +44,6 @@ struct TeacherDashboardView: View {
                     if let classes, classes.count > 1 { classSwitcher(classes) }
                     TeacherBellButton()
                 }
-                ToolbarItem(placement: .topBarLeading) {
-                    Button {
-                        teacher.enterKidsPreview()
-                    } label: {
-                        // Icon only on a phone-width bar, where the title and
-                        // the class switcher already compete for room.
-                        if hSize == .compact {
-                            Image(systemName: "eye")
-                        } else {
-                            Label { Text(TeacherCopy.previewLink) } icon: { Image(systemName: "eye") }
-                                .labelStyle(.titleAndIcon)
-                                .font(.subheadline.weight(.semibold))
-                        }
-                    }
-                    .tint(.cyan)
-                    .accessibilityLabel(Text(TeacherCopy.previewLink))
-                }
             }
         }
         // Polls while this tab is on screen and the app is active: the task
