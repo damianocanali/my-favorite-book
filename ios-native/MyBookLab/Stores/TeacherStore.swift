@@ -32,6 +32,28 @@ final class TeacherStore {
     /// Set by a bell row or a push tap; the destination screen consumes it.
     var pendingRoute: TeacherRoute?
 
+    /// Freshly made picture passwords not yet dismissed, per class. Held here
+    /// (memory only, never persisted) rather than in the roster screen, so a
+    /// push tap that tears the roster down can't lose the only copy: the
+    /// class screen offers them again until the teacher closes the cards.
+    private(set) var pendingCards: [String: PendingSignInCards] = [:]
+
+    /// Adds children to the class's pending batch (a child whose pictures
+    /// were made again replaces their older card).
+    func addPendingCards(classId: String, className: String, classCode: String, students: [TeacherNewPictures]) {
+        var batch = pendingCards[classId] ?? PendingSignInCards(classId: classId, className: className, classCode: classCode, students: [])
+        let ids = Set(students.map(\.id))
+        batch.students = batch.students.filter { !ids.contains($0.id) } + students
+        batch.className = className
+        batch.classCode = classCode
+        pendingCards[classId] = batch
+    }
+
+    /// Only ever called by the teacher closing the cards.
+    func dismissPendingCards(classId: String) {
+        pendingCards[classId] = nil
+    }
+
     private init() {
         viewMode = UserDefaults.standard.string(forKey: Self.viewModeKey) == ViewMode.family.rawValue
             ? .family : .teacher
@@ -75,8 +97,18 @@ final class TeacherStore {
 
     /// Sign-out: the next person on a shared iPad starts from scratch.
     func reset() {
+        pendingCards = [:]
         selectedTab = .dashboard
         pendingRoute = nil
         UserDefaults.standard.removeObject(forKey: Self.classKey)
     }
+}
+
+/// One class's sign-in cards waiting to be printed or saved.
+struct PendingSignInCards: Identifiable, Equatable {
+    let classId: String
+    var className: String
+    var classCode: String
+    var students: [TeacherNewPictures]
+    var id: String { classId }
 }

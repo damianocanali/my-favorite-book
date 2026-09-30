@@ -3,24 +3,24 @@
 // web's AddStudents + RosterTable over the same api/school/students.js.
 //
 // Adding a child or giving them new pictures returns their one-time picture
-// password. It is shown at once, big, with "Print sign-in cards" (AirPrint),
-// and never stored: the server only keeps a hash, so once this screen goes
-// the pictures are gone (a teacher can always make new ones).
+// password. It is shown at once, big, with "Print sign-in cards" (AirPrint)
+// and "Save as PDF". It is never written to disk by the app: the batch lives
+// in TeacherStore (memory) until the teacher closes the cards, so leaving
+// this screen — or a push tap pulling the teacher elsewhere — can't lose it.
+//
+// Adding and new pictures wait until the class (and its code, printed on
+// every card) is known: a card without a class code is useless to a child.
 import SwiftUI
 import UIKit
-
-/// One batch of freshly made picture passwords, shown as sign-in cards.
-struct SignInCardsBatch: Identifiable {
-    let id = UUID()
-    let students: [TeacherNewPictures]
-}
 
 struct TeacherRosterView: View {
     let classId: String
 
     @Environment(AuthStore.self) private var auth
+    @Environment(TeacherStore.self) private var teacher
 
     @State private var cls: TeacherClass?
+    @State private var classLoadFailed = false
     @State private var students: [TeacherRosterStudent]?
     @State private var loadError: String??
     @State private var banner: LocalizedStringResource?
@@ -35,12 +35,18 @@ struct TeacherRosterView: View {
     @State private var renameText = ""
     @State private var removeTarget: TeacherRosterStudent?
     @State private var resetTarget: TeacherRosterStudent?
-    @State private var cards: SignInCardsBatch?
+    @State private var showingCards = false
 
-    private var licenceUsable: Bool {
-        guard let cls else { return true } // unknown yet: let the server decide
+    private var license: LicenseBadgeState? { cls.map { LicenseBadgeState($0.license) } }
+
+    /// Adding (and new pictures) need the class code for the cards and a
+    /// usable license; until the class is loaded, neither is known.
+    private var canMakePictures: Bool {
+        guard let cls, let code = cls.code, !code.isEmpty else { return false }
         return LicenseBadgeState(cls.license).isGood
     }
+
+    private var pending: PendingSignInCards? { teacher.pendingCards[classId] }
 
     var body: some View {
         ZStack {
@@ -65,7 +71,7 @@ struct TeacherRosterView: View {
                         .frame(minWidth: 44, minHeight: 44)
                 }
                 .tint(.cyan)
-                .disabled(!licenceUsable)
+                .disabled(!canMakePictures || busyId != nil)
                 .accessibilityLabel(Text(TeacherCopy.rosterAdd))
             }
         }
@@ -75,7 +81,9 @@ struct TeacherRosterView: View {
         .alert(Text(TeacherCopy.addOne), isPresented: $addingOne) {
             TextField(text: $oneName) { Text(TeacherCopy.addName) }
                 .textInputAutocapitalization(.words)
-            Button { Task { await add([oneName]) } } label: { Text(TeacherCopy.addCount(1)) }
+            // One child, one name: cleaned like the server's cleanName, never
+            // split on commas.
+            Button { Task { await add([TeacherRosterRules.cleanName(oneName)]) } } label: { Text(TeacherCopy.addCount(1)) }
             Button(role: .cancel) {} label: { Text(TeacherCopy.cancel) }
         }
         .alert(Text(TeacherCopy.renameTitle), isPresented: Binding(
@@ -105,16 +113,19 @@ struct TeacherRosterView: View {
         .sheet(isPresented: $addingMany) {
             TeacherAddStudentsSheet { names in
                 addingMany = false
-                Task { await add(names) }
+                Task { await add(TeacherRosterRules.parse(names.joined(separator: "\n"))) }
             }
         }
-        .fullScreenCover(item: $cards) { batch in
-            TeacherSignInCardsView(
-                className: cls?.name ?? "",
-                classCode: cls?.code ?? "",
-                students: batch.students
-            ) { cards = nil }
+        .fullScreenCover(isPresented: $showingCards) {
+            if let pending, !pending.classCode.isEmpty {
+                TeacherSignInCardsView(batch: pending) {
+                    teacher.dismissPendingCards(classId: classId)
+                    showingCards = false
+                }
+            }
         }
+        // Coming back to a class whose cards were never closed: show them.
+        .onAppear { if pending != nil { showingCards = true } }
     }
 
     @ViewBuilder
@@ -125,8 +136,24 @@ struct TeacherRosterView: View {
         } else if let students {
             ScrollView {
                 VStack(alignment: .leading, spacing: 14) {
-                    if !licenceUsable {
-                        noticeCard(TeacherCopy.licenceEnded, systemImage: "info.circle.fill", tint: .yellow)
+                    if classLoadFailed && cls == nil {
+                        VStack(alignment: .leading, spacing: 10) {
+                            noticeCard(TeacherCopy.classLoadFailed, systemImage: "exclamationmark.triangle.fill", tint: .yellow)
+                            Button { Task { await load() } } label: {
+                                Text(TeacherCopy.retry).font(.callout.bold())
+                                    .padding(.horizontal, 18).frame(minHeight: 44)
+                                    .background(.purple.opacity(0.7), in: Capsule())
+                                    .foregroundStyle(.white)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    } else if let license, license == .none {
+                        noticeCard(TeacherCopy.classNotActive, systemImage: "info.circle.fill", tint: .yellow)
+                    } else if let license, license.isWarning {
+                        noticeCard(TeacherCopy.licenseEnded, systemImage: "info.circle.fill", tint: .yellow)
+                    }
+                    if pending != nil {
+                        PendingCardsBanner { showingCards = true }
                     }
                     if let banner {
                         noticeCard(banner, systemImage: bannerIsError ? "exclamationmark.triangle.fill" : "checkmark.circle.fill",
@@ -237,6 +264,7 @@ struct TeacherRosterView: View {
                 Button { resetTarget = s } label: {
                     Label { Text(TeacherCopy.newPictures) } icon: { Image(systemName: "photo.on.rectangle.angled") }
                 }
+                .disabled(!canMakePictures)
                 if s.needsUnlock {
                     Button { Task { await act(s, "unlock") } } label: {
                         Label { Text(TeacherCopy.unlock) } icon: { Image(systemName: "lock.open.fill") }
@@ -275,7 +303,12 @@ struct TeacherRosterView: View {
         } catch {
             if students == nil { loadError = .some((error as? APIClient.TeacherError)?.code) }
         }
-        if let found = await classes?.first(where: { $0.id == classId }) { cls = found }
+        if let found = await classes?.first(where: { $0.id == classId }) {
+            cls = found
+            classLoadFailed = false
+        } else if cls == nil {
+            classLoadFailed = true
+        }
     }
 
     private func show(_ message: LocalizedStringResource, error: Bool) {
@@ -283,9 +316,11 @@ struct TeacherRosterView: View {
         bannerIsError = error
     }
 
-    private func add(_ raw: [String]) async {
-        let names = TeacherRosterRules.parse(raw.joined(separator: "\n"))
+    /// `names` are already cleaned (cleanName for one child, parse for a list).
+    private func add(_ names: [String]) async {
+        let names = names.filter { !$0.isEmpty }
         guard !names.isEmpty else { show(TeacherCopy.studentNameRequired, error: true); return }
+        guard canMakePictures, let cls, let code = cls.code else { return }
         guard let token = auth.accessToken else { return }
         busyId = "add"
         skipped = []
@@ -298,7 +333,8 @@ struct TeacherRosterView: View {
             if !created.isEmpty {
                 show(TeacherCopy.addedCount(created.count), error: false)
                 // Straight to the cards: this is the only time they exist.
-                cards = SignInCardsBatch(students: created)
+                teacher.addPendingCards(classId: classId, className: cls.name ?? "", classCode: code, students: created)
+                showingCards = true
             }
             await load()
         } catch {
@@ -333,6 +369,7 @@ struct TeacherRosterView: View {
     }
 
     private func resetPictures(_ s: TeacherRosterStudent) async {
+        guard canMakePictures, let cls, let code = cls.code else { return }
         guard let token = auth.accessToken else { return }
         busyId = s.id
         banner = nil
@@ -344,10 +381,11 @@ struct TeacherRosterView: View {
                 students?[i] = updated
             }
             if let pictures = res.pictures, pictures.count == 3 {
-                cards = SignInCardsBatch(students: [
+                teacher.addPendingCards(classId: classId, className: cls.name ?? "", classCode: code, students: [
                     TeacherNewPictures(id: s.id, display_name: res.student?.display_name ?? s.display_name,
                                        avatar_emoji: res.student?.avatar_emoji ?? s.avatar_emoji, pictures: pictures),
                 ])
+                showingCards = true
             }
         } catch {
             show(TeacherCopy.error(error), error: true)
@@ -409,14 +447,39 @@ struct TeacherAddStudentsSheet: View {
 
 // MARK: - Sign-in cards
 
+/// "Sign-in cards not printed yet — Show cards", wherever the class shows.
+struct PendingCardsBanner: View {
+    let show: () -> Void
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: "printer.fill").foregroundStyle(.yellow).accessibilityHidden(true)
+            Text(TeacherCopy.cardsPending).font(.body.weight(.semibold)).foregroundStyle(.white)
+            Spacer(minLength: 8)
+            Button(action: show) {
+                Text(TeacherCopy.cardsShow).font(.callout.bold())
+                    .padding(.horizontal, 16).frame(minHeight: 44)
+                    .background(Color.purple, in: Capsule())
+                    .foregroundStyle(.white)
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(14)
+        .background(TeacherTheme.cardFill, in: RoundedRectangle(cornerRadius: 16))
+        .overlay(RoundedRectangle(cornerRadius: 16).strokeBorder(Color.yellow.opacity(0.5)))
+    }
+}
+
 struct TeacherSignInCardsView: View {
-    let className: String
-    let classCode: String
-    let students: [TeacherNewPictures]
+    let batch: PendingSignInCards
+    /// Only called when the teacher closes the cards on purpose.
     let onClose: () -> Void
 
-    @State private var printed = false
+    @State private var kept = false
     @State private var confirmClose = false
+    @State private var pdfURL: URL?
+    /// The Print button's frame in window coordinates (the iPad popover anchor).
+    @State private var printAnchor: CGRect = .zero
     @Environment(\.horizontalSizeClass) private var hSize
 
     var body: some View {
@@ -430,18 +493,14 @@ struct TeacherSignInCardsView: View {
                         } icon: {
                             Image(systemName: "lock.shield.fill").foregroundStyle(.yellow)
                         }
-                        Button(action: printCards) {
-                            Label { Text(TeacherCopy.cardsPrint) } icon: { Image(systemName: "printer.fill") }
-                                .font(.headline)
-                                .frame(maxWidth: .infinity, minHeight: 52)
-                                .background(Color.purple, in: RoundedRectangle(cornerRadius: 14))
-                                .foregroundStyle(.white)
+                        ViewThatFits(in: .horizontal) {
+                            HStack(spacing: 12) { printButton; saveButton }
+                            VStack(spacing: 10) { printButton; saveButton }
                         }
-                        .buttonStyle(.plain)
 
                         LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 14),
                                                  count: hSize == .regular ? 2 : 1), spacing: 14) {
-                            ForEach(students) { card($0) }
+                            ForEach(batch.students) { card($0) }
                         }
                     }
                     .padding()
@@ -455,23 +514,60 @@ struct TeacherSignInCardsView: View {
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button {
-                        if printed { onClose() } else { confirmClose = true }
+                        if kept { close() } else { confirmClose = true }
                     } label: { Text(TeacherCopy.done).bold() }
                     .tint(.white)
                 }
             }
             .confirmationDialog(Text(TeacherCopy.cardsCloseTitle), isPresented: $confirmClose, titleVisibility: .visible) {
-                Button(role: .destructive, action: onClose) { Text(TeacherCopy.cardsClose) }
+                Button(role: .destructive, action: close) { Text(TeacherCopy.cardsClose) }
                 Button(role: .cancel) {} label: { Text(TeacherCopy.cancel) }
             }
         }
         .preferredColorScheme(.dark)
+        .task { pdfURL = writePDF() }
+        .onChange(of: batch) { _, _ in pdfURL = writePDF() }
+    }
+
+    private var printButton: some View {
+        Button(action: printCards) {
+            Label { Text(TeacherCopy.cardsPrint) } icon: { Image(systemName: "printer.fill") }
+                .font(.headline)
+                .frame(maxWidth: .infinity, minHeight: 52)
+                .background(Color.purple, in: RoundedRectangle(cornerRadius: 14))
+                .foregroundStyle(.white)
+        }
+        .buttonStyle(.plain)
+        .background(GeometryReader { geo in
+            Color.clear
+                .onAppear { printAnchor = geo.frame(in: .global) }
+                .onChange(of: geo.frame(in: .global)) { _, f in printAnchor = f }
+        })
+    }
+
+    /// The same PDF, to Files / AirDrop / Mail: the passwords can always be
+    /// kept, even with no printer in reach.
+    @ViewBuilder
+    private var saveButton: some View {
+        if let pdfURL {
+            ShareLink(item: pdfURL, preview: SharePreview(Text(TeacherCopy.cardsHeading))) {
+                Label { Text(TeacherCopy.cardsSavePDF) } icon: { Image(systemName: "square.and.arrow.down") }
+                    .font(.headline)
+                    .frame(maxWidth: .infinity, minHeight: 52)
+                    .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(Color.white.opacity(0.5)))
+                    .foregroundStyle(.white)
+            }
+            .simultaneousGesture(TapGesture().onEnded { kept = true })
+        }
     }
 
     /// Big on screen: the child, and their three pictures in order, as large
     /// as the sign-in pad draws them.
     private func card(_ s: TeacherNewPictures) -> some View {
         VStack(spacing: 10) {
+            Text(verbatim: batch.classCode)
+                .font(.system(.subheadline, design: .monospaced).bold())
+                .foregroundStyle(TeacherTheme.secondaryText)
             Text(verbatim: s.avatar_emoji ?? "🙂").font(.system(size: 44)).accessibilityHidden(true)
             Text(verbatim: s.display_name)
                 .font(.system(.title2, design: .rounded).bold())
@@ -501,19 +597,64 @@ struct TeacherSignInCardsView: View {
         .overlay(RoundedRectangle(cornerRadius: 20).strokeBorder(TeacherTheme.cardStroke))
     }
 
-    private func printCards() {
-        let data = SignInCardsPDF.make(
-            className: className, classCode: classCode, students: students,
+    private var pdfData: Data {
+        SignInCardsPDF.make(
+            className: batch.className, classCode: batch.classCode, students: batch.students,
             orderHint: String(appLocalized: TeacherCopy.cardsOrder))
+    }
+
+    /// A temporary file for the share sheet, removed when the cards close.
+    private func writePDF() -> URL? {
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent("signin-cards", isDirectory: true)
+        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        let name = String(appLocalized: TeacherCopy.cardsHeading) + " — " + batch.className
+        let safe = name.components(separatedBy: CharacterSet(charactersIn: "/:\\?%*|\"<>")).joined(separator: "-")
+        let url = dir.appendingPathComponent(safe.isEmpty ? "sign-in-cards" : safe).appendingPathExtension("pdf")
+        do {
+            try pdfData.write(to: url, options: [.atomic, .completeFileProtection])
+            return url
+        } catch {
+            return nil
+        }
+    }
+
+    private func close() {
+        if let pdfURL { try? FileManager.default.removeItem(at: pdfURL) }
+        onClose()
+    }
+
+    private func printCards() {
         let info = UIPrintInfo(dictionary: nil)
         info.outputType = .general
         info.jobName = String(appLocalized: TeacherCopy.cardsHeading)
         let controller = UIPrintInteractionController.shared
         controller.printInfo = info
-        controller.printingItem = data
-        controller.present(animated: true) { _, completed, _ in
-            if completed { printed = true }
+        controller.printingItem = pdfData
+        let done: UIPrintInteractionController.CompletionHandler = { _, completed, _ in
+            if completed { kept = true }
         }
+        // iPad (regular width): a popover anchored to the Print button, shown
+        // from the top-most presented controller (this full-screen cover).
+        // iPhone: the standard sheet.
+        if hSize == .regular, let host = TopViewController.find() {
+            let rect = host.view.convert(printAnchor, from: nil)
+            controller.present(from: rect.isEmpty ? CGRect(x: host.view.bounds.midX, y: 80, width: 1, height: 1) : rect,
+                               in: host.view, animated: true, completionHandler: done)
+        } else {
+            controller.present(animated: true, completionHandler: done)
+        }
+    }
+}
+
+enum TopViewController {
+    @MainActor
+    static func find() -> UIViewController? {
+        let scene = UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .first { $0.activationState == .foregroundActive } ?? UIApplication.shared.connectedScenes.first as? UIWindowScene
+        var top = scene?.windows.first { $0.isKeyWindow }?.rootViewController
+        while let next = top?.presentedViewController, !next.isBeingDismissed { top = next }
+        return top
     }
 }
 

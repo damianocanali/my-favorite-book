@@ -53,8 +53,12 @@ struct TeacherCreateClassSheet: View {
     @State private var locale = AppLanguage.uiLanguage
     @State private var saving = false
     @State private var error: LocalizedStringResource?
-    /// The class was made but the server couldn't give it a trial.
+    /// The class was made but has no license (trial cap, or the license write
+    /// failed): it exists, but can't add children yet.
     @State private var refused: TeacherClass??
+    /// This teacher already has a class that never got a license: another
+    /// one would only be another inactive class.
+    @State private var hasInactiveClass = false
 
     var body: some View {
         NavigationStack {
@@ -62,7 +66,7 @@ struct TeacherCreateClassSheet: View {
                 if let refused {
                     Section {
                         Label {
-                            Text(TeacherCopy.classCantCreate).font(.body)
+                            Text(TeacherCopy.classReadyNoLicense).font(.body)
                         } icon: {
                             Image(systemName: "info.circle.fill").foregroundStyle(.yellow)
                         }
@@ -109,6 +113,15 @@ struct TeacherCreateClassSheet: View {
                     if let error {
                         Section { Text(error).foregroundStyle(TeacherTheme.urgent) }
                     }
+                    if hasInactiveClass {
+                        Section {
+                            Label {
+                                Text(TeacherCopy.alreadyInactiveClass).font(.body)
+                            } icon: {
+                                Image(systemName: "info.circle.fill").foregroundStyle(.yellow)
+                            }
+                        }
+                    }
 
                     Section {
                         Button {
@@ -120,7 +133,7 @@ struct TeacherCreateClassSheet: View {
                             }
                             .frame(maxWidth: .infinity, minHeight: 44)
                         }
-                        .disabled(saving || name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                        .disabled(saving || hasInactiveClass || name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                     } footer: {
                         Text(TeacherCopy.createTrialNote)
                     }
@@ -138,20 +151,29 @@ struct TeacherCreateClassSheet: View {
         }
         .preferredColorScheme(.dark)
         .interactiveDismissDisabled(saving)
+        .task { await checkInactive() }
+    }
+
+    /// Best effort: if the list can't be read, the server still decides.
+    private func checkInactive() async {
+        guard let token = auth.accessToken,
+              let classes = try? await APIClient.shared.teacherClasses(bearerToken: token) else { return }
+        hasInactiveClass = classes.contains { LicenseBadgeState($0.license) == LicenseBadgeState.none }
     }
 
     private func create() async {
         let trimmed = TeacherStickers.truncated(
             name.trimmingCharacters(in: .whitespacesAndNewlines), max: TeacherRosterRules.classNameMax)
         guard !trimmed.isEmpty else { error = TeacherCopy.error("name_required"); return }
-        guard let token = auth.accessToken else { return }
+        // One request at a time: a double tap must never make two classes.
+        guard !saving, !hasInactiveClass, let token = auth.accessToken else { return }
         saving = true
         error = nil
         defer { saving = false }
         do {
             let res = try await APIClient.shared.teacherCreateClass(
                 name: trimmed, timezone: timezone, locale: locale, bearerToken: token)
-            if res.trial_used_up == true {
+            if res.trial_used_up == true || res.class.map({ LicenseBadgeState($0.license) == LicenseBadgeState.none }) == true {
                 refused = .some(res.class)
             } else {
                 onCreated(res.class)
@@ -169,7 +191,9 @@ struct TeacherClassSettingsView: View {
     let classId: String
 
     @Environment(AuthStore.self) private var auth
+    @Environment(\.dismiss) private var dismiss
 
+    /// The server's copy; every "unsaved" check compares against it.
     @State private var cls: TeacherClass?
     @State private var loadError: String??
     @State private var name = ""
@@ -179,11 +203,27 @@ struct TeacherClassSettingsView: View {
     @State private var hours: [SchoolDayHours] = SchoolDayHours.rows(from: nil)
     @State private var savingName = false
     @State private var savingHours = false
+    /// The sign-in / language switches save one at a time.
+    @State private var savingToggle = false
     @State private var nameStatus: Status?
     @State private var toggleError: LocalizedStringResource?
     @State private var hoursStatus: Status?
+    @State private var confirmLeave = false
 
     enum Status: Equatable { case saved, failed(LocalizedStringResource) }
+
+    private var nameDirty: Bool {
+        guard let cls else { return false }
+        return name.trimmingCharacters(in: .whitespacesAndNewlines) != (cls.name ?? "")
+    }
+
+    private var hoursDirty: Bool {
+        guard let cls else { return false }
+        return hours != SchoolDayHours.rows(from: cls.school_hours)
+            || timezone != (cls.timezone ?? TimeZone.current.identifier)
+    }
+
+    private var dirty: Bool { nameDirty || hoursDirty }
 
     var body: some View {
         ZStack {
@@ -200,6 +240,29 @@ struct TeacherClassSettingsView: View {
         .navigationTitle(Text(TeacherCopy.settingsCardTitle))
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(.hidden, for: .navigationBar)
+        // With unsaved edits, Back asks first (and the swipe-back is off).
+        .navigationBarBackButtonHidden(dirty)
+        .toolbar {
+            if dirty {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button { confirmLeave = true } label: {
+                        Label { Text(TeacherCopy.back) } icon: { Image(systemName: "chevron.backward") }
+                            .labelStyle(.titleAndIcon)
+                    }
+                }
+            }
+        }
+        .confirmationDialog(Text(TeacherCopy.unsavedTitle), isPresented: $confirmLeave, titleVisibility: .visible) {
+            Button {
+                Task {
+                    if nameDirty { await saveName() }
+                    if hoursDirty { await saveHours() }
+                    if !dirty { dismiss() }
+                }
+            } label: { Text(TeacherCopy.unsavedSave) }
+            Button(role: .destructive) { dismiss() } label: { Text(TeacherCopy.unsavedDiscard) }
+            Button(role: .cancel) {} label: { Text(TeacherCopy.cancel) }
+        }
         .task { await load() }
     }
 
@@ -222,8 +285,7 @@ struct TeacherClassSettingsView: View {
                     }
                     .frame(minHeight: 44)
                 }
-                .disabled(savingName || name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-                          || name.trimmingCharacters(in: .whitespacesAndNewlines) == (cls.name ?? ""))
+                .disabled(savingName || !nameDirty || name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 statusLine(nameStatus)
             } header: {
                 Text(TeacherCopy.settingsNameSection)
@@ -234,6 +296,7 @@ struct TeacherClassSettingsView: View {
                     Text(TeacherCopy.settingsSignIn)
                 }
                 .tint(.purple)
+                .disabled(savingToggle)
                 Picker(selection: Binding(get: { locale }, set: { v in Task { await setLocale(v) } })) {
                     ForEach(AppLanguage.supported, id: \.code) { lang in
                         Text(verbatim: lang.name).tag(lang.code)
@@ -241,11 +304,14 @@ struct TeacherClassSettingsView: View {
                 } label: {
                     Text(TeacherCopy.createLanguage)
                 }
+                .disabled(savingToggle)
                 if let toggleError { Text(toggleError).foregroundStyle(TeacherTheme.urgent) }
             } footer: {
                 Text(TeacherCopy.settingsSignInHint)
             }
 
+            // Hours and the zone they're read in are one decision, saved
+            // together by one clearly-labelled button.
             Section {
                 ForEach($hours) { $day in
                     dayRow($day)
@@ -257,6 +323,7 @@ struct TeacherClassSettingsView: View {
                 } label: {
                     Text(TeacherCopy.createTimezone)
                 }
+                .onChange(of: timezone) { _, _ in hoursStatus = nil }
                 Button {
                     Task { await saveHours() }
                 } label: {
@@ -266,7 +333,7 @@ struct TeacherClassSettingsView: View {
                     }
                     .frame(minHeight: 44)
                 }
-                .disabled(savingHours)
+                .disabled(savingHours || !hoursDirty)
                 statusLine(hoursStatus)
             } header: {
                 Text(TeacherCopy.hoursHeading)
@@ -327,8 +394,11 @@ struct TeacherClassSettingsView: View {
     }
 
     // MARK: Network
+    //
+    // Each save refreshes only its own fields from the server's answer, so
+    // saving the name never throws away hours being edited, and vice versa.
 
-    private func apply(_ c: TeacherClass) {
+    private func applyAll(_ c: TeacherClass) {
         cls = c
         name = c.name ?? ""
         signInOpen = c.sign_in_open ?? true
@@ -341,7 +411,8 @@ struct TeacherClassSettingsView: View {
         guard let token = auth.accessToken else { return }
         do {
             if let c = try await APIClient.shared.teacherClasses(bearerToken: token).first(where: { $0.id == classId }) {
-                apply(c)
+                // A reload never overwrites edits in progress.
+                if cls == nil || !dirty { applyAll(c) } else { cls = c }
                 loadError = nil
             } else {
                 loadError = .some("class_not_found")
@@ -359,23 +430,31 @@ struct TeacherClassSettingsView: View {
     private func saveName() async {
         let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { nameStatus = .failed(TeacherCopy.error("name_required")); return }
+        guard !savingName else { return }
         savingName = true
         defer { savingName = false }
         do {
             var p = APIClient.ClassPatch(id: classId)
             p.name = trimmed
-            if let c = try await patch(p) { apply(c) }
+            if let c = try await patch(p) {
+                cls = c
+                name = c.name ?? trimmed
+            }
             nameStatus = .saved
         } catch {
             nameStatus = .failed(TeacherCopy.error(error))
         }
     }
 
-    /// Optimistic, rolled back if the server says no.
+    /// Optimistic, one at a time (the switches are disabled while a save is
+    /// in flight), rolled back if the server says no.
     private func setSignIn(_ value: Bool) async {
+        guard !savingToggle else { return }
         let previous = signInOpen
         signInOpen = value
         toggleError = nil
+        savingToggle = true
+        defer { savingToggle = false }
         do {
             var p = APIClient.ClassPatch(id: classId)
             p.sign_in_open = value
@@ -387,13 +466,16 @@ struct TeacherClassSettingsView: View {
     }
 
     private func setLocale(_ value: String) async {
+        guard !savingToggle else { return }
         let previous = locale
         locale = value
         toggleError = nil
+        savingToggle = true
+        defer { savingToggle = false }
         do {
             var p = APIClient.ClassPatch(id: classId)
             p.locale = value
-            if let c = try await patch(p) { cls = c }
+            if let c = try await patch(p) { cls = c; locale = c.locale == "it" ? "it" : "en" }
         } catch {
             locale = previous
             toggleError = TeacherCopy.error(error)
@@ -405,13 +487,18 @@ struct TeacherClassSettingsView: View {
             hoursStatus = .failed(TeacherCopy.error("bad_hours"))
             return
         }
+        guard !savingHours else { return }
         savingHours = true
         defer { savingHours = false }
         do {
             var p = APIClient.ClassPatch(id: classId)
             p.school_hours = payload
             p.timezone = timezone
-            if let c = try await patch(p) { apply(c) }
+            if let c = try await patch(p) {
+                cls = c
+                timezone = c.timezone ?? timezone
+                hours = SchoolDayHours.rows(from: c.school_hours)
+            }
             hoursStatus = .saved
         } catch {
             hoursStatus = .failed(TeacherCopy.error(error))

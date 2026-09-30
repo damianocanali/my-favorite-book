@@ -23,6 +23,9 @@ struct TeacherClassesView: View {
     @State private var classes: [TeacherClass]?
     @State private var error: String??
     @State private var creating = false
+    /// Set when a class was just created; opened once the sheet has fully
+    /// gone, so the push never races the dismissal.
+    @State private var newClassId: String?
 
     var body: some View {
         NavigationStack(path: $path) {
@@ -58,12 +61,15 @@ struct TeacherClassesView: View {
         .task { await load() }
         .onAppear { consumeRoute() }
         .onChange(of: teacher.pendingRoute) { _, _ in consumeRoute() }
-        .sheet(isPresented: $creating) {
+        .sheet(isPresented: $creating, onDismiss: {
+            if let id = newClassId {
+                newClassId = nil
+                path = [.classDetail(id)]
+            }
+        }) {
             TeacherCreateClassSheet { created in
-                Task {
-                    await load()
-                    if let created { path = [.classDetail(created.id)] }
-                }
+                newClassId = created?.id
+                Task { await load() }
             }
         }
     }
@@ -161,6 +167,8 @@ struct TeacherClassDetailView: View {
     let classId: String
 
     @Environment(AuthStore.self) private var auth
+    @Environment(TeacherStore.self) private var teacher
+    @State private var showingCards = false
     /// From the list when there is one; fetched when this screen was opened
     /// straight from a bell row or an alert.
     @State private var summary: TeacherClass?
@@ -194,6 +202,9 @@ struct TeacherClassDetailView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
                     header
+                    if teacher.pendingCards[classId] != nil {
+                        PendingCardsBanner { showingCards = true }
+                    }
                     manageLinks
                     assignmentsSection
                 }
@@ -216,6 +227,14 @@ struct TeacherClassDetailView: View {
         .task { await load() }
         // Coming back from the roster or settings: counts and name may have changed.
         .onAppear { Task { await refreshSummary() } }
+        .fullScreenCover(isPresented: $showingCards) {
+            if let pending = teacher.pendingCards[classId], !pending.classCode.isEmpty {
+                TeacherSignInCardsView(batch: pending) {
+                    teacher.dismissPendingCards(classId: classId)
+                    showingCards = false
+                }
+            }
+        }
         .sheet(item: $formTarget) { target in
             TeacherAssignmentForm(classId: classId, existing: {
                 if case .edit(let a) = target { return a }

@@ -10697,28 +10697,12 @@
         }
       }
     },
-    "school.teacher.create.refused": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "This class can't be created right now — contact My Book Lab."
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Al momento non è possibile creare questa classe: contatta My Book Lab."
-          }
-        }
-      }
-    },
     "school.teacher.license.ended_note": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This class's licence has ended."
+            "value": "This class's license has ended."
           }
         },
         "it": {
@@ -10837,22 +10821,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Fine"
-          }
-        }
-      }
-    },
-    "school.teacher.hours.save": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Save hours"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Salva l'orario"
           }
         }
       }
@@ -11557,6 +11525,198 @@
           "stringUnit": {
             "state": "translated",
             "value": "Non è stato possibile creare questo alunno. Riprova."
+          }
+        }
+      }
+    },
+    "school.teacher.create.ready_no_license": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your class is ready, but it can't add students yet — contact My Book Lab."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La tua classe è pronta, ma non puoi ancora aggiungere alunni: contatta My Book Lab."
+          }
+        }
+      }
+    },
+    "school.teacher.create.already_inactive": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You already have a class that isn't active yet. Contact My Book Lab before creating another."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hai già una classe non ancora attiva. Contatta My Book Lab prima di crearne un'altra."
+          }
+        }
+      }
+    },
+    "school.teacher.license.not_active_note": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This class isn't active yet — contact My Book Lab."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questa classe non è ancora attiva: contatta My Book Lab."
+          }
+        }
+      }
+    },
+    "school.teacher.hours.save_with_zone": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save hours and time zone"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salva orario e fuso orario"
+          }
+        }
+      }
+    },
+    "school.teacher.class_settings.unsaved": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You have unsaved changes."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hai modifiche non salvate."
+          }
+        }
+      }
+    },
+    "school.teacher.class_settings.unsaved_save": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save changes"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salva le modifiche"
+          }
+        }
+      }
+    },
+    "school.teacher.class_settings.unsaved_discard": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Discard changes"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annulla le modifiche"
+          }
+        }
+      }
+    },
+    "school.teacher.back": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Indietro"
+          }
+        }
+      }
+    },
+    "school.teacher.cards.save_pdf": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save as PDF"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salva come PDF"
+          }
+        }
+      }
+    },
+    "school.teacher.cards.pending": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign-in cards not printed yet"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schede di accesso non ancora stampate"
+          }
+        }
+      }
+    },
+    "school.teacher.cards.show": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show cards"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostra le schede"
+          }
+        }
+      }
+    },
+    "school.teacher.roster.class_load_failed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't load this class's details, so adding children is paused."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossibile caricare i dettagli della classe, quindi l'aggiunta dei bambini è sospesa."
           }
         }
       }

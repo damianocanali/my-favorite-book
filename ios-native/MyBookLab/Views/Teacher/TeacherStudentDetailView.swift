@@ -129,7 +129,7 @@ struct TeacherStudentDetailView: View {
                 VStack(alignment: .leading, spacing: 18) {
                     ForEach(CheckinDay.group(checkins)) { day in
                         VStack(alignment: .leading, spacing: 8) {
-                            Text(day.title)
+                            day.title
                                 .font(.headline)
                                 .foregroundStyle(.white)
                                 .accessibilityAddTraits(.isHeader)
@@ -223,7 +223,8 @@ struct TeacherStudentBookView: View {
 /// A student's check-ins for one calendar day, newest first.
 struct CheckinDay: Identifiable {
     let id: Date
-    let title: LocalizedStringResource
+    /// "Today", "Yesterday" (catalog), or a formatted date shown verbatim.
+    let title: Text
     let rows: [TeacherCheckin]
 
     static func group(_ checkins: [TeacherCheckin], now: Date = Date(), calendar: Calendar = .current) -> [CheckinDay] {
@@ -236,14 +237,13 @@ struct CheckinDay: Identifiable {
             let rows = buckets[day, default: []].sorted {
                 (TeacherDates.parse($0.created_at) ?? .distantPast) > (TeacherDates.parse($1.created_at) ?? .distantPast)
             }
-            let title: LocalizedStringResource
+            let title: Text
             if calendar.isDate(day, inSameDayAs: now) {
-                title = TeacherCopy.today
+                title = Text(TeacherCopy.today)
             } else if let y = calendar.date(byAdding: .day, value: -1, to: now), calendar.isDate(day, inSameDayAs: y) {
-                title = TeacherCopy.yesterday
+                title = Text(TeacherCopy.yesterday)
             } else {
-                let text = day.formatted(.dateTime.weekday(.wide).day().month(.wide).locale(AppLanguage.locale))
-                title = LocalizedStringResource(stringLiteral: text)
+                title = Text(verbatim: day.formatted(.dateTime.weekday(.wide).day().month(.wide).locale(AppLanguage.locale)))
             }
             return CheckinDay(id: day, title: title, rows: rows)
         }

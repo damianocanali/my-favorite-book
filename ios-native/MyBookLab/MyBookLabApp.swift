@@ -70,6 +70,9 @@ struct MyBookLabApp: App {
                     // on every launch (the token can rotate). No-op otherwise.
                     await push.registerIfAllowed()
                 }
+                // A role change on the same account (e.g. metadata refresh
+                // marking it a teacher) must silence the music too.
+                .onChange(of: auth.isTeacher) { _, _ in audio.applyAccountPolicy() }
                 .onChange(of: auth.user?.id) { _, newValue in
                     audio.applyAccountPolicy()
                     Task {
