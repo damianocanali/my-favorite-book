@@ -783,6 +783,18 @@ actor APIClient {
                               body: patch, bearerToken: bearerToken)
     }
 
+    private struct TestAlertBody: Encodable { let locale: String }
+    private struct TestAlertResponse: Decodable { let sent: Int? }
+
+    /// One push to the caller's own devices, ignoring school hours. Returns
+    /// how many devices it reached.
+    func teacherSendTestAlert(bearerToken: String) async throws -> Int {
+        let res: TestAlertResponse = try await teacherCall(
+            method: "POST", path: "/api/school/test-alert", query: [:],
+            body: TestAlertBody(locale: AppLanguage.apiLocale), bearerToken: bearerToken)
+        return res.sent ?? 0
+    }
+
     // MARK: - Push (a grown-up's APNs device token)
 
     private struct DeviceTokenBody: Encodable {

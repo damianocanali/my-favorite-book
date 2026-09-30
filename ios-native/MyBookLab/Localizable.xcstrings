@@ -10437,6 +10437,126 @@
           }
         }
       }
+    },
+    "school.notifications.settings.hours_note": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Urgent alerts arrive during school hours. Outside them they wait in the bell."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gli avvisi urgenti arrivano durante l'orario scolastico. Fuori orario restano nella campanella."
+          }
+        }
+      }
+    },
+    "school.notifications.test.button": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Send a test alert"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invia un avviso di prova"
+          }
+        }
+      }
+    },
+    "school.notifications.test.sending": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sending…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invio in corso…"
+          }
+        }
+      }
+    },
+    "school.notifications.test.none": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No device got it. Turn on alerts on this device from the Dashboard, then try again."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nessun dispositivo l'ha ricevuto. Attiva gli avvisi su questo dispositivo dalla Dashboard, poi riprova."
+          }
+        }
+      }
+    },
+    "school.notifications.test.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Test alerts aren't available right now."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gli avvisi di prova non sono disponibili al momento."
+          }
+        }
+      }
+    },
+    "school.notifications.test.sent": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Test alert sent to %lld device. It should arrive in a few seconds."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Test alert sent to %lld devices. It should arrive in a few seconds."
+                }
+              }
+            }
+          }
+        },
+        "it": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Avviso di prova inviato a %lld dispositivo. Dovrebbe arrivare tra pochi secondi."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Avviso di prova inviato a %lld dispositivi. Dovrebbe arrivare tra pochi secondi."
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "version": "1.0"

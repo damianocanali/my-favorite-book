@@ -278,6 +278,15 @@ enum TeacherCopy {
     static let settingsError = LocalizedStringResource("school.notifications.settings.error", defaultValue: "Couldn't save. Try again.")
     static let settingsLoadError = LocalizedStringResource("school.notifications.settings.load_error", defaultValue: "Couldn't load your notification settings.")
 
+    static let settingsHoursNote = LocalizedStringResource("school.notifications.settings.hours_note", defaultValue: "Urgent alerts arrive during school hours. Outside them they wait in the bell.")
+    static let testButton = LocalizedStringResource("school.notifications.test.button", defaultValue: "Send a test alert")
+    static let testSending = LocalizedStringResource("school.notifications.test.sending", defaultValue: "Sending…")
+    static let testNone = LocalizedStringResource("school.notifications.test.none", defaultValue: "No device got it. Turn on alerts on this device from the Dashboard, then try again.")
+    static let testUnavailable = LocalizedStringResource("school.notifications.test.unavailable", defaultValue: "Test alerts aren't available right now.")
+    static func testSent(_ count: Int) -> LocalizedStringResource {
+        LocalizedStringResource("school.notifications.test.sent", defaultValue: "Test alert sent to \(count) devices. It should arrive in a few seconds.")
+    }
+
     // MARK: Errors (web: teacherErrors.teacherErrorText, standalone variants)
     static func error(_ code: String?) -> LocalizedStringResource {
         switch code {
