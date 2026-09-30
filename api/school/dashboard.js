@@ -142,10 +142,11 @@ async function oneClassDashboard(req, o) {
   // closed: "nobody handed in" must never be a DB hiccup.
   const assignmentsRes = await sb(
     `/rest/v1/assignments?classroom_id=eq.${classroomId}&status=in.(published,closed)` +
-      `&select=id,title,status,due_at&order=created_at.desc&limit=${DASHBOARD_ASSIGNMENTS}`
+      `&select=id,title,status,due_at,allow_late&order=created_at.desc&limit=${DASHBOARD_ASSIGNMENTS}`
   )
   if (!assignmentsRes.ok) throw new Error(`assignments lookup failed: ${assignmentsRes.status}`)
-  const assignments = (await assignmentsRes.json()).map(({ id, title, status, due_at }) => ({ id, title, status, due_at }))
+  // allow_late: the nudge suggestions only count assignments still open.
+  const assignments = (await assignmentsRes.json()).map(({ id, title, status, due_at, allow_late }) => ({ id, title, status, due_at, allow_late }))
   const subRows = assignments.length
     ? await (async () => {
         const r = await sb(

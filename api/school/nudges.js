@@ -4,12 +4,16 @@ import { handleCors, checkRateLimit } from '../_rateLimit.js'
 import { requireClassOwner, requireStudent, sb, json, isUuid } from '../_school.js'
 import { raisedName } from '../../lib/school/assignments.js'
 import {
-  NUDGE_PRESETS, NUDGE_MAX_STUDENTS, NUDGE_DAILY_CAP, NUDGE_MESSAGE_MAX, cleanNudgeMessage, teacherDisplayName,
+  isOpenAssignment, NUDGE_PRESETS, NUDGE_MAX_STUDENTS, NUDGE_DAILY_CAP, NUDGE_MESSAGE_MAX, cleanNudgeMessage, teacherDisplayName,
 } from '../../lib/school/nudges.js'
 
 // How far back the teacher's "Sent" / "Seen ✓" view looks. Older nudges
 // don't change what a teacher does today.
-const TEACHER_LOOKBACK_MS = 30 * 24 * 60 * 60 * 1000
+const TEACHER_LOOKBACK_DAYS = 30
+const TEACHER_LOOKBACK_MS = TEACHER_LOOKBACK_DAYS * 24 * 60 * 60 * 1000
+// Every row the window can hold for an active roster (35 children × 3 a day
+// × 31 days), so the latest-per-child reduction below never truncates.
+const TEACHER_ROW_LIMIT = NUDGE_MAX_STUDENTS * NUDGE_DAILY_CAP * (TEACHER_LOOKBACK_DAYS + 1)
 
 const bad = (req, error) => json(req, 400, { error, code: 'bad_request' })
 
@@ -27,6 +31,8 @@ const limited = (req, key, n) =>
 // ── Teacher: send ───────────────────────────────────────────────────────
 async function send(req, o, body) {
   const classroomId = o.classroom.id
+  // An archived class is read-only (the RPC re-checks).
+  if (o.classroom.archived_at) return json(req, 409, { error: 'This class is archived', code: 'class_archived' })
   if (!Array.isArray(body.studentIds) || body.studentIds.length < 1) return bad(req, 'Pick at least one student')
   if (body.studentIds.length > NUDGE_MAX_STUDENTS) return bad(req, `At most ${NUDGE_MAX_STUDENTS} students at a time`)
   if (!body.studentIds.every(isUuid)) return bad(req, 'Invalid student id')
@@ -54,10 +60,11 @@ async function send(req, o, body) {
 
   if (assignmentId) {
     const [a] = await read(
-      `/rest/v1/assignments?id=eq.${assignmentId}&classroom_id=eq.${classroomId}&status=eq.published&select=id`,
+      `/rest/v1/assignments?id=eq.${assignmentId}&classroom_id=eq.${classroomId}&status=eq.published&select=id,due_at,allow_late`,
       'assignment'
     )
-    if (!a) return json(req, 404, { error: 'Assignment not found', code: 'assignment_not_found' })
+    // Open = published and not past a due date that refuses late work.
+    if (!a || !isOpenAssignment(a)) return json(req, 404, { error: 'Assignment not found', code: 'assignment_not_found' })
   }
 
   // Only this class's ACTIVE students; anyone else is skipped as not_found
@@ -67,6 +74,15 @@ async function send(req, o, body) {
     'class_students'
   )
   const inClass = new Set(rows.map((r) => r.id))
+  // "Don't forget to hand in" never goes to a child who already has.
+  const handedIn = new Set()
+  if (preset === 'hand_in' && inClass.size) {
+    const subs = await read(
+      `/rest/v1/class_submissions?assignment_id=eq.${assignmentId}&student_id=in.(${[...inClass].join(',')})&select=student_id`,
+      'class_submissions'
+    )
+    for (const s of subs) handedIn.add(s.student_id)
+  }
   const teacherName = teacherDisplayName(o.auth.userMetadata)
 
   const sent = []
@@ -76,6 +92,7 @@ async function send(req, o, body) {
   const results = await Promise.all(
     studentIds.map(async (studentId) => {
       if (!inClass.has(studentId)) return { studentId, code: 'not_found' }
+      if (handedIn.has(studentId)) return { studentId, code: 'handed_in' }
       try {
         const res = await sb('/rest/v1/rpc/school_send_nudge', {
           method: 'POST',
@@ -93,6 +110,8 @@ async function send(req, o, body) {
         if (name === 'daily_cap') return { studentId, code: 'daily_cap' }
         if (name === 'student_not_found') return { studentId, code: 'not_found' }
         if (name === 'assignment_not_found') return { studentId, code: 'assignment_not_found' }
+        if (name === 'handed_in') return { studentId, code: 'handed_in' }
+        if (name === 'class_archived') return { studentId, code: 'class_archived' }
         console.error('school/nudges: send failed', res.status)
         return { studentId, code: 'upstream' }
       } catch (e) {
@@ -116,9 +135,14 @@ async function send(req, o, body) {
 // ── Teacher: latest nudge per child ─────────────────────────────────────
 async function teacherLatest(req, classroomId) {
   const since = new Date(Date.now() - TEACHER_LOOKBACK_MS).toISOString()
+  // Only the class as it is now: a removed child's history is not shown,
+  // and the row cap below stays exact for at most 35 active children.
+  const roster = await read(`/rest/v1/class_students?classroom_id=eq.${classroomId}&status=eq.active&select=id`, 'class_students')
+  if (!roster.length) return json(req, 200, { nudges: [] })
   const rows = await read(
-    `/rest/v1/class_nudges?classroom_id=eq.${classroomId}&created_at=gte.${encodeURIComponent(since)}` +
-      `&select=id,student_id,created_at,seen_at,preset,message&order=created_at.desc&limit=2000`,
+    `/rest/v1/class_nudges?classroom_id=eq.${classroomId}&student_id=in.(${roster.map((r) => r.id).join(',')})` +
+      `&created_at=gte.${encodeURIComponent(since)}` +
+      `&select=id,student_id,created_at,seen_at,preset,message&order=created_at.desc&limit=${TEACHER_ROW_LIMIT}`,
     'class_nudges'
   )
   const latest = new Map()

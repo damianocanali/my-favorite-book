@@ -54,6 +54,11 @@ describe('021_nudges.sql', () => {
     expect(SQL).toMatch(/raise exception 'daily_cap'/)
     expect(SQL).toMatch(/raise exception 'student_not_found'/)
     expect(SQL).toMatch(/delete from class_nudges where student_id = p_student_id and seen_at is null/i)
+    // Re-checked in the RPC: archived class, open assignment, already handed in.
+    expect(SQL).toMatch(/raise exception 'class_archived'/)
+    expect(SQL).toMatch(/and \(allow_late or due_at is null or due_at >= now\(\)\)/i)
+    expect(SQL).toMatch(/p_preset = 'hand_in' and exists \([\s\S]*?from class_submissions where assignment_id = p_assignment_id and student_id = p_student_id/i)
+    expect(SQL).toMatch(/raise exception 'handed_in'/)
     expect(SQL).toMatch(/revoke all on function public\.school_send_nudge\([^)]*\) from public, anon, authenticated/i)
     expect(SQL).toMatch(/grant execute on function public\.school_send_nudge\([^)]*\) to service_role/i)
   })

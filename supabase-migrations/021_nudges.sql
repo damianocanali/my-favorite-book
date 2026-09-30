@@ -60,6 +60,11 @@ alter table public.class_students add column if not exists nudges_today int not 
 -- Sends one nudge to one child. The student row is locked FOR UPDATE, so
 -- two sends at once serialise: the daily cap can't be exceeded and the
 -- one-unread rule can't trip the unique index. Returns the new row.
+--
+-- Re-checked here, against the database clock, whatever the API already
+-- checked: the class is not archived; a linked assignment is published and
+-- still OPEN (not past a due date that disallows late work); a 'hand_in'
+-- nudge never reaches a child who has already handed that assignment in.
 create or replace function public.school_send_nudge(
   p_classroom_id uuid, p_student_id uuid, p_teacher_user_id uuid, p_teacher_name text,
   p_preset text, p_message text, p_assignment_id uuid, p_daily_cap int
@@ -68,6 +73,7 @@ returns jsonb language plpgsql security definer set search_path = public as $$
 declare
   st record;
   tz text;
+  archived timestamptz;
   today date;
   sent int;
   r record;
@@ -78,13 +84,22 @@ begin
     for update;
   if not found then raise exception 'student_not_found'; end if;
 
+  select coalesce(nullif(timezone, ''), 'UTC'), archived_at into tz, archived
+    from classrooms where id = p_classroom_id;
+  if archived is not null then raise exception 'class_archived'; end if;
+
   if p_assignment_id is not null then
     perform 1 from assignments
-      where id = p_assignment_id and classroom_id = p_classroom_id and status = 'published';
+      where id = p_assignment_id and classroom_id = p_classroom_id and status = 'published'
+        and (allow_late or due_at is null or due_at >= now());
     if not found then raise exception 'assignment_not_found'; end if;
+    if p_preset = 'hand_in' and exists (
+      select 1 from class_submissions where assignment_id = p_assignment_id and student_id = p_student_id
+    ) then
+      raise exception 'handed_in';
+    end if;
   end if;
 
-  select coalesce(nullif(timezone, ''), 'UTC') into tz from classrooms where id = p_classroom_id;
   begin
     today := (now() at time zone tz)::date;
   exception when others then

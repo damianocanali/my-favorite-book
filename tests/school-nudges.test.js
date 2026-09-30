@@ -3,7 +3,7 @@ import {
   TEACHER, STUDENT_USER, CLASS_ID, STUDENT_ID, STUDENT2_ID, ASSIGN_ID,
   setEnv, mockSupabase, ownerRoute, notOwnerRoute, studentSelfRoute, req, err500,
 } from './school-mock.js'
-import { cleanNudgeMessage, teacherDisplayName } from '../lib/school/nudges.js'
+import { cleanNudgeMessage, teacherDisplayName, isOpenAssignment } from '../lib/school/nudges.js'
 
 const NUDGE_ID = '6f1c1b1e-0000-4000-8000-0000000000e1'
 const OTHER_ID = '6f1c1b1e-0000-4000-8000-0000000000f9'
@@ -135,6 +135,54 @@ describe('POST /api/school/nudges (teacher)', () => {
     expect(log.find((l) => l.url.includes('school_send_nudge')).body.p_assignment_id).toBe(ASSIGN_ID)
   })
 
+  it('hand_in skips children who already handed that assignment in, without calling the RPC for them', async () => {
+    const log = mockSupabase({ user: TEACHER, routes: [ownerRoute, assignmentRoute(), rosterRoute(),
+      { method: 'GET', match: '/rest/v1/class_submissions', reply: { body: [{ student_id: STUDENT2_ID }] } }, rpcOk] })
+    const body = await (await (await load())(post({ studentIds: [STUDENT_ID, STUDENT2_ID], preset: 'hand_in', assignmentId: ASSIGN_ID }))).json()
+    expect(body.sent.map((s) => s.student_id)).toEqual([STUDENT_ID])
+    expect(body.skipped).toEqual([{ student_id: STUDENT2_ID, code: 'handed_in' }])
+    const subs = log.find((l) => l.url.includes('/rest/v1/class_submissions'))
+    expect(subs.url).toContain(`assignment_id=eq.${ASSIGN_ID}`)
+    expect(log.filter((l) => l.url.includes('school_send_nudge'))).toHaveLength(1)
+  })
+
+  it('maps a handed_in raised by the RPC (a hand-in landing mid-send) to a skip', async () => {
+    mockSupabase({ user: TEACHER, routes: [ownerRoute, assignmentRoute(), rosterRoute(),
+      { method: 'POST', match: 'school_send_nudge', reply: { status: 400, body: { code: 'P0001', message: 'handed_in' } } }] })
+    const body = await (await (await load())(post({ studentIds: [STUDENT_ID], preset: 'hand_in', assignmentId: ASSIGN_ID }))).json()
+    expect(body.skipped).toEqual([{ student_id: STUDENT_ID, code: 'handed_in' }])
+  })
+
+  it('does not look up hand-ins for other presets linked to an assignment', async () => {
+    const log = mockSupabase({ user: TEACHER, routes: [ownerRoute, assignmentRoute(), rosterRoute(), rpcOk] })
+    const res = await (await load())(post({ studentIds: [STUDENT_ID], preset: 'one_more_page', assignmentId: ASSIGN_ID }))
+    expect(res.status).toBe(200)
+    expect(log.some((l) => l.url.includes('/rest/v1/class_submissions'))).toBe(false)
+  })
+
+  it('404s an assignment past a due date that refuses late work (closed by due)', async () => {
+    const log = mockSupabase({ user: TEACHER, routes: [ownerRoute, rosterRoute(), rpcOk,
+      assignmentRoute([{ id: ASSIGN_ID, due_at: '2020-01-01T00:00:00Z', allow_late: false }])] })
+    const res = await (await load())(post({ studentIds: [STUDENT_ID], preset: 'hand_in', assignmentId: ASSIGN_ID }))
+    expect(res.status).toBe(404)
+    expect(log.some((l) => l.url.includes('school_send_nudge'))).toBe(false)
+  })
+
+  it('accepts a past-due assignment that allows late work', async () => {
+    mockSupabase({ user: TEACHER, routes: [ownerRoute, rosterRoute(), rpcOk,
+      assignmentRoute([{ id: ASSIGN_ID, due_at: '2020-01-01T00:00:00Z', allow_late: true }])] })
+    expect((await (await load())(post({ studentIds: [STUDENT_ID], preset: 'hand_in', assignmentId: ASSIGN_ID }))).status).toBe(200)
+  })
+
+  it('409s an archived class and never calls the RPC', async () => {
+    const archived = { ...ownerRoute, reply: { body: [{ ...ownerRoute.reply.body[0], archived_at: '2026-09-01T00:00:00Z' }] } }
+    const log = mockSupabase({ user: TEACHER, routes: [archived, rosterRoute(), rpcOk] })
+    const res = await (await load())(post({ studentIds: [STUDENT_ID], preset: 'cant_wait' }))
+    expect(res.status).toBe(409)
+    expect((await res.json()).code).toBe('class_archived')
+    expect(log.some((l) => l.url.includes('school_send_nudge'))).toBe(false)
+  })
+
   it('404s an assignment from another class (or a draft/closed one)', async () => {
     const log = mockSupabase({ user: TEACHER, routes: [ownerRoute, assignmentRoute([]), rosterRoute(), rpcOk] })
     const res = await (await load())(post({ studentIds: [STUDENT_ID], preset: 'hand_in', assignmentId: ASSIGN_ID }))
@@ -146,7 +194,7 @@ describe('POST /api/school/nudges (teacher)', () => {
 
 describe('GET /api/school/nudges?classId= (teacher)', () => {
   it('returns the latest nudge per student', async () => {
-    const log = mockSupabase({ user: TEACHER, routes: [ownerRoute, { method: 'GET', match: '/rest/v1/class_nudges', reply: { body: [
+    const log = mockSupabase({ user: TEACHER, routes: [ownerRoute, rosterRoute(), { method: 'GET', match: '/rest/v1/class_nudges', reply: { body: [
       { id: 'n3', student_id: STUDENT_ID, created_at: '2026-09-29T10:00:00Z', seen_at: null, preset: 'cant_wait', message: null },
       { id: 'n2', student_id: STUDENT2_ID, created_at: '2026-09-28T10:00:00Z', seen_at: '2026-09-28T11:00:00Z', preset: null, message: 'Hi' },
       { id: 'n1', student_id: STUDENT_ID, created_at: '2026-09-27T10:00:00Z', seen_at: '2026-09-27T11:00:00Z', preset: 'story_waiting', message: null },
@@ -156,7 +204,19 @@ describe('GET /api/school/nudges?classId= (teacher)', () => {
     const body = await res.json()
     expect(body.nudges.map((n) => n.id)).toEqual(['n3', 'n2'])
     expect(body.nudges[0]).toEqual({ id: 'n3', student_id: STUDENT_ID, created_at: '2026-09-29T10:00:00Z', seen_at: null, preset: 'cant_wait', message: null })
-    expect(log.find((l) => l.url.includes('/rest/v1/class_nudges')).url).toContain(`classroom_id=eq.${CLASS_ID}`)
+    const q = log.find((l) => l.url.includes('/rest/v1/class_nudges')).url
+    expect(q).toContain(`classroom_id=eq.${CLASS_ID}`)
+    // Scoped to the active roster, and a limit that can hold every row the
+    // 30-day window allows (35 × 3 × 31), so nothing is truncated.
+    expect(q).toContain(`student_id=in.(${STUDENT_ID},${STUDENT2_ID})`)
+    expect(Number(q.match(/limit=(\d+)/)[1])).toBeGreaterThanOrEqual(3150)
+  })
+
+  it('returns no nudges (and makes no nudge read) for an empty roster', async () => {
+    const log = mockSupabase({ user: TEACHER, routes: [ownerRoute, rosterRoute([])] })
+    const body = await (await (await load())(req('nudges', { query: `?classId=${CLASS_ID}` }))).json()
+    expect(body.nudges).toEqual([])
+    expect(log.some((l) => l.url.includes('/rest/v1/class_nudges'))).toBe(false)
   })
 
   it('404s another teacher\'s class', async () => {
@@ -247,6 +307,16 @@ describe('PATCH /api/school/nudges (student: Got it)', () => {
 })
 
 describe('lib/school/nudges', () => {
+  it('isOpenAssignment: published and not closed by its due date', () => {
+    const now = Date.parse('2026-09-30T12:00:00Z')
+    expect(isOpenAssignment({ status: 'published', due_at: null, allow_late: false }, now)).toBe(true)
+    expect(isOpenAssignment({ status: 'published', due_at: '2026-09-29T00:00:00Z', allow_late: false }, now)).toBe(false)
+    expect(isOpenAssignment({ status: 'published', due_at: '2026-09-29T00:00:00Z', allow_late: true }, now)).toBe(true)
+    expect(isOpenAssignment({ status: 'published', due_at: '2026-10-29T00:00:00Z', allow_late: false }, now)).toBe(true)
+    expect(isOpenAssignment({ status: 'closed' }, now)).toBe(false)
+    expect(isOpenAssignment(null, now)).toBe(false)
+  })
+
   it('cleanNudgeMessage counts UTF-16 units', () => {
     expect(cleanNudgeMessage('😀'.repeat(70))).toBe('😀'.repeat(70))
     expect(cleanNudgeMessage('😀'.repeat(71))).toBeNull()
