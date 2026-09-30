@@ -11,9 +11,10 @@ import {
 // don't change what a teacher does today.
 const TEACHER_LOOKBACK_DAYS = 30
 const TEACHER_LOOKBACK_MS = TEACHER_LOOKBACK_DAYS * 24 * 60 * 60 * 1000
-// Every row the window can hold for an active roster (35 children × 3 a day
-// × 31 days), so the latest-per-child reduction below never truncates.
-const TEACHER_ROW_LIMIT = NUDGE_MAX_STUDENTS * NUDGE_DAILY_CAP * (TEACHER_LOOKBACK_DAYS + 1)
+// PostgREST caps every response at max_rows (1000 on Supabase), silently.
+// The window can hold more (35 children × 3 a day × 30 days), so the read
+// is paged with a stable order, like api/cron/teacher-summary.js.
+const PAGE = 1000
 
 const bad = (req, error) => json(req, 400, { error, code: 'bad_request' })
 
@@ -23,6 +24,17 @@ async function read(path, what) {
   const res = await sb(path)
   if (!res.ok) throw new Error(`${what} lookup failed: ${res.status}`)
   return res.json()
+}
+
+// Every page of a read, until a short page. `path` must not carry its own
+// order/limit/offset; `order` must be total (ties broken by id).
+async function readAll(path, order, what) {
+  const all = []
+  for (let offset = 0; ; offset += PAGE) {
+    const rows = await read(`${path}&order=${order}&limit=${PAGE}&offset=${offset}`, what)
+    all.push(...rows)
+    if (rows.length < PAGE) return all
+  }
 }
 
 const limited = (req, key, n) =>
@@ -135,14 +147,13 @@ async function send(req, o, body) {
 // ── Teacher: latest nudge per child ─────────────────────────────────────
 async function teacherLatest(req, classroomId) {
   const since = new Date(Date.now() - TEACHER_LOOKBACK_MS).toISOString()
-  // Only the class as it is now: a removed child's history is not shown,
-  // and the row cap below stays exact for at most 35 active children.
+  // Only the class as it is now: a removed child's history is not shown.
   const roster = await read(`/rest/v1/class_students?classroom_id=eq.${classroomId}&status=eq.active&select=id`, 'class_students')
   if (!roster.length) return json(req, 200, { nudges: [] })
-  const rows = await read(
+  const rows = await readAll(
     `/rest/v1/class_nudges?classroom_id=eq.${classroomId}&student_id=in.(${roster.map((r) => r.id).join(',')})` +
-      `&created_at=gte.${encodeURIComponent(since)}` +
-      `&select=id,student_id,created_at,seen_at,preset,message&order=created_at.desc&limit=${TEACHER_ROW_LIMIT}`,
+      `&created_at=gte.${encodeURIComponent(since)}&select=id,student_id,created_at,seen_at,preset,message`,
+    'created_at.desc,id.desc',
     'class_nudges'
   )
   const latest = new Map()

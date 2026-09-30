@@ -206,10 +206,35 @@ describe('GET /api/school/nudges?classId= (teacher)', () => {
     expect(body.nudges[0]).toEqual({ id: 'n3', student_id: STUDENT_ID, created_at: '2026-09-29T10:00:00Z', seen_at: null, preset: 'cant_wait', message: null })
     const q = log.find((l) => l.url.includes('/rest/v1/class_nudges')).url
     expect(q).toContain(`classroom_id=eq.${CLASS_ID}`)
-    // Scoped to the active roster, and a limit that can hold every row the
-    // 30-day window allows (35 × 3 × 31), so nothing is truncated.
+    // Scoped to the active roster, in a stable order, paged.
     expect(q).toContain(`student_id=in.(${STUDENT_ID},${STUDENT2_ID})`)
-    expect(Number(q.match(/limit=(\d+)/)[1])).toBeGreaterThanOrEqual(3150)
+    expect(q).toContain('order=created_at.desc,id.desc')
+    expect(q).toContain('limit=1000&offset=0')
+  })
+
+  it('pages past PostgREST max_rows (1000) until a short page, so nothing is truncated', async () => {
+    const page = (n, student, seen) => Array.from({ length: n }, (_, i) => ({
+      id: `n${student}${i}`, student_id: student, created_at: '2026-09-29T10:00:00Z', seen_at: seen, preset: 'cant_wait', message: null,
+    }))
+    const log = mockSupabase({ user: TEACHER, routes: [ownerRoute, rosterRoute(), {
+      method: 'GET', match: '/rest/v1/class_nudges',
+      reply: (call) => ({ body: call.url.includes('offset=0') ? page(1000, STUDENT_ID, null) : page(3, STUDENT2_ID, '2026-09-29T11:00:00Z') }),
+    }] })
+    const body = await (await (await load())(req('nudges', { query: `?classId=${CLASS_ID}` }))).json()
+    const reads = log.filter((l) => l.url.includes('/rest/v1/class_nudges'))
+    expect(reads.map((l) => l.url.match(/offset=(\d+)/)[1])).toEqual(['0', '1000'])
+    // The child only on the second page is still there.
+    expect(body.nudges.map((n) => n.student_id).sort()).toEqual([STUDENT_ID, STUDENT2_ID].sort())
+  })
+
+  it('503s (fails closed) if a later page errors', async () => {
+    mockSupabase({ user: TEACHER, routes: [ownerRoute, rosterRoute(), {
+      method: 'GET', match: '/rest/v1/class_nudges',
+      reply: (call) => call.url.includes('offset=0')
+        ? { body: Array.from({ length: 1000 }, (_, i) => ({ id: `x${i}`, student_id: STUDENT_ID })) }
+        : { status: 500, body: {} },
+    }] })
+    expect((await (await load())(req('nudges', { query: `?classId=${CLASS_ID}` }))).status).toBe(503)
   })
 
   it('returns no nudges (and makes no nudge read) for an empty roster', async () => {
