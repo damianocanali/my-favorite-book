@@ -127,8 +127,9 @@ struct MyAssignmentsSection: View {
                             AssignmentCard(
                                 assignment: assignment,
                                 book: book,
+                                started: isStarted(assignment),
                                 homeStatus: assignment.homeStatus(
-                                    hasBook: book != nil, seen: seen.contains(assignment.id)),
+                                    hasBook: isStarted(assignment), seen: seen.contains(assignment.id)),
                                 onOpen: { markOpened(assignment) },
                                 onWrite: {
                                     markOpened(assignment)
@@ -165,7 +166,10 @@ struct MyAssignmentsSection: View {
             seen = AssignmentSeen.ids(userId: auth.user?.id.uuidString)
             guard scenePhase == .active else { return }
             while !Task.isCancelled {
-                if let fresh = await SchoolAssignments.list() { assignments = fresh }
+                if let fresh = await SchoolAssignments.list() {
+                    assignments = fresh
+                    seen = AssignmentSeen.prune(keeping: fresh.map(\.id), userId: auth.user?.id.uuidString)
+                }
                 try? await Task.sleep(for: SchoolAssignments.pollInterval)
             }
         }
@@ -204,7 +208,7 @@ struct MyAssignmentsSection: View {
     private var visible: [StudentAssignment] {
         let open = (assignments ?? []).filter(\.showsOnHome)
         func rank(_ a: StudentAssignment) -> Int {
-            switch a.homeStatus(hasBook: taggedBook(for: a) != nil, seen: seen.contains(a.id)) {
+            switch a.homeStatus(hasBook: isStarted(a), seen: seen.contains(a.id)) {
             case .new: 0
             case .feedback: 1
             case .inProgress: 2
@@ -216,6 +220,12 @@ struct MyAssignmentsSection: View {
         return open.enumerated()
             .sorted { (rank($0.element), $0.offset) < (rank($1.element), $1.offset) }
             .map(\.element)
+    }
+
+    /// Started = a saved book is tagged for it, or the draft open in the
+    /// editor is this assignment's (not saved to the shelf yet).
+    private func isStarted(_ assignment: StudentAssignment) -> Bool {
+        taggedBook(for: assignment) != nil || BookDraftStore.shared.book?.assignmentId == assignment.id
     }
 
     private func markOpened(_ assignment: StudentAssignment) {
@@ -288,6 +298,8 @@ struct MyAssignmentsSection: View {
 private struct AssignmentCard: View {
     let assignment: StudentAssignment
     let book: Book?
+    /// A saved book or the open draft belongs to it: "Continue writing".
+    let started: Bool
     let homeStatus: StudentAssignment.HomeStatus
     /// Any touch on the card counts as opening it (clears "New").
     let onOpen: () -> Void
@@ -412,7 +424,7 @@ private struct AssignmentCard: View {
                 // The one big thing to do on a card.
                 SparkleButton(action: onWrite, size: .regular) {
                     Label {
-                        Text(book == nil ? AssignmentCopy.startWriting : AssignmentCopy.continueWriting)
+                        Text(started ? AssignmentCopy.continueWriting : AssignmentCopy.startWriting)
                     } icon: {
                         Image(systemName: "pencil.and.scribble")
                     }

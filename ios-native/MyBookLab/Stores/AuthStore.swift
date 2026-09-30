@@ -443,8 +443,6 @@ final class AuthStore: NSObject {
         BookDraftStore.shared.clear()
         CoinsStore.shared.clearLocal()
         RewardsStore.shared.clearLocal()
-        // Which assignments a child has opened ("New" badges).
-        AssignmentSeen.clearAll()
         // The avatar may be a photo-derived picture of a child. It is also
         // saved to user_inventory, and CoinsStore.loadInventory adopts it
         // back on the next sign-in.

@@ -8,7 +8,10 @@ import { useBookStore } from '../../stores/useBookStore'
 import { useBookshelfStore } from '../../stores/useBookshelfStore'
 import { useAuthStore } from '../../stores/useAuthStore'
 import AssignmentCard from './AssignmentCard'
-import { homeStatus, showsOnHome, sortForHome, readSeenAssignments, markAssignmentSeen } from './assignmentStudentUi'
+import {
+  homeStatus, showsOnHome, sortForHome, startDecision,
+  readSeenAssignments, markAssignmentSeen, pruneSeenAssignments,
+} from './assignmentStudentUi'
 import StudentFeedbackModal from './StudentFeedbackModal'
 
 const POLL_MS = 60 * 1000
@@ -31,6 +34,7 @@ export default function MyAssignments() {
   const startNewBook = useBookStore((s) => s.startNewBook)
   const tagAssignment = useBookStore((s) => s.tagAssignment)
   const loadBook = useBookStore((s) => s.loadBook)
+  const draft = useBookStore((s) => s.book)
   const userId = useAuthStore((s) => s.user?.id ?? null)
   const [seen, setSeen] = useState(() => readSeenAssignments(userId))
   useEffect(() => { setSeen(readSeenAssignments(userId)) }, [userId])
@@ -45,7 +49,9 @@ export default function MyAssignments() {
     if (res.ok) {
       loaded.current = true
       setError(null)
-      setAssignments(res.data.assignments ?? [])
+      const list = res.data.assignments ?? []
+      setAssignments(list)
+      setSeen(pruneSeenAssignments(useAuthStore.getState().user?.id ?? null, list.map((a) => a.id)))
     } else if (!loaded.current) {
       // A failed poll keeps what is on screen; only a first load hides it.
       setError(res.code || 'generic')
@@ -76,17 +82,31 @@ export default function MyAssignments() {
   // actual submitted book rather than only offering to make a new one.
   const findBook = (assignmentId) => books.find((b) => b.assignmentId === assignmentId)
 
+  // Started counts the draft open in the editor too, not only saved books.
+  const isStarted = useCallback(
+    (id) => draft?.assignmentId === id || books.some((b) => b.assignmentId === id),
+    [books, draft]
+  )
   const statusOf = useCallback(
-    (a) => homeStatus(a, { hasBook: !!books.find((b) => b.assignmentId === a.id), seen: seen.has(a.id) }),
-    [books, seen]
+    (a) => homeStatus(a, { hasBook: isStarted(a.id), seen: seen.has(a.id) }),
+    [isStarted, seen]
   )
   const visible = useMemo(
     () => sortForHome((assignments ?? []).filter(showsOnHome), statusOf),
     [assignments, statusOf]
   )
 
+  // Never silently wipes work: the draft already open for this assignment
+  // is just returned to, and any other draft with something in it is only
+  // replaced after the child says so (same as the iPad).
   function startOrContinue(assignment) {
     markOpened(assignment.id)
+    const decision = startDecision(useBookStore.getState().book, assignment.id)
+    if (decision === 'resume') {
+      navigate('/create')
+      return
+    }
+    if (decision === 'confirm' && !window.confirm(t('school:student.assignments.replace_draft'))) return
     const existing = findBook(assignment.id)
     if (existing) {
       // Same shortcut PreviewPage's own Edit button uses: load the book,
@@ -139,7 +159,7 @@ export default function MyAssignments() {
             key={assignment.id}
             assignment={assignment}
             homeStatus={statusOf(assignment)}
-            hasBook={!!findBook(assignment.id)}
+            hasBook={isStarted(assignment.id)}
             onOpen={() => markOpened(assignment.id)}
             onStartWriting={() => startOrContinue(assignment)}
             onOpenHandedIn={() => openHandedIn(assignment)}

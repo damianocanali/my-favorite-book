@@ -72,11 +72,30 @@ export function sortForHome(assignments, statusOf) {
     .map((x) => x.a)
 }
 
+// Whether an open draft holds anything a child would miss (iPad:
+// MyAssignmentsSection.hasWork).
+export function draftHasWork(book) {
+  if (!book) return false
+  const filled = (s) => typeof s === 'string' && s.trim() !== ''
+  return filled(book.title) || filled(book.authorName)
+    || (book.characters?.length ?? 0) > 0 || !!book.setting || !!book.coverImage
+    || (book.pages ?? []).some((p) => filled(p?.text) || !!p?.illustrationData)
+}
+
+// What "Start writing" does with the draft that is open right now (iPad:
+// startOrContinue): 'resume' when it already is this assignment's book,
+// 'confirm' before replacing a draft that has work in it, else 'start'.
+export function startDecision(draft, assignmentId) {
+  if (draft && draft.assignmentId === assignmentId) return 'resume'
+  return draftHasWork(draft) ? 'confirm' : 'start'
+}
+
 // Which assignments this child has opened, so a new one wears a "New" badge
-// until they do. Per student user id (class devices are shared), in
-// localStorage only, and wiped with the rest of a person's local data on
-// sign-out or a change of who is signed in (useAuthStore's
-// clearLocalUserData → clearSeenAssignments). Every storage call is guarded:
+// until they do. Per student user id (class devices are shared, and ids
+// never cross between children), in localStorage only. Deliberately KEPT
+// across sign-out: a child signing back in must not see everything as New
+// again. It stays small because every load prunes it to the assignments
+// still listed (pruneSeenAssignments). Every storage call is guarded:
 // private mode or blocked storage just means every assignment reads "New".
 const SEEN_PREFIX = 'assignmentsSeen.'
 
@@ -101,15 +120,18 @@ export function markAssignmentSeen(userId, assignmentId, storage = globalThis.lo
   return seen
 }
 
-export function clearSeenAssignments(storage = globalThis.localStorage) {
+// Drops seen ids for assignments no longer in the list (deleted, or gone
+// from the class), so the stored set never grows past the live list.
+export function pruneSeenAssignments(userId, liveIds, storage = globalThis.localStorage) {
+  const seen = readSeenAssignments(userId, storage)
+  if (!userId) return seen
+  const live = new Set(liveIds)
+  const kept = [...seen].filter((id) => live.has(id))
+  if (kept.length === seen.size) return seen
   try {
-    const keys = []
-    for (let i = 0; i < (storage?.length ?? 0); i++) {
-      const key = storage.key(i)
-      if (key?.startsWith(SEEN_PREFIX)) keys.push(key)
-    }
-    keys.forEach((key) => storage.removeItem(key))
-  } catch { /* nothing to clear */ }
+    storage?.setItem(SEEN_PREFIX + userId, JSON.stringify(kept))
+  } catch { /* the stale ids just stay a little longer */ }
+  return new Set(kept)
 }
 
 const DAY_MS = 24 * 60 * 60 * 1000

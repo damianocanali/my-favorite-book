@@ -391,8 +391,9 @@
         "heading": "Il tuo compito",
         "dismiss_aria": "Nascondi la traccia del compito"
       },
-      "from_teacher": "Dalla tua maestra o dal tuo maestro",
-      "continue_writing": "Continua a scrivere"
+      "from_teacher": "Dall'insegnante",
+      "continue_writing": "Continua a scrivere",
+      "replace_draft": "Iniziare un nuovo libro? Il libro non salvato andrà perso."
     },
     "hand_in": {
       "picker_title": "Consegna a…",

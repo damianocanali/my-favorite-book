@@ -14,7 +14,9 @@ import {
   sortForHome,
   readSeenAssignments,
   markAssignmentSeen,
-  clearSeenAssignments,
+  pruneSeenAssignments,
+  draftHasWork,
+  startDecision,
 } from '../src/components/school/assignmentStudentUi.js'
 
 const base = (overrides = {}) => ({
@@ -208,15 +210,14 @@ describe('seen assignments storage', () => {
     expect(readSeenAssignments('u2', s).has('a1')).toBe(false)
   })
 
-  it('clears every user on sign-out and leaves other keys alone', () => {
+  it('prunes to the assignments still listed, for that user only', () => {
     const s = memoryStorage()
-    s.setItem('other', 'x')
     markAssignmentSeen('u1', 'a1', s)
-    markAssignmentSeen('u2', 'a2', s)
-    clearSeenAssignments(s)
-    expect(readSeenAssignments('u1', s).size).toBe(0)
-    expect(readSeenAssignments('u2', s).size).toBe(0)
-    expect(s.getItem('other')).toBe('x')
+    markAssignmentSeen('u1', 'gone', s)
+    markAssignmentSeen('u2', 'gone', s)
+    expect([...pruneSeenAssignments('u1', ['a1', 'a3'], s)]).toEqual(['a1'])
+    expect([...readSeenAssignments('u1', s)]).toEqual(['a1'])
+    expect(readSeenAssignments('u2', s).has('gone')).toBe(true)
   })
 
   it('reads garbage or blocked storage as nothing seen', () => {
@@ -226,5 +227,24 @@ describe('seen assignments storage', () => {
     const blocked = { getItem: () => { throw new Error('blocked') } }
     expect(readSeenAssignments('u1', blocked).size).toBe(0)
     expect(readSeenAssignments(null, s).size).toBe(0)
+  })
+})
+
+describe('startDecision', () => {
+  const blank = { title: '', authorName: '', characters: [], setting: null, coverImage: null, pages: [{ text: '', illustrationData: null }] }
+
+  it('resumes the draft already open for this assignment', () => {
+    expect(startDecision({ ...blank, title: 'x', assignmentId: 'a1' }, 'a1')).toBe('resume')
+  })
+
+  it('asks before replacing a draft with work in it', () => {
+    expect(startDecision({ ...blank, pages: [{ text: 'Once upon' }] }, 'a1')).toBe('confirm')
+    expect(startDecision({ ...blank, title: 'Mine', assignmentId: 'a2' }, 'a1')).toBe('confirm')
+  })
+
+  it('just starts over an empty draft or none', () => {
+    expect(startDecision(blank, 'a1')).toBe('start')
+    expect(startDecision(null, 'a1')).toBe('start')
+    expect(draftHasWork(blank)).toBe(false)
   })
 })

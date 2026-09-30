@@ -95,8 +95,10 @@ enum SchoolAssignments {
 
 /// Which assignments this child has opened, so a new one wears a "New" badge
 /// until they do. On the device only, per student user id (class iPads are
-/// shared), and wiped with the rest of a person's local data on sign-out or
-/// a change of who is signed in (AuthStore.clearLocalUserData).
+/// shared, and ids never cross between children). Deliberately KEPT across
+/// sign-out: a child signing back in must not see everything as New again.
+/// It stays small because every load prunes it to the assignments still
+/// listed.
 @MainActor
 enum AssignmentSeen {
     private static let prefix = "assignmentsSeen."
@@ -113,10 +115,15 @@ enum AssignmentSeen {
         UserDefaults.standard.set(Array(seen), forKey: prefix + userId)
     }
 
-    static func clearAll() {
-        let defaults = UserDefaults.standard
-        for key in defaults.dictionaryRepresentation().keys where key.hasPrefix(prefix) {
-            defaults.removeObject(forKey: key)
+    /// Drops ids of assignments no longer in the list; returns what is left.
+    @discardableResult
+    static func prune(keeping liveIds: [String], userId: String?) -> Set<String> {
+        let seen = ids(userId: userId)
+        guard let userId else { return seen }
+        let kept = seen.intersection(liveIds)
+        if kept.count != seen.count {
+            UserDefaults.standard.set(Array(kept), forKey: prefix + userId)
         }
+        return kept
     }
 }

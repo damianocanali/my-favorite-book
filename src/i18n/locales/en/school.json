@@ -392,7 +392,8 @@
         "dismiss_aria": "Hide the assignment prompt"
       },
       "from_teacher": "From your teacher",
-      "continue_writing": "Continue writing"
+      "continue_writing": "Continue writing",
+      "replace_draft": "Start a new book? Your unsaved book will be lost."
     },
     "hand_in": {
       "picker_title": "Hand in to…",
