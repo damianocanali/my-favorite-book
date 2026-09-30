@@ -23,4 +23,13 @@ final class AppRouter {
     /// Lives here, outside the view tree, because the root is rebuilt on a
     /// language switch and must not yank the child back to Books then.
     @ObservationIgnored var studentHomeLandedFor: UUID?
+
+    /// The full-screen sign-in flow. One cover, owned by the app root
+    /// (MyBookLabApp), never a sheet: on iPad a tap outside a sheet
+    /// dismissed it and lost everything typed. Every "Sign in" button and
+    /// every gated action asks for it here.
+    var signInPresented = false
+
+    func presentSignIn() { signInPresented = true }
+    func dismissSignIn() { signInPresented = false }
 }

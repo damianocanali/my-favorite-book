@@ -10,7 +10,6 @@ import SwiftUI
 struct BookshelfView: View {
     @Environment(AuthStore.self) private var auth
     @Environment(BookshelfStore.self) private var bookshelf
-    @State private var showingSignIn = false
 
     var body: some View {
         NavigationStack {
@@ -39,16 +38,12 @@ struct BookshelfView: View {
             .toolbar {
                 if !auth.isSignedIn {
                     ToolbarItem(placement: .topBarTrailing) {
-                        Button("Sign in") { showingSignIn = true }
+                        Button("Sign in") { AppRouter.shared.presentSignIn() }
                             .foregroundStyle(.white)
                     }
                 }
             }
             .toolbarBackground(.hidden, for: .navigationBar)
-            .sheet(isPresented: $showingSignIn) {
-                NavigationStack { SignInView() }
-                    .presentationDragIndicator(.visible)
-            }
         }
     }
 
@@ -156,7 +151,7 @@ struct BookshelfView: View {
                         .foregroundStyle(.white.opacity(0.75))
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 32)
-                    SparkleButton(action: { showingSignIn = true }) {
+                    SparkleButton(action: { AppRouter.shared.presentSignIn() }) {
                         Text("Sign in")
                     }
                     .frame(maxWidth: 360)

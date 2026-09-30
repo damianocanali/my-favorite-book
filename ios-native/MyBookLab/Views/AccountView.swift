@@ -7,7 +7,6 @@ struct AccountView: View {
     @Environment(CoinsStore.self) private var coins
     @Environment(RewardsStore.self) private var rewards
     @Environment(TeacherStore.self) private var teacher
-    @State private var showingSignIn = false
     @State private var showingPaywall = false
     @State private var showingBuyCoins = false
     @State private var editingName = false
@@ -46,10 +45,6 @@ struct AccountView: View {
             .navigationTitle("Account")
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(.hidden, for: .navigationBar)
-            .sheet(isPresented: $showingSignIn) {
-                NavigationStack { SignInView() }
-                    .presentationDragIndicator(.visible)
-            }
             .sheet(isPresented: $showingPaywall) {
                 NavigationStack { PaywallView() }
                     .presentationDragIndicator(.visible)
@@ -606,7 +601,7 @@ struct AccountView: View {
                 .foregroundStyle(.white.opacity(0.75))
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 32)
-            SparkleButton(action: { showingSignIn = true }) {
+            SparkleButton(action: { AppRouter.shared.presentSignIn() }) {
                 Text("Sign in")
             }
             .frame(maxWidth: 360)

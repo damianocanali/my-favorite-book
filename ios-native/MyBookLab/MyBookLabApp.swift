@@ -30,6 +30,8 @@ struct MyBookLabApp: App {
         AppLanguage.bootstrap()
         // Leftover sign-in card PDFs from a previous run never outlive it.
         SignInCardsFiles.purge()
+        // The old implicit "who's signing in" and class-code memory.
+        ClassDeviceStore.purgeLegacyKeys()
         Purchases.logLevel = .warn
         Purchases.configure(withAPIKey: AppConfig.shared.revenueCatAPIKey)
     }
@@ -65,6 +67,9 @@ struct MyBookLabApp: App {
                     launched = true
                     PrintOrderActivityManager.cleanup()
                     await auth.bootstrap()
+                    // Nobody signed in: the front door (or, on a class iPad,
+                    // the class's name list). Guests can still close it.
+                    if !auth.isSignedIn { router.presentSignIn() }
                     // Music only once the session is known. AudioService
                     // itself refuses for a teacher account (any view mode);
                     // family users, students and the signed-out get it.
@@ -88,8 +93,16 @@ struct MyBookLabApp: App {
                 // A role change on the same account (e.g. metadata refresh
                 // marking it a teacher) must silence the music too.
                 .onChange(of: auth.isTeacher) { _, _ in audio.applyAccountPolicy() }
-                .onChange(of: auth.user?.id) { _, newValue in
+                .onChange(of: auth.user?.id) { oldValue, newValue in
                     audio.applyAccountPolicy()
+                    // Signed in: the sign-in flow closes. Signed out (or the
+                    // session ended): back to the front door — on a class
+                    // iPad, the class's name list for the next child.
+                    if newValue != nil {
+                        router.dismissSignIn()
+                    } else if oldValue != nil {
+                        router.presentSignIn()
+                    }
                     // Any change of who is signed in — including a session
                     // that simply expired — drops unprinted picture cards.
                     teacher.clearPendingCards()
@@ -122,6 +135,19 @@ struct MyBookLabApp: App {
                 // Spotlight: tapping an indexed book opens the shelf.
                 .onContinueUserActivity(CSSearchableItemActionType) { _ in
                     router.selectedTab = .books
+                }
+                // The sign-in flow. Outside the rebuilt subtree, so switching
+                // language from its welcome screen doesn't tear the cover
+                // down; it gets its own environment and rebuild instead.
+                .fullScreenCover(isPresented: $router.signInPresented) {
+                    SignInFlowView()
+                        .environment(auth)
+                        .environment(router)
+                        .environment(\.locale, language.locale)
+                        .id(language.code)
+                        .overlay { LanguageSwitchOverlay(target: language.switching) }
+                        .animation(.easeInOut(duration: 0.25), value: language.switching)
+                        .preferredColorScheme(.dark)
                 }
                 // Outside the rebuilt subtree, so it stays up across it.
                 .overlay { LanguageSwitchOverlay(target: language.switching) }
