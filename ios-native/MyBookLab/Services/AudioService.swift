@@ -63,10 +63,28 @@ final class AudioService {
         }
     }
 
+    /// A teacher account never hears the kids' music or sound effects — in
+    /// the teacher area, in family view, in a kids' preview, at launch. Gated
+    /// here, at the source, so no call site can forget it. (isTeacher is
+    /// already false for a class account, so students keep their sounds.)
+    var silencedForAccount: Bool {
+        AuthStore.shared.isTeacher
+    }
+
+    /// Called whenever the signed-in account changes: a teacher signing in
+    /// mid-song hears it stop at once, not on the next screen.
+    func applyAccountPolicy() {
+        if silencedForAccount { stop() }
+    }
+
     /// Play the given track, looping, with a crossfade from the
     /// currently-playing track. If the same track is already playing,
     /// this is a no-op.
     func play(_ track: Track) {
+        guard !silencedForAccount else {
+            stop()
+            return
+        }
         if currentTrack == track && player?.isPlaying == true { return }
         currentTrack = track
 
@@ -124,7 +142,7 @@ final class AudioService {
     /// single "Sounds" mute toggle (one switch for everything keeps the
     /// settings simple for kids/parents).
     func playSFX(_ sfx: SFX) {
-        guard !muted else { return }
+        guard !muted, !silencedForAccount else { return }
         let player = sfxPlayers[sfx] ?? makeSFXPlayer(for: sfx)
         guard let player else { return }
         sfxPlayers[sfx] = player

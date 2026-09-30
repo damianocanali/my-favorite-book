@@ -81,7 +81,9 @@ struct AccountView: View {
                 // Locked icons are unlocked with coins: not in teacher mode.
                 if !teacherMode { appIconCard }
                 if !auth.isStudent && !teacherMode { rowsCard }
-                musicCard
+                // A teacher account never hears music (AudioService), so a
+                // music switch would be a control that does nothing.
+                if !auth.isTeacher { musicCard }
                 languageCard
                 signOutCard
                 // Below the badges and above the danger zone: something to look

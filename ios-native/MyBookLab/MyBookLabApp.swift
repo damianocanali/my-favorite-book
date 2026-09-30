@@ -46,10 +46,10 @@ struct MyBookLabApp: App {
                 .task {
                     PrintOrderActivityManager.cleanup()
                     await auth.bootstrap()
-                    // Music only once the session is known, and never for a
-                    // teacher landing in the teacher area. Family users,
-                    // students and the signed-out still get it.
-                    if !teacher.isTeacherMode(auth) { audio.play(.home) }
+                    // Music only once the session is known. AudioService
+                    // itself refuses for a teacher account (any view mode);
+                    // family users, students and the signed-out get it.
+                    audio.play(.home)
                     if let id = auth.user?.id.uuidString {
                         await bookshelf.load(userId: id)
                     }
@@ -62,6 +62,7 @@ struct MyBookLabApp: App {
                     await push.registerIfAllowed()
                 }
                 .onChange(of: auth.user?.id) { _, newValue in
+                    audio.applyAccountPolicy()
                     Task {
                         if let id = newValue?.uuidString {
                             await bookshelf.load(userId: id)
