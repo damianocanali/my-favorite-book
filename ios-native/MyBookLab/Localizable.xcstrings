@@ -9545,35 +9545,17 @@
       }
     },
     "school.notifications.mark_all_read": {
-      "extractionState": "extracted_with_value",
       "localizations": {
         "en": {
           "stringUnit": {
-            "state": "new",
-            "value": "Mark all read"
+            "state": "translated",
+            "value": "Mark all as read"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
             "value": "Segna tutte come lette"
-          }
-        }
-      }
-    },
-    "school.notifications.empty": {
-      "extractionState": "extracted_with_value",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "new",
-            "value": "Nothing new yet."
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ancora niente di nuovo."
           }
         }
       }
@@ -9642,125 +9624,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Notifiche"
-          }
-        }
-      }
-    },
-    "school.notifications.kinds.hand_in": {
-      "extractionState": "extracted_with_value",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "new",
-            "value": "%1$@ handed in “%2$@”"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%1$@ ha consegnato “%2$@”"
-          }
-        }
-      }
-    },
-    "school.notifications.kinds.hand_in_late": {
-      "extractionState": "extracted_with_value",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "new",
-            "value": "%1$@ handed in “%2$@” late"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%1$@ ha consegnato “%2$@” in ritardo"
-          }
-        }
-      }
-    },
-    "school.notifications.kinds.resubmit": {
-      "extractionState": "extracted_with_value",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "new",
-            "value": "%1$@ handed in “%2$@” again"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%1$@ ha consegnato di nuovo “%2$@”"
-          }
-        }
-      }
-    },
-    "school.notifications.kinds.all_handed_in": {
-      "extractionState": "extracted_with_value",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "new",
-            "value": "Everyone in %1$@ has handed in “%2$@”"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tutta la classe %1$@ ha consegnato “%2$@”"
-          }
-        }
-      }
-    },
-    "school.notifications.kinds.help_book": {
-      "extractionState": "extracted_with_value",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "new",
-            "value": "%@ would like help with their book"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ vorrebbe aiuto con il suo libro"
-          }
-        }
-      }
-    },
-    "school.notifications.kinds.help_grownup": {
-      "extractionState": "extracted_with_value",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "new",
-            "value": "%@ asked for a grown-up"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ ha chiesto un adulto"
-          }
-        }
-      }
-    },
-    "school.notifications.kinds.generic": {
-      "extractionState": "extracted_with_value",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "new",
-            "value": "Something new in %@"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Novità in %@"
           }
         }
       }
@@ -10203,6 +10066,214 @@
           "stringUnit": {
             "state": "translated",
             "value": "Qualcosa non ha funzionato. Riprova."
+          }
+        }
+      }
+    },
+    "school.notifications.section.today": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Today"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oggi"
+          }
+        }
+      }
+    },
+    "school.notifications.section.earlier": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Earlier"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prima"
+          }
+        }
+      }
+    },
+    "school.notifications.empty_title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You're all caught up"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nessuna nuova notifica"
+          }
+        }
+      }
+    },
+    "school.notifications.empty_body": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hand-ins and requests for help will show up here."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Qui vedrai le consegne e le richieste di aiuto."
+          }
+        }
+      }
+    },
+    "school.notifications.unread": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unread"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Da leggere"
+          }
+        }
+      }
+    },
+    "school.notifications.outside_hours": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Outside school hours — no alert sent"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fuori dall'orario scolastico: nessun avviso inviato"
+          }
+        }
+      }
+    },
+    "school.notifications.short.hand_in": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "handed in “%@”"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ha consegnato “%@”"
+          }
+        }
+      }
+    },
+    "school.notifications.short.hand_in_late": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "handed in “%@” late"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ha consegnato “%@” in ritardo"
+          }
+        }
+      }
+    },
+    "school.notifications.short.resubmit": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "handed in a new version of “%@”"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ha consegnato una nuova versione di “%@”"
+          }
+        }
+      }
+    },
+    "school.notifications.short.all_handed_in": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Everyone has handed in “%@”"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hanno consegnato tutti “%@”"
+          }
+        }
+      }
+    },
+    "school.notifications.short.help_book": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "would like help with their book"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "vorrebbe aiuto con il suo libro"
+          }
+        }
+      }
+    },
+    "school.notifications.short.help_grownup": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "asked for a grown-up"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ha chiesto un adulto"
+          }
+        }
+      }
+    },
+    "school.notifications.short.generic": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Something new"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Una novità"
           }
         }
       }

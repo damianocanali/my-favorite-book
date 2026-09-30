@@ -197,7 +197,7 @@ enum TeacherCopy {
 
     // MARK: Bell
     static let bellTitle = LocalizedStringResource("school.notifications.title", defaultValue: "Notifications")
-    static let bellMarkAll = LocalizedStringResource("school.notifications.mark_all_read", defaultValue: "Mark all read")
+    static let bellMarkAll = LocalizedStringResource("school.notifications.mark_all_read", defaultValue: "Mark all as read")
     static let bellEmpty = LocalizedStringResource("school.notifications.empty", defaultValue: "Nothing new yet.")
     static let bellError = LocalizedStringResource("school.notifications.error", defaultValue: "Couldn't load notifications.")
     static let bellUnknownStudent = LocalizedStringResource("school.notifications.unknown_student", defaultValue: "A student")
@@ -207,28 +207,41 @@ enum TeacherCopy {
             : LocalizedStringResource("school.notifications.bell_label", defaultValue: "Notifications")
     }
 
-    /// One explicit key per kind; the bell only ever says who, which class
-    /// and which assignment (web: teacherNotifications.notificationText).
-    static func notification(_ n: TeacherNotification) -> LocalizedStringResource {
-        let student = n.payload?.student_name.flatMap { $0.isEmpty ? nil : $0 }
+    static let bellToday = LocalizedStringResource("school.notifications.section.today", defaultValue: "Today")
+    static let bellEarlier = LocalizedStringResource("school.notifications.section.earlier", defaultValue: "Earlier")
+    static let bellEmptyTitle = LocalizedStringResource("school.notifications.empty_title", defaultValue: "You're all caught up")
+    static let bellEmptyBody = LocalizedStringResource("school.notifications.empty_body", defaultValue: "Hand-ins and requests for help will show up here.")
+    static let bellUnread = LocalizedStringResource("school.notifications.unread", defaultValue: "Unread")
+    static let bellOutsideHours = LocalizedStringResource("school.notifications.outside_hours", defaultValue: "Outside school hours — no alert sent")
+
+    /// The bold part of a bell row: the student, or the class for
+    /// "everyone has handed in". Names are verbatim, never translated.
+    static func notificationSubject(_ n: TeacherNotification) -> String {
+        if n.kind == "all_handed_in", let c = n.payload?.class_name, !c.isEmpty { return c }
+        return n.payload?.student_name.flatMap { $0.isEmpty ? nil : $0 }
             ?? String(appLocalized: bellUnknownStudent)
-        let className = n.payload?.class_name ?? ""
+    }
+
+    /// One short line of what happened, read after the subject. One explicit
+    /// key per kind; the bell only ever says who, which class and which
+    /// assignment (web: teacherNotifications.notificationText).
+    static func notificationLine(_ n: TeacherNotification) -> LocalizedStringResource {
         let assignment = n.payload?.assignment_title ?? ""
         switch n.kind {
         case "hand_in":
-            return LocalizedStringResource("school.notifications.kinds.hand_in", defaultValue: "\(student) handed in “\(assignment)”")
+            return LocalizedStringResource("school.notifications.short.hand_in", defaultValue: "handed in “\(assignment)”")
         case "hand_in_late":
-            return LocalizedStringResource("school.notifications.kinds.hand_in_late", defaultValue: "\(student) handed in “\(assignment)” late")
+            return LocalizedStringResource("school.notifications.short.hand_in_late", defaultValue: "handed in “\(assignment)” late")
         case "resubmit":
-            return LocalizedStringResource("school.notifications.kinds.resubmit", defaultValue: "\(student) handed in “\(assignment)” again")
+            return LocalizedStringResource("school.notifications.short.resubmit", defaultValue: "handed in a new version of “\(assignment)”")
         case "all_handed_in":
-            return LocalizedStringResource("school.notifications.kinds.all_handed_in", defaultValue: "Everyone in \(className) has handed in “\(assignment)”")
+            return LocalizedStringResource("school.notifications.short.all_handed_in", defaultValue: "Everyone has handed in “\(assignment)”")
         case "help_book":
-            return LocalizedStringResource("school.notifications.kinds.help_book", defaultValue: "\(student) would like help with their book")
+            return LocalizedStringResource("school.notifications.short.help_book", defaultValue: "would like help with their book")
         case "help_grownup":
-            return LocalizedStringResource("school.notifications.kinds.help_grownup", defaultValue: "\(student) asked for a grown-up")
+            return LocalizedStringResource("school.notifications.short.help_grownup", defaultValue: "asked for a grown-up")
         default:
-            return LocalizedStringResource("school.notifications.kinds.generic", defaultValue: "Something new in \(className)")
+            return LocalizedStringResource("school.notifications.short.generic", defaultValue: "Something new")
         }
     }
 

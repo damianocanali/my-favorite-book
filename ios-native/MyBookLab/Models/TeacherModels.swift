@@ -298,6 +298,10 @@ struct TeacherNotification: Decodable, Identifiable, Hashable, Sendable {
         let class_name: String?
         let assignment_id: String?
         let assignment_title: String?
+        /// Help asks only: whether it arrived inside the class's school
+        /// hours. false = only the bell got it (no push was sent); nil =
+        /// unknown or not a help ask.
+        let in_hours: Bool?
     }
     let id: String
     let classroom_id: String?

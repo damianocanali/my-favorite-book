@@ -13,6 +13,8 @@ enum TeacherTheme {
     /// Secondary text on the opaque fills: never below 0.7 white.
     static let secondaryText = Color.white.opacity(0.78)
     static let urgent = Color(red: 1, green: 0.42, blue: 0.42)
+    /// Behind a sheet or popover's list (solid, not the starfield).
+    static let sheetBackground = Color(red: 0.07, green: 0.06, blue: 0.16)
 }
 
 /// The translucent rounded card every teacher section sits on.
@@ -225,7 +227,7 @@ struct TeacherBellButton: View {
         .accessibilityLabel(Text(TeacherCopy.bellLabel(unread: bell.unread)))
         .popover(isPresented: $open) {
             TeacherBellList { open = false }
-                .frame(minWidth: 340, idealWidth: 380, minHeight: 420)
+                .frame(minWidth: 380, idealWidth: 440, minHeight: 480, idealHeight: 620)
                 .presentationCompactAdaptation(.sheet)
         }
     }
@@ -238,54 +240,193 @@ struct TeacherBellList: View {
 
     var body: some View {
         NavigationStack {
-            List {
+            Group {
                 if bell.items.isEmpty {
-                    Text(bell.failed ? TeacherCopy.bellError : TeacherCopy.bellEmpty)
-                        .foregroundStyle(bell.failed ? .red : .secondary)
-                }
-                ForEach(bell.items) { n in
-                    Button {
-                        bell.markRead(n)
-                        teacher.open(n.route)
-                        dismiss()
-                    } label: {
-                        HStack(alignment: .top, spacing: 10) {
-                            Circle()
-                                .fill(n.read_at != nil ? Color.clear
-                                      : n.kind == "help_grownup" ? Color.red : Color.cyan)
-                                .frame(width: 8, height: 8)
-                                .padding(.top, 6)
-                                .accessibilityHidden(true)
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(TeacherCopy.notification(n))
-                                    .font(.subheadline)
-                                    .foregroundStyle(n.read_at == nil ? .primary : .secondary)
-                                Text(verbatim: [TeacherDates.relative(n.created_at), n.payload?.class_name]
-                                    .compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " · "))
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
-                        }
-                    }
-                }
-                Section {
-                    Text(TeacherCopy.needsDisclaimer).font(.caption2).foregroundStyle(.secondary)
+                    emptyState
+                } else {
+                    list
                 }
             }
+            .background(TeacherTheme.sheetBackground.ignoresSafeArea())
             .navigationTitle(Text(TeacherCopy.bellTitle))
             .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(TeacherTheme.sheetBackground, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     if bell.unread > 0 {
-                        Button { Task { await bell.markAllRead() } } label: { Text(TeacherCopy.bellMarkAll) }
+                        Button { Task { await bell.markAllRead() } } label: {
+                            Text(TeacherCopy.bellMarkAll).fontWeight(.semibold)
+                        }
+                        .tint(.cyan)
                     }
                 }
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button(action: dismiss) { Text(TeacherCopy.done) }
+                    Button(action: dismiss) { Text(TeacherCopy.done).bold() }
+                        .tint(.white)
                 }
             }
             .task { await bell.load() }
         }
         .preferredColorScheme(.dark)
+    }
+
+    private var sections: [(title: LocalizedStringResource, rows: [TeacherNotification])] {
+        let cal = Calendar.current
+        let today = bell.items.filter { TeacherDates.parse($0.created_at).map(cal.isDateInToday) ?? false }
+        let earlier = bell.items.filter { !(TeacherDates.parse($0.created_at).map(cal.isDateInToday) ?? false) }
+        return [(TeacherCopy.bellToday, today), (TeacherCopy.bellEarlier, earlier)].filter { !$0.rows.isEmpty }
+    }
+
+    private var list: some View {
+        List {
+            ForEach(sections, id: \.title.key) { section in
+                Section {
+                    ForEach(section.rows) { n in
+                        Button {
+                            bell.markRead(n)
+                            teacher.open(n.route)
+                            dismiss()
+                        } label: {
+                            TeacherBellRow(n: n)
+                        }
+                        .buttonStyle(.plain)
+                        .listRowBackground(n.read_at == nil ? TeacherTheme.cardFillStrong : TeacherTheme.cardFill)
+                        .listRowInsets(EdgeInsets(top: 12, leading: 14, bottom: 12, trailing: 14))
+                    }
+                } header: {
+                    Text(section.title)
+                        .font(.footnote.weight(.bold))
+                        .foregroundStyle(TeacherTheme.secondaryText)
+                        .textCase(.uppercase)
+                }
+            }
+            Section {
+                Text(TeacherCopy.needsDisclaimer)
+                    .font(.footnote)
+                    .foregroundStyle(TeacherTheme.secondaryText)
+                    .listRowBackground(Color.clear)
+            }
+        }
+        .listStyle(.insetGrouped)
+        .scrollContentBackground(.hidden)
+    }
+
+    private var emptyState: some View {
+        VStack(spacing: 14) {
+            Image(systemName: bell.failed ? "exclamationmark.triangle.fill" : "bell.badge.slash.fill")
+                .font(.system(size: 44))
+                .foregroundStyle(bell.failed ? TeacherTheme.urgent : .cyan)
+                .accessibilityHidden(true)
+            Text(bell.failed ? TeacherCopy.bellError : TeacherCopy.bellEmptyTitle)
+                .font(.system(.title3, design: .rounded).bold())
+                .foregroundStyle(.white)
+                .multilineTextAlignment(.center)
+            if bell.failed {
+                Button { Task { await bell.load() } } label: {
+                    Text(TeacherCopy.retry).font(.callout.bold())
+                        .padding(.horizontal, 18).padding(.vertical, 10)
+                        .background(.purple.opacity(0.7), in: Capsule())
+                        .foregroundStyle(.white)
+                }
+                .buttonStyle(.plain)
+            } else {
+                Text(TeacherCopy.bellEmptyBody)
+                    .font(.body)
+                    .foregroundStyle(TeacherTheme.secondaryText)
+                    .multilineTextAlignment(.center)
+            }
+        }
+        .padding(32)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+}
+
+/// One bell row: the kind's symbol in a tinted circle, who (bold) and one
+/// short line of what happened, the time on the right, an unread dot, and —
+/// for a help ask that came in outside school hours — why no alert was sent.
+struct TeacherBellRow: View {
+    let n: TeacherNotification
+
+    private var unread: Bool { n.read_at == nil }
+    private var style: (symbol: String, tint: Color) { TeacherBellRow.style(for: n.kind) }
+    private var outsideHours: Bool { n.kind.hasPrefix("help_") && n.payload?.in_hours == false }
+
+    static func style(for kind: String) -> (symbol: String, tint: Color) {
+        switch kind {
+        case "help_grownup": ("exclamationmark.bubble.fill", TeacherTheme.urgent)
+        case "help_book": ("questionmark.bubble.fill", Color(red: 1, green: 0.7, blue: 0.3))
+        case "hand_in": ("tray.and.arrow.down.fill", Color(red: 0.43, green: 0.91, blue: 0.72))
+        case "hand_in_late": ("clock.badge.checkmark.fill", Color(red: 0.99, green: 0.83, blue: 0.45))
+        case "resubmit": ("book.closed.fill", Color(red: 0.55, green: 0.75, blue: 1))
+        case "all_handed_in": ("checkmark.seal.fill", Color(red: 0.75, green: 0.6, blue: 1))
+        default: ("bell.fill", .cyan)
+        }
+    }
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 12) {
+            ZStack {
+                Circle().fill(style.tint.opacity(0.22))
+                Image(systemName: style.symbol)
+                    .font(.body.weight(.semibold))
+                    .foregroundStyle(style.tint)
+            }
+            .frame(width: 40, height: 40)
+            .accessibilityHidden(true)
+
+            VStack(alignment: .leading, spacing: 3) {
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    Text(verbatim: TeacherCopy.notificationSubject(n))
+                        .font(.body.weight(.bold))
+                        .foregroundStyle(.white)
+                        .lineLimit(1)
+                    Spacer(minLength: 4)
+                    if let when = TeacherDates.relative(n.created_at) {
+                        Text(verbatim: when)
+                            .font(.footnote)
+                            .foregroundStyle(TeacherTheme.secondaryText)
+                            .lineLimit(1)
+                    }
+                    Circle()
+                        .fill(unread ? (n.kind == "help_grownup" ? TeacherTheme.urgent : Color.cyan) : Color.clear)
+                        .frame(width: 9, height: 9)
+                }
+                Text(TeacherCopy.notificationLine(n))
+                    .font(.subheadline)
+                    .foregroundStyle(.white.opacity(unread ? 0.95 : 0.8))
+                    .fixedSize(horizontal: false, vertical: true)
+                if let className = n.payload?.class_name, !className.isEmpty, n.kind != "all_handed_in" {
+                    Text(verbatim: className)
+                        .font(.caption)
+                        .foregroundStyle(TeacherTheme.secondaryText)
+                }
+                if outsideHours {
+                    Label {
+                        Text(TeacherCopy.bellOutsideHours)
+                    } icon: {
+                        Image(systemName: "moon.zzz.fill")
+                    }
+                    .font(.caption)
+                    .foregroundStyle(Color(white: 0.72))
+                    .padding(.top, 2)
+                }
+            }
+        }
+        .contentShape(Rectangle())
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text(verbatim: spoken))
+        .accessibilityAddTraits(.isButton)
+    }
+
+    /// "Unread. Ann asked for a grown-up. Room 5. 5 minutes ago. Outside…"
+    private var spoken: String {
+        var parts: [String] = []
+        if unread { parts.append(String(appLocalized: TeacherCopy.bellUnread)) }
+        parts.append(TeacherCopy.notificationSubject(n) + " " + String(appLocalized: TeacherCopy.notificationLine(n)))
+        if let c = n.payload?.class_name, !c.isEmpty, n.kind != "all_handed_in" { parts.append(c) }
+        if let when = TeacherDates.relative(n.created_at) { parts.append(when) }
+        if outsideHours { parts.append(String(appLocalized: TeacherCopy.bellOutsideHours)) }
+        return parts.joined(separator: ". ")
     }
 }
