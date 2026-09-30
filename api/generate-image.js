@@ -4,12 +4,13 @@ import { requireUser, validatePrompt, validateSourceImage, moderatePrompt, enfor
 import { classifyAttestation, dailyCapFor, hourlyLimitFor } from './_appAttest.js'
 import { storeIllustration } from './_imageStore.js'
 import { isStudent, rejectStudent, enforceStudentImageCap } from './_school.js'
-import { validateScenePayload, rawTextForModeration, writeScene, buildFluxPrompt, SCENE_MODEL } from '../lib/imageScene.js'
+import { validateScenePayload, rawTextForModeration, moderationChunks, writeScene, buildFluxPrompt, SCENE_MODEL } from '../lib/imageScene.js'
 
 export const config = { runtime: 'edge' }
 
 const TOGETHER_API_URL = 'https://api.together.xyz/v1/images/generations'
 const IMAGE_GEN_LIMIT = 20 // requests per hour per IP
+const TOGETHER_TIMEOUT_MS = 18_000
 
 export default async function handler(req) {
   const corsResponse = handleCors(req)
@@ -99,9 +100,10 @@ export default async function handler(req) {
     if (imageErr) return imageErr
 
     // Moderate the child's RAW text before anything paid sees it.
+    // Chunked so the whole text is read: moderatePrompt truncates at 8000.
     const rawText = structured ? rawTextForModeration(input) : payload.prompt
-    if (rawText) {
-      const modErr = await moderatePrompt(rawText, req)
+    for (const chunk of moderationChunks(rawText)) {
+      const modErr = await moderatePrompt(chunk, req)
       if (modErr) return modErr
     }
 
@@ -126,6 +128,14 @@ export default async function handler(req) {
           output_tokens: written.usage.output_tokens,
           cost_cents: estimateAnthropicCostCents({ model: SCENE_MODEL, ...written.usage }),
         })
+      }
+      if (!written.scene) {
+        // Only an edit gets here: its fallback would have to carry the
+        // child's own words, so we refuse rather than send them to FLUX.
+        return new Response(
+          JSON.stringify({ error: "We couldn't change the picture just now. Please try again in a moment.", code: 'scene_unavailable' }),
+          { status: 503, headers: withCors({ 'Content-Type': 'application/json' }, req) }
+        )
       }
       prompt = buildFluxPrompt(written.scene, input.kind)
       const finalErr = validatePrompt(prompt, req)
@@ -175,14 +185,31 @@ export default async function handler(req) {
           response_format: 'b64_json',
         }
 
-    const response = await fetch(TOGETHER_API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify(body),
-    })
+    // 28 steps takes a while, but a hung upstream must not hold the
+    // function open until the platform kills it.
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), TOGETHER_TIMEOUT_MS)
+    let response
+    try {
+      response = await fetch(TOGETHER_API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify(body),
+        signal: controller.signal,
+      })
+    } catch (e) {
+      if (e?.name !== 'AbortError') throw e
+      console.error('[generate-image] Together timed out')
+      return new Response(
+        JSON.stringify({ error: 'Image generation took too long. Please try again.' }),
+        { status: 504, headers: withCors({ 'Content-Type': 'application/json' }, req) }
+      )
+    } finally {
+      clearTimeout(timer)
+    }
 
     if (!response.ok) {
       const detail = await response.text().catch(() => '')

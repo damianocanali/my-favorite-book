@@ -18,7 +18,7 @@ describe('image payloads', () => {
     expect(p).toEqual({
       kind: 'page',
       characters: [{ name: 'Volpe Neo', promptEn: 'Neo the Fox', description: 'an orange fox' }],
-      setting: { promptEn: 'Enchanted Forest' },
+      setting: { promptEn: 'Enchanted Forest', description: '' },
       timePeriod: 'Right Now',
       locale: 'it',
       pageText: 'Il presidente era felice',
@@ -33,6 +33,14 @@ describe('image payloads', () => {
     const e = editPayload(page, book, 'add a hat', 'en')
     expect(e).toMatchObject({ kind: 'edit', instruction: 'add a hat', sourceImage: page.illustrationData, strength: 0.55 })
     expect(validateScenePayload(e).ok).toBe(true)
+  })
+  it('portrait pre-filters an empty character', () => {
+    expect(portraitPayload(null, book, 'en').characters).toEqual([])
+  })
+  it('caps characters at the server limit of 6', () => {
+    const many = { ...book, characters: Array.from({ length: 9 }, (_, i) => ({ name: `C${i}` })) }
+    expect(pagePayload(page, many, 'en').characters).toHaveLength(6)
+    expect(validateScenePayload(pagePayload(page, many, 'en')).ok).toBe(true)
   })
   it('handles a book with no setting or characters', () => {
     const p = pagePayload({ text: '' }, {}, undefined)

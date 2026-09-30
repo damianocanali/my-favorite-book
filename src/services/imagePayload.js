@@ -12,19 +12,29 @@ import { promptName, promptDescription, promptLabel } from '../i18n/contentCatal
 
 function characterFor(ch) {
   return {
-    // `name` is what the child calls the character, used only so the server
-    // can tell whether a page is about them. It is never drawn from.
+    // FIREWALL ALLOWANCE: `name` is the one display-side field sent. It is
+    // what the child calls the character, used only so the server can tell
+    // whether a page is about them; the server never draws from it (the
+    // scene writer gets it as data, the offline fallback ignores it). This
+    // is why tests/i18n-prompt-firewall.test.js tolerates `ch?.name` here.
     name: ch?.name ?? '',
     promptEn: promptName(ch),
     description: promptDescription(ch),
   }
 }
 
+const hasCharacter = (c) => Boolean(c.promptEn)
+
+// Server limit (lib/imageScene.js LIMITS.characters); more would 413.
+const MAX_CHARACTERS = 6
+
 function base(kind, book, locale) {
   return {
     kind,
-    characters: (book?.characters ?? []).map(characterFor).filter((c) => c.promptEn),
-    setting: book?.setting ? { promptEn: promptName(book.setting) } : null,
+    characters: (book?.characters ?? []).map(characterFor).filter(hasCharacter).slice(0, MAX_CHARACTERS),
+    setting: book?.setting
+      ? { promptEn: promptName(book.setting), description: promptDescription(book.setting) }
+      : null,
     timePeriod: promptLabel(book?.timePeriod),
     locale: locale || 'en',
   }
@@ -35,7 +45,8 @@ export function coverPayload(book, locale) {
 }
 
 export function portraitPayload(character, book, locale) {
-  return { ...base('portrait', book, locale), characters: [characterFor(character)] }
+  // Pre-filtered like base(): an empty character would only earn a 400.
+  return { ...base('portrait', book, locale), characters: [characterFor(character)].filter(hasCharacter) }
 }
 
 export function pagePayload(page, book, locale) {

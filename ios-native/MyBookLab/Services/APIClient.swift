@@ -299,8 +299,15 @@ actor APIClient {
             let name: String
             let promptEn: String
             let description: String?
+            /// The emoji's species ("a fox"): the only part the server's
+            /// offline fallback may draw, since name/description are typed
+            /// by the child.
+            let species: String?
         }
-        struct Setting: Encodable { let promptEn: String }
+        struct Setting: Encodable {
+            let promptEn: String
+            let description: String?
+        }
 
         let kind: String            // "page" | "cover" | "portrait" | "edit"
         var pageText: String?
@@ -320,10 +327,12 @@ actor APIClient {
         }
 
         private static func characters(of book: Book) -> [Character] {
-            book.characters.map { c in
+            // Server accepts at most 6 (lib/imageScene.js LIMITS.characters).
+            book.characters.prefix(6).map { c in
                 let d = c.description?.trimmingCharacters(in: .whitespaces)
                 return Character(name: c.name, promptEn: c.imagePromptSubject,
-                                 description: (d?.isEmpty ?? true) ? nil : d)
+                                 description: (d?.isEmpty ?? true) ? nil : d,
+                                 species: BookCharacter.species(for: c.emoji))
             }
         }
 
@@ -333,10 +342,9 @@ actor APIClient {
             guard let s = book.setting,
                   let name = (s.name ?? s.label)?.trimmingCharacters(in: .whitespaces),
                   !name.isEmpty else { return nil }
-            if let d = s.description?.trimmingCharacters(in: .whitespaces), !d.isEmpty {
-                return Setting(promptEn: String("\(name) (\(d))".prefix(200)))
-            }
-            return Setting(promptEn: String(name.prefix(200)))
+            let d = s.description?.trimmingCharacters(in: .whitespaces)
+            return Setting(promptEn: String(name.prefix(200)),
+                           description: (d?.isEmpty ?? true) ? nil : d.map { String($0.prefix(200)) })
         }
     }
     struct GenerateImageResponse: Decodable {

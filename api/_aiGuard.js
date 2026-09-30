@@ -15,6 +15,7 @@ const MAX_SOURCE_IMAGE_CHARS = 8 * 1024 * 1024
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
 const DAILY_IMAGE_LIMIT = Number(process.env.DAILY_IMAGE_LIMIT || 50)
+const MODERATION_TIMEOUT_MS = 5000
 
 function aiError(status, message, req) {
   return new Response(JSON.stringify({ error: message }), {
@@ -112,11 +113,16 @@ export async function moderatePrompt(text, req) {
     console.warn('[moderation] OPENAI_API_KEY is unset — prompt moderation is DISABLED')
     return null
   }
+  // Bounded like every other upstream call; a timeout fails open (below),
+  // same as any other transient moderation error.
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), MODERATION_TIMEOUT_MS)
   try {
     const res = await fetch('https://api.openai.com/v1/moderations', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` },
       body: JSON.stringify({ model: 'omni-moderation-latest', input: String(text).slice(0, 8000) }),
+      signal: controller.signal,
     })
     if (!res.ok) {
       console.error('[moderation] OpenAI moderation request failed:', res.status)
@@ -129,7 +135,9 @@ export async function moderatePrompt(text, req) {
     }
     return null
   } catch (e) {
-    console.error('[moderation] error:', e?.message)
+    console.error('[moderation] error:', e?.name === 'AbortError' ? 'timeout' : e?.message)
     return null
+  } finally {
+    clearTimeout(timer)
   }
 }
