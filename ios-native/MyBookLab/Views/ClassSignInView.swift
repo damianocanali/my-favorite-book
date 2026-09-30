@@ -12,7 +12,7 @@
 // - Children never see an attempt counter, a price, or why a class is
 //   closed. Every server code collapses to one of seven gentle sentences.
 //
-// Part of the full-screen sign-in flow (SignInFlowView): on iPad this is a
+// Part of the in-place sign-in flow (SignInFlowView): on iPad this is a
 // child's whole screen, not a form sheet, so the tiles and pictures can be
 // big, and nothing is dismissed by a stray tap.
 import SwiftUI
@@ -67,7 +67,11 @@ struct ClassSignInView: View {
             CosmicBackground().ignoresSafeArea()
             VStack(spacing: 0) {
             // Back first in reading order (a top bar, not an overlay).
-            SignInTopBar(onBack: showsBack ? back : nil)
+            // A class iPad's name list is the first screen a child meets,
+            // so it carries the language menu where the welcome screen does
+            // (not once a name is chosen: a switch rebuilds this view).
+            SignInTopBar(onBack: showsBack ? back : nil,
+                         showsLanguage: device != nil && step != .pictures)
             ScrollView {
                 VStack(spacing: regular ? 24 : 18) {
                     header
