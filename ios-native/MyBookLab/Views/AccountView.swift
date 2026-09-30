@@ -244,7 +244,8 @@ struct AccountView: View {
     }
 
     /// Switching is live (AppLanguage.choose rebuilds the app in the new
-    /// language), so there is nothing to tell the user afterwards.
+    /// language, behind the root's "Changing language…" overlay), so there
+    /// is nothing to tell the user afterwards.
     private var languageCard: some View {
         let current = AppLanguage.uiLanguage
         return VStack(alignment: .leading, spacing: 10) {
@@ -268,6 +269,8 @@ struct AccountView: View {
                 }
                 .pickerStyle(.segmented)
                 .frame(width: 190)
+                // One switch at a time: the rebuild is under way.
+                .disabled(AppLanguageState.shared.switching != nil)
             }
         }
         .padding(16)

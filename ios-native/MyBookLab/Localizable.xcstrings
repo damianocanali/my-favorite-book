@@ -11873,6 +11873,24 @@
           }
         }
       }
+    },
+    "account.language.switching": {
+      "comment": "Overlay while the app switches language. Read directly from the TARGET language's .lproj (AppLanguage.string), so it is not extracted from code.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Changing language…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cambio lingua…"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
