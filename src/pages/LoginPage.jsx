@@ -9,7 +9,7 @@ import OAuthButtons from '../components/auth/OAuthButtons'
 import Mascot from '../components/ui/Mascot'
 import { authErrorCode } from '../lib/authErrors'
 import { safeNext } from '../lib/safeNext'
-import { getRememberedWho, setRememberedWho } from '../lib/signinWho'
+import { readClassDevice, readClassDeviceSkip, clearClassDeviceSkip, classDeviceLabel, signedOutRedirect } from '../lib/classDevice'
 
 // "Who's signing in?" chooser cards, in the fixed order the brief asks
 // for: kid first (the destination with the worst discoverability before
@@ -20,9 +20,7 @@ function useChooserCards(t) {
   return [
     {
       who: 'kid',
-      // Same string as the old "I'm in a class" link this chooser
-      // replaces — reused rather than duplicated as a new key.
-      title: t('school:sign_in_link.label'),
+      title: t('auth:chooser.kid.title'),
       subtitle: t('auth:chooser.kid.subtitle'),
     },
     {
@@ -44,10 +42,15 @@ export default function LoginPage() {
   const [searchParams] = useSearchParams()
   const signIn = useAuthStore((s) => s.signIn)
   const markClassroomOwner = useAuthStore((s) => s.markClassroomOwner)
+  const user = useAuthStore((s) => s.user)
+  const authLoading = useAuthStore((s) => s.loading)
+  // A class browser (a teacher set it up on the class page). Read once.
+  const [classDevice] = useState(() => readClassDevice())
 
   // null = the chooser is showing. 'family' | 'teacher' = that choice's
   // form is showing. 'kid' never lands here — choosing it navigates
-  // straight to /class, same as a remembered 'kid' choice does on mount.
+  // straight to /class. Nothing about the choice is remembered: the next
+  // person on a shared device always starts at the chooser.
   const [who, setWho] = useState(null)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -60,28 +63,28 @@ export default function LoginPage() {
   const [resetLoading, setResetLoading] = useState(false)
   const [resetError, setResetError] = useState('')
 
-  // A returning visitor skips the chooser and lands straight back on their
-  // last choice. For 'kid' that means /class itself — there's no inline
-  // form for it on this page, /class *is* the kid's form — so this
-  // forwards there immediately rather than showing anything here first.
-  // Mount-only: re-running this whenever `who` changes (e.g. after the
-  // user picks "Choose again") would undo that choice.
+  // On a class browser, signed out: straight to the class's name list —
+  // unless "Not in <class>?" sent them here for the chooser (?choose=1).
   useEffect(() => {
-    const remembered = getRememberedWho()
-    // `next` is deliberately NOT forwarded here: a child always lands on
-    // /bookshelf (ClassSignInPage's own post-sign-in redirect), so passing
-    // through this attacker-controlled, unsanitised query param would only
-    // ever be dead weight ClassSignInPage never reads.
-    if (remembered === 'kid') { navigate('/class', { replace: true }); return }
-    if (remembered === 'family' || remembered === 'teacher') setWho(remembered)
+    if (authLoading) return
+    const to = signedOutRedirect({
+      device: classDevice,
+      signedIn: !!user,
+      choose: searchParams.get('choose') === '1',
+      skip: readClassDeviceSkip(),
+      next: safeNext(searchParams.get('next')),
+    })
+    if (to) navigate(to, { replace: true })
+    // Once auth has settled; not on every later sign-in/out on this page.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [authLoading])
 
   function handleChoose(choice) {
-    setRememberedWho(choice)
-    // Same reasoning as the mount effect above: a child always lands on
-    // /bookshelf, so `next` is never forwarded for 'kid'.
-    if (choice === 'kid') { navigate('/class'); return }
+    // `next` is never forwarded for 'kid': a child always lands on
+    // /bookshelf (ClassSignInPage's own post-sign-in redirect). On a class
+    // browser, ?other=1 asks /class for the code step instead of this
+    // browser's own class.
+    if (choice === 'kid') { navigate(classDevice ? '/class?other=1' : '/class'); return }
     setWho(choice)
   }
 
@@ -149,6 +152,19 @@ export default function LoginPage() {
         {who === null ? (
           <>
             {/* Header */}
+            {classDevice && (
+              <button
+                type="button"
+                onClick={() => {
+                  // Back to the class list, which is home again for this tab.
+                  clearClassDeviceSkip()
+                  navigate('/class')
+                }}
+                className="mb-4 min-h-[44px] inline-flex items-center gap-1.5 px-4 rounded-full bg-white/[0.08] text-galaxy-text font-body font-semibold hover:bg-white/[0.12] transition-colors"
+              >
+                <ArrowLeft size={16} aria-hidden="true" /> {t('auth:chooser.back_to_class', { name: classDeviceLabel(classDevice) })}
+              </button>
+            )}
             <div className="text-center mb-8">
               <img src="/logo.png" alt="My Book Lab" className="w-16 h-16 mx-auto mb-4 rounded-xl" />
               <h1 className="font-heading text-2xl font-bold text-galaxy-text">{t('auth:chooser.heading')}</h1>
@@ -200,6 +216,10 @@ export default function LoginPage() {
                   <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-galaxy-text-muted" />
                   <input
                     type="email"
+                    autoComplete="username"
+                    autoCapitalize="none"
+                    autoCorrect="off"
+                    spellCheck="false"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
@@ -215,6 +235,7 @@ export default function LoginPage() {
                   <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-galaxy-text-muted" />
                   <input
                     type={showPassword ? 'text' : 'password'}
+                    autoComplete="current-password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required

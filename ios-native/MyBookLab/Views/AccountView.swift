@@ -7,7 +7,6 @@ struct AccountView: View {
     @Environment(CoinsStore.self) private var coins
     @Environment(RewardsStore.self) private var rewards
     @Environment(TeacherStore.self) private var teacher
-    @State private var showingSignIn = false
     @State private var showingPaywall = false
     @State private var showingBuyCoins = false
     @State private var editingName = false
@@ -46,10 +45,6 @@ struct AccountView: View {
             .navigationTitle("Account")
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(.hidden, for: .navigationBar)
-            .sheet(isPresented: $showingSignIn) {
-                NavigationStack { SignInView() }
-                    .presentationDragIndicator(.visible)
-            }
             .sheet(isPresented: $showingPaywall) {
                 NavigationStack { PaywallView() }
                     .presentationDragIndicator(.visible)
@@ -73,6 +68,8 @@ struct AccountView: View {
                 // A teacher who is also a parent picks which home they see.
                 if auth.isTeacher { viewModeCard }
                 if auth.isTeacher { TeacherNotificationSettingsCard() }
+                // Which class this iPad opens on when nobody is signed in.
+                if auth.isTeacher { ClassDeviceAccountCard() }
                 // In teacher mode the classroom is the app itself.
                 if auth.isTeacher && !teacherMode { classroomCard }
                 // No shop and no prices anywhere in the teacher area.
@@ -606,7 +603,7 @@ struct AccountView: View {
                 .foregroundStyle(.white.opacity(0.75))
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 32)
-            SparkleButton(action: { showingSignIn = true }) {
+            SparkleButton(action: { AppRouter.shared.presentSignIn() }) {
                 Text("Sign in")
             }
             .frame(maxWidth: 360)

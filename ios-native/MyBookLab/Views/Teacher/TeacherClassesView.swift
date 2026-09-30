@@ -206,6 +206,9 @@ struct TeacherClassDetailView: View {
                         PendingCardsBanner { showingCards = true }
                     }
                     manageLinks
+                    if let summary {
+                        ClassDeviceCard(classId: classId, name: summary.name ?? "", code: summary.code)
+                    }
                     assignmentsSection
                 }
                 .padding()

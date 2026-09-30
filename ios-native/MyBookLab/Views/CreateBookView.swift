@@ -29,7 +29,6 @@ struct CreateBookView: View {
     @Environment(BookshelfStore.self) private var bookshelf
     @Environment(SubscriptionStore.self) private var subs
     @State private var draft = BookDraftStore.shared
-    @State private var showingSignIn = false
     @State private var wizardStarted = false
     @State private var showingCelebrationPaywall = false
     /// The book whose assignment-prompt hint the child hid (schools).
@@ -81,10 +80,6 @@ struct CreateBookView: View {
                 }
             }
             .toolbarBackground(.hidden, for: .navigationBar)
-            .sheet(isPresented: $showingSignIn) {
-                NavigationStack { SignInView() }
-                    .presentationDragIndicator(.visible)
-            }
             .sheet(isPresented: $showingCelebrationPaywall) {
                 NavigationStack { PaywallView(context: .celebration) }
                     .presentationDragIndicator(.visible)
@@ -94,7 +89,7 @@ struct CreateBookView: View {
 
     private func startCreating() {
         guard auth.isSignedIn else {
-            showingSignIn = true
+            AppRouter.shared.presentSignIn()
             return
         }
         // Open the wizard at the author-intro step (the step pre-fills
@@ -191,7 +186,7 @@ struct CreateBookView: View {
                 .foregroundStyle(.white.opacity(0.75))
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 32)
-            SparkleButton(action: { showingSignIn = true }) {
+            SparkleButton(action: { AppRouter.shared.presentSignIn() }) {
                 Text("Sign in")
             }
             .frame(maxWidth: 360)

@@ -7,6 +7,7 @@ import { useRewardsStore } from './useRewardsStore'
 import { useCheckInStore } from './useCheckInStore'
 import { usePrintOrderStore } from './usePrintOrderStore'
 import { exitKidsPreview } from '../lib/viewMode'
+import { clearClassDeviceSkip } from '../lib/classDevice'
 import { Capacitor } from '@capacitor/core'
 
 // getSession() should be near-instant — it reads the stored session and
@@ -28,6 +29,9 @@ const INIT_SAFETY_TIMEOUT_MS = 8000
 // child seeing a parent's shipping address) happened specifically because
 // the listener used to run only a subset of this.
 function clearLocalUserData() {
+  // "Not in <class>?" was for the person who just left: the next one on a
+  // class browser starts on the class list again.
+  clearClassDeviceSkip()
   // zustand/persist would otherwise leave the previous person's books and
   // in-progress book sitting in localStorage, so the next person on this
   // device would see them.

@@ -359,6 +359,20 @@
           "rainbow": "Arcobaleno"
         }
       }
+    },
+    "class_device": {
+      "setup": "Configura questo browser per questa classe",
+      "status": "Questo browser è configurato per {{name}}",
+      "remove": "Rimuovi la classe da questo browser",
+      "confirm_title": "Configurare questo browser per {{name}}?",
+      "confirm_body": "Quando nessuno ha effettuato l'accesso, questo browser si apre direttamente sull'elenco dei nomi di {{name}}. I bambini toccano il proprio nome e scelgono le loro immagini, senza scrivere il codice della classe. Quando qualcuno esce, si torna all'elenco.",
+      "confirm_replaces": "Sostituisce {{name}} su questo browser.",
+      "confirm_note": "Il tuo accesso non cambia. Solo un insegnante può rimuovere la classe da questo browser.",
+      "confirm_action": "Configura questo browser",
+      "remove_title": "Rimuovere {{name}} da questo browser?",
+      "remove_body": "I bambini avranno di nuovo bisogno del codice della classe per entrare su questo browser.",
+      "cancel": "Annulla",
+      "save_failed": "Impossibile configurare questo browser. Controlla che consenta di salvare i dati del sito e riprova."
     }
   },
   "student": {
@@ -407,12 +421,12 @@
       "success_body": "La tua maestra o il tuo maestro lo leggerà.",
       "errors": {
         "sync_failed": "Non siamo riusciti a salvare il tuo libro. Controlla la connessione e riprova.",
-        "assignment_closed": "Questo compito è chiuso. Chiedi al tuo insegnante.",
-        "past_due": "È scaduto il tempo per consegnarlo. Chiedi al tuo insegnante.",
-        "book_too_large": "Questo libro è troppo grande da consegnare. Chiedi al tuo insegnante.",
-        "assignment_not_found": "Non troviamo questo compito. Chiedi al tuo insegnante.",
+        "assignment_closed": "Questo compito è chiuso. Chiedi all'insegnante.",
+        "past_due": "È scaduto il tempo per consegnarlo. Chiedi all'insegnante.",
+        "book_too_large": "Questo libro è troppo grande da consegnare. Chiedi all'insegnante.",
+        "assignment_not_found": "Non troviamo questo compito. Chiedi all'insegnante.",
         "book_not_found": "Non troviamo questo libro. Riprova.",
-        "generic": "Qualcosa non ha funzionato. Chiedi al tuo insegnante."
+        "generic": "Qualcosa non ha funzionato. Chiedi all'insegnante."
       }
     },
     "feedback": {
@@ -440,7 +454,7 @@
     },
     "push": {
       "turn_on": "Attiva gli avvisi su questo computer",
-      "hint": "Ricevi un avviso quando uno studente chiede un adulto durante l'orario scolastico.",
+      "hint": "Ricevi un avviso quando qualcuno della classe chiede un adulto durante l'orario scolastico.",
       "on": "Gli avvisi sono attivi su questo computer",
       "turn_off": "Disattiva",
       "blocked": "Gli avvisi sono bloccati nelle impostazioni del browser",
@@ -452,7 +466,7 @@
       "summary_daily": "Riepilogo giornaliero",
       "summary_weekly": "Settimanale (il venerdì)",
       "summary_off": "Disattivato",
-      "urgent_label": "Quando uno studente chiede un adulto durante l'orario scolastico",
+      "urgent_label": "Quando qualcuno della classe chiede un adulto durante l'orario scolastico",
       "push_urgent": "Avvisami con una notifica",
       "email_urgent": "Avvisami via email",
       "saved": "Salvato",
@@ -468,5 +482,13 @@
     "remove_failed": "Non è stato possibile rimuovere la notifica. Riprova.",
     "session_ended": "La tua sessione è terminata: accedi di nuovo.",
     "error_dismiss": "Chiudi"
+  },
+  "class_device": {
+    "banner": "Classe {{name}}",
+    "not_in": "Non sei in {{name}}?",
+    "heading": "Ora non riusciamo ad aprire la tua classe",
+    "unavailable": "La classe di questo dispositivo non è disponibile — chiedi all'insegnante",
+    "try_again": "Riprova",
+    "network": "Non riusciamo a collegarci a My Book Lab. Controlla la connessione e riprova."
   }
 }
