@@ -47,13 +47,21 @@ describe('prompt firewall — frozen English', () => {
 })
 
 describe('prompt firewall — the builder never reads display text', () => {
-  it('imageGenerator routes catalogue terms through the prompt helpers', () => {
-    const src = read('src/services/imageGenerator.js')
+  it('the image payload routes catalogue terms through the prompt helpers', () => {
+    const src = read('src/services/imagePayload.js')
     // No bare display-field reads off a catalogue entity.
     expect(src).not.toMatch(/\(c\)\s*=>\s*c\.name/)
     expect(src).not.toMatch(/book\.setting\?\.name/)
     expect(src).not.toMatch(/book\.timePeriod\?\.label(?!\s*\|\|)/)
     expect(src).toMatch(/promptName\(/)
+  })
+
+  it('no client builds a FLUX prompt from the page text any more', () => {
+    for (const f of ['src/services/imageGenerator.js', 'src/services/imagePayload.js']) {
+      const src = read(f)
+      expect(src, f).not.toMatch(/prompt\s*[:=]\s*`/)
+      expect(src, f).not.toMatch(/pageText\.substring|text\.substring/)
+    }
   })
 
   it('storyBuilder sends promptEn, not the localised word, to the hint', () => {

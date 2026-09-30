@@ -13,7 +13,7 @@
 
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY
-const BUCKET = 'book-illustrations'
+export const BUCKET = 'book-illustrations'
 
 /** base64 (no data: prefix) → bytes, without pulling in Buffer. */
 function base64ToBytes(b64) {
@@ -75,4 +75,30 @@ export async function storeIllustration(b64, userId, kind = 'page') {
  */
 export function isFetchableImage(value) {
   return typeof value === 'string' && /^https?:\/\//i.test(value)
+}
+
+/**
+ * True only for a public URL of an illustration THIS user stored in our
+ * bucket: `${SUPABASE_URL}/storage/v1/object/public/book-illustrations/<userId>/<file>.png`.
+ * Used to let "tweak" edit a saved picture: the URL is handed to Together
+ * as image_url, so anything looser is an SSRF hole. Strict: https, exact
+ * origin, exact path prefix, the caller's own folder, a plain file name, no
+ * query/fragment/credentials, and the string must already be in canonical
+ * form (so `..`, `%2e`, backslashes or odd casing can't smuggle a path).
+ */
+export function isOwnStoredIllustration(value, userId, supabaseUrl = SUPABASE_URL) {
+  if (typeof value !== 'string' || value.length > 1024 || !userId || !supabaseUrl) return false
+  let base, u
+  try {
+    base = new URL(supabaseUrl)
+    u = new URL(value)
+  } catch {
+    return false
+  }
+  if (base.protocol !== 'https:' || u.protocol !== 'https:') return false
+  if (u.origin !== base.origin || u.username || u.password || u.search || u.hash) return false
+  if (u.href !== value) return false
+  const prefix = `/storage/v1/object/public/${BUCKET}/${String(userId).toLowerCase()}/`
+  if (!u.pathname.startsWith(prefix)) return false
+  return /^[A-Za-z0-9_-]{1,128}\.(png|jpe?g|webp)$/.test(u.pathname.slice(prefix.length))
 }

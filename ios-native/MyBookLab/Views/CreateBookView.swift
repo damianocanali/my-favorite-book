@@ -6,11 +6,6 @@ import SwiftUI
 import UIKit
 import PhotosUI
 
-// Shared image-generation style. The trailing "no text, no words, no
-// letters" + "wide scene" framing keeps FLUX from rendering the story
-// sentence as printed text inside the illustration. Mirrors the web app.
-private let storybookImageStyle = "children's storybook illustration, colorful, friendly, whimsical, cute cartoon style, soft colors, safe for kids, no text, no words, no letters"
-
 /// A class (student) account that has used its daily picture allowance: the
 /// server answers 429 with code "class_image_limit". Any other 429 (a rate
 /// limit) keeps the normal error. A class account is never sold
@@ -982,20 +977,16 @@ private struct PagesStep: View {
     private func generateIllustration() async {
         guard let book = draft.book,
               currentIndex < book.pages.count else { return }
-        let scene = String(book.pages[currentIndex].text.prefix(200))
-        let character = book.characters.first?.imagePromptDescription ?? "the hero"
-        let setting = book.setting?.name ?? "a magical place"
-        let prompt = "A scene from a children's storybook: \(scene). The main character is \(character), in \(setting). \(storybookImageStyle), wide scene, landscape composition"
+        // The server turns the page into an English scene; see
+        // APIClient.GenerateImageRequest.
+        let request = APIClient.GenerateImageRequest.page(text: book.pages[currentIndex].text, book: book)
 
         generatingIllustration = true
         generationError = nil
         defer { generatingIllustration = false }
         guard let token = await auth.validAccessToken() else { return }
         do {
-            let res = try await APIClient.shared.generateImage(
-                .init(prompt: prompt, style: "cartoon"),
-                bearerToken: token
-            )
+            let res = try await APIClient.shared.generateImage(request, bearerToken: token)
             guard var b = draft.book, currentIndex < b.pages.count else { return }
             b.pages[currentIndex].illustrationData = res.image
             draft.book = b
@@ -1156,14 +1147,8 @@ private struct ReadyStep: View {
         defer { generatingCover = false }
         guard let token = await auth.validAccessToken() else { return }
 
-        let character = book.characters.first?.imagePromptDescription ?? "a friendly hero"
-        let setting = book.setting?.name ?? "a magical place"
-        let prompt = "A children's storybook cover illustration. The scene shows \(character) in \(setting). \(storybookImageStyle), centered composition"
         do {
-            let res = try await APIClient.shared.generateImage(
-                .init(prompt: prompt, style: "cartoon"),
-                bearerToken: token
-            )
+            let res = try await APIClient.shared.generateImage(.cover(book: book), bearerToken: token)
             var b = book
             b.coverImage = res.image
             draft.book = b

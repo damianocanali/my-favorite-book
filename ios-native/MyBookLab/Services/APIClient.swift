@@ -286,9 +286,69 @@ actor APIClient {
 
     // MARK: - Image generation
 
+    /// Structured picture request. The app no longer builds FLUX prompts:
+    /// the server writes an English scene from these fields (see
+    /// lib/imageScene.js), so the child's prose is never pasted into the
+    /// image prompt — that drew their words as letters, passed real people's
+    /// names through, and forced the hero into every page.
+    ///
+    /// Everything except `pageText`, `title` and `instruction` is English
+    /// on purpose (prompt terms, never display labels).
     struct GenerateImageRequest: Encodable {
-        let prompt: String
-        let style: String?
+        struct Character: Encodable {
+            let name: String
+            let promptEn: String
+            let description: String?
+            /// The emoji's species ("a fox"): the only part the server's
+            /// offline fallback may draw, since name/description are typed
+            /// by the child.
+            let species: String?
+        }
+        struct Setting: Encodable {
+            let promptEn: String
+            let description: String?
+        }
+
+        let kind: String            // "page" | "cover" | "portrait" | "edit"
+        var pageText: String?
+        var title: String?
+        var characters: [Character]
+        var setting: Setting?
+        var locale: String = AppLanguage.apiLocale
+
+        static func page(text: String, book: Book) -> Self {
+            .init(kind: "page", pageText: String(text.prefix(4000)), title: nil,
+                  characters: characters(of: book), setting: setting(of: book))
+        }
+
+        static func cover(book: Book) -> Self {
+            .init(kind: "cover", pageText: nil, title: String(book.title.prefix(200)),
+                  characters: characters(of: book), setting: setting(of: book))
+        }
+
+        private static func characters(of book: Book) -> [Character] {
+            // Server accepts at most 6 (lib/imageScene.js LIMITS.characters).
+            book.characters.prefix(6).map { c in
+                let d = c.description?.trimmingCharacters(in: .whitespaces)
+                // Same caps the server keeps (lib/imageScene.js LIMITS); it
+                // truncates too, this just avoids sending what it drops.
+                return Character(name: String(c.name.prefix(120)),
+                                 promptEn: String(c.imagePromptSubject.prefix(200)),
+                                 description: (d?.isEmpty ?? true) ? nil : d.map { String($0.prefix(200)) },
+                                 species: BookCharacter.species(for: c.emoji))
+            }
+        }
+
+        private static func setting(of book: Book) -> Setting? {
+            // Preset worlds store their English name + blurb (the display
+            // title is a separate localized resource), so this is English.
+            guard let s = book.setting,
+                  let name = (s.name ?? s.label)?.trimmingCharacters(in: .whitespaces),
+                  !name.isEmpty else { return nil }
+            let d = s.description?.trimmingCharacters(in: .whitespaces)
+            return Setting(promptEn: String(name.prefix(200)),
+                           description: (d?.isEmpty ?? true) ? nil : d.map { String($0.prefix(200)) })
+        }
     }
     struct GenerateImageResponse: Decodable {
         let image: String // data URL or remote URL
