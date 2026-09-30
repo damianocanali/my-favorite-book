@@ -10,7 +10,10 @@ export const config = { runtime: 'edge' }
 
 const TOGETHER_API_URL = 'https://api.together.xyz/v1/images/generations'
 const IMAGE_GEN_LIMIT = 20 // requests per hour per IP
-const TOGETHER_TIMEOUT_MS = 18_000
+// The whole request stays under ~23 s (Vercel edge functions must start
+// responding within 25 s). Together gets whatever is left, but at least 5 s.
+const REQUEST_DEADLINE_MS = 23_000
+const MIN_TOGETHER_MS = 5_000
 
 export default async function handler(req) {
   const corsResponse = handleCors(req)
@@ -23,6 +26,7 @@ export default async function handler(req) {
     })
   }
 
+  const startedAt = Date.now()
   const auth = await requireUser(req)
   if (!auth.ok) return auth.response
 
@@ -100,12 +104,12 @@ export default async function handler(req) {
     if (imageErr) return imageErr
 
     // Moderate the child's RAW text before anything paid sees it.
-    // Chunked so the whole text is read: moderatePrompt truncates at 8000.
+    // Chunked (overlapping) so the whole text is read — moderatePrompt
+    // truncates at 8000 — and in parallel so a long page isn't slower.
     const rawText = structured ? rawTextForModeration(input) : payload.prompt
-    for (const chunk of moderationChunks(rawText)) {
-      const modErr = await moderatePrompt(chunk, req)
-      if (modErr) return modErr
-    }
+    const modErrs = await Promise.all(moderationChunks(rawText).map((chunk) => moderatePrompt(chunk, req)))
+    const modErr = modErrs.find(Boolean)
+    if (modErr) return modErr
 
     // Students draw from their class's shared allowance, not the consumer
     // daily cap (owner decision D5) — checked before any paid model call,
@@ -188,7 +192,8 @@ export default async function handler(req) {
     // 28 steps takes a while, but a hung upstream must not hold the
     // function open until the platform kills it.
     const controller = new AbortController()
-    const timer = setTimeout(() => controller.abort(), TOGETHER_TIMEOUT_MS)
+    const togetherMs = Math.max(MIN_TOGETHER_MS, startedAt + REQUEST_DEADLINE_MS - Date.now())
+    const timer = setTimeout(() => controller.abort(), togetherMs)
     let response
     try {
       response = await fetch(TOGETHER_API_URL, {

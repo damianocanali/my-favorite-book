@@ -5,7 +5,7 @@ import { readFileSync } from 'node:fs'
 import { isOwnStoredIllustration } from '../api/_imageStore.js'
 import {
   validateScenePayload, fallbackScene, charactersNamedIn, sceneWriterRequest,
-  parseScene, writeScene, buildFluxPrompt, rawTextForModeration, SCENE_MODEL, STYLE,
+  parseScene, writeScene, buildFluxPrompt, rawTextForModeration, moderationChunks, SCENE_MODEL, STYLE,
 } from '../lib/imageScene.js'
 
 const FOX = { name: 'Neo', promptEn: 'a fox named Neo', description: 'orange fur, green scarf', species: 'a fox' }
@@ -36,14 +36,33 @@ describe('validateScenePayload', () => {
     expect(validateScenePayload({ kind: 'video' })).toMatchObject({ ok: false, status: 400 })
     expect(validateScenePayload({})).toMatchObject({ ok: false, status: 400 })
   })
-  it('rejects wrong types and oversized fields', () => {
+  it('rejects wrong types', () => {
     expect(validateScenePayload({ kind: 'page', pageText: 5 })).toMatchObject({ ok: false, status: 400 })
-    expect(validateScenePayload({ kind: 'page', pageText: 'x'.repeat(4001) })).toMatchObject({ ok: false, status: 413 })
     expect(validateScenePayload({ kind: 'page', characters: 'Neo' })).toMatchObject({ ok: false, status: 400 })
-    expect(validateScenePayload({ kind: 'page', characters: Array(7).fill(FOX) })).toMatchObject({ ok: false, status: 413 })
-    expect(validateScenePayload({ kind: 'page', characters: [{ ...FOX, description: 'x'.repeat(201) }] })).toMatchObject({ ok: false, status: 413 })
     expect(validateScenePayload({ kind: 'page', setting: 'forest' })).toMatchObject({ ok: false, status: 400 })
-    expect(validateScenePayload({ kind: 'page', characters: [{ name: 'x'.repeat(121) }] })).toMatchObject({ ok: false, status: 413 })
+  })
+  it('truncates long child text (after collapsing) instead of refusing it', () => {
+    const v = validateScenePayload({
+      kind: 'cover',
+      pageText: `${'a  '.repeat(3000)}`,
+      title: 't'.repeat(250),
+      characters: [...Array(9).fill(0).map((_, i) => ({ name: `${i}${'n'.repeat(150)}`, description: 'd'.repeat(300) }))],
+      setting: { promptEn: 's'.repeat(300), description: 'x'.repeat(300) },
+    })
+    expect(v.ok).toBe(true)
+    expect(v.input.pageText.length).toBe(4000)
+    expect(v.input.pageText.startsWith('a a a')).toBe(true) // collapsed first
+    expect(v.input.title).toHaveLength(200)
+    expect(v.input.characters).toHaveLength(6)
+    expect(v.input.characters.map((c) => c.name[0])).toEqual(['0', '1', '2', '3', '4', '5'])
+    expect(v.input.characters[0].name).toHaveLength(120)
+    expect(v.input.characters[0].description).toHaveLength(200)
+    expect(v.input.setting).toHaveLength(200)
+    expect(v.input.settingDescription).toHaveLength(200)
+  })
+  it('413s only structurally absurd payloads', () => {
+    expect(validateScenePayload({ kind: 'page', pageText: 'x'.repeat(20_001) })).toMatchObject({ ok: false, status: 413 })
+    expect(validateScenePayload({ kind: 'page', characters: Array(51).fill(FOX) })).toMatchObject({ ok: false, status: 413 })
   })
   it('requires an instruction for edits and a character for portraits', () => {
     expect(validateScenePayload({ kind: 'edit' })).toMatchObject({ ok: false, status: 400 })
@@ -119,6 +138,12 @@ describe('fallbackScene (offline template)', () => {
     const s = fallbackScene(input({ kind: 'cover', title: 'My Big Day', pageText: '' }))
     expect(s).toContain('a fox and an owl')
     expect(s).not.toContain('My Big Day')
+  })
+  it('does not add a second subject when a story card duplicates a character', () => {
+    const s = fallbackScene(input({ pageText: 'Neo found a key', hint: 'the fox, a golden key' }))
+    expect(s).toContain('with a fox in')
+    expect(s).toContain('The picture includes: a golden key.')
+    expect(s).not.toContain('the fox')
   })
   it('keeps only story-card words from the hint', () => {
     const s = fallbackScene(input({ hint: 'the fox, a golden key, a secret word' }))
@@ -211,14 +236,29 @@ describe('writeScene', () => {
     expect(r.source).toBe('fallback')
     expect(f).not.toHaveBeenCalled()
   })
-  it('rejects a scene that repeats a real name from the page, and keeps the billed usage', async () => {
-    const r = await writeScene(input(), { apiKey: 'k', fetchImpl: ok('President Donal Trump smiles at the White House.') })
-    expect(r.source).toBe('fallback')
-    expect(r.scene).not.toContain('Trump')
-    expect(r.usage).toEqual({ input_tokens: 700, output_tokens: 60 })
+  it('only LOGS a carried-over proper name, with a redacted marker and no child text', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    try {
+      const r = await writeScene(input(), { apiKey: 'k', fetchImpl: ok('President Donal Trump smiles at the White House.') })
+      expect(r.source).toBe('model')
+      const line = warn.mock.calls.map((c) => c.join(' ')).find((l) => l.includes('proper-name'))
+      expect(line).toMatch(/n=2 ref=[0-9a-f]{8}$/) // Donal Trump + White House
+      expect(line).not.toMatch(/Trump|Donal|White|House|president/i)
+    } finally {
+      warn.mockRestore()
+    }
   })
-  it('rejects a scene with quotation marks', async () => {
-    expect((await writeScene(input(), { apiKey: 'k', fetchImpl: ok('A sign that says “hello”.') })).source).toBe('fallback')
+  it('does not flag or reject catalogue-looking phrases', async () => {
+    const i = input({ pageText: 'The Glowing Forest was bright on Christmas Eve when Santa Claus came.' })
+    const r = await writeScene(i, { apiKey: 'k', fetchImpl: ok('Santa Claus visits The Glowing Forest on Christmas Eve.') })
+    expect(r.source).toBe('model')
+  })
+  it('rejects a scene with quotation or speech marks, and keeps the billed usage', async () => {
+    for (const bad of ['A sign that says “hello”.', 'A sign saying "hi".', 'A banner «ciao».']) {
+      const r = await writeScene(input(), { apiKey: 'k', fetchImpl: ok(bad) })
+      expect(r.source).toBe('fallback')
+      expect(r.usage).toEqual({ input_tokens: 700, output_tokens: 60 })
+    }
   })
   it('allows a book character\'s own multi-word name', async () => {
     const luna = { name: 'Princess Luna', promptEn: 'Princess Luna', description: '' }
@@ -386,6 +426,16 @@ describe('POST /api/generate-image', () => {
     expect(of('api.together.xyz')).toHaveLength(0)
   })
 
+  it('splits moderation into overlapping chunks that cover everything', () => {
+    const text = Array.from({ length: 16_000 }, (_, i) => String.fromCharCode(97 + (i % 26))).join('')
+    const chunks = moderationChunks(text)
+    expect(chunks.every((c) => c.length <= 7500)).toBe(true)
+    for (let i = 1; i < chunks.length; i++) expect(chunks[i].slice(0, 200)).toBe(chunks[i - 1].slice(-200))
+    expect(chunks.map((c, i) => (i ? c.slice(200) : c)).join('')).toBe(text)
+    expect(moderationChunks('short')).toEqual(['short'])
+    expect(moderationChunks('')).toEqual([])
+  })
+
   it('moderates ALL of a long raw text, in chunks', async () => {
     const long = 'a'.repeat(3990)
     const chars = Array.from({ length: 6 }, (_, i) => ({ name: `N${i}`.padEnd(120, 'n'), promptEn: 'p'.repeat(200), description: 'd'.repeat(200) }))
@@ -397,9 +447,19 @@ describe('POST /api/generate-image', () => {
     expect(mods.every((m) => m.length <= 8000)).toBe(true)
   })
 
-  it('413s too many characters or an oversized description, with no paid calls', async () => {
-    expect((await post({ ...page, characters: Array(7).fill(FOX) })).status).toBe(413)
-    expect((await post({ ...page, characters: [{ ...FOX, description: 'x'.repeat(201) }] })).status).toBe(413)
+  it('draws (not 413s) when a child\'s fields run long, and moderates what it keeps', async () => {
+    const longDesc = `${'d'.repeat(200)}TAIL-NOT-KEPT`
+    const res = await post({ ...page, characters: [...Array(7).fill({ ...FOX, description: longDesc })] })
+    expect(res.status).toBe(200)
+    const raw = of('moderations')[0].body.input
+    expect(raw).not.toContain('TAIL-NOT-KEPT')
+    const sent = JSON.parse(of('api.anthropic.com')[0].body.messages[0].content.split('\nDATA:\n')[1])
+    expect(sent.characters).toHaveLength(6)
+    expect(sent.characters[0].looksLike).toHaveLength(200)
+  })
+
+  it('413s a structurally absurd payload with no paid calls', async () => {
+    expect((await post({ ...page, characters: Array(51).fill(FOX) })).status).toBe(413)
     expect(of('api.anthropic.com')).toHaveLength(0)
     expect(of('api.together.xyz')).toHaveLength(0)
     expect(of('bump_generation')).toHaveLength(0)
@@ -427,7 +487,8 @@ describe('POST /api/generate-image', () => {
         return base(url, init)
       })
       const p = post({ prompt: 'A fox. no text' })
-      await vi.advanceTimersByTimeAsync(18_001)
+      // The Together budget is what's left of the ~23 s request deadline.
+      await vi.advanceTimersByTimeAsync(23_001)
       expect((await p).status).toBe(504)
     } finally {
       vi.useRealTimers()

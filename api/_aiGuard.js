@@ -15,7 +15,7 @@ const MAX_SOURCE_IMAGE_CHARS = 8 * 1024 * 1024
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
 const DAILY_IMAGE_LIMIT = Number(process.env.DAILY_IMAGE_LIMIT || 50)
-const MODERATION_TIMEOUT_MS = 5000
+const MODERATION_TIMEOUT_MS = 3000
 
 function aiError(status, message, req) {
   return new Response(JSON.stringify({ error: message }), {

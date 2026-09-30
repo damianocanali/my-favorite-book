@@ -317,12 +317,12 @@ actor APIClient {
         var locale: String = AppLanguage.apiLocale
 
         static func page(text: String, book: Book) -> Self {
-            .init(kind: "page", pageText: text, title: nil,
+            .init(kind: "page", pageText: String(text.prefix(4000)), title: nil,
                   characters: characters(of: book), setting: setting(of: book))
         }
 
         static func cover(book: Book) -> Self {
-            .init(kind: "cover", pageText: nil, title: book.title,
+            .init(kind: "cover", pageText: nil, title: String(book.title.prefix(200)),
                   characters: characters(of: book), setting: setting(of: book))
         }
 
@@ -330,8 +330,11 @@ actor APIClient {
             // Server accepts at most 6 (lib/imageScene.js LIMITS.characters).
             book.characters.prefix(6).map { c in
                 let d = c.description?.trimmingCharacters(in: .whitespaces)
-                return Character(name: c.name, promptEn: c.imagePromptSubject,
-                                 description: (d?.isEmpty ?? true) ? nil : d,
+                // Same caps the server keeps (lib/imageScene.js LIMITS); it
+                // truncates too, this just avoids sending what it drops.
+                return Character(name: String(c.name.prefix(120)),
+                                 promptEn: String(c.imagePromptSubject.prefix(200)),
+                                 description: (d?.isEmpty ?? true) ? nil : d.map { String($0.prefix(200)) },
                                  species: BookCharacter.species(for: c.emoji))
             }
         }

@@ -10,6 +10,10 @@ import { promptName, promptDescription, promptLabel } from '../i18n/contentCatal
 // raw prose pasted into the prompt was drawn as letters, carried real
 // people's names through, and forced every character into every page.
 
+// Same caps the server keeps (lib/imageScene.js LIMITS). The server
+// truncates too; trimming here just avoids sending bytes it will drop.
+const cap = (s, n) => String(s ?? '').slice(0, n)
+
 function characterFor(ch) {
   return {
     // FIREWALL ALLOWANCE: `name` is the one display-side field sent. It is
@@ -17,9 +21,9 @@ function characterFor(ch) {
     // whether a page is about them; the server never draws from it (the
     // scene writer gets it as data, the offline fallback ignores it). This
     // is why tests/i18n-prompt-firewall.test.js tolerates `ch?.name` here.
-    name: ch?.name ?? '',
-    promptEn: promptName(ch),
-    description: promptDescription(ch),
+    name: cap(ch?.name, 120),
+    promptEn: cap(promptName(ch), 200),
+    description: cap(promptDescription(ch), 200),
   }
 }
 
@@ -33,7 +37,7 @@ function base(kind, book, locale) {
     kind,
     characters: (book?.characters ?? []).map(characterFor).filter(hasCharacter).slice(0, MAX_CHARACTERS),
     setting: book?.setting
-      ? { promptEn: promptName(book.setting), description: promptDescription(book.setting) }
+      ? { promptEn: cap(promptName(book.setting), 200), description: cap(promptDescription(book.setting), 200) }
       : null,
     timePeriod: promptLabel(book?.timePeriod),
     locale: locale || 'en',
@@ -41,7 +45,7 @@ function base(kind, book, locale) {
 }
 
 export function coverPayload(book, locale) {
-  return { ...base('cover', book, locale), title: book?.title ?? '' }
+  return { ...base('cover', book, locale), title: cap(book?.title, 200) }
 }
 
 export function portraitPayload(character, book, locale) {
@@ -52,7 +56,7 @@ export function portraitPayload(character, book, locale) {
 export function pagePayload(page, book, locale) {
   return {
     ...base('page', book, locale),
-    pageText: page?.text ?? '',
+    pageText: cap(page?.text, 4000),
     // Story Builder pages carry the cards the child actually chose, already
     // English (promptEn) — see src/lib/storyBuilder.js.
     hint: page?.illustrationHint ?? '',
@@ -62,8 +66,8 @@ export function pagePayload(page, book, locale) {
 export function editPayload(page, book, instruction, locale) {
   return {
     ...base('edit', book, locale),
-    pageText: page?.text ?? '',
-    instruction,
+    pageText: cap(page?.text, 4000),
+    instruction: cap(instruction, 500),
     sourceImage: page?.illustrationData,
     strength: 0.55,
   }
