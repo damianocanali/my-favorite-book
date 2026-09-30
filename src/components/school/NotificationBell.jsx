@@ -18,6 +18,8 @@ export default function NotificationBell() {
   const [error, setError] = useState(false)
   const [open, setOpen] = useState(false)
   const [confirmingClear, setConfirmingClear] = useState(false)
+  const confirmCancelRef = useRef(null)
+  const clearAllRef = useRef(null)
   const rootRef = useRef(null)
 
   const load = useCallback(async () => {
@@ -47,6 +49,15 @@ export default function NotificationBell() {
   useEffect(() => {
     if (!open) setConfirmingClear(false)
   }, [open])
+
+  // The inline confirm takes focus (on its safe choice), so keyboard and
+  // screen-reader users land on it; cancelling puts focus back.
+  const wasConfirming = useRef(false)
+  useEffect(() => {
+    if (confirmingClear) confirmCancelRef.current?.focus()
+    else if (wasConfirming.current) clearAllRef.current?.focus()
+    wasConfirming.current = confirmingClear
+  }, [confirmingClear])
 
   useEffect(() => {
     if (!open) return
@@ -80,12 +91,18 @@ export default function NotificationBell() {
     if (!res.ok) load()
   }
 
+  // Only what the teacher could see: rows up to the newest one loaded, so
+  // one that arrives while they confirm survives (the list is newest first).
   async function clearAll() {
     setConfirmingClear(false)
+    const before = items[0]?.created_at
+    if (!before) return
     setItems([])
     setUnread(0)
-    const res = await schoolFetch('/api/school/notifications', { method: 'DELETE' })
-    if (!res.ok) load()
+    await schoolFetch(`/api/school/notifications?before=${encodeURIComponent(before)}`, { method: 'DELETE' })
+    // Either way, re-read: a failure brings the rows back, a success
+    // brings in anything newer that arrived meanwhile.
+    load()
   }
 
   function openItem(n) {
@@ -141,8 +158,9 @@ export default function NotificationBell() {
                   {t('school:notifications.mark_all_read')}
                 </button>
               )}
-              {items.length > 0 && !confirmingClear && (
+              {items.length > 0 && (
                 <button
+                  ref={clearAllRef}
                   type="button"
                   onClick={() => setConfirmingClear(true)}
                   className="font-body text-xs font-semibold text-galaxy-text-muted hover:text-galaxy-text hover:underline"
@@ -158,6 +176,7 @@ export default function NotificationBell() {
               <span className="font-body text-xs text-galaxy-text">{t('school:notifications.clear_confirm')}</span>
               <span className="flex gap-2">
                 <button
+                  ref={confirmCancelRef}
                   type="button"
                   onClick={() => setConfirmingClear(false)}
                   className="rounded-lg px-2 py-1 font-body text-xs font-semibold text-galaxy-text-muted hover:text-galaxy-text"
@@ -205,8 +224,8 @@ export default function NotificationBell() {
                 <button
                   type="button"
                   onClick={() => dismiss(n)}
-                  aria-label={t('school:notifications.dismiss')}
-                  title={t('school:notifications.dismiss')}
+                  aria-label={t('school:notifications.dismiss', { text: notificationText(t, n) })}
+                  title={t('school:notifications.dismiss', { text: notificationText(t, n) })}
                   className="flex h-11 w-11 flex-shrink-0 items-center justify-center text-galaxy-text-muted/60 transition-colors hover:text-galaxy-text"
                 >
                   <X size={14} aria-hidden="true" />

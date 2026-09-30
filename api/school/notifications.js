@@ -58,8 +58,17 @@ async function markHours(notifications, me) {
   }
 }
 
+// Accepts only a full ISO timestamp (what the list itself returns), passed
+// through unchanged: Postgres keeps microseconds, and re-serializing via
+// Date would round the newest row's own stamp down and skip it.
+const ISO_TS = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,6})?(Z|[+-]\d{2}:?\d{2})$/
+const isIsoTimestamp = (s) => typeof s === 'string' && ISO_TS.test(s) && !Number.isNaN(Date.parse(s))
+
 // The teacher's bell (spec §12.4): latest 50 + unread count, "mark read",
-// and clearing (DELETE ?id=<uuid> removes one, no id removes all). Every
+// and clearing (DELETE ?id=<uuid> removes one; without an id, "Clear all"
+// removes the caller's rows created at or before ?before=<ISO>, the newest
+// row the client had loaded — so a notification that arrives while the
+// teacher is confirming is not wiped unseen). Every
 // query is filtered by the caller's own auth id, so a notification id from
 // someone else's bell simply matches nothing.
 export default async function handler(req) {
@@ -100,10 +109,17 @@ export default async function handler(req) {
     }
 
     if (req.method === 'DELETE') {
-      const id = new URL(req.url).searchParams.get('id')
+      const params = new URL(req.url).searchParams
+      const id = params.get('id')
+      const before = params.get('before')
       if (id !== null && !isUuid(id)) return json(req, 400, { error: 'Invalid id', code: 'bad_request' })
-      const one = id !== null ? `&id=eq.${encodeURIComponent(id)}` : ''
-      const res = await sb(`/rest/v1/teacher_notifications?teacher_user_id=eq.${me}${one}`, {
+      if (id === null && !isIsoTimestamp(before)) {
+        return json(req, 400, { error: 'Clear all needs before=<ISO timestamp>', code: 'bad_request' })
+      }
+      const scope = id !== null
+        ? `&id=eq.${encodeURIComponent(id)}`
+        : `&created_at=lte.${encodeURIComponent(before)}`
+      const res = await sb(`/rest/v1/teacher_notifications?teacher_user_id=eq.${me}${scope}`, {
         method: 'DELETE',
         headers: { Prefer: 'return=minimal' },
       })

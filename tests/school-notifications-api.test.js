@@ -173,14 +173,25 @@ describe('GET/POST /api/school/notifications', () => {
     expect(dels[0].url).toContain(`id=eq.${N1}`)
   })
 
-  it('DELETE without an id clears all of the caller\'s — and nobody else\'s', async () => {
+  it('DELETE without an id clears the caller\'s rows up to `before` — and nobody else\'s', async () => {
+    const before = '2026-09-30T10:00:00.123456+00:00'
     const log = mockSupabase({ user: TEACHER, routes: [{ method: 'DELETE', match: '/rest/v1/teacher_notifications', reply: { body: [] } }] })
-    const res = await (await load())(call('school/notifications', { method: 'DELETE' }))
+    const res = await (await load())(call(`school/notifications?before=${encodeURIComponent(before)}`, { method: 'DELETE' }))
     expect(res.status).toBe(200)
     const d = log.find((l) => l.method === 'DELETE')
     expect(d.url).toContain(`teacher_user_id=eq.${TEACHER.id}`)
+    // Passed through exactly (microseconds kept, "+" encoded), never rounded.
+    expect(d.url).toContain(`created_at=lte.${encodeURIComponent(before)}`)
     expect(d.url).not.toContain('&id=')
   })
+
+  it.each([['missing', ''], ['not a date', '?before=yesterday'], ['injection', `?before=${encodeURIComponent('2026-09-30T10:00:00Z,id.neq.null')}`]])(
+    'DELETE clear-all 400 when before is %s', async (_, query) => {
+      const log = mockSupabase({ user: TEACHER, routes: [] })
+      const res = await (await load())(call(`school/notifications${query}`, { method: 'DELETE' }))
+      expect(res.status).toBe(400)
+      expect(log.some((l) => l.method === 'DELETE')).toBe(false)
+    })
 
   it('can\'t delete another teacher\'s rows: the owner filter is always the caller', async () => {
     // Another teacher's notification id is just an id: the DELETE is still
@@ -210,7 +221,7 @@ describe('GET/POST /api/school/notifications', () => {
 
   it('DELETE 502 when the delete fails upstream', async () => {
     mockSupabase({ user: TEACHER, routes: [err500('DELETE', '/rest/v1/teacher_notifications')] })
-    expect((await (await load())(call('school/notifications', { method: 'DELETE' }))).status).toBe(502)
+    expect((await (await load())(call(`school/notifications?id=${N1}`, { method: 'DELETE' }))).status).toBe(502)
   })
 })
 

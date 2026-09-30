@@ -463,6 +463,6 @@
     "clear_all": "Clear all",
     "clear_confirm": "Clear all notifications?",
     "clear_confirm_action": "Clear",
-    "dismiss": "Remove notification"
+    "dismiss": "Remove: {{text}}"
   }
 }

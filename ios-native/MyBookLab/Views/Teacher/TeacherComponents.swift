@@ -254,20 +254,24 @@ struct TeacherBellList: View {
             .toolbarBackground(TeacherTheme.sheetBackground, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
+                // Icons with spoken labels: two text buttons plus Done don't
+                // fit a popover's bar in Italian ("Segna tutte come lette").
+                ToolbarItemGroup(placement: .topBarLeading) {
                     if bell.unread > 0 {
                         Button { Task { await bell.markAllRead() } } label: {
-                            Text(TeacherCopy.bellMarkAll).fontWeight(.semibold)
+                            Label { Text(TeacherCopy.bellMarkAll) } icon: { Image(systemName: "checkmark.circle") }
                         }
+                        .labelStyle(.iconOnly)
                         .tint(.cyan)
+                        .help(Text(TeacherCopy.bellMarkAll))
                     }
-                }
-                ToolbarItem(placement: .topBarLeading) {
                     if !bell.items.isEmpty {
                         Button(role: .destructive) { confirmingClear = true } label: {
-                            Text(TeacherCopy.bellClearAll)
+                            Label { Text(TeacherCopy.bellClearAll) } icon: { Image(systemName: "trash") }
                         }
-                        .tint(.white.opacity(0.8))
+                        .labelStyle(.iconOnly)
+                        .tint(.white.opacity(0.85))
+                        .help(Text(TeacherCopy.bellClearAll))
                     }
                 }
                 ToolbarItem(placement: .topBarTrailing) {

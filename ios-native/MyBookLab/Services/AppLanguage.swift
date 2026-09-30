@@ -29,6 +29,7 @@
 import Foundation
 import Observation
 import ObjectiveC
+import UIKit
 
 enum AppLanguage {
     private static let choiceKey = "appLanguage"
@@ -65,6 +66,13 @@ enum AppLanguage {
         let state = AppLanguageState.shared
         guard isSupported(code), code != state.code, state.switching == nil else { return }
         state.switching = code
+        // VoiceOver hears the switch too (the overlay is visual only), in
+        // the language being switched to.
+        UIAccessibility.post(
+            notification: .announcement,
+            argument: NSAttributedString(
+                string: string("account.language.switching", defaultValue: "Changing language…", in: code),
+                attributes: [.accessibilitySpeechLanguage: code]))
         Task { @MainActor in
             // One or two frames for the overlay to be drawn before the
             // main thread is busy rebuilding the tree.

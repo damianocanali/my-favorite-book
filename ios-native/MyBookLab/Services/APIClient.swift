@@ -934,11 +934,20 @@ actor APIClient {
             body: MarkReadBody(ids: ids), bearerToken: bearerToken)
     }
 
-    /// DELETE: one notification by id, or (nil) the whole bell. The server
-    /// only ever deletes the caller's own rows.
-    func teacherDeleteNotifications(id: String?, bearerToken: String) async throws {
+    /// DELETE one notification by id. The server only ever deletes the
+    /// caller's own rows.
+    func teacherDeleteNotification(id: String, bearerToken: String) async throws {
         let _: Ignored = try await teacherCall(
-            method: "DELETE", path: "/api/school/notifications", query: id.map { ["id": $0] } ?? [:],
+            method: "DELETE", path: "/api/school/notifications", query: ["id": id],
+            body: Optional<EmptyBody>.none, bearerToken: bearerToken)
+    }
+
+    /// "Clear all": the caller's rows created at or before `before` — the
+    /// newest row the teacher had loaded, sent back exactly as the server
+    /// gave it, so one arriving meanwhile isn't wiped unseen.
+    func teacherClearNotifications(before: String, bearerToken: String) async throws {
+        let _: Ignored = try await teacherCall(
+            method: "DELETE", path: "/api/school/notifications", query: ["before": before],
             body: Optional<EmptyBody>.none, bearerToken: bearerToken)
     }
 

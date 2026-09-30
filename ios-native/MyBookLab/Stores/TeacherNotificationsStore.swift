@@ -66,22 +66,24 @@ final class TeacherNotificationsStore {
         if n.read_at == nil { unread = max(0, unread - 1) }
         do {
             guard let token = await bearer() else { throw APIClient.TeacherError(code: APIClient.sessionExpiredCode) }
-            try await APIClient.shared.teacherDeleteNotifications(id: n.id, bearerToken: token)
+            try await APIClient.shared.teacherDeleteNotification(id: n.id, bearerToken: token)
         } catch {
             await load()
         }
     }
 
-    /// "Clear all" (after the view's confirmation). Optimistic, same rule.
+    /// "Clear all" (after the view's confirmation): only what the teacher
+    /// could see, up to the newest loaded row (the list is newest first).
+    /// Optimistic; re-read afterwards either way — a failure brings the rows
+    /// back, a success brings in anything newer that arrived meanwhile.
     func clearAll() async {
+        guard let before = items.first?.created_at else { return }
         items = []
         unread = 0
-        do {
-            guard let token = await bearer() else { throw APIClient.TeacherError(code: APIClient.sessionExpiredCode) }
-            try await APIClient.shared.teacherDeleteNotifications(id: nil, bearerToken: token)
-        } catch {
-            await load()
+        if let token = await bearer() {
+            try? await APIClient.shared.teacherClearNotifications(before: before, bearerToken: token)
         }
+        await load()
     }
 
     /// "9+" past nine, nil at zero (web: unreadBadge).
