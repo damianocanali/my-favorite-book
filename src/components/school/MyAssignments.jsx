@@ -13,6 +13,8 @@ import {
   readSeenAssignments, markAssignmentSeen, pruneSeenAssignments,
 } from './assignmentStudentUi'
 import StudentFeedbackModal from './StudentFeedbackModal'
+import StudentNudgeCard from './StudentNudgeCard'
+import { nudgeAction } from './nudgeUi'
 
 const POLL_MS = 60 * 1000
 
@@ -42,6 +44,10 @@ export default function MyAssignments() {
   const [assignments, setAssignments] = useState(null) // null while loading
   const [error, setError] = useState(null)
   const [feedbackFor, setFeedbackFor] = useState(null) // the assignment whose feedback is open
+  // The teacher's unread nudge (api/school/nudges.js), shown first. Ids
+  // dismissed here stay hidden even if a poll races the "Got it" PATCH.
+  const [nudge, setNudge] = useState(null)
+  const dismissedNudges = useRef(new Set())
 
   const loaded = useRef(false)
   const load = useCallback(async () => {
@@ -55,6 +61,12 @@ export default function MyAssignments() {
     } else if (!loaded.current) {
       // A failed poll keeps what is on screen; only a first load hides it.
       setError(res.code || 'generic')
+    }
+    // Independent of the list: a failed read keeps whatever is shown.
+    const n = await schoolFetch('/api/school/nudges')
+    if (n.ok) {
+      const next = n.data?.nudge ?? null
+      setNudge(next && !dismissedNudges.current.has(next.id) ? next : null)
     }
   }, [])
 
@@ -104,9 +116,9 @@ export default function MyAssignments() {
     const decision = startDecision(useBookStore.getState().book, assignment.id)
     if (decision === 'resume') {
       navigate('/create')
-      return
+      return true
     }
-    if (decision === 'confirm' && !window.confirm(t('school:student.assignments.replace_draft'))) return
+    if (decision === 'confirm' && !window.confirm(t('school:student.assignments.replace_draft'))) return false
     const existing = findBook(assignment.id)
     if (existing) {
       // Same shortcut PreviewPage's own Edit button uses: load the book,
@@ -119,12 +131,52 @@ export default function MyAssignments() {
       tagAssignment({ id: assignment.id, title: assignment.title, prompt: assignment.prompt })
     }
     navigate('/create')
+    return true
   }
 
   function openHandedIn(assignment) {
     const existing = findBook(assignment.id)
     if (existing) navigate(`/preview/${existing.id}`)
     else startOrContinue(assignment)
+  }
+
+  const nudgeNext = nudge ? nudgeAction(nudge, { assignments: assignments ?? [], books, draft }) : null
+  const nudgeLabel = !nudgeNext
+    ? ''
+    : nudgeNext.kind === 'assignment'
+      ? (isStarted(nudgeNext.assignment.id) ? t('school:student.assignments.continue_writing') : t('school:student.assignments.start_writing'))
+      : nudgeNext.kind === 'create'
+        ? t('school:nudges.student.create_book')
+        : t('school:nudges.student.keep_writing')
+
+  function dismissNudge() {
+    if (!nudge) return
+    dismissedNudges.current.add(nudge.id)
+    const id = nudge.id
+    setNudge(null)
+    // Best-effort: a failure only means the card may come back next poll.
+    schoolFetch('/api/school/nudges', { method: 'PATCH', body: JSON.stringify({ id }) })
+  }
+
+  // The big button: the linked assignment's Start/Continue writing (same
+  // path as its card), else the book in progress, the most recent book, or
+  // a new one. Acting on the note counts as reading it — but only once the
+  // action really goes ahead (not when the child cancels "replace draft?").
+  function actOnNudge() {
+    const next = nudgeNext
+    if (!next) return
+    if (next.kind === 'assignment') {
+      if (startOrContinue(next.assignment)) dismissNudge()
+      return
+    }
+    dismissNudge()
+    if (next.kind === 'book') {
+      loadBook(next.book)
+      useBookStore.getState().setStep(7)
+    } else if (next.kind === 'create') {
+      startNewBook()
+    }
+    navigate('/create')
   }
 
   function markSeen(assignmentId) {
@@ -140,7 +192,7 @@ export default function MyAssignments() {
   // Quiet failure/loading — a broken schools API (or the first render
   // before the fetch resolves) shouldn't block or flash empty above a
   // child's own bookshelf, which works regardless.
-  if (!visible.length || error) return null
+  if (!nudge && (!visible.length || error)) return null
 
   return (
     <section className="mb-10 rounded-3xl p-4 sm:p-5 border border-galaxy-secondary/30 bg-gradient-to-br from-galaxy-secondary/10 to-galaxy-primary/10">
@@ -149,6 +201,13 @@ export default function MyAssignments() {
         <h2 className="font-heading text-2xl font-bold text-galaxy-text">{t('school:student.assignments.from_teacher')}</h2>
       </div>
 
+      {nudge && (
+        <div className={visible.length && !error ? 'mb-4' : ''}>
+          <StudentNudgeCard nudge={nudge} actionLabel={nudgeLabel} onAction={actOnNudge} onGotIt={dismissNudge} />
+        </div>
+      )}
+
+      {visible.length > 0 && !error && (
       <motion.div
         className="grid gap-4 sm:grid-cols-2"
         initial={{ opacity: 0, y: 10 }}
@@ -170,6 +229,7 @@ export default function MyAssignments() {
           />
         ))}
       </motion.div>
+      )}
 
       <AnimatePresence>
         {feedbackFor && (

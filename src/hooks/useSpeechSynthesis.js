@@ -7,7 +7,10 @@ export function useSpeechSynthesis() {
   const utteranceRef = useRef(null)
   const startPositionsRef = useRef([])
 
-  const speak = useCallback((text) => {
+  // `lang` (optional, a BCP-47 tag such as 'it'): read in that language
+  // instead of the browser's default voice — Italian through an English
+  // voice is unintelligible (see the iPad's SpeechSpeaker for the same fix).
+  const speak = useCallback((text, lang) => {
     if (!window.speechSynthesis || !text.trim()) return
     window.speechSynthesis.cancel()
 
@@ -27,6 +30,7 @@ export function useSpeechSynthesis() {
     const utterance = new SpeechSynthesisUtterance(text)
     utterance.rate = 0.85
     utterance.pitch = 1.1
+    if (lang) utterance.lang = lang
 
     utterance.onboundary = (e) => {
       if (e.name !== 'word') return

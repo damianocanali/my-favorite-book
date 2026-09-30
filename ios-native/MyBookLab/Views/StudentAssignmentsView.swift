@@ -101,15 +101,28 @@ struct MyAssignmentsSection: View {
     /// Assignment ids this child has opened (AssignmentSeen); drives "New".
     @State private var seen: Set<String> = []
     @State private var feedbackFor: StudentAssignment?
-    /// The assignment waiting on "replace your unsaved book?".
-    @State private var pendingStart: StudentAssignment?
+    /// What is waiting on "replace your unsaved book?": the assignment, and
+    /// the nudge that led there (marked seen only if the child goes ahead).
+    /// The dialog carries it via `presenting:`, so the Replace action acts
+    /// on exactly the value it was shown with.
+    @State private var pendingStart: PendingStart?
+
+    private struct PendingStart {
+        let assignment: StudentAssignment
+        var nudge: StudentNudge?
+    }
+    /// The teacher's unread nudge (api/school/nudges.js), shown first.
+    @State private var nudge: StudentNudge?
+    /// Dismissed with "Got it" on this device: a poll racing the PATCH
+    /// must not bring the card straight back.
+    @State private var dismissedNudges: Set<String> = []
 
     var body: some View {
         // A real container, not a Group: modifiers on a Group that starts
         // empty land on no view, so .task would never run and nothing
         // would ever load.
         VStack(spacing: 0) {
-            if auth.isStudent, !visible.isEmpty {
+            if auth.isStudent, !visible.isEmpty || nudge != nil {
                 VStack(alignment: .leading, spacing: 14) {
                     Label {
                         Text(AssignmentCopy.fromTeacher)
@@ -120,6 +133,17 @@ struct MyAssignmentsSection: View {
                     .font(.system(.title2, design: .rounded).bold())
                     .foregroundStyle(.white)
                     .accessibilityAddTraits(.isHeader)
+
+                    if let nudge {
+                        StudentNudgeCard(
+                            nudge: nudge,
+                            actionLabel: nudgeActionLabel(nudge),
+                            // Acting on it counts as reading it — once the
+                            // action really goes ahead (see nudgeAction).
+                            onAction: { nudgeAction(nudge) },
+                            onGotIt: { dismissNudge(nudge) }
+                        )
+                    }
 
                     LazyVGrid(columns: [GridItem(.adaptive(minimum: 280), spacing: 16)], spacing: 16) {
                         ForEach(visible) { assignment in
@@ -161,6 +185,7 @@ struct MyAssignmentsSection: View {
         .task(id: PollKey(student: auth.isStudent, userId: auth.user?.id, active: scenePhase == .active)) {
             guard auth.isStudent else {
                 assignments = nil
+                nudge = nil
                 return
             }
             seen = AssignmentSeen.ids(userId: auth.user?.id.uuidString)
@@ -169,6 +194,10 @@ struct MyAssignmentsSection: View {
                 if let fresh = await SchoolAssignments.list() {
                     assignments = fresh
                     seen = AssignmentSeen.prune(keeping: fresh.map(\.id), userId: auth.user?.id.uuidString)
+                }
+                // A failed read keeps what is on screen.
+                if let fresh = await SchoolAssignments.nudge() {
+                    nudge = fresh.flatMap { dismissedNudges.contains($0.id) ? nil : $0 }
                 }
                 try? await Task.sleep(for: SchoolAssignments.pollInterval)
             }
@@ -180,16 +209,20 @@ struct MyAssignmentsSection: View {
         }
         .confirmationDialog(
             Text(AssignmentCopy.replaceDraftTitle),
+            // Any dismissal (a button, a tap outside, the system) clears the
+            // pending start. Replace still acts on the `presenting:` value
+            // SwiftUI captured, so clearing here can't lose the nudge.
             isPresented: Binding(
                 get: { pendingStart != nil },
                 set: { if !$0 { pendingStart = nil } }
             ),
             titleVisibility: .visible,
             presenting: pendingStart
-        ) { assignment in
+        ) { pending in
             Button(role: .destructive) {
                 pendingStart = nil
-                startNew(assignment)
+                if let n = pending.nudge { dismissNudge(n) }
+                startNew(pending.assignment)
             } label: {
                 Text(AssignmentCopy.replaceDraftConfirm)
             }
@@ -247,17 +280,20 @@ struct MyAssignmentsSection: View {
     /// Never silently wipes work: a draft already open for this assignment
     /// is just returned to, and any other draft with something in it is
     /// only replaced after the child says so.
-    private func startOrContinue(_ assignment: StudentAssignment) {
+    /// Returns false when it is waiting on the "replace?" confirmation.
+    @discardableResult
+    private func startOrContinue(_ assignment: StudentAssignment, nudge: StudentNudge? = nil) -> Bool {
         let draft = BookDraftStore.shared
         if draft.book?.assignmentId == assignment.id {
             router.selectedTab = .create
-            return
+            return true
         }
         if let open = draft.book, Self.hasWork(open) {
-            pendingStart = assignment
-            return
+            pendingStart = PendingStart(assignment: assignment, nudge: nudge)
+            return false
         }
         startNew(assignment)
+        return true
     }
 
     private func startNew(_ assignment: StudentAssignment) {
@@ -281,6 +317,62 @@ struct MyAssignmentsSection: View {
             || b.setting != nil
             || b.pages.contains { !$0.text.trimmingCharacters(in: .whitespaces).isEmpty || $0.illustrationData != nil }
             || b.coverImage != nil
+    }
+
+    // MARK: Nudge
+
+    /// The linked assignment, if it is still one the child can write for.
+    private func nudgeAssignment(_ n: StudentNudge) -> StudentAssignment? {
+        guard let id = n.assignment?.id,
+              let a = assignments?.first(where: { $0.id == id }),
+              a.cardStatus == .notStarted,
+              // Closed by its due date (no late work): nothing to write for.
+              !(a.past_due == true && a.allow_late == false) else { return nil }
+        return a
+    }
+
+    /// Most recently edited book on the shelf (ISO-8601 strings sort by time).
+    private var mostRecentBook: Book? {
+        bookshelf.books.max { $0.updatedAt < $1.updatedAt }
+    }
+
+    private func nudgeActionLabel(_ n: StudentNudge) -> LocalizedStringResource {
+        if let a = nudgeAssignment(n) {
+            return isStarted(a) ? AssignmentCopy.continueWriting : AssignmentCopy.startWriting
+        }
+        if let open = BookDraftStore.shared.book, Self.hasWork(open) { return NudgeCopy.keepWriting }
+        return mostRecentBook != nil ? NudgeCopy.keepWriting : NudgeCopy.createBook
+    }
+
+    /// The linked assignment's Start/Continue writing (same path as its
+    /// card); otherwise the book in progress, the most recent book, or a
+    /// new one. Never wipes an open draft that has work in it.
+    private func nudgeAction(_ n: StudentNudge) {
+        if let a = nudgeAssignment(n) {
+            markOpened(a)
+            // Waiting on "replace?": the dialog carries the nudge and marks
+            // it seen only on Replace.
+            if startOrContinue(a, nudge: n) { dismissNudge(n) }
+            return
+        }
+        dismissNudge(n)
+        let draft = BookDraftStore.shared
+        if let open = draft.book, Self.hasWork(open) {
+            router.selectedTab = .create
+            return
+        }
+        if let book = mostRecentBook {
+            draft.edit(book)
+        } else {
+            draft.begin()
+        }
+        router.selectedTab = .create
+    }
+
+    private func dismissNudge(_ n: StudentNudge) {
+        dismissedNudges.insert(n.id)
+        nudge = nil
+        Task { await SchoolAssignments.markNudgeSeen(id: n.id) }
     }
 
     private func markSeen(_ assignmentId: String) {

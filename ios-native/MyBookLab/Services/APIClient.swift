@@ -659,6 +659,27 @@ actor APIClient {
         )
     }
 
+    // MARK: - Schools (a class account's teacher nudge)
+    //
+    // api/school/nudges.js: GET with no classId is the caller's own unread
+    // nudge (or null); PATCH {id} is "Got it".
+    private struct StudentNudgeResponse: Decodable { let nudge: StudentNudge? }
+
+    func studentNudge(bearerToken: String) async throws -> StudentNudge? {
+        let res: StudentNudgeResponse = try await schoolStudent(
+            method: "GET", path: "/api/school/nudges", query: [:],
+            body: Optional<EmptyBody>.none, bearerToken: bearerToken
+        )
+        return res.nudge
+    }
+
+    func markNudgeSeen(id: String, bearerToken: String) async throws {
+        let _: Ignored = try await schoolStudent(
+            method: "PATCH", path: "/api/school/nudges", query: [:],
+            body: SchoolFeedbackSeenBody(id: id), bearerToken: bearerToken
+        )
+    }
+
     /// schoolAuthed, with every failure turned into a SchoolError carrying
     /// the server's error code.
     private func schoolStudent<Body: Encodable, Response: Decodable>(
@@ -744,6 +765,32 @@ actor APIClient {
     func teacherMarkHelpSeen(id: String, bearerToken: String) async throws {
         let _: Ignored = try await teacherCall(method: "POST", path: "/api/school/help-seen", query: [:],
                                                body: IdBody(id: id), bearerToken: bearerToken)
+    }
+
+    // MARK: Nudges (api/school/nudges.js)
+
+    private struct TeacherNudgesResponse: Decodable { let nudges: [TeacherNudge]? }
+
+    /// The latest nudge per student of one class ("Sent" / "Seen ✓").
+    func teacherNudges(classId: String, bearerToken: String) async throws -> [TeacherNudge] {
+        let res: TeacherNudgesResponse = try await teacherCall(
+            method: "GET", path: "/api/school/nudges", query: ["classId": classId],
+            body: Optional<EmptyBody>.none, bearerToken: bearerToken)
+        return res.nudges ?? []
+    }
+
+    /// Exactly one of `preset` / `message`; nil fields are left out of the body.
+    struct NudgeSend: Encodable, Sendable {
+        let classId: String
+        let studentIds: [String]
+        var preset: String?
+        var message: String?
+        var assignmentId: String?
+    }
+
+    func teacherSendNudge(_ body: NudgeSend, bearerToken: String) async throws -> TeacherNudgeSendResult {
+        try await teacherCall(method: "POST", path: "/api/school/nudges", query: [:],
+                              body: body, bearerToken: bearerToken)
     }
 
     func teacherClasses(bearerToken: String) async throws -> [TeacherClass] {
