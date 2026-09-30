@@ -78,6 +78,26 @@ enum TeacherCopy {
     static let tabCheckins = LocalizedStringResource("school.teacher.dashboard.drawer.tab_checkins", defaultValue: "Check-ins")
     static let checkinsEmpty = LocalizedStringResource("school.teacher.dashboard.drawer.checkins_empty", defaultValue: "No check-ins in the last 30 days.")
     static let booksEmpty = LocalizedStringResource("school.teacher.student_books.empty", defaultValue: "No books yet.")
+    static let today = LocalizedStringResource("school.teacher.day.today", defaultValue: "Today")
+    static let yesterday = LocalizedStringResource("school.teacher.day.yesterday", defaultValue: "Yesterday")
+    static func checkinSpoken(feeling: String, time: String) -> LocalizedStringResource {
+        LocalizedStringResource("school.teacher.checkins.spoken", defaultValue: "\(feeling), at \(time)")
+    }
+    static func checkinSpoken(feeling: String, need: String, time: String) -> LocalizedStringResource {
+        LocalizedStringResource("school.teacher.checkins.spoken_with_need", defaultValue: "\(feeling), \(need), at \(time)")
+    }
+    /// What the child asked for, in a grown-up's words (the child's own
+    /// button says "I need a grown-up"; the teacher reads "Needs a grown-up").
+    static func needChip(_ need: Need) -> LocalizedStringResource {
+        switch need {
+        case .grownup: LocalizedStringResource("school.teacher.checkins.need.grownup", defaultValue: "Needs a grown-up")
+        case .helpBook: LocalizedStringResource("school.teacher.checkins.need.help_book", defaultValue: "Wants help with their book")
+        case .help: LocalizedStringResource("school.teacher.checkins.need.help", defaultValue: "Wants help")
+        case .takeBreak: LocalizedStringResource("school.teacher.checkins.need.break", defaultValue: "Wants a break")
+        case .quiet: LocalizedStringResource("school.teacher.checkins.need.quiet", defaultValue: "Wants some quiet")
+        case .keepGoing: LocalizedStringResource("school.teacher.checkins.need.keep_going", defaultValue: "Wants to keep going")
+        }
+    }
     static func studentDetails(_ name: String) -> LocalizedStringResource {
         LocalizedStringResource("school.teacher.dashboard.drawer.heading", defaultValue: "\(name)'s details")
     }
