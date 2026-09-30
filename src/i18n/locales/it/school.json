@@ -529,13 +529,17 @@
       "sending": "Invio…",
       "need_students": "Seleziona almeno un nome.",
       "need_message": "Scegli un messaggio o scrivine uno.",
-      "sent_count": "Incoraggiamento inviato a {{count}}.",
-      "capped_count": "{{count}} avevano già ricevuto 3 incoraggiamenti oggi e sono stati saltati.",
       "status_sent": "Inviato",
       "status_seen": "Visto ✓",
       "chip_sent": "Incoraggiamento inviato",
       "chip_seen": "Incoraggiamento visto ✓",
-      "last_nudge": "Ultimo incoraggiamento"
+      "last_nudge": "Ultimo incoraggiamento",
+      "sent_count_one": "Incoraggiamento inviato: {{count}}.",
+      "sent_count_other": "Incoraggiamenti inviati: {{count}}.",
+      "capped_count_one": "{{count}} ha già ricevuto 3 incoraggiamenti oggi: non l'abbiamo inviato di nuovo.",
+      "capped_count_other": "{{count}} hanno già ricevuto 3 incoraggiamenti oggi: non l'abbiamo inviato di nuovo.",
+      "handed_in_count_one": "{{count}} ha già consegnato il compito: non l'abbiamo inviato.",
+      "handed_in_count_other": "{{count}} hanno già consegnato il compito: non l'abbiamo inviato."
     }
   }
 }

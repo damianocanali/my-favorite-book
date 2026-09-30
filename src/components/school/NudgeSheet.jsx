@@ -7,7 +7,7 @@ import { schoolFetch } from '../../lib/schoolApi'
 import { teacherErrorText } from './teacherErrors'
 import {
   NUDGE_PRESETS, NUDGE_MESSAGE_MAX, NUDGE_MAX_STUDENTS,
-  nudgeReasons, suggestedIds, openNotHandedIn, truncateUtf16, buildNudgeBody,
+  nudgeReasons, suggestedIds, openNotHandedIn, openAssignments, truncateUtf16, buildNudgeBody,
 } from './nudgeUi'
 
 // The teacher's "Nudge" dialog: the whole class (suggestions pre-ticked)
@@ -17,7 +17,7 @@ import {
 export default function NudgeSheet({ classId, students, assignments = [], single = false, onSent, onClose }) {
   const { t } = useTranslation()
   const panelRef = useRef(null)
-  const open = useMemo(() => assignments.filter((a) => a.status === 'published'), [assignments])
+  const open = useMemo(() => openAssignments(assignments), [assignments])
   const [selected, setSelected] = useState(() =>
     new Set(single ? students.map((s) => s.id) : suggestedIds(students, assignments))
   )
@@ -34,14 +34,35 @@ export default function NudgeSheet({ classId, students, assignments = [], single
   useEffect(() => {
     const previouslyFocused = document.activeElement
     panelRef.current?.focus()
-    const onKey = (e) => { if (e.key === 'Escape') onClose() }
-    window.addEventListener('keydown', onKey)
     return () => {
-      window.removeEventListener('keydown', onKey)
       if (previouslyFocused instanceof HTMLElement) previouslyFocused.focus()
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // Keys are handled on the dialog itself, not on window: Escape closes only
+  // this (top) dialog — stopPropagation keeps it from reaching the student
+  // drawer's window listener underneath — and Tab cycles inside it.
+  function onKeyDown(e) {
+    if (e.key === 'Escape') {
+      e.stopPropagation()
+      onClose()
+      return
+    }
+    if (e.key !== 'Tab') return
+    const focusable = [...(panelRef.current?.querySelectorAll(
+      'button:not([disabled]), select:not([disabled]), textarea:not([disabled]), input:not([disabled]), [href], [tabindex]:not([tabindex="-1"])'
+    ) ?? [])]
+    if (!focusable.length) return
+    const first = focusable[0]
+    const last = focusable[focusable.length - 1]
+    if (e.shiftKey && (document.activeElement === first || document.activeElement === panelRef.current)) {
+      e.preventDefault()
+      last.focus()
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault()
+      first.focus()
+    }
+  }
 
   // "Hand in" only exists with an assignment chosen.
   useEffect(() => {
@@ -105,6 +126,7 @@ export default function NudgeSheet({ classId, students, assignments = [], single
         role="dialog"
         aria-modal="true"
         aria-label={heading}
+        onKeyDown={onKeyDown}
         className="w-full max-w-xl max-h-[90vh] overflow-y-auto glass rounded-2xl p-6 border border-galaxy-text-muted/10 focus:outline-none space-y-5"
         initial={{ opacity: 0, scale: 0.97 }}
         animate={{ opacity: 1, scale: 1 }}

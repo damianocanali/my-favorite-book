@@ -116,9 +116,9 @@ export default function MyAssignments() {
     const decision = startDecision(useBookStore.getState().book, assignment.id)
     if (decision === 'resume') {
       navigate('/create')
-      return
+      return true
     }
-    if (decision === 'confirm' && !window.confirm(t('school:student.assignments.replace_draft'))) return
+    if (decision === 'confirm' && !window.confirm(t('school:student.assignments.replace_draft'))) return false
     const existing = findBook(assignment.id)
     if (existing) {
       // Same shortcut PreviewPage's own Edit button uses: load the book,
@@ -131,6 +131,7 @@ export default function MyAssignments() {
       tagAssignment({ id: assignment.id, title: assignment.title, prompt: assignment.prompt })
     }
     navigate('/create')
+    return true
   }
 
   function openHandedIn(assignment) {
@@ -159,12 +160,16 @@ export default function MyAssignments() {
 
   // The big button: the linked assignment's Start/Continue writing (same
   // path as its card), else the book in progress, the most recent book, or
-  // a new one. Acting on the note counts as reading it.
+  // a new one. Acting on the note counts as reading it — but only once the
+  // action really goes ahead (not when the child cancels "replace draft?").
   function actOnNudge() {
     const next = nudgeNext
-    dismissNudge()
     if (!next) return
-    if (next.kind === 'assignment') return startOrContinue(next.assignment)
+    if (next.kind === 'assignment') {
+      if (startOrContinue(next.assignment)) dismissNudge()
+      return
+    }
+    dismissNudge()
     if (next.kind === 'book') {
       loadBook(next.book)
       useBookStore.getState().setStep(7)

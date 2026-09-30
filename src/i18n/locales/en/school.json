@@ -529,13 +529,17 @@
       "sending": "Sending…",
       "need_students": "Tick at least one name.",
       "need_message": "Pick a message or write one.",
-      "sent_count": "Nudge sent to {{count}}.",
-      "capped_count": "{{count}} already had 3 nudges today, so they were skipped.",
       "status_sent": "Sent",
       "status_seen": "Seen ✓",
       "chip_sent": "Nudge sent",
       "chip_seen": "Nudge seen ✓",
-      "last_nudge": "Last nudge"
+      "last_nudge": "Last nudge",
+      "sent_count_one": "Nudge sent to {{count}} child.",
+      "sent_count_other": "Nudge sent to {{count}} children.",
+      "capped_count_one": "{{count}} child already had 3 nudges today, so we didn't send it again.",
+      "capped_count_other": "{{count}} children already had 3 nudges today, so we didn't send it again.",
+      "handed_in_count_one": "{{count}} child has already handed it in, so we skipped them.",
+      "handed_in_count_other": "{{count}} children have already handed it in, so we skipped them."
     }
   }
 }

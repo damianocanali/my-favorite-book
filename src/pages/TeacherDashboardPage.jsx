@@ -46,6 +46,18 @@ export default function TeacherDashboardPage() {
   const [nudges, setNudges] = useState({})
   const [nudgeFor, setNudgeFor] = useState(null) // null | 'class' | a student
   const [nudgeResult, setNudgeResult] = useState(null)
+  // The class on screen, for the async nudge read (a stale response for a
+  // class the teacher switched away from is dropped) and the 30 s poll.
+  const currentClassId = useRef(null)
+  currentClassId.current = selectedClassId
+
+  // Best-effort: a failed read just shows no nudge chips.
+  const loadNudges = useCallback(async (classId) => {
+    if (!classId) return
+    const res = await schoolFetch(`/api/school/nudges?classId=${encodeURIComponent(classId)}`)
+    if (classId !== currentClassId.current) return
+    if (res.ok) setNudges(Object.fromEntries((res.data?.nudges ?? []).map((n) => [n.student_id, n])))
+  }, [])
 
   // id -> ms timestamp a just-marked-Seen row stays excluded from poll
   // results (see filterRecentlySeen's own comment for the race this
@@ -85,11 +97,14 @@ export default function TeacherDashboardPage() {
   // the teacher just marked Seen elsewhere before this tab's next repaint.
   useEffect(() => {
     const tick = () => {
-      if (document.visibilityState === 'visible') loadDashboard()
+      if (document.visibilityState !== 'visible') return
+      loadDashboard()
+      // "Sent" turns into "Seen ✓" without a manual refresh.
+      loadNudges(currentClassId.current)
     }
     const timer = setInterval(tick, POLL_MS)
     return () => clearInterval(timer)
-  }, [loadDashboard])
+  }, [loadDashboard, loadNudges])
 
   const loadClass = useCallback(async (classId) => {
     if (!classId) return
@@ -100,14 +115,9 @@ export default function TeacherDashboardPage() {
     if (res.ok) setClassData(res.data)
     else setClassError(res.code || 'generic')
     loadNudges(classId)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [loadNudges])
 
-  // Best-effort: a failed read just shows no nudge chips.
-  const loadNudges = useCallback(async (classId) => {
-    const res = await schoolFetch(`/api/school/nudges?classId=${encodeURIComponent(classId)}`)
-    if (res.ok) setNudges(Object.fromEntries((res.data?.nudges ?? []).map((n) => [n.student_id, n])))
-  }, [])
+
 
   function handleNudgeSent(result) {
     setNudgeResult(nudgeResultText(t, result))

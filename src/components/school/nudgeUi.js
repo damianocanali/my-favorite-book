@@ -12,9 +12,21 @@ export const QUIET_MS = 3 * 24 * 60 * 60 * 1000
 
 const notHandedIn = (student, a) => (student.assignments?.[a.id] ?? 'not_started') === 'not_started'
 
-/// Published assignments this student hasn't handed in yet.
-export function openNotHandedIn(student, assignments = []) {
-  return assignments.filter((a) => a.status === 'published' && notHandedIn(student, a))
+/// Open = published and not closed by a due date that refuses late work.
+/// Same rule as the API, the RPC (school_send_nudge) and the iPad.
+export function isOpenAssignment(a, now = Date.now()) {
+  if (!a || a.status !== 'published') return false
+  return !(a.allow_late === false && a.due_at && new Date(a.due_at).getTime() < now)
+}
+
+/// The assignments a nudge may link to.
+export function openAssignments(assignments = [], now = Date.now()) {
+  return assignments.filter((a) => isOpenAssignment(a, now))
+}
+
+/// Open assignments this student hasn't handed in yet.
+export function openNotHandedIn(student, assignments = [], now = Date.now()) {
+  return openAssignments(assignments, now).filter((a) => notHandedIn(student, a))
 }
 
 /// Why a student is pre-ticked: 'quiet' (no book edited in the last 3
@@ -24,7 +36,7 @@ export function nudgeReasons(student, assignments = [], now = Date.now()) {
   const out = []
   const last = student.last_book_edited_at ? new Date(student.last_book_edited_at).getTime() : NaN
   if (Number.isNaN(last) || now - last >= QUIET_MS) out.push('quiet')
-  if (openNotHandedIn(student, assignments).length) out.push('not_handed_in')
+  if (openNotHandedIn(student, assignments, now).length) out.push('not_handed_in')
   return out
 }
 
@@ -95,7 +107,10 @@ export function nudgeTeacher(t, nudge) {
 /// book, or a new one.
 export function nudgeAction(nudge, { assignments = [], books = [], draft = null } = {}) {
   const linked = nudge?.assignment?.id ? assignments.find((a) => a.id === nudge.assignment.id) : null
-  if (linked && linked.status === 'published' && !linked.my_submission) return { kind: 'assignment', assignment: linked }
+  // The student list carries past_due rather than a raw clock comparison.
+  const writable = linked && linked.status === 'published' && !linked.my_submission
+    && !(linked.past_due && linked.allow_late === false)
+  if (writable) return { kind: 'assignment', assignment: linked }
   if (draftHasWork(draft)) return { kind: 'draft' }
   const recent = [...books].sort((a, b) => String(b.updatedAt ?? '').localeCompare(String(a.updatedAt ?? '')))[0]
   if (recent) return { kind: 'book', book: recent }
@@ -108,8 +123,10 @@ export function nudgeResultText(t, result) {
   const sent = result?.sent?.length ?? 0
   const skipped = result?.skipped ?? []
   const capped = skipped.filter((s) => s.code === 'daily_cap').length
+  const handedIn = skipped.filter((s) => s.code === 'handed_in').length
   if (sent) parts.push(t('school:nudges.teacher.sent_count', { count: sent }))
   if (capped) parts.push(t('school:nudges.teacher.capped_count', { count: capped }))
-  if (skipped.length > capped || !parts.length) parts.push(t('school:teacher.errors.upstream'))
+  if (handedIn) parts.push(t('school:nudges.teacher.handed_in_count', { count: handedIn }))
+  if (skipped.length > capped + handedIn || !parts.length) parts.push(t('school:teacher.errors.upstream'))
   return parts.join(' ')
 }
