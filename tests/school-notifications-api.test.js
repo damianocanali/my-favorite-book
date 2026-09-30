@@ -158,9 +158,59 @@ describe('GET/POST /api/school/notifications', () => {
     expect((await (await load())(call('school/notifications'))).status).toBe(403)
   })
 
-  it('405 for DELETE', async () => {
+  it('405 for PUT', async () => {
     mockSupabase({ user: TEACHER, routes: [] })
-    expect((await (await load())(call('school/notifications', { method: 'DELETE' }))).status).toBe(405)
+    expect((await (await load())(call('school/notifications', { method: 'PUT', body: {} }))).status).toBe(405)
+  })
+
+  it('DELETE ?id= removes that one, only among the caller\'s own rows', async () => {
+    const log = mockSupabase({ user: TEACHER, routes: [{ method: 'DELETE', match: '/rest/v1/teacher_notifications', reply: { body: [] } }] })
+    const res = await (await load())(call(`school/notifications?id=${N1}`, { method: 'DELETE' }))
+    expect(res.status).toBe(200)
+    const dels = log.filter((l) => l.method === 'DELETE')
+    expect(dels).toHaveLength(1)
+    expect(dels[0].url).toContain(`teacher_user_id=eq.${TEACHER.id}`)
+    expect(dels[0].url).toContain(`id=eq.${N1}`)
+  })
+
+  it('DELETE without an id clears all of the caller\'s — and nobody else\'s', async () => {
+    const log = mockSupabase({ user: TEACHER, routes: [{ method: 'DELETE', match: '/rest/v1/teacher_notifications', reply: { body: [] } }] })
+    const res = await (await load())(call('school/notifications', { method: 'DELETE' }))
+    expect(res.status).toBe(200)
+    const d = log.find((l) => l.method === 'DELETE')
+    expect(d.url).toContain(`teacher_user_id=eq.${TEACHER.id}`)
+    expect(d.url).not.toContain('&id=')
+  })
+
+  it('can\'t delete another teacher\'s rows: the owner filter is always the caller', async () => {
+    // Another teacher's notification id is just an id: the DELETE is still
+    // scoped to the caller, so it matches nothing of theirs.
+    const OTHER = '6f1c1b1e-0000-4000-8000-0000000000f9'
+    const log = mockSupabase({ user: TEACHER, routes: [{ method: 'DELETE', match: '/rest/v1/teacher_notifications', reply: { body: [] } }] })
+    await (await load())(call(`school/notifications?id=${OTHER}&teacher_user_id=eq.someone-else`, { method: 'DELETE' }))
+    const d = log.find((l) => l.method === 'DELETE')
+    expect(d.url).toContain(`teacher_user_id=eq.${TEACHER.id}`)
+    expect(d.url).not.toContain('someone-else')
+    expect(d.url.match(/teacher_user_id=/g)).toHaveLength(1)
+  })
+
+  it.each([['not a uuid', 'x'], ['empty', ''], ['injection', `${N1},id.neq.null`]])('DELETE 400 for a bad id (%s)', async (_, id) => {
+    const log = mockSupabase({ user: TEACHER, routes: [] })
+    const res = await (await load())(call(`school/notifications?id=${encodeURIComponent(id)}`, { method: 'DELETE' }))
+    expect(res.status).toBe(400)
+    expect(log.some((l) => l.method === 'DELETE')).toBe(false)
+  })
+
+  it('DELETE 403s a student and touches nothing', async () => {
+    const log = mockSupabase({ user: STUDENT_USER, routes: [] })
+    const res = await (await load())(call(`school/notifications?id=${N1}`, { method: 'DELETE' }))
+    expect(res.status).toBe(403)
+    expect(log.some((l) => l.method === 'DELETE')).toBe(false)
+  })
+
+  it('DELETE 502 when the delete fails upstream', async () => {
+    mockSupabase({ user: TEACHER, routes: [err500('DELETE', '/rest/v1/teacher_notifications')] })
+    expect((await (await load())(call('school/notifications', { method: 'DELETE' }))).status).toBe(502)
   })
 })
 

@@ -237,6 +237,7 @@ struct TeacherBellList: View {
     let dismiss: () -> Void
     @Environment(TeacherNotificationsStore.self) private var bell
     @Environment(TeacherStore.self) private var teacher
+    @State private var confirmingClear = false
 
     var body: some View {
         NavigationStack {
@@ -261,10 +262,27 @@ struct TeacherBellList: View {
                         .tint(.cyan)
                     }
                 }
+                ToolbarItem(placement: .topBarLeading) {
+                    if !bell.items.isEmpty {
+                        Button(role: .destructive) { confirmingClear = true } label: {
+                            Text(TeacherCopy.bellClearAll)
+                        }
+                        .tint(.white.opacity(0.8))
+                    }
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button(action: dismiss) { Text(TeacherCopy.done).bold() }
                         .tint(.white)
                 }
+            }
+            .confirmationDialog(Text(TeacherCopy.bellClearConfirm), isPresented: $confirmingClear,
+                                titleVisibility: .visible) {
+                Button(role: .destructive) {
+                    Task { await bell.clearAll() }
+                } label: {
+                    Text(TeacherCopy.bellClearAction)
+                }
+                Button(role: .cancel) {} label: { Text(TeacherCopy.cancel) }
             }
             .task { await bell.load() }
         }
@@ -291,6 +309,13 @@ struct TeacherBellList: View {
                             TeacherBellRow(n: n)
                         }
                         .buttonStyle(.plain)
+                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                            Button(role: .destructive) {
+                                Task { await bell.remove(n) }
+                            } label: {
+                                Label { Text(TeacherCopy.bellRemove) } icon: { Image(systemName: "trash") }
+                            }
+                        }
                         .listRowBackground(n.read_at == nil ? TeacherTheme.cardFillStrong : TeacherTheme.cardFill)
                         .listRowInsets(EdgeInsets(top: 12, leading: 14, bottom: 12, trailing: 14))
                     }

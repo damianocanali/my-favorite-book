@@ -458,6 +458,10 @@
       "error": "Impossibile salvare. Riprova.",
       "load_error": "Impossibile caricare le impostazioni delle notifiche."
     },
-    "unknown_student": "Uno studente"
+    "unknown_student": "Uno studente",
+    "clear_all": "Cancella tutte",
+    "clear_confirm": "Cancellare tutte le notifiche?",
+    "clear_confirm_action": "Cancella",
+    "dismiss": "Rimuovi notifica"
   }
 }

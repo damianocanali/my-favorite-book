@@ -60,6 +60,30 @@ final class TeacherNotificationsStore {
         }
     }
 
+    /// Swipe-to-delete. Optimistic; a failed delete reloads the truth.
+    func remove(_ n: TeacherNotification) async {
+        items.removeAll { $0.id == n.id }
+        if n.read_at == nil { unread = max(0, unread - 1) }
+        do {
+            guard let token = await bearer() else { throw APIClient.TeacherError(code: APIClient.sessionExpiredCode) }
+            try await APIClient.shared.teacherDeleteNotifications(id: n.id, bearerToken: token)
+        } catch {
+            await load()
+        }
+    }
+
+    /// "Clear all" (after the view's confirmation). Optimistic, same rule.
+    func clearAll() async {
+        items = []
+        unread = 0
+        do {
+            guard let token = await bearer() else { throw APIClient.TeacherError(code: APIClient.sessionExpiredCode) }
+            try await APIClient.shared.teacherDeleteNotifications(id: nil, bearerToken: token)
+        } catch {
+            await load()
+        }
+    }
+
     /// "9+" past nine, nil at zero (web: unreadBadge).
     var badge: String? {
         guard unread > 0 else { return nil }

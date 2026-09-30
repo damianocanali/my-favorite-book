@@ -58,15 +58,16 @@ async function markHours(notifications, me) {
   }
 }
 
-// The teacher's bell (spec §12.4): latest 50 + unread count, and "mark
-// read". Every query is filtered by the caller's own auth id, so a
-// notification id from someone else's bell simply matches nothing.
+// The teacher's bell (spec §12.4): latest 50 + unread count, "mark read",
+// and clearing (DELETE ?id=<uuid> removes one, no id removes all). Every
+// query is filtered by the caller's own auth id, so a notification id from
+// someone else's bell simply matches nothing.
 export default async function handler(req) {
   const cors = handleCors(req)
   if (cors) return cors
 
   try {
-    if (req.method !== 'GET' && req.method !== 'POST') {
+    if (req.method !== 'GET' && req.method !== 'POST' && req.method !== 'DELETE') {
       return json(req, 405, { error: 'Method not allowed', code: 'method_not_allowed' })
     }
     const t = await requireTeacher(req)
@@ -96,6 +97,18 @@ export default async function handler(req) {
         notifications,
         unread: Number.isFinite(total) ? total : 0,
       })
+    }
+
+    if (req.method === 'DELETE') {
+      const id = new URL(req.url).searchParams.get('id')
+      if (id !== null && !isUuid(id)) return json(req, 400, { error: 'Invalid id', code: 'bad_request' })
+      const one = id !== null ? `&id=eq.${encodeURIComponent(id)}` : ''
+      const res = await sb(`/rest/v1/teacher_notifications?teacher_user_id=eq.${me}${one}`, {
+        method: 'DELETE',
+        headers: { Prefer: 'return=minimal' },
+      })
+      if (!res.ok) return json(req, 502, { error: 'Could not delete', code: 'upstream' })
+      return json(req, 200, { ok: true })
     }
 
     const body = (await req.json().catch(() => null)) ?? {}

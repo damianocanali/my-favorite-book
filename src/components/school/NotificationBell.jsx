@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Bell } from 'lucide-react'
+import { Bell, X } from 'lucide-react'
 import { schoolFetch } from '../../lib/schoolApi'
 import { notificationText, notificationHref, unreadBadge } from '../../lib/teacherNotifications'
 import { relativeTime } from './relativeTime'
@@ -17,6 +17,7 @@ export default function NotificationBell() {
   const [unread, setUnread] = useState(0)
   const [error, setError] = useState(false)
   const [open, setOpen] = useState(false)
+  const [confirmingClear, setConfirmingClear] = useState(false)
   const rootRef = useRef(null)
 
   const load = useCallback(async () => {
@@ -44,6 +45,10 @@ export default function NotificationBell() {
   }, [load])
 
   useEffect(() => {
+    if (!open) setConfirmingClear(false)
+  }, [open])
+
+  useEffect(() => {
     if (!open) return
     const onDown = (e) => {
       if (rootRef.current && !rootRef.current.contains(e.target)) setOpen(false)
@@ -64,6 +69,22 @@ export default function NotificationBell() {
     setItems((prev) => prev.map((n) => (n.read_at ? n : { ...n, read_at: now })))
     setUnread(0)
     const res = await schoolFetch('/api/school/notifications', { method: 'POST', body: JSON.stringify({ action: 'read' }) })
+    if (!res.ok) load()
+  }
+
+  // Optimistic, like mark-read; a failed delete reloads the truth.
+  async function dismiss(n) {
+    setItems((prev) => prev.filter((x) => x.id !== n.id))
+    if (!n.read_at) setUnread((c) => Math.max(0, c - 1))
+    const res = await schoolFetch(`/api/school/notifications?id=${encodeURIComponent(n.id)}`, { method: 'DELETE' })
+    if (!res.ok) load()
+  }
+
+  async function clearAll() {
+    setConfirmingClear(false)
+    setItems([])
+    setUnread(0)
+    const res = await schoolFetch('/api/school/notifications', { method: 'DELETE' })
     if (!res.ok) load()
   }
 
@@ -110,16 +131,49 @@ export default function NotificationBell() {
         >
           <div className="flex items-center justify-between gap-2 border-b border-white/10 px-4 py-3">
             <h2 className="font-heading text-sm font-bold text-galaxy-text">{t('school:notifications.title')}</h2>
-            {unread > 0 && (
-              <button
-                type="button"
-                onClick={markAllRead}
-                className="font-body text-xs font-semibold text-galaxy-secondary hover:underline"
-              >
-                {t('school:notifications.mark_all_read')}
-              </button>
-            )}
+            <div className="flex items-center gap-3">
+              {unread > 0 && (
+                <button
+                  type="button"
+                  onClick={markAllRead}
+                  className="font-body text-xs font-semibold text-galaxy-secondary hover:underline"
+                >
+                  {t('school:notifications.mark_all_read')}
+                </button>
+              )}
+              {items.length > 0 && !confirmingClear && (
+                <button
+                  type="button"
+                  onClick={() => setConfirmingClear(true)}
+                  className="font-body text-xs font-semibold text-galaxy-text-muted hover:text-galaxy-text hover:underline"
+                >
+                  {t('school:notifications.clear_all')}
+                </button>
+              )}
+            </div>
           </div>
+
+          {confirmingClear && (
+            <div role="alertdialog" aria-label={t('school:notifications.clear_confirm')} className="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 bg-red-500/10 px-4 py-2">
+              <span className="font-body text-xs text-galaxy-text">{t('school:notifications.clear_confirm')}</span>
+              <span className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setConfirmingClear(false)}
+                  className="rounded-lg px-2 py-1 font-body text-xs font-semibold text-galaxy-text-muted hover:text-galaxy-text"
+                >
+                  {t('common:actions.cancel')}
+                </button>
+                <button
+                  type="button"
+                  onClick={clearAll}
+                  className="rounded-lg bg-red-500/80 px-2 py-1 font-body text-xs font-bold text-white hover:bg-red-500"
+                >
+                  {t('school:notifications.clear_confirm_action')}
+                </button>
+              </span>
+            </div>
+          )}
 
           <ul className="max-h-[60vh] overflow-y-auto">
             {error && items.length === 0 && (
@@ -129,11 +183,11 @@ export default function NotificationBell() {
               <li className="px-4 py-6 text-center font-body text-sm text-galaxy-text-muted">{t('school:notifications.empty')}</li>
             )}
             {items.map((n) => (
-              <li key={n.id}>
+              <li key={n.id} className="group flex items-start">
                 <button
                   type="button"
                   onClick={() => openItem(n)}
-                  className="flex w-full items-start gap-2 px-4 py-3 text-left transition-colors hover:bg-white/5"
+                  className="flex min-w-0 flex-1 items-start gap-2 py-3 pl-4 pr-1 text-left transition-colors hover:bg-white/5"
                 >
                   <span
                     aria-hidden="true"
@@ -147,6 +201,15 @@ export default function NotificationBell() {
                       {[relativeTime(n.created_at, i18n.language), n.payload?.class_name].filter(Boolean).join(' · ')}
                     </span>
                   </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => dismiss(n)}
+                  aria-label={t('school:notifications.dismiss')}
+                  title={t('school:notifications.dismiss')}
+                  className="flex h-11 w-11 flex-shrink-0 items-center justify-center text-galaxy-text-muted/60 transition-colors hover:text-galaxy-text"
+                >
+                  <X size={14} aria-hidden="true" />
                 </button>
               </li>
             ))}

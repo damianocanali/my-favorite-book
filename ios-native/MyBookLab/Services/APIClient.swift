@@ -909,6 +909,14 @@ actor APIClient {
             body: MarkReadBody(ids: ids), bearerToken: bearerToken)
     }
 
+    /// DELETE: one notification by id, or (nil) the whole bell. The server
+    /// only ever deletes the caller's own rows.
+    func teacherDeleteNotifications(id: String?, bearerToken: String) async throws {
+        let _: Ignored = try await teacherCall(
+            method: "DELETE", path: "/api/school/notifications", query: id.map { ["id": $0] } ?? [:],
+            body: Optional<EmptyBody>.none, bearerToken: bearerToken)
+    }
+
     func teacherNotificationSettings(bearerToken: String) async throws -> TeacherNotificationSettings {
         try await teacherCall(method: "GET", path: "/api/school/notification-settings", query: [:],
                               body: Optional<EmptyBody>.none, bearerToken: bearerToken)

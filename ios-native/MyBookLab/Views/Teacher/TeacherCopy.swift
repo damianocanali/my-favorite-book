@@ -315,6 +315,10 @@ enum TeacherCopy {
     // MARK: Bell
     static var bellTitle: LocalizedStringResource { AppText("school.notifications.title", defaultValue: "Notifications") }
     static var bellMarkAll: LocalizedStringResource { AppText("school.notifications.mark_all_read", defaultValue: "Mark all as read") }
+    static var bellClearAll: LocalizedStringResource { AppText("school.notifications.clear_all", defaultValue: "Clear all") }
+    static var bellClearConfirm: LocalizedStringResource { AppText("school.notifications.clear_confirm", defaultValue: "Clear all notifications?") }
+    static var bellClearAction: LocalizedStringResource { AppText("school.notifications.clear_confirm_action", defaultValue: "Clear") }
+    static var bellRemove: LocalizedStringResource { AppText("school.notifications.remove", defaultValue: "Remove") }
     static var bellError: LocalizedStringResource { AppText("school.notifications.error", defaultValue: "Couldn't load notifications.") }
     static var bellUnknownStudent: LocalizedStringResource { AppText("school.notifications.unknown_student", defaultValue: "A student") }
     static func bellLabel(unread: Int) -> LocalizedStringResource {
