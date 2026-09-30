@@ -24,6 +24,9 @@ struct MyBookLabApp: App {
     /// slow (a second auth listener, bookshelf/coins/rewards/purchases
     /// reloads) for nothing.
     @State private var launched = false
+    /// Set when the app goes to the background; the next .active is a real
+    /// return to the front (see the scenePhase handler).
+    @State private var wasBackgrounded = false
 
     init() {
         // Before any string is looked up: the chosen language's .lproj.
@@ -90,16 +93,23 @@ struct MyBookLabApp: App {
                 }
                 // Keep the access token fresh while the app is in front, and
                 // stop the refresher in the background (see setAutoRefresh).
-                .onChange(of: scenePhase, initial: true) { oldPhase, phase in
+                .onChange(of: scenePhase, initial: true) { _, phase in
                     auth.setAutoRefresh(active: phase == .active)
                     // Back in front and signed out with no sign-in showing
                     // (a request SwiftUI dropped): try again. Not for a
                     // guest who chose "Explore first".
                     // Only on a real return from the background: .inactive →
                     // .active also fires around system sheets (Face ID,
-                    // Apple sign-in), where nothing must be touched.
-                    if oldPhase == .background, phase == .active, launched, !auth.loading {
-                        router.recheckSignIn(signedIn: auth.isSignedIn)
+                    // Apple sign-in), where nothing must be touched. A return
+                    // arrives as .background → .inactive → .active, so the
+                    // background visit is remembered rather than read from
+                    // oldPhase.
+                    if phase == .background { wasBackgrounded = true }
+                    if phase == .active, wasBackgrounded {
+                        wasBackgrounded = false
+                        if launched, !auth.loading {
+                            router.recheckSignIn(signedIn: auth.isSignedIn)
+                        }
                     }
                 }
                 // A role change on the same account (e.g. metadata refresh
