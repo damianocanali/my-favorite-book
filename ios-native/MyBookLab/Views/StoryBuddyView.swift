@@ -16,7 +16,7 @@ struct StoryBuddyView: View {
 
     // Idea buttons
     @State private var loading = false
-    @State private var error: String?
+    @State private var error: LocalizedStringResource?
     @State private var ideas: [String] = []
     @State private var ideaKind: IdeaKind?
 
@@ -103,12 +103,12 @@ struct StoryBuddyView: View {
 
     private var ideaButtons: some View {
         HStack(spacing: 12) {
-            ideaButton(emoji: "💡", title: "Give me ideas", kind: .starters)
-            ideaButton(emoji: "🤔", title: "Help me think", kind: .questions)
+            ideaButton(emoji: "💡", title: AppText("story_buddy.give_ideas", defaultValue: "Give me ideas"), kind: .starters)
+            ideaButton(emoji: "🤔", title: AppText("story_buddy.help_think", defaultValue: "Help me think"), kind: .questions)
         }
     }
 
-    private func ideaButton(emoji: String, title: String, kind: IdeaKind) -> some View {
+    private func ideaButton(emoji: String, title: LocalizedStringResource, kind: IdeaKind) -> some View {
         Button {
             Task { await loadIdeas(kind) }
         } label: {
@@ -308,7 +308,7 @@ struct StoryBuddyView: View {
                 intent: kind.intent, book: book, page: page, bearerToken: token
             )
         } catch {
-            self.error = "Buddy couldn't reply. Try again?"
+            self.error = AppText("story_buddy.error", defaultValue: "Buddy couldn't reply. Try again?")
         }
     }
 
@@ -329,7 +329,7 @@ struct StoryBuddyView: View {
             )
             messages.append(Msg(role: .buddy, content: res.reply))
         } catch {
-            self.error = "Buddy couldn't reply. Try again?"
+            self.error = AppText("story_buddy.error", defaultValue: "Buddy couldn't reply. Try again?")
         }
     }
 }

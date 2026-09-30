@@ -175,7 +175,7 @@ struct GalleryView: View {
         } catch {
             // Surface the underlying reason so we can debug the next
             // failure mode without another round-trip.
-            self.error = "Couldn't load the gallery.\n\(error.localizedDescription)"
+            self.error = String(appLocalized: AppText("gallery.error.load", defaultValue: "Couldn't load the gallery.\n\(error.localizedDescription)"))
         }
     }
 }
@@ -237,7 +237,7 @@ private struct PublishedBookLoader: View {
             let single = (try? JSONSerialization.jsonObject(with: raw) as? [String: Any])
             let payload: [String: Any]? = arr.first ?? single
             guard let payload else {
-                self.error = "Book not found"
+                self.error = String(appLocalized: AppText("gallery.error.not_found", defaultValue: "Book not found"))
                 self.loading = false
                 return
             }
@@ -249,12 +249,12 @@ private struct PublishedBookLoader: View {
                 let json = try JSONSerialization.data(withJSONObject: bookData)
                 self.book = try JSONDecoder().decode(Book.self, from: json)
             } else {
-                self.error = "This book hasn't been finished yet."
+                self.error = String(appLocalized: AppText("gallery.error.unfinished", defaultValue: "This book hasn't been finished yet."))
             }
         } catch is CancellationError {
             // ignore
         } catch {
-            self.error = "Couldn't open this book."
+            self.error = String(appLocalized: AppText("gallery.error.open", defaultValue: "Couldn't open this book."))
         }
         self.loading = false
     }
