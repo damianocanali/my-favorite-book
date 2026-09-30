@@ -22,6 +22,8 @@
     "rate_limited": "Too many tries just now. Please try again a bit later.",
     "too_long": "That's a bit too long — try making it shorter.",
     "buddy_unavailable": "Story Buddy is resting right now. Please try again.",
-    "generic": "Something went wrong. Please try again."
+    "generic": "Something went wrong. Please try again.",
+    "try_again": "We couldn't do that just now. Please try again in a moment.",
+    "timeout": "That took too long. Please try again."
   }
 }

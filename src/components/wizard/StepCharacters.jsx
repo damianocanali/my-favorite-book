@@ -71,7 +71,7 @@ export default function StepCharacters({ onNext, onPrev }) {
           {t('wizard:characters.heading')}
         </h2>
         <p className="text-galaxy-text-muted font-body text-lg">
-          {t('wizard:characters.subtitle')}
+          {t('wizard:characters.subtitle', { max: MAX_CHARACTERS })}
         </p>
       </motion.div>
 

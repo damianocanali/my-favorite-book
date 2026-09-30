@@ -1,6 +1,9 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
+import i18next from '../i18n'
+import { speechLocale } from '../lib/speechLocale'
 
-export function useSpeechRecognition({ onResult }) {
+// `lang` (optional): the language to listen for — the book's, else the app's.
+export function useSpeechRecognition({ onResult, lang }) {
   const [isListening, setIsListening] = useState(false)
   const [interimText, setInterimText] = useState('')
   const recognitionRef = useRef(null)
@@ -22,7 +25,7 @@ export function useSpeechRecognition({ onResult }) {
     const recognition = new SpeechRecognition()
     recognition.continuous = true
     recognition.interimResults = true
-    recognition.lang = 'en-US'
+    recognition.lang = speechLocale(lang, i18next.language)
 
     recognition.onresult = (e) => {
       let interim = ''
@@ -51,7 +54,7 @@ export function useSpeechRecognition({ onResult }) {
     recognition.start()
     setIsListening(true)
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [lang])
 
   const stop = useCallback(() => {
     recognitionRef.current?.stop()

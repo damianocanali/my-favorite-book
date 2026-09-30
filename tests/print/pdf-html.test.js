@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { buildInteriorHtml, buildCoverHtml } from '../../lib/print/pdf-html.js'
+import { buildInteriorHtml, buildCoverHtml, printLanguage, hasCatalogueNames } from '../../lib/print/pdf-html.js'
 
 const fixtureBook = {
   title: 'My Bear',
@@ -122,7 +122,8 @@ describe('printed back matter language', () => {
         { id: 'custom-1', name: 'La Presidente', emoji: '🧑', description: 'con un grande cappello', custom: true },
       ],
     })
-    expect(html).toContain('Fine')
+    expect(html).toContain('>Fine</p>')
+    expect(html).toContain('Scritto e illustrato da Theo')
     expect(html).toContain('I personaggi')
     expect(html).toContain('Nonna Rosa')
     expect(html).not.toContain('Grandma Rosa')
@@ -130,5 +131,18 @@ describe('printed back matter language', () => {
     expect(html).toContain('con un grande cappello')
     expect(html).not.toContain('Meet the Characters')
     expect(html).not.toContain('Story Reflection')
+  })
+})
+
+describe('pdf-html module', () => {
+  it('imports and loads the Italian catalogue names', () => {
+    expect(hasCatalogueNames('it')).toBe(true)
+  })
+
+  it('picks the print language from the book, defaulting to English', () => {
+    expect(printLanguage({ language: 'it' })).toBe('it')
+    expect(printLanguage({ language: 'it-IT' })).toBe('it')
+    expect(printLanguage({ language: 'fr' })).toBe('en')
+    expect(printLanguage({})).toBe('en')
   })
 })

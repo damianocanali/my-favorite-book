@@ -3,6 +3,7 @@ export const config = { runtime: 'edge' }
 import { handleCors, withCors } from './_rateLimit.js'
 import { verifyJwt } from './_auth.js'
 import { isFetchableImage } from './_imageStore.js'
+import { capCustomBookText } from '../lib/bookLimits.js'
 
 function supabaseHeaders(key) {
   return {
@@ -61,7 +62,9 @@ export default async function handler(req) {
       return json(200, { deleted: true })
     }
 
-    const { book } = body
+    // Child-typed "create your own" text is capped here too (see
+    // lib/bookLimits.js); the wizard already caps it, this is the backstop.
+    const book = capCustomBookText(body.book)
     if (!book?.id) return json(400, { error: 'book required' })
 
     // Keep real image URLs; only strip on-device base64, which would

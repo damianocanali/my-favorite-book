@@ -41,7 +41,7 @@
   },
   "characters": {
     "heading": "Choose Your Characters",
-    "subtitle": "Pick the heroes of your story — up to 4!",
+    "subtitle": "Pick the heroes of your story — up to {{max}}!",
     "selected_count_one": "{{count}} character selected",
     "selected_count_other": "{{count}} characters selected",
     "create_card": "Create Your Own!",
@@ -51,7 +51,7 @@
     "name_placeholder": "Their name…",
     "description_placeholder": "What are they like? (e.g. a president with a big hat)",
     "add_button": "Add Character",
-    "max_reached": "that's the most a story can have. Tap one to swap it out."
+    "max_reached": "that's the most a story can have. Tap a picked one to take it out."
   },
   "setting": {
     "heading": "Where Does It Happen?",

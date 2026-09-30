@@ -695,9 +695,17 @@ private struct SettingStep: View {
     @State private var customPlace = ""
     @State private var loaded = false
     @FocusState private var customFocused: Bool
+    /// The place the book already had when this step opened, if it isn't
+    /// one of the presets (a web catalogue scene, or the child's own place
+    /// made on the web). Kept exactly as it is unless the child changes it.
+    @State private var existing: BookSetting?
+    /// The typed text the child's own place started with.
+    @State private var existingCustomText: String?
 
     /// The index that means "Create your own place".
     private var customIndex: Int { presets.count }
+    /// The index that means "keep the place this book already has".
+    private let keepIndex = -1
     private var trimmedPlace: String { customPlace.trimmingCharacters(in: .whitespacesAndNewlines) }
 
     /// The six worlds, each carrying two versions of its text.
@@ -710,51 +718,7 @@ private struct SettingStep: View {
     /// verbatim initializer and never reached the catalog, so they are
     /// keyed resources now. The duplication is the point: it is what
     /// keeps the wire value and the shown value free to diverge.
-    private let presets: [(name: String, emoji: String, description: String,
-                           title: LocalizedStringResource, blurb: LocalizedStringResource)] = [
-        ("The Glowing Forest", "🌲", "A magical forest where stars come down at night.",
-         AppText("create.setting.glowing_forest.title",
-                                 defaultValue: "The Glowing Forest",
-                                 comment: "Name of a story world a child can pick"),
-         AppText("create.setting.glowing_forest.blurb",
-                                 defaultValue: "A magical forest where stars come down at night.",
-                                 comment: "One-line description of the Glowing Forest world")),
-        ("The Cloud Kingdom", "☁️", "A floating land high above the world.",
-         AppText("create.setting.cloud_kingdom.title",
-                                 defaultValue: "The Cloud Kingdom",
-                                 comment: "Name of a story world a child can pick"),
-         AppText("create.setting.cloud_kingdom.blurb",
-                                 defaultValue: "A floating land high above the world.",
-                                 comment: "One-line description of the Cloud Kingdom world")),
-        ("The Coral City", "🐠", "An underwater city of bright coral towers.",
-         AppText("create.setting.coral_city.title",
-                                 defaultValue: "The Coral City",
-                                 comment: "Name of a story world a child can pick"),
-         AppText("create.setting.coral_city.blurb",
-                                 defaultValue: "An underwater city of bright coral towers.",
-                                 comment: "One-line description of the Coral City world")),
-        ("The Cookie Planet", "🍪", "A planet made of every dessert imaginable.",
-         AppText("create.setting.cookie_planet.title",
-                                 defaultValue: "The Cookie Planet",
-                                 comment: "Name of a story world a child can pick"),
-         AppText("create.setting.cookie_planet.blurb",
-                                 defaultValue: "A planet made of every dessert imaginable.",
-                                 comment: "One-line description of the Cookie Planet world")),
-        ("The Snow Castle", "🏰", "A castle of ice and silver moonlight.",
-         AppText("create.setting.snow_castle.title",
-                                 defaultValue: "The Snow Castle",
-                                 comment: "Name of a story world a child can pick"),
-         AppText("create.setting.snow_castle.blurb",
-                                 defaultValue: "A castle of ice and silver moonlight.",
-                                 comment: "One-line description of the Snow Castle world")),
-        ("The Dinosaur Valley", "🦕", "A hidden valley where dinosaurs still play.",
-         AppText("create.setting.dinosaur_valley.title",
-                                 defaultValue: "The Dinosaur Valley",
-                                 comment: "Name of a story world a child can pick"),
-         AppText("create.setting.dinosaur_valley.blurb",
-                                 defaultValue: "A hidden valley where dinosaurs still play.",
-                                 comment: "One-line description of the Dinosaur Valley world")),
-    ]
+    private var presets: [CatalogSetting] { SettingCatalog.all }
 
     var body: some View {
         ScrollView {
@@ -796,12 +760,22 @@ private struct SettingStep: View {
                     }
 
                     customPlaceCard
+
+                    if let existing, existing.custom != true {
+                        keepCard(existing)
+                    }
                 }
                 .padding(.horizontal)
 
                 SparkleButton(action: {
                     var b = draft.book!
-                    if selectedIndex == customIndex {
+                    if selectedIndex == keepIndex, let existing {
+                        b.setting = existing
+                    } else if selectedIndex == customIndex, let existing, existing.custom == true,
+                              trimmedPlace == existingCustomText {
+                        // Revisiting: the child's own place stays exactly as made.
+                        b.setting = existing
+                    } else if selectedIndex == customIndex {
                         // The child's own words, shown as typed and passed
                         // through to the image service (which translates/
                         // sanitizes them server-side).
@@ -816,13 +790,7 @@ private struct SettingStep: View {
                         )
                     } else {
                         let p = presets[selectedIndex]
-                        b.setting = BookSetting(
-                            id: UUID().uuidString,
-                            name: p.name,
-                            label: p.name,
-                            emoji: p.emoji,
-                            description: p.description
-                        )
+                        b.setting = p.bookSetting
                     }
                     draft.book = b
                     withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) { draft.step = 3 }
@@ -839,11 +807,41 @@ private struct SettingStep: View {
             guard let setting = draft.book?.setting else { return }
             if setting.custom == true {
                 selectedIndex = customIndex
-                customPlace = setting.description ?? setting.name ?? ""
-            } else if let i = presets.firstIndex(where: { $0.name == setting.name }) {
+                // A web-made place has a name and a description; show both.
+                let parts = [setting.name, setting.description]
+                    .compactMap { $0?.trimmingCharacters(in: .whitespacesAndNewlines) }
+                    .filter { !$0.isEmpty }
+                var seen = Set<String>()
+                let text = parts.filter { seen.insert($0).inserted }.joined(separator: " — ")
+                customPlace = String(text.prefix(CharacterCatalog.customDescriptionMax))
+                existing = setting
+                existingCustomText = customPlace.trimmingCharacters(in: .whitespacesAndNewlines)
+            } else if let i = presets.firstIndex(where: { $0.id == setting.id || $0.name == setting.name }) {
                 selectedIndex = i
+            } else {
+                existing = setting
+                selectedIndex = keepIndex
             }
         }
+    }
+
+    /// The place this book already had (e.g. picked on the web).
+    private func keepCard(_ setting: BookSetting) -> some View {
+        let isOn = selectedIndex == keepIndex
+        return Button { selectedIndex = keepIndex } label: {
+            HStack(spacing: 14) {
+                Text(setting.emoji ?? "🌍").font(.system(size: 32))
+                Text(verbatim: setting.displayName ?? "").font(.headline).foregroundStyle(.white)
+                Spacer()
+                if isOn { Image(systemName: "checkmark.circle.fill").foregroundStyle(.purple) }
+            }
+            .padding(14)
+            .background(RoundedRectangle(cornerRadius: 14)
+                .fill(isOn ? Color.purple.opacity(0.25) : Color.white.opacity(0.06)))
+            .overlay(RoundedRectangle(cornerRadius: 14)
+                .strokeBorder(isOn ? Color.white.opacity(0.6) : Color.clear, lineWidth: 1))
+        }
+        .accessibilityAddTraits(isOn ? .isSelected : [])
     }
 
     private var customPlaceCard: some View {
@@ -1329,21 +1327,27 @@ private struct ReadyStep: View {
                     Text("by \(b.authorName)")
                         .foregroundStyle(.white.opacity(0.7))
 
-                    if let c = b.characters.first {
-                        HStack(spacing: 10) {
-                            if c.imageData != nil {
-                                GeneratedImageView(source: c.imageData) {
-                                    Text(c.emoji ?? "✨").font(.title)
+                    // Everyone starring in the story, not just the first.
+                    if !b.characters.isEmpty {
+                        FlowRow(spacing: 8) {
+                            ForEach(b.characters) { c in
+                                HStack(spacing: 10) {
+                                    if c.imageData != nil {
+                                        GeneratedImageView(source: c.imageData) {
+                                            Text(c.emoji ?? "✨").font(.title)
+                                        }
+                                        .frame(width: 32, height: 32)
+                                        .clipShape(Circle())
+                                    } else {
+                                        Text(c.emoji ?? "✨").font(.title)
+                                    }
+                                    Text(verbatim: c.displayName).foregroundStyle(.white)
                                 }
-                                .frame(width: 32, height: 32)
-                                .clipShape(Circle())
-                            } else {
-                                Text(c.emoji ?? "✨").font(.title)
+                                .padding(10)
+                                .background(.white.opacity(0.08), in: Capsule())
                             }
-                            Text(verbatim: c.displayName).foregroundStyle(.white)
                         }
-                        .padding(10)
-                        .background(.white.opacity(0.08), in: Capsule())
+                        .padding(.horizontal)
                     }
                 }
 
@@ -1480,5 +1484,51 @@ private struct ToolLabel<Icon: View>: View {
         .padding(.horizontal, 4)
         .background(background, in: RoundedRectangle(cornerRadius: 12))
         .foregroundStyle(.white)
+    }
+}
+
+/// Wraps its children onto as many rows as they need, centred.
+private struct FlowRow: Layout {
+    var spacing: CGFloat = 8
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let rows = arrange(width: proposal.width ?? .infinity, subviews: subviews)
+        let height = rows.map(\.height).reduce(0, +) + spacing * CGFloat(max(rows.count - 1, 0))
+        let width = rows.map(\.width).max() ?? 0
+        return CGSize(width: proposal.width ?? width, height: height)
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        var y = bounds.minY
+        for row in arrange(width: bounds.width, subviews: subviews) {
+            var x = bounds.minX + (bounds.width - row.width) / 2
+            for index in row.indices {
+                let size = subviews[index].sizeThatFits(.unspecified)
+                subviews[index].place(at: CGPoint(x: x, y: y + (row.height - size.height) / 2),
+                                      proposal: ProposedViewSize(size))
+                x += size.width + spacing
+            }
+            y += row.height + spacing
+        }
+    }
+
+    private struct Row { var indices: [Int] = []; var width: CGFloat = 0; var height: CGFloat = 0 }
+
+    private func arrange(width: CGFloat, subviews: Subviews) -> [Row] {
+        var rows: [Row] = []
+        var current = Row()
+        for (i, view) in subviews.enumerated() {
+            let size = view.sizeThatFits(.unspecified)
+            let extra = current.indices.isEmpty ? size.width : current.width + spacing + size.width
+            if extra > width, !current.indices.isEmpty {
+                rows.append(current)
+                current = Row()
+            }
+            current.width = current.indices.isEmpty ? size.width : current.width + spacing + size.width
+            current.height = max(current.height, size.height)
+            current.indices.append(i)
+        }
+        if !current.indices.isEmpty { rows.append(current) }
+        return rows
     }
 }

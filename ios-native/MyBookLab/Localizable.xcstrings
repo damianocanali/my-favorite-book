@@ -13449,13 +13449,13 @@
         "en": {
           "stringUnit": {
             "state": "new",
-            "value": "Grandpa Joe"
+            "value": "Grandpa Tom"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nonno Gio"
+            "value": "Nonno Tom"
           }
         }
       }
@@ -13551,13 +13551,13 @@
         "en": {
           "stringUnit": {
             "state": "new",
-            "value": "Dr. Kim"
+            "value": "Doc Kim"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dott. Kim"
+            "value": "Doc Kim"
           }
         }
       }
@@ -13625,7 +13625,7 @@
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Re Teo"
+            "value": "Re Theo"
           }
         }
       }
@@ -14867,6 +14867,125 @@
           "stringUnit": {
             "state": "translated",
             "value": "Buddy non è riuscito a rispondere. Riprovi?"
+          }
+        }
+      }
+    },
+    "errors.ai.generic": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Something went wrong. Please try again."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Qualcosa è andato storto. Riprova."
+          }
+        }
+      }
+    },
+    "errors.ai.daily_limit": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "You've reached today's creation limit — come back tomorrow!"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hai raggiunto il limite di creazioni per oggi: torna domani!"
+          }
+        }
+      }
+    },
+    "errors.ai.rate_limited": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Too many tries just now. Please try again a bit later."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Troppi tentativi in poco tempo. Riprova tra un po'."
+          }
+        }
+      }
+    },
+    "errors.ai.try_again": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "We couldn't do that just now. Please try again in a moment."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non ci siamo riusciti proprio ora. Riprova tra un momento."
+          }
+        }
+      }
+    },
+    "errors.ai.timeout": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "That took too long. Please try again."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ci è voluto troppo tempo. Riprova."
+          }
+        }
+      }
+    },
+    "errors.ai.unkind": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Let's keep our story kind and friendly — try different words!"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Teniamo la storia gentile e amichevole: prova con altre parole!"
+          }
+        }
+      }
+    },
+    "school.teacher.errors.class_image_limit": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "This class has used today's pictures for this student. Try again tomorrow."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questa classe ha già usato le immagini di oggi per questo alunno. Riprova domani."
           }
         }
       }

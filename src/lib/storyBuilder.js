@@ -121,7 +121,7 @@ export function randomPlacements(frame, pick = (arr) => arr[Math.floor(Math.rand
  * picked those pictures; the illustration should follow them rather than
  * re-guess from the prose.
  */
-export function buildBookFromCards({ frame, placements, authorName, authorAge, makeId }) {
+export function buildBookFromCards({ frame, placements, authorName, authorAge, makeId, language }) {
   const now = new Date().toISOString()
   const texts = renderStory(frame, placements)
   return {
@@ -129,6 +129,8 @@ export function buildBookFromCards({ frame, placements, authorName, authorAge, m
     title: frame.title,
     authorName: authorName || 'Me',
     authorAge: authorAge ?? 8,
+    // The language the story is written in (printed back matter, read-aloud).
+    ...(language ? { language: String(language).slice(0, 2) } : {}),
     colors: { cover: '#8B5CF6', accent: '#06B6D4', text: '#F1F5F9', palette: 'starlight' },
     characters: [],
     setting: null,

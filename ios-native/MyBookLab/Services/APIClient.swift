@@ -35,13 +35,52 @@ enum APIError: Error, LocalizedError {
         case .sessionExpired:
             return String(appLocalized: Self.sessionExpiredText)
         case .http(let status, let body):
-            return "HTTP \(status): \(body)"
-        case .decoding(let e):
-            return "Decoding failed: \(e.localizedDescription)"
-        case .noData:
-            return "Empty response"
-        case .transport(let url, let underlying):
-            return "Request to \(url) failed: \(underlying.localizedDescription)"
+            // Never the server's raw (English) body: map its `code` to copy
+            // in the app language (web: src/lib/aiErrors.js). The raw body
+            // still goes to the log where the request fails.
+            return String(appLocalized: Self.friendly(status: status, code: Self.code(in: body)))
+        case .decoding, .noData:
+            return String(appLocalized: Self.genericText)
+        case .transport(_, let underlying):
+            // Already localized by iOS ("The Internet connection appears to be offline").
+            return underlying.localizedDescription
+        }
+    }
+
+    /// The server's machine `code`, if its error body is JSON with one.
+    static func code(in body: String) -> String? {
+        guard let data = body.data(using: .utf8),
+              let obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { return nil }
+        return obj["code"] as? String
+    }
+
+    static var genericText: LocalizedStringResource {
+        AppText("errors.ai.generic", defaultValue: "Something went wrong. Please try again.")
+    }
+
+    static func friendly(status: Int, code: String?) -> LocalizedStringResource {
+        switch code {
+        case "class_image_limit":
+            return AppText("school.teacher.errors.class_image_limit",
+                           defaultValue: "This class has used today's pictures for this student. Try again tomorrow.")
+        case "daily_limit":
+            return AppText("errors.ai.daily_limit", defaultValue: "You've reached today's creation limit — come back tomorrow!")
+        case "rate_limited":
+            return AppText("errors.ai.rate_limited", defaultValue: "Too many tries just now. Please try again a bit later.")
+        case "scene_unavailable":
+            return AppText("errors.ai.try_again", defaultValue: "We couldn't do that just now. Please try again in a moment.")
+        case "timeout":
+            return AppText("errors.ai.timeout", defaultValue: "That took too long. Please try again.")
+        case "unkind":
+            return AppText("errors.ai.unkind", defaultValue: "Let's keep our story kind and friendly — try different words!")
+        default:
+            if status == 429 {
+                return AppText("errors.ai.rate_limited", defaultValue: "Too many tries just now. Please try again a bit later.")
+            }
+            if status == 504 {
+                return AppText("errors.ai.timeout", defaultValue: "That took too long. Please try again.")
+            }
+            return genericText
         }
     }
 }
@@ -1121,8 +1160,10 @@ actor APIClient {
                 title: book.title,
                 authorName: book.authorName,
                 authorAge: book.authorAge,
-                characters: book.characters.map { .init(name: $0.name) },
-                setting: book.setting.map { .init(name: $0.name) },
+                // The names the child sees, in their language — never the
+                // stored English catalogue names.
+                characters: book.characters.map { .init(name: $0.displayName) },
+                setting: book.setting.map { .init(name: $0.displayName) },
                 pages: book.pages.map { .init(pageNumber: $0.pageNumber, text: $0.text) }
             ),
             page: .init(pageNumber: page.pageNumber, text: page.text)

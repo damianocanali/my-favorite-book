@@ -83,7 +83,7 @@ export default function StoryBlanksPage() {
     if (!done || saving) return
     setSaving(true)
     const book = buildBookFromBlanks({
-      template, picks, authorName: displayName, makeId: nanoid,
+      template, picks, authorName: displayName, makeId: nanoid, language: i18n.language,
     })
     addBookToShelf(book)
     loadBook(book)

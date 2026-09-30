@@ -93,7 +93,7 @@ export default function StoryBuilderPage() {
 
   const finish = () => {
     if (!done) return
-    const book = buildBookFromCards({ frame, placements, authorName: displayName, makeId: nanoid })
+    const book = buildBookFromCards({ frame, placements, authorName: displayName, makeId: nanoid, language: i18n.language })
     addBookToShelf(book)
     loadBook(book)
     recordWritingActivity()

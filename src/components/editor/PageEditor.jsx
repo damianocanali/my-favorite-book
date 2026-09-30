@@ -38,7 +38,8 @@ export default function PageEditor({ page }) {
 
   // --- Text-to-speech ---
   const { speak, stop: stopSpeaking, isSpeaking, currentWordIndex, words, isSupported: ttsSupported } = useSpeechSynthesis()
-  const handleReadAloud = useCallback(() => speak(page.text), [speak, page.text])
+  // The story is read and dictated in the language it is written in.
+  const handleReadAloud = useCallback(() => speak(page.text, book?.language), [speak, page.text, book?.language])
 
   // --- Voice input ---
   const handleVoiceResult = useCallback((transcript) => {
@@ -48,7 +49,7 @@ export default function PageEditor({ page }) {
     earnBadge('used_voice')
   }, [page.text, page.id, updatePageText, earnBadge])
 
-  const { start: startVoice, stop: stopVoice, isListening, interimText, isSupported: voiceSupported } = useSpeechRecognition({ onResult: handleVoiceResult })
+  const { start: startVoice, stop: stopVoice, isListening, interimText, isSupported: voiceSupported } = useSpeechRecognition({ onResult: handleVoiceResult, lang: book?.language })
 
   // Milestone beats. Writing a book used to be silent between "start" and
   // "save" — a child could fill five pages and get no signal that anything
@@ -239,7 +240,7 @@ export default function PageEditor({ page }) {
         <WritingScaffold
           page={page}
           totalPages={book?.pages?.length ?? 1}
-          characterName={book?.characters?.[0]?.name}
+          characterName={book?.characters?.[0] ? displayName(book.characters[0], t, 'characters') : undefined}
           onInsertText={updatePageText}
         />
 

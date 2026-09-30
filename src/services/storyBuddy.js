@@ -1,5 +1,22 @@
 import { apiFetchAuthed } from '../lib/api'
 import i18next from '../i18n'
+import { aiResponseError } from '../lib/aiErrors'
+import { displayName } from '../i18n/contentCatalog'
+
+// The buddy talks to the child in their language, so it gets the names the
+// child SEES ("Nonna Rosa"), never the stored English catalogue names or the
+// frozen prompt text. Exported for tests.
+export function buddyBook(book, t = i18next.t.bind(i18next)) {
+  if (!book) return book
+  return {
+    ...book,
+    characters: (book.characters ?? []).map((c) => ({ ...c, name: displayName(c, t, 'characters'), promptEn: undefined })),
+    setting: book.setting ? { ...book.setting, name: displayName(book.setting, t, 'scenes'), promptEn: undefined } : book.setting,
+    timePeriod: book.timePeriod
+      ? { ...book.timePeriod, label: displayName(book.timePeriod, t, 'time_periods'), promptEn: undefined }
+      : book.timePeriod,
+  }
+}
 
 async function callStoryBuddy(intent, book, page) {
   const response = await apiFetchAuthed('/api/story-buddy', {
@@ -8,13 +25,10 @@ async function callStoryBuddy(intent, book, page) {
     // `locale` tells the server which language to reply in. Without it an
     // Italian child gets English suggestions inside an Italian app — the
     // most visible way a half-finished localization shows.
-    body: JSON.stringify({ intent, book, page, locale: i18next.language || 'en' }),
+    body: JSON.stringify({ intent, book: buddyBook(book), page, locale: i18next.language || 'en' }),
   })
 
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}))
-    throw new Error(error?.error || `API error: ${response.status}`)
-  }
+  if (!response.ok) throw await aiResponseError(response, 'API error')
 
   return response.json()
 }

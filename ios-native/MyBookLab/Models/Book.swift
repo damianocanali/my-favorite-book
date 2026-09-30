@@ -208,9 +208,13 @@ extension BookCharacter {
         "👦": "a young boy", "👧": "a young girl", "🧒": "a child", "👶": "a baby",
         "🧑‍🚀": "an astronaut", "🦸": "a superhero", "🦸‍♀️": "a superhero",
         "🧚": "a fairy", "🧚‍♂️": "a fairy", "🧜‍♀️": "a mermaid", "🧞": "a genie",
-        "🧙": "a wizard", "🧙‍♀️": "a witch", "👸": "a princess", "🤴": "a prince",
+        "🧙": "a wizard", "🧙‍♀️": "a witch", "👸": "a princess", "🤴": "a king",
         "🥷": "a ninja", "🤖": "a robot", "👽": "an alien", "🎅": "Santa Claus",
         "🧝": "an elf",
+        "👩": "a grown-up woman", "👨": "a grown-up man", "🧑": "a person",
+        "👵": "a grandmother", "👴": "a grandfather", "🧑‍🏫": "a teacher",
+        "🧑‍🚒": "a firefighter", "🧑‍⚕️": "a doctor", "🧑‍🍳": "a chef",
+        "🫅": "a queen",
         // Fun & magical
         "🌟": "a friendly star", "⭐️": "a friendly star", "⭐": "a friendly star",
         "🌈": "a rainbow", "🔮": "a magic crystal ball", "🎈": "a balloon",
@@ -230,6 +234,39 @@ struct BookSetting: Codable, Hashable, Sendable {
     /// The frozen English prompt text the web's catalog writes; kept so an
     /// iPad edit doesn't drop it.
     var promptEn: BookCharacter.PromptText? = nil
+
+    init(id: String? = nil, name: String? = nil, label: String? = nil, emoji: String? = nil,
+         description: String? = nil, custom: Bool? = nil, promptEn: BookCharacter.PromptText? = nil) {
+        self.id = id; self.name = name; self.label = label; self.emoji = emoji
+        self.description = description; self.custom = custom; self.promptEn = promptEn
+    }
+
+    enum CodingKeys: String, CodingKey { case id, name, label, emoji, description, custom, isCustom, promptEn }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        if let s = try? c.decode(String.self, forKey: .id) { id = s }
+        else if let i = try? c.decode(Int.self, forKey: .id) { id = String(i) }
+        else { id = nil }
+        name = try? c.decode(String.self, forKey: .name)
+        label = try? c.decode(String.self, forKey: .label)
+        emoji = try? c.decode(String.self, forKey: .emoji)
+        description = try? c.decode(String.self, forKey: .description)
+        // The web's older books carry `isCustom` instead.
+        custom = (try? c.decode(Bool.self, forKey: .custom)) ?? (try? c.decode(Bool.self, forKey: .isCustom))
+        promptEn = try? c.decode(BookCharacter.PromptText.self, forKey: .promptEn)
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encodeIfPresent(id, forKey: .id)
+        try c.encodeIfPresent(name, forKey: .name)
+        try c.encodeIfPresent(label, forKey: .label)
+        try c.encodeIfPresent(emoji, forKey: .emoji)
+        try c.encodeIfPresent(description, forKey: .description)
+        try c.encodeIfPresent(custom, forKey: .custom)
+        try c.encodeIfPresent(promptEn, forKey: .promptEn)
+    }
 }
 
 struct BookPage: Codable, Identifiable, Hashable, Sendable {

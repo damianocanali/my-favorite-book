@@ -59,8 +59,8 @@ export const characters = [
   },
   {
     id: 'grandpa',
-    promptEn: { name: 'Grandpa Joe', description: 'A playful grandfather who builds amazing inventions' },
-    name: 'Grandpa Joe',
+    promptEn: { name: 'Grandpa Tom', description: 'A playful grandfather who builds amazing inventions' },
+    name: 'Grandpa Tom',
     emoji: '👴',
     description: 'A playful grandpa who builds amazing inventions',
     color: '#FBBF24',
@@ -83,8 +83,8 @@ export const characters = [
   },
   {
     id: 'doctor',
-    promptEn: { name: 'Dr. Kim', description: 'A caring doctor who helps people and animals feel better' },
-    name: 'Dr. Kim',
+    promptEn: { name: 'Doc Kim', description: 'A caring doctor who helps people and animals feel better' },
+    name: 'Doc Kim',
     emoji: '🧑‍⚕️',
     description: 'A caring doctor who helps people and animals feel better',
     color: '#10B981',

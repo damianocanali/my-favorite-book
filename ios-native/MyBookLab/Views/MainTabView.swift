@@ -123,18 +123,19 @@ struct MainTabView: View {
                 router.selectedTab = .books
             }
         }
-        // Off the Class tab its MyAssignmentsSection isn't on screen to keep
-        // the badge fresh, so poll here on the same minute rhythm while the
-        // app is active. A new child on a shared iPad starts from zero.
+        // MyAssignmentsSection updates the badge the moment something
+        // changes while it is on screen; this poll keeps it fresh everywhere
+        // else — other tabs, and a book opened from the Class tab (which
+        // takes the section off screen). Same minute rhythm, active app only.
+        // A new child on a shared iPad starts from zero.
         .task(id: BadgePollKey(
-            student: auth.isStudent, userId: auth.user?.id,
-            onHome: router.selectedTab == .books, active: scenePhase == .active
+            student: auth.isStudent, userId: auth.user?.id, active: scenePhase == .active
         )) {
             guard auth.isStudent, auth.user != nil else {
                 router.classBadge = 0
                 return
             }
-            guard router.selectedTab != .books, scenePhase == .active else { return }
+            guard scenePhase == .active else { return }
             while !Task.isCancelled {
                 await refreshClassBadge()
                 try? await Task.sleep(for: SchoolAssignments.pollInterval)
@@ -171,7 +172,6 @@ struct MainTabView: View {
 private struct BadgePollKey: Equatable {
     let student: Bool
     let userId: UUID?
-    let onHome: Bool
     let active: Bool
 }
 

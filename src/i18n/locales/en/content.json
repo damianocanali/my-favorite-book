@@ -21,7 +21,7 @@
       "description": "A cheerful grandma who knows a story for everything"
     },
     "grandpa": {
-      "name": "Grandpa Joe",
+      "name": "Grandpa Tom",
       "description": "A playful grandpa who builds amazing inventions"
     },
     "teacher": {
@@ -33,7 +33,7 @@
       "description": "A brave firefighter who helps anyone in trouble"
     },
     "doctor": {
-      "name": "Dr. Kim",
+      "name": "Doc Kim",
       "description": "A caring doctor who helps people and animals feel better"
     },
     "chef": {
@@ -127,8 +127,28 @@
       "description": "A sweet world made of chocolate rivers and candy mountains"
     },
     "dinosaur-valley": {
-      "name": "Dinosaur Valley",
-      "description": "A prehistoric valley where dinosaurs still roam free"
+      "name": "The Dinosaur Valley",
+      "description": "A hidden valley where dinosaurs still play."
+    },
+    "glowing-forest": {
+      "name": "The Glowing Forest",
+      "description": "A magical forest where stars come down at night."
+    },
+    "cloud-kingdom": {
+      "name": "The Cloud Kingdom",
+      "description": "A floating land high above the world."
+    },
+    "coral-city": {
+      "name": "The Coral City",
+      "description": "An underwater city of bright coral towers."
+    },
+    "cookie-planet": {
+      "name": "The Cookie Planet",
+      "description": "A planet made of every dessert imaginable."
+    },
+    "snow-castle": {
+      "name": "The Snow Castle",
+      "description": "A castle of ice and silver moonlight."
     }
   },
   "time_periods": {

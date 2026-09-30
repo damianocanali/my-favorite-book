@@ -84,6 +84,13 @@ function bad(req, status, message) {
   })
 }
 
+// Exported for tests.
+export function withPrintLanguage(bookData, locale) {
+  if (!bookData || bookData.language) return bookData
+  const base = String(locale ?? '').toLowerCase().slice(0, 2)
+  return base === 'it' || base === 'en' ? { ...bookData, language: base } : bookData
+}
+
 export default async function handler(req) {
   const preflight = handleCors(req)
   if (preflight) return preflight
@@ -100,7 +107,7 @@ export default async function handler(req) {
   const body = await req.json().catch(() => null)
   if (!body) return bad(req, 400, 'Bad JSON')
 
-  const { bookId, format, quantity, shipping } = body
+  const { bookId, format, quantity, shipping, locale } = body
   if (!bookId) return bad(req, 400, 'Missing bookId')
   if (format !== 'hardcover' && format !== 'softcover') return bad(req, 400, 'Bad format')
   const qty = Number.parseInt(quantity, 10)
@@ -126,7 +133,10 @@ export default async function handler(req) {
   const inserted = await insertOrder({
     user_id: user.id,
     book_id: bookId,
-    book_snapshot: book.book_data,
+    // A book saved before books carried their language would otherwise
+    // print its back matter in English; the orderer's app language is the
+    // best guess for it. A book's own language always wins.
+    book_snapshot: withPrintLanguage(book.book_data, locale),
     format,
     quantity: qty,
     unit_price_cents: unitCents,

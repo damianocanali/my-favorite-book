@@ -41,7 +41,7 @@
   },
   "characters": {
     "heading": "Scegli i tuoi personaggi",
-    "subtitle": "Scegli i protagonisti della tua storia: fino a 4!",
+    "subtitle": "Scegli i protagonisti della tua storia: fino a {{max}}!",
     "selected_count_one": "{{count}} personaggio scelto",
     "selected_count_other": "{{count}} personaggi scelti",
     "create_card": "Crea il tuo!",
@@ -51,7 +51,7 @@
     "name_placeholder": "Il suo nome…",
     "description_placeholder": "Com'è? (per esempio: una presidente con un grande cappello)",
     "add_button": "Aggiungi personaggio",
-    "max_reached": "una storia non può averne di più. Toccane uno per cambiarlo."
+    "max_reached": "una storia non può averne di più. Tocca uno di quelli scelti per toglierlo."
   },
   "setting": {
     "heading": "Dove succede la storia?",

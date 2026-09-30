@@ -102,7 +102,7 @@ export function localizedBank(slotKey, { authorName } = {}) {
  * `makeId` is injected so tests are deterministic and the caller supplies
  * nanoid; this module stays free of side effects.
  */
-export function buildBookFromBlanks({ template, picks, authorName, authorAge, makeId }) {
+export function buildBookFromBlanks({ template, picks, authorName, authorAge, makeId, language }) {
   const texts = renderStory(template, picks)
   const now = new Date().toISOString()
   return {
@@ -110,6 +110,8 @@ export function buildBookFromBlanks({ template, picks, authorName, authorAge, ma
     title: template.title,
     authorName: authorName || capitalise(picks?.name ?? '') || 'Me',
     authorAge: authorAge ?? 8,
+    // The language the story is written in (printed back matter, read-aloud).
+    ...(language ? { language: String(language).slice(0, 2) } : {}),
     colors: { cover: '#8B5CF6', accent: '#06B6D4', text: '#F1F5F9', palette: 'starlight' },
     characters: [],
     setting: picks?.place ?? null,

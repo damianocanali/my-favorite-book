@@ -4,6 +4,7 @@
 // when that changes, update this list to match.
 import { BookOpen, Heart, Users, MapPin, MessageCircle, Sparkles, FileText, Pencil } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { displayName } from '../../i18n/contentCatalog'
 
 // Lulu floor for color print-on-demand. Same as MIN_INTERIOR_PAGES on the server.
 const MIN_INTERIOR_PAGES = 32
@@ -44,7 +45,8 @@ export default function BackMatterPreview({ book }) {
     },
   ]
   if (book?.setting) {
-    const settingName = book.setting.name ?? book.setting.label
+    // What the child sees ("Il Bosco Luminoso"), not the stored English.
+    const settingName = displayName(book.setting, t, 'scenes')
     sections.push({
       icon: MapPin,
       title: t('print:back_matter.setting_title'),

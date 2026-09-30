@@ -87,7 +87,13 @@ export default function MyAssignments() {
 
   function markOpened(assignmentId) {
     if (seen.has(assignmentId)) return
-    setSeen(new Set(markAssignmentSeen(userId, assignmentId)))
+    const next = new Set(markAssignmentSeen(userId, assignmentId))
+    setSeen(next)
+    // Straight onto the tab badge: opening an assignment usually navigates
+    // away at once, unmounting this section before its effect would run.
+    useClassBadgeStore.getState().setCount(
+      classBadgeCount(assignments ?? [], { seen: next, isStarted, hasNudge: !!nudge })
+    )
   }
 
   // A book already tagged for this assignment (see useBookStore's
@@ -164,6 +170,9 @@ export default function MyAssignments() {
     if (!nudge) return
     dismissedNudges.current.add(nudge.id)
     useClassBadgeStore.getState().dismissNudge(nudge.id)
+    useClassBadgeStore.getState().setCount(
+      classBadgeCount(assignments ?? [], { seen, isStarted, hasNudge: false })
+    )
     const id = nudge.id
     setNudge(null)
     // Best-effort: a failure only means the card may come back next poll.

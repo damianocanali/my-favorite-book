@@ -22,6 +22,8 @@
     "rate_limited": "Troppi tentativi in poco tempo. Riprova tra un po'.",
     "too_long": "È un po' troppo lungo: prova ad accorciarlo.",
     "buddy_unavailable": "Story Buddy si sta riposando. Riprova tra poco.",
-    "generic": "Qualcosa è andato storto. Riprova."
+    "generic": "Qualcosa è andato storto. Riprova.",
+    "try_again": "Non ci siamo riusciti proprio ora. Riprova tra un momento.",
+    "timeout": "Ci è voluto troppo tempo. Riprova."
   }
 }

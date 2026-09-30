@@ -65,9 +65,9 @@ enum CharacterCatalog {
               name: AppText("content.characters.grandma.name", defaultValue: "Grandma Rosa"),
               blurb: AppText("content.characters.grandma.description", defaultValue: "A cheerful grandma who knows a story for everything")),
         .init(id: "grandpa", emoji: "👴",
-              promptName: "Grandpa Joe",
+              promptName: "Grandpa Tom",
               promptDescription: "A playful grandfather who builds amazing inventions",
-              name: AppText("content.characters.grandpa.name", defaultValue: "Grandpa Joe"),
+              name: AppText("content.characters.grandpa.name", defaultValue: "Grandpa Tom"),
               blurb: AppText("content.characters.grandpa.description", defaultValue: "A playful grandpa who builds amazing inventions")),
         .init(id: "teacher", emoji: "🧑‍🏫",
               promptName: "Teacher Sam",
@@ -80,9 +80,9 @@ enum CharacterCatalog {
               name: AppText("content.characters.firefighter.name", defaultValue: "Firefighter Alex"),
               blurb: AppText("content.characters.firefighter.description", defaultValue: "A brave firefighter who helps anyone in trouble")),
         .init(id: "doctor", emoji: "🧑‍⚕️",
-              promptName: "Dr. Kim",
+              promptName: "Doc Kim",
               promptDescription: "A caring doctor who helps people and animals feel better",
-              name: AppText("content.characters.doctor.name", defaultValue: "Dr. Kim"),
+              name: AppText("content.characters.doctor.name", defaultValue: "Doc Kim"),
               blurb: AppText("content.characters.doctor.description", defaultValue: "A caring doctor who helps people and animals feel better")),
         .init(id: "chef", emoji: "🧑‍🍳",
               promptName: "Chef Nico",
@@ -178,5 +178,68 @@ extension BookCharacter {
             return String(appLocalized: entry.blurb)
         }
         return description
+    }
+}
+
+/// The iPad's ready-made story worlds. `name`/`description` are FROZEN
+/// ENGLISH — saved on the book and used in picture prompts; `title`/`blurb`
+/// are what the child sees. Stable ids (also in the web's content.json
+/// `scenes`) let the web and the printed book show them in Italian.
+struct CatalogSetting: Identifiable {
+    let id: String
+    let emoji: String
+    let name: String
+    let description: String
+    let title: LocalizedStringResource
+    let blurb: LocalizedStringResource
+
+    var bookSetting: BookSetting {
+        BookSetting(id: id, name: name, label: name, emoji: emoji, description: description,
+                    promptEn: .init(name: name, description: description))
+    }
+}
+
+enum SettingCatalog {
+    static func entry(id: String?) -> CatalogSetting? {
+        guard let id else { return nil }
+        return all.first { $0.id == id }
+    }
+
+    static var all: [CatalogSetting] { [
+        .init(id: "glowing-forest", emoji: "🌲", name: "The Glowing Forest",
+              description: "A magical forest where stars come down at night.",
+              title: AppText("create.setting.glowing_forest.title", defaultValue: "The Glowing Forest"),
+              blurb: AppText("create.setting.glowing_forest.blurb", defaultValue: "A magical forest where stars come down at night.")),
+        .init(id: "cloud-kingdom", emoji: "☁️", name: "The Cloud Kingdom",
+              description: "A floating land high above the world.",
+              title: AppText("create.setting.cloud_kingdom.title", defaultValue: "The Cloud Kingdom"),
+              blurb: AppText("create.setting.cloud_kingdom.blurb", defaultValue: "A floating land high above the world.")),
+        .init(id: "coral-city", emoji: "🐠", name: "The Coral City",
+              description: "An underwater city of bright coral towers.",
+              title: AppText("create.setting.coral_city.title", defaultValue: "The Coral City"),
+              blurb: AppText("create.setting.coral_city.blurb", defaultValue: "An underwater city of bright coral towers.")),
+        .init(id: "cookie-planet", emoji: "🍪", name: "The Cookie Planet",
+              description: "A planet made of every dessert imaginable.",
+              title: AppText("create.setting.cookie_planet.title", defaultValue: "The Cookie Planet"),
+              blurb: AppText("create.setting.cookie_planet.blurb", defaultValue: "A planet made of every dessert imaginable.")),
+        .init(id: "snow-castle", emoji: "🏰", name: "The Snow Castle",
+              description: "A castle of ice and silver moonlight.",
+              title: AppText("create.setting.snow_castle.title", defaultValue: "The Snow Castle"),
+              blurb: AppText("create.setting.snow_castle.blurb", defaultValue: "A castle of ice and silver moonlight.")),
+        .init(id: "dinosaur-valley", emoji: "🦕", name: "The Dinosaur Valley",
+              description: "A hidden valley where dinosaurs still play.",
+              title: AppText("create.setting.dinosaur_valley.title", defaultValue: "The Dinosaur Valley"),
+              blurb: AppText("create.setting.dinosaur_valley.blurb", defaultValue: "A hidden valley where dinosaurs still play.")),
+    ] }
+}
+
+extension BookSetting {
+    /// What to SHOW: a ready-made world in the app language, a child's own
+    /// place (or a web catalogue scene) as stored.
+    var displayName: String? {
+        if custom != true, let entry = SettingCatalog.entry(id: id) {
+            return String(appLocalized: entry.title)
+        }
+        return name ?? label
     }
 }
