@@ -65,6 +65,9 @@ final class AppRouter {
     /// class's name list).
     func sessionEnded() {
         guestExploring = false
+        // On a class iPad the next child must never see the previous
+        // child's check-in, break or "teacher is coming" screen.
+        CheckInStore.shared.closeForSessionEnd()
         resetSignInFlow()
     }
 

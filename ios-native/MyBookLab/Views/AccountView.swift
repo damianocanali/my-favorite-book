@@ -7,6 +7,7 @@ struct AccountView: View {
     @Environment(CoinsStore.self) private var coins
     @Environment(RewardsStore.self) private var rewards
     @Environment(TeacherStore.self) private var teacher
+    @Environment(\.dynamicTypeSize) private var typeSize
     @State private var showingPaywall = false
     @State private var showingBuyCoins = false
     @State private var editingName = false
@@ -249,12 +250,16 @@ struct AccountView: View {
                 .foregroundStyle(.cyan)
                 .frame(width: 24)
                 .accessibilityHidden(true)
-            // Never broken over two lines ("Lingua" / "Language").
-            Text("Language")
-                .foregroundStyle(.white)
-                .lineLimit(1)
-                .fixedSize()
-                .accessibilityHidden(true)
+            // Never broken over two lines ("Lingua" / "Language"). At the
+            // accessibility text sizes the menu alone carries the label, so
+            // the row can't overflow a 375 pt screen.
+            if !typeSize.isAccessibilitySize {
+                Text("Language")
+                    .foregroundStyle(.white)
+                    .lineLimit(1)
+                    .fixedSize()
+                    .accessibilityHidden(true)
+            }
             Spacer(minLength: 8)
             LanguageMenu()
         }

@@ -76,6 +76,14 @@ final class CheckInStore {
 
     // MARK: - Lifecycle
 
+    /// The session ended: close the check-in sheet without recording
+    /// anything (dismiss() would log a half-finished check-in after the
+    /// child is gone). CheckInHost closes the screens it opened.
+    func closeForSessionEnd() {
+        stage = nil
+        wantsStoryBuddy = false
+    }
+
     /// Entries are per-child and (for a family account) never leave the
     /// device, so they must not survive a change of who is using the app.
     /// Called on sign-out and on any identity change, matching the web's
