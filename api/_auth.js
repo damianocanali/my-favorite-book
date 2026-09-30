@@ -46,5 +46,5 @@ export async function verifyJwt(req) {
 
   // app_metadata is writable only with the service role, which makes it the
   // one place a role can be trusted (user_metadata is user-editable).
-  return { ok: true, userId: user.id, email: user.email, jwt, appMetadata: user.app_metadata ?? {} }
+  return { ok: true, userId: user.id, email: user.email, jwt, appMetadata: user.app_metadata ?? {}, userMetadata: user.user_metadata ?? {} }
 }
