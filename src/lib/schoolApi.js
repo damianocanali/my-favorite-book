@@ -6,12 +6,6 @@
 // ClassSignInPage's error-message map already falls back to "generic" for.
 import { apiFetch, apiFetchAuthed } from './api.js'
 
-// The remembered class code only — never a student's name or picture
-// secret. Children share devices at school; forgetting who's who by default
-// and only remembering the class itself keeps the next child from landing
-// on the previous child's name tile.
-const CLASS_CODE_KEY = 'mybooklab-class-code'
-
 async function toResult(res) {
   let data = null
   try {
@@ -69,29 +63,4 @@ export function schoolFetch(path, options = {}) {
       headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
     })
   )
-}
-
-export function rememberClassCode(code) {
-  try {
-    localStorage.setItem(CLASS_CODE_KEY, code)
-  } catch {
-    // Private browsing / storage blocked: the code just won't be
-    // remembered next time, which is a minor inconvenience, not a bug.
-  }
-}
-
-export function recallClassCode() {
-  try {
-    return localStorage.getItem(CLASS_CODE_KEY)
-  } catch {
-    return null
-  }
-}
-
-export function forgetClassCode() {
-  try {
-    localStorage.removeItem(CLASS_CODE_KEY)
-  } catch {
-    // ignore
-  }
 }

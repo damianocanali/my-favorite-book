@@ -24,12 +24,17 @@ struct MyBookLabApp: App {
     /// slow (a second auth listener, bookshelf/coins/rewards/purchases
     /// reloads) for nothing.
     @State private var launched = false
+    /// Set when the app goes to the background; the next .active is a real
+    /// return to the front (see the scenePhase handler).
+    @State private var wasBackgrounded = false
 
     init() {
         // Before any string is looked up: the chosen language's .lproj.
         AppLanguage.bootstrap()
         // Leftover sign-in card PDFs from a previous run never outlive it.
         SignInCardsFiles.purge()
+        // The old implicit "who's signing in" and class-code memory.
+        ClassDeviceStore.purgeLegacyKeys()
         Purchases.logLevel = .warn
         Purchases.configure(withAPIKey: AppConfig.shared.revenueCatAPIKey)
     }
@@ -59,12 +64,18 @@ struct MyBookLabApp: App {
                 // screen stays in the old language. Navigation state lives
                 // in the stores (AppRouter, TeacherStore), so it survives.
                 .environment(\.locale, language.locale)
-                .id(language.code)
+                // Also rebuilt when a session ends, which takes down every
+                // sheet and cover a screen had open (AppRouter.sessionEnded)
+                // so the sign-in cover can present.
+                .id("\(language.code)-\(router.sessionGeneration)")
                 .task {
                     guard !launched else { return }
                     launched = true
                     PrintOrderActivityManager.cleanup()
                     await auth.bootstrap()
+                    // Nobody signed in: the front door (or, on a class iPad,
+                    // the class's name list). Guests can still close it.
+                    if !auth.isSignedIn { router.presentSignIn() }
                     // Music only once the session is known. AudioService
                     // itself refuses for a teacher account (any view mode);
                     // family users, students and the signed-out get it.
@@ -84,12 +95,36 @@ struct MyBookLabApp: App {
                 // stop the refresher in the background (see setAutoRefresh).
                 .onChange(of: scenePhase, initial: true) { _, phase in
                     auth.setAutoRefresh(active: phase == .active)
+                    // Back in front and signed out with no sign-in showing
+                    // (a request SwiftUI dropped): try again. Not for a
+                    // guest who chose "Explore first".
+                    // Only on a real return from the background: .inactive →
+                    // .active also fires around system sheets (Face ID,
+                    // Apple sign-in), where nothing must be touched. A return
+                    // arrives as .background → .inactive → .active, so the
+                    // background visit is remembered rather than read from
+                    // oldPhase.
+                    if phase == .background { wasBackgrounded = true }
+                    if phase == .active, wasBackgrounded {
+                        wasBackgrounded = false
+                        if launched, !auth.loading {
+                            router.recheckSignIn(signedIn: auth.isSignedIn)
+                        }
+                    }
                 }
                 // A role change on the same account (e.g. metadata refresh
                 // marking it a teacher) must silence the music too.
                 .onChange(of: auth.isTeacher) { _, _ in audio.applyAccountPolicy() }
-                .onChange(of: auth.user?.id) { _, newValue in
+                .onChange(of: auth.user?.id) { oldValue, newValue in
                     audio.applyAccountPolicy()
+                    // Signed in: the sign-in flow closes. Signed out (or the
+                    // session ended): back to the front door — on a class
+                    // iPad, the class's name list for the next child.
+                    if newValue != nil {
+                        router.dismissSignIn()
+                    } else if oldValue != nil {
+                        router.sessionEnded { !auth.isSignedIn }
+                    }
                     // Any change of who is signed in — including a session
                     // that simply expired — drops unprinted picture cards.
                     teacher.clearPendingCards()
@@ -122,6 +157,26 @@ struct MyBookLabApp: App {
                 // Spotlight: tapping an indexed book opens the shelf.
                 .onContinueUserActivity(CSSearchableItemActionType) { _ in
                     router.selectedTab = .books
+                }
+                // The sign-in flow. Outside the rebuilt subtree, so switching
+                // language from its welcome screen doesn't tear the cover
+                // down; it gets its own environment and rebuild instead.
+                .fullScreenCover(isPresented: $router.signInPresented) {
+                    SignInFlowView()
+                        .environment(auth)
+                        .environment(router)
+                        .environment(\.locale, language.locale)
+                        .id(language.code)
+                        // After the .id, so a language switch (which swaps
+                        // the view inside) never reads as the cover going
+                        // away. The marker records the cover's hosting
+                        // controller, which the recovery must never dismiss.
+                        .onAppear { router.signInShowing = true }
+                        .onDisappear { router.signInShowing = false }
+                        .background(SignInCoverMarker().frame(width: 0, height: 0).accessibilityHidden(true))
+                        .overlay { LanguageSwitchOverlay(target: language.switching) }
+                        .animation(.easeInOut(duration: 0.25), value: language.switching)
+                        .preferredColorScheme(.dark)
                 }
                 // Outside the rebuilt subtree, so it stays up across it.
                 .overlay { LanguageSwitchOverlay(target: language.switching) }

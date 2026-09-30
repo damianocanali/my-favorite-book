@@ -7127,7 +7127,7 @@
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Questo compito è chiuso. Chiedi al tuo insegnante."
+            "value": "Questo compito è chiuso. Chiedi all'insegnante."
           }
         }
       }
@@ -7144,7 +7144,7 @@
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "È scaduto il tempo per consegnarlo. Chiedi al tuo insegnante."
+            "value": "È scaduto il tempo per consegnarlo. Chiedi all'insegnante."
           }
         }
       }
@@ -7161,7 +7161,7 @@
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Questo libro è troppo grande da consegnare. Chiedi al tuo insegnante."
+            "value": "Questo libro è troppo grande da consegnare. Chiedi all'insegnante."
           }
         }
       }
@@ -7178,7 +7178,7 @@
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Non troviamo questo compito. Chiedi al tuo insegnante."
+            "value": "Non troviamo questo compito. Chiedi all'insegnante."
           }
         }
       }
@@ -7212,7 +7212,7 @@
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Qualcosa non ha funzionato. Chiedi al tuo insegnante."
+            "value": "Qualcosa non ha funzionato. Chiedi all'insegnante."
           }
         }
       }
@@ -8311,7 +8311,7 @@
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ricevi un avviso quando uno studente chiede un adulto durante l'orario scolastico."
+            "value": "Ricevi un avviso quando qualcuno della classe chiede un adulto durante l'orario scolastico."
           }
         }
       }
@@ -9673,7 +9673,7 @@
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Quando uno studente chiede un adulto durante l'orario scolastico"
+            "value": "Quando qualcuno della classe chiede un adulto durante l'orario scolastico"
           }
         }
       }
@@ -11888,6 +11888,601 @@
           "stringUnit": {
             "state": "translated",
             "value": "Cambio lingua…"
+          }
+        }
+      }
+    },
+    "signin.welcome.title": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Who's signing in?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chi sta accedendo?"
+          }
+        }
+      }
+    },
+    "signin.welcome.student": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "I'm a student"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sono in una classe"
+          }
+        }
+      }
+    },
+    "signin.welcome.student_hint": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Sign in with your pictures"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entra con le tue immagini"
+          }
+        }
+      }
+    },
+    "signin.welcome.family": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Family"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Famiglia"
+          }
+        }
+      }
+    },
+    "signin.welcome.family_hint": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Write and save stories at home"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scrivi e salva le storie a casa"
+          }
+        }
+      }
+    },
+    "signin.welcome.teacher": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Teacher"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Insegnante"
+          }
+        }
+      }
+    },
+    "signin.welcome.teacher_hint": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Set up and run your classroom"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Crea e gestisci la tua classe"
+          }
+        }
+      }
+    },
+    "signin.welcome.explore": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Explore first"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prima dai un'occhiata"
+          }
+        }
+      }
+    },
+    "signin.back": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Back"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Indietro"
+          }
+        }
+      }
+    },
+    "signin.try_again": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Try again"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Riprova"
+          }
+        }
+      }
+    },
+    "signin.discard.title": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Discard what you typed?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancellare quello che hai scritto?"
+          }
+        }
+      }
+    },
+    "signin.discard.confirm": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Discard"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancella"
+          }
+        }
+      }
+    },
+    "signin.discard.keep": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Keep typing"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continua a scrivere"
+          }
+        }
+      }
+    },
+    "signin.class_device.banner": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Class %@"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Classe %@"
+          }
+        }
+      }
+    },
+    "signin.class_device.not_in": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Not in %@?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non sei in %@?"
+          }
+        }
+      }
+    },
+    "signin.class_device.unavailable": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "This iPad's class isn't available — ask your teacher"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La classe di questo iPad non è disponibile — chiedi all'insegnante"
+          }
+        }
+      }
+    },
+    "classdevice.setup": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Set up this iPad for this class"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configura questo iPad per questa classe"
+          }
+        }
+      }
+    },
+    "classdevice.status": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "This iPad is set up for %@"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questo iPad è configurato per %@"
+          }
+        }
+      }
+    },
+    "classdevice.remove": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Remove class from this iPad"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rimuovi la classe da questo iPad"
+          }
+        }
+      }
+    },
+    "classdevice.confirm.title": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Set up this iPad for %@?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configurare questo iPad per %@?"
+          }
+        }
+      }
+    },
+    "classdevice.confirm.body": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "When nobody is signed in, this iPad opens straight on %@'s name list. Children tap their name and pick their pictures — no class code to type. When a child signs out, it goes back to the list."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quando nessuno ha effettuato l'accesso, questo iPad si apre direttamente sull'elenco dei nomi di %@. I bambini toccano il proprio nome e scelgono le loro immagini, senza scrivere il codice della classe. Quando qualcuno esce, si torna all'elenco."
+          }
+        }
+      }
+    },
+    "classdevice.confirm.note": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Your own sign-in isn't affected. Only a teacher can remove the class from this iPad."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il tuo accesso non cambia. Solo un insegnante può rimuovere la classe da questo iPad."
+          }
+        }
+      }
+    },
+    "classdevice.confirm.replaces": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "This replaces %@ on this iPad."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sostituisce %@ su questo iPad."
+          }
+        }
+      }
+    },
+    "classdevice.confirm.action": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Set up this iPad"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configura questo iPad"
+          }
+        }
+      }
+    },
+    "classdevice.remove_confirm.title": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Remove %@ from this iPad?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rimuovere %@ da questo iPad?"
+          }
+        }
+      }
+    },
+    "classdevice.remove_confirm.body": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Children will need the class code to sign in on this iPad again."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I bambini avranno di nuovo bisogno del codice della classe per entrare su questo iPad."
+          }
+        }
+      }
+    },
+    "classdevice.account.heading": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Class iPad"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iPad di classe"
+          }
+        }
+      }
+    },
+    "classdevice.account.none": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "This iPad isn't set up for a class."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questo iPad non è configurato per una classe."
+          }
+        }
+      }
+    },
+    "classdevice.account.pick": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Set up this iPad for a class"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configura questo iPad per una classe"
+          }
+        }
+      }
+    },
+    "classdevice.account.no_classes": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Create a class first, in Classes."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prima crea una classe, in Classi."
+          }
+        }
+      }
+    },
+    "classdevice.account.load_failed": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Couldn't load your classes."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossibile caricare le tue classi."
+          }
+        }
+      }
+    },
+    "signin.class_device.problem_heading": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "We can't open your class right now"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ora non riusciamo ad aprire la tua classe"
+          }
+        }
+      }
+    },
+    "signin.class_device.network": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "We can't reach My Book Lab. Check the internet and try again."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non riusciamo a collegarci a My Book Lab. Controlla la connessione e riprova."
+          }
+        }
+      }
+    },
+    "classdevice.ask_owner": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Ask %@'s teacher to change this."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Per cambiarlo, chiedi all'insegnante di %@."
+          }
+        }
+      }
+    },
+    "classdevice.save_failed": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Couldn't set up this iPad. Please try again."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossibile configurare questo iPad. Riprova."
           }
         }
       }

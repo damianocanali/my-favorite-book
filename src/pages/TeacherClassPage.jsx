@@ -12,6 +12,7 @@ import StudentBooks from '../components/school/StudentBooks'
 import StudentAvatarEditor from '../components/school/StudentAvatarEditor'
 import AssignmentsSection from '../components/school/AssignmentsSection'
 import AssignmentReview from '../components/school/AssignmentReview'
+import ClassDeviceCard from '../components/school/ClassDeviceCard'
 import { schoolFetch } from '../lib/schoolApi'
 import { teacherErrorText } from '../components/school/teacherErrors'
 import { MAX_SEATS } from '../../lib/school/license.js'
@@ -317,6 +318,8 @@ export default function TeacherClassPage() {
           </span>
         </label>
       </div>
+
+      <ClassDeviceCard classId={classItem.id} name={classItem.name} code={classItem.code} />
 
       <SchoolHoursEditor
         classId={classItem.id}

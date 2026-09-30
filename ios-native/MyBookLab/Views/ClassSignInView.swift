@@ -4,22 +4,34 @@
 //
 // - No email, no password, no reading required past the code. The name
 //   tiles lead with the child's emoji, the pad is all pictures.
-// - Only the CLASS CODE is remembered on the device, and only after a
-//   successful sign-in. Never a name or a picture: the next child on this
-//   iPad must not land on the previous child's tile.
+// - Nothing is remembered implicitly: not the code, not a name, not a
+//   picture. A class iPad is something a teacher sets up on purpose
+//   (ClassDeviceStore); then this screen opens straight on that class's
+//   name list (`.device`) and the child never types the code. Otherwise it
+//   starts at the code step every time (`.open`).
 // - Children never see an attempt counter, a price, or why a class is
 //   closed. Every server code collapses to one of seven gentle sentences.
 //
-// Presented full-screen (from SignInView): on iPad this is a child's whole
-// screen, not a form sheet, so the tiles and pictures can be big.
+// Part of the full-screen sign-in flow (SignInFlowView): on iPad this is a
+// child's whole screen, not a form sheet, so the tiles and pictures can be
+// big, and nothing is dismissed by a stray tap.
 import SwiftUI
 
 struct ClassSignInView: View {
-    /// "Not you? Choose again" — back to the who's-signing-in chooser.
-    var onChooseAgain: (() -> Void)?
+    enum Mode {
+        /// "I'm a student" from the welcome screen: type the class code.
+        case open
+        /// A class iPad: straight to this class's name list.
+        case device(ClassDevice)
+    }
+
+    let mode: Mode
+    /// `.open`: Back from the code step (to the welcome screen).
+    /// `.device`: "Not in <class>?" (to the welcome screen; the iPad stays
+    /// set up).
+    var onExit: () -> Void
 
     @Environment(AuthStore.self) private var auth
-    @Environment(\.dismiss) private var dismiss
     @Environment(\.horizontalSizeClass) private var hSize
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
@@ -38,8 +50,12 @@ struct ClassSignInView: View {
     @State private var shakeTrigger: CGFloat = 0
     @State private var speaker = SpeechSpeaker()
     @FocusState private var codeFocused: Bool
-
-    static let classCodeKey = "classCode"
+    /// `.device` only: loading the class's name list.
+    @State private var loadingDevice = false
+    /// `.device` only: the stored class code stopped working (or the
+    /// network did). The error code, as the server sent it.
+    @State private var deviceError: String?
+    @State private var confirmingExit = false
     /// How long the wrong-guess shake plays before the slots clear — same as
     /// the web's SHAKE_MS.
     private static let shakeDuration: Duration = .milliseconds(450)
@@ -49,20 +65,23 @@ struct ClassSignInView: View {
     var body: some View {
         ZStack {
             CosmicBackground().ignoresSafeArea()
+            VStack(spacing: 0) {
+            // Back first in reading order (a top bar, not an overlay).
+            SignInTopBar(onBack: showsBack ? back : nil)
             ScrollView {
                 VStack(spacing: regular ? 24 : 18) {
                     header
                     card
-                    if let onChooseAgain {
+                    if let device {
                         Button {
                             speaker.stop()
-                            onChooseAgain()
+                            onExit()
                         } label: {
-                            Text("Not you? Choose again")
+                            Text(SignInCopy.notInClass(device.displayName))
                                 .font(.callout)
-                                .foregroundStyle(.white.opacity(0.75))
+                                .foregroundStyle(.white.opacity(0.8))
                                 .underline()
-                                .frame(minHeight: 44)
+                                .frame(minHeight: 48)
                         }
                     }
                 }
@@ -73,35 +92,88 @@ struct ClassSignInView: View {
                 .contentColumn(maxWidth: step == .code ? 560 : step == .name ? 760 : 640)
             }
             .scrollDismissesKeyboard(.interactively)
-        }
-        .overlay(alignment: .topLeading) {
-            Button {
-                speaker.stop()
-                dismiss()
-            } label: {
-                Image(systemName: "xmark")
-                    .font(.headline)
-                    .foregroundStyle(.white)
-                    .frame(width: 44, height: 44)
-                    .background(.white.opacity(0.12), in: Circle())
             }
-            .accessibilityLabel(Text("Close"))
-            .padding(.leading, 16)
-            .padding(.top, 8)
         }
-        .task { await restoreRememberedClass() }
+        // VoiceOver hears an error the moment it appears.
+        .onChange(of: errorCode) { _, code in
+            if let code { AccessibilityNotification.Announcement(String(appLocalized: SchoolCopy.error(code))).post() }
+        }
+        .onChange(of: deviceError) { _, code in
+            if code != nil { AccessibilityNotification.Announcement(String(appLocalized: deviceMessage)).post() }
+        }
+        .discardTypedConfirmation(isPresented: $confirmingExit) {
+            speaker.stop()
+            onExit()
+        }
+        .task {
+            guard let device, step == .code, students.isEmpty else { return }
+            code = device.code
+            await loadDevice()
+        }
         .onDisappear { speaker.stop() }
+    }
+
+    private var device: ClassDevice? {
+        if case .device(let d) = mode { return d }
+        return nil
+    }
+
+    // MARK: - Back
+
+    /// Pictures → names in both modes; names → code, and code → out, only
+    /// when the child came in by typing a code. On a class iPad the name
+    /// list is home, and "Not in <class>?" is the way out.
+    private var showsBack: Bool {
+        switch step {
+        case .pictures: true
+        case .name, .code: device == nil
+        }
+    }
+
+    private func back() {
+        Haptics.tap()
+        switch step {
+        case .pictures:
+            guard !submitting else { return }
+            selected = nil
+            picks = []
+            errorCode = nil
+            step = .name
+        case .name:
+            notMyClass()
+        case .code:
+            // Only a half-typed code is worth asking about.
+            if code.isEmpty { speaker.stop(); onExit() } else { confirmingExit = true }
+        }
     }
 
     // MARK: - Header
 
     private var header: some View {
         VStack(spacing: 8) {
+            if let device {
+                // The class banner: which class this iPad belongs to, before
+                // anything else. A class name is data, never translated.
+                Text(SignInCopy.classBanner(device.displayName))
+                    .font(.system(regular ? .title2 : .title3, design: .rounded, weight: .heavy))
+                    .foregroundStyle(.white)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 22)
+                    .padding(.vertical, 10)
+                    .background(
+                        LinearGradient(colors: [Color(red: 0.55, green: 0.3, blue: 0.95),
+                                                Color(red: 0.93, green: 0.3, blue: 0.6)],
+                                       startPoint: .leading, endPoint: .trailing),
+                        in: Capsule())
+                    .accessibilityAddTraits(.isHeader)
+                    .padding(.bottom, 4)
+            }
             Mascot(mood: step == .pictures ? .think : .wave, size: regular ? 110 : 96)
             Text(SchoolCopy.pageTitle)
                 .font(.system(regular ? .largeTitle : .title, design: .rounded, weight: .bold))
                 .foregroundStyle(.white)
-            if let name = classroom?.name, step != .code {
+            if device == nil, let name = classroom?.name, step != .code {
                 // A class name is data, never translated.
                 Text(verbatim: name)
                     .font(.subheadline.weight(.semibold))
@@ -109,7 +181,7 @@ struct ClassSignInView: View {
                     .textCase(.uppercase)
             }
         }
-        .padding(.top, 36)
+        .padding(.top, 8)
     }
 
     // MARK: - Card
@@ -122,7 +194,7 @@ struct ClassSignInView: View {
                         .font(.system(regular ? .title2 : .title3, design: .rounded, weight: .bold))
                         .foregroundStyle(.white)
                         .accessibilityAddTraits(.isHeader)
-                    if step == .code {
+                    if step == .code, device == nil {
                         Text(SchoolCopy.codeHint)
                             .font(.callout)
                             .foregroundStyle(.white.opacity(0.75))
@@ -146,7 +218,12 @@ struct ClassSignInView: View {
             }
 
             switch step {
-            case .code: codeStep.padding(.horizontal, regular ? 0 : 16)
+            case .code:
+                if device != nil {
+                    deviceStatus.padding(.horizontal, regular ? 0 : 16)
+                } else {
+                    codeStep.padding(.horizontal, regular ? 0 : 16)
+                }
             case .name: nameStep
             case .pictures: pictureStep
             }
@@ -162,6 +239,9 @@ struct ClassSignInView: View {
 
     private var heading: LocalizedStringResource {
         switch step {
+        case .code where device != nil:
+            // Neutral: the sentence below says what's wrong, once.
+            deviceError == nil ? SchoolCopy.codeChecking : SignInCopy.deviceProblemHeading
         case .code: SchoolCopy.codeHeading
         case .name: SchoolCopy.nameHeading
         case .pictures: SchoolCopy.pictureHeading
@@ -186,6 +266,9 @@ struct ClassSignInView: View {
     private var speechText: String {
         var parts: [String] = []
         switch step {
+        case .code where device != nil:
+            parts.append(String(appLocalized: heading))
+            if deviceError != nil { parts.append(String(appLocalized: deviceMessage)) }
         case .code:
             parts.append(String(appLocalized: SchoolCopy.codeHeading))
             parts.append(String(appLocalized: SchoolCopy.codeHint))
@@ -238,7 +321,7 @@ struct ClassSignInView: View {
         }
     }
 
-    private func attemptCode(_ value: String, silent: Bool = false) async {
+    private func attemptCode(_ value: String) async {
         checkingCode = true
         errorCode = nil
         defer { checkingCode = false }
@@ -249,26 +332,78 @@ struct ClassSignInView: View {
             codeFocused = false
             step = .name
         } catch let e as APIClient.SchoolError {
-            if silent && e.code == "class_not_found" {
-                // The remembered code no longer points at a real class
-                // (rotated or deleted). Forget it quietly rather than greet a
-                // child who typed nothing with an error.
-                UserDefaults.standard.removeObject(forKey: Self.classCodeKey)
-                code = ""
-                return
-            }
             errorCode = e.code ?? "generic"
         } catch {
             errorCode = "generic"
         }
     }
 
-    private func restoreRememberedClass() async {
-        guard step == .code, code.isEmpty,
-              let saved = UserDefaults.standard.string(forKey: Self.classCodeKey),
-              saved.count == 6 else { return }
-        code = saved
-        await attemptCode(saved, silent: true)
+    // MARK: - Class iPad: straight to the names
+
+    /// The iPad's class, loaded from its stored code. If the code stops
+    /// working (class archived, code changed, sign-in closed, licence
+    /// resting) this says so kindly and stays put: only a teacher removes
+    /// the class from the iPad, never a failed request.
+    private func loadDevice() async {
+        guard let device else { return }
+        loadingDevice = true
+        deviceError = nil
+        errorCode = nil
+        defer { loadingDevice = false }
+        do {
+            let roster = try await APIClient.shared.schoolRoster(code: device.code)
+            classroom = roster.classroom
+            students = roster.students
+            selected = nil
+            picks = []
+            step = .name
+        } catch {
+            // No code at all means the request never got an answer.
+            deviceError = (error as? APIClient.SchoolError)?.code ?? "network"
+            step = .code
+        }
+    }
+
+    /// Codes that mean "this class can't be signed into from here right
+    /// now" (roster.js 404 / 423) rather than a network hiccup.
+    private static let unavailableCodes: Set<String> = [
+        "class_not_found", "class_resting", "sign_in_closed", "class_paused",
+    ]
+
+    /// Codes that mean the server or the connection, not the class.
+    private static let networkCodes: Set<String> = ["network", "upstream", "not_configured"]
+
+    private var deviceMessage: LocalizedStringResource {
+        guard let deviceError else { return SchoolCopy.codeChecking }
+        if Self.unavailableCodes.contains(deviceError) { return SignInCopy.deviceClassUnavailable }
+        if Self.networkCodes.contains(deviceError) { return SignInCopy.deviceNetwork }
+        return SchoolCopy.error(deviceError)
+    }
+
+    private var deviceStatus: some View {
+        VStack(spacing: 14) {
+            if loadingDevice || deviceError == nil {
+                ProgressView().tint(.white).controlSize(.large)
+                    .frame(maxWidth: .infinity, minHeight: 96)
+            } else if deviceError != nil {
+                Text(deviceMessage)
+                    .font(.system(.title3, design: .rounded, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: .infinity)
+                    .padding(18)
+                    .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 18))
+                Button {
+                    Task { await loadDevice() }
+                } label: {
+                    Text(SignInCopy.tryAgain)
+                        .font(.headline)
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity, minHeight: 56)
+                        .background(.purple.opacity(0.6), in: Capsule())
+                }
+            }
+        }
     }
 
     // MARK: - Step 2: name tiles
@@ -312,17 +447,20 @@ struct ClassSignInView: View {
             }
             .padding(.horizontal, regular ? 0 : 16)
 
-            Button(action: notMyClass) {
-                Text(SchoolCopy.notMyClass)
-                    .font(.callout)
-                    .foregroundStyle(.white.opacity(0.75))
-                    .frame(maxWidth: .infinity, minHeight: 48)
+            // On a class iPad "Not in <class>?" (below the card) is the way
+            // out instead.
+            if device == nil {
+                Button(action: notMyClass) {
+                    Text(SchoolCopy.notMyClass)
+                        .font(.callout)
+                        .foregroundStyle(.white.opacity(0.75))
+                        .frame(maxWidth: .infinity, minHeight: 48)
+                }
             }
         }
     }
 
     private func notMyClass() {
-        UserDefaults.standard.removeObject(forKey: Self.classCodeKey)
         code = ""
         classroom = nil
         students = []
@@ -345,7 +483,7 @@ struct ClassSignInView: View {
     private var pictureStep: some View {
         VStack(spacing: regular ? 20 : 16) {
             if blockingError {
-                Button(action: notMyClass) {
+                Button(action: startOver) {
                     Text(SchoolCopy.startOver)
                         .font(.headline)
                         .foregroundStyle(.white)
@@ -366,6 +504,17 @@ struct ClassSignInView: View {
                     }
                 }
             }
+        }
+    }
+
+    /// After a dead-end sign-in error: a typed-code child starts again from
+    /// the code; a class iPad reloads its own class (which then says so if
+    /// the class has become unavailable).
+    private func startOver() {
+        if device != nil {
+            Task { await loadDevice() }
+        } else {
+            notMyClass()
         }
     }
 
@@ -505,10 +654,9 @@ struct ClassSignInView: View {
         // Cleared here too, not only on failure: the cover can linger a beat
         // after isSignedIn flips, and a pad left disabled looks broken.
         submitting = false
-        UserDefaults.standard.set(code, forKey: Self.classCodeKey)
         Haptics.celebrate()
         speaker.stop()
-        // SignInView closes itself (and this cover) when isSignedIn flips;
+        // The sign-in flow closes when isSignedIn flips;
         // land the child on their shelf, like the web's /bookshelf.
         AppRouter.shared.selectedTab = .books
     }
