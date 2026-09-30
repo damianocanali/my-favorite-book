@@ -29,6 +29,29 @@ enum SchoolAssignments {
         }
     }
 
+    /// The teacher's current unread nudge. `.some(nil)` = none; nil = the
+    /// read failed, and the caller keeps whatever it already shows.
+    static func nudge() async -> StudentNudge?? {
+        guard let token = await bearer() else { return nil }
+        do {
+            return .some(try await APIClient.shared.studentNudge(bearerToken: token))
+        } catch {
+            log.warning("nudge read failed: \(String(describing: error), privacy: .public)")
+            return nil
+        }
+    }
+
+    /// "Got it". Best-effort: the card is already gone; a failure only
+    /// means it may come back on the next poll.
+    static func markNudgeSeen(id: String) async {
+        guard let token = await bearer() else { return }
+        do {
+            try await APIClient.shared.markNudgeSeen(id: id, bearerToken: token)
+        } catch {
+            log.warning("nudge seen failed: \(String(describing: error), privacy: .public)")
+        }
+    }
+
     /// How often the home re-reads the list while it is on screen and the
     /// app is active, so a just-published assignment shows up by itself.
     static let pollInterval: Duration = .seconds(60)

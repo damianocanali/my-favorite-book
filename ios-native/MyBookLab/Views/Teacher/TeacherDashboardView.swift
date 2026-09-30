@@ -27,6 +27,10 @@ struct TeacherDashboardView: View {
     /// id -> when its post-Seen suppression ends (web: filterRecentlySeen).
     @State private var recentlySeenUntil: [String: Date] = [:]
     @State private var creatingClass = false
+    /// Latest nudge per student id, for the selected class.
+    @State private var nudges: [String: TeacherNudge] = [:]
+    @State private var nudging = false
+    @State private var nudgeResult: String?
     @Environment(\.horizontalSizeClass) private var hSize
     // Scaled with Dynamic Type, so larger text grows every card equally.
     @ScaledMetric(relativeTo: .body) private var studentCardHeight: CGFloat = 176
@@ -67,6 +71,15 @@ struct TeacherDashboardView: View {
         }
         .onAppear { consumeRoute() }
         .onChange(of: teacher.pendingRoute) { _, _ in consumeRoute() }
+        .sheet(isPresented: $nudging) {
+            if let classData {
+                TeacherNudgeSheet(classId: classData.class.id, students: classData.students,
+                                  assignments: classData.assignments ?? []) { res in
+                    nudgeResult = NudgeResultText.make(res)
+                    Task { await loadNudges(classData.class.id) }
+                }
+            }
+        }
         .sheet(isPresented: $creatingClass) {
             TeacherCreateClassSheet { created in
                 if let created { teacher.rememberedClassId = created.id }
@@ -281,6 +294,20 @@ struct TeacherDashboardView: View {
             HStack(alignment: .firstTextBaseline) {
                 TeacherSectionHeading(text: TeacherCopy.studentsHeading)
                 Spacer()
+                if !data.students.isEmpty {
+                    Button {
+                        nudgeResult = nil
+                        nudging = true
+                    } label: {
+                        Label { Text(NudgeCopy.nudgeButton) } icon: { Image(systemName: "hand.wave.fill") }
+                            .font(.subheadline.weight(.semibold))
+                            .padding(.horizontal, 12)
+                            .frame(minHeight: 44)
+                            .background(Color.cyan.opacity(0.15), in: Capsule())
+                            .foregroundStyle(.cyan)
+                    }
+                    .buttonStyle(.plain)
+                }
                 // The column the roster's chips track: the newest open
                 // assignment, linking to its review — or a nudge to make one.
                 Button {
@@ -298,6 +325,12 @@ struct TeacherDashboardView: View {
                     .lineLimit(1)
                 }
             }
+            if let nudgeResult {
+                Text(verbatim: nudgeResult)
+                    .font(.footnote)
+                    .foregroundStyle(TeacherTheme.secondaryText)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
             if data.students.isEmpty {
                 Text(TeacherCopy.studentsEmpty)
                     .font(.subheadline).foregroundStyle(.white.opacity(0.7))
@@ -309,7 +342,11 @@ struct TeacherDashboardView: View {
                                          count: hSize == .regular ? 2 : 1), spacing: 12) {
                     ForEach(data.students) { student in
                         NavigationLink {
-                            TeacherStudentDetailView(classId: data.class.id, student: student)
+                            TeacherStudentDetailView(classId: data.class.id, student: student,
+                                                     assignments: data.assignments ?? [],
+                                                     nudge: nudges[student.id]) {
+                                Task { await loadNudges(data.class.id) }
+                            }
                         } label: {
                             studentCard(student, latest: latest)
                         }
@@ -351,6 +388,7 @@ struct TeacherDashboardView: View {
                     if s.inactive_7d == true {
                         TeacherChip(text: TeacherCopy.inactiveChip, tone: .muted)
                     }
+                    NudgeStatusChip(nudge: nudges[s.id])
                     Spacer(minLength: 0)
                 }
                 .frame(height: badgeRowHeight)
@@ -432,10 +470,19 @@ struct TeacherDashboardView: View {
             let data = try await APIClient.shared.teacherClassDashboard(classId: id, bearerToken: token)
             guard id == selectedClassId else { return }
             classData = data
+            await loadNudges(id)
         } catch {
             guard id == selectedClassId else { return }
             classError = .some((error as? APIClient.TeacherError)?.code)
         }
+    }
+
+    /// Best-effort: a failed read just shows no "Sent" / "Seen ✓" chips.
+    private func loadNudges(_ classId: String) async {
+        guard let token = await auth.validAccessToken() else { return }
+        guard let list = try? await APIClient.shared.teacherNudges(classId: classId, bearerToken: token),
+              classId == selectedClassId else { return }
+        nudges = Dictionary(list.map { ($0.student_id, $0) }, uniquingKeysWith: { a, _ in a })
     }
 
     private func selectClass(_ id: String) {
@@ -444,6 +491,8 @@ struct TeacherDashboardView: View {
         // The old class's roster must not sit under the new name while the
         // new one loads.
         classData = nil
+        nudges = [:]
+        nudgeResult = nil
         selectedClassId = id
     }
 

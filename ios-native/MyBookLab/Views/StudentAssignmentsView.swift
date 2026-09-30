@@ -103,13 +103,18 @@ struct MyAssignmentsSection: View {
     @State private var feedbackFor: StudentAssignment?
     /// The assignment waiting on "replace your unsaved book?".
     @State private var pendingStart: StudentAssignment?
+    /// The teacher's unread nudge (api/school/nudges.js), shown first.
+    @State private var nudge: StudentNudge?
+    /// Dismissed with "Got it" on this device: a poll racing the PATCH
+    /// must not bring the card straight back.
+    @State private var dismissedNudges: Set<String> = []
 
     var body: some View {
         // A real container, not a Group: modifiers on a Group that starts
         // empty land on no view, so .task would never run and nothing
         // would ever load.
         VStack(spacing: 0) {
-            if auth.isStudent, !visible.isEmpty {
+            if auth.isStudent, !visible.isEmpty || nudge != nil {
                 VStack(alignment: .leading, spacing: 14) {
                     Label {
                         Text(AssignmentCopy.fromTeacher)
@@ -120,6 +125,19 @@ struct MyAssignmentsSection: View {
                     .font(.system(.title2, design: .rounded).bold())
                     .foregroundStyle(.white)
                     .accessibilityAddTraits(.isHeader)
+
+                    if let nudge {
+                        StudentNudgeCard(
+                            nudge: nudge,
+                            actionLabel: nudgeActionLabel(nudge),
+                            // Acting on it counts as reading it.
+                            onAction: {
+                                nudgeAction(nudge)
+                                dismissNudge(nudge)
+                            },
+                            onGotIt: { dismissNudge(nudge) }
+                        )
+                    }
 
                     LazyVGrid(columns: [GridItem(.adaptive(minimum: 280), spacing: 16)], spacing: 16) {
                         ForEach(visible) { assignment in
@@ -161,6 +179,7 @@ struct MyAssignmentsSection: View {
         .task(id: PollKey(student: auth.isStudent, userId: auth.user?.id, active: scenePhase == .active)) {
             guard auth.isStudent else {
                 assignments = nil
+                nudge = nil
                 return
             }
             seen = AssignmentSeen.ids(userId: auth.user?.id.uuidString)
@@ -169,6 +188,10 @@ struct MyAssignmentsSection: View {
                 if let fresh = await SchoolAssignments.list() {
                     assignments = fresh
                     seen = AssignmentSeen.prune(keeping: fresh.map(\.id), userId: auth.user?.id.uuidString)
+                }
+                // A failed read keeps what is on screen.
+                if let fresh = await SchoolAssignments.nudge() {
+                    nudge = fresh.flatMap { dismissedNudges.contains($0.id) ? nil : $0 }
                 }
                 try? await Task.sleep(for: SchoolAssignments.pollInterval)
             }
@@ -281,6 +304,57 @@ struct MyAssignmentsSection: View {
             || b.setting != nil
             || b.pages.contains { !$0.text.trimmingCharacters(in: .whitespaces).isEmpty || $0.illustrationData != nil }
             || b.coverImage != nil
+    }
+
+    // MARK: Nudge
+
+    /// The linked assignment, if it is still one the child can write for.
+    private func nudgeAssignment(_ n: StudentNudge) -> StudentAssignment? {
+        guard let id = n.assignment?.id,
+              let a = assignments?.first(where: { $0.id == id }),
+              a.cardStatus == .notStarted else { return nil }
+        return a
+    }
+
+    /// Most recently edited book on the shelf (ISO-8601 strings sort by time).
+    private var mostRecentBook: Book? {
+        bookshelf.books.max { $0.updatedAt < $1.updatedAt }
+    }
+
+    private func nudgeActionLabel(_ n: StudentNudge) -> LocalizedStringResource {
+        if let a = nudgeAssignment(n) {
+            return isStarted(a) ? AssignmentCopy.continueWriting : AssignmentCopy.startWriting
+        }
+        if let open = BookDraftStore.shared.book, Self.hasWork(open) { return NudgeCopy.keepWriting }
+        return mostRecentBook != nil ? NudgeCopy.keepWriting : NudgeCopy.createBook
+    }
+
+    /// The linked assignment's Start/Continue writing (same path as its
+    /// card); otherwise the book in progress, the most recent book, or a
+    /// new one. Never wipes an open draft that has work in it.
+    private func nudgeAction(_ n: StudentNudge) {
+        if let a = nudgeAssignment(n) {
+            markOpened(a)
+            startOrContinue(a)
+            return
+        }
+        let draft = BookDraftStore.shared
+        if let open = draft.book, Self.hasWork(open) {
+            router.selectedTab = .create
+            return
+        }
+        if let book = mostRecentBook {
+            draft.edit(book)
+        } else {
+            draft.begin()
+        }
+        router.selectedTab = .create
+    }
+
+    private func dismissNudge(_ n: StudentNudge) {
+        dismissedNudges.insert(n.id)
+        nudge = nil
+        Task { await SchoolAssignments.markNudgeSeen(id: n.id) }
     }
 
     private func markSeen(_ assignmentId: String) {

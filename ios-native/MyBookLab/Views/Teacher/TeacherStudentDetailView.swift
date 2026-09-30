@@ -11,6 +11,16 @@ import SwiftUI
 struct TeacherStudentDetailView: View {
     let classId: String
     let student: TeacherDashboardStudent
+    /// The class's dashboard assignments (for the nudge's "hand in" link).
+    var assignments: [TeacherDashboardAssignment] = []
+    /// This student's latest nudge, if any ("Sent" / "Seen ✓").
+    var nudge: TeacherNudge? = nil
+    var onNudgeSent: () -> Void = {}
+
+    @State private var nudging = false
+    @State private var nudgeResult: String?
+    /// Shown right after a send from here, before the dashboard reloads.
+    @State private var sentJustNow = false
 
     @Environment(AuthStore.self) private var auth
 
@@ -29,10 +39,29 @@ struct TeacherStudentDetailView: View {
                 VStack(spacing: 16) {
                     HStack(spacing: 12) {
                         TeacherStudentAvatar(emoji: student.avatar_emoji, url: student.avatar_url, size: 56)
-                        Text(verbatim: student.display_name)
-                            .font(.system(.title2, design: .rounded).bold())
-                            .foregroundStyle(.white)
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(verbatim: student.display_name)
+                                .font(.system(.title2, design: .rounded).bold())
+                                .foregroundStyle(.white)
+                            nudgeStatus
+                        }
                         Spacer()
+                        Button { nudging = true } label: {
+                            Label { Text(NudgeCopy.nudgeButton) } icon: { Image(systemName: "hand.wave.fill") }
+                                .font(.subheadline.weight(.semibold))
+                                .padding(.horizontal, 14)
+                                .frame(minHeight: 44)
+                                .background(Color.cyan.opacity(0.15), in: Capsule())
+                                .foregroundStyle(.cyan)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel(Text(NudgeCopy.nudgeOneAria(student.display_name)))
+                    }
+                    if let nudgeResult {
+                        Text(verbatim: nudgeResult)
+                            .font(.footnote)
+                            .foregroundStyle(TeacherTheme.secondaryText)
+                            .frame(maxWidth: .infinity, alignment: .leading)
                     }
                     Picker(selection: $tab) {
                         Text(TeacherCopy.tabBooks).tag(Tab.books)
@@ -57,11 +86,38 @@ struct TeacherStudentDetailView: View {
         .navigationTitle(Text(TeacherCopy.studentDetails(student.display_name)))
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(.hidden, for: .navigationBar)
+        .sheet(isPresented: $nudging) {
+            TeacherNudgeSheet(classId: classId, students: [student], assignments: assignments, single: true) { res in
+                nudgeResult = NudgeResultText.make(res)
+                if !res.sent.isEmpty { sentJustNow = true }
+                onNudgeSent()
+            }
+        }
         .task {
             async let b: Void = loadBooks()
             async let c: Void = loadCheckins()
             _ = await (b, c)
         }
+    }
+
+    /// "Last nudge: Sent" / "Last nudge: Seen ✓" (a new send shows Sent
+    /// until the dashboard's reload arrives).
+    @ViewBuilder
+    private var nudgeStatus: some View {
+        if sentJustNow && (nudge?.seen_at != nil || nudge == nil) {
+            statusLine(NudgeCopy.statusSent, seen: false)
+        } else if let nudge {
+            statusLine(nudge.seen_at != nil ? NudgeCopy.statusSeen : NudgeCopy.statusSent, seen: nudge.seen_at != nil)
+        }
+    }
+
+    private func statusLine(_ status: LocalizedStringResource, seen: Bool) -> some View {
+        HStack(spacing: 6) {
+            Text(NudgeCopy.lastNudge).foregroundStyle(TeacherTheme.secondaryText)
+            TeacherChip(text: status, tone: seen ? .good : .muted)
+        }
+        .font(.caption)
+        .accessibilityElement(children: .combine)
     }
 
     @ViewBuilder

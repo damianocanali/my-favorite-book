@@ -603,3 +603,70 @@ enum TeacherDates {
         )
     }
 }
+
+// MARK: - Nudges (api/school/nudges.js, migration 021)
+
+/// The latest nudge a teacher sent one student (GET ?classId=).
+struct TeacherNudge: Decodable, Identifiable, Hashable, Sendable {
+    let id: String
+    let student_id: String
+    let created_at: String?
+    let seen_at: String?
+    let preset: String?
+    let message: String?
+}
+
+/// POST result: who got it, and who was skipped (daily_cap, not_found, ...).
+struct TeacherNudgeSendResult: Decodable, Sendable {
+    struct Sent: Decodable, Sendable { let student_id: String; let id: String? }
+    struct Skipped: Decodable, Sendable { let student_id: String; let code: String }
+    let sent: [Sent]
+    let skipped: [Skipped]
+}
+
+/// A class account's current unread nudge (GET with no classId).
+struct StudentNudge: Decodable, Identifiable, Hashable, Sendable {
+    struct LinkedAssignment: Decodable, Hashable, Sendable { let id: String; let title: String }
+    let id: String
+    let teacher_name: String?
+    let preset: String?
+    let message: String?
+    let created_at: String?
+    let assignment: LinkedAssignment?
+}
+
+/// Shared limits and the "who might need a nudge" suggestion, mirrored from
+/// lib/school/nudges.js and src/components/school/nudgeUi.js.
+enum NudgeRules {
+    static let presets = ["story_waiting", "one_more_page", "cant_wait", "hand_in"]
+    /// UTF-16 units, like the server's JS `.length`.
+    static let messageMax = 140
+    static let maxStudents = 35
+    /// "No book edited in the last 3 days."
+    static let quietDays: TimeInterval = 3 * 24 * 60 * 60
+
+    enum Reason: Hashable, Sendable { case quiet, notHandedIn }
+
+    /// Why a student is pre-ticked, if at all: (a) no book edited in the
+    /// last 3 days (never edited counts), (b) a published assignment still
+    /// open for them and not handed in.
+    static func reasons(for s: TeacherDashboardStudent, assignments: [TeacherDashboardAssignment],
+                        now: Date = Date()) -> [Reason] {
+        var out: [Reason] = []
+        if let last = TeacherDates.parse(s.last_book_edited_at) {
+            if now.timeIntervalSince(last) >= quietDays { out.append(.quiet) }
+        } else {
+            out.append(.quiet)
+        }
+        let open = assignments.filter { $0.status == "published" }
+        if open.contains(where: { (s.assignments?[$0.id] ?? "not_started") == "not_started" }) {
+            out.append(.notHandedIn)
+        }
+        return out
+    }
+
+    /// The published assignments a student has not handed in yet.
+    static func openNotHandedIn(_ s: TeacherDashboardStudent, assignments: [TeacherDashboardAssignment]) -> [TeacherDashboardAssignment] {
+        assignments.filter { $0.status == "published" && (s.assignments?[$0.id] ?? "not_started") == "not_started" }
+    }
+}
