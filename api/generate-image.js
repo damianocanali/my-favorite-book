@@ -94,7 +94,8 @@ export default async function handler(req) {
       const promptErr = validatePrompt(payload?.prompt, req)
       if (promptErr) return promptErr
     }
-    const imageErr = validateSourceImage(sourceImage, req)
+    // Edits may point at the caller's own saved picture in our bucket.
+    const imageErr = validateSourceImage(sourceImage, req, { storedFor: auth.userId })
     if (imageErr) return imageErr
 
     // Moderate the child's RAW text before anything paid sees it.

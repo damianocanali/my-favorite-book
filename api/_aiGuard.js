@@ -4,6 +4,7 @@
 // SSRF-safe, and (for free-text prompts) moderated.
 import { verifyJwt } from './_auth.js'
 import { withCors } from './_rateLimit.js'
+import { isOwnStoredIllustration } from './_imageStore.js'
 
 // Generous caps — large enough for legitimate kid content, small enough to
 // stop a single request from ballooning cost or memory.
@@ -34,12 +35,18 @@ export async function requireUser(req) {
 
 /**
  * SSRF + size guard for a client-supplied source image. It MUST be an inline
- * data:image/ URI — never a remote URL, which the upstream model would fetch
- * on our behalf (SSRF to internal/metadata hosts). Returns an error Response
- * to return, or null when valid/absent.
+ * data:image/ URI — never an arbitrary remote URL, which the upstream model
+ * would fetch on our behalf (SSRF to internal/metadata hosts). Returns an
+ * error Response to return, or null when valid/absent.
+ *
+ * The one exception, opt-in via `storedFor: userId` (generate-image edits):
+ * the public URL of an illustration that user stored in OUR bucket — see
+ * isOwnStoredIllustration for how strict that match is. Saved pictures are
+ * URLs now, so without this "tweak" on a saved picture always 400'd.
  */
-export function validateSourceImage(sourceImage, req) {
+export function validateSourceImage(sourceImage, req, { storedFor = null } = {}) {
   if (sourceImage == null) return null // optional
+  if (storedFor && isOwnStoredIllustration(sourceImage, storedFor)) return null
   if (typeof sourceImage !== 'string' || !sourceImage.startsWith('data:image/')) {
     return aiError(400, 'sourceImage must be an inline data:image/ URI', req)
   }

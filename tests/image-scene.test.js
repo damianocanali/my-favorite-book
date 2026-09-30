@@ -1,6 +1,8 @@
 // Scene writer + /api/generate-image structured path. No real AI calls:
 // every provider is a mocked fetch.
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import { readFileSync } from 'node:fs'
+import { isOwnStoredIllustration } from '../api/_imageStore.js'
 import {
   validateScenePayload, fallbackScene, charactersNamedIn, sceneWriterRequest,
   parseScene, writeScene, buildFluxPrompt, rawTextForModeration, SCENE_MODEL, STYLE,
@@ -198,7 +200,8 @@ vi.mock('../api/_appAttest.js', () => ({
   dailyCapFor: () => 50,
   hourlyLimitFor: (_a, n) => n,
 }))
-vi.mock('../api/_imageStore.js', () => ({
+vi.mock('../api/_imageStore.js', async (importOriginal) => ({
+  ...(await importOriginal()),
   storeIllustration: vi.fn(async () => 'https://img.example/p.png'),
 }))
 
@@ -317,6 +320,35 @@ describe('POST /api/generate-image', () => {
     expect(flux.body.prompt).not.toContain('Trump')
   })
 
+  const SB = process.env.SUPABASE_URL
+  const own = () => `${SB}/storage/v1/object/public/book-illustrations/u1/page-abc123.png`
+
+  it('edit accepts the caller\'s own saved picture URL and hands it to Together as image_url', async () => {
+    const res = await post({ ...page, kind: 'edit', instruction: 'add a hat', sourceImage: own() })
+    expect(res.status).toBe(200)
+    const [flux] = of('api.together.xyz')
+    expect(flux.body.image_url).toBe(own())
+  })
+
+  it.each([
+    ['another host', 'https://evil.example/storage/v1/object/public/book-illustrations/u1/page-a.png'],
+    ['metadata host', 'http://169.254.169.254/latest/meta-data/'],
+    ['http on our host', () => own().replace('https:', 'http:')],
+    ['another user', () => own().replace('/u1/', '/u2/')],
+    ['another bucket', () => own().replace('book-illustrations', 'avatars')],
+    ['path traversal', () => `${SB}/storage/v1/object/public/book-illustrations/u1/../u2/page-a.png`],
+    ['encoded traversal', () => `${SB}/storage/v1/object/public/book-illustrations/u1/%2e%2e/page-a.png`],
+    ['query string', () => `${own()}?x=1`],
+    ['credentials', () => own().replace('https://', 'https://a:b@')],
+    ['lookalike host', () => own().replace(new URL(SB).host, `${new URL(SB).host}.evil.example`)],
+  ])('edit rejects a sourceImage from %s', async (_label, url) => {
+    const sourceImage = typeof url === 'function' ? url() : url
+    const res = await post({ ...page, kind: 'edit', instruction: 'add a hat', sourceImage })
+    expect(res.status).toBe(400)
+    expect(of('api.together.xyz')).toHaveLength(0)
+    expect(of('bump_generation')).toHaveLength(0)
+  })
+
   it('edit without a sourceImage is rejected', async () => {
     const res = await post({ ...page, kind: 'edit', instruction: 'add a hat' })
     expect(res.status).toBe(400)
@@ -330,5 +362,30 @@ describe('POST /api/generate-image', () => {
     expect(flux.body.prompt).toBe('A fox in a forest. no text')
     expect(flux.body.steps).toBe(28)
     expect(of('moderations')).toHaveLength(1)
+  })
+})
+
+describe('isOwnStoredIllustration', () => {
+  const base = 'https://proj.supabase.co'
+  const good = `${base}/storage/v1/object/public/book-illustrations/u1/edit-0f9a.png`
+  it('accepts only our bucket, the caller\'s folder, a plain file', () => {
+    expect(isOwnStoredIllustration(good, 'u1', base)).toBe(true)
+    expect(isOwnStoredIllustration(good, 'U1', base)).toBe(true)
+    expect(isOwnStoredIllustration(good, 'u2', base)).toBe(false)
+    expect(isOwnStoredIllustration(good.replace('proj', 'other'), 'u1', base)).toBe(false)
+    expect(isOwnStoredIllustration(`${base}/storage/v1/object/public/book-illustrations/u1/sub/x.png`, 'u1', base)).toBe(false)
+    expect(isOwnStoredIllustration(`${good}#frag`, 'u1', base)).toBe(false)
+    expect(isOwnStoredIllustration(good.replace('.png', '.svg'), 'u1', base)).toBe(false)
+    expect(isOwnStoredIllustration('data:image/png;base64,AA', 'u1', base)).toBe(false)
+    expect(isOwnStoredIllustration(good, 'u1', 'http://proj.supabase.co')).toBe(false)
+    expect(isOwnStoredIllustration(good, null, base)).toBe(false)
+  })
+})
+
+describe('FLUX.2-dev step count', () => {
+  it.each(['api/generate-image.js', 'api/generate-avatar.js', 'api/school/student-avatar.js'])('%s uses 28 steps, not the schnell-era 4', (f) => {
+    const src = readFileSync(f, 'utf8')
+    expect(src).not.toMatch(/steps:\s*4\b/)
+    expect(src).toMatch(/steps:\s*28\b/)
   })
 })

@@ -128,7 +128,9 @@ export default async function handler(req) {
         }
       : {
           model, prompt,
-          width: 512, height: 512, steps: 4, n: 1,
+          // FLUX.2-dev's default is ~28 steps; 4 was a FLUX.1-schnell leftover
+          // and produced under-cooked avatars.
+          width: 512, height: 512, steps: 28, n: 1,
           response_format: 'b64_json',
         }
 
