@@ -286,9 +286,58 @@ actor APIClient {
 
     // MARK: - Image generation
 
+    /// Structured picture request. The app no longer builds FLUX prompts:
+    /// the server writes an English scene from these fields (see
+    /// lib/imageScene.js), so the child's prose is never pasted into the
+    /// image prompt — that drew their words as letters, passed real people's
+    /// names through, and forced the hero into every page.
+    ///
+    /// Everything except `pageText`, `title` and `instruction` is English
+    /// on purpose (prompt terms, never display labels).
     struct GenerateImageRequest: Encodable {
-        let prompt: String
-        let style: String?
+        struct Character: Encodable {
+            let name: String
+            let promptEn: String
+            let description: String?
+        }
+        struct Setting: Encodable { let promptEn: String }
+
+        let kind: String            // "page" | "cover" | "portrait" | "edit"
+        var pageText: String?
+        var title: String?
+        var characters: [Character]
+        var setting: Setting?
+        var locale: String = AppLanguage.apiLocale
+
+        static func page(text: String, book: Book) -> Self {
+            .init(kind: "page", pageText: text, title: nil,
+                  characters: characters(of: book), setting: setting(of: book))
+        }
+
+        static func cover(book: Book) -> Self {
+            .init(kind: "cover", pageText: nil, title: book.title,
+                  characters: characters(of: book), setting: setting(of: book))
+        }
+
+        private static func characters(of book: Book) -> [Character] {
+            book.characters.map { c in
+                let d = c.description?.trimmingCharacters(in: .whitespaces)
+                return Character(name: c.name, promptEn: c.imagePromptSubject,
+                                 description: (d?.isEmpty ?? true) ? nil : d)
+            }
+        }
+
+        private static func setting(of book: Book) -> Setting? {
+            // Preset worlds store their English name + blurb (the display
+            // title is a separate localized resource), so this is English.
+            guard let s = book.setting,
+                  let name = (s.name ?? s.label)?.trimmingCharacters(in: .whitespaces),
+                  !name.isEmpty else { return nil }
+            if let d = s.description?.trimmingCharacters(in: .whitespaces), !d.isEmpty {
+                return Setting(promptEn: String("\(name) (\(d))".prefix(200)))
+            }
+            return Setting(promptEn: String(name.prefix(200)))
+        }
     }
     struct GenerateImageResponse: Decodable {
         let image: String // data URL or remote URL
