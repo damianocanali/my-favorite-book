@@ -63,8 +63,6 @@ struct SignInFlowView: View {
         .animation(reduceMotion ? nil : .easeInOut(duration: 0.2), value: router.signInDoor)
         .animation(reduceMotion ? nil : .easeInOut(duration: 0.2), value: router.signInWelcomeOverClass)
         .interactiveDismissDisabled()
-        .onAppear { router.signInShowing = true }
-        .onDisappear { router.signInShowing = false }
         .onChange(of: auth.isSignedIn) { _, signedIn in
             if signedIn { router.dismissSignIn() }
         }

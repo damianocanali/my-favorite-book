@@ -2,6 +2,7 @@
 // can switch tabs programmatically (e.g. the hero landing's "Start a
 // new book" button hands off to the Create tab).
 import Observation
+import SwiftUI
 import UIKit
 
 enum AppTab: Int, Hashable, Sendable {
@@ -108,11 +109,12 @@ final class AppRouter {
     /// false → true on the next run loop, after dismissing whatever UIKit
     /// still has presented over the root.
     private func retryPresentation() {
-        guard retries < 3 else { return }
+        // Never while Apple / Google / Face ID has its own UI up.
+        guard retries < 3, !signInShowing, AuthStore.shared.interactiveAuthInFlight == 0 else { return }
         retries += 1
         signInPresented = false
         Task { @MainActor in
-            await Self.dismissForeignPresentations()
+            await self.dismissForeignPresentations()
             await Task.yield()
             self.signInPresented = true
             try? await Task.sleep(for: .milliseconds(900))
@@ -120,13 +122,42 @@ final class AppRouter {
         }
     }
 
-    private static func dismissForeignPresentations() async {
-        let root = UIApplication.shared.connectedScenes
-            .compactMap { ($0 as? UIWindowScene)?.keyWindow?.rootViewController }
-            .first
-        guard let presented = root?.presentedViewController, !presented.isBeingDismissed else { return }
+    /// The sign-in cover's hosting controller (SignInCoverMarker).
+    @ObservationIgnored weak var signInHost: UIViewController?
+
+    private func dismissForeignPresentations() async {
+        guard let root = UIApplication.shared.connectedScenes
+            .compactMap({ ($0 as? UIWindowScene)?.keyWindow?.rootViewController })
+            .first,
+              let presented = root.presentedViewController, !presented.isBeingDismissed
+        else { return }
+        // Re-checked right before dismissing: never the sign-in cover (or a
+        // stack it is part of), never while it's reported on screen, never
+        // during Apple / Google / Face ID sign-in.
+        guard !signInShowing, AuthStore.shared.interactiveAuthInFlight == 0 else { return }
+        var vc: UIViewController? = presented
+        while let current = vc {
+            if current === signInHost { return }
+            vc = current.presentedViewController
+        }
         await withCheckedContinuation { (done: CheckedContinuation<Void, Never>) in
-            root?.dismiss(animated: false) { done.resume() }
+            root.dismiss(animated: false) { done.resume() }
+        }
+    }
+}
+
+/// Invisible; records the sign-in cover's hosting (presented) controller in
+/// AppRouter so the recovery can recognise it and leave it alone.
+struct SignInCoverMarker: UIViewControllerRepresentable {
+    func makeUIViewController(context: Context) -> Marker { Marker() }
+    func updateUIViewController(_ controller: Marker, context: Context) {}
+
+    final class Marker: UIViewController {
+        override func viewDidAppear(_ animated: Bool) {
+            super.viewDidAppear(animated)
+            var top: UIViewController = self
+            while let parent = top.parent { top = parent }
+            AppRouter.shared.signInHost = top
         }
     }
 }

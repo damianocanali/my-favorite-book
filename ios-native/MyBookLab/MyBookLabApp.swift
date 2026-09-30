@@ -90,12 +90,15 @@ struct MyBookLabApp: App {
                 }
                 // Keep the access token fresh while the app is in front, and
                 // stop the refresher in the background (see setAutoRefresh).
-                .onChange(of: scenePhase, initial: true) { _, phase in
+                .onChange(of: scenePhase, initial: true) { oldPhase, phase in
                     auth.setAutoRefresh(active: phase == .active)
                     // Back in front and signed out with no sign-in showing
                     // (a request SwiftUI dropped): try again. Not for a
                     // guest who chose "Explore first".
-                    if phase == .active, launched, !auth.loading {
+                    // Only on a real return from the background: .inactive →
+                    // .active also fires around system sheets (Face ID,
+                    // Apple sign-in), where nothing must be touched.
+                    if oldPhase == .background, phase == .active, launched, !auth.loading {
                         router.recheckSignIn(signedIn: auth.isSignedIn)
                     }
                 }
@@ -154,6 +157,13 @@ struct MyBookLabApp: App {
                         .environment(router)
                         .environment(\.locale, language.locale)
                         .id(language.code)
+                        // After the .id, so a language switch (which swaps
+                        // the view inside) never reads as the cover going
+                        // away. The marker records the cover's hosting
+                        // controller, which the recovery must never dismiss.
+                        .onAppear { router.signInShowing = true }
+                        .onDisappear { router.signInShowing = false }
+                        .background(SignInCoverMarker().frame(width: 0, height: 0).accessibilityHidden(true))
                         .overlay { LanguageSwitchOverlay(target: language.switching) }
                         .animation(.easeInOut(duration: 0.25), value: language.switching)
                         .preferredColorScheme(.dark)

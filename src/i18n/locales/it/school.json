@@ -421,12 +421,12 @@
       "success_body": "La tua maestra o il tuo maestro lo leggerà.",
       "errors": {
         "sync_failed": "Non siamo riusciti a salvare il tuo libro. Controlla la connessione e riprova.",
-        "assignment_closed": "Questo compito è chiuso. Chiedi al tuo insegnante.",
-        "past_due": "È scaduto il tempo per consegnarlo. Chiedi al tuo insegnante.",
-        "book_too_large": "Questo libro è troppo grande da consegnare. Chiedi al tuo insegnante.",
-        "assignment_not_found": "Non troviamo questo compito. Chiedi al tuo insegnante.",
+        "assignment_closed": "Questo compito è chiuso. Chiedi all'insegnante.",
+        "past_due": "È scaduto il tempo per consegnarlo. Chiedi all'insegnante.",
+        "book_too_large": "Questo libro è troppo grande da consegnare. Chiedi all'insegnante.",
+        "assignment_not_found": "Non troviamo questo compito. Chiedi all'insegnante.",
         "book_not_found": "Non troviamo questo libro. Riprova.",
-        "generic": "Qualcosa non ha funzionato. Chiedi al tuo insegnante."
+        "generic": "Qualcosa non ha funzionato. Chiedi all'insegnante."
       }
     },
     "feedback": {
@@ -454,7 +454,7 @@
     },
     "push": {
       "turn_on": "Attiva gli avvisi su questo computer",
-      "hint": "Ricevi un avviso quando uno studente chiede un adulto durante l'orario scolastico.",
+      "hint": "Ricevi un avviso quando qualcuno della classe chiede un adulto durante l'orario scolastico.",
       "on": "Gli avvisi sono attivi su questo computer",
       "turn_off": "Disattiva",
       "blocked": "Gli avvisi sono bloccati nelle impostazioni del browser",
@@ -466,7 +466,7 @@
       "summary_daily": "Riepilogo giornaliero",
       "summary_weekly": "Settimanale (il venerdì)",
       "summary_off": "Disattivato",
-      "urgent_label": "Quando uno studente chiede un adulto durante l'orario scolastico",
+      "urgent_label": "Quando qualcuno della classe chiede un adulto durante l'orario scolastico",
       "push_urgent": "Avvisami con una notifica",
       "email_urgent": "Avvisami via email",
       "saved": "Salvato",

@@ -101,14 +101,14 @@
   },
   "submit_to_class": {
     "title": "Consegna alla classe",
-    "subtitle": "Fai leggere il tuo libro al tuo insegnante",
-    "instruction": "Chiedi il codice classe al tuo insegnante e scrivilo qui sotto.",
+    "subtitle": "Fai leggere il tuo libro all'insegnante",
+    "instruction": "Chiedi il codice classe all'insegnante e scrivilo qui sotto.",
     "code_placeholder": "CODICE CLASSE",
     "error_missing_code": "Scrivi il codice della classe.",
     "submit": "Consegna il libro",
     "submitting": "Invio in corso…",
     "submit_failed": "Non è stato possibile consegnare il libro",
     "success_title": "Libro consegnato!",
-    "success_body": "Ora il tuo insegnante può leggere <title>\"{{title}}\"</title> nella galleria della classe."
+    "success_body": "Ora l'insegnante può leggere <title>\"{{title}}\"</title> nella galleria della classe."
   }
 }
