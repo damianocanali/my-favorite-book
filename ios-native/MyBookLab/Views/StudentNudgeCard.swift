@@ -69,10 +69,13 @@ enum NudgeCopy {
     static var needStudents: LocalizedStringResource { AppText("school.nudges.teacher.need_students", defaultValue: "Tick at least one name.") }
     static var needMessage: LocalizedStringResource { AppText("school.nudges.teacher.need_message", defaultValue: "Pick a message or write one.") }
     static func sentCount(_ count: Int) -> LocalizedStringResource {
-        AppText("school.nudges.teacher.sent_count", defaultValue: "Nudge sent to \(count).")
+        AppText("school.nudges.teacher.sent_count", defaultValue: "Nudge sent to \(count) children.")
     }
     static func cappedCount(_ count: Int) -> LocalizedStringResource {
-        AppText("school.nudges.teacher.capped_count", defaultValue: "\(count) already had 3 nudges today, so they were skipped.")
+        AppText("school.nudges.teacher.capped_count", defaultValue: "\(count) children already had 3 nudges today, so we didn't send it again.")
+    }
+    static func handedInCount(_ count: Int) -> LocalizedStringResource {
+        AppText("school.nudges.teacher.handed_in_count", defaultValue: "\(count) children have already handed it in, so we skipped them.")
     }
     static var statusSent: LocalizedStringResource { AppText("school.nudges.teacher.status_sent", defaultValue: "Sent") }
     static var statusSeen: LocalizedStringResource { AppText("school.nudges.teacher.status_seen", defaultValue: "Seen ✓") }
@@ -104,6 +107,7 @@ struct StudentNudgeCard: View {
     let onGotIt: () -> Void
 
     @State private var speaker = SpeechSpeaker()
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
         let text = nudge.displayText
@@ -139,15 +143,22 @@ struct StudentNudgeCard: View {
                 .accessibilityLabel(Text(speaker.isSpeaking ? AssignmentCopy.stopReading : NudgeCopy.listen))
             }
 
-            ViewThatFits(in: .horizontal) {
-                HStack(spacing: 12) {
-                    actionButton
-                    gotItButton
-                    Spacer(minLength: 0)
-                }
+            if dynamicTypeSize.isAccessibilitySize {
                 VStack(alignment: .leading, spacing: 10) {
                     actionButton
                     gotItButton
+                }
+            } else {
+                ViewThatFits(in: .horizontal) {
+                    HStack(spacing: 12) {
+                        actionButton.fixedSize()
+                        gotItButton
+                        Spacer(minLength: 0)
+                    }
+                    VStack(alignment: .leading, spacing: 10) {
+                        actionButton
+                        gotItButton
+                    }
                 }
             }
         }
@@ -169,11 +180,15 @@ struct StudentNudgeCard: View {
         }, size: .regular) {
             Label {
                 Text(actionLabel)
+                    .multilineTextAlignment(.leading)
+                    .fixedSize(horizontal: false, vertical: true)
             } icon: {
                 Image(systemName: "pencil.and.scribble")
             }
         }
-        .fixedSize()
+        // Wraps (never overflows) at accessibility text sizes: the
+        // stacked layout below gives it the full width.
+        .frame(minHeight: 48)
     }
 
     private var gotItButton: some View {

@@ -30,7 +30,7 @@ struct TeacherNudgeSheet: View {
     @State private var didSeed = false
 
     private var openAssignments: [TeacherDashboardAssignment] {
-        assignments.filter { $0.status == "published" }
+        NudgeRules.open(assignments)
     }
 
     var body: some View {
@@ -306,7 +306,9 @@ enum NudgeResultText {
         if !r.sent.isEmpty { parts.append(String(appLocalized: NudgeCopy.sentCount(r.sent.count))) }
         let capped = r.skipped.filter { $0.code == "daily_cap" }.count
         if capped > 0 { parts.append(String(appLocalized: NudgeCopy.cappedCount(capped))) }
-        let other = r.skipped.count - capped
+        let handedIn = r.skipped.filter { $0.code == "handed_in" }.count
+        if handedIn > 0 { parts.append(String(appLocalized: NudgeCopy.handedInCount(handedIn))) }
+        let other = r.skipped.count - capped - handedIn
         if other > 0 || parts.isEmpty { parts.append(String(appLocalized: TeacherCopy.error("upstream"))) }
         return parts.joined(separator: " ")
     }

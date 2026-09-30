@@ -73,6 +73,8 @@ struct TeacherDashboardAssignment: Decodable, Identifiable, Hashable, Sendable {
     let title: String
     let status: String
     let due_at: String?
+    /// nil on an older server: treated as allowing late work.
+    var allow_late: Bool? = nil
 }
 
 /// GET /api/school/dashboard?classId=
@@ -658,15 +660,27 @@ enum NudgeRules {
         } else {
             out.append(.quiet)
         }
-        let open = assignments.filter { $0.status == "published" }
-        if open.contains(where: { (s.assignments?[$0.id] ?? "not_started") == "not_started" }) {
+        if !openNotHandedIn(s, assignments: assignments, now: now).isEmpty {
             out.append(.notHandedIn)
         }
         return out
     }
 
-    /// The published assignments a student has not handed in yet.
-    static func openNotHandedIn(_ s: TeacherDashboardStudent, assignments: [TeacherDashboardAssignment]) -> [TeacherDashboardAssignment] {
-        assignments.filter { $0.status == "published" && (s.assignments?[$0.id] ?? "not_started") == "not_started" }
+    /// Open = published and not closed by a due date that refuses late
+    /// work. Same rule as the API, the RPC and the web (nudgeUi.isOpenAssignment).
+    static func isOpen(_ a: TeacherDashboardAssignment, now: Date = Date()) -> Bool {
+        guard a.status == "published" else { return false }
+        if a.allow_late == false, let due = TeacherDates.parse(a.due_at), due < now { return false }
+        return true
+    }
+
+    static func open(_ assignments: [TeacherDashboardAssignment], now: Date = Date()) -> [TeacherDashboardAssignment] {
+        assignments.filter { isOpen($0, now: now) }
+    }
+
+    /// The open assignments a student has not handed in yet.
+    static func openNotHandedIn(_ s: TeacherDashboardStudent, assignments: [TeacherDashboardAssignment],
+                                now: Date = Date()) -> [TeacherDashboardAssignment] {
+        open(assignments, now: now).filter { (s.assignments?[$0.id] ?? "not_started") == "not_started" }
     }
 }

@@ -108,6 +108,9 @@ struct MyAssignmentsSection: View {
     /// Dismissed with "Got it" on this device: a poll racing the PATCH
     /// must not bring the card straight back.
     @State private var dismissedNudges: Set<String> = []
+    /// The nudge whose action is waiting on "replace your unsaved book?":
+    /// it is only marked seen if the child goes ahead.
+    @State private var pendingNudge: StudentNudge?
 
     var body: some View {
         // A real container, not a Group: modifiers on a Group that starts
@@ -130,11 +133,9 @@ struct MyAssignmentsSection: View {
                         StudentNudgeCard(
                             nudge: nudge,
                             actionLabel: nudgeActionLabel(nudge),
-                            // Acting on it counts as reading it.
-                            onAction: {
-                                nudgeAction(nudge)
-                                dismissNudge(nudge)
-                            },
+                            // Acting on it counts as reading it — once the
+                            // action really goes ahead (see nudgeAction).
+                            onAction: { nudgeAction(nudge) },
                             onGotIt: { dismissNudge(nudge) }
                         )
                     }
@@ -205,18 +206,28 @@ struct MyAssignmentsSection: View {
             Text(AssignmentCopy.replaceDraftTitle),
             isPresented: Binding(
                 get: { pendingStart != nil },
-                set: { if !$0 { pendingStart = nil } }
+                set: {
+                    if !$0 {
+                        pendingStart = nil
+                        pendingNudge = nil
+                    }
+                }
             ),
             titleVisibility: .visible,
             presenting: pendingStart
         ) { assignment in
             Button(role: .destructive) {
                 pendingStart = nil
+                if let n = pendingNudge { dismissNudge(n) }
+                pendingNudge = nil
                 startNew(assignment)
             } label: {
                 Text(AssignmentCopy.replaceDraftConfirm)
             }
-            Button("Cancel", role: .cancel) { pendingStart = nil }
+            Button("Cancel", role: .cancel) {
+                pendingStart = nil
+                pendingNudge = nil
+            }
         }
     }
 
@@ -270,17 +281,20 @@ struct MyAssignmentsSection: View {
     /// Never silently wipes work: a draft already open for this assignment
     /// is just returned to, and any other draft with something in it is
     /// only replaced after the child says so.
-    private func startOrContinue(_ assignment: StudentAssignment) {
+    /// Returns false when it is waiting on the "replace?" confirmation.
+    @discardableResult
+    private func startOrContinue(_ assignment: StudentAssignment) -> Bool {
         let draft = BookDraftStore.shared
         if draft.book?.assignmentId == assignment.id {
             router.selectedTab = .create
-            return
+            return true
         }
         if let open = draft.book, Self.hasWork(open) {
             pendingStart = assignment
-            return
+            return false
         }
         startNew(assignment)
+        return true
     }
 
     private func startNew(_ assignment: StudentAssignment) {
@@ -312,7 +326,9 @@ struct MyAssignmentsSection: View {
     private func nudgeAssignment(_ n: StudentNudge) -> StudentAssignment? {
         guard let id = n.assignment?.id,
               let a = assignments?.first(where: { $0.id == id }),
-              a.cardStatus == .notStarted else { return nil }
+              a.cardStatus == .notStarted,
+              // Closed by its due date (no late work): nothing to write for.
+              !(a.past_due == true && a.allow_late == false) else { return nil }
         return a
     }
 
@@ -335,9 +351,14 @@ struct MyAssignmentsSection: View {
     private func nudgeAction(_ n: StudentNudge) {
         if let a = nudgeAssignment(n) {
             markOpened(a)
-            startOrContinue(a)
+            if startOrContinue(a) {
+                dismissNudge(n)
+            } else {
+                pendingNudge = n
+            }
             return
         }
+        dismissNudge(n)
         let draft = BookDraftStore.shared
         if let open = draft.book, Self.hasWork(open) {
             router.selectedTab = .create

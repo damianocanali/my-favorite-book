@@ -13035,15 +13035,39 @@
       "extractionState": "extracted_with_value",
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "new",
-            "value": "Nudge sent to %lld."
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "new",
+                  "value": "Nudge sent to %lld child."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "new",
+                  "value": "Nudge sent to %lld children."
+                }
+              }
+            }
           }
         },
         "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Incoraggiamento inviato a %lld."
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Incoraggiamento inviato: %lld."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Incoraggiamenti inviati: %lld."
+                }
+              }
+            }
           }
         }
       }
@@ -13052,15 +13076,39 @@
       "extractionState": "extracted_with_value",
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "new",
-            "value": "%lld already had 3 nudges today, so they were skipped."
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "new",
+                  "value": "%lld child already had 3 nudges today, so we didn't send it again."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "new",
+                  "value": "%lld children already had 3 nudges today, so we didn't send it again."
+                }
+              }
+            }
           }
         },
         "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld avevano già ricevuto 3 incoraggiamenti oggi e sono stati saltati."
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld ha già ricevuto 3 incoraggiamenti oggi: non l'abbiamo inviato di nuovo."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld hanno già ricevuto 3 incoraggiamenti oggi: non l'abbiamo inviato di nuovo."
+                }
+              }
+            }
           }
         }
       }
@@ -13146,6 +13194,47 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ultimo incoraggiamento"
+          }
+        }
+      }
+    },
+    "school.nudges.teacher.handed_in_count": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "new",
+                  "value": "%lld child has already handed it in, so we skipped them."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "new",
+                  "value": "%lld children have already handed it in, so we skipped them."
+                }
+              }
+            }
+          }
+        },
+        "it": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld ha già consegnato il compito: non l'abbiamo inviato."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld hanno già consegnato il compito: non l'abbiamo inviato."
+                }
+              }
+            }
           }
         }
       }

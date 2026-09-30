@@ -63,6 +63,8 @@ struct TeacherDashboardView: View {
             guard scenePhase == .active else { return }
             while !Task.isCancelled {
                 await loadOverview()
+                // "Sent" turns into "Seen ✓" without a manual refresh.
+                if let selectedClassId { await loadNudges(selectedClassId) }
                 try? await Task.sleep(for: Self.pollInterval)
             }
         }
