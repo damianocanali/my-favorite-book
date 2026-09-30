@@ -1,17 +1,15 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { motion, AnimatePresence } from 'motion/react'
 import { useTranslation } from 'react-i18next'
 import { Volume2, VolumeX } from 'lucide-react'
 import NameTiles from '../components/school/NameTiles'
 import PicturePad from '../components/school/PicturePad'
 import Mascot from '../components/ui/Mascot'
-import {
-  fetchRoster, signInWithPictures, rememberClassCode, recallClassCode, forgetClassCode,
-} from '../lib/schoolApi'
+import { fetchRoster, signInWithPictures } from '../lib/schoolApi'
 import { useAuthStore } from '../stores/useAuthStore'
 import { useSpeechSynthesis } from '../hooks/useSpeechSynthesis'
-import { clearRememberedWho } from '../lib/signinWho'
+import { readClassDevice, isClassUnavailable } from '../lib/classDevice'
 
 // Every code the server can hand back for roster/sign-in, mapped down to
 // one of the seven child-facing messages in school.json's `errors`. Codes
@@ -44,6 +42,14 @@ export default function ClassSignInPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const signInAsStudent = useAuthStore((s) => s.signInAsStudent)
+  const [searchParams] = useSearchParams()
+  // A class browser opens straight on its class's name list; the child
+  // never types the code. ?other=1 (the chooser's "I'm a student" on a
+  // class browser) asks for the ordinary code step instead. Without a
+  // class browser nothing is remembered: the code step every time.
+  const [device] = useState(() => (searchParams.get('other') === '1' ? null : readClassDevice()))
+  const [deviceError, setDeviceError] = useState(null)
+  const [loadingDevice, setLoadingDevice] = useState(!!device)
 
   const [step, setStep] = useState('code') // 'code' | 'name' | 'pictures'
   const [code, setCode] = useState('')
@@ -58,7 +64,7 @@ export default function ClassSignInPage() {
 
   const { speak, stop: stopSpeaking, isSpeaking, isSupported: ttsSupported } = useSpeechSynthesis()
 
-  async function attemptCode(value, { silent = false } = {}) {
+  async function attemptCode(value) {
     setCheckingCode(true)
     setErrorCode(null)
     const res = await fetchRoster(value)
@@ -66,30 +72,38 @@ export default function ClassSignInPage() {
     if (res.ok) {
       setClassroom(res.data.classroom)
       setStudents(res.data.students ?? [])
-      rememberClassCode(value)
       setStep('name')
-      return
-    }
-    if (silent && res.code === 'class_not_found') {
-      // The remembered code no longer points at a real class (rotated or
-      // deleted) — quietly forget it rather than greeting a child who
-      // never typed anything with an error banner.
-      forgetClassCode()
-      setCode('')
       return
     }
     setErrorCode(res.code)
   }
 
-  // A remembered class loads silently; the code step below only ever
-  // renders if that attempt didn't land on 'name'.
+  // Class browser: load its class. If the stored code stops working (class
+  // archived, code changed, sign-in closed) say so kindly and stay put —
+  // only a teacher removes the class from this browser.
+  async function loadDevice() {
+    if (!device) return
+    setLoadingDevice(true)
+    setDeviceError(null)
+    setErrorCode(null)
+    setCode(device.code)
+    const res = await fetchRoster(device.code)
+    setLoadingDevice(false)
+    if (res.ok) {
+      setClassroom(res.data.classroom)
+      setStudents(res.data.students ?? [])
+      setSelectedStudent(null)
+      setPicks([])
+      setStep('name')
+      return
+    }
+    setDeviceError(res.code || 'generic')
+    setStep('code')
+  }
+
   useEffect(() => {
-    const saved = recallClassCode()
-    if (!saved) return
-    setCode(saved)
-    attemptCode(saved, { silent: true })
-    // Deliberately mount-only: re-running this on every `code` change would
-    // refetch on every keystroke instead of once at load.
+    loadDevice()
+    // Mount-only.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -108,7 +122,6 @@ export default function ClassSignInPage() {
   }
 
   function handleNotMyClass() {
-    forgetClassCode()
     setCode('')
     setClassroom(null)
     setStudents([])
@@ -147,7 +160,6 @@ export default function ClassSignInPage() {
       setPicks([])
       return
     }
-    rememberClassCode(code)
     navigate('/bookshelf', { replace: true })
   }
 
@@ -164,29 +176,39 @@ export default function ClassSignInPage() {
   // pad that will just fail again.
   const isBlockingPictureError = step === 'pictures' && !!errorCode && errorCode !== 'wrong_pictures'
 
+  const deviceMessage = deviceError
+    ? (isClassUnavailable(deviceError)
+        ? t('school:class_device.unavailable')
+        : t(`school:errors.${errorMessageKey(deviceError)}`))
+    : null
+
   const speechText = useMemo(() => {
     const parts = []
-    if (step === 'code') parts.push(t('school:code_step.heading'), t('school:code_step.hint'))
+    if (step === 'code' && device) parts.push(deviceError ? deviceMessage : t('school:code_step.checking'))
+    else if (step === 'code') parts.push(t('school:code_step.heading'), t('school:code_step.hint'))
     else if (step === 'name') parts.push(t('school:name_step.heading'))
     else if (step === 'pictures') parts.push(t('school:picture_step.heading'))
     if (errorCode) parts.push(t(`school:errors.${errorMessageKey(errorCode)}`))
     return parts.join('. ')
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [step, errorCode, t])
+  }, [step, errorCode, deviceError, deviceMessage, t])
 
   function handleListen() {
     if (isSpeaking) stopSpeaking()
     else speak(speechText)
   }
 
-  // A remembered 'kid' choice sends /login straight to /class (see
-  // LoginPage), so a parent or teacher on the same device would otherwise
-  // have no way back to the adult sign-in forms short of editing the URL
-  // by hand. Forgetting the remembered choice means /login shows the
-  // chooser again rather than bouncing straight back here.
+  // ?choose=1: on a class browser /login would otherwise send them
+  // straight back here.
   function handleGrownUpSignIn() {
-    clearRememberedWho()
-    navigate('/login')
+    navigate('/login?choose=1')
+  }
+
+  // After a dead-end sign-in error: a typed-code child starts again from
+  // the code; a class browser reloads its own class.
+  function handleStartOver() {
+    if (device) loadDevice()
+    else handleNotMyClass()
   }
 
   const wide = step !== 'code'
@@ -200,6 +222,13 @@ export default function ClassSignInPage() {
         transition={{ duration: 0.4 }}
       >
         <div className={`text-center ${wide ? 'mb-3 md:mb-1' : 'mb-6'}`}>
+          {device && (
+            // Which class this browser belongs to, before anything else. A
+            // class name is data, never translated.
+            <p className="inline-block mb-3 px-5 py-2 rounded-full bg-gradient-to-r from-galaxy-primary to-galaxy-secondary font-heading text-xl font-extrabold text-white">
+              {t('school:class_device.banner', { name: device.name })}
+            </p>
+          )}
           {/* A big, friendly hello above every step — the same mascot the
               rest of the app uses for celebrations, here just waving
               hello, so a pre-reading child recognises this page as
@@ -217,24 +246,27 @@ export default function ClassSignInPage() {
             <Mascot mood="wave" size={96} />
           </div>
           <h1 className={`font-heading text-2xl font-bold text-galaxy-text ${wide ? 'md:text-xl' : ''}`}>{t('school:page_title')}</h1>
-          <button
-            type="button"
-            onClick={handleGrownUpSignIn}
-            className="mt-1.5 text-xs font-body text-galaxy-text-muted/70 underline underline-offset-2 hover:text-galaxy-text-muted transition-colors"
-          >
-            {t('school:grown_up_link')}
-          </button>
+          {!device && (
+            <button
+              type="button"
+              onClick={handleGrownUpSignIn}
+              className="mt-1.5 text-xs font-body text-galaxy-text-muted/70 underline underline-offset-2 hover:text-galaxy-text-muted transition-colors"
+            >
+              {t('school:grown_up_link')}
+            </button>
+          )}
         </div>
 
         <div className="glass rounded-2xl p-6 md:p-3 border border-galaxy-text-muted/10 space-y-5 md:space-y-2">
-          {classroom?.name && step !== 'code' && (
+          {!device && classroom?.name && step !== 'code' && (
             <p className="text-galaxy-secondary font-body text-xs font-semibold uppercase tracking-wide -mb-2 md:-mb-3">
               {classroom.name}
             </p>
           )}
           <div className="flex items-start justify-between gap-3">
             <h2 className="font-heading text-lg font-bold text-galaxy-text">
-              {step === 'code' && t('school:code_step.heading')}
+              {step === 'code' && device && (deviceError ? t('school:class_device.heading') : t('school:code_step.checking'))}
+              {step === 'code' && !device && t('school:code_step.heading')}
               {step === 'name' && t('school:name_step.heading')}
               {step === 'pictures' && t('school:picture_step.heading')}
             </h2>
@@ -250,8 +282,31 @@ export default function ClassSignInPage() {
             )}
           </div>
 
-          {step === 'code' && (
+          {step === 'code' && !device && (
             <p className="text-galaxy-text-muted font-body text-sm -mt-3">{t('school:code_step.hint')}</p>
+          )}
+
+          {step === 'code' && device && (
+            <div className="space-y-3" aria-live="polite">
+              {loadingDevice || !deviceError ? (
+                <div className="flex justify-center py-6">
+                  <div className="w-8 h-8 border-2 border-galaxy-secondary border-t-transparent rounded-full animate-spin" />
+                </div>
+              ) : (
+                <>
+                  <p role="alert" className="text-galaxy-text font-body text-lg text-center bg-white/[0.06] rounded-xl px-4 py-4">
+                    {deviceMessage}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={loadDevice}
+                    className="min-h-[52px] w-full rounded-full font-body font-bold text-white btn-fill-primary"
+                  >
+                    {t('school:class_device.try_again')}
+                  </button>
+                </>
+              )}
+            </div>
           )}
 
           <AnimatePresence>
@@ -269,7 +324,7 @@ export default function ClassSignInPage() {
             )}
           </AnimatePresence>
 
-          {step === 'code' && (
+          {step === 'code' && !device && (
             <div className="space-y-3">
               <input
                 type="text"
@@ -297,13 +352,16 @@ export default function ClassSignInPage() {
           {step === 'name' && (
             <div className="space-y-4 md:space-y-2">
               <NameTiles students={students} onSelect={handleSelectStudent} />
-              <button
-                type="button"
-                onClick={handleNotMyClass}
-                className="min-h-[48px] md:min-h-[40px] w-full flex items-center justify-center text-center text-galaxy-text-muted text-sm font-body hover:text-galaxy-primary transition-colors"
-              >
-                {t('school:name_step.not_my_class')}
-              </button>
+              {/* On a class browser "Not in <class>?" (below) is the way out. */}
+              {!device && (
+                <button
+                  type="button"
+                  onClick={handleNotMyClass}
+                  className="min-h-[48px] md:min-h-[40px] w-full flex items-center justify-center text-center text-galaxy-text-muted text-sm font-body hover:text-galaxy-primary transition-colors"
+                >
+                  {t('school:name_step.not_my_class')}
+                </button>
+              )}
             </div>
           )}
 
@@ -328,7 +386,7 @@ export default function ClassSignInPage() {
               {isBlockingPictureError && (
                 <button
                   type="button"
-                  onClick={handleNotMyClass}
+                  onClick={handleStartOver}
                   className="min-h-[48px] w-full flex items-center justify-center text-center text-galaxy-text-muted text-sm font-body hover:text-galaxy-primary transition-colors"
                 >
                   {t('school:picture_step.start_over')}
@@ -337,6 +395,18 @@ export default function ClassSignInPage() {
             </div>
           )}
         </div>
+
+        {device && (
+          <div className="text-center mt-4">
+            <button
+              type="button"
+              onClick={handleGrownUpSignIn}
+              className="min-h-[48px] px-4 text-base font-body text-galaxy-text-muted underline underline-offset-2 hover:text-galaxy-text transition-colors"
+            >
+              {t('school:class_device.not_in', { name: device.name })}
+            </button>
+          </div>
+        )}
       </motion.div>
     </div>
   )

@@ -359,6 +359,19 @@
           "rainbow": "Rainbow"
         }
       }
+    },
+    "class_device": {
+      "setup": "Set up this browser for this class",
+      "status": "This browser is set up for {{name}}",
+      "remove": "Remove class from this browser",
+      "confirm_title": "Set up this browser for {{name}}?",
+      "confirm_body": "When nobody is signed in, this browser opens straight on {{name}}'s name list. Children tap their name and pick their pictures — no class code to type. When a child signs out, it goes back to the list.",
+      "confirm_replaces": "This replaces {{name}} on this browser.",
+      "confirm_note": "Your own sign-in isn't affected. Only a teacher can remove the class from this browser.",
+      "confirm_action": "Set up this browser",
+      "remove_title": "Remove {{name}} from this browser?",
+      "remove_body": "Children will need the class code to sign in on this browser again.",
+      "cancel": "Cancel"
     }
   },
   "student": {
@@ -468,5 +481,12 @@
     "remove_failed": "Couldn't remove that notification. Try again.",
     "session_ended": "Your session ended — please sign in again.",
     "error_dismiss": "Dismiss"
+  },
+  "class_device": {
+    "banner": "Class {{name}}",
+    "not_in": "Not in {{name}}?",
+    "heading": "Ask your teacher",
+    "unavailable": "This device's class isn't available — ask your teacher",
+    "try_again": "Try again"
   }
 }

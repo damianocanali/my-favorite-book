@@ -359,6 +359,19 @@
           "rainbow": "Arcobaleno"
         }
       }
+    },
+    "class_device": {
+      "setup": "Configura questo browser per questa classe",
+      "status": "Questo browser è configurato per {{name}}",
+      "remove": "Rimuovi la classe da questo browser",
+      "confirm_title": "Configurare questo browser per {{name}}?",
+      "confirm_body": "Quando nessuno ha effettuato l'accesso, questo browser si apre direttamente sull'elenco dei nomi di {{name}}. I bambini toccano il proprio nome e scelgono le loro immagini, senza scrivere il codice della classe. Quando un bambino esce, si torna all'elenco.",
+      "confirm_replaces": "Sostituisce {{name}} su questo browser.",
+      "confirm_note": "Il tuo accesso non cambia. Solo un insegnante può rimuovere la classe da questo browser.",
+      "confirm_action": "Configura questo browser",
+      "remove_title": "Rimuovere {{name}} da questo browser?",
+      "remove_body": "I bambini avranno di nuovo bisogno del codice della classe per entrare su questo browser.",
+      "cancel": "Annulla"
     }
   },
   "student": {
@@ -468,5 +481,12 @@
     "remove_failed": "Non è stato possibile rimuovere la notifica. Riprova.",
     "session_ended": "La tua sessione è terminata: accedi di nuovo.",
     "error_dismiss": "Chiudi"
+  },
+  "class_device": {
+    "banner": "Classe {{name}}",
+    "not_in": "Non sei in {{name}}?",
+    "heading": "Chiedi al tuo insegnante",
+    "unavailable": "La classe di questo dispositivo non è disponibile — chiedi al tuo insegnante",
+    "try_again": "Riprova"
   }
 }

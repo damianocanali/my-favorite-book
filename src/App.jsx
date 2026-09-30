@@ -43,6 +43,7 @@ import { initCapacitor } from './capacitor'
 import { useAuthStore } from './stores/useAuthStore'
 import { useTeacherMode } from './hooks/useTeacherMode'
 import { resumeOnGesture } from './services/audioService'
+import { readClassDevice, signedOutRedirect, purgeLegacySignInMemory } from './lib/classDevice'
 
 // "/" is the consumer "Create a book" home for everyone except a teacher in
 // teacher mode (Task D2 owner decision): they land on their dashboard
@@ -59,6 +60,7 @@ import { resumeOnGesture } from './services/audioService'
 // consumer LandingPage before this redirects them.
 function HomeRoute() {
   const authLoading = useAuthStore((s) => s.loading)
+  const user = useAuthStore((s) => s.user)
   const teacherMode = useTeacherMode()
   if (authLoading) {
     return (
@@ -68,6 +70,10 @@ function HomeRoute() {
     )
   }
   if (teacherMode) return <Navigate to="/teacher" replace />
+  // A class browser, signed out (e.g. just after a child signed out): the
+  // class's name list for the next child.
+  const classEntry = signedOutRedirect({ device: readClassDevice(), signedIn: !!user })
+  if (classEntry) return <Navigate to={classEntry} replace />
   return <LandingPage />
 }
 
@@ -86,6 +92,9 @@ function ScrollToTop() {
 export default function App() {
   const navigate = useNavigate()
   const initializeAuth = useAuthStore((s) => s.initialize)
+
+  // The old implicit "who's signing in" / class-code memory. Once per load.
+  useEffect(() => { purgeLegacySignInMemory() }, [])
 
   useEffect(() => {
     initCapacitor(navigate)
