@@ -43,7 +43,7 @@ import { initCapacitor } from './capacitor'
 import { useAuthStore } from './stores/useAuthStore'
 import { useTeacherMode } from './hooks/useTeacherMode'
 import { resumeOnGesture } from './services/audioService'
-import { readClassDevice, signedOutRedirect, purgeLegacySignInMemory } from './lib/classDevice'
+import { readClassDevice, readClassDeviceSkip, signedOutRedirect, purgeLegacySignInMemory } from './lib/classDevice'
 
 // "/" is the consumer "Create a book" home for everyone except a teacher in
 // teacher mode (Task D2 owner decision): they land on their dashboard
@@ -72,7 +72,7 @@ function HomeRoute() {
   if (teacherMode) return <Navigate to="/teacher" replace />
   // A class browser, signed out (e.g. just after a child signed out): the
   // class's name list for the next child.
-  const classEntry = signedOutRedirect({ device: readClassDevice(), signedIn: !!user })
+  const classEntry = signedOutRedirect({ device: readClassDevice(), signedIn: !!user, skip: readClassDeviceSkip() })
   if (classEntry) return <Navigate to={classEntry} replace />
   return <LandingPage />
 }

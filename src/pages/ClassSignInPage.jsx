@@ -9,7 +9,10 @@ import Mascot from '../components/ui/Mascot'
 import { fetchRoster, signInWithPictures } from '../lib/schoolApi'
 import { useAuthStore } from '../stores/useAuthStore'
 import { useSpeechSynthesis } from '../hooks/useSpeechSynthesis'
-import { readClassDevice, isClassUnavailable } from '../lib/classDevice'
+import {
+  readClassDevice, isClassUnavailable, isNetworkFailure, classDeviceLabel, setClassDeviceSkip, chooserPath,
+} from '../lib/classDevice'
+import { safeNext } from '../lib/safeNext'
 
 // Every code the server can hand back for roster/sign-in, mapped down to
 // one of the seven child-facing messages in school.json's `errors`. Codes
@@ -97,7 +100,7 @@ export default function ClassSignInPage() {
       setStep('name')
       return
     }
-    setDeviceError(res.code || 'generic')
+    setDeviceError(res.code || 'network')
     setStep('code')
   }
 
@@ -176,15 +179,20 @@ export default function ClassSignInPage() {
   // pad that will just fail again.
   const isBlockingPictureError = step === 'pictures' && !!errorCode && errorCode !== 'wrong_pictures'
 
-  const deviceMessage = deviceError
-    ? (isClassUnavailable(deviceError)
-        ? t('school:class_device.unavailable')
-        : t(`school:errors.${errorMessageKey(deviceError)}`))
-    : null
+  // The reason, said once (the heading above it stays neutral). A
+  // connection failure reads as one, not as "something went wrong".
+  const deviceMessage = !deviceError
+    ? null
+    : isClassUnavailable(deviceError)
+      ? t('school:class_device.unavailable')
+      : isNetworkFailure(deviceError)
+        ? t('school:class_device.network')
+        : t(`school:errors.${errorMessageKey(deviceError)}`)
 
   const speechText = useMemo(() => {
     const parts = []
-    if (step === 'code' && device) parts.push(deviceError ? deviceMessage : t('school:code_step.checking'))
+    if (step === 'code' && device && deviceError) parts.push(t('school:class_device.heading'), deviceMessage)
+    else if (step === 'code' && device) parts.push(t('school:code_step.checking'))
     else if (step === 'code') parts.push(t('school:code_step.heading'), t('school:code_step.hint'))
     else if (step === 'name') parts.push(t('school:name_step.heading'))
     else if (step === 'pictures') parts.push(t('school:picture_step.heading'))
@@ -199,9 +207,12 @@ export default function ClassSignInPage() {
   }
 
   // ?choose=1: on a class browser /login would otherwise send them
-  // straight back here.
+  // straight back here. From a class browser ("Not in <class>?") the
+  // session flag also lets this tab reach / and the landing page; signing
+  // out clears it. `next` survives the detour.
   function handleGrownUpSignIn() {
-    navigate('/login?choose=1')
+    if (device) setClassDeviceSkip()
+    navigate(chooserPath(safeNext(searchParams.get('next'))))
   }
 
   // After a dead-end sign-in error: a typed-code child starts again from
@@ -226,7 +237,7 @@ export default function ClassSignInPage() {
             // Which class this browser belongs to, before anything else. A
             // class name is data, never translated.
             <p className="inline-block mb-3 px-5 py-2 rounded-full bg-gradient-to-r from-galaxy-primary to-galaxy-secondary font-heading text-xl font-extrabold text-white">
-              {t('school:class_device.banner', { name: device.name })}
+              {t('school:class_device.banner', { name: classDeviceLabel(device) })}
             </p>
           )}
           {/* A big, friendly hello above every step — the same mascot the
@@ -403,7 +414,7 @@ export default function ClassSignInPage() {
               onClick={handleGrownUpSignIn}
               className="min-h-[48px] px-4 text-base font-body text-galaxy-text-muted underline underline-offset-2 hover:text-galaxy-text transition-colors"
             >
-              {t('school:class_device.not_in', { name: device.name })}
+              {t('school:class_device.not_in', { name: classDeviceLabel(device) })}
             </button>
           </div>
         )}

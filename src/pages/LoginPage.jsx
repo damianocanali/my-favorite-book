@@ -9,7 +9,7 @@ import OAuthButtons from '../components/auth/OAuthButtons'
 import Mascot from '../components/ui/Mascot'
 import { authErrorCode } from '../lib/authErrors'
 import { safeNext } from '../lib/safeNext'
-import { readClassDevice, signedOutRedirect } from '../lib/classDevice'
+import { readClassDevice, readClassDeviceSkip, clearClassDeviceSkip, classDeviceLabel, signedOutRedirect } from '../lib/classDevice'
 
 // "Who's signing in?" chooser cards, in the fixed order the brief asks
 // for: kid first (the destination with the worst discoverability before
@@ -71,6 +71,8 @@ export default function LoginPage() {
       device: classDevice,
       signedIn: !!user,
       choose: searchParams.get('choose') === '1',
+      skip: readClassDeviceSkip(),
+      next: safeNext(searchParams.get('next')),
     })
     if (to) navigate(to, { replace: true })
     // Once auth has settled; not on every later sign-in/out on this page.
@@ -153,10 +155,14 @@ export default function LoginPage() {
             {classDevice && (
               <button
                 type="button"
-                onClick={() => navigate('/class')}
+                onClick={() => {
+                  // Back to the class list, which is home again for this tab.
+                  clearClassDeviceSkip()
+                  navigate('/class')
+                }}
                 className="mb-4 min-h-[44px] inline-flex items-center gap-1.5 px-4 rounded-full bg-white/[0.08] text-galaxy-text font-body font-semibold hover:bg-white/[0.12] transition-colors"
               >
-                <ArrowLeft size={16} aria-hidden="true" /> {t('auth:chooser.back_to_class', { name: classDevice.name })}
+                <ArrowLeft size={16} aria-hidden="true" /> {t('auth:chooser.back_to_class', { name: classDeviceLabel(classDevice) })}
               </button>
             )}
             <div className="text-center mb-8">

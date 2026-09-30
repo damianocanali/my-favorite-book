@@ -371,7 +371,8 @@
       "confirm_action": "Set up this browser",
       "remove_title": "Remove {{name}} from this browser?",
       "remove_body": "Children will need the class code to sign in on this browser again.",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "save_failed": "Couldn't set up this browser. Check that it allows saving site data, then try again."
     }
   },
   "student": {
@@ -485,8 +486,9 @@
   "class_device": {
     "banner": "Class {{name}}",
     "not_in": "Not in {{name}}?",
-    "heading": "Ask your teacher",
+    "heading": "We can't open your class right now",
     "unavailable": "This device's class isn't available — ask your teacher",
-    "try_again": "Try again"
+    "try_again": "Try again",
+    "network": "We can't reach My Book Lab. Check the internet and try again."
   }
 }

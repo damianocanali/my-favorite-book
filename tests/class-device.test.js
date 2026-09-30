@@ -7,6 +7,8 @@ import {
   CLASS_DEVICE_KEY, LEGACY_KEYS,
   validateClassDevice, readClassDevice, writeClassDevice, clearClassDevice,
   purgeLegacySignInMemory, signedOutRedirect, isClassUnavailable,
+  classDeviceLabel, setClassDeviceSkip, clearClassDeviceSkip, readClassDeviceSkip,
+  chooserPath, isNetworkFailure,
 } from '../src/lib/classDevice.js'
 
 const good = { classId: 'c-1', code: 'ABC234', name: '3B' }
@@ -107,5 +109,39 @@ describe('isClassUnavailable', () => {
     for (const c of ['too_many', 'upstream', undefined, null, 'generic']) {
       expect(isClassUnavailable(c)).toBe(false)
     }
+  })
+})
+
+describe('review round 1', () => {
+  beforeEach(() => { localStorage.clear(); sessionStorage.clear() })
+
+  it('accepts 6–8 character codes like the server, and nothing longer', () => {
+    expect(validateClassDevice({ classId: 'c', code: 'ABCD2345' })).not.toBeNull()
+    expect(validateClassDevice({ classId: 'c', code: 'ABCD23456' })).toBeNull()
+  })
+
+  it('labels a nameless class by its code', () => {
+    expect(classDeviceLabel({ name: '  ', code: 'ABC234' })).toBe('ABC234')
+    expect(classDeviceLabel({ name: '3B', code: 'ABC234' })).toBe('3B')
+    expect(classDeviceLabel(null)).toBe('')
+  })
+
+  it('"Not in <class>?" skip flag lets the visitor stay; clearing it restores the redirect', () => {
+    setClassDeviceSkip()
+    expect(readClassDeviceSkip()).toBe(true)
+    expect(signedOutRedirect({ device: good, signedIn: false, skip: readClassDeviceSkip() })).toBeNull()
+    clearClassDeviceSkip()
+    expect(signedOutRedirect({ device: good, signedIn: false, skip: readClassDeviceSkip() })).toBe('/class')
+  })
+
+  it('carries next through the class detour and the chooser', () => {
+    expect(signedOutRedirect({ device: good, signedIn: false, next: '/teacher' })).toBe('/class?next=%2Fteacher')
+    expect(chooserPath('/teacher')).toBe('/login?choose=1&next=%2Fteacher')
+    expect(chooserPath(null)).toBe('/login?choose=1')
+  })
+
+  it('tells network failures apart from class problems', () => {
+    for (const c of [undefined, null, 'network', 'upstream', 'not_configured']) expect(isNetworkFailure(c)).toBe(true)
+    for (const c of ['class_not_found', 'too_many']) expect(isNetworkFailure(c)).toBe(false)
   })
 })

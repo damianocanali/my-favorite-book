@@ -19,7 +19,11 @@ export const CLASS_DEVICE_KEY = 'mybooklab-class-device'
 /** The old implicit memory, deleted once at app start (see purgeLegacySignInMemory). */
 export const LEGACY_KEYS = ['mybooklab-signin-who', 'mybooklab-class-code']
 
-const CODE_RE = /^[A-Z0-9]{6}$/
+/** Session-only: "Not in <class>?" was chosen in this tab (see signedOutRedirect). */
+export const CLASS_DEVICE_SKIP_KEY = 'mybooklab-class-device-skip'
+
+// Same shape as the server's CODE_RE (lib/school/crypto.js).
+const CODE_RE = /^[A-Z0-9]{6,8}$/
 
 /**
  * @param {unknown} value
@@ -68,6 +72,40 @@ export function clearClassDevice() {
   }
 }
 
+/**
+ * What children see for the class: its name, or its code when it has none.
+ * @param {{name?: string, code: string} | null} device
+ */
+export function classDeviceLabel(device) {
+  if (!device) return ''
+  return device.name?.trim() ? device.name : device.code
+}
+
+/** "Not in <class>?": let this tab reach /login and / as usual. */
+export function setClassDeviceSkip() {
+  try {
+    sessionStorage.setItem(CLASS_DEVICE_SKIP_KEY, '1')
+  } catch {
+    // ignore
+  }
+}
+
+export function clearClassDeviceSkip() {
+  try {
+    sessionStorage.removeItem(CLASS_DEVICE_SKIP_KEY)
+  } catch {
+    // ignore
+  }
+}
+
+export function readClassDeviceSkip() {
+  try {
+    return sessionStorage.getItem(CLASS_DEVICE_SKIP_KEY) === '1'
+  } catch {
+    return false
+  }
+}
+
 /** Forget the old implicit "who" and class-code memory. Idempotent. */
 export function purgeLegacySignInMemory() {
   for (const key of LEGACY_KEYS) {
@@ -83,14 +121,32 @@ export function purgeLegacySignInMemory() {
  * Where a signed-out visitor to /login or the app's signed-out entry ('/')
  * should be sent instead, if anywhere.
  *
- * @param {{ device: object | null, signedIn: boolean, choose?: boolean }} args
- *   `choose` is /login?choose=1 — "Not in <class>?" asked for the ordinary
- *   chooser on purpose, so it must not bounce straight back.
- * @returns {string | null} '/class' or null (stay put)
+ * @param {{ device: object | null, signedIn: boolean, choose?: boolean, skip?: boolean, next?: string | null }} args
+ *   `choose` is /login?choose=1 and `skip` the session flag set by
+ *   "Not in <class>?": the visitor asked for the ordinary chooser/landing
+ *   on purpose, so they must not bounce straight back. `next` (already
+ *   sanitised by the caller) rides along so it survives the detour.
+ * @returns {string | null} '/class[?next=…]' or null (stay put)
  */
-export function signedOutRedirect({ device, signedIn, choose = false }) {
-  if (signedIn || choose || !device) return null
-  return '/class'
+export function signedOutRedirect({ device, signedIn, choose = false, skip = false, next = null }) {
+  if (signedIn || choose || skip || !device) return null
+  return next ? `/class?next=${encodeURIComponent(next)}` : '/class'
+}
+
+/**
+ * Where "Not in <class>?" goes: the chooser, carrying `next` along.
+ * @param {string | null} next already sanitised
+ */
+export function chooserPath(next = null) {
+  return next ? `/login?choose=1&next=${encodeURIComponent(next)}` : '/login?choose=1'
+}
+
+/** Codes that mean the connection or the server, not the class. */
+const NETWORK = new Set([undefined, null, 'network', 'upstream', 'not_configured'])
+
+/** @param {string | null | undefined} code */
+export function isNetworkFailure(code) {
+  return NETWORK.has(code)
 }
 
 /** Roster / sign-in codes that mean "this class can't be signed into right now" (roster.js 404 / 423). */
