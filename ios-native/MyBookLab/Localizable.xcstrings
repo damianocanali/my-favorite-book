@@ -11720,6 +11720,23 @@
           }
         }
       }
+    },
+    "errors.session_expired": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Your session ended — please sign in again."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La tua sessione è terminata: accedi di nuovo."
+          }
+        }
+      }
     }
   },
   "version": "1.0"

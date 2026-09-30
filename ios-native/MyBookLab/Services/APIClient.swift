@@ -5,17 +5,35 @@
 // a new endpoint server-side, add the matching method here.
 //
 // Auth: pass the current Supabase access token via `bearerToken` for any
-// endpoint that requires it. AuthStore owns the token and supplies it.
+// endpoint that requires it — from `await AuthStore.validAccessToken()`,
+// never the cached `accessToken`, which may have expired. Every bearer
+// request that still gets a 401 is retried ONCE with a refreshed token
+// (withAuthRetry); a second 401 becomes APIError.sessionExpired.
+//
+// Failures are logged (os.Logger, category "api": method, path, status —
+// never the token or a body) so they can be diagnosed from the console.
 import Foundation
+import os
 
 enum APIError: Error, LocalizedError {
     case http(status: Int, body: String)
     case decoding(Error)
     case noData
     case transport(url: String, underlying: Error)
+    /// Still 401 after refreshing the token once: the session is over and
+    /// only signing in again helps.
+    case sessionExpired
+
+    /// Shown wherever a call ends in `sessionExpired` (teacher screens, the
+    /// hand-in, anything showing localizedDescription).
+    static var sessionExpiredText: LocalizedStringResource {
+        AppText("errors.session_expired", defaultValue: "Your session ended — please sign in again.")
+    }
 
     var errorDescription: String? {
         switch self {
+        case .sessionExpired:
+            return String(appLocalized: Self.sessionExpiredText)
         case .http(let status, let body):
             return "HTTP \(status): \(body)"
         case .decoding(let e):
@@ -30,6 +48,7 @@ enum APIError: Error, LocalizedError {
 
 actor APIClient {
     static let shared = APIClient()
+    static let log = Logger(subsystem: Bundle.main.bundleIdentifier ?? "MyBookLab", category: "api")
     private let session: URLSession
     private let baseURL: URL
     private let decoder: JSONDecoder
@@ -53,16 +72,17 @@ actor APIClient {
         // Build via URLComponents — appendingPathComponent percent-encodes
         // the slashes in "/api/..." and produces a broken URL.
         let url = makeURL(path: path, query: [:])
-        var req = URLRequest(url: url)
-        req.httpMethod = method
-        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        if let token = bearerToken {
-            req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        let bodyData = try body.map { try encoder.encode($0) }
+        return try await withAuthRetry(bearerToken, method: method, path: path) { token in
+            var req = URLRequest(url: url)
+            req.httpMethod = method
+            req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            if let token {
+                req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+            }
+            req.httpBody = bodyData
+            return try await perform(req, url: url)
         }
-        if let body = body {
-            req.httpBody = try encoder.encode(body)
-        }
-        return try await perform(req, url: url)
     }
 
     /// Like `request`, but for the paid AI endpoints: attaches an App
@@ -76,38 +96,84 @@ actor APIClient {
         bearerToken: String
     ) async throws -> Response {
         let url = makeURL(path: path, query: [:])
-        var req = URLRequest(url: url)
-        req.httpMethod = method
-        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        req.setValue("Bearer \(bearerToken)", forHTTPHeaderField: "Authorization")
-        req.setValue("ios", forHTTPHeaderField: "x-client-platform")
         let data = try encoder.encode(body)
-        req.httpBody = data
-        if let attestHeaders = await AppAttestService.shared.assertionHeaders(
-            for: data, bearerToken: bearerToken
-        ) {
-            for (key, value) in attestHeaders {
-                req.setValue(value, forHTTPHeaderField: key)
+        // The retry builds a NEW assertion for the new token: an assertion is
+        // single-use, so re-sending the first one would be refused.
+        return try await withAuthRetry(bearerToken, method: method, path: path) { token in
+            let token = token ?? bearerToken
+            var req = URLRequest(url: url)
+            req.httpMethod = method
+            req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+            req.setValue("ios", forHTTPHeaderField: "x-client-platform")
+            req.httpBody = data
+            if let attestHeaders = await AppAttestService.shared.assertionHeaders(
+                for: data, bearerToken: token
+            ) {
+                for (key, value) in attestHeaders {
+                    req.setValue(value, forHTTPHeaderField: key)
+                }
+            }
+            return try await perform(req, url: url)
+        }
+    }
+
+    /// Sends a bearer request; if the server answers 401 — the token expired
+    /// in flight, or the app sent one it had cached across a sleep — asks
+    /// AuthStore for a fresh token and sends it ONE more time. The retry is
+    /// not wrapped again, so it can never loop. Still 401, or no fresh token
+    /// to be had → APIError.sessionExpired. Requests without a token (public
+    /// endpoints, the class sign-in itself) are never retried.
+    private func withAuthRetry<Response>(
+        _ bearerToken: String?, method: String, path: String,
+        _ send: (String?) async throws -> Response
+    ) async throws -> Response {
+        do {
+            return try await send(bearerToken)
+        } catch APIError.http(let status, _) where status == 401 && bearerToken != nil {
+            guard let rejected = bearerToken,
+                  let fresh = await AuthStore.shared.tokenAfterUnauthorized(rejected: rejected) else {
+                Self.log.error("\(method, privacy: .public) \(path, privacy: .public): 401 and no fresh token — session ended")
+                throw APIError.sessionExpired
+            }
+            Self.log.info("\(method, privacy: .public) \(path, privacy: .public): 401, retrying once with a refreshed token")
+            do {
+                return try await send(fresh)
+            } catch APIError.http(let status, _) where status == 401 {
+                Self.log.error("\(method, privacy: .public) \(path, privacy: .public): 401 again after refresh — session ended")
+                throw APIError.sessionExpired
             }
         }
-        return try await perform(req, url: url)
     }
 
     private func perform<Response: Decodable>(_ req: URLRequest, url: URL,
                                               using urlSession: URLSession? = nil) async throws -> Response {
         let data: Data
         let response: URLResponse
+        let method = req.httpMethod ?? "GET"
         do {
             (data, response) = try await (urlSession ?? session).data(for: req)
         } catch {
+            Self.logTransport(method: method, url: url, error: error)
             throw APIError.transport(url: url.absoluteString, underlying: error)
         }
         guard let http = response as? HTTPURLResponse else { throw APIError.noData }
         guard (200..<300).contains(http.statusCode) else {
+            Self.log.error("\(method, privacy: .public) \(url.path, privacy: .public) → HTTP \(http.statusCode, privacy: .public)")
             throw APIError.http(status: http.statusCode, body: String(data: data, encoding: .utf8) ?? "")
         }
         do { return try decoder.decode(Response.self, from: data) }
-        catch { throw APIError.decoding(error) }
+        catch {
+            Self.log.error("\(method, privacy: .public) \(url.path, privacy: .public) → HTTP \(http.statusCode, privacy: .public), response didn't decode as \(String(describing: Response.self), privacy: .public)")
+            throw APIError.decoding(error)
+        }
+    }
+
+    /// A cancelled request (a view went away mid-poll) is routine, not a failure.
+    private static func logTransport(method: String, url: URL, error: Error) {
+        if error is CancellationError || (error as? URLError)?.code == .cancelled { return }
+        let ns = error as NSError
+        log.error("\(method, privacy: .public) \(url.path, privacy: .public) → transport error \(ns.domain, privacy: .public) \(ns.code, privacy: .public)")
     }
 
     private struct EmptyBody: Encodable {}
@@ -296,26 +362,13 @@ actor APIClient {
     /// authed endpoints (orders, books); omit it for public ones
     /// (gallery).
     private func rawGet<Response: Decodable>(url: URL, bearerToken: String? = nil) async throws -> Response {
-        var req = URLRequest(url: url)
-        req.httpMethod = "GET"
-        req.setValue("application/json", forHTTPHeaderField: "Accept")
-        if let bearerToken { req.setValue("Bearer \(bearerToken)", forHTTPHeaderField: "Authorization") }
-        let data: Data
-        let response: URLResponse
-        do {
-            (data, response) = try await session.data(for: req)
-        } catch {
-            throw APIError.transport(url: url.absoluteString, underlying: error)
+        try await withAuthRetry(bearerToken, method: "GET", path: url.path) { token in
+            var req = URLRequest(url: url)
+            req.httpMethod = "GET"
+            req.setValue("application/json", forHTTPHeaderField: "Accept")
+            if let token { req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization") }
+            return try await perform(req, url: url)
         }
-        guard let http = response as? HTTPURLResponse,
-              (200..<300).contains(http.statusCode) else {
-            throw APIError.http(
-                status: (response as? HTTPURLResponse)?.statusCode ?? 0,
-                body: String(data: data, encoding: .utf8) ?? ""
-            )
-        }
-        do { return try decoder.decode(Response.self, from: data) }
-        catch { throw APIError.decoding(error) }
     }
 
     // MARK: - Story Buddy
@@ -586,9 +639,16 @@ actor APIClient {
             return try await schoolAuthed(
                 method: method, path: path, query: query, body: body, bearerToken: bearerToken
             )
-        } catch APIError.http(_, let body) {
-            throw SchoolError(code: (try? decoder.decode(SchoolErrorBody.self, from: Data(body.utf8)))?.code)
+        } catch APIError.sessionExpired {
+            throw SchoolError(code: Self.sessionExpiredCode)
+        } catch APIError.http(let status, let body) {
+            let code = (try? decoder.decode(SchoolErrorBody.self, from: Data(body.utf8)))?.code
+            if code == nil {
+                Self.log.error("student \(method, privacy: .public) \(path, privacy: .public): HTTP \(status, privacy: .public) without an error code")
+            }
+            throw SchoolError(code: code)
         } catch {
+            Self.logUnmapped("student", method: method, path: path, error: error)
             throw SchoolError(code: nil)
         }
     }
@@ -598,15 +658,18 @@ actor APIClient {
         body: Body?, bearerToken: String
     ) async throws -> Response {
         let url = makeURL(path: path, query: query)
-        var req = URLRequest(url: url, timeoutInterval: Self.schoolTimeout)
-        req.httpMethod = method
-        req.setValue("application/json", forHTTPHeaderField: "Accept")
-        req.setValue("Bearer \(bearerToken)", forHTTPHeaderField: "Authorization")
-        if let body {
-            req.setValue("application/json", forHTTPHeaderField: "Content-Type")
-            req.httpBody = try encoder.encode(body)
+        let bodyData = try body.map { try encoder.encode($0) }
+        return try await withAuthRetry(bearerToken, method: method, path: path) { token in
+            var req = URLRequest(url: url, timeoutInterval: Self.schoolTimeout)
+            req.httpMethod = method
+            req.setValue("application/json", forHTTPHeaderField: "Accept")
+            req.setValue("Bearer \(token ?? bearerToken)", forHTTPHeaderField: "Authorization")
+            if let bodyData {
+                req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+                req.httpBody = bodyData
+            }
+            return try await perform(req, url: url, using: Self.schoolSession)
         }
-        return try await perform(req, url: url, using: Self.schoolSession)
     }
 
     // MARK: - Schools (the teacher area)
@@ -620,6 +683,20 @@ actor APIClient {
 
     struct TeacherError: Error, Sendable {
         let code: String?
+    }
+
+    /// The `code` a TeacherError / SchoolError carries when the session is
+    /// over (still 401 after one refresh). Not a server code: the app's own,
+    /// mapped to "Your session ended — please sign in again."
+    static let sessionExpiredCode = "session_expired"
+
+    /// A failure that reaches the UI as a code-less (generic) error. Logged
+    /// with what was asked and why it failed, never the token or a body.
+    private static func logUnmapped(_ area: String, method: String, path: String, error: Error) {
+        if error is CancellationError || (error as? URLError)?.code == .cancelled { return }
+        if case APIError.transport(_, let underlying) = error,
+           (underlying as? URLError)?.code == .cancelled { return }
+        log.error("\(area, privacy: .public) \(method, privacy: .public) \(path, privacy: .public) failed: \(String(describing: error), privacy: .public)")
     }
 
     func teacherOverview(bearerToken: String) async throws -> TeacherOverview {
@@ -886,19 +963,29 @@ actor APIClient {
         body: Body?, bearerToken: String
     ) async throws -> Response {
         let url = makeURL(path: path, query: query)
-        var req = URLRequest(url: url, timeoutInterval: 20)
-        req.httpMethod = method
-        req.setValue("application/json", forHTTPHeaderField: "Accept")
-        req.setValue("Bearer \(bearerToken)", forHTTPHeaderField: "Authorization")
-        if let body {
-            req.setValue("application/json", forHTTPHeaderField: "Content-Type")
-            req.httpBody = try encoder.encode(body)
-        }
         do {
-            return try await perform(req, url: url)
-        } catch APIError.http(_, let body) {
-            throw TeacherError(code: (try? decoder.decode(SchoolErrorBody.self, from: Data(body.utf8)))?.code)
+            let bodyData = try body.map { try encoder.encode($0) }
+            return try await withAuthRetry(bearerToken, method: method, path: path) { token in
+                var req = URLRequest(url: url, timeoutInterval: 20)
+                req.httpMethod = method
+                req.setValue("application/json", forHTTPHeaderField: "Accept")
+                req.setValue("Bearer \(token ?? bearerToken)", forHTTPHeaderField: "Authorization")
+                if let bodyData {
+                    req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+                    req.httpBody = bodyData
+                }
+                return try await perform(req, url: url)
+            }
+        } catch APIError.sessionExpired {
+            throw TeacherError(code: Self.sessionExpiredCode)
+        } catch APIError.http(let status, let body) {
+            let code = (try? decoder.decode(SchoolErrorBody.self, from: Data(body.utf8)))?.code
+            if code == nil {
+                Self.log.error("teacher \(method, privacy: .public) \(path, privacy: .public): HTTP \(status, privacy: .public) without an error code")
+            }
+            throw TeacherError(code: code)
         } catch {
+            Self.logUnmapped("teacher", method: method, path: path, error: error)
             throw TeacherError(code: nil)
         }
     }

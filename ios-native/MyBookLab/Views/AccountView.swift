@@ -503,9 +503,9 @@ struct AccountView: View {
     }
 
     private func cancelDeletion() async {
-        guard let token = auth.accessToken else { return }
         deleteBusy = true
         defer { deleteBusy = false }
+        guard let token = await auth.validAccessToken() else { return }
         do {
             try await APIClient.shared.cancelAccountDeletion(bearerToken: token)
             deletionScheduledFor = nil
@@ -517,7 +517,7 @@ struct AccountView: View {
     }
 
     private func loadDeletionStatus() async {
-        guard let token = auth.accessToken else { return }
+        guard let token = await auth.validAccessToken() else { return }
         if let status = try? await APIClient.shared.deletionStatus(bearerToken: token) {
             deletionScheduledFor = status.pending ? (status.scheduled_for ?? "") : nil
         }
@@ -573,9 +573,9 @@ struct AccountView: View {
     }
 
     private func scheduleDeletion() async {
-        guard let token = auth.accessToken else { return }
         deleteBusy = true; deleteError = nil
         defer { deleteBusy = false }
+        guard let token = await auth.validAccessToken() else { return }
         do {
             let scheduledFor = try await APIClient.shared.requestAccountDeletion(bearerToken: token)
             deletionScheduledFor = scheduledFor ?? ""

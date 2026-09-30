@@ -156,7 +156,7 @@ struct TeacherCreateClassSheet: View {
 
     /// Best effort: if the list can't be read, the server still decides.
     private func checkInactive() async {
-        guard let token = auth.accessToken,
+        guard let token = await auth.validAccessToken(),
               let classes = try? await APIClient.shared.teacherClasses(bearerToken: token) else { return }
         hasInactiveClass = classes.contains { LicenseBadgeState($0.license) == LicenseBadgeState.none }
     }
@@ -166,10 +166,13 @@ struct TeacherCreateClassSheet: View {
             name.trimmingCharacters(in: .whitespacesAndNewlines), max: TeacherRosterRules.classNameMax)
         guard !trimmed.isEmpty else { error = TeacherCopy.error("name_required"); return }
         // One request at a time: a double tap must never make two classes.
-        guard !saving, !hasInactiveClass, let token = auth.accessToken else { return }
+        // The flag is set before the token await, so a second tap can't
+        // pass this guard while the first is still fetching the token.
+        guard !saving, !hasInactiveClass else { return }
         saving = true
         error = nil
         defer { saving = false }
+        guard let token = await auth.validAccessToken() else { return }
         do {
             let res = try await APIClient.shared.teacherCreateClass(
                 name: trimmed, timezone: timezone, locale: locale, bearerToken: token)
@@ -408,7 +411,7 @@ struct TeacherClassSettingsView: View {
     }
 
     private func load() async {
-        guard let token = auth.accessToken else { return }
+        guard let token = await auth.validAccessToken() else { return }
         do {
             if let c = try await APIClient.shared.teacherClasses(bearerToken: token).first(where: { $0.id == classId }) {
                 // A reload never overwrites edits in progress.
@@ -423,7 +426,7 @@ struct TeacherClassSettingsView: View {
     }
 
     private func patch(_ p: APIClient.ClassPatch) async throws -> TeacherClass? {
-        guard let token = auth.accessToken else { throw APIClient.TeacherError(code: nil) }
+        guard let token = await auth.validAccessToken() else { throw APIClient.TeacherError(code: APIClient.sessionExpiredCode) }
         return try await APIClient.shared.teacherUpdateClass(p, bearerToken: token)
     }
 

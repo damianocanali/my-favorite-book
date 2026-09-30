@@ -36,7 +36,77 @@ final class AuthStore: NSObject {
 
     var isSignedIn: Bool { user != nil }
 
+    /// The cached access token, possibly EXPIRED. Never send it to the API:
+    /// Supabase access tokens last about an hour, and an iPad that slept
+    /// through that sent a dead JWT with every call (401 → "Something went
+    /// wrong" all over the teacher area). API calls use validAccessToken().
+    /// Kept only for synchronous "is anyone signed in with a token" checks.
     var accessToken: String? { session?.accessToken }
+
+    /// A usable access token for an API call, refreshed first if it has
+    /// expired (the SDK's `session` getter refreshes an expired session and
+    /// dedupes concurrent refreshes).
+    ///
+    /// nil when nobody is signed in or the session is gone for good (the SDK
+    /// then emits signedOut and the listener in bootstrap() clears the user).
+    /// On a transient failure (offline, a 5xx from the auth server) the user
+    /// is NOT signed out, same rule as bootstrap(): the cached token is
+    /// returned instead, so the call fails with its real network error — or
+    /// gets its one 401 retry in APIClient — rather than silently doing
+    /// nothing and leaving a screen spinning.
+    func validAccessToken() async -> String? {
+        guard session != nil || supabase.auth.currentSession != nil else { return nil }
+        do {
+            let fresh = try await supabase.auth.session
+            adopt(fresh)
+            return fresh.accessToken
+        } catch {
+            if Self.sessionIsGone(error) { return nil }
+            return session?.accessToken
+        }
+    }
+
+    /// Called by APIClient after the server answered 401 to `rejected`.
+    /// Another call may already have refreshed the session meanwhile — then
+    /// its token is used as is, rather than rotating the refresh token again.
+    /// Otherwise the session is refreshed now. nil when no new token can be
+    /// had; the caller then reports the session as ended.
+    func tokenAfterUnauthorized(rejected: String) async -> String? {
+        if let current = supabase.auth.currentSession,
+           current.accessToken != rejected, !current.isExpired {
+            adopt(current)
+            return current.accessToken
+        }
+        do {
+            let fresh = try await supabase.auth.refreshSession()
+            adopt(fresh)
+            return fresh.accessToken == rejected ? nil : fresh.accessToken
+        } catch {
+            return nil
+        }
+    }
+
+    /// Keeps the cached session in step with a refreshed one. `user` is only
+    /// replaced when it is a different person — a refresh must not make every
+    /// view that reads the user re-render.
+    private func adopt(_ fresh: Session) {
+        guard fresh.accessToken != session?.accessToken else { return }
+        session = fresh
+        if user?.id != fresh.user.id { user = fresh.user }
+    }
+
+    /// The SDK only starts its background token refresh on a
+    /// didBecomeActive notification observed AFTER the client exists — and
+    /// AuthStore.shared is created after launch's first one, so without this
+    /// the refresher never ran until the app had been backgrounded once.
+    /// Wired to scenePhase in MyBookLabApp. Both calls are idempotent.
+    func setAutoRefresh(active: Bool) async {
+        if active {
+            await supabase.auth.startAutoRefresh()
+        } else {
+            await supabase.auth.stopAutoRefresh()
+        }
+    }
 
     /// A child signed in through their class (picture password). Read from
     /// `app_metadata` ONLY: that is set by the server's service role and a

@@ -403,7 +403,7 @@ struct TeacherDashboardView: View {
     // MARK: - Loading
 
     private func loadOverview() async {
-        guard let token = auth.accessToken else { return }
+        guard let token = await auth.validAccessToken() else { return }
         do {
             let res = try await APIClient.shared.teacherOverview(bearerToken: token)
             let nextClasses = res.classes ?? []
@@ -424,10 +424,10 @@ struct TeacherDashboardView: View {
     }
 
     private func loadClass(_ id: String) async {
-        guard let token = auth.accessToken else { return }
         classLoading = true
         classError = nil
         defer { classLoading = false }
+        guard let token = await auth.validAccessToken() else { return }
         do {
             let data = try await APIClient.shared.teacherClassDashboard(classId: id, bearerToken: token)
             guard id == selectedClassId else { return }
@@ -449,7 +449,7 @@ struct TeacherDashboardView: View {
 
     /// Optimistic, with the row put back in its place if the server says no.
     private func markSeen(_ item: TeacherHelpItem) async {
-        guard let token = auth.accessToken else { return }
+        guard let token = await auth.validAccessToken() else { return }
         helpActionError = nil
         help.removeAll { $0.id == item.id }
         do {

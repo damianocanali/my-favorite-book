@@ -12,14 +12,15 @@ enum SchoolAssignments {
         subsystem: Bundle.main.bundleIdentifier ?? "MyBookLab", category: "SchoolAssignments"
     )
 
-    private static var token: String? {
-        AuthStore.shared.isStudent ? AuthStore.shared.accessToken : nil
+    /// A usable (refreshed if expired) token, for a class account only.
+    private static func bearer() async -> String? {
+        AuthStore.shared.isStudent ? await AuthStore.shared.validAccessToken() : nil
     }
 
     /// nil on any failure: the bookshelf stays quiet rather than blocking a
     /// child's own books, same as the web.
     static func list() async -> [StudentAssignment]? {
-        guard let token else { return nil }
+        guard let token = await bearer() else { return nil }
         do {
             return try await APIClient.shared.studentAssignments(bearerToken: token)
         } catch {
@@ -42,7 +43,7 @@ enum SchoolAssignments {
         book: Book, assignmentId: String,
         phase: (HandInPhase) -> Void
     ) async -> String? {
-        guard let token, let userId = AuthStore.shared.user?.id.uuidString else { return "generic" }
+        guard let token = await bearer(), let userId = AuthStore.shared.user?.id.uuidString else { return "generic" }
         phase(.syncing)
         do {
             try await BookshelfStore.shared.save(book, userId: userId)
@@ -68,7 +69,7 @@ enum SchoolAssignments {
     /// FIRST time it was seen, so repeating this is harmless);
     /// `markedSeen` is true when at least one item was newly marked.
     static func feedback(submissionId: String) async -> (items: [StudentSubmission.Feedback], markedSeen: Bool)? {
-        guard let token else { return nil }
+        guard let token = await bearer() else { return nil }
         do {
             let res = try await APIClient.shared.studentSubmission(id: submissionId, bearerToken: token)
             let items = res.feedback ?? []

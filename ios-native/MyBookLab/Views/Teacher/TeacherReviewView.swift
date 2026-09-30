@@ -177,7 +177,7 @@ struct TeacherReviewView: View {
     // MARK: Loading and navigation
 
     private func loadList() async {
-        guard let token = auth.accessToken else { return }
+        guard let token = await auth.validAccessToken() else { return }
         do {
             let res = try await APIClient.shared.teacherReviewList(
                 classId: classId, assignmentId: assignmentId, bearerToken: token)
@@ -209,7 +209,7 @@ struct TeacherReviewView: View {
     }
 
     private func loadDetail(_ row: TeacherSubmissionRow) async {
-        guard let token = auth.accessToken, let id = row.submissionId else { return }
+        guard let token = await auth.validAccessToken(), let id = row.submissionId else { return }
         detailError = nil
         do {
             let res = try await APIClient.shared.teacherSubmission(classId: classId, id: id, bearerToken: token)
@@ -326,10 +326,10 @@ struct TeacherFeedbackPanel: View {
     private func send() async {
         let trimmed = comment.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty || sticker != nil else { error = TeacherCopy.feedbackNeedContent; return }
-        guard let token = auth.accessToken else { return }
         sending = true
         error = nil
         defer { sending = false }
+        guard let token = await auth.validAccessToken() else { return }
         do {
             let sent = try await APIClient.shared.teacherSendFeedback(
                 classId: classId, submissionId: submissionId,

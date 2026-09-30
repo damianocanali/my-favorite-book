@@ -407,6 +407,7 @@ enum TeacherCopy {
         case "invalid_transition": AppText("school.teacher.errors.invalid_transition", defaultValue: "That status change isn't allowed.")
         case "assignment_closed": AppText("school.teacher.errors.assignment_closed", defaultValue: "This assignment is closed.")
         case "past_due": AppText("school.teacher.errors.past_due", defaultValue: "This assignment is past its due date.")
+        case APIClient.sessionExpiredCode: APIError.sessionExpiredText
         default: AppText("school.teacher.errors.generic", defaultValue: "Something went wrong. Try again.")
         }
     }

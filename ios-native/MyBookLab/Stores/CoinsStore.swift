@@ -45,7 +45,7 @@ final class CoinsStore {
     // MARK: - Balance
 
     func refresh() async {
-        guard let token = AuthStore.shared.accessToken else {
+        guard let token = await AuthStore.shared.validAccessToken() else {
             balance = 0
             return
         }
@@ -80,7 +80,7 @@ final class CoinsStore {
     /// invisible on the user's other devices.
     func spend(_ amount: Int, kind: String? = nil, id: String? = nil) async -> SpendResult {
         guard amount > 0 else { return .ok(balance: balance) }
-        guard let token = AuthStore.shared.accessToken else {
+        guard let token = await AuthStore.shared.validAccessToken() else {
             return .error("Sign in to spend coins")
         }
         do {
@@ -240,7 +240,12 @@ private enum CoinsAPI {
         let url = AppConfig.shared.apiBase.appendingPathComponent("/api/coins")
         var req = URLRequest(url: url)
         req.setValue("Bearer \(bearerToken)", forHTTPHeaderField: "Authorization")
-        let (data, _) = try await URLSession.shared.data(for: req)
+        let (data, response) = try await URLSession.shared.data(for: req)
+        // A rejected token (401) used to decode as "0 coins" and wipe the
+        // balance on screen; a failure now keeps the last known balance.
+        if let http = response as? HTTPURLResponse, !(200..<300).contains(http.statusCode) {
+            throw APIError.http(status: http.statusCode, body: "")
+        }
         struct Response: Decodable { let balance: Int }
         return (try? JSONDecoder().decode(Response.self, from: data).balance) ?? 0
     }

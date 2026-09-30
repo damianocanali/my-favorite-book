@@ -18,6 +18,7 @@ struct MyBookLabApp: App {
     @State private var teacherBell = TeacherNotificationsStore.shared
     @State private var push = PushRegistrar.shared
     @State private var language = AppLanguageState.shared
+    @Environment(\.scenePhase) private var scenePhase
 
     init() {
         // Before any string is looked up: the chosen language's .lproj.
@@ -71,6 +72,11 @@ struct MyBookLabApp: App {
                     // A teacher who already allowed alerts is re-registered
                     // on every launch (the token can rotate). No-op otherwise.
                     await push.registerIfAllowed()
+                }
+                // Keep the access token fresh while the app is in front, and
+                // stop the refresher in the background (see setAutoRefresh).
+                .onChange(of: scenePhase, initial: true) { _, phase in
+                    Task { await auth.setAutoRefresh(active: phase == .active) }
                 }
                 // A role change on the same account (e.g. metadata refresh
                 // marking it a teacher) must silence the music too.

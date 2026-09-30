@@ -49,9 +49,17 @@ final class PushRegistrar {
         #endif
     }
 
-    private var teacherToken: String? {
+    /// A signed-in teacher account. The cached token is only read as "there
+    /// is a session", never sent — see teacherToken().
+    private var isTeacherAccount: Bool {
         let auth = AuthStore.shared
-        return auth.isTeacher && !auth.isStudent ? auth.accessToken : nil
+        return auth.isTeacher && !auth.isStudent && auth.accessToken != nil
+    }
+
+    /// A usable (refreshed if expired) token for a teacher account.
+    private func teacherToken() async -> String? {
+        guard isTeacherAccount else { return nil }
+        return await AuthStore.shared.validAccessToken()
     }
 
     /// Who this launch already registered for, so launch and sign-in don't
@@ -79,7 +87,7 @@ final class PushRegistrar {
     }
 
     func turnOn() async {
-        guard teacherToken != nil else { return }
+        guard isTeacherAccount else { return }
         busy = true
         failed = false
         defer { busy = false }
@@ -99,7 +107,7 @@ final class PushRegistrar {
     /// Once per launch per person.
     func registerIfAllowed() async {
         await retryPendingForget()
-        guard teacherToken != nil, let userId = AuthStore.shared.user?.id.uuidString else { return }
+        guard isTeacherAccount, let userId = AuthStore.shared.user?.id.uuidString else { return }
         guard registeredForUser != userId else { return }
         registeredForUser = userId
         let gen = generation
@@ -115,10 +123,13 @@ final class PushRegistrar {
     func didRegister(deviceToken: Data) {
         let hex = deviceToken.map { String(format: "%02x", $0) }.joined()
         storedToken = hex
-        guard let bearer = teacherToken, let userId = AuthStore.shared.user?.id.uuidString else { return }
+        guard isTeacherAccount, let userId = AuthStore.shared.user?.id.uuidString else { return }
         let gen = generation
         registrationTask?.cancel()
         registrationTask = Task {
+            // Signed out (forget() bumped the generation) while the token
+            // was being refreshed: nothing was sent, nothing to undo.
+            guard let bearer = await teacherToken(), gen == generation else { return }
             do {
                 try await APIClient.shared.registerDeviceToken(hex, env: Self.apnsEnv, bearerToken: bearer)
                 // The teacher signed out (or another person signed in) while
@@ -174,9 +185,9 @@ final class PushRegistrar {
         center.removeAllDeliveredNotifications()
         try? await center.setBadgeCount(0)
 
-        guard let token = storedToken, let bearer = teacherToken,
+        guard let token = storedToken, isTeacherAccount,
               let userId = AuthStore.shared.user?.id.uuidString else { return }
-        if await Self.delete(token: token, bearer: bearer) { return }
+        if await Self.delete(token: token, bearer: nil) { return }
         UserDefaults.standard.set([token, userId], forKey: Self.pendingForgetKey)
         UIApplication.shared.unregisterForRemoteNotifications()
         storedToken = nil
@@ -186,17 +197,21 @@ final class PushRegistrar {
         guard let pending = UserDefaults.standard.stringArray(forKey: Self.pendingForgetKey),
               pending.count == 2,
               AuthStore.shared.user?.id.uuidString == pending[1],
-              let bearer = teacherToken else { return }
-        if await Self.delete(token: pending[0], bearer: bearer) {
+              isTeacherAccount else { return }
+        if await Self.delete(token: pending[0], bearer: nil) {
             UserDefaults.standard.removeObject(forKey: Self.pendingForgetKey)
         }
     }
 
-    /// true only when the server confirmed the DELETE within 5 s.
-    private static func delete(token: String, bearer: String) async -> Bool {
+    /// true only when the server confirmed the DELETE within 5 s. A nil
+    /// `bearer` means "the current session's", fetched inside the 5 s so a
+    /// token refresh on a dead network can't stretch a sign-out either.
+    private static func delete(token: String, bearer: String?) async -> Bool {
         await withTaskGroup(of: Bool.self) { group in
             group.addTask {
                 do {
+                    let current: String? = if let bearer { bearer } else { await AuthStore.shared.validAccessToken() }
+                    guard let bearer = current else { return false }
                     try await APIClient.shared.forgetDeviceToken(token, bearerToken: bearer)
                     return true
                 } catch {

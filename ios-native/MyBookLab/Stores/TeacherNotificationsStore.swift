@@ -16,13 +16,15 @@ final class TeacherNotificationsStore {
 
     static let pollInterval: Duration = .seconds(60)
 
-    private var token: String? {
+    /// A usable (refreshed if expired) token, for a teacher account only.
+    private func bearer() async -> String? {
         let auth = AuthStore.shared
-        return auth.isTeacher && !auth.isStudent ? auth.accessToken : nil
+        guard auth.isTeacher, !auth.isStudent else { return nil }
+        return await auth.validAccessToken()
     }
 
     func load() async {
-        guard let token else { return }
+        guard let token = await bearer() else { return }
         do {
             let res = try await APIClient.shared.teacherNotifications(bearerToken: token)
             items = res.notifications ?? []
@@ -35,7 +37,7 @@ final class TeacherNotificationsStore {
 
     /// Optimistic; a failed write reloads the truth.
     func markAllRead() async {
-        guard let token else { return }
+        guard let token = await bearer() else { return }
         let now = TeacherDates.iso(Date())
         items = items.map { var n = $0; if n.read_at == nil { n.read_at = now }; return n }
         unread = 0
@@ -47,12 +49,15 @@ final class TeacherNotificationsStore {
     }
 
     func markRead(_ n: TeacherNotification) {
-        guard n.read_at == nil, let token else { return }
+        guard n.read_at == nil else { return }
         if let i = items.firstIndex(where: { $0.id == n.id }) {
             items[i].read_at = TeacherDates.iso(Date())
         }
         unread = max(0, unread - 1)
-        Task { try? await APIClient.shared.teacherMarkNotificationsRead(ids: [n.id], bearerToken: token) }
+        Task {
+            guard let token = await bearer() else { return }
+            try? await APIClient.shared.teacherMarkNotificationsRead(ids: [n.id], bearerToken: token)
+        }
     }
 
     /// "9+" past nine, nil at zero (web: unreadBadge).

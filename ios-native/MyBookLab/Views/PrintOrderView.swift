@@ -297,10 +297,11 @@ struct PrintOrderView: View {
     }
 
     private func placeOrder() async {
-        guard let token = auth.accessToken,
-              let email = auth.user?.email else { return }
+        guard let email = auth.user?.email else { return }
+        // Busy before the token await, so a second tap can't place a second order.
         loading = true; error = nil
         defer { loading = false }
+        guard let token = await auth.validAccessToken() else { return }
 
         do {
             let body = CreatePrintOrderRequest(

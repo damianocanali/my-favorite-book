@@ -138,7 +138,7 @@ struct TeacherClassesView: View {
     }
 
     private func load() async {
-        guard let token = auth.accessToken else { return }
+        guard let token = await auth.validAccessToken() else { return }
         do {
             classes = try await APIClient.shared.teacherClasses(bearerToken: token)
             error = nil
@@ -397,7 +397,7 @@ struct TeacherClassDetailView: View {
     // MARK: Actions
 
     private func load() async {
-        guard let token = auth.accessToken else { return }
+        guard let token = await auth.validAccessToken() else { return }
         if summary == nil {
             summary = try? await APIClient.shared.teacherClasses(bearerToken: token).first { $0.id == classId }
         }
@@ -410,7 +410,7 @@ struct TeacherClassDetailView: View {
     }
 
     private func refreshSummary() async {
-        guard let token = auth.accessToken else { return }
+        guard let token = await auth.validAccessToken() else { return }
         if let fresh = try? await APIClient.shared.teacherClasses(bearerToken: token).first(where: { $0.id == classId }) {
             summary = fresh
         }
@@ -430,10 +430,10 @@ struct TeacherClassDetailView: View {
     }
 
     private func setStatus(_ a: TeacherAssignment, _ status: String) async {
-        guard let token = auth.accessToken else { return }
         busyId = a.id
         banner = nil
         defer { busyId = nil }
+        guard let token = await auth.validAccessToken() else { return }
         do {
             let saved = try await APIClient.shared.teacherSaveAssignment(
                 .init(classId: classId, id: a.id, status: status), bearerToken: token)
@@ -444,10 +444,10 @@ struct TeacherClassDetailView: View {
     }
 
     private func delete(_ a: TeacherAssignment) async {
-        guard let token = auth.accessToken else { return }
         busyId = a.id
         banner = nil
         defer { busyId = nil }
+        guard let token = await auth.validAccessToken() else { return }
         do {
             try await APIClient.shared.teacherDeleteAssignment(classId: classId, id: a.id, bearerToken: token)
             assignments?.removeAll { $0.id == a.id }
@@ -557,10 +557,10 @@ struct TeacherAssignmentForm: View {
         let p = prompt.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !t.isEmpty else { error = TeacherCopy.titleRequired; return }
         guard !p.isEmpty else { error = TeacherCopy.promptRequired; return }
-        guard let token = auth.accessToken else { return }
         saving = true
         error = nil
         defer { saving = false }
+        guard let token = await auth.validAccessToken() else { return }
         let dueIso: String? = hasDue ? TeacherDates.iso(due) : nil
         var body = APIClient.AssignmentWrite(classId: classId)
         body.id = existing?.id

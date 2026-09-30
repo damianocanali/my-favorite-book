@@ -151,7 +151,7 @@ struct TeacherStudentDetailView: View {
     }
 
     private func loadBooks() async {
-        guard let token = auth.accessToken else { return }
+        guard let token = await auth.validAccessToken() else { return }
         do {
             books = try await APIClient.shared.teacherStudentBooks(classId: classId, studentId: student.id, bearerToken: token)
             booksError = nil
@@ -161,7 +161,7 @@ struct TeacherStudentDetailView: View {
     }
 
     private func loadCheckins() async {
-        guard let token = auth.accessToken else { return }
+        guard let token = await auth.validAccessToken() else { return }
         do {
             checkins = try await APIClient.shared.teacherStudentCheckins(classId: classId, studentId: student.id, bearerToken: token)
             checkinsError = nil
@@ -204,7 +204,7 @@ struct TeacherStudentBookView: View {
     }
 
     private func load() async {
-        guard let token = auth.accessToken else { return }
+        guard let token = await auth.validAccessToken() else { return }
         error = nil
         do {
             if let b = try await APIClient.shared.teacherStudentBook(

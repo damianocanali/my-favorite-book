@@ -75,11 +75,14 @@ struct TeacherNotificationSettingsCard: View {
     @Environment(AuthStore.self) private var auth
     @State private var settings: TeacherNotificationSettings?
     @State private var loadError = false
+    /// Why the load failed, when the server said: a session that ended
+    /// reads as such, not as a vague "couldn't load".
+    @State private var loadErrorCode: String?
     @State private var status: Status?
     @State private var testing = false
     @State private var testResult: TestResult?
 
-    enum Status { case saved, error }
+    enum Status { case saved, error(String?) }
     enum TestResult: Equatable { case sent(Int), noDevice, failed(String?) }
 
     var body: some View {
@@ -92,7 +95,9 @@ struct TeacherNotificationSettingsCard: View {
             .font(.headline)
 
             if loadError {
-                Text(TeacherCopy.settingsLoadError).font(.footnote).foregroundStyle(.red)
+                Text(loadErrorCode == APIClient.sessionExpiredCode
+                     ? APIError.sessionExpiredText : TeacherCopy.settingsLoadError)
+                    .font(.footnote).foregroundStyle(.red)
             }
             if let settings {
                 VStack(alignment: .leading, spacing: 6) {
@@ -124,7 +129,9 @@ struct TeacherNotificationSettingsCard: View {
                 }
                 switch status {
                 case .saved: Text(TeacherCopy.settingsSaved).font(.caption).foregroundStyle(.green)
-                case .error: Text(TeacherCopy.settingsError).font(.caption).foregroundStyle(.red)
+                case .error(let code):
+                    Text(code == APIClient.sessionExpiredCode ? APIError.sessionExpiredText : TeacherCopy.settingsError)
+                        .font(.caption).foregroundStyle(.red)
                 case nil: EmptyView()
                 }
                 testAlert
@@ -184,10 +191,10 @@ struct TeacherNotificationSettingsCard: View {
     }
 
     private func sendTest() async {
-        guard let token = auth.accessToken else { return }
         testing = true
         testResult = nil
         defer { testing = false }
+        guard let token = await auth.validAccessToken() else { return }
         do {
             let n = try await APIClient.shared.teacherSendTestAlert(bearerToken: token)
             testResult = n > 0 ? .sent(n) : .noDevice
@@ -197,17 +204,23 @@ struct TeacherNotificationSettingsCard: View {
     }
 
     private func load() async {
-        guard let token = auth.accessToken else { return }
+        guard let token = await auth.validAccessToken() else {
+            loadErrorCode = APIClient.sessionExpiredCode
+            loadError = true
+            return
+        }
         do {
             settings = try await APIClient.shared.teacherNotificationSettings(bearerToken: token)
             loadError = false
+            loadErrorCode = nil
         } catch {
+            loadErrorCode = (error as? APIClient.TeacherError)?.code
             loadError = true
         }
     }
 
     private func save(_ patch: APIClient.NotificationSettingsPatch) async {
-        guard let token = auth.accessToken, var next = settings else { return }
+        guard let token = await auth.validAccessToken(), var next = settings else { return }
         let previous = settings
         if let v = patch.summary { next.summary = v }
         if let v = patch.push_urgent { next.push_urgent = v }
@@ -219,7 +232,7 @@ struct TeacherNotificationSettingsCard: View {
             status = .saved
         } catch {
             settings = previous
-            status = .error
+            status = .error((error as? APIClient.TeacherError)?.code)
         }
     }
 }
