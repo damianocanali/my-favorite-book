@@ -101,16 +101,21 @@ struct MyAssignmentsSection: View {
     /// Assignment ids this child has opened (AssignmentSeen); drives "New".
     @State private var seen: Set<String> = []
     @State private var feedbackFor: StudentAssignment?
-    /// The assignment waiting on "replace your unsaved book?".
-    @State private var pendingStart: StudentAssignment?
+    /// What is waiting on "replace your unsaved book?": the assignment, and
+    /// the nudge that led there (marked seen only if the child goes ahead).
+    /// The dialog carries it via `presenting:`, so the Replace action acts
+    /// on exactly the value it was shown with.
+    @State private var pendingStart: PendingStart?
+
+    private struct PendingStart {
+        let assignment: StudentAssignment
+        var nudge: StudentNudge?
+    }
     /// The teacher's unread nudge (api/school/nudges.js), shown first.
     @State private var nudge: StudentNudge?
     /// Dismissed with "Got it" on this device: a poll racing the PATCH
     /// must not bring the card straight back.
     @State private var dismissedNudges: Set<String> = []
-    /// The nudge whose action is waiting on "replace your unsaved book?":
-    /// it is only marked seen if the child goes ahead.
-    @State private var pendingNudge: StudentNudge?
 
     var body: some View {
         // A real container, not a Group: modifiers on a Group that starts
@@ -204,30 +209,20 @@ struct MyAssignmentsSection: View {
         }
         .confirmationDialog(
             Text(AssignmentCopy.replaceDraftTitle),
-            isPresented: Binding(
-                get: { pendingStart != nil },
-                set: {
-                    if !$0 {
-                        pendingStart = nil
-                        pendingNudge = nil
-                    }
-                }
-            ),
+            // State is cleared only by the two actions below (a tap outside
+            // the dialog runs the Cancel action).
+            isPresented: Binding(get: { pendingStart != nil }, set: { _ in }),
             titleVisibility: .visible,
             presenting: pendingStart
-        ) { assignment in
+        ) { pending in
             Button(role: .destructive) {
                 pendingStart = nil
-                if let n = pendingNudge { dismissNudge(n) }
-                pendingNudge = nil
-                startNew(assignment)
+                if let n = pending.nudge { dismissNudge(n) }
+                startNew(pending.assignment)
             } label: {
                 Text(AssignmentCopy.replaceDraftConfirm)
             }
-            Button("Cancel", role: .cancel) {
-                pendingStart = nil
-                pendingNudge = nil
-            }
+            Button("Cancel", role: .cancel) { pendingStart = nil }
         }
     }
 
@@ -283,14 +278,14 @@ struct MyAssignmentsSection: View {
     /// only replaced after the child says so.
     /// Returns false when it is waiting on the "replace?" confirmation.
     @discardableResult
-    private func startOrContinue(_ assignment: StudentAssignment) -> Bool {
+    private func startOrContinue(_ assignment: StudentAssignment, nudge: StudentNudge? = nil) -> Bool {
         let draft = BookDraftStore.shared
         if draft.book?.assignmentId == assignment.id {
             router.selectedTab = .create
             return true
         }
         if let open = draft.book, Self.hasWork(open) {
-            pendingStart = assignment
+            pendingStart = PendingStart(assignment: assignment, nudge: nudge)
             return false
         }
         startNew(assignment)
@@ -351,11 +346,9 @@ struct MyAssignmentsSection: View {
     private func nudgeAction(_ n: StudentNudge) {
         if let a = nudgeAssignment(n) {
             markOpened(a)
-            if startOrContinue(a) {
-                dismissNudge(n)
-            } else {
-                pendingNudge = n
-            }
+            // Waiting on "replace?": the dialog carries the nudge and marks
+            // it seen only on Replace.
+            if startOrContinue(a, nudge: n) { dismissNudge(n) }
             return
         }
         dismissNudge(n)

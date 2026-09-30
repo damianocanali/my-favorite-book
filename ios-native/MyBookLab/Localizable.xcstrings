@@ -13238,6 +13238,23 @@
           }
         }
       }
+    },
+    "school.teacher.errors.class_archived": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "This class is archived. Restore it to send nudges."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questa classe è archiviata. Ripristinala per inviare incoraggiamenti."
+          }
+        }
+      }
     }
   },
   "version": "1.0"
