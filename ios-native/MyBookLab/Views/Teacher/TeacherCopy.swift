@@ -4,8 +4,9 @@
 // iPad and a browser reads the same words. Italian lives in
 // Localizable.xcstrings under the same keys.
 //
-// No prices anywhere in here, by design (App Store 3.1.3): purchasing and
-// roster management stay on the web.
+// No prices anywhere in here, by design (App Store 3.1.3): purchasing stays
+// on the web, and the app never links to it. Everything else a teacher
+// needs — classes, roster, sign-in cards, school hours — is native.
 import Foundation
 
 enum TeacherCopy {
@@ -117,10 +118,92 @@ enum TeacherCopy {
 
     // MARK: Classes
     static let classesTitle = LocalizedStringResource("school.teacher.classes.title", defaultValue: "Your classes")
-    static let classesEmpty = LocalizedStringResource("school.teacher.classes.empty", defaultValue: "No classes yet — create one on the web to get started.")
-    static let createOnWeb = LocalizedStringResource("school.teacher.classes.create_on_web", defaultValue: "Create a class on the web")
-    static let manageRoster = LocalizedStringResource("school.teacher.classes.manage_roster", defaultValue: "Manage roster on the web")
-    static let manageRosterHint = LocalizedStringResource("school.teacher.classes.manage_roster_hint", defaultValue: "Add students, make new picture passwords and print sign-in cards on mybooklab.app.")
+    static let classesEmpty = LocalizedStringResource("school.teacher.classes.empty", defaultValue: "No classes yet. Create your first one to get started.")
+    static let studentsCardTitle = LocalizedStringResource("school.teacher.classes.students_card", defaultValue: "Students and sign-in")
+    static let studentsCardHint = LocalizedStringResource("school.teacher.classes.students_card_hint", defaultValue: "Add children, rename or remove them, and make new picture passwords.")
+    static let settingsCardTitle = LocalizedStringResource("school.teacher.classes.settings_card", defaultValue: "Class settings")
+    static let settingsCardHint = LocalizedStringResource("school.teacher.classes.settings_card_hint", defaultValue: "Name, sign-in, school hours and time zone.")
+
+    // MARK: Create a class
+    static let createClass = LocalizedStringResource("school.teacher.create.heading", defaultValue: "Create a class")
+    static let createName = LocalizedStringResource("school.teacher.create.name_label", defaultValue: "Class name")
+    static let createNamePlaceholder = LocalizedStringResource("school.teacher.create.name_placeholder", defaultValue: "e.g. Mrs. Rivera's 3rd Grade")
+    static let createTimezone = LocalizedStringResource("school.teacher.create.timezone_label", defaultValue: "Time zone")
+    static let createLanguage = LocalizedStringResource("school.teacher.create.language_label", defaultValue: "Class language")
+    static let createLanguageHint = LocalizedStringResource("school.teacher.create.language_hint", defaultValue: "The language the children's sign-in and your alerts use.")
+    static let createTrialNote = LocalizedStringResource("school.teacher.create.trial_note", defaultValue: "A new class starts with a free trial.")
+    static let createSubmit = LocalizedStringResource("school.teacher.create.submit", defaultValue: "Create class")
+    static let createSubmitting = LocalizedStringResource("school.teacher.create.submitting", defaultValue: "Creating…")
+    /// Neutral on purpose (App Store 3.1.3): no price, no link, no "buy".
+    static let classCantCreate = LocalizedStringResource("school.teacher.create.refused", defaultValue: "This class can't be created right now — contact My Book Lab.")
+    static let licenceEnded = LocalizedStringResource("school.teacher.license.ended_note", defaultValue: "This class's licence has ended.")
+
+    // MARK: Class settings
+    static let settingsNameSection = LocalizedStringResource("school.teacher.class_settings.name", defaultValue: "Class name")
+    static let settingsSignIn = LocalizedStringResource("school.teacher.class_settings.sign_in_open", defaultValue: "Children can sign in")
+    static let settingsSignInHint = LocalizedStringResource("school.teacher.class_settings.sign_in_hint", defaultValue: "Turn this off to pause picture sign-in for the whole class.")
+    static let hoursHeading = LocalizedStringResource("school.teacher.hours.heading", defaultValue: "School hours")
+    static let hoursHint = LocalizedStringResource("school.teacher.hours.hint_alerts", defaultValue: "Urgent “I need a grown-up” alerts reach you only during these hours; outside them they wait in the bell.")
+    static let hoursStart = LocalizedStringResource("school.teacher.hours.start_label", defaultValue: "Start")
+    static let hoursEnd = LocalizedStringResource("school.teacher.hours.end_label", defaultValue: "End")
+    static let hoursSave = LocalizedStringResource("school.teacher.hours.save", defaultValue: "Save hours")
+
+    // MARK: Roster
+    static let rosterTitle = LocalizedStringResource("school.teacher.roster.title", defaultValue: "Students")
+    static let rosterEmpty = LocalizedStringResource("school.teacher.roster.empty_native", defaultValue: "No students yet. Tap + to add your class.")
+    static let rosterAdd = LocalizedStringResource("school.teacher.roster.add", defaultValue: "Add students")
+    static let addOne = LocalizedStringResource("school.teacher.add_students.one", defaultValue: "Add a child")
+    static let addMany = LocalizedStringResource("school.teacher.add_students.many", defaultValue: "Add several at once")
+    static let addName = LocalizedStringResource("school.teacher.add_students.name_label", defaultValue: "Child's name")
+    static let addManyHint = LocalizedStringResource("school.teacher.add_students.placeholder", defaultValue: "One name per line. First name and last initial is best.")
+    static let adding = LocalizedStringResource("school.teacher.add_students.submitting", defaultValue: "Adding…")
+    static let skippedHeading = LocalizedStringResource("school.teacher.add_students.skipped_heading", defaultValue: "Not added")
+    static func addCount(_ count: Int) -> LocalizedStringResource {
+        LocalizedStringResource("school.teacher.add_students.preview_count", defaultValue: "Add \(count) students")
+    }
+    static func addedCount(_ count: Int) -> LocalizedStringResource {
+        LocalizedStringResource("school.teacher.add_students.success", defaultValue: "Added \(count) students.")
+    }
+    static func skippedReason(_ code: String?) -> LocalizedStringResource {
+        switch code {
+        case "duplicate_name": LocalizedStringResource("school.teacher.errors.duplicate_name", defaultValue: "already in this class")
+        default: LocalizedStringResource("school.teacher.errors.create_failed", defaultValue: "couldn't be created")
+        }
+    }
+    static let studentNameRequired = LocalizedStringResource("school.teacher.roster.name_required", defaultValue: "Enter a name.")
+    static let rename = LocalizedStringResource("school.teacher.roster.menu.rename", defaultValue: "Rename")
+    static let renameTitle = LocalizedStringResource("school.teacher.roster.rename_dialog.heading", defaultValue: "Rename student")
+    static let newPictures = LocalizedStringResource("school.teacher.roster.menu.new_pictures", defaultValue: "New pictures")
+    static let unlock = LocalizedStringResource("school.teacher.roster.menu.unlock", defaultValue: "Unlock")
+    static let signOutEverywhere = LocalizedStringResource("school.teacher.roster.menu.sign_out", defaultValue: "Sign out everywhere")
+    static let remove = LocalizedStringResource("school.teacher.roster.menu.remove", defaultValue: "Remove")
+    static let restore = LocalizedStringResource("school.teacher.roster.menu.restore", defaultValue: "Restore")
+    static let removedHeading = LocalizedStringResource("school.teacher.roster.status.removed", defaultValue: "Removed")
+    static let lockedChip = LocalizedStringResource("school.teacher.roster.status.locked", defaultValue: "Locked")
+    static let save = LocalizedStringResource("school.teacher.roster.save", defaultValue: "Save")
+    static func optionsFor(_ name: String) -> LocalizedStringResource {
+        LocalizedStringResource("school.teacher.roster.menu.open_aria", defaultValue: "Options for \(name)")
+    }
+    static func removeConfirm(_ name: String) -> LocalizedStringResource {
+        LocalizedStringResource("school.teacher.roster.remove_confirm", defaultValue: "Remove \(name) from this class? They'll be signed out everywhere.")
+    }
+    static func newPicturesConfirm(_ name: String) -> LocalizedStringResource {
+        LocalizedStringResource("school.teacher.roster.new_pictures_confirm", defaultValue: "Make new pictures for \(name)? Their old pictures stop working.")
+    }
+    static func signedOut(_ name: String) -> LocalizedStringResource {
+        LocalizedStringResource("school.teacher.roster.signed_out", defaultValue: "\(name) was signed out everywhere.")
+    }
+
+    // MARK: Sign-in cards
+    static let cardsHeading = LocalizedStringResource("school.teacher.cards.heading", defaultValue: "Sign-in cards")
+    static let cardsSafety = LocalizedStringResource("school.teacher.cards.safety_note", defaultValue: "Print these now. For safety we can't show these pictures again; you can always make new ones.")
+    static let cardsPrint = LocalizedStringResource("school.teacher.cards.print_native", defaultValue: "Print sign-in cards")
+    static let cardsOrder = LocalizedStringResource("school.teacher.cards.order_hint", defaultValue: "Tap the pictures in this order")
+    static let cardsCloseTitle = LocalizedStringResource("school.teacher.cards.close_confirm", defaultValue: "Close without printing? These pictures can't be shown again.")
+    static let cardsClose = LocalizedStringResource("school.teacher.cards.close", defaultValue: "Close")
+    static func cardsPicturesAria(_ list: String) -> LocalizedStringResource {
+        LocalizedStringResource("school.teacher.cards.pictures_aria", defaultValue: "Pictures, in order: \(list)")
+    }
     static func studentCount(_ count: Int) -> LocalizedStringResource {
         LocalizedStringResource("school.teacher.classes.student_count", defaultValue: "\(count) students")
     }
@@ -218,7 +301,6 @@ enum TeacherCopy {
     // MARK: Bell
     static let bellTitle = LocalizedStringResource("school.notifications.title", defaultValue: "Notifications")
     static let bellMarkAll = LocalizedStringResource("school.notifications.mark_all_read", defaultValue: "Mark all as read")
-    static let bellEmpty = LocalizedStringResource("school.notifications.empty", defaultValue: "Nothing new yet.")
     static let bellError = LocalizedStringResource("school.notifications.error", defaultValue: "Couldn't load notifications.")
     static let bellUnknownStudent = LocalizedStringResource("school.notifications.unknown_student", defaultValue: "A student")
     static func bellLabel(unread: Int) -> LocalizedStringResource {
@@ -292,7 +374,14 @@ enum TeacherCopy {
         switch code {
         case "rate_limited": LocalizedStringResource("school.teacher.errors.rate_limited", defaultValue: "Too many requests — wait a moment and try again.")
         case "class_not_found": LocalizedStringResource("school.teacher.errors.class_not_found", defaultValue: "We can't find that class.")
-        case "license_required": LocalizedStringResource("school.teacher.errors.license_required", defaultValue: "This class needs an active license.")
+        case "license_required": licenceEnded
+        case "trial_used_up": classCantCreate
+        case "name_required": LocalizedStringResource("school.teacher.errors.name_required", defaultValue: "Enter a class name.")
+        case "bad_timezone": LocalizedStringResource("school.teacher.errors.bad_timezone", defaultValue: "That time zone isn't recognized.")
+        case "bad_hours": LocalizedStringResource("school.teacher.errors.bad_hours", defaultValue: "Check the school hours — each end time must be after its start time.")
+        case "seats_full": LocalizedStringResource("school.teacher.errors.seats_full_native", defaultValue: "This class is full — a class can have up to 35 students.")
+        case "duplicate_name": LocalizedStringResource("school.teacher.errors.duplicate_name_full", defaultValue: "Another student already has that name.")
+        case "create_failed": LocalizedStringResource("school.teacher.errors.create_failed_full", defaultValue: "That student couldn't be created. Try again.")
         case "student_not_found": LocalizedStringResource("school.teacher.errors.student_not_found", defaultValue: "We can't find that student.")
         case "book_not_found": LocalizedStringResource("school.teacher.errors.book_not_found", defaultValue: "We can't find that book.")
         case "not_configured": LocalizedStringResource("school.teacher.errors.not_configured", defaultValue: "Schools aren't set up on this server yet.")

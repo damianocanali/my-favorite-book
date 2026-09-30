@@ -1,0 +1,420 @@
+// Creating a class and its settings, natively — no web round trip.
+// Counterparts of the web's TeacherPage "Create a class" form and
+// TeacherClassPage's rename / sign-in toggle / SchoolHoursEditor, over the
+// same api/school/classes.js.
+//
+// App Store 3.1.3: a new class gets its free trial from the server. If the
+// server won't make one (trial cap) or a class's licence has lapsed, the
+// app says so neutrally — never a price, never a link to buy.
+import SwiftUI
+
+// MARK: - Time zones
+
+enum TeacherTimeZones {
+    /// The web's US list (SchoolHoursEditor), plus the two European zones an
+    /// Italian class would need.
+    static let common = [
+        "America/New_York", "America/Chicago", "America/Denver", "America/Phoenix",
+        "America/Los_Angeles", "America/Anchorage", "Pacific/Honolulu",
+        "Europe/Rome", "Europe/London",
+    ]
+
+    /// The device's zone first (the likely answer), then the class's current
+    /// one (kept selectable even if unusual), then the common list.
+    static func options(including current: String? = nil) -> [String] {
+        var out: [String] = []
+        for id in [TimeZone.current.identifier, current].compactMap({ $0 }) + common
+        where !out.contains(id) && TimeZone(identifier: id) != nil {
+            out.append(id)
+        }
+        return out
+    }
+
+    /// "Eastern Time — New York", in the app's language.
+    static func label(_ id: String) -> String {
+        let city = (id.split(separator: "/").last.map(String.init) ?? id).replacingOccurrences(of: "_", with: " ")
+        guard let name = TimeZone(identifier: id)?.localizedName(for: .generic, locale: AppLanguage.locale) else { return city }
+        return "\(name) — \(city)"
+    }
+}
+
+// MARK: - Create a class
+
+struct TeacherCreateClassSheet: View {
+    /// Called with the new class (nil if the server didn't return one) once
+    /// the teacher is done here.
+    let onCreated: (TeacherClass?) -> Void
+
+    @Environment(AuthStore.self) private var auth
+    @Environment(\.dismiss) private var dismiss
+
+    @State private var name = ""
+    @State private var timezone = TimeZone.current.identifier
+    @State private var locale = AppLanguage.uiLanguage
+    @State private var saving = false
+    @State private var error: LocalizedStringResource?
+    /// The class was made but the server couldn't give it a trial.
+    @State private var refused: TeacherClass??
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                if let refused {
+                    Section {
+                        Label {
+                            Text(TeacherCopy.classCantCreate).font(.body)
+                        } icon: {
+                            Image(systemName: "info.circle.fill").foregroundStyle(.yellow)
+                        }
+                        Button {
+                            onCreated(refused)
+                            dismiss()
+                        } label: {
+                            Text(TeacherCopy.done).bold().frame(maxWidth: .infinity, minHeight: 44)
+                        }
+                    }
+                } else {
+                    Section {
+                        TextField(text: $name) { Text(TeacherCopy.createNamePlaceholder) }
+                            .font(.body)
+                            .textInputAutocapitalization(.words)
+                            .submitLabel(.done)
+                            .onChange(of: name) { _, v in
+                                let cut = TeacherStickers.truncated(v, max: TeacherRosterRules.classNameMax)
+                                if cut != v { name = cut }
+                            }
+                    } header: {
+                        Text(TeacherCopy.createName)
+                    }
+
+                    Section {
+                        Picker(selection: $timezone) {
+                            ForEach(TeacherTimeZones.options(), id: \.self) { id in
+                                Text(verbatim: TeacherTimeZones.label(id)).tag(id)
+                            }
+                        } label: {
+                            Text(TeacherCopy.createTimezone)
+                        }
+                        Picker(selection: $locale) {
+                            ForEach(AppLanguage.supported, id: \.code) { lang in
+                                Text(verbatim: lang.name).tag(lang.code)
+                            }
+                        } label: {
+                            Text(TeacherCopy.createLanguage)
+                        }
+                    } footer: {
+                        Text(TeacherCopy.createLanguageHint)
+                    }
+
+                    if let error {
+                        Section { Text(error).foregroundStyle(TeacherTheme.urgent) }
+                    }
+
+                    Section {
+                        Button {
+                            Task { await create() }
+                        } label: {
+                            HStack(spacing: 8) {
+                                if saving { ProgressView() }
+                                Text(saving ? TeacherCopy.createSubmitting : TeacherCopy.createSubmit).bold()
+                            }
+                            .frame(maxWidth: .infinity, minHeight: 44)
+                        }
+                        .disabled(saving || name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    } footer: {
+                        Text(TeacherCopy.createTrialNote)
+                    }
+                }
+            }
+            .navigationTitle(Text(TeacherCopy.createClass))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    if refused == nil {
+                        Button { dismiss() } label: { Text(TeacherCopy.cancel) }
+                    }
+                }
+            }
+        }
+        .preferredColorScheme(.dark)
+        .interactiveDismissDisabled(saving)
+    }
+
+    private func create() async {
+        let trimmed = TeacherStickers.truncated(
+            name.trimmingCharacters(in: .whitespacesAndNewlines), max: TeacherRosterRules.classNameMax)
+        guard !trimmed.isEmpty else { error = TeacherCopy.error("name_required"); return }
+        guard let token = auth.accessToken else { return }
+        saving = true
+        error = nil
+        defer { saving = false }
+        do {
+            let res = try await APIClient.shared.teacherCreateClass(
+                name: trimmed, timezone: timezone, locale: locale, bearerToken: token)
+            if res.trial_used_up == true {
+                refused = .some(res.class)
+            } else {
+                onCreated(res.class)
+                dismiss()
+            }
+        } catch {
+            self.error = TeacherCopy.error(error)
+        }
+    }
+}
+
+// MARK: - Class settings
+
+struct TeacherClassSettingsView: View {
+    let classId: String
+
+    @Environment(AuthStore.self) private var auth
+
+    @State private var cls: TeacherClass?
+    @State private var loadError: String??
+    @State private var name = ""
+    @State private var signInOpen = true
+    @State private var locale = "en"
+    @State private var timezone = TimeZone.current.identifier
+    @State private var hours: [SchoolDayHours] = SchoolDayHours.rows(from: nil)
+    @State private var savingName = false
+    @State private var savingHours = false
+    @State private var nameStatus: Status?
+    @State private var toggleError: LocalizedStringResource?
+    @State private var hoursStatus: Status?
+
+    enum Status: Equatable { case saved, failed(LocalizedStringResource) }
+
+    var body: some View {
+        ZStack {
+            CosmicBackground()
+            if let cls {
+                form(cls)
+            } else if let loadError {
+                TeacherErrorBlock(message: TeacherCopy.error(loadError)) { Task { await load() } }
+                    .contentColumn()
+            } else {
+                TeacherLoading()
+            }
+        }
+        .navigationTitle(Text(TeacherCopy.settingsCardTitle))
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(.hidden, for: .navigationBar)
+        .task { await load() }
+    }
+
+    private func form(_ cls: TeacherClass) -> some View {
+        Form {
+            Section {
+                TextField(text: $name) { Text(TeacherCopy.createNamePlaceholder) }
+                    .textInputAutocapitalization(.words)
+                    .onChange(of: name) { _, v in
+                        let cut = TeacherStickers.truncated(v, max: TeacherRosterRules.classNameMax)
+                        if cut != v { name = cut }
+                        nameStatus = nil
+                    }
+                Button {
+                    Task { await saveName() }
+                } label: {
+                    HStack {
+                        if savingName { ProgressView() }
+                        Text(TeacherCopy.save).bold()
+                    }
+                    .frame(minHeight: 44)
+                }
+                .disabled(savingName || name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                          || name.trimmingCharacters(in: .whitespacesAndNewlines) == (cls.name ?? ""))
+                statusLine(nameStatus)
+            } header: {
+                Text(TeacherCopy.settingsNameSection)
+            }
+
+            Section {
+                Toggle(isOn: Binding(get: { signInOpen }, set: { v in Task { await setSignIn(v) } })) {
+                    Text(TeacherCopy.settingsSignIn)
+                }
+                .tint(.purple)
+                Picker(selection: Binding(get: { locale }, set: { v in Task { await setLocale(v) } })) {
+                    ForEach(AppLanguage.supported, id: \.code) { lang in
+                        Text(verbatim: lang.name).tag(lang.code)
+                    }
+                } label: {
+                    Text(TeacherCopy.createLanguage)
+                }
+                if let toggleError { Text(toggleError).foregroundStyle(TeacherTheme.urgent) }
+            } footer: {
+                Text(TeacherCopy.settingsSignInHint)
+            }
+
+            Section {
+                ForEach($hours) { $day in
+                    dayRow($day)
+                }
+                Picker(selection: $timezone) {
+                    ForEach(TeacherTimeZones.options(including: cls.timezone), id: \.self) { id in
+                        Text(verbatim: TeacherTimeZones.label(id)).tag(id)
+                    }
+                } label: {
+                    Text(TeacherCopy.createTimezone)
+                }
+                Button {
+                    Task { await saveHours() }
+                } label: {
+                    HStack {
+                        if savingHours { ProgressView() }
+                        Text(TeacherCopy.hoursSave).bold()
+                    }
+                    .frame(minHeight: 44)
+                }
+                .disabled(savingHours)
+                statusLine(hoursStatus)
+            } header: {
+                Text(TeacherCopy.hoursHeading)
+            } footer: {
+                Text(TeacherCopy.hoursHint)
+            }
+        }
+        .scrollContentBackground(.hidden)
+        .contentColumn(maxWidth: ContentWidth.reading)
+    }
+
+    /// One weekday: on/off, and when on, its start and end. Stacked so it
+    /// fits a phone as well as an iPad.
+    private func dayRow(_ day: Binding<SchoolDayHours>) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Toggle(isOn: day.enabled) {
+                Text(verbatim: Self.weekdayName(day.wrappedValue.weekday)).font(.body.weight(.semibold))
+            }
+            .tint(.purple)
+            .onChange(of: day.wrappedValue) { _, _ in hoursStatus = nil }
+            if day.wrappedValue.enabled {
+                HStack(spacing: 12) {
+                    DatePicker(selection: Binding(
+                        get: { SchoolDayHours.date(day.wrappedValue.start) },
+                        set: { day.wrappedValue.start = SchoolDayHours.hhmm($0) }
+                    ), displayedComponents: .hourAndMinute) { Text(TeacherCopy.hoursStart) }
+                    .labelsHidden()
+                    .accessibilityLabel(Text(verbatim: "\(Self.weekdayName(day.wrappedValue.weekday)), \(String(appLocalized: TeacherCopy.hoursStart))"))
+                    Text(verbatim: "–").foregroundStyle(.secondary).accessibilityHidden(true)
+                    DatePicker(selection: Binding(
+                        get: { SchoolDayHours.date(day.wrappedValue.end) },
+                        set: { day.wrappedValue.end = SchoolDayHours.hhmm($0) }
+                    ), displayedComponents: .hourAndMinute) { Text(TeacherCopy.hoursEnd) }
+                    .labelsHidden()
+                    .accessibilityLabel(Text(verbatim: "\(Self.weekdayName(day.wrappedValue.weekday)), \(String(appLocalized: TeacherCopy.hoursEnd))"))
+                    Spacer(minLength: 0)
+                }
+            }
+        }
+        .padding(.vertical, 4)
+    }
+
+    /// ISO weekday (1 = Monday … 7 = Sunday) in the app's language.
+    static func weekdayName(_ iso: Int) -> String {
+        var cal = Calendar(identifier: .gregorian)
+        cal.locale = AppLanguage.locale
+        let symbols = cal.weekdaySymbols // Sunday first
+        return symbols[iso % 7].capitalized(with: AppLanguage.locale)
+    }
+
+    @ViewBuilder
+    private func statusLine(_ status: Status?) -> some View {
+        switch status {
+        case .saved: Text(TeacherCopy.settingsSaved).foregroundStyle(Color(red: 0.43, green: 0.91, blue: 0.72))
+        case .failed(let msg): Text(msg).foregroundStyle(TeacherTheme.urgent)
+        case nil: EmptyView()
+        }
+    }
+
+    // MARK: Network
+
+    private func apply(_ c: TeacherClass) {
+        cls = c
+        name = c.name ?? ""
+        signInOpen = c.sign_in_open ?? true
+        locale = c.locale == "it" ? "it" : "en"
+        timezone = c.timezone ?? TimeZone.current.identifier
+        hours = SchoolDayHours.rows(from: c.school_hours)
+    }
+
+    private func load() async {
+        guard let token = auth.accessToken else { return }
+        do {
+            if let c = try await APIClient.shared.teacherClasses(bearerToken: token).first(where: { $0.id == classId }) {
+                apply(c)
+                loadError = nil
+            } else {
+                loadError = .some("class_not_found")
+            }
+        } catch {
+            if cls == nil { loadError = .some((error as? APIClient.TeacherError)?.code) }
+        }
+    }
+
+    private func patch(_ p: APIClient.ClassPatch) async throws -> TeacherClass? {
+        guard let token = auth.accessToken else { throw APIClient.TeacherError(code: nil) }
+        return try await APIClient.shared.teacherUpdateClass(p, bearerToken: token)
+    }
+
+    private func saveName() async {
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { nameStatus = .failed(TeacherCopy.error("name_required")); return }
+        savingName = true
+        defer { savingName = false }
+        do {
+            var p = APIClient.ClassPatch(id: classId)
+            p.name = trimmed
+            if let c = try await patch(p) { apply(c) }
+            nameStatus = .saved
+        } catch {
+            nameStatus = .failed(TeacherCopy.error(error))
+        }
+    }
+
+    /// Optimistic, rolled back if the server says no.
+    private func setSignIn(_ value: Bool) async {
+        let previous = signInOpen
+        signInOpen = value
+        toggleError = nil
+        do {
+            var p = APIClient.ClassPatch(id: classId)
+            p.sign_in_open = value
+            if let c = try await patch(p) { cls = c; signInOpen = c.sign_in_open ?? value }
+        } catch {
+            signInOpen = previous
+            toggleError = TeacherCopy.error(error)
+        }
+    }
+
+    private func setLocale(_ value: String) async {
+        let previous = locale
+        locale = value
+        toggleError = nil
+        do {
+            var p = APIClient.ClassPatch(id: classId)
+            p.locale = value
+            if let c = try await patch(p) { cls = c }
+        } catch {
+            locale = previous
+            toggleError = TeacherCopy.error(error)
+        }
+    }
+
+    private func saveHours() async {
+        guard let payload = SchoolDayHours.payload(hours) else {
+            hoursStatus = .failed(TeacherCopy.error("bad_hours"))
+            return
+        }
+        savingHours = true
+        defer { savingHours = false }
+        do {
+            var p = APIClient.ClassPatch(id: classId)
+            p.school_hours = payload
+            p.timezone = timezone
+            if let c = try await patch(p) { apply(c) }
+            hoursStatus = .saved
+        } catch {
+            hoursStatus = .failed(TeacherCopy.error(error))
+        }
+    }
+}

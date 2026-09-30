@@ -26,6 +26,7 @@ struct TeacherDashboardView: View {
     @State private var helpActionError: String??
     /// id -> when its post-Seen suppression ends (web: filterRecentlySeen).
     @State private var recentlySeenUntil: [String: Date] = [:]
+    @State private var creatingClass = false
     @Environment(\.horizontalSizeClass) private var hSize
 
     private static let pollInterval: Duration = .seconds(30)
@@ -62,6 +63,12 @@ struct TeacherDashboardView: View {
         }
         .onAppear { consumeRoute() }
         .onChange(of: teacher.pendingRoute) { _, _ in consumeRoute() }
+        .sheet(isPresented: $creatingClass) {
+            TeacherCreateClassSheet { created in
+                if let created { teacher.rememberedClassId = created.id }
+                Task { await loadOverview() }
+            }
+        }
     }
 
     // MARK: - Layout
@@ -112,7 +119,7 @@ struct TeacherDashboardView: View {
                 .font(.subheadline)
                 .foregroundStyle(.white.opacity(0.75))
                 .multilineTextAlignment(.center)
-            SparkleButton(action: { TeacherWeb.open("/teacher/classes") }) {
+            SparkleButton(action: { creatingClass = true }) {
                 Text(TeacherCopy.emptyCta)
             }
             .frame(maxWidth: 360)
@@ -434,22 +441,6 @@ struct TeacherDashboardView: View {
             teacher.pendingRoute = nil
             Task { await loadOverview() }
         }
-    }
-}
-
-/// Pages that stay on the web (App Store 3.1.3: roster, purchasing), on the
-/// same host the API uses. Opened in Safari itself, never inside the app,
-/// so nothing sold on the web can ever appear in it.
-@MainActor
-enum TeacherWeb {
-    static func url(_ path: String) -> URL {
-        var comps = URLComponents(url: AppConfig.shared.apiBase, resolvingAgainstBaseURL: false)!
-        comps.path = path
-        return comps.url!
-    }
-
-    static func open(_ path: String) {
-        UIApplication.shared.open(url(path))
     }
 }
 

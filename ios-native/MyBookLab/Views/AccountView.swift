@@ -127,13 +127,12 @@ struct AccountView: View {
         .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 18))
     }
 
-    /// The web classroom, for a teacher in family view (teacher mode has the
-    /// native area). Opens in Safari.
+    /// For a teacher in family view: straight back to their classes, in the
+    /// app (the teacher area is fully native).
     private var classroomCard: some View {
-        // Safari itself, not an in-app sheet: nothing sold on the web can
-        // ever appear inside the app (App Store 3.1.3).
         Button {
-            TeacherWeb.open("/teacher")
+            teacher.setViewMode(.teacher)
+            teacher.selectedTab = .classes
         } label: {
             HStack(spacing: 14) {
                 Image(systemName: "graduationcap.fill")
@@ -149,8 +148,8 @@ struct AccountView: View {
                         .foregroundStyle(.white.opacity(0.65))
                 }
                 Spacer()
-                Image(systemName: "arrow.up.right.square")
-                    .foregroundStyle(.white.opacity(0.6))
+                Image(systemName: "chevron.right")
+                    .foregroundStyle(.white.opacity(0.7))
             }
             .padding(16)
             .frame(minHeight: 64)

@@ -646,6 +646,72 @@ actor APIClient {
         return res.classes ?? []
     }
 
+    private struct CreateClassBody: Encodable {
+        let name: String
+        let timezone: String
+        let locale: String
+    }
+
+    /// POST /api/school/classes. The server gives a new class its free trial
+    /// (or says `trial_used_up`); nothing here ever involves a price.
+    func teacherCreateClass(name: String, timezone: String, locale: String,
+                            bearerToken: String) async throws -> TeacherClassResponse {
+        try await teacherCall(method: "POST", path: "/api/school/classes", query: [:],
+                              body: CreateClassBody(name: name, timezone: timezone, locale: locale),
+                              bearerToken: bearerToken)
+    }
+
+    /// PATCH /api/school/classes: only the fields that are set are sent.
+    struct ClassPatch: Encodable, Sendable {
+        let id: String
+        var name: String?
+        var sign_in_open: Bool?
+        var timezone: String?
+        var school_hours: [String: [String]]?
+        var locale: String?
+    }
+
+    func teacherUpdateClass(_ patch: ClassPatch, bearerToken: String) async throws -> TeacherClass? {
+        let res: TeacherClassResponse = try await teacherCall(
+            method: "PATCH", path: "/api/school/classes", query: [:], body: patch, bearerToken: bearerToken)
+        return res.class
+    }
+
+    func teacherRoster(classId: String, bearerToken: String) async throws -> [TeacherRosterStudent] {
+        let res: TeacherRosterResponse = try await teacherCall(
+            method: "GET", path: "/api/school/students", query: ["classId": classId],
+            body: Optional<EmptyBody>.none, bearerToken: bearerToken)
+        return res.students ?? []
+    }
+
+    private struct AddStudentsBody: Encodable {
+        struct Name: Encodable { let name: String }
+        let classId: String
+        let students: [Name]
+    }
+
+    func teacherAddStudents(classId: String, names: [String], bearerToken: String) async throws -> TeacherAddStudentsResponse {
+        try await teacherCall(method: "POST", path: "/api/school/students", query: [:],
+                              body: AddStudentsBody(classId: classId, students: names.map { .init(name: $0) }),
+                              bearerToken: bearerToken)
+    }
+
+    private struct StudentActionBody: Encodable {
+        let classId: String
+        let id: String
+        let action: String
+        let name: String?
+    }
+
+    /// PATCH /api/school/students: reset_secret | unlock | rename | sign_out
+    /// | remove | restore. reset_secret answers with the new `pictures`.
+    func teacherStudentAction(classId: String, studentId: String, action: String, name: String? = nil,
+                              bearerToken: String) async throws -> TeacherStudentActionResponse {
+        try await teacherCall(method: "PATCH", path: "/api/school/students", query: [:],
+                              body: StudentActionBody(classId: classId, id: studentId, action: action, name: name),
+                              bearerToken: bearerToken)
+    }
+
     func teacherStudentBooks(classId: String, studentId: String, bearerToken: String) async throws -> [TeacherStudentBook] {
         let res: TeacherStudentBooksResponse = try await teacherCall(
             method: "GET", path: "/api/school/student-books",

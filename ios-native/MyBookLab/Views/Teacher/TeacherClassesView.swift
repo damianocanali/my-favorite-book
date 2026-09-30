@@ -1,15 +1,17 @@
 // The teacher's Classes tab: the class list (license badge, never a price),
-// each class's assignments (create / edit / publish / close / reopen /
-// delete-when-empty, same API and rules as the web's AssignmentsSection),
-// and the way into Review.
+// creating a class, each class's students and settings (TeacherRosterView,
+// TeacherClassSettingsView), its assignments (create / edit / publish /
+// close / reopen / delete-when-empty, same API and rules as the web's
+// AssignmentsSection), and the way into Review.
 //
-// Roster management — adding students, new picture passwords, printing
-// sign-in cards — and anything to do with buying stay on the web (App Store
-// 3.1.3): the class screen links to mybooklab.app in an in-app Safari sheet.
+// Everything a teacher needs is native. Only buying stays on the web, and
+// the app never links to it (App Store 3.1.3).
 import SwiftUI
 
 enum TeacherClassesDest: Hashable {
     case classDetail(String)
+    case roster(String)
+    case settings(String)
     case review(classId: String, assignmentId: String)
 }
 
@@ -20,6 +22,7 @@ struct TeacherClassesView: View {
     @State private var path: [TeacherClassesDest] = []
     @State private var classes: [TeacherClass]?
     @State private var error: String??
+    @State private var creating = false
 
     var body: some View {
         NavigationStack(path: $path) {
@@ -32,11 +35,21 @@ struct TeacherClassesView: View {
             .toolbarBackground(.hidden, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) { TeacherBellButton() }
+                ToolbarItem(placement: .topBarLeading) {
+                    Button { creating = true } label: {
+                        Label { Text(TeacherCopy.createClass) } icon: { Image(systemName: "plus") }
+                    }
+                    .tint(.cyan)
+                }
             }
             .navigationDestination(for: TeacherClassesDest.self) { dest in
                 switch dest {
                 case .classDetail(let id):
                     TeacherClassDetailView(classId: id, summary: classes?.first { $0.id == id })
+                case .roster(let id):
+                    TeacherRosterView(classId: id)
+                case .settings(let id):
+                    TeacherClassSettingsView(classId: id)
                 case .review(let classId, let assignmentId):
                     TeacherReviewView(classId: classId, assignmentId: assignmentId)
                 }
@@ -45,6 +58,14 @@ struct TeacherClassesView: View {
         .task { await load() }
         .onAppear { consumeRoute() }
         .onChange(of: teacher.pendingRoute) { _, _ in consumeRoute() }
+        .sheet(isPresented: $creating) {
+            TeacherCreateClassSheet { created in
+                Task {
+                    await load()
+                    if let created { path = [.classDetail(created.id)] }
+                }
+            }
+        }
     }
 
     @ViewBuilder
@@ -68,12 +89,15 @@ struct TeacherClassesView: View {
                         .buttonStyle(.plain)
                     }
                     Button {
-                        TeacherWeb.open("/teacher/classes")
+                        creating = true
                     } label: {
-                        Label { Text(TeacherCopy.createOnWeb) } icon: { Image(systemName: "safari") }
-                            .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(.cyan)
+                        Label { Text(TeacherCopy.createClass) } icon: { Image(systemName: "plus.circle.fill") }
+                            .font(.headline)
+                            .frame(maxWidth: .infinity, minHeight: 52)
+                            .background(Color.purple.opacity(0.55), in: RoundedRectangle(cornerRadius: 16))
+                            .foregroundStyle(.white)
                     }
+                    .buttonStyle(.plain)
                     .padding(.top, 8)
                 }
                 .padding()
@@ -170,7 +194,7 @@ struct TeacherClassDetailView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
                     header
-                    rosterLink
+                    manageLinks
                     assignmentsSection
                 }
                 .padding()
@@ -190,6 +214,8 @@ struct TeacherClassDetailView: View {
             }
         }
         .task { await load() }
+        // Coming back from the roster or settings: counts and name may have changed.
+        .onAppear { Task { await refreshSummary() } }
         .sheet(item: $formTarget) { target in
             TeacherAssignmentForm(classId: classId, existing: {
                 if case .edit(let a) = target { return a }
@@ -229,24 +255,35 @@ struct TeacherClassDetailView: View {
         }
     }
 
-    private var rosterLink: some View {
-        Button {
-            TeacherWeb.open("/teacher/class/\(classId)")
-        } label: {
-            TeacherCard(tint: .purple) {
-                HStack(spacing: 12) {
-                    Image(systemName: "person.3.fill").foregroundStyle(.yellow).frame(width: 32)
-                        .accessibilityHidden(true)
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(TeacherCopy.manageRoster).font(.headline).foregroundStyle(.white)
-                        Text(TeacherCopy.manageRosterHint).font(.caption).foregroundStyle(.white.opacity(0.65))
-                    }
-                    Spacer()
-                    Image(systemName: "arrow.up.right.square").foregroundStyle(.white.opacity(0.6))
-                }
+    /// Students (roster, sign-in cards) and class settings — both native.
+    private var manageLinks: some View {
+        VStack(spacing: 10) {
+            NavigationLink(value: TeacherClassesDest.roster(classId)) {
+                manageCard(TeacherCopy.studentsCardTitle, TeacherCopy.studentsCardHint, systemImage: "person.3.fill")
             }
+            .buttonStyle(.plain)
+            NavigationLink(value: TeacherClassesDest.settings(classId)) {
+                manageCard(TeacherCopy.settingsCardTitle, TeacherCopy.settingsCardHint, systemImage: "gearshape.fill")
+            }
+            .buttonStyle(.plain)
         }
-        .buttonStyle(.plain)
+    }
+
+    private func manageCard(_ title: LocalizedStringResource, _ hint: LocalizedStringResource, systemImage: String) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: systemImage).font(.title3).foregroundStyle(.yellow).frame(width: 32)
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title).font(.headline).foregroundStyle(.white)
+                Text(hint).font(.footnote).foregroundStyle(TeacherTheme.secondaryText)
+            }
+            Spacer()
+            Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(TeacherTheme.secondaryText)
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity, minHeight: 64, alignment: .leading)
+        .background(TeacherTheme.cardFill, in: RoundedRectangle(cornerRadius: 18))
+        .overlay(RoundedRectangle(cornerRadius: 18).strokeBorder(TeacherTheme.cardStroke))
     }
 
     @ViewBuilder
@@ -350,6 +387,13 @@ struct TeacherClassDetailView: View {
             loadError = nil
         } catch {
             if assignments == nil { loadError = .some((error as? APIClient.TeacherError)?.code) }
+        }
+    }
+
+    private func refreshSummary() async {
+        guard let token = auth.accessToken else { return }
+        if let fresh = try? await APIClient.shared.teacherClasses(bearerToken: token).first(where: { $0.id == classId }) {
+            summary = fresh
         }
     }
 
