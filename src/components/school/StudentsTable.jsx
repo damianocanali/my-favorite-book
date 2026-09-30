@@ -33,7 +33,7 @@ function Avatar({ student }) {
 function InactiveChip() {
   const { t } = useTranslation()
   return (
-    <span className="inline-flex items-center rounded-full border border-galaxy-text-muted/20 px-2 py-0.5 font-body text-[11px] font-semibold text-galaxy-text-muted">
+    <span className="inline-flex shrink-0 items-center whitespace-nowrap rounded-full border border-galaxy-text-muted/20 px-2 py-0.5 font-body text-[11px] font-semibold text-galaxy-text-muted">
       {t('school:teacher.dashboard.students.inactive_chip')}
     </span>
   )
@@ -42,10 +42,10 @@ function InactiveChip() {
 function CheckinIcons({ checkins, locale }) {
   const { t } = useTranslation()
   if (!checkins.length) {
-    return <span className="font-body text-xs text-galaxy-text-muted">{t('school:teacher.dashboard.students.no_checkins')}</span>
+    return <span className="block h-5 truncate font-body text-xs leading-5 text-galaxy-text-muted">{t('school:teacher.dashboard.students.no_checkins')}</span>
   }
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex h-5 items-center gap-1 overflow-hidden">
       {checkins.map((c, i) => {
         const label = [
           t(`checkin:feeling.${c.feeling}`),
@@ -69,11 +69,13 @@ function BooksCell({ student, locale }) {
   return (
     <>
       {t('school:teacher.dashboard.students.books_count', { count: student.books_count })}
-      {student.last_book_edited_at && (
-        <span className="block text-xs opacity-70">
-          {t('school:teacher.dashboard.students.last_edited', { when: relativeTime(student.last_book_edited_at, locale) })}
-        </span>
-      )}
+      {/* Always a second line (blank when never edited) so every row and
+          card keeps the same height. */}
+      <span className="block truncate text-xs opacity-70" aria-hidden={student.last_book_edited_at ? undefined : 'true'}>
+        {student.last_book_edited_at
+          ? t('school:teacher.dashboard.students.last_edited', { when: relativeTime(student.last_book_edited_at, locale) })
+          : '\u00a0'}
+      </span>
     </>
   )
 }
@@ -180,20 +182,22 @@ export default function StudentsTable({ students, locale, onOpen, classId, lates
               aria-label={t('school:teacher.dashboard.students.open_aria', { name: s.display_name })}
               className="glass w-full rounded-2xl border border-galaxy-text-muted/10 p-4 text-left transition-colors hover:border-galaxy-secondary/40"
             >
-              <div className="mb-2 flex items-center gap-3">
+              {/* Fixed-height rows: a chip, a check-in or a long name never
+                  makes one card taller or wider than the next. */}
+              <div className="mb-2 flex h-10 items-center gap-3 overflow-hidden">
                 <Avatar student={s} />
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-body font-semibold text-galaxy-text">{s.display_name}</p>
-                  <p className="font-body text-xs text-galaxy-text-muted">
+                  <p className="truncate font-body text-xs text-galaxy-text-muted">
                     {s.last_sign_in_at ? relativeTime(s.last_sign_in_at, locale) : t('school:teacher.roster.last_sign_in_never')}
                   </p>
                 </div>
                 {s.inactive_7d && <InactiveChip />}
                 {latestAssignment && <HandInChip row={s.assignments?.[latestAssignment.id] ?? 'not_started'} />}
               </div>
-              <div className="flex items-center justify-between gap-2 font-body text-xs text-galaxy-text-muted">
-                <span>{t('school:teacher.dashboard.students.books_count', { count: s.books_count })}</span>
-                <span>{t('school:teacher.dashboard.students.pictures_today', { count: s.images_today })}</span>
+              <div className="flex h-4 items-center justify-between gap-2 whitespace-nowrap font-body text-xs text-galaxy-text-muted">
+                <span className="truncate">{t('school:teacher.dashboard.students.books_count', { count: s.books_count })}</span>
+                <span className="truncate">{t('school:teacher.dashboard.students.pictures_today', { count: s.images_today })}</span>
               </div>
               <div className="mt-2">
                 <CheckinIcons checkins={s.checkins_7d} locale={locale} />

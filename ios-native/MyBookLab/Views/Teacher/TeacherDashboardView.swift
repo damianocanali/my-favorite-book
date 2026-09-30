@@ -28,6 +28,10 @@ struct TeacherDashboardView: View {
     @State private var recentlySeenUntil: [String: Date] = [:]
     @State private var creatingClass = false
     @Environment(\.horizontalSizeClass) private var hSize
+    // Scaled with Dynamic Type, so larger text grows every card equally.
+    @ScaledMetric(relativeTo: .body) private var studentCardHeight: CGFloat = 176
+    @ScaledMetric(relativeTo: .caption) private var badgeRowHeight: CGFloat = 22
+    @ScaledMetric(relativeTo: .caption) private var checkinRowHeight: CGFloat = 20
 
     private static let pollInterval: Duration = .seconds(30)
 
@@ -299,7 +303,10 @@ struct TeacherDashboardView: View {
                     .font(.subheadline).foregroundStyle(.white.opacity(0.7))
                     .frame(maxWidth: .infinity).padding(.vertical, 24)
             } else {
-                LazyVGrid(columns: [GridItem(.adaptive(minimum: 300), spacing: 12)], spacing: 12) {
+                // Equal flexible columns and one fixed card height, so a
+                // check-in, a chip or a long name never makes one card bigger.
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 12, alignment: .top),
+                                         count: hSize == .regular ? 2 : 1), spacing: 12) {
                     ForEach(data.students) { student in
                         NavigationLink {
                             TeacherStudentDetailView(classId: data.class.id, student: student)
@@ -323,7 +330,7 @@ struct TeacherDashboardView: View {
                     TeacherStudentAvatar(emoji: s.avatar_emoji, url: s.avatar_url)
                     VStack(alignment: .leading, spacing: 2) {
                         Text(verbatim: s.display_name)
-                            .font(.headline).foregroundStyle(.white).lineLimit(1)
+                            .font(.headline).foregroundStyle(.white).lineLimit(1).truncationMode(.tail)
                         Group {
                             if let when = TeacherDates.relative(s.last_sign_in_at) {
                                 Text(TeacherCopy.lastSignedIn(when))
@@ -331,6 +338,7 @@ struct TeacherDashboardView: View {
                                 Text(TeacherCopy.neverSignedIn)
                             }
                         }
+                        .lineLimit(1)
                         .font(.caption).foregroundStyle(.white.opacity(0.65))
                     }
                     Spacer(minLength: 4)
@@ -338,14 +346,23 @@ struct TeacherDashboardView: View {
                         HandInChip(state: HandInState(dashboardValue: s.assignments?[latest.id]))
                     }
                 }
-                if s.inactive_7d == true {
-                    TeacherChip(text: TeacherCopy.inactiveChip, tone: .muted)
+                // Badge row: always there, so its space is reserved even empty.
+                HStack(spacing: 6) {
+                    if s.inactive_7d == true {
+                        TeacherChip(text: TeacherCopy.inactiveChip, tone: .muted)
+                    }
+                    Spacer(minLength: 0)
                 }
+                .frame(height: badgeRowHeight)
                 HStack {
                     VStack(alignment: .leading, spacing: 1) {
                         Text(TeacherCopy.booksCount(s.books_count ?? 0))
+                        // Always a second line (blank when never edited) so
+                        // every card keeps the same layout.
                         if let when = TeacherDates.relative(s.last_book_edited_at) {
                             Text(TeacherCopy.lastEdited(when)).opacity(0.7)
+                        } else {
+                            Text(verbatim: " ").accessibilityHidden(true)
                         }
                     }
                     Spacer()
@@ -353,8 +370,14 @@ struct TeacherDashboardView: View {
                 }
                 .font(.caption)
                 .foregroundStyle(.white.opacity(0.75))
+                .lineLimit(1)
                 checkinIcons(s.checkins_7d ?? [])
+                    .fixedSize(horizontal: true, vertical: false)
+                    .frame(maxWidth: .infinity, maxHeight: checkinRowHeight, alignment: .leading)
+                    .frame(height: checkinRowHeight)
+                    .clipped()
             }
+            .frame(height: studentCardHeight, alignment: .top)
         }
     }
 
