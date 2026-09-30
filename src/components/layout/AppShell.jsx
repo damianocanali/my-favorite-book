@@ -137,7 +137,8 @@ export default function AppShell({ children }) {
       <div className="min-h-screen relative">
         <a href="#main-content" className="skip-to-content">{t('nav:a11y.skip_to_content')}</a>
 
-        <CosmicBackground />
+        {/* Teacher area: the still backdrop (no twinkle, no sparkles). */}
+        <CosmicBackground calm />
 
         <header className="relative z-20 flex items-center justify-between gap-2 px-3 sm:px-6 py-3">
           <Link

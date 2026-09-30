@@ -30,6 +30,8 @@ struct TeacherTabView: View {
                 .tag(TeacherTab.account)
         }
         .tint(.white)
+        // A still backdrop everywhere in the teacher area, sheets included.
+        .environment(\.cosmicStyle, .calm)
         // No kids' background music in the teacher area.
         .onAppear { audio.stop() }
         // Restarts on every scene-phase change and only loops while active,

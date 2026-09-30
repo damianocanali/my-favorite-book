@@ -5,8 +5,42 @@
 // without becoming distracting.
 import SwiftUI
 
+/// Which backdrop a screen gets. The kids' app is `.playful` (drifting
+/// nebulae, twinkling stars, sparkles); the teacher area is `.calm` — the
+/// same colours, perfectly still: a grown-up's working screen, often on a
+/// classroom projector, shouldn't shimmer.
+enum CosmicStyle: Sendable { case playful, calm }
+
+private struct CosmicStyleKey: EnvironmentKey {
+    static let defaultValue: CosmicStyle = .playful
+}
+
+extension EnvironmentValues {
+    /// Set once at the teacher area's root (TeacherTabView); every
+    /// CosmicBackground below it — including sheets and the read-only book
+    /// reader — turns calm.
+    var cosmicStyle: CosmicStyle {
+        get { self[CosmicStyleKey.self] }
+        set { self[CosmicStyleKey.self] = newValue }
+    }
+}
+
 struct CosmicBackground: View {
+    /// nil = follow the environment (see `cosmicStyle`).
+    var style: CosmicStyle? = nil
+    @Environment(\.cosmicStyle) private var envStyle
+
     var body: some View {
+        if (style ?? envStyle) == .calm {
+            CalmCosmicBackground()
+                .accessibilityHidden(true)
+                .allowsHitTesting(false)
+        } else {
+            playful
+        }
+    }
+
+    private var playful: some View {
         // Purely decorative — VoiceOver skips it, AND all taps pass
         // through. Without allowsHitTesting(false) the drifting
         // sparkle Image views would catch taps that should reach the
@@ -43,6 +77,38 @@ struct CosmicBackground: View {
 }
 
 
+
+// MARK: - Calm (teacher area)
+
+/// The playful backdrop's gradient and nebula colours, fixed in place, with
+/// a very faint static speckle drawn once. No TimelineView, no animation.
+private struct CalmCosmicBackground: View {
+    var body: some View {
+        ZStack {
+            LinearGradient(
+                colors: [
+                    Color(red: 0.05, green: 0.04, blue: 0.16),
+                    Color(red: 0.10, green: 0.05, blue: 0.24),
+                    Color(red: 0.15, green: 0.06, blue: 0.28),
+                    Color(red: 0.09, green: 0.04, blue: 0.17),
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            RadialGradient(colors: [.purple.opacity(0.22), .clear], center: .topLeading, startRadius: 0, endRadius: 520)
+            RadialGradient(colors: [.pink.opacity(0.12), .clear], center: .bottomTrailing, startRadius: 0, endRadius: 480)
+            Canvas { ctx, size in
+                for seed in starSeeds {
+                    let r = seed.baseRadius * 0.6
+                    let rect = CGRect(x: seed.xFraction * size.width - r, y: seed.yFraction * size.height - r,
+                                      width: r * 2, height: r * 2)
+                    ctx.fill(Path(ellipseIn: rect), with: .color(.white.opacity(0.10)))
+                }
+            }
+        }
+        .ignoresSafeArea()
+    }
+}
 
 // MARK: - Twinkling stars
 

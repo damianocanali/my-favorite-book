@@ -78,9 +78,35 @@ function SparkleGlyph({ size, color, style, className }) {
   )
 }
 
-export default function CosmicBackground() {
+const GRADIENT = 'linear-gradient(135deg, #0D0A29 0%, #1A0D3D 33.33%, #2E1252 66.67%, #1C0A2E 100%)'
+
+/**
+ * The teacher area's backdrop: the same gradient and nebula colours, held
+ * perfectly still — no drifting blobs, no twinkle, no sparkles. A grown-up's
+ * working screen (often on a classroom projector) shouldn't shimmer. Mirrors
+ * the native app's CosmicBackground(style: .calm).
+ */
+function CalmBackground() {
+  return (
+    <div className="fixed inset-0 overflow-hidden pointer-events-none z-0" aria-hidden="true" data-cosmic-style="calm">
+      <div
+        className="absolute inset-0"
+        style={{
+          background:
+            'radial-gradient(ellipse at 0% 0%, rgba(191,90,242,0.22) 0%, rgba(191,90,242,0) 55%), ' +
+            'radial-gradient(ellipse at 100% 100%, rgba(255,55,95,0.12) 0%, rgba(255,55,95,0) 50%), ' +
+            GRADIENT,
+        }}
+      />
+    </div>
+  )
+}
+
+export default function CosmicBackground({ calm = false } = {}) {
   const stars = useStars()
   const sparkles = useSparkles()
+
+  if (calm) return <CalmBackground />
 
   return (
     <div
@@ -91,8 +117,7 @@ export default function CosmicBackground() {
       <div
         className="absolute inset-0"
         style={{
-          background:
-            'linear-gradient(135deg, #0D0A29 0%, #1A0D3D 33.33%, #2E1252 66.67%, #1C0A2E 100%)',
+          background: GRADIENT,
         }}
       />
 
