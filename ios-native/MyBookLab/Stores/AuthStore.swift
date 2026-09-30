@@ -19,9 +19,6 @@ final class AuthStore: NSObject {
     private(set) var user: User?
     private(set) var session: Session?
     private(set) var loading: Bool = true
-    /// Apple / Google / Face ID sign-in is showing its own system UI. The
-    /// sign-in recovery (AppRouter) must never dismiss anything then.
-    @ObservationIgnored private(set) var interactiveAuthInFlight = 0
     private(set) var error: String?
     /// Locally-stored avatar data URL. Observable so views update the
     /// moment it changes. Hydrated from UserDefaults on sign-in.
@@ -276,8 +273,6 @@ final class AuthStore: NSObject {
     /// Sign in using the login saved in the biometric Keychain.
     /// Triggers the Face ID / Touch ID prompt to unlock it.
     func signInWithStoredCredentials() async throws {
-        interactiveAuthInFlight += 1
-        defer { interactiveAuthInFlight -= 1 }
         let stored = try await BiometricCredentials.retrieve(
             reason: "Sign in to My Book Lab"
         )
@@ -587,8 +582,6 @@ final class AuthStore: NSObject {
     /// Sign in with Apple via the native AuthenticationServices flow.
     /// Returns the resulting Supabase session.
     func signInWithApple() async throws {
-        interactiveAuthInFlight += 1
-        defer { interactiveAuthInFlight -= 1 }
         let request = ASAuthorizationAppleIDProvider().createRequest()
         request.requestedScopes = [.fullName, .email]
         let nonce = Self.randomNonce()
@@ -649,8 +642,6 @@ final class AuthStore: NSObject {
     /// browser), wait for the callback URL on our custom scheme, then
     /// hand it back to Supabase to mint a session.
     func signInWithGoogle() async throws {
-        interactiveAuthInFlight += 1
-        defer { interactiveAuthInFlight -= 1 }
         let redirect = URL(string: "com.myfavoritebook.app://auth/callback")!
         let oauthURL = try await supabase.auth.getOAuthSignInURL(
             provider: .google,

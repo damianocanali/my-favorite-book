@@ -244,31 +244,19 @@ struct AccountView: View {
     /// language, behind the root's "Changing language…" overlay), so there
     /// is nothing to tell the user afterwards.
     private var languageCard: some View {
-        let current = AppLanguage.uiLanguage
-        return VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 14) {
-                Image(systemName: "globe")
-                    .foregroundStyle(.cyan)
-                    .frame(width: 24)
-                Text("Language").foregroundStyle(.white)
-                Spacer()
-                Picker("Language", selection: Binding(
-                    get: { current },
-                    set: { code in
-                        guard code != current else { return }
-                        AppLanguage.choose(code)
-                    }
-                )) {
-                    ForEach(AppLanguage.supported, id: \.code) { lang in
-                        // Verbatim: a language's own name is never translated.
-                        Text(verbatim: lang.name).tag(lang.code)
-                    }
-                }
-                .pickerStyle(.segmented)
-                .frame(width: 190)
-                // One switch at a time: the rebuild is under way.
-                .disabled(AppLanguageState.shared.switching != nil)
-            }
+        HStack(spacing: 14) {
+            Image(systemName: "globe")
+                .foregroundStyle(.cyan)
+                .frame(width: 24)
+                .accessibilityHidden(true)
+            // Never broken over two lines ("Lingua" / "Language").
+            Text("Language")
+                .foregroundStyle(.white)
+                .lineLimit(1)
+                .fixedSize()
+                .accessibilityHidden(true)
+            Spacer(minLength: 8)
+            LanguageMenu()
         }
         .padding(16)
         .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 18))
@@ -587,35 +575,12 @@ struct AccountView: View {
         }
     }
 
+    /// A guest (who chose "Explore first") signs in right here: the
+    /// welcome screen, its doors and their forms, in place in this tab —
+    /// never a sheet or a cover. Bookshelf and Create's "Sign in" buttons
+    /// bring the guest to this tab (AppRouter.openSignIn). The welcome
+    /// screen carries the language menu.
     private var signedOutView: some View {
-        VStack(spacing: 22) {
-            Image("AppLogo")
-                .resizable().aspectRatio(contentMode: .fit)
-                .frame(width: 96, height: 96)
-                .clipShape(RoundedRectangle(cornerRadius: 22))
-                .shadow(color: .purple.opacity(0.6), radius: 18, y: 8)
-            Text("Sign in to save your stories")
-                .font(.system(.title2, design: .rounded).bold())
-                .foregroundStyle(.white)
-                .multilineTextAlignment(.center)
-            Text("Sync books across devices, order printed copies, and pick up where you left off.")
-                .font(.subheadline)
-                .foregroundStyle(.white.opacity(0.75))
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 32)
-            SparkleButton(action: { AppRouter.shared.presentSignIn() }) {
-                Text("Sign in")
-            }
-            .frame(maxWidth: 360)
-            .padding(.horizontal, 32)
-
-            // Before signing in too: a child who can't read English has to be
-            // able to find Italian before they can find the sign-in button.
-            languageCard
-                .frame(maxWidth: 360)
-                .padding(.horizontal, 32)
-        }
-        .contentColumn(maxWidth: ContentWidth.form)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        SignInFlowView(embedded: true)
     }
 }

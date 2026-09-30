@@ -89,7 +89,7 @@ struct CreateBookView: View {
 
     private func startCreating() {
         guard auth.isSignedIn else {
-            AppRouter.shared.presentSignIn()
+            AppRouter.shared.openSignIn()
             return
         }
         // Open the wizard at the author-intro step (the step pre-fills
@@ -186,7 +186,7 @@ struct CreateBookView: View {
                 .foregroundStyle(.white.opacity(0.75))
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 32)
-            SparkleButton(action: { AppRouter.shared.presentSignIn() }) {
+            SparkleButton(action: { AppRouter.shared.openSignIn() }) {
                 Text("Sign in")
             }
             .frame(maxWidth: 360)
