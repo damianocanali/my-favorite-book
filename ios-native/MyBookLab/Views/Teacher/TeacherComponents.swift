@@ -4,6 +4,17 @@
 // system font) — a grown-up's screen, but the same app.
 import SwiftUI
 
+/// Opaque surfaces for text-heavy teacher UI (the bell, check-ins, glance
+/// pills): the cosmic background never shows through behind body text.
+enum TeacherTheme {
+    static let cardFill = Color(red: 0.13, green: 0.11, blue: 0.27)
+    static let cardFillStrong = Color(red: 0.19, green: 0.16, blue: 0.38)
+    static let cardStroke = Color.white.opacity(0.12)
+    /// Secondary text on the opaque fills: never below 0.7 white.
+    static let secondaryText = Color.white.opacity(0.78)
+    static let urgent = Color(red: 1, green: 0.42, blue: 0.42)
+}
+
 /// The translucent rounded card every teacher section sits on.
 struct TeacherCard<Content: View>: View {
     var tint: Color = .white

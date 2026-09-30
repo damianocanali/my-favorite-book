@@ -237,34 +237,30 @@ struct TeacherDashboardView: View {
         }
     }
 
+    /// Four pills, all the same size: equal flexible columns (4 across on
+    /// a regular-width iPad, 2×2 on a phone or a narrow split view), a fixed
+    /// minimum height, and every line's space reserved — so a label that
+    /// wraps to two lines, or the one pill with a sub-line, never makes its
+    /// pill bigger than its neighbours.
     private func glance(_ data: TeacherClassDashboard) -> some View {
         let s = data.summary
+        let columns = Array(repeating: GridItem(.flexible(), spacing: 12), count: hSize == .regular ? 4 : 2)
         return VStack(alignment: .leading, spacing: 12) {
             TeacherSectionHeading(text: TeacherCopy.glanceHeading)
-            LazyVGrid(columns: [GridItem(.adaptive(minimum: 150), spacing: 12)], spacing: 12) {
-                statCard(Text(TeacherCopy.fraction(s.active_this_week ?? 0, s.total_students ?? 0)), TeacherCopy.glanceActive)
-                statCard(Text(verbatim: String(s.books_total ?? 0)), TeacherCopy.glanceBooks,
-                         sub: TeacherCopy.booksEdited(s.books_edited_this_week ?? 0))
-                statCard(Text(TeacherCopy.fraction(s.images_used ?? 0, s.image_allowance ?? 0)), TeacherCopy.glancePictures)
-                TeacherCard {
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text(TeacherCopy.glanceLicense).font(.caption).foregroundStyle(.white.opacity(0.65))
-                        LicenseBadge(license: data.class.license)
-                    }
+            LazyVGrid(columns: columns, spacing: 12) {
+                GlancePill(label: TeacherCopy.glanceActive) {
+                    Text(TeacherCopy.fraction(s.active_this_week ?? 0, s.total_students ?? 0))
+                }
+                GlancePill(label: TeacherCopy.glanceBooks, sub: TeacherCopy.booksEdited(s.books_edited_this_week ?? 0)) {
+                    Text(verbatim: String(s.books_total ?? 0))
+                }
+                GlancePill(label: TeacherCopy.glancePictures) {
+                    Text(TeacherCopy.fraction(s.images_used ?? 0, s.image_allowance ?? 0))
+                }
+                GlancePill(label: TeacherCopy.glanceLicense) {
+                    LicenseBadge(license: data.class.license)
                 }
             }
-        }
-    }
-
-    private func statCard(_ value: Text, _ label: LocalizedStringResource,
-                          sub: LocalizedStringResource? = nil) -> some View {
-        TeacherCard {
-            VStack(alignment: .leading, spacing: 2) {
-                value.font(.system(.title2, design: .rounded).bold()).foregroundStyle(.white)
-                Text(label).font(.caption).foregroundStyle(.white.opacity(0.65))
-                if let sub { Text(sub).font(.caption2).foregroundStyle(.white.opacity(0.5)) }
-            }
-            .accessibilityElement(children: .combine)
         }
     }
 
@@ -454,5 +450,43 @@ enum TeacherWeb {
 
     static func open(_ path: String) {
         UIApplication.shared.open(url(path))
+    }
+}
+
+/// One "Class at a glance" pill: the value big and centred, the label under
+/// it (up to two lines, space always reserved), and an optional sub-line
+/// (space reserved too, so every pill in the grid is the same height).
+private struct GlancePill<Value: View>: View {
+    let label: LocalizedStringResource
+    var sub: LocalizedStringResource? = nil
+    @ViewBuilder var value: () -> Value
+
+    var body: some View {
+        VStack(spacing: 4) {
+            value()
+                .font(.system(.title2, design: .rounded).bold())
+                .foregroundStyle(.white)
+                .lineLimit(1)
+                .minimumScaleFactor(0.6)
+            Text(label)
+                .font(.footnote.weight(.semibold))
+                .foregroundStyle(.white.opacity(0.85))
+                .multilineTextAlignment(.center)
+                .lineLimit(2, reservesSpace: true)
+            Group {
+                if let sub { Text(sub) } else { Text(verbatim: " ") }
+            }
+            .font(.caption2)
+            .foregroundStyle(.white.opacity(0.75))
+            .lineLimit(1, reservesSpace: true)
+            .minimumScaleFactor(0.8)
+            .accessibilityHidden(sub == nil)
+        }
+        .frame(maxWidth: .infinity, minHeight: 118)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 12)
+        .background(TeacherTheme.cardFill, in: RoundedRectangle(cornerRadius: 18))
+        .overlay(RoundedRectangle(cornerRadius: 18).strokeBorder(TeacherTheme.cardStroke))
+        .accessibilityElement(children: .combine)
     }
 }
