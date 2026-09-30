@@ -61,7 +61,10 @@ struct MyBookLabApp: App {
                 // screen stays in the old language. Navigation state lives
                 // in the stores (AppRouter, TeacherStore), so it survives.
                 .environment(\.locale, language.locale)
-                .id(language.code)
+                // Also rebuilt when a session ends, which takes down every
+                // sheet and cover a screen had open (AppRouter.sessionEnded)
+                // so the sign-in cover can present.
+                .id("\(language.code)-\(router.sessionGeneration)")
                 .task {
                     guard !launched else { return }
                     launched = true
@@ -89,6 +92,12 @@ struct MyBookLabApp: App {
                 // stop the refresher in the background (see setAutoRefresh).
                 .onChange(of: scenePhase, initial: true) { _, phase in
                     auth.setAutoRefresh(active: phase == .active)
+                    // Back in front and signed out with no sign-in showing
+                    // (a request SwiftUI dropped): try again. Not for a
+                    // guest who chose "Explore first".
+                    if phase == .active, launched, !auth.loading {
+                        router.recheckSignIn(signedIn: auth.isSignedIn)
+                    }
                 }
                 // A role change on the same account (e.g. metadata refresh
                 // marking it a teacher) must silence the music too.
@@ -101,7 +110,7 @@ struct MyBookLabApp: App {
                     if newValue != nil {
                         router.dismissSignIn()
                     } else if oldValue != nil {
-                        router.presentSignIn()
+                        router.sessionEnded { !auth.isSignedIn }
                     }
                     // Any change of who is signed in — including a session
                     // that simply expired — drops unprinted picture cards.

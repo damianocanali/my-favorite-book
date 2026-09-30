@@ -65,6 +65,9 @@ struct ClassSignInView: View {
     var body: some View {
         ZStack {
             CosmicBackground().ignoresSafeArea()
+            VStack(spacing: 0) {
+            // Back first in reading order (a top bar, not an overlay).
+            SignInTopBar(onBack: showsBack ? back : nil)
             ScrollView {
                 VStack(spacing: regular ? 24 : 18) {
                     header
@@ -74,7 +77,7 @@ struct ClassSignInView: View {
                             speaker.stop()
                             onExit()
                         } label: {
-                            Text(SignInCopy.notInClass(device.name))
+                            Text(SignInCopy.notInClass(device.displayName))
                                 .font(.callout)
                                 .foregroundStyle(.white.opacity(0.8))
                                 .underline()
@@ -89,13 +92,14 @@ struct ClassSignInView: View {
                 .contentColumn(maxWidth: step == .code ? 560 : step == .name ? 760 : 640)
             }
             .scrollDismissesKeyboard(.interactively)
-        }
-        .overlay(alignment: .topLeading) {
-            if showsBack {
-                SignInBackButton(action: back)
-                    .padding(.leading, 16)
-                    .padding(.top, 8)
             }
+        }
+        // VoiceOver hears an error the moment it appears.
+        .onChange(of: errorCode) { _, code in
+            if let code { AccessibilityNotification.Announcement(String(appLocalized: SchoolCopy.error(code))).post() }
+        }
+        .onChange(of: deviceError) { _, code in
+            if code != nil { AccessibilityNotification.Announcement(String(appLocalized: deviceMessage)).post() }
         }
         .discardTypedConfirmation(isPresented: $confirmingExit) {
             speaker.stop()
@@ -150,7 +154,7 @@ struct ClassSignInView: View {
             if let device {
                 // The class banner: which class this iPad belongs to, before
                 // anything else. A class name is data, never translated.
-                Text(SignInCopy.classBanner(device.name))
+                Text(SignInCopy.classBanner(device.displayName))
                     .font(.system(regular ? .title2 : .title3, design: .rounded, weight: .heavy))
                     .foregroundStyle(.white)
                     .lineLimit(2)
@@ -177,7 +181,7 @@ struct ClassSignInView: View {
                     .textCase(.uppercase)
             }
         }
-        .padding(.top, 36)
+        .padding(.top, 8)
     }
 
     // MARK: - Card
@@ -236,7 +240,8 @@ struct ClassSignInView: View {
     private var heading: LocalizedStringResource {
         switch step {
         case .code where device != nil:
-            deviceError == nil ? SchoolCopy.codeChecking : SignInCopy.deviceClassUnavailable
+            // Neutral: the sentence below says what's wrong, once.
+            deviceError == nil ? SchoolCopy.codeChecking : SignInCopy.deviceProblemHeading
         case .code: SchoolCopy.codeHeading
         case .name: SchoolCopy.nameHeading
         case .pictures: SchoolCopy.pictureHeading
@@ -263,6 +268,7 @@ struct ClassSignInView: View {
         switch step {
         case .code where device != nil:
             parts.append(String(appLocalized: heading))
+            if deviceError != nil { parts.append(String(appLocalized: deviceMessage)) }
         case .code:
             parts.append(String(appLocalized: SchoolCopy.codeHeading))
             parts.append(String(appLocalized: SchoolCopy.codeHint))
@@ -352,7 +358,8 @@ struct ClassSignInView: View {
             picks = []
             step = .name
         } catch {
-            deviceError = (error as? APIClient.SchoolError)?.code ?? "generic"
+            // No code at all means the request never got an answer.
+            deviceError = (error as? APIClient.SchoolError)?.code ?? "network"
             step = .code
         }
     }
@@ -363,15 +370,23 @@ struct ClassSignInView: View {
         "class_not_found", "class_resting", "sign_in_closed", "class_paused",
     ]
 
+    /// Codes that mean the server or the connection, not the class.
+    private static let networkCodes: Set<String> = ["network", "upstream", "not_configured"]
+
+    private var deviceMessage: LocalizedStringResource {
+        guard let deviceError else { return SchoolCopy.codeChecking }
+        if Self.unavailableCodes.contains(deviceError) { return SignInCopy.deviceClassUnavailable }
+        if Self.networkCodes.contains(deviceError) { return SignInCopy.deviceNetwork }
+        return SchoolCopy.error(deviceError)
+    }
+
     private var deviceStatus: some View {
         VStack(spacing: 14) {
             if loadingDevice || deviceError == nil {
                 ProgressView().tint(.white).controlSize(.large)
                     .frame(maxWidth: .infinity, minHeight: 96)
-            } else if let deviceError {
-                Text(Self.unavailableCodes.contains(deviceError)
-                     ? SignInCopy.deviceClassUnavailable
-                     : SchoolCopy.error(deviceError))
+            } else if deviceError != nil {
+                Text(deviceMessage)
                     .font(.system(.title3, design: .rounded, weight: .semibold))
                     .foregroundStyle(.white)
                     .multilineTextAlignment(.center)

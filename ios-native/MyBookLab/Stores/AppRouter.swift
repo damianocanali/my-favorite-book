@@ -1,8 +1,8 @@
 // Tiny app-wide router. Owns the selected tab so any view in the tree
 // can switch tabs programmatically (e.g. the hero landing's "Start a
 // new book" button hands off to the Create tab).
-import Foundation
 import Observation
+import UIKit
 
 enum AppTab: Int, Hashable, Sendable {
     case books = 0
@@ -29,7 +29,106 @@ final class AppRouter {
     /// dismissed it and lost everything typed. Every "Sign in" button and
     /// every gated action asks for it here.
     var signInPresented = false
+    /// Whether the cover is actually on screen (SignInFlowView reports it).
+    /// `signInPresented` can be true while nothing shows — SwiftUI drops a
+    /// presentation requested while another sheet is up — and then setting
+    /// it to true again changes nothing. This is how that gets noticed.
+    var signInShowing = false
 
-    func presentSignIn() { signInPresented = true }
-    func dismissSignIn() { signInPresented = false }
+    /// Where the flow is, held here rather than in the flow's own @State so
+    /// a language switch (which rebuilds the flow) keeps the screen.
+    var signInDoor: SignInDoor?
+    /// On a class iPad: "Not in <class>?" showed the welcome screen.
+    var signInWelcomeOverClass = false
+
+    /// A guest chose "Explore first": don't push the welcome screen at them
+    /// again when the app comes back to the front. Reset on any sign-in or
+    /// sign-out.
+    var guestExploring = false
+
+    /// Bumped when the session ends. The root view is keyed on it, so the
+    /// whole tree — and every sheet or cover a screen had open — is torn
+    /// down, leaving nothing in the way of the sign-in cover.
+    private(set) var sessionGeneration = 0
+
+    func presentSignIn() {
+        guestExploring = false
+        if !signInPresented {
+            signInDoor = nil
+            signInWelcomeOverClass = false
+            signInPresented = true
+            scheduleVisibilityCheck()
+        } else if !signInShowing {
+            retries = 0
+            retryPresentation()
+        }
+    }
+
+    func dismissSignIn() {
+        signInPresented = false
+        signInDoor = nil
+        signInWelcomeOverClass = false
+    }
+
+    /// "Explore first".
+    func exploreAsGuest() {
+        dismissSignIn()
+        guestExploring = true
+    }
+
+    /// The signed-in person is gone (sign-out or an expired session).
+    /// `stillSignedOut` is asked again after the pause: a class sign-in
+    /// signs the previous person out first and the child in a moment later.
+    func sessionEnded(stillSignedOut: @escaping @MainActor () -> Bool) {
+        sessionGeneration += 1
+        guestExploring = false
+        // One beat for the rebuilt tree's presentations to finish going away.
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(350))
+            if stillSignedOut() { self.presentSignIn() }
+        }
+    }
+
+    /// Brought back to the front, signed out: recover a stuck request.
+    func recheckSignIn(signedIn: Bool) {
+        guard !signedIn, !guestExploring, !signInShowing else { return }
+        presentSignIn()
+    }
+
+    private var retries = 0
+
+    private func scheduleVisibilityCheck() {
+        retries = 0
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(900))
+            if self.signInPresented && !self.signInShowing { self.retryPresentation() }
+        }
+    }
+
+    /// false → true on the next run loop, after dismissing whatever UIKit
+    /// still has presented over the root.
+    private func retryPresentation() {
+        guard retries < 3 else { return }
+        retries += 1
+        signInPresented = false
+        Task { @MainActor in
+            await Self.dismissForeignPresentations()
+            await Task.yield()
+            self.signInPresented = true
+            try? await Task.sleep(for: .milliseconds(900))
+            if self.signInPresented && !self.signInShowing { self.retryPresentation() }
+        }
+    }
+
+    private static func dismissForeignPresentations() async {
+        let root = UIApplication.shared.connectedScenes
+            .compactMap { ($0 as? UIWindowScene)?.keyWindow?.rootViewController }
+            .first
+        guard let presented = root?.presentedViewController, !presented.isBeingDismissed else { return }
+        await withCheckedContinuation { (done: CheckedContinuation<Void, Never>) in
+            root?.dismiss(animated: false) { done.resume() }
+        }
+    }
 }
+
+enum SignInDoor: Hashable, Sendable { case student, family, teacher }

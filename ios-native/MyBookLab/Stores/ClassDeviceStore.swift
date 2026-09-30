@@ -22,6 +22,10 @@ struct ClassDevice: Codable, Equatable, Sendable {
     let name: String
     let setAt: Date
     let setByUserId: String
+
+    /// What children see: the class's name, or its code for a class that
+    /// has no name.
+    var displayName: String { name.trimmingCharacters(in: .whitespaces).isEmpty ? code : name }
 }
 
 @Observable
@@ -54,19 +58,32 @@ final class ClassDeviceStore {
     }
 
     static func isValid(_ d: ClassDevice) -> Bool {
-        !d.classId.isEmpty && d.code.count == 6
+        // Same shape as the server's CODE_RE (lib/school/crypto.js): 6–8.
+        !d.classId.isEmpty && (6...8).contains(d.code.count)
             && d.code.allSatisfy { $0.isASCII && ($0.isLetter || $0.isNumber) }
     }
 
     func isSetUp(forClass classId: String) -> Bool { device?.classId == classId }
 
     /// Teacher only (callers are all inside the teacher's own screens).
-    func set(classId: String, code: String, name: String, setByUserId: String) {
+    /// False when the record isn't valid and nothing was saved.
+    @discardableResult
+    func set(classId: String, code: String, name: String, setByUserId: String) -> Bool {
         let d = ClassDevice(classId: classId, code: code.uppercased(), name: name,
                             setAt: Date(), setByUserId: setByUserId)
-        guard Self.isValid(d), let data = try? JSONEncoder().encode(d) else { return }
+        guard Self.isValid(d), let data = try? JSONEncoder().encode(d) else { return false }
         defaults.set(data, forKey: Self.defaultsKey)
         device = d
+        return true
+    }
+
+    /// Whether the signed-in teacher may change or remove this iPad's class:
+    /// they set it up, or it's one of their own classes. Anything else is
+    /// another teacher's classroom iPad.
+    func canManage(userId: String?, ownClassIds: Set<String>) -> Bool {
+        guard let device else { return true }
+        if let userId, device.setByUserId == userId { return true }
+        return ownClassIds.contains(device.classId)
     }
 
     func remove() {

@@ -1,9 +1,22 @@
 // "Set up this iPad for this class" — the teacher's side of a class iPad
 // (ClassDeviceStore). Lives on the class screen and in the teacher's
-// Account. Only a signed-in teacher ever sees these controls, and only for
-// classes they are listing as their own, so a child can't set up or remove
-// a class iPad.
+// Account. Only a signed-in teacher ever sees these controls.
+//
+// Owner-gated: a teacher may replace or remove the iPad's class only if
+// they set it up or it's one of their own classes. Another teacher signing
+// in on a classroom iPad sees which class it belongs to and "Ask <class>'s
+// teacher to change this" — never a way to take it over.
 import SwiftUI
+
+/// The signed-in teacher's own class ids, fetched once per screen, and only
+/// when the answer matters (the iPad is set up by someone else).
+@MainActor
+private func loadOwnClassIds(_ auth: AuthStore) async -> Set<String>? {
+    guard let token = await auth.validAccessToken(),
+          let classes = try? await APIClient.shared.teacherClasses(bearerToken: token)
+    else { return nil }
+    return Set(classes.map(\.id))
+}
 
 /// On a class's screen: set this iPad up for this class, or show that it is
 /// and offer to remove it.
@@ -15,14 +28,29 @@ struct ClassDeviceCard: View {
     @Environment(AuthStore.self) private var auth
     @State private var confirmingSetup = false
     @State private var confirmingRemove = false
+    /// nil until loaded (or when it failed): treated as "not yours".
+    @State private var ownClassIds: Set<String>?
 
     private var store: ClassDeviceStore { .shared }
+
+    /// This screen is the teacher's own class, so it counts as theirs even
+    /// before the list has loaded.
+    private var canManage: Bool {
+        store.canManage(userId: auth.user?.id.uuidString,
+                        ownClassIds: (ownClassIds ?? []).union([classId]))
+    }
 
     var body: some View {
         TeacherCard {
             VStack(alignment: .leading, spacing: 12) {
-                if let device = store.device, device.classId == classId {
-                    ClassDeviceStatusLine(name: device.name)
+                if let device = store.device {
+                    ClassDeviceStatusLine(name: device.displayName)
+                }
+                if let device = store.device, !canManage {
+                    Text(SignInCopy.askOwner(device.displayName))
+                        .font(.subheadline)
+                        .foregroundStyle(TeacherTheme.secondaryText)
+                } else if store.device?.classId == classId {
                     Button(role: .destructive) { confirmingRemove = true } label: {
                         Text(SignInCopy.remove)
                             .font(.subheadline.weight(.semibold))
@@ -30,9 +58,6 @@ struct ClassDeviceCard: View {
                             .frame(minHeight: 44)
                     }
                 } else {
-                    if let other = store.device {
-                        ClassDeviceStatusLine(name: other.name)
-                    }
                     Button { confirmingSetup = true } label: {
                         Label { Text(SignInCopy.setUpThisIPad) } icon: { Image(systemName: "ipad.and.arrow.forward") }
                             .font(.headline)
@@ -45,18 +70,23 @@ struct ClassDeviceCard: View {
                 }
             }
         }
+        .task(id: store.device?.classId) {
+            guard let device = store.device, device.classId != classId,
+                  device.setByUserId != auth.user?.id.uuidString else { return }
+            ownClassIds = await loadOwnClassIds(auth)
+        }
         .sheet(isPresented: $confirmingSetup) {
             ClassDeviceConfirmSheet(
-                name: name,
-                replacing: store.device.flatMap { $0.classId == classId ? nil : $0.name },
+                name: name.isEmpty ? (code ?? "") : name,
+                replacing: store.device.flatMap { $0.classId == classId ? nil : $0.displayName },
                 onConfirm: {
-                    guard let code, let userId = auth.user?.id.uuidString else { return }
-                    store.set(classId: classId, code: code, name: name, setByUserId: userId)
-                    Haptics.celebrate()
+                    // Re-checked here: the sheet can outlive a change.
+                    guard canManage, let code, let userId = auth.user?.id.uuidString else { return false }
+                    return store.set(classId: classId, code: code, name: name, setByUserId: userId)
                 },
-                onCancel: { confirmingSetup = false })
+                onClose: { confirmingSetup = false })
         }
-        .classDeviceRemoveConfirmation(isPresented: $confirmingRemove, name: store.device?.name ?? name)
+        .classDeviceRemoveConfirmation(isPresented: $confirmingRemove, name: store.device?.displayName ?? name)
         // The teacher made a new code (or renamed the class): keep this iPad
         // working instead of leaving children on "isn't available".
         .onChange(of: [code ?? "", name], initial: true) { _, _ in
@@ -69,7 +99,7 @@ struct ClassDeviceCard: View {
     }
 }
 
-/// "This iPad is set up for 3B"", with an iPad glyph.
+/// "This iPad is set up for 3B", with an iPad glyph.
 struct ClassDeviceStatusLine: View {
     let name: String
     var body: some View {
@@ -88,8 +118,11 @@ struct ClassDeviceConfirmSheet: View {
     let name: String
     /// The class this iPad is set up for now, if it's a different one.
     let replacing: String?
-    var onConfirm: () -> Void
-    var onCancel: () -> Void
+    /// Saves it; false if nothing was saved.
+    var onConfirm: () -> Bool
+    var onClose: () -> Void
+
+    @State private var failed = false
 
     var body: some View {
         ScrollView {
@@ -112,9 +145,19 @@ struct ClassDeviceConfirmSheet: View {
                 Text(SignInCopy.confirmNote)
                     .font(.callout)
                     .foregroundStyle(TeacherTheme.secondaryText)
+                if failed {
+                    Text(SignInCopy.saveFailed)
+                        .font(.callout.weight(.semibold))
+                        .foregroundStyle(TeacherTheme.urgent)
+                }
                 Button {
-                    onConfirm()
-                    onCancel()
+                    if onConfirm() {
+                        Haptics.celebrate()
+                        onClose()
+                    } else {
+                        failed = true
+                        AccessibilityNotification.Announcement(String(appLocalized: SignInCopy.saveFailed)).post()
+                    }
                 } label: {
                     Text(SignInCopy.confirmAction)
                         .font(.headline)
@@ -124,7 +167,7 @@ struct ClassDeviceConfirmSheet: View {
                 }
                 .buttonStyle(.plain)
                 .padding(.top, 4)
-                Button(action: onCancel) {
+                Button(action: onClose) {
                     Text(TeacherCopy.cancel)
                         .font(.headline)
                         .foregroundStyle(.white.opacity(0.85))
@@ -155,12 +198,18 @@ extension View {
 }
 
 /// The teacher's Account: which class this iPad is set up for (and remove
-/// it), or pick one of their classes to set it up.
+/// it, if it's theirs), or pick one of their classes to set it up.
 struct ClassDeviceAccountCard: View {
+    @Environment(AuthStore.self) private var auth
     @State private var picking = false
     @State private var confirmingRemove = false
+    @State private var ownClassIds: Set<String>?
 
     private var store: ClassDeviceStore { .shared }
+
+    private var canManage: Bool {
+        store.canManage(userId: auth.user?.id.uuidString, ownClassIds: ownClassIds ?? [])
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -171,13 +220,19 @@ struct ClassDeviceAccountCard: View {
                     .accessibilityAddTraits(.isHeader)
             }
             if let device = store.device {
-                Text(SignInCopy.setUpFor(device.name))
+                Text(SignInCopy.setUpFor(device.displayName))
                     .foregroundStyle(.white.opacity(0.9))
-                Button(role: .destructive) { confirmingRemove = true } label: {
-                    Text(SignInCopy.remove)
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(.red.opacity(0.9))
-                        .frame(minHeight: 44)
+                if canManage {
+                    Button(role: .destructive) { confirmingRemove = true } label: {
+                        Text(SignInCopy.remove)
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(.red.opacity(0.9))
+                            .frame(minHeight: 44)
+                    }
+                } else {
+                    Text(SignInCopy.askOwner(device.displayName))
+                        .font(.subheadline)
+                        .foregroundStyle(.white.opacity(0.75))
                 }
             } else {
                 Text(SignInCopy.accountNone)
@@ -196,8 +251,12 @@ struct ClassDeviceAccountCard: View {
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 18))
+        .task(id: store.device?.classId) {
+            guard let device = store.device, device.setByUserId != auth.user?.id.uuidString else { return }
+            ownClassIds = await loadOwnClassIds(auth)
+        }
         .sheet(isPresented: $picking) { ClassDevicePickerSheet { picking = false } }
-        .classDeviceRemoveConfirmation(isPresented: $confirmingRemove, name: store.device?.name ?? "")
+        .classDeviceRemoveConfirmation(isPresented: $confirmingRemove, name: store.device?.displayName ?? "")
     }
 }
 
@@ -210,19 +269,25 @@ private struct ClassDevicePickerSheet: View {
     @State private var failed = false
     @State private var chosen: TeacherClass?
 
+    private var store: ClassDeviceStore { .shared }
+
+    private var canReplace: Bool {
+        store.canManage(userId: auth.user?.id.uuidString, ownClassIds: Set((classes ?? []).map(\.id)))
+    }
+
     var body: some View {
         Group {
             if let chosen {
                 ClassDeviceConfirmSheet(
-                    name: chosen.name ?? "",
-                    replacing: nil,
+                    name: (chosen.name ?? "").isEmpty ? (chosen.code ?? "") : (chosen.name ?? ""),
+                    replacing: store.device.flatMap { $0.classId == chosen.id ? nil : $0.displayName },
                     onConfirm: {
-                        guard let code = chosen.code, let userId = auth.user?.id.uuidString else { return }
-                        ClassDeviceStore.shared.set(classId: chosen.id, code: code,
-                                                    name: chosen.name ?? "", setByUserId: userId)
-                        Haptics.celebrate()
+                        guard canReplace, let code = chosen.code,
+                              let userId = auth.user?.id.uuidString else { return false }
+                        return store.set(classId: chosen.id, code: code,
+                                         name: chosen.name ?? "", setByUserId: userId)
                     },
-                    onCancel: onDone)
+                    onClose: onDone)
             } else {
                 NavigationStack {
                     list
@@ -242,7 +307,15 @@ private struct ClassDevicePickerSheet: View {
     @ViewBuilder private var list: some View {
         if let classes {
             let usable = classes.filter { !($0.code ?? "").isEmpty }
-            if usable.isEmpty {
+            if let device = store.device, !canReplace {
+                // Someone else's class iPad (set up while this sheet was
+                // open): no way to take it over from here.
+                Text(SignInCopy.askOwner(device.displayName))
+                    .foregroundStyle(TeacherTheme.secondaryText)
+                    .padding()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(TeacherTheme.sheetBackground.ignoresSafeArea())
+            } else if usable.isEmpty {
                 Text(SignInCopy.accountNoClasses)
                     .foregroundStyle(TeacherTheme.secondaryText)
                     .padding()
@@ -252,7 +325,8 @@ private struct ClassDevicePickerSheet: View {
                 List(usable) { c in
                     Button { chosen = c } label: {
                         HStack {
-                            Text(verbatim: c.name ?? "").foregroundStyle(.white)
+                            Text(verbatim: (c.name ?? "").isEmpty ? (c.code ?? "") : (c.name ?? ""))
+                                .foregroundStyle(.white)
                             Spacer()
                             Image(systemName: "chevron.right").foregroundStyle(TeacherTheme.secondaryText)
                         }

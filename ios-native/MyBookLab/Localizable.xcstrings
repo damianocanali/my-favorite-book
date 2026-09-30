@@ -11904,7 +11904,7 @@
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Chi sta entrando?"
+            "value": "Chi sta accedendo?"
           }
         }
       }
@@ -11921,7 +11921,7 @@
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sono uno studente"
+            "value": "Sono in una classe"
           }
         }
       }
@@ -12159,7 +12159,7 @@
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "La classe di questo iPad non è disponibile — chiedi al tuo insegnante"
+            "value": "La classe di questo iPad non è disponibile — chiedi all'insegnante"
           }
         }
       }
@@ -12244,7 +12244,7 @@
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Quando nessuno ha effettuato l'accesso, questo iPad si apre direttamente sull'elenco dei nomi di %@. I bambini toccano il proprio nome e scelgono le loro immagini, senza scrivere il codice della classe. Quando un bambino esce, si torna all'elenco."
+            "value": "Quando nessuno ha effettuato l'accesso, questo iPad si apre direttamente sull'elenco dei nomi di %@. I bambini toccano il proprio nome e scelgono le loro immagini, senza scrivere il codice della classe. Quando qualcuno esce, si torna all'elenco."
           }
         }
       }
@@ -12415,6 +12415,74 @@
           "stringUnit": {
             "state": "translated",
             "value": "Impossibile caricare le tue classi."
+          }
+        }
+      }
+    },
+    "signin.class_device.problem_heading": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "We can't open your class right now"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ora non riusciamo ad aprire la tua classe"
+          }
+        }
+      }
+    },
+    "signin.class_device.network": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "We can't reach My Book Lab. Check the internet and try again."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non riusciamo a collegarci a My Book Lab. Controlla la connessione e riprova."
+          }
+        }
+      }
+    },
+    "classdevice.ask_owner": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Ask %@'s teacher to change this."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Per cambiarlo, chiedi all'insegnante di %@."
+          }
+        }
+      }
+    },
+    "classdevice.save_failed": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Couldn't set up this iPad. Please try again."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossibile configurare questo iPad. Riprova."
           }
         }
       }

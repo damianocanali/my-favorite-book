@@ -26,47 +26,65 @@ struct SignInFlowView: View {
     @Environment(AppRouter.self) private var router
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    enum Door: Hashable { case student, family, teacher }
-
-    @State private var door: Door?
-    /// On a class iPad: "Not in <class>?" was tapped, so the welcome screen
-    /// shows over the class list (whose Back returns to it).
-    @State private var showingWelcome = false
+    typealias Door = SignInDoor
 
     private var classDevice: ClassDevice? { ClassDeviceStore.shared.device }
 
     var body: some View {
+        // Screen state lives in AppRouter, so the language switch (which
+        // rebuilds this view) keeps it.
+        @Bindable var router = router
         ZStack {
             CosmicBackground().ignoresSafeArea()
             Group {
-                switch door {
+                switch router.signInDoor {
                 case .student:
-                    ClassSignInView(mode: .open, onExit: { door = nil })
+                    ClassSignInView(mode: .open, onExit: { router.signInDoor = nil })
                 case .family:
-                    AccountSignInForm(isTeacher: false, onBack: { door = nil })
+                    AccountSignInForm(isTeacher: false, onBack: { router.signInDoor = nil })
                 case .teacher:
-                    AccountSignInForm(isTeacher: true, onBack: { door = nil })
+                    AccountSignInForm(isTeacher: true, onBack: { router.signInDoor = nil })
                 case nil:
-                    if let classDevice, !showingWelcome {
-                        ClassSignInView(mode: .device(classDevice), onExit: { showingWelcome = true })
+                    if let classDevice, !router.signInWelcomeOverClass {
+                        ClassSignInView(mode: .device(classDevice),
+                                        onExit: { router.signInWelcomeOverClass = true })
                             // A fresh class list whenever it comes back.
                             .id(classDevice.classId)
                     } else {
                         WelcomeDoorsView(
-                            onChoose: { door = $0 },
-                            onBackToClass: classDevice == nil ? nil : { showingWelcome = false },
-                            onExplore: { router.dismissSignIn() })
+                            onChoose: { router.signInDoor = $0 },
+                            onBackToClass: classDevice == nil ? nil : { router.signInWelcomeOverClass = false },
+                            onExplore: { router.exploreAsGuest() })
                     }
                 }
             }
             .transition(.opacity)
         }
-        .animation(reduceMotion ? nil : .easeInOut(duration: 0.2), value: door)
-        .animation(reduceMotion ? nil : .easeInOut(duration: 0.2), value: showingWelcome)
+        .animation(reduceMotion ? nil : .easeInOut(duration: 0.2), value: router.signInDoor)
+        .animation(reduceMotion ? nil : .easeInOut(duration: 0.2), value: router.signInWelcomeOverClass)
         .interactiveDismissDisabled()
+        .onAppear { router.signInShowing = true }
+        .onDisappear { router.signInShowing = false }
         .onChange(of: auth.isSignedIn) { _, signedIn in
             if signedIn { router.dismissSignIn() }
         }
+    }
+}
+
+/// The top bar every sign-in screen shares: Back first, so VoiceOver (and
+/// a reader's eye) meets it before anything else, rather than an overlay
+/// read last. An empty bar keeps the same height.
+struct SignInTopBar: View {
+    var onBack: (() -> Void)?
+
+    var body: some View {
+        HStack {
+            if let onBack { SignInBackButton(action: onBack) }
+            Spacer()
+        }
+        .frame(minHeight: 48)
+        .padding(.horizontal, 16)
+        .padding(.top, 8)
     }
 }
 
@@ -82,7 +100,13 @@ private struct WelcomeDoorsView: View {
     private var regular: Bool { hSize == .regular }
 
     var body: some View {
-        ScrollView {
+        VStack(spacing: 0) {
+            if let onBackToClass { SignInTopBar(onBack: onBackToClass) }
+            ScrollView { content }
+        }
+    }
+
+    private var content: some View {
             VStack(spacing: regular ? 20 : 16) {
                 Image("AppLogo")
                     .resizable()
@@ -140,14 +164,18 @@ private struct WelcomeDoorsView: View {
                 doorCard(icon: "graduationcap.fill", tint: .yellow,
                          title: SignInCopy.doorTeacher, subtitle: SignInCopy.doorTeacherHint) { onChoose(.teacher) }
 
-                Button(action: onExplore) {
-                    Text(SignInCopy.exploreFirst)
-                        .font(.callout)
-                        .foregroundStyle(.white.opacity(0.7))
-                        .underline()
-                        .frame(minWidth: 120, minHeight: 48)
+                // Not on a class iPad: its way out is the class list, not
+                // guest browsing on the classroom's device.
+                if onBackToClass == nil {
+                    Button(action: onExplore) {
+                        Text(SignInCopy.exploreFirst)
+                            .font(.callout)
+                            .foregroundStyle(.white.opacity(0.7))
+                            .underline()
+                            .frame(minWidth: 120, minHeight: 48)
+                    }
+                    .padding(.top, 4)
                 }
-                .padding(.top, 4)
 
                 // Before choosing a door: someone who can't read English has
                 // to be able to find Italian first.
@@ -155,17 +183,9 @@ private struct WelcomeDoorsView: View {
                     .padding(.top, 4)
             }
             .padding(.horizontal)
-            .padding(.top, onBackToClass == nil ? 40 : 72)
+            .padding(.top, onBackToClass == nil ? 40 : 16)
             .padding(.bottom, 24)
             .contentColumn(maxWidth: 520)
-        }
-        .overlay(alignment: .topLeading) {
-            if let onBackToClass {
-                SignInBackButton(action: onBackToClass)
-                    .padding(.leading, 16)
-                    .padding(.top, 8)
-            }
-        }
     }
 
     private func doorCard(icon: String, tint: Color, title: LocalizedStringResource,
@@ -274,7 +294,9 @@ struct AccountSignInForm: View {
     @State private var displayName = ""
     @State private var loading = false
     @State private var error: String?
-    @State private var rememberWithBiometrics = true
+    /// Off by default on a class iPad: a grown-up signing in there must opt
+    /// in to leaving a Face ID login on a shared classroom device.
+    @State private var rememberWithBiometrics = ClassDeviceStore.shared.device == nil
     @State private var hasStoredCredentials = BiometricCredentials.hasStoredCredentials
     @State private var resetSent = false
     @State private var confirmingBack = false
@@ -304,21 +326,23 @@ struct AccountSignInForm: View {
     }
 
     var body: some View {
-        ScrollView {
-            form
-                .padding(.top, 72)
-                .padding(.bottom, 24)
-                .contentColumn(maxWidth: 420)
-        }
-        .scrollDismissesKeyboard(.interactively)
-        .overlay(alignment: .topLeading) {
-            SignInBackButton {
+        VStack(spacing: 0) {
+            SignInTopBar {
                 if hasInput { confirmingBack = true } else { onBack() }
             }
-            .padding(.leading, 16)
-            .padding(.top, 8)
+            ScrollView {
+                form
+                    .padding(.top, 8)
+                    .padding(.bottom, 24)
+                    .contentColumn(maxWidth: 420)
+            }
+            .scrollDismissesKeyboard(.interactively)
         }
         .discardTypedConfirmation(isPresented: $confirmingBack, onDiscard: onBack)
+        // VoiceOver hears an inline error the moment it appears.
+        .onChange(of: error) { _, message in
+            if let message { AccessibilityNotification.Announcement(message).post() }
+        }
     }
 
     private var fieldBackground: some ShapeStyle { .white.opacity(0.08) }
@@ -640,6 +664,18 @@ enum SignInCopy {
     }
     static func notInClass(_ name: String) -> LocalizedStringResource {
         AppText("signin.class_device.not_in", defaultValue: "Not in \(name)?")
+    }
+    static var deviceProblemHeading: LocalizedStringResource {
+        AppText("signin.class_device.problem_heading", defaultValue: "We can't open your class right now")
+    }
+    static var deviceNetwork: LocalizedStringResource {
+        AppText("signin.class_device.network", defaultValue: "We can't reach My Book Lab. Check the internet and try again.")
+    }
+    static func askOwner(_ name: String) -> LocalizedStringResource {
+        AppText("classdevice.ask_owner", defaultValue: "Ask \(name)'s teacher to change this.")
+    }
+    static var saveFailed: LocalizedStringResource {
+        AppText("classdevice.save_failed", defaultValue: "Couldn't set up this iPad. Please try again.")
     }
     static var deviceClassUnavailable: LocalizedStringResource {
         AppText("signin.class_device.unavailable", defaultValue: "This iPad's class isn't available — ask your teacher")
