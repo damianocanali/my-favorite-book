@@ -69,11 +69,11 @@ struct StoryIdeaCard: View {
                     // shared "Shake your %@…" frame cannot be translated
                     // correctly no matter what goes in the blank.
                     Text(UIDevice.current.userInterfaceIdiom == .pad
-                         ? LocalizedStringResource(
+                         ? AppText(
                             "story.idea.hint.pad.writing",
                             defaultValue: "Shake your iPad while you write for a new idea ✨",
                             comment: "Footnote on the story-idea popup, iPad wording")
-                         : LocalizedStringResource(
+                         : AppText(
                             "story.idea.hint.phone.writing",
                             defaultValue: "Shake your phone while you write for a new idea ✨",
                             comment: "Footnote on the story-idea popup, iPhone wording"))

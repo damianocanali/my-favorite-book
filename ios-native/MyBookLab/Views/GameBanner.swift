@@ -146,7 +146,7 @@ extension View {
         // string the app uses and supplies its own name for the argument.
         GameBanner(
             text: "Welcome back!",
-            sub: LocalizedStringResource(
+            sub: AppText(
                 "welcome.banner.subtitle",
                 defaultValue: "Good to see you, \("Theo")",
                 comment: "Launch banner subtitle; %@ is the signed-in person's display name")

@@ -23,7 +23,7 @@ struct AccountView: View {
     /// button gated on "DELETE" — account deletion becomes impossible, which
     /// is also an App Store Guideline 5.1.1(v) failure.
     private var deleteConfirmWord: String {
-        String(appLocalized: LocalizedStringResource("account.delete.confirm_word", defaultValue: "DELETE",
+        String(appLocalized: AppText("account.delete.confirm_word", defaultValue: "DELETE",
                comment: "Typed by the user to confirm account deletion. MUST match the placeholder; uppercase."))
     }
     @State private var deleteBusy = false
@@ -423,14 +423,14 @@ struct AccountView: View {
     private var planDisplayName: String {
         switch subs.planKey {
         case "family":
-            return String(appLocalized: LocalizedStringResource("plan.family.name", defaultValue: "Family"))
+            return String(appLocalized: AppText("plan.family.name", defaultValue: "Family"))
         case "classroom":
-            return String(appLocalized: LocalizedStringResource("plan.classroom.name", defaultValue: "Classroom"))
+            return String(appLocalized: AppText("plan.classroom.name", defaultValue: "Classroom"))
         case "free":
-            return String(appLocalized: LocalizedStringResource("plan.free.name", defaultValue: "Free"))
+            return String(appLocalized: AppText("plan.free.name", defaultValue: "Free"))
         default:
             // Unknown/new server plan: a neutral word beats a raw key.
-            return String(appLocalized: LocalizedStringResource("plan.unknown.name", defaultValue: "Premium"))
+            return String(appLocalized: AppText("plan.unknown.name", defaultValue: "Premium"))
         }
     }
 
@@ -510,7 +510,7 @@ struct AccountView: View {
             try await APIClient.shared.cancelAccountDeletion(bearerToken: token)
             deletionScheduledFor = nil
         } catch {
-            deleteError = LocalizedStringResource(
+            deleteError = AppText(
                 "account.delete.cancel_failed",
                 defaultValue: "Couldn't cancel. Please try again.")
         }
@@ -581,7 +581,7 @@ struct AccountView: View {
             deletionScheduledFor = scheduledFor ?? ""
             showDeleteConfirm = false
         } catch {
-            deleteError = LocalizedStringResource(
+            deleteError = AppText(
                 "account.delete.schedule_failed",
                 defaultValue: "Couldn't schedule deletion. Please try again.")
         }

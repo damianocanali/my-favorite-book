@@ -588,7 +588,7 @@ enum TeacherDates {
     static func relative(_ raw: String?, now: Date = Date()) -> String? {
         guard let date = parse(raw) else { return nil }
         let f = RelativeDateTimeFormatter()
-        f.locale = Locale(identifier: AppLanguage.uiLanguage)
+        f.locale = AppLanguage.locale
         f.dateTimeStyle = .named
         f.unitsStyle = .full
         return f.localizedString(for: date, relativeTo: now)
@@ -599,7 +599,7 @@ enum TeacherDates {
         guard let date = parse(raw) else { return nil }
         return date.formatted(
             .dateTime.day().month(.abbreviated).year().hour().minute()
-                .locale(Locale(identifier: AppLanguage.uiLanguage))
+                .locale(AppLanguage.locale)
         )
     }
 }

@@ -57,11 +57,11 @@ struct WelcomeBackMoment: View {
                     // the literals from extraction, and a translator needs
                     // to see each sentence whole to render it naturally.
                     Text(rewards.currentStreak > 0
-                         ? LocalizedStringResource(
+                         ? AppText(
                             "welcome.streak.continue",
                             defaultValue: "Write today to reach day \(rewards.currentStreak + 1)!",
                             comment: "Nudge on the launch celebration; %lld is tomorrow's streak day number")
-                         : LocalizedStringResource(
+                         : AppText(
                             "welcome.streak.start",
                             defaultValue: "Write something today to start a streak!",
                             comment: "Nudge on the launch celebration when the streak is at zero"))
@@ -94,7 +94,7 @@ struct WelcomeBackMoment: View {
             // would ever look. One keyed format string instead, so a
             // translator can move the name to wherever Italian wants it.
             sub: auth.displayName.map {
-                LocalizedStringResource(
+                AppText(
                     "welcome.banner.subtitle",
                     defaultValue: "Good to see you, \($0)",
                     comment: "Launch banner subtitle; %@ is the signed-in person's display name")

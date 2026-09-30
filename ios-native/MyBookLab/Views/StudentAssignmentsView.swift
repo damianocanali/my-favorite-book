@@ -12,60 +12,60 @@ import SwiftUI
 // MARK: - Copy
 
 enum AssignmentCopy {
-    static let heading = LocalizedStringResource("school.student.assignments.heading", defaultValue: "My assignments")
-    static let listen = LocalizedStringResource("school.student.assignments.prompt_listen_aria", defaultValue: "Read the assignment out loud")
-    static let startWriting = LocalizedStringResource("school.student.assignments.start_writing", defaultValue: "Start writing")
-    static let continueWriting = LocalizedStringResource("school.student.assignments.continue_writing", defaultValue: "Continue writing")
-    static let openHandedIn = LocalizedStringResource("school.student.assignments.open_handed_in", defaultValue: "Open my book")
-    static let handInAgain = LocalizedStringResource("school.student.assignments.hand_in_again", defaultValue: "Hand in again")
-    static let newFeedback = LocalizedStringResource("school.student.assignments.new_feedback", defaultValue: "New feedback!")
-    static let seeFeedback = LocalizedStringResource("school.student.assignments.see_feedback", defaultValue: "See feedback")
-    static let hintHeading = LocalizedStringResource("school.student.assignments.prompt_hint.heading", defaultValue: "Your assignment")
-    static let hintDismiss = LocalizedStringResource("school.student.assignments.prompt_hint.dismiss_aria", defaultValue: "Hide the assignment prompt")
-    static let feedbackHeading = LocalizedStringResource("school.student.feedback.heading", defaultValue: "Feedback from your teacher")
-    static let feedbackEmpty = LocalizedStringResource("school.student.feedback.empty", defaultValue: "No feedback yet.")
-    static let feedbackClose = LocalizedStringResource("school.student.feedback.close_aria", defaultValue: "Close feedback")
-    static let readAloud = LocalizedStringResource("school.actions.listen", defaultValue: "Read this out loud")
-    static let stopReading = LocalizedStringResource("school.actions.stop_listening", defaultValue: "Stop reading")
-    static let replaceDraftTitle = LocalizedStringResource("school.student.assignments.replace_draft", defaultValue: "Start a new book? Your unsaved book will be lost.")
-    static let replaceDraftConfirm = LocalizedStringResource("school.student.assignments.start_writing", defaultValue: "Start writing")
+    static var heading: LocalizedStringResource { AppText("school.student.assignments.heading", defaultValue: "My assignments") }
+    static var listen: LocalizedStringResource { AppText("school.student.assignments.prompt_listen_aria", defaultValue: "Read the assignment out loud") }
+    static var startWriting: LocalizedStringResource { AppText("school.student.assignments.start_writing", defaultValue: "Start writing") }
+    static var continueWriting: LocalizedStringResource { AppText("school.student.assignments.continue_writing", defaultValue: "Continue writing") }
+    static var openHandedIn: LocalizedStringResource { AppText("school.student.assignments.open_handed_in", defaultValue: "Open my book") }
+    static var handInAgain: LocalizedStringResource { AppText("school.student.assignments.hand_in_again", defaultValue: "Hand in again") }
+    static var newFeedback: LocalizedStringResource { AppText("school.student.assignments.new_feedback", defaultValue: "New feedback!") }
+    static var seeFeedback: LocalizedStringResource { AppText("school.student.assignments.see_feedback", defaultValue: "See feedback") }
+    static var hintHeading: LocalizedStringResource { AppText("school.student.assignments.prompt_hint.heading", defaultValue: "Your assignment") }
+    static var hintDismiss: LocalizedStringResource { AppText("school.student.assignments.prompt_hint.dismiss_aria", defaultValue: "Hide the assignment prompt") }
+    static var feedbackHeading: LocalizedStringResource { AppText("school.student.feedback.heading", defaultValue: "Feedback from your teacher") }
+    static var feedbackEmpty: LocalizedStringResource { AppText("school.student.feedback.empty", defaultValue: "No feedback yet.") }
+    static var feedbackClose: LocalizedStringResource { AppText("school.student.feedback.close_aria", defaultValue: "Close feedback") }
+    static var readAloud: LocalizedStringResource { AppText("school.actions.listen", defaultValue: "Read this out loud") }
+    static var stopReading: LocalizedStringResource { AppText("school.actions.stop_listening", defaultValue: "Stop reading") }
+    static var replaceDraftTitle: LocalizedStringResource { AppText("school.student.assignments.replace_draft", defaultValue: "Start a new book? Your unsaved book will be lost.") }
+    static var replaceDraftConfirm: LocalizedStringResource { AppText("school.student.assignments.start_writing", defaultValue: "Start writing") }
 
-    static let stickerFallback = LocalizedStringResource("school.teacher.assignments.feedback.sticker_label", defaultValue: "Sticker")
+    static var stickerFallback: LocalizedStringResource { AppText("school.teacher.assignments.feedback.sticker_label", defaultValue: "Sticker") }
 
     static func sticker(_ id: String) -> LocalizedStringResource? {
         switch id {
-        case "star": LocalizedStringResource("school.teacher.assignments.feedback.sticker.star", defaultValue: "Star")
-        case "rocket": LocalizedStringResource("school.teacher.assignments.feedback.sticker.rocket", defaultValue: "Rocket")
-        case "heart": LocalizedStringResource("school.teacher.assignments.feedback.sticker.heart", defaultValue: "Heart")
-        case "wow": LocalizedStringResource("school.teacher.assignments.feedback.sticker.wow", defaultValue: "Wow")
-        case "keep_going": LocalizedStringResource("school.teacher.assignments.feedback.sticker.keep_going", defaultValue: "Keep going")
-        case "rainbow": LocalizedStringResource("school.teacher.assignments.feedback.sticker.rainbow", defaultValue: "Rainbow")
+        case "star": AppText("school.teacher.assignments.feedback.sticker.star", defaultValue: "Star")
+        case "rocket": AppText("school.teacher.assignments.feedback.sticker.rocket", defaultValue: "Rocket")
+        case "heart": AppText("school.teacher.assignments.feedback.sticker.heart", defaultValue: "Heart")
+        case "wow": AppText("school.teacher.assignments.feedback.sticker.wow", defaultValue: "Wow")
+        case "keep_going": AppText("school.teacher.assignments.feedback.sticker.keep_going", defaultValue: "Keep going")
+        case "rainbow": AppText("school.teacher.assignments.feedback.sticker.rainbow", defaultValue: "Rainbow")
         default: nil
         }
     }
 
     static func status(_ s: StudentAssignment.CardStatus) -> LocalizedStringResource {
         switch s {
-        case .notStarted: LocalizedStringResource("school.student.assignments.status.not_started", defaultValue: "Not started")
-        case .handedIn: LocalizedStringResource("school.student.assignments.status.handed_in", defaultValue: "Handed in ✓")
-        case .closed: LocalizedStringResource("school.student.assignments.status.closed", defaultValue: "Closed")
+        case .notStarted: AppText("school.student.assignments.status.not_started", defaultValue: "Not started")
+        case .handedIn: AppText("school.student.assignments.status.handed_in", defaultValue: "Handed in ✓")
+        case .closed: AppText("school.student.assignments.status.closed", defaultValue: "Closed")
         }
     }
 
     static func due(_ d: StudentAssignment.Due) -> LocalizedStringResource {
-        let locale = Locale(identifier: AppLanguage.uiLanguage)
+        let locale = AppLanguage.locale
         switch d {
-        case .none: return LocalizedStringResource("school.student.assignments.due.none", defaultValue: "No due date")
-        case .today: return LocalizedStringResource("school.student.assignments.due.today", defaultValue: "Due today")
-        case .tomorrow: return LocalizedStringResource("school.student.assignments.due.tomorrow", defaultValue: "Due tomorrow")
+        case .none: return AppText("school.student.assignments.due.none", defaultValue: "No due date")
+        case .today: return AppText("school.student.assignments.due.today", defaultValue: "Due today")
+        case .tomorrow: return AppText("school.student.assignments.due.tomorrow", defaultValue: "Due tomorrow")
         case .weekday(let date):
             let weekday = date.formatted(.dateTime.weekday(.wide).locale(locale))
-            return LocalizedStringResource("school.student.assignments.due.weekday", defaultValue: "Due \(weekday)")
+            return AppText("school.student.assignments.due.weekday", defaultValue: "Due \(weekday)")
         case .date(let date):
             let day = date.formatted(.dateTime.month(.abbreviated).day().locale(locale))
-            return LocalizedStringResource("school.student.assignments.due.date", defaultValue: "Due \(day)")
-        case .lateOK: return LocalizedStringResource("school.student.assignments.due.late_ok", defaultValue: "Late is OK")
-        case .pastDue: return LocalizedStringResource("school.student.assignments.due.past_due", defaultValue: "Past due")
+            return AppText("school.student.assignments.due.date", defaultValue: "Due \(day)")
+        case .lateOK: return AppText("school.student.assignments.due.late_ok", defaultValue: "Late is OK")
+        case .pastDue: return AppText("school.student.assignments.due.past_due", defaultValue: "Past due")
         }
     }
 }

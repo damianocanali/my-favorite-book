@@ -10,13 +10,18 @@
 // Switching language is live — no restart (an app may not restart itself,
 // and "close the app and open it again" is a poor thing to ask a teacher or a
 // child). Every way a string gets localized follows the choice:
-//   - SwiftUI Text / Label / titles (LocalizedStringKey, LocalizedStringResource):
-//     the app root injects `.environment(\.locale, …)` and is rebuilt with
-//     `.id(code)` when it changes (MyBookLabApp);
-//   - code-side lookups (TeacherCopy strings read as a String, accessibility
-//     sentences, spoken text): `String(appLocalized:)` below, which resolves a
-//     LocalizedStringResource in the chosen locale. Never `String(localized:)`
-//     directly — that follows the launch language;
+//   - every app string declared in code is built with `AppText(...)` (never
+//     `LocalizedStringResource(...)` directly), which stamps the chosen
+//     locale on the resource at the moment it is built. Catalogs of them are
+//     computed properties, never cached `static let`s, so a switch can't leave
+//     an old-language copy behind. Resolution is therefore explicit, not left
+//     to whether a view honours the environment;
+//   - SwiftUI Text literal keys (LocalizedStringKey): the app root injects
+//     `.environment(\.locale, AppLanguage.locale)` and is rebuilt with
+//     `.id(code)` when it changes (MyBookLabApp), and Bundle.main (below)
+//     answers every lookup from the chosen .lproj;
+//   - code-side reads as a plain String: `String(appLocalized:)`, which
+//     re-stamps the chosen locale. Never `String(localized:)` directly;
 //   - anything that asks Bundle.main itself (NSLocalizedString, UIKit): Bundle.main
 //     is re-classed at launch so its lookups read the chosen .lproj.
 // AppleLanguages is still written, so system-provided strings (share sheet,
@@ -75,8 +80,17 @@ enum AppLanguage {
         return isSupported(resolved) ? resolved : "en"
     }
 
-    /// The locale every lookup and formatter in the UI uses.
-    static var locale: Locale { Locale(identifier: uiLanguage) }
+    /// The locale every lookup and formatter in the UI uses: the chosen
+    /// language with the device's own region (it_US, en_GB…), so dates,
+    /// times and numbers still read the way this device expects.
+    static var locale: Locale { locale(for: uiLanguage) }
+
+    static func locale(for code: String) -> Locale {
+        guard let region = Locale.current.region?.identifier, !region.isEmpty else {
+            return Locale(identifier: code)
+        }
+        return Locale(identifier: "\(code)_\(region)")
+    }
 
     /// Locale tag to send to the AI endpoints so Story Buddy replies in the
     /// child's language. Just the base language — the server only branches on
@@ -105,7 +119,7 @@ enum AppLanguage {
 final class AppLanguageState {
     static let shared = AppLanguageState()
     var code: String = AppLanguage.uiLanguage
-    var locale: Locale { Locale(identifier: code) }
+    var locale: Locale { AppLanguage.locale(for: code) }
     private init() {}
 }
 
@@ -137,6 +151,21 @@ private final class AppLocalizedMainBundle: Bundle, @unchecked Sendable {
         }
         return super.localizedString(forKey: key, value: value, table: tableName)
     }
+}
+
+/// Every app string declared in code. Same arguments as
+/// LocalizedStringResource's catalog initializer, plus the chosen locale,
+/// stamped now — so resolving it (in a Text, or as a String) always reads
+/// the language the teacher or child picked, whatever the view environment.
+func AppText(_ key: StaticString, defaultValue: String.LocalizationValue,
+             comment: StaticString? = nil) -> LocalizedStringResource {
+    LocalizedStringResource(key, defaultValue: defaultValue, table: nil, locale: AppLanguage.locale,
+                            bundle: .main, comment: comment)
+}
+
+/// A catalog key that is also its own English text ("Happy").
+func AppText(_ keyAndValue: String.LocalizationValue) -> LocalizedStringResource {
+    LocalizedStringResource(keyAndValue, table: nil, locale: AppLanguage.locale, bundle: .main, comment: nil)
 }
 
 extension String {

@@ -108,7 +108,7 @@ struct OrdersListView: View {
             // It used to splice a capitalized rawValue straight into the
             // sentence, which both leaked a wire value into the UI and
             // left the order of the parts frozen in English.
-            Text(LocalizedStringResource(
+            Text(AppText(
                 "orders.card.quantity_line",
                 defaultValue: "\(o.quantity) × \(String(appLocalized: o.format.displayName)) · \(o.totalCents.asPrice)",
                 comment: "Order card subtitle, e.g. \"2 × Hardcover · $44.98\""))
@@ -164,7 +164,7 @@ struct OrdersListView: View {
         } catch let urlError as URLError where urlError.code == .cancelled {
             // Same.
         } catch {
-            self.error = LocalizedStringResource(
+            self.error = AppText(
                 "orders.list.error.load_failed",
                 defaultValue: "Couldn't load orders: \(error.localizedDescription)",
                 comment: "%@ is the underlying network/server error, already localized by iOS")

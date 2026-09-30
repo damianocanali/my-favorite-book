@@ -541,19 +541,19 @@ private struct PadButtonStyle: ButtonStyle {
 /// Every child-facing sentence in the class sign-in. Keyed like the web's
 /// school.json so the two stay recognisably the same copy.
 enum SchoolCopy {
-    static let pageTitle = LocalizedStringResource("school.page_title", defaultValue: "My Class")
-    static let codeHeading = LocalizedStringResource("school.code_step.heading", defaultValue: "Type your class code")
-    static let codeHint = LocalizedStringResource("school.code_step.hint", defaultValue: "Ask your teacher for the code.")
-    static let codeAccessibility = LocalizedStringResource("school.code_step.input_accessibility", defaultValue: "Class code, 6 letters and numbers")
-    static let codeChecking = LocalizedStringResource("school.code_step.checking", defaultValue: "Looking for your class…")
-    static let nameHeading = LocalizedStringResource("school.name_step.heading", defaultValue: "Which one is you?")
-    static let notMyClass = LocalizedStringResource("school.name_step.not_my_class", defaultValue: "Not my class")
-    static let pictureHeading = LocalizedStringResource("school.picture_step.heading", defaultValue: "Pick your 3 pictures")
-    static let backOne = LocalizedStringResource("school.picture_step.back", defaultValue: "Back one")
-    static let backOneAccessibility = LocalizedStringResource("school.picture_step.back_accessibility", defaultValue: "Remove the last picture")
-    static let startOver = LocalizedStringResource("school.picture_step.start_over", defaultValue: "Start over")
-    static let pictureChecking = LocalizedStringResource("school.picture_step.checking", defaultValue: "Checking…")
-    static let listen = LocalizedStringResource("school.actions.listen", defaultValue: "Read this out loud")
+    static var pageTitle: LocalizedStringResource { AppText("school.page_title", defaultValue: "My Class") }
+    static var codeHeading: LocalizedStringResource { AppText("school.code_step.heading", defaultValue: "Type your class code") }
+    static var codeHint: LocalizedStringResource { AppText("school.code_step.hint", defaultValue: "Ask your teacher for the code.") }
+    static var codeAccessibility: LocalizedStringResource { AppText("school.code_step.input_accessibility", defaultValue: "Class code, 6 letters and numbers") }
+    static var codeChecking: LocalizedStringResource { AppText("school.code_step.checking", defaultValue: "Looking for your class…") }
+    static var nameHeading: LocalizedStringResource { AppText("school.name_step.heading", defaultValue: "Which one is you?") }
+    static var notMyClass: LocalizedStringResource { AppText("school.name_step.not_my_class", defaultValue: "Not my class") }
+    static var pictureHeading: LocalizedStringResource { AppText("school.picture_step.heading", defaultValue: "Pick your 3 pictures") }
+    static var backOne: LocalizedStringResource { AppText("school.picture_step.back", defaultValue: "Back one") }
+    static var backOneAccessibility: LocalizedStringResource { AppText("school.picture_step.back_accessibility", defaultValue: "Remove the last picture") }
+    static var startOver: LocalizedStringResource { AppText("school.picture_step.start_over", defaultValue: "Start over") }
+    static var pictureChecking: LocalizedStringResource { AppText("school.picture_step.checking", defaultValue: "Checking…") }
+    static var listen: LocalizedStringResource { AppText("school.actions.listen", defaultValue: "Read this out loud") }
 
     /// Mirrors errorMessageKey() in ClassSignInPage.jsx: every server code
     /// lands on one of seven sentences. student_not_found, sign_in_failed,
@@ -562,19 +562,19 @@ enum SchoolCopy {
     static func error(_ code: String) -> LocalizedStringResource {
         switch code {
         case "class_not_found":
-            LocalizedStringResource("school.errors.class_not_found", defaultValue: "We can't find that class. Check the code with your teacher.")
+            AppText("school.errors.class_not_found", defaultValue: "We can't find that class. Check the code with your teacher.")
         case "sign_in_closed", "class_paused", "class_resting":
-            LocalizedStringResource("school.errors.class_unavailable", defaultValue: "Your class is taking a break. Ask your teacher.")
+            AppText("school.errors.class_unavailable", defaultValue: "Your class is taking a break. Ask your teacher.")
         case "too_many":
-            LocalizedStringResource("school.errors.too_many", defaultValue: "Let's wait a minute and try again.")
+            AppText("school.errors.too_many", defaultValue: "Let's wait a minute and try again.")
         case "wrong_pictures":
-            LocalizedStringResource("school.errors.wrong_pictures", defaultValue: "Not quite. Try again!")
+            AppText("school.errors.wrong_pictures", defaultValue: "Not quite. Try again!")
         case "locked":
-            LocalizedStringResource("school.errors.locked", defaultValue: "Take a little break and try again soon.")
+            AppText("school.errors.locked", defaultValue: "Take a little break and try again soon.")
         case "ask_teacher":
-            LocalizedStringResource("school.errors.ask_teacher", defaultValue: "Ask your teacher to help you sign in.")
+            AppText("school.errors.ask_teacher", defaultValue: "Ask your teacher to help you sign in.")
         default:
-            LocalizedStringResource("school.errors.generic", defaultValue: "Something went wrong. Let's try again.")
+            AppText("school.errors.generic", defaultValue: "Something went wrong. Let's try again.")
         }
     }
 }

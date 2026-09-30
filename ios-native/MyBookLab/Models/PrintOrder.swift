@@ -21,13 +21,13 @@ enum PrintFormat: String, Codable, Sendable {
     var displayName: LocalizedStringResource {
         switch self {
         case .hardcover:
-            LocalizedStringResource("print.format.hardcover", defaultValue: "Hardcover",
+            AppText("print.format.hardcover", defaultValue: "Hardcover",
                                     comment: "Print format: a book with a rigid cover")
         case .softcover:
-            LocalizedStringResource("print.format.softcover", defaultValue: "Softcover",
+            AppText("print.format.softcover", defaultValue: "Softcover",
                                     comment: "Print format: a book with a flexible paper cover")
         case .unknown:
-            LocalizedStringResource("print.format.unknown", defaultValue: "Unknown",
+            AppText("print.format.unknown", defaultValue: "Unknown",
                                     comment: "Print format the app doesn't recognize yet")
         }
     }
@@ -94,34 +94,34 @@ enum PrintOrderStatus: String, Codable, Sendable {
     var displayName: LocalizedStringResource {
         switch self {
         case .pending:
-            LocalizedStringResource("order.status.pending", defaultValue: "Waiting on payment",
+            AppText("order.status.pending", defaultValue: "Waiting on payment",
                                     comment: "Print order status: payment not completed yet")
         case .paid:
-            LocalizedStringResource("order.status.paid", defaultValue: "Preparing files",
+            AppText("order.status.paid", defaultValue: "Preparing files",
                                     comment: "Print order status: paid, building the print PDF")
         case .pdfReady:
-            LocalizedStringResource("order.status.pdf_ready", defaultValue: "Sent to printer",
+            AppText("order.status.pdf_ready", defaultValue: "Sent to printer",
                                     comment: "Print order status: PDF built, handed to the print partner")
         case .submitted:
-            LocalizedStringResource("order.status.submitted", defaultValue: "Sent to printer",
+            AppText("order.status.submitted", defaultValue: "Sent to printer",
                                     comment: "Print order status: accepted by the print partner")
         case .inProduction:
-            LocalizedStringResource("order.status.in_production", defaultValue: "Printing",
+            AppText("order.status.in_production", defaultValue: "Printing",
                                     comment: "Print order status: the book is being printed")
         case .shipped:
-            LocalizedStringResource("order.status.shipped", defaultValue: "On the way",
+            AppText("order.status.shipped", defaultValue: "On the way",
                                     comment: "Print order status: shipped, in transit")
         case .delivered:
-            LocalizedStringResource("order.status.delivered", defaultValue: "Delivered",
+            AppText("order.status.delivered", defaultValue: "Delivered",
                                     comment: "Print order status: arrived")
         case .failed:
-            LocalizedStringResource("order.status.failed", defaultValue: "Failed",
+            AppText("order.status.failed", defaultValue: "Failed",
                                     comment: "Print order status: the order could not be completed")
         case .refunded:
-            LocalizedStringResource("order.status.refunded", defaultValue: "Refunded",
+            AppText("order.status.refunded", defaultValue: "Refunded",
                                     comment: "Print order status: money returned to the customer")
         case .unknown:
-            LocalizedStringResource("order.status.unknown", defaultValue: "Processing",
+            AppText("order.status.unknown", defaultValue: "Processing",
                                     comment: "Print order status the app doesn't recognize yet")
         }
     }
