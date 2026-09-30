@@ -63,6 +63,23 @@ struct StudentAssignment: Decodable, Identifiable, Hashable, Sendable {
     /// stays reachable). A closed, never-started assignment is nothing to do.
     var showsOnHome: Bool { status == "published" || my_submission != nil }
 
+    /// The number on a class account's "Class" tab (web: classBadgeCount in
+    /// assignmentStudentUi.js — keep the two in step): open assignments the
+    /// child has not opened yet (the cards that read "New"), plus 1 for an
+    /// unread teacher nudge. 0 shows no badge.
+    static func classBadgeCount(
+        _ assignments: [StudentAssignment],
+        seen: Set<String>,
+        isStarted: (StudentAssignment) -> Bool,
+        hasNudge: Bool
+    ) -> Int {
+        let fresh = assignments.filter {
+            $0.status == "published"
+                && $0.homeStatus(hasBook: isStarted($0), seen: seen.contains($0.id)) == .new
+        }.count
+        return fresh + (hasNudge ? 1 : 0)
+    }
+
     var dueDate: Date? { StudentAssignment.parseDate(due_at) }
 
     /// The friendly due wording ("Due Friday", "Due today", "Late is OK"),

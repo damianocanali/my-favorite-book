@@ -198,3 +198,14 @@ export async function runHandInSequence(syncFn, submitFn) {
   if (!synced) return { ok: false, code: 'sync_failed' }
   return submitFn()
 }
+
+// The number on a class account's "Class" tab (iPad: StudentClassBadge —
+// keep the two in step): open assignments this child has not opened yet
+// (exactly the ones whose card reads "New"), plus 1 for an unread teacher
+// nudge. 0 means no badge at all.
+export function classBadgeCount(assignments, { seen = new Set(), isStarted = () => false, hasNudge = false } = {}) {
+  const fresh = (assignments ?? []).filter(
+    (a) => a?.status === 'published' && homeStatus(a, { hasBook: isStarted(a.id), seen: seen.has(a.id) }) === 'new'
+  ).length
+  return fresh + (hasNudge ? 1 : 0)
+}

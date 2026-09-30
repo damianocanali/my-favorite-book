@@ -25,6 +25,15 @@ final class AppRouter {
     /// language switch and must not yank the child back to Books then.
     @ObservationIgnored var studentHomeLandedFor: UUID?
 
+    /// The red count on a class account's "Class" tab: new assignments plus
+    /// an unread nudge (StudentAssignment.classBadgeCount). Written by the
+    /// home's MyAssignmentsSection while it is on screen, and by
+    /// MainTabView's own poll while the child is on another tab.
+    var classBadge = 0
+    /// Nudges dismissed with "Got it" on this device, so a poll racing the
+    /// PATCH can't bring the +1 (or the card) straight back.
+    @ObservationIgnored var dismissedNudges: Set<String> = []
+
     /// The full-screen sign-in flow. One cover, owned by the app root
     /// (MyBookLabApp), never a sheet: on iPad a tap outside a sheet
     /// dismissed it and lost everything typed. Every "Sign in" button and

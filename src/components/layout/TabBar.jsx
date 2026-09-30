@@ -1,8 +1,12 @@
+import { useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Library, Star, PlusCircle, Package, UserCircle, LayoutDashboard, Users } from 'lucide-react'
+import { Library, Star, PlusCircle, Package, UserCircle, LayoutDashboard, Users, GraduationCap } from 'lucide-react'
 import { useAuthStore } from '../../stores/useAuthStore'
+import { useClassBadgeStore } from '../../stores/useClassBadgeStore'
 import { useIsStudent } from '../../hooks/useIsStudent'
+
+const BADGE_POLL_MS = 60 * 1000
 
 // Web port of the native MainTabView tab bar. Same five destinations, in
 // the same order, with the closest Lucide equivalents of the SF Symbols:
@@ -41,6 +45,11 @@ const TEACHER_TABS = [
   { to: '/account', labelKey: 'nav:tabs.account', Icon: UserCircle, match: (p) => p === '/account' },
 ]
 
+// A class account's home (/bookshelf, "From your teacher" on top) reads as
+// its "Class" tab, and carries the new-assignments badge (iPad: the same
+// tab, graduationcap.fill).
+const STUDENT_HOME_TAB = { to: '/bookshelf', labelKey: 'nav:tabs.class', Icon: GraduationCap, badge: 'class' }
+
 // Pure and exported so the student/consumer split is unit-testable without
 // rendering the tab bar (no jsdom in this project's test environment — see
 // vitest.config.js). Print orders are a consumer-only, paid feature a class
@@ -51,7 +60,16 @@ const TEACHER_TABS = [
 // justify-around.
 export function getTabs({ teacherMode = false, isStudent = false } = {}) {
   if (teacherMode) return TEACHER_TABS
-  return isStudent ? TABS.filter((tab) => tab.to !== '/orders' && tab.to !== '/gallery') : TABS
+  if (!isStudent) return TABS
+  return TABS
+    .filter((tab) => tab.to !== '/orders' && tab.to !== '/gallery')
+    .map((tab) => (tab.to === '/bookshelf' ? STUDENT_HOME_TAB : tab))
+}
+
+// What the badge bubble shows: nothing at 0, "9+" past nine.
+export function badgeText(count) {
+  if (!Number.isFinite(count) || count <= 0) return null
+  return count > 9 ? '9+' : String(count)
 }
 
 export default function TabBar({ teacherMode = false }) {
@@ -61,6 +79,27 @@ export default function TabBar({ teacherMode = false }) {
   const isStudent = useIsStudent()
 
   const tabs = getTabs({ teacherMode, isStudent })
+  const classBadge = useClassBadgeStore((s) => s.count)
+  const onClassHome = location.pathname === '/bookshelf'
+
+  // A new child on a shared device starts from zero, not the last one's count.
+  useEffect(() => { useClassBadgeStore.getState().reset() }, [user?.id])
+
+  // Off the Class tab, MyAssignments isn't mounted to keep the badge fresh:
+  // poll on the same minute rhythm while the page is visible.
+  useEffect(() => {
+    if (!isStudent || teacherMode || !user || onClassHome) return undefined
+    const refresh = () => {
+      if (document.visibilityState === 'visible') useClassBadgeStore.getState().refresh()
+    }
+    refresh()
+    const timer = setInterval(refresh, BADGE_POLL_MS)
+    document.addEventListener('visibilitychange', refresh)
+    return () => {
+      clearInterval(timer)
+      document.removeEventListener('visibilitychange', refresh)
+    }
+  }, [isStudent, teacherMode, user, onClassHome])
 
   const isActive = (tab) =>
     tab.match
@@ -82,6 +121,7 @@ export default function TabBar({ teacherMode = false }) {
           // page that would only show them a sign-in prompt.
           const href = to === '/account' && !user ? '/login' : to
           const active = isActive(tab) || (to === '/account' && location.pathname === '/login')
+          const bubble = tab.badge === 'class' ? badgeText(classBadge) : null
           return (
             <li key={to} className="flex-1">
               <Link
@@ -91,15 +131,29 @@ export default function TabBar({ teacherMode = false }) {
                   active ? 'text-white' : 'text-white/55 hover:text-white/80'
                 }`}
               >
-                <Icon
-                  size={24}
-                  strokeWidth={active ? 2.4 : 2}
-                  fill={active ? 'currentColor' : 'none'}
-                  fillOpacity={active ? 0.18 : 0}
-                />
+                <span className="relative">
+                  <Icon
+                    size={24}
+                    strokeWidth={active ? 2.4 : 2}
+                    fill={active ? 'currentColor' : 'none'}
+                    fillOpacity={active ? 0.18 : 0}
+                    aria-hidden="true"
+                  />
+                  {bubble && (
+                    <span
+                      className="absolute -top-1.5 -right-2.5 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white font-body text-[11px] font-bold leading-[18px] text-center ring-2 ring-galaxy-bg"
+                      aria-hidden="true"
+                    >
+                      {bubble}
+                    </span>
+                  )}
+                </span>
                 <span className="font-body text-[10px] font-semibold leading-none">
                   {t(labelKey)}
                 </span>
+                {bubble && (
+                  <span className="sr-only">{t('nav:tabs.class_badge', { count: classBadge })}</span>
+                )}
               </Link>
             </li>
           )

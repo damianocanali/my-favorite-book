@@ -13255,6 +13255,23 @@
           }
         }
       }
+    },
+    "tabs.class": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Class"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Classe"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
