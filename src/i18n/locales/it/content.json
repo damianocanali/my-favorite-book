@@ -1,5 +1,53 @@
 {
   "characters": {
+    "girl": {
+      "name": "Mia la coraggiosa",
+      "description": "Una bambina curiosa che adora le grandi avventure"
+    },
+    "boy": {
+      "name": "Leo il generoso",
+      "description": "Un bambino allegro, sempre pronto ad aiutare"
+    },
+    "aunt": {
+      "name": "Zia Sofia",
+      "description": "Una zia gentile, bravissima a risolvere i problemi"
+    },
+    "uncle": {
+      "name": "Zio Marco",
+      "description": "Uno zio simpatico che racconta le barzellette più belle"
+    },
+    "grandma": {
+      "name": "Nonna Rosa",
+      "description": "Una nonna allegra che ha una storia per ogni cosa"
+    },
+    "grandpa": {
+      "name": "Nonno Gio",
+      "description": "Un nonno giocherellone che costruisce invenzioni straordinarie"
+    },
+    "teacher": {
+      "name": "Sam l'insegnante",
+      "description": "Insegna con passione e trasforma ogni lezione in un'avventura"
+    },
+    "firefighter": {
+      "name": "Alex dei vigili del fuoco",
+      "description": "Fa parte dei vigili del fuoco e aiuta chiunque sia in difficoltà"
+    },
+    "doctor": {
+      "name": "Dott. Kim",
+      "description": "Cura persone e animali e li fa sentire subito meglio"
+    },
+    "chef": {
+      "name": "Chef Nico",
+      "description": "Cucina con gioia piatti sorprendenti e buonissimi"
+    },
+    "king": {
+      "name": "Re Teo",
+      "description": "Un re gentile che ascolta tutti nel suo regno"
+    },
+    "queen": {
+      "name": "Regina Amara",
+      "description": "Una regina saggia, coraggiosa, giusta e gentile"
+    },
     "astronaut": {
       "name": "Astro l'Esploratore",
       "description": "Un esploratore coraggioso che scopre pianeti nuovi"

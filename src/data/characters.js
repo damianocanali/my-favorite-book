@@ -6,7 +6,114 @@
 // The `name`/`label`/`description` fields below are the English DISPLAY text and
 // the fallback for books saved before the split. Translations live in
 // src/i18n/locales/<locale>/content.json, keyed by the entry's `id`.
+// A story can star up to this many characters (wizard + store enforce it):
+// enough for a crew, few enough that every picture can still show them.
+export const MAX_CHARACTERS = 4
+
+// Child-typed "create your own" limits (iPad: CharacterStep, same numbers).
+export const CUSTOM_NAME_MAX = 24
+export const CUSTOM_DESCRIPTION_MAX = 80
+
 export const characters = [
+  // People (owner feedback: every story was starring an animal — a
+  // president drawn as a fox). Humans first so they are the first choice.
+  {
+    id: 'girl',
+    promptEn: { name: 'Mia the Brave Girl', description: 'A curious young girl who loves big adventures' },
+    name: 'Mia the Brave Girl',
+    emoji: '👧',
+    description: 'A curious girl who loves big adventures',
+    color: '#F472B6',
+  },
+  {
+    id: 'boy',
+    promptEn: { name: 'Leo the Helpful Boy', description: 'A cheerful young boy who is always ready to help' },
+    name: 'Leo the Helpful Boy',
+    emoji: '👦',
+    description: 'A cheerful boy who is always ready to help',
+    color: '#60A5FA',
+  },
+  {
+    id: 'aunt',
+    promptEn: { name: 'Aunt Sofia', description: 'A kind grown-up aunt who is great at solving problems' },
+    name: 'Aunt Sofia',
+    emoji: '👩',
+    description: 'A kind aunt who is great at solving problems',
+    color: '#A78BFA',
+  },
+  {
+    id: 'uncle',
+    promptEn: { name: 'Uncle Marco', description: 'A friendly grown-up uncle who tells the best jokes' },
+    name: 'Uncle Marco',
+    emoji: '👨',
+    description: 'A friendly uncle who tells the best jokes',
+    color: '#34D399',
+  },
+  {
+    id: 'grandma',
+    promptEn: { name: 'Grandma Rosa', description: 'A cheerful grandmother who knows a story for everything' },
+    name: 'Grandma Rosa',
+    emoji: '👵',
+    description: 'A cheerful grandma who knows a story for everything',
+    color: '#FB923C',
+  },
+  {
+    id: 'grandpa',
+    promptEn: { name: 'Grandpa Joe', description: 'A playful grandfather who builds amazing inventions' },
+    name: 'Grandpa Joe',
+    emoji: '👴',
+    description: 'A playful grandpa who builds amazing inventions',
+    color: '#FBBF24',
+  },
+  {
+    id: 'teacher',
+    promptEn: { name: 'Teacher Sam', description: 'A friendly teacher who makes every lesson an adventure' },
+    name: 'Teacher Sam',
+    emoji: '🧑‍🏫',
+    description: 'A friendly teacher who makes every lesson an adventure',
+    color: '#22D3EE',
+  },
+  {
+    id: 'firefighter',
+    promptEn: { name: 'Firefighter Alex', description: 'A brave firefighter who helps anyone in trouble' },
+    name: 'Firefighter Alex',
+    emoji: '🧑‍🚒',
+    description: 'A brave firefighter who helps anyone in trouble',
+    color: '#EF4444',
+  },
+  {
+    id: 'doctor',
+    promptEn: { name: 'Dr. Kim', description: 'A caring doctor who helps people and animals feel better' },
+    name: 'Dr. Kim',
+    emoji: '🧑‍⚕️',
+    description: 'A caring doctor who helps people and animals feel better',
+    color: '#10B981',
+  },
+  {
+    id: 'chef',
+    promptEn: { name: 'Chef Nico', description: 'A joyful chef who cooks surprising, delicious food' },
+    name: 'Chef Nico',
+    emoji: '🧑‍🍳',
+    description: 'A joyful chef who cooks surprising, delicious food',
+    color: '#F59E0B',
+  },
+  {
+    id: 'king',
+    promptEn: { name: 'King Theo', description: 'A kind young king who listens to everyone in his kingdom' },
+    name: 'King Theo',
+    emoji: '🤴',
+    description: 'A kind king who listens to everyone in his kingdom',
+    color: '#EAB308',
+  },
+  {
+    id: 'queen',
+    promptEn: { name: 'Queen Amara', description: 'A wise queen who is brave, fair and kind' },
+    name: 'Queen Amara',
+    emoji: '🫅',
+    description: 'A wise queen who is brave, fair and kind',
+    color: '#C084FC',
+  },
+  // Heroes and creatures
   {
     id: 'astronaut',
     promptEn: { name: 'Astro the Explorer', description: 'A brave space explorer who discovers new planets' },

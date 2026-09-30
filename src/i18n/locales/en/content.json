@@ -1,5 +1,53 @@
 {
   "characters": {
+    "girl": {
+      "name": "Mia the Brave Girl",
+      "description": "A curious girl who loves big adventures"
+    },
+    "boy": {
+      "name": "Leo the Helpful Boy",
+      "description": "A cheerful boy who is always ready to help"
+    },
+    "aunt": {
+      "name": "Aunt Sofia",
+      "description": "A kind aunt who is great at solving problems"
+    },
+    "uncle": {
+      "name": "Uncle Marco",
+      "description": "A friendly uncle who tells the best jokes"
+    },
+    "grandma": {
+      "name": "Grandma Rosa",
+      "description": "A cheerful grandma who knows a story for everything"
+    },
+    "grandpa": {
+      "name": "Grandpa Joe",
+      "description": "A playful grandpa who builds amazing inventions"
+    },
+    "teacher": {
+      "name": "Teacher Sam",
+      "description": "A friendly teacher who makes every lesson an adventure"
+    },
+    "firefighter": {
+      "name": "Firefighter Alex",
+      "description": "A brave firefighter who helps anyone in trouble"
+    },
+    "doctor": {
+      "name": "Dr. Kim",
+      "description": "A caring doctor who helps people and animals feel better"
+    },
+    "chef": {
+      "name": "Chef Nico",
+      "description": "A joyful chef who cooks surprising, delicious food"
+    },
+    "king": {
+      "name": "King Theo",
+      "description": "A kind king who listens to everyone in his kingdom"
+    },
+    "queen": {
+      "name": "Queen Amara",
+      "description": "A wise queen who is brave, fair and kind"
+    },
     "astronaut": {
       "name": "Astro the Explorer",
       "description": "A brave space explorer who discovers new planets"

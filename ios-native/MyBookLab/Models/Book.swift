@@ -119,13 +119,37 @@ struct BookCharacter: Codable, Identifiable, Hashable, Sendable {
     /// Optional AI-generated hero portrait (data: URL or remote URL).
     /// Set when the kid creates their hero from a photo or AI style.
     var imageData: String?
+    /// true for a "create your own" character: shown exactly as the child
+    /// typed it, never looked up in CharacterCatalog.
+    var custom: Bool?
+    /// The frozen English prompt text (web: the catalog's promptEn). Kept so
+    /// a book edited on the iPad doesn't drop what the web wrote.
+    var promptEn: PromptText?
 
-    init(id: String, name: String, emoji: String? = nil, description: String? = nil, imageData: String? = nil) {
-        self.id = id; self.name = name; self.emoji = emoji
-        self.description = description; self.imageData = imageData
+    struct PromptText: Codable, Hashable, Sendable {
+        var name: String?
+        var description: String?
     }
 
-    enum CodingKeys: String, CodingKey { case id, name, emoji, description, imageData }
+    init(id: String, name: String, emoji: String? = nil, description: String? = nil, imageData: String? = nil,
+         custom: Bool? = nil, promptEn: PromptText? = nil) {
+        self.id = id; self.name = name; self.emoji = emoji
+        self.description = description; self.imageData = imageData
+        self.custom = custom; self.promptEn = promptEn
+    }
+
+    enum CodingKeys: String, CodingKey { case id, name, emoji, description, imageData, custom, isCustom, promptEn }
+
+    func encode(to encoder: Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encode(id, forKey: .id)
+        try c.encode(name, forKey: .name)
+        try c.encodeIfPresent(emoji, forKey: .emoji)
+        try c.encodeIfPresent(description, forKey: .description)
+        try c.encodeIfPresent(imageData, forKey: .imageData)
+        try c.encodeIfPresent(custom, forKey: .custom)
+        try c.encodeIfPresent(promptEn, forKey: .promptEn)
+    }
 
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -136,6 +160,9 @@ struct BookCharacter: Codable, Identifiable, Hashable, Sendable {
         self.emoji = try? c.decode(String.self, forKey: .emoji)
         self.description = try? c.decode(String.self, forKey: .description)
         self.imageData = try? c.decode(String.self, forKey: .imageData)
+        // The web's older books carry `isCustom` instead.
+        self.custom = (try? c.decode(Bool.self, forKey: .custom)) ?? (try? c.decode(Bool.self, forKey: .isCustom))
+        self.promptEn = try? c.decode(PromptText.self, forKey: .promptEn)
     }
 }
 
@@ -198,6 +225,11 @@ struct BookSetting: Codable, Hashable, Sendable {
     var label: String?
     var emoji: String?
     var description: String?
+    /// true for a "create your own" place: the child's own words.
+    var custom: Bool? = nil
+    /// The frozen English prompt text the web's catalog writes; kept so an
+    /// iPad edit doesn't drop it.
+    var promptEn: BookCharacter.PromptText? = nil
 }
 
 struct BookPage: Codable, Identifiable, Hashable, Sendable {

@@ -281,8 +281,16 @@ private struct CharacterStep: View {
     @Binding var draft: BookDraftStore
     @Environment(AuthStore.self) private var auth
     @Environment(\.horizontalSizeClass) private var hSize
+    /// Everyone starring in the story so far (ready-made and the child's
+    /// own), up to CharacterCatalog.maxCharacters.
+    @State private var selected: [BookCharacter] = []
+    @State private var loaded = false
+    /// "Create your own" is open.
+    @State private var creating = false
     @State private var name = ""
-    @State private var emoji = "🦊"
+    /// Optional base look. No default: an unpicked look used to be the fox,
+    /// and a fox is what got drawn (owner: "the president is now a fox").
+    @State private var emoji: String?
     @State private var description = ""
     @State private var heroImage: String?          // generated hero portrait (data URL)
     @State private var selectedPhoto: PhotosPickerItem?
@@ -295,90 +303,253 @@ private struct CharacterStep: View {
     // failure keeps iOS's already-localized reason as an argument.
     @State private var heroError: LocalizedStringResource?
 
+    /// A small set of base looks for a character the child makes up.
     private let emojiOptions: [String] = [
-        // Animals
+        // People
+        "👧", "👦", "🧒", "👩", "👨", "🧑", "👵", "👴", "🧑‍🚀", "🦸", "🧙", "🧚",
+        "🧜‍♀️", "🤴", "👸", "🥷",
+        // Animals & creatures
         "🦊", "🐻", "🐰", "🦄", "🐉", "🦁", "🐱", "🐶", "🐢", "🦉", "🐸", "🐼",
-        "🐨", "🐯", "🦒", "🐘", "🦓", "🦝", "🐺", "🦔", "🐝", "🦋", "🐙", "🦕",
-        "🐧", "🦜", "🦢", "🦩", "🐬", "🐳", "🦈", "🐠",
-        // People & heroes
-        "👦", "👧", "🧒", "👶", "🧑‍🚀", "🦸", "🦸‍♀️", "🧚", "🧚‍♂️", "🧜‍♀️", "🧞", "🧙",
-        "🧙‍♀️", "👸", "🤴", "🥷", "🤖", "👽", "🎅", "🧝",
-        // Fun & magical
-        "🌟", "⭐️", "🌈", "🔮", "🎈", "🚀", "🏰", "👑", "🍪", "🦷", "❄️", "🔥",
+        "🐧", "🐬", "🦕", "🤖", "👽",
     ]
+
+    private var full: Bool { selected.count >= CharacterCatalog.maxCharacters }
+    private var trimmedName: String { name.trimmingCharacters(in: .whitespacesAndNewlines) }
 
     var body: some View {
         ScrollView {
-            VStack(spacing: 24) {
+            VStack(spacing: 22) {
                 VStack(spacing: 6) {
-                    Text("Create your hero")
+                    Text(AppText("create.characters.heading", defaultValue: "Who is in your story?"))
                         .font(.system(.title2, design: .rounded).bold())
                         .foregroundStyle(.white)
-                    Text("Who is the main character of your story?")
+                    Text(AppText("create.characters.subtitle",
+                                 defaultValue: "Pick up to \(CharacterCatalog.maxCharacters) characters, or make up your own."))
                         .foregroundStyle(.white.opacity(0.75))
                         .multilineTextAlignment(.center)
                 }
                 .padding(.top, 16)
 
-                // Name + description first — kids name their hero before
-                // choosing how they look (photo or emoji below).
-                VStack(spacing: 12) {
-                    TextField("", text: $name,
-                              prompt: Text("Character name").foregroundStyle(.white.opacity(0.4)))
-                        .textInputAutocapitalization(.words)
-                        .padding(14)
-                        .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 14))
-                        .foregroundStyle(.white)
-                    TextField("", text: $description,
-                              prompt: Text("Something special about them (optional)").foregroundStyle(.white.opacity(0.4)),
-                              axis: .vertical)
-                        .lineLimit(3...5)
-                        .padding(14)
-                        .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 14))
-                        .foregroundStyle(.white)
+                if !selected.isEmpty {
+                    selectedStrip
                 }
-                .padding(.horizontal)
 
-                // Hero portrait — a kid can turn a photo into a cartoon
-                // hero, or just use an emoji below.
-                heroPortraitSection
-
-                LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: hSize == .regular ? 6 : 4), spacing: 12) {
-                    ForEach(emojiOptions, id: \.self) { e in
-                        Button { emoji = e } label: {
-                            Text(e)
-                                .font(.system(size: 36))
-                                .frame(width: 60, height: 60)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 14)
-                                        .fill(emoji == e ? Color.purple.opacity(0.4) : Color.white.opacity(0.08))
-                                )
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 14)
-                                        .strokeBorder(emoji == e ? Color.white : Color.clear, lineWidth: 2)
-                                )
-                        }
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10),
+                                         count: hSize == .regular ? 4 : 3), spacing: 10) {
+                    createCard
+                    ForEach(CharacterCatalog.all) { entry in
+                        catalogCard(entry)
                     }
                 }
                 .padding(.horizontal)
 
                 SparkleButton(action: {
                     var b = draft.book!
-                    b.characters = [BookCharacter(
-                        id: UUID().uuidString,
-                        name: name.trimmingCharacters(in: .whitespaces),
-                        emoji: emoji,
-                        description: description.isEmpty ? nil : description,
-                        imageData: heroImage
-                    )]
+                    b.characters = selected
                     draft.book = b
                     withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) { draft.step = 2 }
                 }) { Text("Continue") }
-                .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty)
+                .disabled(selected.isEmpty)
                 .padding(.horizontal)
             }
             .contentColumn(maxWidth: ContentWidth.form)
         }
+        .sheet(isPresented: $creating) { createSheet }
+        .onAppear {
+            // Pre-fill when coming back to this step or editing a book.
+            guard !loaded else { return }
+            loaded = true
+            selected = draft.book?.characters ?? []
+        }
+    }
+
+    // MARK: Picked so far
+
+    private var selectedStrip: some View {
+        VStack(spacing: 8) {
+            Text(AppText("create.characters.selected_count",
+                         defaultValue: "\(selected.count) of \(CharacterCatalog.maxCharacters) picked"))
+                .font(.subheadline.bold())
+                .foregroundStyle(.cyan)
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(selected) { c in
+                        Button {
+                            withAnimation(.snappy) { selected.removeAll { $0.id == c.id } }
+                        } label: {
+                            HStack(spacing: 6) {
+                                if c.imageData != nil {
+                                    GeneratedImageView(source: c.imageData) { Text(c.emoji ?? "✨") }
+                                        .frame(width: 24, height: 24)
+                                        .clipShape(Circle())
+                                } else {
+                                    Text(c.emoji ?? "✨")
+                                }
+                                Text(verbatim: c.displayName).lineLimit(1)
+                                Image(systemName: "xmark.circle.fill").foregroundStyle(.white.opacity(0.6))
+                            }
+                            .font(.callout.bold())
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                            .background(.purple.opacity(0.35), in: Capsule())
+                        }
+                        .accessibilityLabel(Text(AppText("create.characters.remove_aria",
+                                                         defaultValue: "Remove \(c.displayName)")))
+                    }
+                }
+                .padding(.horizontal)
+            }
+            if full {
+                Text(AppText("create.characters.max_reached",
+                             defaultValue: "That's the most a story can have. Remove one to pick another."))
+                    .font(.caption)
+                    .foregroundStyle(.white.opacity(0.65))
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal)
+            }
+        }
+    }
+
+    // MARK: Cards
+
+    private var createCard: some View {
+        Button {
+            resetCreator()
+            creating = true
+        } label: {
+            VStack(spacing: 6) {
+                Image(systemName: "plus.circle.fill").font(.system(size: 32))
+                Text(AppText("create.characters.create_own", defaultValue: "Create your own"))
+                    .font(.subheadline.bold())
+                    .multilineTextAlignment(.center)
+            }
+            .foregroundStyle(.cyan)
+            .frame(maxWidth: .infinity, minHeight: 118)
+            .padding(8)
+            .background(RoundedRectangle(cornerRadius: 16).fill(.white.opacity(0.06)))
+            .overlay(RoundedRectangle(cornerRadius: 16)
+                .strokeBorder(.cyan.opacity(0.6), style: StrokeStyle(lineWidth: 1.5, dash: [6, 4])))
+        }
+        .disabled(full)
+        .opacity(full ? 0.45 : 1)
+    }
+
+    private func catalogCard(_ entry: CatalogCharacter) -> some View {
+        let isOn = selected.contains { $0.id == entry.id }
+        return Button {
+            withAnimation(.snappy) {
+                if isOn {
+                    selected.removeAll { $0.id == entry.id }
+                } else if !full {
+                    selected.append(entry.bookCharacter)
+                }
+            }
+        } label: {
+            VStack(spacing: 4) {
+                Text(entry.emoji).font(.system(size: 36))
+                Text(entry.name)
+                    .font(.subheadline.bold())
+                    .foregroundStyle(.white)
+                    .multilineTextAlignment(.center)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.85)
+                Text(entry.blurb)
+                    .font(.caption2)
+                    .foregroundStyle(.white.opacity(0.65))
+                    .multilineTextAlignment(.center)
+                    .lineLimit(2)
+            }
+            .frame(maxWidth: .infinity, minHeight: 118)
+            .padding(8)
+            .background(RoundedRectangle(cornerRadius: 16)
+                .fill(isOn ? Color.purple.opacity(0.4) : Color.white.opacity(0.08)))
+            .overlay(RoundedRectangle(cornerRadius: 16)
+                .strokeBorder(isOn ? Color.white : Color.clear, lineWidth: 2))
+        }
+        .disabled(full && !isOn)
+        .opacity(full && !isOn ? 0.45 : 1)
+        .accessibilityAddTraits(isOn ? .isSelected : [])
+    }
+
+    // MARK: Create your own
+
+    private var createSheet: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(spacing: 18) {
+                    VStack(spacing: 12) {
+                        TextField("", text: $name,
+                                  prompt: Text(AppText("create.characters.custom_name",
+                                                       defaultValue: "Their name")).foregroundStyle(.white.opacity(0.4)))
+                            .textInputAutocapitalization(.words)
+                            .padding(14)
+                            .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 14))
+                            .foregroundStyle(.white)
+                            .onChange(of: name) { _, v in
+                                if v.count > CharacterCatalog.customNameMax {
+                                    name = String(v.prefix(CharacterCatalog.customNameMax))
+                                }
+                            }
+                        TextField("", text: $description,
+                                  prompt: Text(AppText("create.characters.custom_description",
+                                                       defaultValue: "What are they like? (e.g. a president with a big hat)"))
+                                    .foregroundStyle(.white.opacity(0.4)),
+                                  axis: .vertical)
+                            .lineLimit(2...4)
+                            .padding(14)
+                            .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 14))
+                            .foregroundStyle(.white)
+                            .onChange(of: description) { _, v in
+                                if v.count > CharacterCatalog.customDescriptionMax {
+                                    description = String(v.prefix(CharacterCatalog.customDescriptionMax))
+                                }
+                            }
+                    }
+                    .padding(.horizontal)
+
+                    heroPortraitSection
+
+                    LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: hSize == .regular ? 8 : 6), spacing: 10) {
+                        ForEach(emojiOptions, id: \.self) { e in
+                            Button { emoji = (emoji == e) ? nil : e } label: {
+                                Text(e)
+                                    .font(.system(size: 30))
+                                    .frame(width: 50, height: 50)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 12)
+                                            .fill(emoji == e ? Color.purple.opacity(0.4) : Color.white.opacity(0.08))
+                                    )
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 12)
+                                            .strokeBorder(emoji == e ? Color.white : Color.clear, lineWidth: 2)
+                                    )
+                            }
+                            .accessibilityAddTraits(emoji == e ? .isSelected : [])
+                        }
+                    }
+                    .padding(.horizontal)
+
+                    SparkleButton(action: addCustom) {
+                        Text(AppText("create.characters.add_custom", defaultValue: "Add to my story"))
+                    }
+                    .disabled(trimmedName.isEmpty)
+                    .padding(.horizontal)
+                }
+                .padding(.vertical, 16)
+                .contentColumn(maxWidth: ContentWidth.form)
+            }
+            .background(CosmicBackground())
+            .navigationTitle(Text(AppText("create.characters.create_title", defaultValue: "Make up a character")))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button { creating = false } label: { Text("Cancel") }
+                }
+            }
+        }
+        // A tap outside must not throw away what the child typed.
+        .interactiveDismissDisabled(!trimmedName.isEmpty || !description.isEmpty)
         .sheet(isPresented: $showParentalGate) {
             ParentalGate(
                 onSuccess: { showParentalGate = false; showPhotoPicker = true },
@@ -390,15 +561,32 @@ private struct CharacterStep: View {
             guard let item else { return }
             Task { await makeHeroFromPhoto(item) }
         }
-        .onAppear {
-            // Pre-fill when editing an existing character.
-            if let c = draft.book?.characters.first, name.isEmpty {
-                name = c.name
-                emoji = c.emoji ?? "🦊"
-                description = c.description ?? ""
-                heroImage = c.imageData
-            }
-        }
+    }
+
+    private func resetCreator() {
+        name = ""
+        description = ""
+        emoji = nil
+        heroImage = nil
+        heroError = nil
+        selectedPhoto = nil
+    }
+
+    /// Stored like any other character, flagged `custom`. Its description
+    /// is the child's own words; the image service translates/sanitizes
+    /// them server-side.
+    private func addCustom() {
+        guard !trimmedName.isEmpty, !full else { return }
+        let text = description.trimmingCharacters(in: .whitespacesAndNewlines)
+        selected.append(BookCharacter(
+            id: "custom-\(UUID().uuidString)",
+            name: trimmedName,
+            emoji: emoji,
+            description: text.isEmpty ? nil : text,
+            imageData: heroImage,
+            custom: true
+        ))
+        creating = false
     }
 
     // MARK: - Hero portrait
@@ -410,12 +598,12 @@ private struct CharacterStep: View {
                 Circle().fill(.white.opacity(0.08)).frame(width: 120, height: 120)
                 if heroImage != nil {
                     GeneratedImageView(source: heroImage) {
-                        Text(emoji).font(.system(size: 56))
+                        Text(emoji ?? "✨").font(.system(size: 56))
                     }
                     .frame(width: 120, height: 120)
                     .clipShape(Circle())
                 } else {
-                    Text(emoji).font(.system(size: 56))
+                    Text(emoji ?? "✨").font(.system(size: 56))
                 }
                 if generatingHero {
                     Circle().fill(.black.opacity(0.4)).frame(width: 120, height: 120)
@@ -449,7 +637,7 @@ private struct CharacterStep: View {
                 Text(heroError).font(.caption).foregroundStyle(.red.opacity(0.9))
                     .multilineTextAlignment(.center).padding(.horizontal, 24)
             }
-            Text("Or pick an emoji hero below 👇")
+            Text(AppText("create.characters.pick_look", defaultValue: "Pick how they look (optional) 👇"))
                 .font(.caption).foregroundStyle(.white.opacity(0.55))
         }
     }
@@ -503,6 +691,14 @@ private struct CharacterStep: View {
 private struct SettingStep: View {
     @Binding var draft: BookDraftStore
     @State private var selectedIndex: Int = 0
+    /// "Create your own place": what the child typed (≤ 80 characters).
+    @State private var customPlace = ""
+    @State private var loaded = false
+    @FocusState private var customFocused: Bool
+
+    /// The index that means "Create your own place".
+    private var customIndex: Int { presets.count }
+    private var trimmedPlace: String { customPlace.trimmingCharacters(in: .whitespacesAndNewlines) }
 
     /// The six worlds, each carrying two versions of its text.
     ///
@@ -598,26 +794,108 @@ private struct SettingStep: View {
                             )
                         }
                     }
+
+                    customPlaceCard
                 }
                 .padding(.horizontal)
 
                 SparkleButton(action: {
-                    let p = presets[selectedIndex]
                     var b = draft.book!
-                    b.setting = BookSetting(
-                        id: UUID().uuidString,
-                        name: p.name,
-                        label: p.name,
-                        emoji: p.emoji,
-                        description: p.description
-                    )
+                    if selectedIndex == customIndex {
+                        // The child's own words, shown as typed and passed
+                        // through to the image service (which translates/
+                        // sanitizes them server-side).
+                        let text = String(trimmedPlace.prefix(CharacterCatalog.customDescriptionMax))
+                        b.setting = BookSetting(
+                            id: "custom-\(UUID().uuidString)",
+                            name: text,
+                            label: text,
+                            emoji: "✨",
+                            description: text,
+                            custom: true
+                        )
+                    } else {
+                        let p = presets[selectedIndex]
+                        b.setting = BookSetting(
+                            id: UUID().uuidString,
+                            name: p.name,
+                            label: p.name,
+                            emoji: p.emoji,
+                            description: p.description
+                        )
+                    }
                     draft.book = b
                     withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) { draft.step = 3 }
                 }) { Text("Continue") }
+                .disabled(selectedIndex == customIndex && trimmedPlace.isEmpty)
                 .padding(.horizontal)
             }
             .contentColumn(maxWidth: ContentWidth.form)
         }
+        .onAppear {
+            // Coming back to this step keeps what was picked.
+            guard !loaded else { return }
+            loaded = true
+            guard let setting = draft.book?.setting else { return }
+            if setting.custom == true {
+                selectedIndex = customIndex
+                customPlace = setting.description ?? setting.name ?? ""
+            } else if let i = presets.firstIndex(where: { $0.name == setting.name }) {
+                selectedIndex = i
+            }
+        }
+    }
+
+    private var customPlaceCard: some View {
+        let isOn = selectedIndex == customIndex
+        return VStack(alignment: .leading, spacing: 10) {
+            Button {
+                selectedIndex = customIndex
+                customFocused = true
+            } label: {
+                HStack(spacing: 14) {
+                    Image(systemName: "plus.circle.fill").font(.system(size: 28)).foregroundStyle(.cyan)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(AppText("create.setting.custom.title", defaultValue: "Create your own place"))
+                            .font(.headline).foregroundStyle(.white)
+                        Text(AppText("create.setting.custom.blurb", defaultValue: "Describe anywhere you can imagine."))
+                            .font(.caption).foregroundStyle(.white.opacity(0.7))
+                    }
+                    Spacer()
+                    if isOn {
+                        Image(systemName: "checkmark.circle.fill").foregroundStyle(.purple)
+                    }
+                }
+            }
+            if isOn {
+                TextField("", text: $customPlace,
+                          prompt: Text(AppText("create.setting.custom.placeholder",
+                                               defaultValue: "e.g. a treehouse school on the moon"))
+                            .foregroundStyle(.white.opacity(0.4)),
+                          axis: .vertical)
+                    .lineLimit(2...3)
+                    .focused($customFocused)
+                    .padding(12)
+                    .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
+                    .foregroundStyle(.white)
+                    .onChange(of: customPlace) { _, v in
+                        if v.count > CharacterCatalog.customDescriptionMax {
+                            customPlace = String(v.prefix(CharacterCatalog.customDescriptionMax))
+                        }
+                    }
+            }
+        }
+        .padding(14)
+        .background(
+            RoundedRectangle(cornerRadius: 14)
+                .fill(isOn ? Color.purple.opacity(0.25) : Color.white.opacity(0.06))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 14)
+                .strokeBorder(isOn ? Color.white.opacity(0.6) : Color.cyan.opacity(0.5),
+                              style: StrokeStyle(lineWidth: 1, dash: isOn ? [] : [6, 4]))
+        )
+        .accessibilityAddTraits(isOn ? .isSelected : [])
     }
 }
 
@@ -1062,7 +1340,7 @@ private struct ReadyStep: View {
                             } else {
                                 Text(c.emoji ?? "✨").font(.title)
                             }
-                            Text(c.name).foregroundStyle(.white)
+                            Text(verbatim: c.displayName).foregroundStyle(.white)
                         }
                         .padding(10)
                         .background(.white.opacity(0.08), in: Capsule())
