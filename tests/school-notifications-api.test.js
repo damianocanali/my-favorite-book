@@ -185,6 +185,14 @@ describe('GET/POST /api/school/notifications', () => {
     expect(d.url).not.toContain('&id=')
   })
 
+  it('DELETE clear-all accepts an unencoded "+" offset (read as a space) and restores it', async () => {
+    const log = mockSupabase({ user: TEACHER, routes: [{ method: 'DELETE', match: '/rest/v1/teacher_notifications', reply: { body: [] } }] })
+    const res = await (await load())(call('school/notifications?before=2026-09-30T10:00:00.123456+00:00', { method: 'DELETE' }))
+    expect(res.status).toBe(200)
+    const d = log.find((l) => l.method === 'DELETE')
+    expect(d.url).toContain(`created_at=lte.${encodeURIComponent('2026-09-30T10:00:00.123456+00:00')}`)
+  })
+
   it.each([['missing', ''], ['not a date', '?before=yesterday'], ['injection', `?before=${encodeURIComponent('2026-09-30T10:00:00Z,id.neq.null')}`]])(
     'DELETE clear-all 400 when before is %s', async (_, query) => {
       const log = mockSupabase({ user: TEACHER, routes: [] })

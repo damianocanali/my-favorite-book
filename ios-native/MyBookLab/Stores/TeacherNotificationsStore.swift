@@ -13,6 +13,10 @@ final class TeacherNotificationsStore {
     private(set) var items: [TeacherNotification] = []
     private(set) var unread = 0
     private(set) var failed = false
+    /// A remove / clear-all the server refused: the TeacherError code
+    /// (.some(nil) for a code-less failure), nil when there is none. The
+    /// rows are back in the list by then; the bell shows why.
+    var actionError: String??
 
     static let pollInterval: Duration = .seconds(60)
 
@@ -60,14 +64,17 @@ final class TeacherNotificationsStore {
         }
     }
 
-    /// Swipe-to-delete. Optimistic; a failed delete reloads the truth.
+    /// Swipe-to-delete. Optimistic; a failed delete reloads the truth and
+    /// says so (actionError).
     func remove(_ n: TeacherNotification) async {
+        actionError = nil
         items.removeAll { $0.id == n.id }
         if n.read_at == nil { unread = max(0, unread - 1) }
         do {
             guard let token = await bearer() else { throw APIClient.TeacherError(code: APIClient.sessionExpiredCode) }
             try await APIClient.shared.teacherDeleteNotification(id: n.id, bearerToken: token)
         } catch {
+            actionError = .some((error as? APIClient.TeacherError)?.code)
             await load()
         }
     }
@@ -78,10 +85,14 @@ final class TeacherNotificationsStore {
     /// back, a success brings in anything newer that arrived meanwhile.
     func clearAll() async {
         guard let before = items.first?.created_at else { return }
+        actionError = nil
         items = []
         unread = 0
-        if let token = await bearer() {
-            try? await APIClient.shared.teacherClearNotifications(before: before, bearerToken: token)
+        do {
+            guard let token = await bearer() else { throw APIClient.TeacherError(code: APIClient.sessionExpiredCode) }
+            try await APIClient.shared.teacherClearNotifications(before: before, bearerToken: token)
+        } catch {
+            actionError = .some((error as? APIClient.TeacherError)?.code)
         }
         await load()
     }
@@ -96,5 +107,6 @@ final class TeacherNotificationsStore {
         items = []
         unread = 0
         failed = false
+        actionError = nil
     }
 }

@@ -380,6 +380,11 @@ actor APIClient {
         components.queryItems = query.isEmpty
             ? nil
             : query.map { URLQueryItem(name: $0.key, value: $0.value) }
+        // URLComponents leaves "+" as is, and servers (URLSearchParams
+        // included) read a bare "+" in a query as a space — which broke the
+        // "+00:00" of a timestamp. No caller means a space by "+".
+        components.percentEncodedQuery = components.percentEncodedQuery?
+            .replacingOccurrences(of: "+", with: "%2B")
         return components.url!
     }
 

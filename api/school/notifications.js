@@ -111,7 +111,9 @@ export default async function handler(req) {
     if (req.method === 'DELETE') {
       const params = new URL(req.url).searchParams
       const id = params.get('id')
-      const before = params.get('before')
+      // A bare "+" in a query string decodes to a space (older iOS builds
+      // sent "+00:00" unencoded); a timestamp never contains a space.
+      const before = params.get('before')?.replaceAll(' ', '+') ?? null
       if (id !== null && !isUuid(id)) return json(req, 400, { error: 'Invalid id', code: 'bad_request' })
       if (id === null && !isIsoTimestamp(before)) {
         return json(req, 400, { error: 'Clear all needs before=<ISO timestamp>', code: 'bad_request' })

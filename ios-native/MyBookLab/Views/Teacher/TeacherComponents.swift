@@ -248,6 +248,29 @@ struct TeacherBellList: View {
                     list
                 }
             }
+            // A remove / clear-all the server refused: the rows are back,
+            // and this says why instead of them silently reappearing.
+            .safeAreaInset(edge: .top, spacing: 0) {
+                if let code = bell.actionError {
+                    HStack(alignment: .top, spacing: 10) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .foregroundStyle(TeacherTheme.urgent)
+                            .accessibilityHidden(true)
+                        Text(TeacherCopy.error(code))
+                            .font(.callout)
+                            .foregroundStyle(.white)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        Button { bell.actionError = nil } label: {
+                            Image(systemName: "xmark").font(.footnote.bold())
+                                .frame(width: 44, height: 44)
+                        }
+                        .accessibilityLabel(Text(TeacherCopy.done))
+                        .tint(.white)
+                    }
+                    .padding(.leading, 14)
+                    .background(TeacherTheme.urgent.opacity(0.18))
+                }
+            }
             .background(TeacherTheme.sheetBackground.ignoresSafeArea())
             .navigationTitle(Text(TeacherCopy.bellTitle))
             .navigationBarTitleDisplayMode(.inline)
