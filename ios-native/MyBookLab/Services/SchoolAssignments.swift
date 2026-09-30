@@ -29,6 +29,10 @@ enum SchoolAssignments {
         }
     }
 
+    /// How often the home re-reads the list while it is on screen and the
+    /// app is active, so a just-published assignment shows up by itself.
+    static let pollInterval: Duration = .seconds(60)
+
     enum HandInPhase { case idle, syncing, sending }
 
     /// The hand-in: sync the book to the cloud first, and only if that worked
@@ -85,6 +89,34 @@ enum SchoolAssignments {
         } catch {
             log.warning("feedback load failed: \(String(describing: error), privacy: .public)")
             return nil
+        }
+    }
+}
+
+/// Which assignments this child has opened, so a new one wears a "New" badge
+/// until they do. On the device only, per student user id (class iPads are
+/// shared), and wiped with the rest of a person's local data on sign-out or
+/// a change of who is signed in (AuthStore.clearLocalUserData).
+@MainActor
+enum AssignmentSeen {
+    private static let prefix = "assignmentsSeen."
+
+    static func ids(userId: String?) -> Set<String> {
+        guard let userId else { return [] }
+        return Set(UserDefaults.standard.stringArray(forKey: prefix + userId) ?? [])
+    }
+
+    static func mark(_ assignmentId: String, userId: String?) {
+        guard let userId else { return }
+        var seen = ids(userId: userId)
+        guard seen.insert(assignmentId).inserted else { return }
+        UserDefaults.standard.set(Array(seen), forKey: prefix + userId)
+    }
+
+    static func clearAll() {
+        let defaults = UserDefaults.standard
+        for key in defaults.dictionaryRepresentation().keys where key.hasPrefix(prefix) {
+            defaults.removeObject(forKey: key)
         }
     }
 }

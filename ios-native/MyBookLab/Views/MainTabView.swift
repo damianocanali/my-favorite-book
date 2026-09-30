@@ -95,6 +95,14 @@ struct MainTabView: View {
         // on a tab that isn't there. Orders moves to Create (the middle,
         // always-visible tab); Gallery moves to Books, matching the web's
         // ConsumerOnlyRoute redirect to /bookshelf.
+        // A class account's home is Books ("From your teacher" is there).
+        // The Create tab's hero is the family landing, so a child who opens
+        // the app with no book in progress starts on Books instead.
+        .onAppear {
+            if auth.isStudent, router.selectedTab == .create, BookDraftStore.shared.book == nil {
+                router.selectedTab = .books
+            }
+        }
         .onChange(of: auth.isStudent) { _, student in
             guard student else { return }
             if router.selectedTab == .orders { router.selectedTab = .create }

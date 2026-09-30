@@ -1,12 +1,15 @@
 import { useTranslation } from 'react-i18next'
 import { motion, useReducedMotion } from 'motion/react'
-import { Volume2, VolumeX, Sparkles } from 'lucide-react'
+import { Volume2, VolumeX, Sparkles, PenLine } from 'lucide-react'
 import { useSpeechSynthesis } from '../../hooks/useSpeechSynthesis'
 import { assignmentCardStatus, canHandInAgain, hasUnseenFeedback, dueWording } from './assignmentStudentUi'
 
 const STATUS_TONE = {
+  new: 'bg-amber-400/20 text-amber-200 border-amber-400/40',
   not_started: 'bg-galaxy-text-muted/10 text-galaxy-text-muted border-galaxy-text-muted/20',
+  in_progress: 'bg-galaxy-secondary/15 text-galaxy-secondary border-galaxy-secondary/30',
   handed_in: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30',
+  feedback: 'bg-pink-500/15 text-pink-300 border-pink-500/30',
   closed: 'bg-galaxy-text-muted/10 text-galaxy-text-muted border-galaxy-text-muted/20',
 }
 
@@ -37,10 +40,15 @@ function DueText({ assignment }) {
   return <span className={DUE_TONE[w.kind]}>{t(`school:student.assignments.due.${w.kind}`)}</span>
 }
 
-// One assignment on the bookshelf (brief S3 #1). Presentational only — all
-// the fetching/navigation/book-tagging lives in MyAssignments, the same
-// split as AssignmentReview/StudentRow on the teacher side.
-export default function AssignmentCard({ assignment, onStartWriting, onOpenHandedIn, onSeeFeedback }) {
+// One assignment on the home's "From your teacher" section. Presentational
+// only — all the fetching/navigation/book-tagging/seen tracking lives in
+// MyAssignments, the same split as AssignmentReview/StudentRow on the
+// teacher side. `homeStatus` is assignmentStudentUi's homeStatus(); any
+// click on the card calls `onOpen` (clears "New").
+export default function AssignmentCard({
+  assignment, homeStatus = 'not_started', hasBook = false,
+  onOpen, onStartWriting, onOpenHandedIn, onSeeFeedback,
+}) {
   const { t } = useTranslation()
   const prefersReducedMotion = useReducedMotion()
   const { speak, stop, isSpeaking, isSupported: ttsSupported } = useSpeechSynthesis()
@@ -55,14 +63,16 @@ export default function AssignmentCard({ assignment, onStartWriting, onOpenHande
 
   return (
     <motion.div
-      className="glass rounded-2xl p-4 border border-galaxy-text-muted/10 space-y-3"
+      className={`glass rounded-2xl p-4 border space-y-3 ${homeStatus === 'new' ? 'border-amber-400/60 border-2' : 'border-galaxy-text-muted/10'}`}
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
+      onClick={onOpen}
     >
       <div className="flex items-start justify-between gap-2">
         <h3 className="font-heading text-base font-bold text-galaxy-text min-w-0 break-words">{assignment.title}</h3>
-        <span className={`shrink-0 px-2 py-0.5 rounded-full text-xs font-body font-semibold border ${STATUS_TONE[status]}`}>
-          {t(`school:student.assignments.status.${status}`)}
+        <span className={`shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-body font-semibold border ${STATUS_TONE[homeStatus] ?? STATUS_TONE.not_started}`}>
+          {homeStatus === 'new' && <Sparkles size={12} aria-hidden="true" />}
+          {t(`school:student.assignments.status.${homeStatus}`)}
         </span>
       </div>
 
@@ -99,9 +109,10 @@ export default function AssignmentCard({ assignment, onStartWriting, onOpenHande
           <button
             type="button"
             onClick={onStartWriting}
-            className="px-4 py-2 rounded-xl font-body font-bold text-sm text-white btn-fill-primary transition-colors"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-body font-bold text-base text-white btn-fill-primary transition-colors"
           >
-            {t('school:student.assignments.start_writing')}
+            <PenLine size={18} aria-hidden="true" />
+            {hasBook ? t('school:student.assignments.continue_writing') : t('school:student.assignments.start_writing')}
           </button>
         )}
         {status === 'handed_in' && (

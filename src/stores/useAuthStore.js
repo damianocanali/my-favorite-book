@@ -7,6 +7,7 @@ import { useRewardsStore } from './useRewardsStore'
 import { useCheckInStore } from './useCheckInStore'
 import { usePrintOrderStore } from './usePrintOrderStore'
 import { exitKidsPreview } from '../lib/viewMode'
+import { clearSeenAssignments } from '../components/school/assignmentStudentUi'
 import { Capacitor } from '@capacitor/core'
 
 // getSession() should be near-instant — it reads the stored session and
@@ -47,6 +48,8 @@ function clearLocalUserData() {
   // flag, showing them a "you're previewing the kids' app" banner over
   // their own, completely unrelated session.
   exitKidsPreview()
+  // Which assignments a child has opened ("New" badges on the home).
+  clearSeenAssignments()
 }
 
 export const useAuthStore = create((set, get) => ({

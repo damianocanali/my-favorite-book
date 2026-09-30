@@ -42,6 +42,76 @@ export function hasUnseenFeedback(assignment) {
   return (assignment?.my_submission?.feedback_unseen ?? 0) > 0
 }
 
+// What the home's "From your teacher" card says (iPad: StudentAssignment
+// .homeStatus — keep the two in step). `hasBook`: a book on this device is
+// already tagged for it; `seen`: the child has opened it (see the seen-ids
+// helpers below). One of 'new' | 'not_started' | 'in_progress' |
+// 'handed_in' | 'feedback' | 'closed'.
+export function homeStatus(assignment, { hasBook = false, seen = false } = {}) {
+  if (hasUnseenFeedback(assignment)) return 'feedback'
+  const card = assignmentCardStatus(assignment)
+  if (card !== 'not_started') return card
+  if (hasBook) return 'in_progress'
+  return seen ? 'not_started' : 'new'
+}
+
+// Open work only, plus a closed one the child handed in (its feedback stays
+// reachable). A closed, never-started assignment is nothing to do.
+export function showsOnHome(assignment) {
+  return !!assignment && (assignment.status === 'published' || !!assignment.my_submission)
+}
+
+const HOME_RANK = { new: 0, feedback: 1, in_progress: 2, not_started: 3, handed_in: 4, closed: 5 }
+
+// What the child has to act on first: new, then fresh feedback, then in
+// progress, then the rest; each group keeps the server's order.
+export function sortForHome(assignments, statusOf) {
+  return assignments
+    .map((a, i) => ({ a, i, r: HOME_RANK[statusOf(a)] ?? 9 }))
+    .sort((x, y) => x.r - y.r || x.i - y.i)
+    .map((x) => x.a)
+}
+
+// Which assignments this child has opened, so a new one wears a "New" badge
+// until they do. Per student user id (class devices are shared), in
+// localStorage only, and wiped with the rest of a person's local data on
+// sign-out or a change of who is signed in (useAuthStore's
+// clearLocalUserData → clearSeenAssignments). Every storage call is guarded:
+// private mode or blocked storage just means every assignment reads "New".
+const SEEN_PREFIX = 'assignmentsSeen.'
+
+export function readSeenAssignments(userId, storage = globalThis.localStorage) {
+  if (!userId) return new Set()
+  try {
+    const raw = storage?.getItem(SEEN_PREFIX + userId)
+    const list = raw ? JSON.parse(raw) : []
+    return new Set(Array.isArray(list) ? list.filter((x) => typeof x === 'string') : [])
+  } catch {
+    return new Set()
+  }
+}
+
+export function markAssignmentSeen(userId, assignmentId, storage = globalThis.localStorage) {
+  const seen = readSeenAssignments(userId, storage)
+  if (!userId || !assignmentId || seen.has(assignmentId)) return seen
+  seen.add(assignmentId)
+  try {
+    storage?.setItem(SEEN_PREFIX + userId, JSON.stringify([...seen]))
+  } catch { /* storage full or blocked: the badge just comes back */ }
+  return seen
+}
+
+export function clearSeenAssignments(storage = globalThis.localStorage) {
+  try {
+    const keys = []
+    for (let i = 0; i < (storage?.length ?? 0); i++) {
+      const key = storage.key(i)
+      if (key?.startsWith(SEEN_PREFIX)) keys.push(key)
+    }
+    keys.forEach((key) => storage.removeItem(key))
+  } catch { /* nothing to clear */ }
+}
+
 const DAY_MS = 24 * 60 * 60 * 1000
 const startOfDay = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate())
 

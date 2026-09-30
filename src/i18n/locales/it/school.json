@@ -377,7 +377,10 @@
       "status": {
         "not_started": "Non iniziato",
         "handed_in": "Consegnato ✓",
-        "closed": "Chiuso"
+        "closed": "Chiuso",
+        "new": "Nuovo",
+        "in_progress": "In corso",
+        "feedback": "Commenti"
       },
       "start_writing": "Inizia a scrivere",
       "open_handed_in": "Apri il mio libro",
@@ -387,7 +390,9 @@
       "prompt_hint": {
         "heading": "Il tuo compito",
         "dismiss_aria": "Nascondi la traccia del compito"
-      }
+      },
+      "from_teacher": "Dalla tua maestra o dal tuo maestro",
+      "continue_writing": "Continua a scrivere"
     },
     "hand_in": {
       "picker_title": "Consegna a…",

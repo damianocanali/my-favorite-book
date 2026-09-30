@@ -45,6 +45,24 @@ struct StudentAssignment: Decodable, Identifiable, Hashable, Sendable {
 
     var hasUnseenFeedback: Bool { (my_submission?.feedback_unseen ?? 0) > 0 }
 
+    /// What the home's "From your teacher" card says (web: homeStatus in
+    /// assignmentStudentUi.js). `hasBook`: a book on this device is already
+    /// tagged for it; `seen`: the child has opened it (AssignmentSeen).
+    enum HomeStatus: Equatable { case new, notStarted, inProgress, handedIn, feedback, closed }
+
+    func homeStatus(hasBook: Bool, seen: Bool) -> HomeStatus {
+        if hasUnseenFeedback { return .feedback }
+        switch cardStatus {
+        case .closed: return .closed
+        case .handedIn: return .handedIn
+        case .notStarted: return hasBook ? .inProgress : (seen ? .notStarted : .new)
+        }
+    }
+
+    /// Open work only, plus a closed one the child handed in (its feedback
+    /// stays reachable). A closed, never-started assignment is nothing to do.
+    var showsOnHome: Bool { status == "published" || my_submission != nil }
+
     var dueDate: Date? { StudentAssignment.parseDate(due_at) }
 
     /// The friendly due wording ("Due Friday", "Due today", "Late is OK"),

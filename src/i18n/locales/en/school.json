@@ -377,7 +377,10 @@
       "status": {
         "not_started": "Not started",
         "handed_in": "Handed in ✓",
-        "closed": "Closed"
+        "closed": "Closed",
+        "new": "New",
+        "in_progress": "In progress",
+        "feedback": "Feedback"
       },
       "start_writing": "Start writing",
       "open_handed_in": "Open my book",
@@ -387,7 +390,9 @@
       "prompt_hint": {
         "heading": "Your assignment",
         "dismiss_aria": "Hide the assignment prompt"
-      }
+      },
+      "from_teacher": "From your teacher",
+      "continue_writing": "Continue writing"
     },
     "hand_in": {
       "picker_title": "Hand in to…",

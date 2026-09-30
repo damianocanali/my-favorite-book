@@ -9,6 +9,12 @@ import {
   hasUnseenFeedback,
   dueWording,
   runHandInSequence,
+  homeStatus,
+  showsOnHome,
+  sortForHome,
+  readSeenAssignments,
+  markAssignmentSeen,
+  clearSeenAssignments,
 } from '../src/components/school/assignmentStudentUi.js'
 
 const base = (overrides = {}) => ({
@@ -143,5 +149,82 @@ describe('runHandInSequence', () => {
     const submitFn = vi.fn().mockResolvedValue({ ok: false, code: 'past_due' })
     const result = await runHandInSequence(syncFn, submitFn)
     expect(result).toEqual({ ok: false, code: 'past_due' })
+  })
+})
+
+describe('homeStatus', () => {
+  it('is new until seen, then not_started', () => {
+    expect(homeStatus(base())).toBe('new')
+    expect(homeStatus(base(), { seen: true })).toBe('not_started')
+  })
+
+  it('is in_progress once a book is tagged for it', () => {
+    expect(homeStatus(base(), { hasBook: true })).toBe('in_progress')
+  })
+
+  it('is handed_in with a submission, feedback when some is unseen', () => {
+    expect(homeStatus(base({ my_submission: { id: 's1', feedback_unseen: 0 } }), { hasBook: true })).toBe('handed_in')
+    expect(homeStatus(base({ my_submission: { id: 's1', feedback_unseen: 2 } }))).toBe('feedback')
+  })
+
+  it('is closed for a closed assignment without unseen feedback', () => {
+    expect(homeStatus(base({ status: 'closed' }))).toBe('closed')
+    expect(homeStatus(base({ status: 'closed', my_submission: { id: 's1', feedback_unseen: 1 } }))).toBe('feedback')
+  })
+})
+
+describe('showsOnHome', () => {
+  it('shows open work and closed hand-ins, hides closed never-started ones', () => {
+    expect(showsOnHome(base())).toBe(true)
+    expect(showsOnHome(base({ status: 'closed', my_submission: { id: 's1' } }))).toBe(true)
+    expect(showsOnHome(base({ status: 'closed' }))).toBe(false)
+    expect(showsOnHome(null)).toBe(false)
+  })
+})
+
+describe('sortForHome', () => {
+  it('puts new first, keeps server order within a group', () => {
+    const list = [{ id: 'a', s: 'handed_in' }, { id: 'b', s: 'new' }, { id: 'c', s: 'in_progress' }, { id: 'd', s: 'new' }]
+    expect(sortForHome(list, (x) => x.s).map((x) => x.id)).toEqual(['b', 'd', 'c', 'a'])
+  })
+})
+
+describe('seen assignments storage', () => {
+  function memoryStorage() {
+    const m = new Map()
+    return {
+      get length() { return m.size },
+      key: (i) => [...m.keys()][i] ?? null,
+      getItem: (k) => (m.has(k) ? m.get(k) : null),
+      setItem: (k, v) => m.set(k, String(v)),
+      removeItem: (k) => m.delete(k),
+    }
+  }
+
+  it('is per user and survives a re-read', () => {
+    const s = memoryStorage()
+    markAssignmentSeen('u1', 'a1', s)
+    expect(readSeenAssignments('u1', s).has('a1')).toBe(true)
+    expect(readSeenAssignments('u2', s).has('a1')).toBe(false)
+  })
+
+  it('clears every user on sign-out and leaves other keys alone', () => {
+    const s = memoryStorage()
+    s.setItem('other', 'x')
+    markAssignmentSeen('u1', 'a1', s)
+    markAssignmentSeen('u2', 'a2', s)
+    clearSeenAssignments(s)
+    expect(readSeenAssignments('u1', s).size).toBe(0)
+    expect(readSeenAssignments('u2', s).size).toBe(0)
+    expect(s.getItem('other')).toBe('x')
+  })
+
+  it('reads garbage or blocked storage as nothing seen', () => {
+    const s = memoryStorage()
+    s.setItem('assignmentsSeen.u1', '{not json')
+    expect(readSeenAssignments('u1', s).size).toBe(0)
+    const blocked = { getItem: () => { throw new Error('blocked') } }
+    expect(readSeenAssignments('u1', blocked).size).toBe(0)
+    expect(readSeenAssignments(null, s).size).toBe(0)
   })
 })
