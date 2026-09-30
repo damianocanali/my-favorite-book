@@ -377,7 +377,10 @@
       "status": {
         "not_started": "Not started",
         "handed_in": "Handed in ✓",
-        "closed": "Closed"
+        "closed": "Closed",
+        "new": "New",
+        "in_progress": "In progress",
+        "feedback": "Feedback"
       },
       "start_writing": "Start writing",
       "open_handed_in": "Open my book",
@@ -387,7 +390,10 @@
       "prompt_hint": {
         "heading": "Your assignment",
         "dismiss_aria": "Hide the assignment prompt"
-      }
+      },
+      "from_teacher": "From your teacher",
+      "continue_writing": "Continue writing",
+      "replace_draft": "Start a new book? Your unsaved book will be lost."
     },
     "hand_in": {
       "picker_title": "Hand in to…",
@@ -453,6 +459,14 @@
       "error": "Couldn't save. Try again.",
       "load_error": "Couldn't load your notification settings."
     },
-    "unknown_student": "A student"
+    "unknown_student": "A student",
+    "clear_all": "Clear all",
+    "clear_confirm": "Clear all notifications?",
+    "clear_confirm_action": "Clear",
+    "dismiss": "Remove: {{text}}",
+    "clear_failed": "Couldn't clear the notifications. Try again.",
+    "remove_failed": "Couldn't remove that notification. Try again.",
+    "session_ended": "Your session ended — please sign in again.",
+    "error_dismiss": "Dismiss"
   }
 }

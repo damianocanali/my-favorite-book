@@ -18,6 +18,12 @@ struct MyBookLabApp: App {
     @State private var teacherBell = TeacherNotificationsStore.shared
     @State private var push = PushRegistrar.shared
     @State private var language = AppLanguageState.shared
+    @Environment(\.scenePhase) private var scenePhase
+    /// The launch work below runs once per launch. The root is rebuilt on
+    /// every language switch, and re-running it there made each switch
+    /// slow (a second auth listener, bookshelf/coins/rewards/purchases
+    /// reloads) for nothing.
+    @State private var launched = false
 
     init() {
         // Before any string is looked up: the chosen language's .lproj.
@@ -55,6 +61,8 @@ struct MyBookLabApp: App {
                 .environment(\.locale, language.locale)
                 .id(language.code)
                 .task {
+                    guard !launched else { return }
+                    launched = true
                     PrintOrderActivityManager.cleanup()
                     await auth.bootstrap()
                     // Music only once the session is known. AudioService
@@ -71,6 +79,11 @@ struct MyBookLabApp: App {
                     // A teacher who already allowed alerts is re-registered
                     // on every launch (the token can rotate). No-op otherwise.
                     await push.registerIfAllowed()
+                }
+                // Keep the access token fresh while the app is in front, and
+                // stop the refresher in the background (see setAutoRefresh).
+                .onChange(of: scenePhase, initial: true) { _, phase in
+                    auth.setAutoRefresh(active: phase == .active)
                 }
                 // A role change on the same account (e.g. metadata refresh
                 // marking it a teacher) must silence the music too.
@@ -110,7 +123,40 @@ struct MyBookLabApp: App {
                 .onContinueUserActivity(CSSearchableItemActionType) { _ in
                     router.selectedTab = .books
                 }
+                // Outside the rebuilt subtree, so it stays up across it.
+                .overlay { LanguageSwitchOverlay(target: language.switching) }
+                .animation(.easeInOut(duration: 0.25), value: language.switching)
                 .preferredColorScheme(.dark)
+        }
+    }
+}
+
+/// "Changing language…" while AppLanguage.choose rebuilds the app, written
+/// in the language being switched to.
+private struct LanguageSwitchOverlay: View {
+    let target: String?
+
+    var body: some View {
+        if let target {
+            ZStack {
+                Color.black.opacity(0.45).ignoresSafeArea()
+                VStack(spacing: 14) {
+                    ProgressView()
+                        .controlSize(.large)
+                        .tint(.white)
+                    Text(verbatim: AppLanguage.string(
+                        "account.language.switching", defaultValue: "Changing language…", in: target))
+                        .font(.system(.headline, design: .rounded))
+                        .foregroundStyle(.white)
+                }
+                .padding(.horizontal, 28)
+                .padding(.vertical, 22)
+                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 20))
+                .accessibilityElement(children: .combine)
+            }
+            .transition(.opacity)
+            // Swallows taps while the tree is being replaced.
+            .contentShape(Rectangle())
         }
     }
 }

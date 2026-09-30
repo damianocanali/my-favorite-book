@@ -244,7 +244,8 @@ struct AccountView: View {
     }
 
     /// Switching is live (AppLanguage.choose rebuilds the app in the new
-    /// language), so there is nothing to tell the user afterwards.
+    /// language, behind the root's "Changing language…" overlay), so there
+    /// is nothing to tell the user afterwards.
     private var languageCard: some View {
         let current = AppLanguage.uiLanguage
         return VStack(alignment: .leading, spacing: 10) {
@@ -268,6 +269,8 @@ struct AccountView: View {
                 }
                 .pickerStyle(.segmented)
                 .frame(width: 190)
+                // One switch at a time: the rebuild is under way.
+                .disabled(AppLanguageState.shared.switching != nil)
             }
         }
         .padding(16)
@@ -503,9 +506,9 @@ struct AccountView: View {
     }
 
     private func cancelDeletion() async {
-        guard let token = auth.accessToken else { return }
         deleteBusy = true
         defer { deleteBusy = false }
+        guard let token = await auth.validAccessToken() else { return }
         do {
             try await APIClient.shared.cancelAccountDeletion(bearerToken: token)
             deletionScheduledFor = nil
@@ -517,7 +520,7 @@ struct AccountView: View {
     }
 
     private func loadDeletionStatus() async {
-        guard let token = auth.accessToken else { return }
+        guard let token = await auth.validAccessToken() else { return }
         if let status = try? await APIClient.shared.deletionStatus(bearerToken: token) {
             deletionScheduledFor = status.pending ? (status.scheduled_for ?? "") : nil
         }
@@ -573,9 +576,9 @@ struct AccountView: View {
     }
 
     private func scheduleDeletion() async {
-        guard let token = auth.accessToken else { return }
         deleteBusy = true; deleteError = nil
         defer { deleteBusy = false }
+        guard let token = await auth.validAccessToken() else { return }
         do {
             let scheduledFor = try await APIClient.shared.requestAccountDeletion(bearerToken: token)
             deletionScheduledFor = scheduledFor ?? ""

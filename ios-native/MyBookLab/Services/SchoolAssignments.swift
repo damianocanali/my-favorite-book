@@ -12,14 +12,15 @@ enum SchoolAssignments {
         subsystem: Bundle.main.bundleIdentifier ?? "MyBookLab", category: "SchoolAssignments"
     )
 
-    private static var token: String? {
-        AuthStore.shared.isStudent ? AuthStore.shared.accessToken : nil
+    /// A usable (refreshed if expired) token, for a class account only.
+    private static func bearer() async -> String? {
+        AuthStore.shared.isStudent ? await AuthStore.shared.validAccessToken() : nil
     }
 
     /// nil on any failure: the bookshelf stays quiet rather than blocking a
     /// child's own books, same as the web.
     static func list() async -> [StudentAssignment]? {
-        guard let token else { return nil }
+        guard let token = await bearer() else { return nil }
         do {
             return try await APIClient.shared.studentAssignments(bearerToken: token)
         } catch {
@@ -27,6 +28,10 @@ enum SchoolAssignments {
             return nil
         }
     }
+
+    /// How often the home re-reads the list while it is on screen and the
+    /// app is active, so a just-published assignment shows up by itself.
+    static let pollInterval: Duration = .seconds(60)
 
     enum HandInPhase { case idle, syncing, sending }
 
@@ -42,7 +47,7 @@ enum SchoolAssignments {
         book: Book, assignmentId: String,
         phase: (HandInPhase) -> Void
     ) async -> String? {
-        guard let token, let userId = AuthStore.shared.user?.id.uuidString else { return "generic" }
+        guard let token = await bearer(), let userId = AuthStore.shared.user?.id.uuidString else { return "generic" }
         phase(.syncing)
         do {
             try await BookshelfStore.shared.save(book, userId: userId)
@@ -68,7 +73,7 @@ enum SchoolAssignments {
     /// FIRST time it was seen, so repeating this is harmless);
     /// `markedSeen` is true when at least one item was newly marked.
     static func feedback(submissionId: String) async -> (items: [StudentSubmission.Feedback], markedSeen: Bool)? {
-        guard let token else { return nil }
+        guard let token = await bearer() else { return nil }
         do {
             let res = try await APIClient.shared.studentSubmission(id: submissionId, bearerToken: token)
             let items = res.feedback ?? []
@@ -85,5 +90,40 @@ enum SchoolAssignments {
             log.warning("feedback load failed: \(String(describing: error), privacy: .public)")
             return nil
         }
+    }
+}
+
+/// Which assignments this child has opened, so a new one wears a "New" badge
+/// until they do. On the device only, per student user id (class iPads are
+/// shared, and ids never cross between children). Deliberately KEPT across
+/// sign-out: a child signing back in must not see everything as New again.
+/// It stays small because every load prunes it to the assignments still
+/// listed.
+@MainActor
+enum AssignmentSeen {
+    private static let prefix = "assignmentsSeen."
+
+    static func ids(userId: String?) -> Set<String> {
+        guard let userId else { return [] }
+        return Set(UserDefaults.standard.stringArray(forKey: prefix + userId) ?? [])
+    }
+
+    static func mark(_ assignmentId: String, userId: String?) {
+        guard let userId else { return }
+        var seen = ids(userId: userId)
+        guard seen.insert(assignmentId).inserted else { return }
+        UserDefaults.standard.set(Array(seen), forKey: prefix + userId)
+    }
+
+    /// Drops ids of assignments no longer in the list; returns what is left.
+    @discardableResult
+    static func prune(keeping liveIds: [String], userId: String?) -> Set<String> {
+        let seen = ids(userId: userId)
+        guard let userId else { return seen }
+        let kept = seen.intersection(liveIds)
+        if kept.count != seen.count {
+            UserDefaults.standard.set(Array(kept), forKey: prefix + userId)
+        }
+        return kept
     }
 }

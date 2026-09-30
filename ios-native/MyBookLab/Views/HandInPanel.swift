@@ -30,6 +30,8 @@ enum HandInCopy {
             AppText("school.student.hand_in.errors.assignment_not_found", defaultValue: "We can't find that assignment. Ask your teacher.")
         case "book_not_found":
             AppText("school.student.hand_in.errors.book_not_found", defaultValue: "We can't find that book. Try again.")
+        case APIClient.sessionExpiredCode:
+            APIError.sessionExpiredText
         default:
             AppText("school.student.hand_in.errors.generic", defaultValue: "Something went wrong. Ask your teacher.")
         }

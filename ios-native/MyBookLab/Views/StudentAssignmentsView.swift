@@ -13,6 +13,7 @@ import SwiftUI
 
 enum AssignmentCopy {
     static var heading: LocalizedStringResource { AppText("school.student.assignments.heading", defaultValue: "My assignments") }
+    static var fromTeacher: LocalizedStringResource { AppText("school.student.assignments.from_teacher", defaultValue: "From your teacher") }
     static var listen: LocalizedStringResource { AppText("school.student.assignments.prompt_listen_aria", defaultValue: "Read the assignment out loud") }
     static var startWriting: LocalizedStringResource { AppText("school.student.assignments.start_writing", defaultValue: "Start writing") }
     static var continueWriting: LocalizedStringResource { AppText("school.student.assignments.continue_writing", defaultValue: "Continue writing") }
@@ -52,6 +53,17 @@ enum AssignmentCopy {
         }
     }
 
+    static func homeStatus(_ s: StudentAssignment.HomeStatus) -> LocalizedStringResource {
+        switch s {
+        case .new: AppText("school.student.assignments.status.new", defaultValue: "New")
+        case .notStarted: status(.notStarted)
+        case .inProgress: AppText("school.student.assignments.status.in_progress", defaultValue: "In progress")
+        case .handedIn: status(.handedIn)
+        case .feedback: AppText("school.student.assignments.status.feedback", defaultValue: "Feedback")
+        case .closed: status(.closed)
+        }
+    }
+
     static func due(_ d: StudentAssignment.Due) -> LocalizedStringResource {
         let locale = AppLanguage.locale
         switch d {
@@ -72,14 +84,22 @@ enum AssignmentCopy {
 
 // MARK: - Bookshelf section
 
-/// "My assignments" above the shelf. Renders nothing while loading, on a
-/// failure, or when the class has no assignments — a broken schools API
-/// must never block or flash above a child's own books.
+/// "From your teacher" at the top of a class account's home (the Books tab).
+/// Renders nothing while loading, on a failure, or when there is nothing to
+/// do — a broken schools API must never block or flash above a child's own
+/// books.
+///
+/// Students are on shared iPads and get no push: a just-published
+/// assignment arrives by re-reading the list whenever the app becomes
+/// active and every minute while this is on screen.
 struct MyAssignmentsSection: View {
     @Environment(AuthStore.self) private var auth
     @Environment(BookshelfStore.self) private var bookshelf
     @Environment(AppRouter.self) private var router
+    @Environment(\.scenePhase) private var scenePhase
     @State private var assignments: [StudentAssignment]?
+    /// Assignment ids this child has opened (AssignmentSeen); drives "New".
+    @State private var seen: Set<String> = []
     @State private var feedbackFor: StudentAssignment?
     /// The assignment waiting on "replace your unsaved book?".
     @State private var pendingStart: StudentAssignment?
@@ -89,36 +109,69 @@ struct MyAssignmentsSection: View {
         // empty land on no view, so .task would never run and nothing
         // would ever load.
         VStack(spacing: 0) {
-            if auth.isStudent, let assignments, !assignments.isEmpty {
+            if auth.isStudent, !visible.isEmpty {
                 VStack(alignment: .leading, spacing: 14) {
                     Label {
-                        Text(AssignmentCopy.heading)
+                        Text(AssignmentCopy.fromTeacher)
                     } icon: {
                         Image(systemName: "list.clipboard")
                             .foregroundStyle(.cyan)
                     }
-                    .font(.system(.title3, design: .rounded).bold())
+                    .font(.system(.title2, design: .rounded).bold())
                     .foregroundStyle(.white)
+                    .accessibilityAddTraits(.isHeader)
 
-                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 260), spacing: 16)], spacing: 16) {
-                        ForEach(assignments) { assignment in
+                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 280), spacing: 16)], spacing: 16) {
+                        ForEach(visible) { assignment in
+                            let book = taggedBook(for: assignment)
                             AssignmentCard(
                                 assignment: assignment,
-                                book: taggedBook(for: assignment),
-                                onWrite: { startOrContinue(assignment) },
-                                onSeeFeedback: { feedbackFor = assignment }
+                                book: book,
+                                started: isStarted(assignment),
+                                homeStatus: assignment.homeStatus(
+                                    hasBook: isStarted(assignment), seen: seen.contains(assignment.id)),
+                                onOpen: { markOpened(assignment) },
+                                onWrite: {
+                                    markOpened(assignment)
+                                    startOrContinue(assignment)
+                                },
+                                onSeeFeedback: {
+                                    markOpened(assignment)
+                                    feedbackFor = assignment
+                                }
                             )
                         }
                     }
                 }
+                .padding(16)
+                .background(
+                    LinearGradient(colors: [.cyan.opacity(0.14), .purple.opacity(0.10)],
+                                   startPoint: .topLeading, endPoint: .bottomTrailing),
+                    in: RoundedRectangle(cornerRadius: 22)
+                )
+                .overlay(RoundedRectangle(cornerRadius: 22).stroke(.cyan.opacity(0.3)))
                 .padding(.horizontal, 20)
                 .padding(.top, 8)
                 .padding(.bottom, 12)
             }
         }
-        .task(id: auth.isStudent) {
-            guard auth.isStudent else { return }
-            if let fresh = await SchoolAssignments.list() { assignments = fresh }
+        // Re-read on becoming active (a new scenePhase restarts the task),
+        // then every minute while the home is on screen; the task ends when
+        // it leaves the screen or the app goes to the background.
+        .task(id: PollKey(student: auth.isStudent, userId: auth.user?.id, active: scenePhase == .active)) {
+            guard auth.isStudent else {
+                assignments = nil
+                return
+            }
+            seen = AssignmentSeen.ids(userId: auth.user?.id.uuidString)
+            guard scenePhase == .active else { return }
+            while !Task.isCancelled {
+                if let fresh = await SchoolAssignments.list() {
+                    assignments = fresh
+                    seen = AssignmentSeen.prune(keeping: fresh.map(\.id), userId: auth.user?.id.uuidString)
+                }
+                try? await Task.sleep(for: SchoolAssignments.pollInterval)
+            }
         }
         .sheet(item: $feedbackFor) { assignment in
             if let submissionId = assignment.my_submission?.id {
@@ -142,6 +195,43 @@ struct MyAssignmentsSection: View {
             }
             Button("Cancel", role: .cancel) { pendingStart = nil }
         }
+    }
+
+    private struct PollKey: Equatable {
+        let student: Bool
+        let userId: UUID?
+        let active: Bool
+    }
+
+    /// What the child has to act on first: new, then in progress, then
+    /// fresh feedback, then the rest; each group in the server's order.
+    private var visible: [StudentAssignment] {
+        let open = (assignments ?? []).filter(\.showsOnHome)
+        func rank(_ a: StudentAssignment) -> Int {
+            switch a.homeStatus(hasBook: isStarted(a), seen: seen.contains(a.id)) {
+            case .new: 0
+            case .feedback: 1
+            case .inProgress: 2
+            case .notStarted: 3
+            case .handedIn: 4
+            case .closed: 5
+            }
+        }
+        return open.enumerated()
+            .sorted { (rank($0.element), $0.offset) < (rank($1.element), $1.offset) }
+            .map(\.element)
+    }
+
+    /// Started = a saved book is tagged for it, or the draft open in the
+    /// editor is this assignment's (not saved to the shelf yet).
+    private func isStarted(_ assignment: StudentAssignment) -> Bool {
+        taggedBook(for: assignment) != nil || BookDraftStore.shared.book?.assignmentId == assignment.id
+    }
+
+    private func markOpened(_ assignment: StudentAssignment) {
+        guard !seen.contains(assignment.id) else { return }
+        seen.insert(assignment.id)
+        AssignmentSeen.mark(assignment.id, userId: auth.user?.id.uuidString)
     }
 
     /// A book already tagged for this assignment: "Start writing" resumes it
@@ -208,6 +298,11 @@ struct MyAssignmentsSection: View {
 private struct AssignmentCard: View {
     let assignment: StudentAssignment
     let book: Book?
+    /// A saved book or the open draft belongs to it: "Continue writing".
+    let started: Bool
+    let homeStatus: StudentAssignment.HomeStatus
+    /// Any touch on the card counts as opening it (clears "New").
+    let onOpen: () -> Void
     let onWrite: () -> Void
     let onSeeFeedback: () -> Void
 
@@ -224,15 +319,7 @@ private struct AssignmentCard: View {
                     .font(.system(.headline, design: .rounded))
                     .foregroundStyle(.white)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                Text(AssignmentCopy.status(status))
-                    .font(.caption.bold())
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 4)
-                    .foregroundStyle(status == .handedIn ? Color.green : .white.opacity(0.7))
-                    .background(
-                        (status == .handedIn ? Color.green : .white).opacity(0.14),
-                        in: Capsule()
-                    )
+                statusPill
             }
 
             if let prompt = assignment.prompt, !prompt.isEmpty {
@@ -242,6 +329,7 @@ private struct AssignmentCard: View {
                         .foregroundStyle(.white.opacity(0.8))
                         .frame(maxWidth: .infinity, alignment: .leading)
                     Button {
+                        onOpen()
                         speaker.toggle(prompt)
                     } label: {
                         Image(systemName: speaker.isSpeaking(prompt) ? "stop.fill" : "speaker.wave.2.fill")
@@ -282,7 +370,37 @@ private struct AssignmentCard: View {
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 16))
+        .overlay {
+            if homeStatus == .new {
+                RoundedRectangle(cornerRadius: 16).stroke(.yellow.opacity(0.7), lineWidth: 2)
+            }
+        }
+        // Buttons inside keep their own taps; a tap anywhere else on the
+        // card opens it too.
+        .contentShape(RoundedRectangle(cornerRadius: 16))
+        .onTapGesture(perform: onOpen)
         .onDisappear { speaker.stop() }
+    }
+
+    private var statusPill: some View {
+        let tint: Color = switch homeStatus {
+        case .new: .yellow
+        case .inProgress: .cyan
+        case .handedIn: .green
+        case .feedback: .pink
+        case .notStarted, .closed: .white
+        }
+        return HStack(spacing: 4) {
+            if homeStatus == .new {
+                Image(systemName: "sparkles").accessibilityHidden(true)
+            }
+            Text(AssignmentCopy.homeStatus(homeStatus))
+        }
+        .font(.caption.bold())
+        .padding(.horizontal, 10)
+        .padding(.vertical, 4)
+        .foregroundStyle(homeStatus == .notStarted || homeStatus == .closed ? tint.opacity(0.7) : tint)
+        .background(tint.opacity(homeStatus == .new ? 0.22 : 0.14), in: Capsule())
     }
 
     /// One row when it fits; stacked at large Dynamic Type or with longer
@@ -303,8 +421,13 @@ private struct AssignmentCard: View {
     private var actionButtons: some View {
             switch status {
             case .notStarted:
-                SparkleButton(action: onWrite, size: .small) {
-                    Text(book == nil ? AssignmentCopy.startWriting : AssignmentCopy.continueWriting)
+                // The one big thing to do on a card.
+                SparkleButton(action: onWrite, size: .regular) {
+                    Label {
+                        Text(started ? AssignmentCopy.continueWriting : AssignmentCopy.startWriting)
+                    } icon: {
+                        Image(systemName: "pencil.and.scribble")
+                    }
                 }
                 .fixedSize()
             case .handedIn:

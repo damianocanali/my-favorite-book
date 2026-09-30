@@ -150,7 +150,7 @@ final class RewardsStore {
     /// Pull earned badges (direct Supabase read, select-own RLS) and the
     /// streak. Call on launch and whenever the signed-in user changes.
     func refresh() async {
-        guard let token = AuthStore.shared.accessToken else {
+        guard let token = await AuthStore.shared.validAccessToken() else {
             earnedBadges = []
             currentStreak = 0
             longestStreak = 0
@@ -176,13 +176,17 @@ final class RewardsStore {
     /// Report "the kid wrote something today". Debounced to one server
     /// call per local day; auto-claims streak badges as thresholds pass.
     func recordWritingActivity() {
-        guard let token = AuthStore.shared.accessToken else { return }
+        guard AuthStore.shared.isSignedIn else { return }
         let day = Self.localDayString()
         guard UserDefaults.standard.string(forKey: lastTouchKey) != day else { return }
         UserDefaults.standard.set(day, forKey: lastTouchKey)
 
         Task {
             do {
+                guard let token = await AuthStore.shared.validAccessToken() else {
+                    UserDefaults.standard.removeObject(forKey: lastTouchKey)
+                    return
+                }
                 let streak = try await APIClient.shared.touchStreak(day: day, bearerToken: token)
                 currentStreak = streak.currentStreak
                 longestStreak = streak.longestStreak
@@ -223,7 +227,7 @@ final class RewardsStore {
     func earn(_ badgeId: String) async -> Bool {
         guard !earnedBadges.contains(badgeId),
               let badge = Self.catalog.first(where: { $0.id == badgeId }),
-              let token = AuthStore.shared.accessToken else { return false }
+              let token = await AuthStore.shared.validAccessToken() else { return false }
         do {
             let res = try await APIClient.shared.claimBadge(badgeId: badgeId, bearerToken: token)
             earnedBadges.insert(badgeId)

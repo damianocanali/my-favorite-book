@@ -58,15 +58,25 @@ async function markHours(notifications, me) {
   }
 }
 
-// The teacher's bell (spec §12.4): latest 50 + unread count, and "mark
-// read". Every query is filtered by the caller's own auth id, so a
-// notification id from someone else's bell simply matches nothing.
+// Accepts only a full ISO timestamp (what the list itself returns), passed
+// through unchanged: Postgres keeps microseconds, and re-serializing via
+// Date would round the newest row's own stamp down and skip it.
+const ISO_TS = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,6})?(Z|[+-]\d{2}:?\d{2})$/
+const isIsoTimestamp = (s) => typeof s === 'string' && ISO_TS.test(s) && !Number.isNaN(Date.parse(s))
+
+// The teacher's bell (spec §12.4): latest 50 + unread count, "mark read",
+// and clearing (DELETE ?id=<uuid> removes one; without an id, "Clear all"
+// removes the caller's rows created at or before ?before=<ISO>, the newest
+// row the client had loaded — so a notification that arrives while the
+// teacher is confirming is not wiped unseen). Every
+// query is filtered by the caller's own auth id, so a notification id from
+// someone else's bell simply matches nothing.
 export default async function handler(req) {
   const cors = handleCors(req)
   if (cors) return cors
 
   try {
-    if (req.method !== 'GET' && req.method !== 'POST') {
+    if (req.method !== 'GET' && req.method !== 'POST' && req.method !== 'DELETE') {
       return json(req, 405, { error: 'Method not allowed', code: 'method_not_allowed' })
     }
     const t = await requireTeacher(req)
@@ -96,6 +106,27 @@ export default async function handler(req) {
         notifications,
         unread: Number.isFinite(total) ? total : 0,
       })
+    }
+
+    if (req.method === 'DELETE') {
+      const params = new URL(req.url).searchParams
+      const id = params.get('id')
+      // A bare "+" in a query string decodes to a space (older iOS builds
+      // sent "+00:00" unencoded); a timestamp never contains a space.
+      const before = params.get('before')?.replaceAll(' ', '+') ?? null
+      if (id !== null && !isUuid(id)) return json(req, 400, { error: 'Invalid id', code: 'bad_request' })
+      if (id === null && !isIsoTimestamp(before)) {
+        return json(req, 400, { error: 'Clear all needs before=<ISO timestamp>', code: 'bad_request' })
+      }
+      const scope = id !== null
+        ? `&id=eq.${encodeURIComponent(id)}`
+        : `&created_at=lte.${encodeURIComponent(before)}`
+      const res = await sb(`/rest/v1/teacher_notifications?teacher_user_id=eq.${me}${scope}`, {
+        method: 'DELETE',
+        headers: { Prefer: 'return=minimal' },
+      })
+      if (!res.ok) return json(req, 502, { error: 'Could not delete', code: 'upstream' })
+      return json(req, 200, { ok: true })
     }
 
     const body = (await req.json().catch(() => null)) ?? {}

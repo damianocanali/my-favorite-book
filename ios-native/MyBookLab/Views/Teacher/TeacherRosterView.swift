@@ -297,7 +297,7 @@ struct TeacherRosterView: View {
     // MARK: Network
 
     private func load() async {
-        guard let token = auth.accessToken else { return }
+        guard let token = await auth.validAccessToken() else { return }
         async let classes = try? APIClient.shared.teacherClasses(bearerToken: token)
         do {
             let list = try await APIClient.shared.teacherRoster(classId: classId, bearerToken: token)
@@ -324,11 +324,11 @@ struct TeacherRosterView: View {
         let names = names.filter { !$0.isEmpty }
         guard !names.isEmpty else { show(TeacherCopy.studentNameRequired, error: true); return }
         guard canMakePictures, let cls, let code = cls.code else { return }
-        guard let token = auth.accessToken else { return }
         busyId = "add"
         skipped = []
         banner = nil
         defer { busyId = nil }
+        guard let token = await auth.validAccessToken() else { return }
         do {
             let res = try await APIClient.shared.teacherAddStudents(classId: classId, names: names, bearerToken: token)
             let created = res.created ?? []
@@ -353,10 +353,10 @@ struct TeacherRosterView: View {
     }
 
     private func act(_ s: TeacherRosterStudent, _ action: String, name: String? = nil) async {
-        guard let token = auth.accessToken else { return }
         busyId = s.id
         banner = nil
         defer { busyId = nil }
+        guard let token = await auth.validAccessToken() else { return }
         do {
             let res = try await APIClient.shared.teacherStudentAction(
                 classId: classId, studentId: s.id, action: action, name: name, bearerToken: token)
@@ -373,10 +373,10 @@ struct TeacherRosterView: View {
 
     private func resetPictures(_ s: TeacherRosterStudent) async {
         guard canMakePictures, let cls, let code = cls.code else { return }
-        guard let token = auth.accessToken else { return }
         busyId = s.id
         banner = nil
         defer { busyId = nil }
+        guard let token = await auth.validAccessToken() else { return }
         do {
             let res = try await APIClient.shared.teacherStudentAction(
                 classId: classId, studentId: s.id, action: "reset_secret", bearerToken: token)

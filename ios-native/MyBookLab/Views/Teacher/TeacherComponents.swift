@@ -237,6 +237,7 @@ struct TeacherBellList: View {
     let dismiss: () -> Void
     @Environment(TeacherNotificationsStore.self) private var bell
     @Environment(TeacherStore.self) private var teacher
+    @State private var confirmingClear = false
 
     var body: some View {
         NavigationStack {
@@ -247,24 +248,68 @@ struct TeacherBellList: View {
                     list
                 }
             }
+            // A remove / clear-all the server refused: the rows are back,
+            // and this says why instead of them silently reappearing.
+            .safeAreaInset(edge: .top, spacing: 0) {
+                if let code = bell.actionError {
+                    HStack(alignment: .top, spacing: 10) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .foregroundStyle(TeacherTheme.urgent)
+                            .accessibilityHidden(true)
+                        Text(TeacherCopy.error(code))
+                            .font(.callout)
+                            .foregroundStyle(.white)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        Button { bell.actionError = nil } label: {
+                            Image(systemName: "xmark").font(.footnote.bold())
+                                .frame(width: 44, height: 44)
+                        }
+                        .accessibilityLabel(Text(TeacherCopy.done))
+                        .tint(.white)
+                    }
+                    .padding(.leading, 14)
+                    .background(TeacherTheme.urgent.opacity(0.18))
+                }
+            }
             .background(TeacherTheme.sheetBackground.ignoresSafeArea())
             .navigationTitle(Text(TeacherCopy.bellTitle))
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(TeacherTheme.sheetBackground, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
+                // Icons with spoken labels: two text buttons plus Done don't
+                // fit a popover's bar in Italian ("Segna tutte come lette").
+                ToolbarItemGroup(placement: .topBarLeading) {
                     if bell.unread > 0 {
                         Button { Task { await bell.markAllRead() } } label: {
-                            Text(TeacherCopy.bellMarkAll).fontWeight(.semibold)
+                            Label { Text(TeacherCopy.bellMarkAll) } icon: { Image(systemName: "checkmark.circle") }
                         }
+                        .labelStyle(.iconOnly)
                         .tint(.cyan)
+                        .help(Text(TeacherCopy.bellMarkAll))
+                    }
+                    if !bell.items.isEmpty {
+                        Button(role: .destructive) { confirmingClear = true } label: {
+                            Label { Text(TeacherCopy.bellClearAll) } icon: { Image(systemName: "trash") }
+                        }
+                        .labelStyle(.iconOnly)
+                        .tint(.white.opacity(0.85))
+                        .help(Text(TeacherCopy.bellClearAll))
                     }
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button(action: dismiss) { Text(TeacherCopy.done).bold() }
                         .tint(.white)
                 }
+            }
+            .confirmationDialog(Text(TeacherCopy.bellClearConfirm), isPresented: $confirmingClear,
+                                titleVisibility: .visible) {
+                Button(role: .destructive) {
+                    Task { await bell.clearAll() }
+                } label: {
+                    Text(TeacherCopy.bellClearAction)
+                }
+                Button(role: .cancel) {} label: { Text(TeacherCopy.cancel) }
             }
             .task { await bell.load() }
         }
@@ -291,6 +336,13 @@ struct TeacherBellList: View {
                             TeacherBellRow(n: n)
                         }
                         .buttonStyle(.plain)
+                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                            Button(role: .destructive) {
+                                Task { await bell.remove(n) }
+                            } label: {
+                                Label { Text(TeacherCopy.bellRemove) } icon: { Image(systemName: "trash") }
+                            }
+                        }
                         .listRowBackground(n.read_at == nil ? TeacherTheme.cardFillStrong : TeacherTheme.cardFill)
                         .listRowInsets(EdgeInsets(top: 12, leading: 14, bottom: 12, trailing: 14))
                     }

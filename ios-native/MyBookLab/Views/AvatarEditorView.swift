@@ -300,10 +300,10 @@ struct AvatarEditorView: View {
     }
 
     private func loadAndCartoonify(_ item: PhotosPickerItem) async {
-        guard let token = auth.accessToken else { return }
         generating = true
         error = nil
         defer { generating = false }
+        guard let token = await auth.validAccessToken() else { return }
 
         do {
             // Load the picked image data.

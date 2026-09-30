@@ -29,6 +29,7 @@
 import Foundation
 import Observation
 import ObjectiveC
+import UIKit
 
 enum AppLanguage {
     private static let choiceKey = "appLanguage"
@@ -55,13 +56,44 @@ enum AppLanguage {
     /// Also the per-app override iOS itself reads at launch: it works on an
     /// English-only phone, where iOS hides the Settings > App > Language row
     /// entirely.
+    ///
+    /// Rebuilding every screen takes a moment, so the switch is staged:
+    /// `switching` goes up first (the root shows a "Changing language…"
+    /// overlay, in the new language, and the picker disables), the rebuild
+    /// runs once that has reached the screen, and the overlay fades after.
     @MainActor
     static func choose(_ code: String) {
-        guard isSupported(code) else { return }
-        UserDefaults.standard.set(code, forKey: choiceKey)
-        UserDefaults.standard.set([code], forKey: "AppleLanguages")
-        LocalizedBundleBox.set(code: code)
-        AppLanguageState.shared.code = code
+        let state = AppLanguageState.shared
+        guard isSupported(code), code != state.code, state.switching == nil else { return }
+        state.switching = code
+        // VoiceOver hears the switch too (the overlay is visual only), in
+        // the language being switched to.
+        UIAccessibility.post(
+            notification: .announcement,
+            argument: NSAttributedString(
+                string: string("account.language.switching", defaultValue: "Changing language…", in: code),
+                attributes: [.accessibilitySpeechLanguage: code]))
+        Task { @MainActor in
+            // One or two frames for the overlay to be drawn before the
+            // main thread is busy rebuilding the tree.
+            try? await Task.sleep(for: .milliseconds(80))
+            UserDefaults.standard.set(code, forKey: choiceKey)
+            UserDefaults.standard.set([code], forKey: "AppleLanguages")
+            LocalizedBundleBox.set(code: code)
+            state.code = code
+            // Long enough to read, short enough not to be in the way.
+            try? await Task.sleep(for: .milliseconds(450))
+            state.switching = nil
+        }
+    }
+
+    /// A catalog string in a SPECIFIC language, not the current one — for
+    /// the switch overlay, which must speak the language being switched TO
+    /// while the lookup bundle still holds the old one.
+    static func string(_ key: String, defaultValue: String, in code: String) -> String {
+        guard let path = Bundle.main.path(forResource: code, ofType: "lproj"),
+              let bundle = Bundle(path: path) else { return defaultValue }
+        return bundle.localizedString(forKey: key, value: defaultValue, table: nil)
     }
 
     /// The language the UI is rendering in: the in-app choice if one was
@@ -119,6 +151,8 @@ enum AppLanguage {
 final class AppLanguageState {
     static let shared = AppLanguageState()
     var code: String = AppLanguage.uiLanguage
+    /// The language being switched to while a switch is under way, else nil.
+    var switching: String?
     var locale: Locale { AppLanguage.locale(for: code) }
     private init() {}
 }

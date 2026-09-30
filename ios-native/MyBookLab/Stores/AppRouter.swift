@@ -19,4 +19,8 @@ final class AppRouter {
     // Land on the middle Create tab — it greets the user with the
     // "My Book Lab" hero + subtitle and the Create-a-Book CTA.
     var selectedTab: AppTab = .create
+    /// The class account already sent to its home (Books) this launch.
+    /// Lives here, outside the view tree, because the root is rebuilt on a
+    /// language switch and must not yank the child back to Books then.
+    @ObservationIgnored var studentHomeLandedFor: UUID?
 }

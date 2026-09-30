@@ -297,12 +297,12 @@ struct StoryBuddyView: View {
     // MARK: - Actions
 
     private func loadIdeas(_ kind: IdeaKind) async {
-        guard let token = auth.accessToken else { return }
         ideaKind = kind
         ideas = []
         error = nil
         loading = true
         defer { loading = false }
+        guard let token = await auth.validAccessToken() else { return }
         do {
             ideas = try await APIClient.shared.storyBuddyIdeas(
                 intent: kind.intent, book: book, page: page, bearerToken: token
@@ -314,12 +314,14 @@ struct StoryBuddyView: View {
 
     private func send() async {
         let message = input.trimmingCharacters(in: .whitespaces)
-        guard !message.isEmpty, let token = auth.accessToken else { return }
+        guard !message.isEmpty else { return }
+        // Busy before the token await, so a second tap can't slip in.
+        sending = true
+        defer { sending = false }
+        guard let token = await auth.validAccessToken() else { return }
         input = ""
         messages.append(Msg(role: .user, content: message))
-        sending = true
         error = nil
-        defer { sending = false }
         do {
             let res = try await APIClient.shared.askStoryBuddy(
                 .init(message: message, context: page.text.isEmpty ? nil : page.text),

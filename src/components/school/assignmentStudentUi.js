@@ -42,6 +42,98 @@ export function hasUnseenFeedback(assignment) {
   return (assignment?.my_submission?.feedback_unseen ?? 0) > 0
 }
 
+// What the home's "From your teacher" card says (iPad: StudentAssignment
+// .homeStatus — keep the two in step). `hasBook`: a book on this device is
+// already tagged for it; `seen`: the child has opened it (see the seen-ids
+// helpers below). One of 'new' | 'not_started' | 'in_progress' |
+// 'handed_in' | 'feedback' | 'closed'.
+export function homeStatus(assignment, { hasBook = false, seen = false } = {}) {
+  if (hasUnseenFeedback(assignment)) return 'feedback'
+  const card = assignmentCardStatus(assignment)
+  if (card !== 'not_started') return card
+  if (hasBook) return 'in_progress'
+  return seen ? 'not_started' : 'new'
+}
+
+// Open work only, plus a closed one the child handed in (its feedback stays
+// reachable). A closed, never-started assignment is nothing to do.
+export function showsOnHome(assignment) {
+  return !!assignment && (assignment.status === 'published' || !!assignment.my_submission)
+}
+
+const HOME_RANK = { new: 0, feedback: 1, in_progress: 2, not_started: 3, handed_in: 4, closed: 5 }
+
+// What the child has to act on first: new, then fresh feedback, then in
+// progress, then the rest; each group keeps the server's order.
+export function sortForHome(assignments, statusOf) {
+  return assignments
+    .map((a, i) => ({ a, i, r: HOME_RANK[statusOf(a)] ?? 9 }))
+    .sort((x, y) => x.r - y.r || x.i - y.i)
+    .map((x) => x.a)
+}
+
+// Whether an open draft holds anything a child would miss (iPad:
+// MyAssignmentsSection.hasWork).
+export function draftHasWork(book) {
+  if (!book) return false
+  const filled = (s) => typeof s === 'string' && s.trim() !== ''
+  return filled(book.title) || filled(book.authorName)
+    || (book.characters?.length ?? 0) > 0 || !!book.setting || !!book.coverImage
+    || (book.pages ?? []).some((p) => filled(p?.text) || !!p?.illustrationData)
+}
+
+// What "Start writing" does with the draft that is open right now (iPad:
+// startOrContinue): 'resume' when it already is this assignment's book,
+// 'confirm' before replacing a draft that has work in it, else 'start'.
+export function startDecision(draft, assignmentId) {
+  if (draft && draft.assignmentId === assignmentId) return 'resume'
+  return draftHasWork(draft) ? 'confirm' : 'start'
+}
+
+// Which assignments this child has opened, so a new one wears a "New" badge
+// until they do. Per student user id (class devices are shared, and ids
+// never cross between children), in localStorage only. Deliberately KEPT
+// across sign-out: a child signing back in must not see everything as New
+// again. It stays small because every load prunes it to the assignments
+// still listed (pruneSeenAssignments). Every storage call is guarded:
+// private mode or blocked storage just means every assignment reads "New".
+const SEEN_PREFIX = 'assignmentsSeen.'
+
+export function readSeenAssignments(userId, storage = globalThis.localStorage) {
+  if (!userId) return new Set()
+  try {
+    const raw = storage?.getItem(SEEN_PREFIX + userId)
+    const list = raw ? JSON.parse(raw) : []
+    return new Set(Array.isArray(list) ? list.filter((x) => typeof x === 'string') : [])
+  } catch {
+    return new Set()
+  }
+}
+
+export function markAssignmentSeen(userId, assignmentId, storage = globalThis.localStorage) {
+  const seen = readSeenAssignments(userId, storage)
+  if (!userId || !assignmentId || seen.has(assignmentId)) return seen
+  seen.add(assignmentId)
+  try {
+    storage?.setItem(SEEN_PREFIX + userId, JSON.stringify([...seen]))
+  } catch { /* storage full or blocked: the badge just comes back */ }
+  return seen
+}
+
+// Drops seen ids for assignments no longer in the list (deleted, or gone
+// from the class), so the stored set never grows past the live list.
+export function pruneSeenAssignments(userId, liveIds, storage = globalThis.localStorage) {
+  const seen = readSeenAssignments(userId, storage)
+  if (!userId) return seen
+  const live = new Set(liveIds)
+  const kept = [...seen].filter((id) => live.has(id))
+  if (kept.length === seen.size) return seen
+  try {
+    storage?.setItem(SEEN_PREFIX + userId, JSON.stringify(kept))
+  } catch { /* the stale ids just stay a little longer */ }
+  return new Set(kept)
+}
+
 const DAY_MS = 24 * 60 * 60 * 1000
 const startOfDay = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate())
 

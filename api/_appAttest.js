@@ -279,7 +279,10 @@ export async function classifyAttestation(req, rawBody, userId) {
   if (mode === 'enforce') {
     return {
       attested: false,
-      reject: new Response(JSON.stringify({ error: 'App verification failed' }), {
+      // A distinct code: the iOS client refreshes its session and retries on
+      // a 401, which must not happen here — the token was fine, the device
+      // proof wasn't, and a retry would only burn another assertion.
+      reject: new Response(JSON.stringify({ error: 'App verification failed', code: 'attest_failed' }), {
         status: 401,
         headers: withCors({ 'Content-Type': 'application/json' }, req),
       }),

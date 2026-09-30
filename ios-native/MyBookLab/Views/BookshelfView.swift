@@ -58,6 +58,12 @@ struct BookshelfView: View {
     private var signedInLanding: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 12) {
+                // Schools: "From your teacher" comes first on a class
+                // account's home. Renders nothing for a family account.
+                if auth.isStudent {
+                    MyAssignmentsSection()
+                }
+
                 HStack {
                     // One key carrying the count as an argument, replacing
                     // the hand-rolled "s". Pluralization is not a suffix
@@ -80,12 +86,6 @@ struct BookshelfView: View {
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, 8)
-
-                // Schools: a class account's assignments sit above the
-                // shelf. Renders nothing for a family account.
-                if auth.isStudent {
-                    MyAssignmentsSection()
-                }
 
                 Shelves(books: bookshelf.books)
             }

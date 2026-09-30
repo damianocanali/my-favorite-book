@@ -460,10 +460,10 @@ private struct CharacterStep: View {
     }
 
     private func makeHeroFromPhoto(_ item: PhotosPickerItem) async {
-        guard let token = auth.accessToken else { return }
         generatingHero = true
         heroError = nil
         defer { generatingHero = false }
+        guard let token = await auth.validAccessToken() else { return }
         do {
             guard let data = try await item.loadTransferable(type: Data.self),
                   let original = UIImage(data: data) else {
@@ -985,8 +985,7 @@ private struct PagesStep: View {
     }
 
     private func generateIllustration() async {
-        guard let token = auth.accessToken,
-              let book = draft.book,
+        guard let book = draft.book,
               currentIndex < book.pages.count else { return }
         let scene = String(book.pages[currentIndex].text.prefix(200))
         let character = book.characters.first?.imagePromptDescription ?? "the hero"
@@ -996,6 +995,7 @@ private struct PagesStep: View {
         generatingIllustration = true
         generationError = nil
         defer { generatingIllustration = false }
+        guard let token = await auth.validAccessToken() else { return }
         do {
             let res = try await APIClient.shared.generateImage(
                 .init(prompt: prompt, style: "cartoon"),
@@ -1155,10 +1155,11 @@ private struct ReadyStep: View {
     }
 
     private func generateCover() async {
-        guard let token = auth.accessToken, let book = draft.book else { return }
+        guard let book = draft.book else { return }
         generatingCover = true
         coverError = nil
         defer { generatingCover = false }
+        guard let token = await auth.validAccessToken() else { return }
 
         let character = book.characters.first?.imagePromptDescription ?? "a friendly hero"
         let setting = book.setting?.name ?? "a magical place"

@@ -27,8 +27,9 @@ enum SchoolShare {
     /// never shown: a child should not see an error for telling us how they
     /// feel. `need` is nil when they closed the sheet after the feeling.
     static func shareCheckIn(feeling: Feeling, need: Need?) {
-        guard shouldShare, let token = AuthStore.shared.accessToken else { return }
+        guard shouldShare else { return }
         Task {
+            guard let token = await AuthStore.shared.validAccessToken() else { return }
             do {
                 try await APIClient.shared.schoolCheckIn(
                     feeling: feeling.rawValue, need: need?.rawValue, bearerToken: token
@@ -52,7 +53,7 @@ enum SchoolShare {
     }
 
     static func askForHelp(_ kind: HelpKind) async -> HelpResult {
-        guard shouldShare, let token = AuthStore.shared.accessToken else {
+        guard shouldShare, let token = await AuthStore.shared.validAccessToken() else {
             return HelpResult(ok: false)
         }
         do {
@@ -67,7 +68,7 @@ enum SchoolShare {
     /// Whether the teacher has seen an open help ask. Any failure reads as
     /// "not yet", so polling simply tries again next time.
     static func helpSeen(id: String) async -> (seen: Bool, teacherName: String?) {
-        guard shouldShare, let token = AuthStore.shared.accessToken else { return (false, nil) }
+        guard shouldShare, let token = await AuthStore.shared.validAccessToken() else { return (false, nil) }
         do {
             let res = try await APIClient.shared.schoolHelpStatus(id: id, bearerToken: token)
             let name = res.teacher_name?.trimmingCharacters(in: .whitespacesAndNewlines)

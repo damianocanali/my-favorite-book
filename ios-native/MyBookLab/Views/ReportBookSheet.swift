@@ -150,13 +150,13 @@ struct ReportBookSheet: View {
     }
 
     private func send() async {
-        guard let token = auth.accessToken else {
-            error = "Please sign in to report a book."
-            return
-        }
         sending = true
         error = nil
         defer { sending = false }
+        guard let token = await auth.validAccessToken() else {
+            error = "Please sign in to report a book."
+            return
+        }
         do {
             try await APIClient.shared.reportBook(
                 slug: book.slug,
@@ -172,7 +172,7 @@ struct ReportBookSheet: View {
     }
 
     private func block(_ authorId: String) async {
-        guard let token = auth.accessToken else {
+        guard let token = await auth.validAccessToken() else {
             error = "Please sign in to block an author."
             return
         }

@@ -68,3 +68,18 @@ export function browserPushEnv(isNative) {
     permission: hasWindow && 'Notification' in window ? window.Notification.permission : undefined,
   }
 }
+
+// Why a bell remove / clear-all failed, for the bell's error banner (iPad:
+// the TeacherBellList banner). `res` is schoolFetch's { ok, status, code };
+// null when it worked. A code the teacher can act on keeps its own wording;
+// anything else (network, upstream, 5xx) says which action failed.
+const ACTIONABLE_CODES = new Set(['rate_limited', 'student_forbidden', 'not_configured'])
+
+export function bellActionError(t, action, res) {
+  if (!res || res.ok) return null
+  if (res.status === 401) return t('school:notifications.session_ended')
+  if (ACTIONABLE_CODES.has(res.code)) return t(`school:teacher.errors.${res.code}`)
+  return action === 'clear'
+    ? t('school:notifications.clear_failed')
+    : t('school:notifications.remove_failed')
+}
