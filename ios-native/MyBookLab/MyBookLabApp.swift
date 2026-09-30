@@ -17,8 +17,11 @@ struct MyBookLabApp: App {
     @State private var teacher = TeacherStore.shared
     @State private var teacherBell = TeacherNotificationsStore.shared
     @State private var push = PushRegistrar.shared
+    @State private var language = AppLanguageState.shared
 
     init() {
+        // Before any string is looked up: the chosen language's .lproj.
+        AppLanguage.bootstrap()
         Purchases.logLevel = .warn
         Purchases.configure(withAPIKey: AppConfig.shared.revenueCatAPIKey)
     }
@@ -43,6 +46,12 @@ struct MyBookLabApp: App {
                 .environment(teacher)
                 .environment(teacherBell)
                 .environment(push)
+                // Live language switch: every Text resolves in this locale,
+                // and a new id rebuilds the tree so nothing already on
+                // screen stays in the old language. Navigation state lives
+                // in the stores (AppRouter, TeacherStore), so it survives.
+                .environment(\.locale, language.locale)
+                .id(language.code)
                 .task {
                     PrintOrderActivityManager.cleanup()
                     await auth.bootstrap()

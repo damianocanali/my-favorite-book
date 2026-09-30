@@ -187,12 +187,12 @@ struct ClassSignInView: View {
         var parts: [String] = []
         switch step {
         case .code:
-            parts.append(String(localized: SchoolCopy.codeHeading))
-            parts.append(String(localized: SchoolCopy.codeHint))
-        case .name: parts.append(String(localized: SchoolCopy.nameHeading))
-        case .pictures: parts.append(String(localized: SchoolCopy.pictureHeading))
+            parts.append(String(appLocalized: SchoolCopy.codeHeading))
+            parts.append(String(appLocalized: SchoolCopy.codeHint))
+        case .name: parts.append(String(appLocalized: SchoolCopy.nameHeading))
+        case .pictures: parts.append(String(appLocalized: SchoolCopy.pictureHeading))
         }
-        if let errorCode { parts.append(String(localized: SchoolCopy.error(errorCode))) }
+        if let errorCode { parts.append(String(appLocalized: SchoolCopy.error(errorCode))) }
         return parts.joined(separator: ". ")
     }
 

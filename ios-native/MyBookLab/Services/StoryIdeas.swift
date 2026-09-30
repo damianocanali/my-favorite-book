@@ -61,7 +61,7 @@ enum StoryIdeas {
     /// pool once and drops the matching *entry* by index, so the identity
     /// being compared is a position in the keyed pool, not the sentence.
     static func random(excluding current: String? = nil) -> String {
-        let resolved = all.map { String(localized: $0) }
+        let resolved = all.map { String(appLocalized: $0) }
         guard let first = resolved.first else { return "" }
         let excluded = current.flatMap { resolved.firstIndex(of: $0) }
         let pool = resolved.indices.filter { $0 != excluded }

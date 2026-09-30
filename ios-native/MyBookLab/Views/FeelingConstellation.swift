@@ -58,8 +58,8 @@ struct FeelingConstellation: View {
                 .background(.white.opacity(0.05), in: RoundedRectangle(cornerRadius: 16))
                 // One sentence for the whole picture, in the child's language.
                 .accessibilityElement(children: .ignore)
-                .accessibilityLabel(Text(feelings.map { String(localized: $0.displayName) }
-                                            .formatted(.list(type: .and))))
+                .accessibilityLabel(Text(feelings.map { String(appLocalized: $0.displayName) }
+                                            .formatted(.list(type: .and).locale(AppLanguage.locale))))
             }
         }
     }

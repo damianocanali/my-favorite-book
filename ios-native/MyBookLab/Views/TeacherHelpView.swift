@@ -78,7 +78,7 @@ struct TeacherHelpView: View {
             .frame(maxWidth: ContentWidth.form)
         }
         // Text changing under VoiceOver is silent unless announced.
-        .onChange(of: String(localized: message)) { _, spoken in
+        .onChange(of: String(appLocalized: message)) { _, spoken in
             AccessibilityNotification.Announcement(spoken).post()
         }
         // Cancelled when the view goes away, which is what stops polling on

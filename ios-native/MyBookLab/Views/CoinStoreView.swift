@@ -414,7 +414,7 @@ struct AvatarStyle: Identifiable, Hashable {
     /// catalog here means that screen gets the translation too, without
     /// this file duplicating the literal. Callers that can take a
     /// `LocalizedStringResource` should use `displayLabel` directly.
-    var label: String { String(localized: displayLabel) }
+    var label: String { String(appLocalized: displayLabel) }
 
     static func == (lhs: AvatarStyle, rhs: AvatarStyle) -> Bool { lhs.id == rhs.id }
     func hash(into hasher: inout Hasher) { hasher.combine(id) }

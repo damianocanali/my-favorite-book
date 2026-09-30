@@ -5713,16 +5713,6 @@
         }
       }
     },
-    "Close My Book Lab and open it again to switch language.": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Chiudi My Book Lab e riaprila per cambiare lingua."
-          }
-        }
-      }
-    },
     "Up to 50 AI illustrations a day": {
       "localizations": {
         "it": {

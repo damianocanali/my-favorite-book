@@ -194,9 +194,9 @@ struct AppIconPickerView: View {
     /// to a translatable noun phrase rather than leaking the wire id.
     private static func badgeName(_ badgeId: String) -> String {
         guard let badge = RewardsStore.catalog.first(where: { $0.id == badgeId }) else {
-            return String(localized: "badge.generic.name", defaultValue: "this badge")
+            return String(appLocalized: LocalizedStringResource("badge.generic.name", defaultValue: "this badge"))
         }
-        return String(localized: badge.label)
+        return String(appLocalized: badge.label)
     }
 
     private func isOwned(_ option: AppIconOption) -> Bool {

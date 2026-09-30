@@ -97,7 +97,7 @@ struct GameBanner: View {
         // its own language. `Text(verbatim:)` is correct here precisely
         // *because* the string has already been localized — it says so
         // out loud instead of looking like an accidental opt-out.
-        Text(verbatim: String(localized: text).uppercased())
+        Text(verbatim: String(appLocalized: text).uppercased())
             .font(.system(size: 34, weight: .heavy, design: .rounded))
             .tracking(1.5)
             .lineLimit(1)

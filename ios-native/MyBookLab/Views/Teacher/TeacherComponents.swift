@@ -124,8 +124,8 @@ extension TeacherCheckin {
     /// "Happy · Take a break · 2 days ago" — the spoken form of one icon.
     var spokenLabel: String {
         var parts: [String] = []
-        if let f = Feeling(rawValue: feeling) { parts.append(String(localized: f.displayName)) }
-        if let need, let n = Need(rawValue: need) { parts.append(String(localized: n.displayName)) }
+        if let f = Feeling(rawValue: feeling) { parts.append(String(appLocalized: f.displayName)) }
+        if let need, let n = Need(rawValue: need) { parts.append(String(appLocalized: n.displayName)) }
         if let when = TeacherDates.relative(created_at) { parts.append(when) }
         return parts.joined(separator: " · ")
     }

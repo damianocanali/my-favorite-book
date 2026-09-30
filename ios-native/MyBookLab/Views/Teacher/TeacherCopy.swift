@@ -211,7 +211,7 @@ enum TeacherCopy {
     /// and which assignment (web: teacherNotifications.notificationText).
     static func notification(_ n: TeacherNotification) -> LocalizedStringResource {
         let student = n.payload?.student_name.flatMap { $0.isEmpty ? nil : $0 }
-            ?? String(localized: bellUnknownStudent)
+            ?? String(appLocalized: bellUnknownStudent)
         let className = n.payload?.class_name ?? ""
         let assignment = n.payload?.assignment_title ?? ""
         switch n.kind {

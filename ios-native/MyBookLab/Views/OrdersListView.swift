@@ -110,7 +110,7 @@ struct OrdersListView: View {
             // left the order of the parts frozen in English.
             Text(LocalizedStringResource(
                 "orders.card.quantity_line",
-                defaultValue: "\(o.quantity) × \(String(localized: o.format.displayName)) · \(o.totalCents.asPrice)",
+                defaultValue: "\(o.quantity) × \(String(appLocalized: o.format.displayName)) · \(o.totalCents.asPrice)",
                 comment: "Order card subtitle, e.g. \"2 × Hardcover · $44.98\""))
                 .font(.caption).foregroundStyle(.white.opacity(0.7))
             Text(formattedDate(o.createdAt))
@@ -176,6 +176,6 @@ struct OrdersListView: View {
         let formatter = ISO8601DateFormatter()
         formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         let date = formatter.date(from: iso) ?? ISO8601DateFormatter().date(from: iso) ?? Date()
-        return date.formatted(date: .abbreviated, time: .omitted)
+        return date.formatted(.dateTime.day().month(.abbreviated).year().locale(AppLanguage.locale))
     }
 }

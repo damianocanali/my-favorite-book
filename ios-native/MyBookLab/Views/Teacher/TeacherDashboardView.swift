@@ -182,11 +182,11 @@ struct TeacherDashboardView: View {
     }
 
     private func helpRow(_ item: TeacherHelpItem, urgent: Bool) -> some View {
-        let name = item.display_name ?? String(localized: TeacherCopy.unknownStudent)
+        let name = item.display_name ?? String(appLocalized: TeacherCopy.unknownStudent)
         let detail = [
             item.class_name,
             TeacherDates.relative(item.created_at),
-            (item.asks ?? 1) > 1 ? String(localized: TeacherCopy.asks(item.asks ?? 1)) : nil,
+            (item.asks ?? 1) > 1 ? String(appLocalized: TeacherCopy.asks(item.asks ?? 1)) : nil,
         ].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " · ")
         return HStack(spacing: 12) {
             if urgent {
