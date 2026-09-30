@@ -14,9 +14,10 @@ export default function ClassDeviceCard({ classId, name, code }) {
   // 'setup' | 'remove' | null — an inline confirm, never a modal.
   const [confirming, setConfirming] = useState(null)
 
-  // The teacher made a new code for this class: keep this browser working.
+  // The teacher made a new code (or renamed the class): keep this browser
+  // working instead of leaving children on "isn't available".
   useEffect(() => {
-    if (device && device.classId === classId && code && device.code !== code) {
+    if (device && device.classId === classId && code && (device.code !== code || (name && device.name !== name))) {
       if (writeClassDevice({ classId, code, name })) setDevice(readClassDevice())
     }
   }, [device, classId, code, name])

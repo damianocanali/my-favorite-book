@@ -57,10 +57,19 @@ struct ClassDeviceCard: View {
                 onCancel: { confirmingSetup = false })
         }
         .classDeviceRemoveConfirmation(isPresented: $confirmingRemove, name: store.device?.name ?? name)
+        // The teacher made a new code (or renamed the class): keep this iPad
+        // working instead of leaving children on "isn't available".
+        .onChange(of: [code ?? "", name], initial: true) { _, _ in
+            guard let device = store.device, device.classId == classId,
+                  let code, !code.isEmpty, code != device.code || (!name.isEmpty && name != device.name)
+            else { return }
+            store.set(classId: classId, code: code, name: name.isEmpty ? device.name : name,
+                      setByUserId: device.setByUserId)
+        }
     }
 }
 
-/// "This iPad is set up for 3B", with an iPad glyph.
+/// "This iPad is set up for 3B"", with an iPad glyph.
 struct ClassDeviceStatusLine: View {
     let name: String
     var body: some View {
