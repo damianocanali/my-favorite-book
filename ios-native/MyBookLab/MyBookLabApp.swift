@@ -22,6 +22,8 @@ struct MyBookLabApp: App {
     init() {
         // Before any string is looked up: the chosen language's .lproj.
         AppLanguage.bootstrap()
+        // Leftover sign-in card PDFs from a previous run never outlive it.
+        SignInCardsFiles.purge()
         Purchases.logLevel = .warn
         Purchases.configure(withAPIKey: AppConfig.shared.revenueCatAPIKey)
     }
@@ -75,6 +77,9 @@ struct MyBookLabApp: App {
                 .onChange(of: auth.isTeacher) { _, _ in audio.applyAccountPolicy() }
                 .onChange(of: auth.user?.id) { _, newValue in
                     audio.applyAccountPolicy()
+                    // Any change of who is signed in — including a session
+                    // that simply expired — drops unprinted picture cards.
+                    teacher.clearPendingCards()
                     Task {
                         if let id = newValue?.uuidString {
                             await bookshelf.load(userId: id)

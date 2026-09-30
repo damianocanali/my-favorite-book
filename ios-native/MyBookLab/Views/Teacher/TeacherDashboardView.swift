@@ -378,6 +378,9 @@ struct TeacherDashboardView: View {
                     .clipped()
             }
             .frame(height: studentCardHeight, alignment: .top)
+            // At accessibility sizes, content is cut at the card's edge
+            // rather than spilling into the neighbouring card.
+            .clipped()
         }
     }
 

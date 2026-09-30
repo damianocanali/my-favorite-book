@@ -49,6 +49,13 @@ final class TeacherStore {
         pendingCards[classId] = batch
     }
 
+    /// Account change (sign-out, expired session, someone else signing in):
+    /// the pictures and their share-sheet PDFs go with it.
+    func clearPendingCards() {
+        pendingCards = [:]
+        SignInCardsFiles.purge()
+    }
+
     /// Only ever called by the teacher closing the cards.
     func dismissPendingCards(classId: String) {
         pendingCards[classId] = nil
@@ -97,7 +104,7 @@ final class TeacherStore {
 
     /// Sign-out: the next person on a shared iPad starts from scratch.
     func reset() {
-        pendingCards = [:]
+        clearPendingCards()
         selectedTab = .dashboard
         pendingRoute = nil
         UserDefaults.standard.removeObject(forKey: Self.classKey)

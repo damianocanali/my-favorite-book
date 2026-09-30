@@ -4,9 +4,12 @@
 //
 // Adding a child or giving them new pictures returns their one-time picture
 // password. It is shown at once, big, with "Print sign-in cards" (AirPrint)
-// and "Save as PDF". It is never written to disk by the app: the batch lives
-// in TeacherStore (memory) until the teacher closes the cards, so leaving
-// this screen — or a push tap pulling the teacher elsewhere — can't lose it.
+// and "Save as PDF". The batch lives in TeacherStore (memory) until the
+// teacher closes the cards, so leaving this screen — or a push tap pulling
+// the teacher elsewhere — can't lose it. The only thing written to disk is
+// the share sheet's PDF: one file per class in tmp/signin-cards (complete
+// file protection), removed when the cards close, at launch, and whenever
+// the signed-in account changes (SignInCardsFiles.purge()).
 //
 // Adding and new pictures wait until the class (and its code, printed on
 // every card) is known: a card without a class code is useless to a child.
@@ -475,6 +478,8 @@ struct TeacherSignInCardsView: View {
     /// Only called when the teacher closes the cards on purpose.
     let onClose: () -> Void
 
+    /// Only a completed print counts: a share sheet that merely opened
+    /// proves nothing was kept, so closing still asks.
     @State private var kept = false
     @State private var confirmClose = false
     @State private var pdfURL: URL?
@@ -557,7 +562,6 @@ struct TeacherSignInCardsView: View {
                     .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(Color.white.opacity(0.5)))
                     .foregroundStyle(.white)
             }
-            .simultaneousGesture(TapGesture().onEnded { kept = true })
         }
     }
 
@@ -605,11 +609,11 @@ struct TeacherSignInCardsView: View {
 
     /// A temporary file for the share sheet, removed when the cards close.
     private func writePDF() -> URL? {
-        let dir = FileManager.default.temporaryDirectory.appendingPathComponent("signin-cards", isDirectory: true)
+        let dir = SignInCardsFiles.directory
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-        let name = String(appLocalized: TeacherCopy.cardsHeading) + " — " + batch.className
-        let safe = name.components(separatedBy: CharacterSet(charactersIn: "/:\\?%*|\"<>")).joined(separator: "-")
-        let url = dir.appendingPathComponent(safe.isEmpty ? "sign-in-cards" : safe).appendingPathExtension("pdf")
+        // Named by class id (a UUID), so two classes can never share a file.
+        let safeId = batch.classId.filter { $0.isLetter || $0.isNumber || $0 == "-" }
+        let url = dir.appendingPathComponent("sign-in-cards-\(safeId.isEmpty ? "class" : safeId)").appendingPathExtension("pdf")
         do {
             try pdfData.write(to: url, options: [.atomic, .completeFileProtection])
             return url
@@ -633,16 +637,28 @@ struct TeacherSignInCardsView: View {
         let done: UIPrintInteractionController.CompletionHandler = { _, completed, _ in
             if completed { kept = true }
         }
-        // iPad (regular width): a popover anchored to the Print button, shown
-        // from the top-most presented controller (this full-screen cover).
-        // iPhone: the standard sheet.
-        if hSize == .regular, let host = TopViewController.find() {
+        // iPad (any width, Split View included): a popover anchored to the
+        // Print button, shown from the top-most presented controller (this
+        // full-screen cover). iPhone: the standard sheet.
+        if UIDevice.current.userInterfaceIdiom == .pad || hSize == .regular, let host = TopViewController.find() {
             let rect = host.view.convert(printAnchor, from: nil)
             controller.present(from: rect.isEmpty ? CGRect(x: host.view.bounds.midX, y: 80, width: 1, height: 1) : rect,
                                in: host.view, animated: true, completionHandler: done)
         } else {
             controller.present(animated: true, completionHandler: done)
         }
+    }
+}
+
+/// The share sheet's temporary PDFs.
+enum SignInCardsFiles {
+    static var directory: URL {
+        FileManager.default.temporaryDirectory.appendingPathComponent("signin-cards", isDirectory: true)
+    }
+
+    /// Removes every sign-in card PDF (they hold children's picture passwords).
+    static func purge() {
+        try? FileManager.default.removeItem(at: directory)
     }
 }
 
