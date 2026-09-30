@@ -188,7 +188,8 @@
       "assignment_closed": "This assignment is closed.",
       "past_due": "This assignment is past its due date.",
       "book_too_large": "This book is too big to hand in.",
-      "generic": "Something went wrong. Try again."
+      "generic": "Something went wrong. Try again.",
+      "class_archived": "This class is archived. Restore it to send nudges."
     },
     "class_page": {
       "back": "Back to your classes",

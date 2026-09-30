@@ -188,7 +188,8 @@
       "assignment_closed": "Questo compito è chiuso.",
       "past_due": "Questo compito ha superato la scadenza.",
       "book_too_large": "Questo libro è troppo grande per essere consegnato.",
-      "generic": "Qualcosa non ha funzionato. Riprova."
+      "generic": "Qualcosa non ha funzionato. Riprova.",
+      "class_archived": "Questa classe è archiviata. Ripristinala per inviare incoraggiamenti."
     },
     "class_page": {
       "back": "Torna alle tue classi",

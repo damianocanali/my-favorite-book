@@ -15,6 +15,11 @@
 // callers get the `_full` full-sentence variant instead.
 const FRAGMENT_CODES = new Set(['duplicate_name', 'create_failed'])
 
+// Codes with their own sentence under school:teacher.errors.* (a code not
+// listed here and without a key falls back to `generic`). class_archived:
+// api/school/nudges.js refuses to nudge an archived class.
+export const KNOWN_CODES = ['class_archived']
+
 export function errorKeyFor(code, { standalone = true } = {}) {
   if (standalone && FRAGMENT_CODES.has(code)) return `${code}_full`
   return code
