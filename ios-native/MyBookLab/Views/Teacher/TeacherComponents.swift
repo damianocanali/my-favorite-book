@@ -328,23 +328,22 @@ struct TeacherBellList: View {
             ForEach(sections, id: \.title.key) { section in
                 Section {
                     ForEach(section.rows) { n in
-                        Button {
-                            bell.markRead(n)
-                            teacher.open(n.route)
-                            dismiss()
-                        } label: {
-                            TeacherBellRow(n: n)
-                        }
-                        .buttonStyle(.plain)
-                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                            Button(role: .destructive) {
-                                Task { await bell.remove(n) }
-                            } label: {
-                                Label { Text(TeacherCopy.bellRemove) } icon: { Image(systemName: "trash") }
+                        row(n)
+                            // Swipe (needs the List), a long-press menu, a
+                            // visible remove button and a VoiceOver action:
+                            // removing a row never depends on finding a swipe.
+                            .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                Button(role: .destructive) { remove(n) } label: {
+                                    Label { Text(TeacherCopy.bellRemove) } icon: { Image(systemName: "trash") }
+                                }
                             }
-                        }
-                        .listRowBackground(n.read_at == nil ? TeacherTheme.cardFillStrong : TeacherTheme.cardFill)
-                        .listRowInsets(EdgeInsets(top: 12, leading: 14, bottom: 12, trailing: 14))
+                            .contextMenu {
+                                Button(role: .destructive) { remove(n) } label: {
+                                    Label { Text(TeacherCopy.bellRemove) } icon: { Image(systemName: "trash") }
+                                }
+                            }
+                            .listRowBackground(n.read_at == nil ? TeacherTheme.cardFillStrong : TeacherTheme.cardFill)
+                            .listRowInsets(EdgeInsets(top: 12, leading: 14, bottom: 12, trailing: 4))
                     }
                 } header: {
                     Text(section.title)
@@ -362,6 +361,38 @@ struct TeacherBellList: View {
         }
         .listStyle(.insetGrouped)
         .scrollContentBackground(.hidden)
+    }
+
+    /// The row opens what it is about; the small × beside it removes it.
+    /// Two buttons in one List row need a borderless/plain style each, or a
+    /// tap anywhere would fire both.
+    private func row(_ n: TeacherNotification) -> some View {
+        HStack(alignment: .top, spacing: 2) {
+            Button {
+                bell.markRead(n)
+                teacher.open(n.route)
+                dismiss()
+            } label: {
+                TeacherBellRow(n: n)
+            }
+            .buttonStyle(.plain)
+            .accessibilityAction(named: Text(TeacherCopy.bellRemove)) { remove(n) }
+
+            Button { remove(n) } label: {
+                Image(systemName: "xmark")
+                    .font(.footnote.weight(.bold))
+                    .foregroundStyle(TeacherTheme.secondaryText)
+                    .frame(width: 44, height: 44)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.borderless)
+            .accessibilityLabel(Text(TeacherCopy.bellRemove))
+            .help(Text(TeacherCopy.bellRemove))
+        }
+    }
+
+    private func remove(_ n: TeacherNotification) {
+        Task { await bell.remove(n) }
     }
 
     private var emptyState: some View {
