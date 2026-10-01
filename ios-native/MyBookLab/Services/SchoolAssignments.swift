@@ -91,24 +91,38 @@ enum SchoolAssignments {
         }
     }
 
-    /// The feedback thread of one hand-in, or nil on failure. Every
-    /// not-yet-seen item is marked seen on the way (the server keeps the
-    /// FIRST time it was seen, so repeating this is harmless);
-    /// `markedSeen` is true when at least one item was newly marked.
-    static func feedback(submissionId: String) async -> (items: [StudentSubmission.Feedback], markedSeen: Bool)? {
+    struct FeedbackLoad {
+        let items: [StudentSubmission.Feedback]
+        let grade: SubmissionGrade?
+        let returned: Bool
+        let markedSeen: Bool
+    }
+
+    /// The feedback thread and grade of one hand-in, or nil on failure.
+    /// Every not-yet-seen item (and a new grade) is marked seen on the way
+    /// (the server keeps the FIRST time it was seen, so repeating this is
+    /// harmless); `markedSeen` is true when anything was newly marked.
+    static func feedback(submissionId: String) async -> FeedbackLoad? {
         guard let token = await bearer() else { return nil }
         do {
             let res = try await APIClient.shared.studentSubmission(id: submissionId, bearerToken: token)
             let items = res.feedback ?? []
             let unseen = items.filter { $0.seen_at == nil }
+            let gradeUnseen = res.grade.flatMap { $0.seen_at == nil ? $0.id : nil }
             await withTaskGroup(of: Void.self) { group in
                 for item in unseen {
                     group.addTask {
                         try? await APIClient.shared.markFeedbackSeen(id: item.id, bearerToken: token)
                     }
                 }
+                if let gradeUnseen {
+                    group.addTask {
+                        try? await APIClient.shared.markGradeSeen(id: gradeUnseen, bearerToken: token)
+                    }
+                }
             }
-            return (items, !unseen.isEmpty)
+            return FeedbackLoad(items: items, grade: res.grade, returned: res.returned == true,
+                                markedSeen: !unseen.isEmpty || gradeUnseen != nil)
         } catch {
             log.warning("feedback load failed: \(String(describing: error), privacy: .public)")
             return nil
