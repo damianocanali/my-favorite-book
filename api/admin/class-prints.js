@@ -280,6 +280,12 @@ async function estimate(req, r) {
   })
 }
 
+// Data minimisation (owner rule): no child's name ever goes to Lulu as
+// metadata. Line items are numbered ("My Book Lab — Writing Year 3"),
+// external ids are opaque (request uuid + sequence), and the PDF URLs are
+// opaque storage keys (child auth uuid + request uuid + random stamp). The
+// only child data Lulu receives is the PDF content itself (the book, with
+// the child's name on its cover), which is what gets printed.
 export function buildLuluPayload(r, children, urls) {
   return {
     external_id: r.id,
@@ -298,10 +304,10 @@ export function buildLuluPayload(r, children, urls) {
       email: r.contact_email,
     },
     line_items: children.map((c, i) => ({
-      external_id: `${r.id}-${c.position}`,
+      external_id: `${r.id}-${i + 1}`,
       quantity: 1,
       pod_package_id: SOFTCOVER_POD,
-      title: `My Writing Year — ${c.display_name}`.slice(0, 200),
+      title: `My Book Lab — Writing Year ${i + 1}`,
       interior: { source_url: urls[i].interior },
       cover: { source_url: urls[i].cover },
     })),

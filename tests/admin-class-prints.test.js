@@ -208,6 +208,7 @@ describe('step 2: review links, estimate, send', () => {
     expect(payload.shipping_address.name).toContain('Attn Ms Rivera')
     expect(payload.shipping_address.name.length).toBeLessThanOrEqual(35)
     expect(payload.line_items).toHaveLength(2)
+    expect(payload.line_items.map((l) => l.title)).toEqual(['My Book Lab — Writing Year 1', 'My Book Lab — Writing Year 2'])
     for (const li of payload.line_items) {
       expect(li).toMatchObject({ quantity: 1, pod_package_id: '0850X0850FCSTDPB080CW444MXX' })
       expect(li.interior.source_url).toContain(`e=${60 * 60 * 24 * 7}`) // Lulu's links stay long
@@ -223,7 +224,7 @@ describe('step 2: review links, estimate, send', () => {
     const children = [child(CHILD1, 'Ann', 1, 'kid-auth-1'), child(CHILD2, 'Ben', 2, 'kid-auth-2', { rendered: false, status: 'removed' })]
     const log = mockSupabase({ user: OWNER, routes: routes({ children }) })
     expect((await (await load()).POST(post({ id: REQ_ID, action: 'submit' }))).status).toBe(200)
-    expect(lulu.createPrintJob.mock.calls[0][0].line_items.map((l) => l.title)).toEqual(['My Writing Year — Ann'])
+    expect(lulu.createPrintJob.mock.calls[0][0].line_items.map((l) => l.title)).toEqual(['My Book Lab — Writing Year 1'])
     expect(requestPatches(log).at(-1).body.children_count).toBe(1)
   })
 
@@ -415,4 +416,30 @@ describe('round 2', () => {
     expect(res.status).toBe(200)
     expect(await res.json()).toMatchObject({ options: [], default: 'GROUND', error: 'lulu down' })
   })
+
+  it('data minimisation: no child\'s name anywhere in what Lulu receives (payload or file names)', async () => {
+    lulu.createPrintJob.mockResolvedValue({ id: 1 })
+    const children = [
+      { ...child(CHILD1, 'Zuzanna', 1, 'kid-auth-1'), book: { ...BOOK, name: 'Zuzanna' } },
+      { ...child(CHILD2, 'Björn', 2, 'kid-auth-2'), book: { ...BOOK, name: 'Björn' } },
+    ]
+    const log = mockSupabase({ user: OWNER, routes: routes({ children }) })
+    expect((await (await load()).POST(post({ id: REQ_ID, action: 'submit' }))).status).toBe(200)
+    const payload = lulu.createPrintJob.mock.calls[0][0]
+    const serialized = JSON.stringify(payload)
+    for (const name of ['Zuzanna', 'Björn', 'zuzanna', 'bjorn', 'Bj%C3%B6rn', 'Bj\\u00f6rn']) expect(serialized).not.toContain(name)
+    expect(payload.line_items.map((l) => l.external_id)).toEqual([`${REQ_ID}-1`, `${REQ_ID}-2`])
+    // The signed URLs Lulu fetches point at opaque storage keys.
+    for (const l of calls(log, '/storage/v1/object/sign/', 'POST')) expect(decodeURIComponent(l.url)).not.toMatch(/Zuzanna|Björn/i)
+  })
+
+  it('rendered PDFs are stored under opaque keys (no child name)', async () => {
+    const children = [{ ...child(CHILD1, 'Zuzanna', 1, 'kid-auth-1', { rendered: false }), book: { ...BOOK, name: 'Zuzanna' } }]
+    const log = mockSupabase({ user: OWNER, routes: routes({ children }) })
+    expect((await (await load()).POST(post({ id: REQ_ID, action: 'render', childId: CHILD1 }))).status).toBe(200)
+    const keys = calls(log, '/storage/v1/object/print-pdfs/', 'POST').map((l) => decodeURIComponent(l.url))
+    expect(keys).toHaveLength(2)
+    for (const k of keys) expect(k).not.toMatch(/zuzanna/i)
+  })
 })
+
