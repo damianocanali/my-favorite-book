@@ -75,7 +75,10 @@ struct AccountView: View {
                 if auth.isTeacher && !teacherMode { classroomCard }
                 // No shop and no prices anywhere in the teacher area.
                 if !auth.isStudent && !teacherMode { coinsCard }
-                rewardsCard
+                // Streaks, badges and the feelings constellation are the
+                // child's: a teacher in teacher view never sees them (they
+                // come back in family view, which is for the teacher's own kids).
+                if !teacherMode { rewardsCard }
                 // Locked icons are unlocked with coins: not in teacher mode.
                 if !teacherMode { appIconCard }
                 if !auth.isStudent && !teacherMode { rowsCard }
@@ -86,7 +89,7 @@ struct AccountView: View {
                 signOutCard
                 // Below the badges and above the danger zone: something to look
                 // at, never something to act on.
-                FeelingConstellation()
+                if !teacherMode { FeelingConstellation() }
 
                 if !auth.isStudent { deleteAccountCard }
             }
