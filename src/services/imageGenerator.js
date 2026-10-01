@@ -1,4 +1,5 @@
 import { apiFetchAuthed } from '../lib/api'
+import { aiResponseError } from '../lib/aiErrors'
 import i18next from '../i18n'
 import { coverPayload, portraitPayload, pagePayload, editPayload } from './imagePayload'
 
@@ -11,10 +12,9 @@ async function generateImage(payload) {
     body: JSON.stringify(payload),
   })
 
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}))
-    throw new Error(error?.error || `Image API error: ${response.status}`)
-  }
+  // Keeps the server's `code` and status so friendlyAiError can show the
+  // right translated message (src/lib/aiErrors.js).
+  if (!response.ok) throw await aiResponseError(response, 'Image API error')
 
   const data = await response.json()
   return data.image

@@ -13,6 +13,10 @@ describe('friendlyAiError', () => {
     expect(friendlyAiError(withCode('timeout', 'Prompt is too long'), t)).toBe('errors:ai.timeout')
   })
 
+  it('treats an HTTP 504 without a code as a timeout', () => {
+    expect(friendlyAiError(Object.assign(new Error('Image generation took too long. Please try again.'), { status: 504 }), t)).toBe('errors:ai.timeout')
+  })
+
   it('treats an HTTP 429 without a code as rate limited', () => {
     expect(friendlyAiError(Object.assign(new Error('x'), { status: 429 }), t)).toBe('errors:ai.rate_limited')
   })

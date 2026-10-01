@@ -342,10 +342,15 @@ actor APIClient {
             /// offline fallback may draw, since name/description are typed
             /// by the child.
             let species: String?
+            /// A child-made ("create your own") character: the server's
+            /// offline fallback never draws from its name or description.
+            let custom: Bool
         }
         struct Setting: Encodable {
             let promptEn: String
             let description: String?
+            /// A child-made place: never looked up as a catalogue setting.
+            let custom: Bool
         }
 
         let kind: String            // "page" | "cover" | "portrait" | "edit"
@@ -371,10 +376,15 @@ actor APIClient {
                 let d = c.description?.trimmingCharacters(in: .whitespaces)
                 // Same caps the server keeps (lib/imageScene.js LIMITS); it
                 // truncates too, this just avoids sending what it drops.
+                let isCustom = c.custom == true
+                // A catalogue character goes by its frozen English catalogue
+                // name, which the server recognises (lib/imageCatalog.js).
+                let subject = (!isCustom ? c.promptEn?.name : nil) ?? c.imagePromptSubject
                 return Character(name: String(c.name.prefix(120)),
-                                 promptEn: String(c.imagePromptSubject.prefix(200)),
+                                 promptEn: String(subject.prefix(200)),
                                  description: (d?.isEmpty ?? true) ? nil : d.map { String($0.prefix(200)) },
-                                 species: BookCharacter.species(for: c.emoji))
+                                 species: BookCharacter.species(for: c.emoji),
+                                 custom: isCustom)
             }
         }
 
@@ -386,7 +396,8 @@ actor APIClient {
                   !name.isEmpty else { return nil }
             let d = s.description?.trimmingCharacters(in: .whitespaces)
             return Setting(promptEn: String(name.prefix(200)),
-                           description: (d?.isEmpty ?? true) ? nil : d.map { String($0.prefix(200)) })
+                           description: (d?.isEmpty ?? true) ? nil : d.map { String($0.prefix(200)) },
+                           custom: s.custom == true)
         }
     }
     struct GenerateImageResponse: Decodable {

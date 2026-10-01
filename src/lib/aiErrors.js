@@ -32,6 +32,7 @@ export function friendlyAiError(err, t) {
   const code = typeof err === 'object' && err ? err.code : undefined
   if (code && BY_CODE[code]) return t(BY_CODE[code])
   if (typeof err === 'object' && err?.status === 429) return t('errors:ai.rate_limited')
+  if (typeof err === 'object' && err?.status === 504) return t('errors:ai.timeout')
   const message = typeof err === 'string' ? err : err?.message ?? ''
   const hit = BY_MESSAGE.find(([re]) => re.test(message))
   return t(hit ? hit[1] : 'errors:ai.generic')
