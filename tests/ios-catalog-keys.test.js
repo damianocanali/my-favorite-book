@@ -138,6 +138,10 @@ const SAME_IN_ITALIAN = new Set([
   'My Book Lab', // the app's name
   'Story Buddy', // the helper's name, kept in Italian too (as on the web)
   'avatar_style.pixel.label', // "Pixel Art" is the Italian term too
+  // Catalogue characters keep the same given name in both languages, and
+  // "Doc" / "Chef" read the same in Italian (src/i18n/locales/*/content.json).
+  'content.characters.doctor.name',
+  'content.characters.chef.name',
 ])
 
 const itValue = (entry) =>

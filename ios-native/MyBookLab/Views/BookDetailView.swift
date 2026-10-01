@@ -186,11 +186,11 @@ struct BookDetailView: View {
         .padding(.horizontal, 24)
     }
 
-    private var pageLabel: String {
+    private var pageLabel: LocalizedStringResource {
         switch pageIndex {
-        case -1: return "Cover"
-        case book.pages.count: return "The End"
-        default: return "Page \(pageIndex + 1) of \(book.pages.count)"
+        case -1: return AppText("book.reader.cover", defaultValue: "Cover")
+        case book.pages.count: return AppText("The End")
+        default: return AppText("book.reader.page_of", defaultValue: "Page \(pageIndex + 1) of \(book.pages.count)")
         }
     }
 

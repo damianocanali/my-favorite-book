@@ -1,4 +1,4 @@
-import { promptName, promptDescription, promptLabel } from '../i18n/contentCatalog'
+import { promptName, promptDescription, promptLabel, isChildAuthored } from '../i18n/contentCatalog'
 
 // Structured bodies for /api/generate-image. Pure (no I/O) so it is testable.
 //
@@ -24,6 +24,10 @@ function characterFor(ch) {
     name: cap(ch?.name, 120),
     promptEn: cap(promptName(ch), 200),
     description: cap(promptDescription(ch), 200),
+    // A child-made character: the server's offline fallback never draws
+    // from its name/description, even if they happen to match a catalogue
+    // entry (lib/imageScene.js fallbackCharacter).
+    ...(isChildAuthored(ch) ? { custom: true } : {}),
   }
 }
 
@@ -37,7 +41,13 @@ function base(kind, book, locale) {
     kind,
     characters: (book?.characters ?? []).map(characterFor).filter(hasCharacter).slice(0, MAX_CHARACTERS),
     setting: book?.setting
-      ? { promptEn: cap(promptName(book.setting), 200), description: cap(promptDescription(book.setting), 200) }
+      ? {
+          promptEn: cap(promptName(book.setting), 200),
+          // A child's own place travels as their words (the server's scene
+          // writer translates them); `custom` keeps the fallback off them.
+          description: cap(promptDescription(book.setting), 200),
+          ...(isChildAuthored(book.setting) ? { custom: true } : {}),
+        }
       : null,
     timePeriod: promptLabel(book?.timePeriod),
     locale: locale || 'en',

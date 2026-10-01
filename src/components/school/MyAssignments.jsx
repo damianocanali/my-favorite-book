@@ -10,8 +10,9 @@ import { useAuthStore } from '../../stores/useAuthStore'
 import AssignmentCard from './AssignmentCard'
 import {
   homeStatus, showsOnHome, sortForHome, startDecision, canTryAgain,
-  readSeenAssignments, markAssignmentSeen, pruneSeenAssignments,
+  readSeenAssignments, markAssignmentSeen, pruneSeenAssignments, classBadgeCount, seenKeysOnOpen,
 } from './assignmentStudentUi'
+import { useClassBadgeStore } from '../../stores/useClassBadgeStore'
 import StudentFeedbackModal from './StudentFeedbackModal'
 import StudentNudgeCard from './StudentNudgeCard'
 import { nudgeAction } from './nudgeUi'
@@ -66,7 +67,8 @@ export default function MyAssignments() {
     const n = await schoolFetch('/api/school/nudges')
     if (n.ok) {
       const next = n.data?.nudge ?? null
-      setNudge(next && !dismissedNudges.current.has(next.id) ? next : null)
+      const gone = dismissedNudges.current.has(next?.id) || useClassBadgeStore.getState().dismissedNudges.has(next?.id)
+      setNudge(next && !gone ? next : null)
     }
   }, [])
 
@@ -84,8 +86,18 @@ export default function MyAssignments() {
   }, [load])
 
   function markOpened(assignmentId) {
-    if (seen.has(assignmentId)) return
-    setSeen(new Set(markAssignmentSeen(userId, assignmentId)))
+    const assignment = (assignments ?? []).find((a) => a.id === assignmentId)
+    const keys = assignment ? seenKeysOnOpen(assignment) : [assignmentId]
+    if (keys.every((k) => seen.has(k))) return
+    let next = seen
+    for (const k of keys) next = markAssignmentSeen(userId, k)
+    next = new Set(next)
+    setSeen(next)
+    // Straight onto the tab badge: opening an assignment usually navigates
+    // away at once, unmounting this section before its effect would run.
+    useClassBadgeStore.getState().setCount(
+      classBadgeCount(assignments ?? [], { seen: next, isStarted, hasNudge: !!nudge })
+    )
   }
 
   // A book already tagged for this assignment (see useBookStore's
@@ -107,6 +119,15 @@ export default function MyAssignments() {
     () => sortForHome((assignments ?? []).filter(showsOnHome), statusOf),
     [assignments, statusOf]
   )
+
+  // The Class tab's badge follows this section while it is on screen: a
+  // just-opened assignment drops off it at once (TabBar polls on its own
+  // while the child is elsewhere).
+  const setBadge = useClassBadgeStore((s) => s.setCount)
+  useEffect(() => {
+    if (assignments === null) return
+    setBadge(classBadgeCount(assignments, { seen, isStarted, hasNudge: !!nudge }))
+  }, [assignments, seen, isStarted, nudge, setBadge])
 
   // Never silently wipes work: the draft already open for this assignment
   // is just returned to, and any other draft with something in it is only
@@ -152,6 +173,10 @@ export default function MyAssignments() {
   function dismissNudge() {
     if (!nudge) return
     dismissedNudges.current.add(nudge.id)
+    useClassBadgeStore.getState().dismissNudge(nudge.id)
+    useClassBadgeStore.getState().setCount(
+      classBadgeCount(assignments ?? [], { seen, isStarted, hasNudge: false })
+    )
     const id = nudge.id
     setNudge(null)
     // Best-effort: a failure only means the card may come back next poll.

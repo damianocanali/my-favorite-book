@@ -154,7 +154,7 @@ struct ReportBookSheet: View {
         error = nil
         defer { sending = false }
         guard let token = await auth.validAccessToken() else {
-            error = "Please sign in to report a book."
+            error = String(appLocalized: AppText("report.error.sign_in_report", defaultValue: "Please sign in to report a book."))
             return
         }
         do {
@@ -167,13 +167,13 @@ struct ReportBookSheet: View {
             sent = true
             onReported?()
         } catch {
-            self.error = "Couldn't send that report: \(error.localizedDescription)"
+            self.error = String(appLocalized: AppText("report.error.send", defaultValue: "Couldn't send that report: \(error.localizedDescription)"))
         }
     }
 
     private func block(_ authorId: String) async {
         guard let token = await auth.validAccessToken() else {
-            error = "Please sign in to block an author."
+            error = String(appLocalized: AppText("report.error.sign_in_block", defaultValue: "Please sign in to block an author."))
             return
         }
         do {
@@ -181,7 +181,7 @@ struct ReportBookSheet: View {
             sent = true
             onReported?()
         } catch {
-            self.error = "Couldn't block that author: \(error.localizedDescription)"
+            self.error = String(appLocalized: AppText("report.error.block", defaultValue: "Couldn't block that author: \(error.localizedDescription)"))
         }
     }
 }

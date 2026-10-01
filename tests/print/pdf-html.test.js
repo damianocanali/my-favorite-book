@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { buildInteriorHtml, buildCoverHtml } from '../../lib/print/pdf-html.js'
+import { buildInteriorHtml, buildCoverHtml, printLanguage, hasCatalogueNames } from '../../lib/print/pdf-html.js'
 
 const fixtureBook = {
   title: 'My Bear',
@@ -103,5 +103,46 @@ describe('buildCoverHtml', () => {
     // (19 - 0.11) / 2 = 9.445
     const html = await buildCoverHtml(fixtureBook, HARDCOVER)
     expect(html).toContain('9.445in')
+  })
+})
+
+describe('printed back matter language', () => {
+  it('prints English by default', async () => {
+    const html = await buildInteriorHtml(fixtureBook)
+    expect(html).toContain('The End')
+    expect(html).toContain('Meet the Characters')
+  })
+
+  it('prints Italian for an Italian book, with catalogue names in Italian and custom ones as typed', async () => {
+    const html = await buildInteriorHtml({
+      ...fixtureBook,
+      language: 'it',
+      characters: [
+        { id: 'grandma', name: 'Grandma Greta', emoji: '👵', description: 'A cheerful grandma who knows a story for everything' },
+        { id: 'custom-1', name: 'La Presidente', emoji: '🧑', description: 'con un grande cappello', custom: true },
+      ],
+    })
+    expect(html).toContain('>Fine</p>')
+    expect(html).toContain('Scritto e illustrato da Theo')
+    expect(html).toContain('I personaggi')
+    expect(html).toContain('Nonna Greta')
+    expect(html).not.toContain('Grandma Greta')
+    expect(html).toContain('La Presidente')
+    expect(html).toContain('con un grande cappello')
+    expect(html).not.toContain('Meet the Characters')
+    expect(html).not.toContain('Story Reflection')
+  })
+})
+
+describe('pdf-html module', () => {
+  it('imports and loads the Italian catalogue names', () => {
+    expect(hasCatalogueNames('it')).toBe(true)
+  })
+
+  it('picks the print language from the book, defaulting to English', () => {
+    expect(printLanguage({ language: 'it' })).toBe('it')
+    expect(printLanguage({ language: 'it-IT' })).toBe('it')
+    expect(printLanguage({ language: 'fr' })).toBe('en')
+    expect(printLanguage({})).toBe('en')
   })
 })

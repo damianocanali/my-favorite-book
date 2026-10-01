@@ -24,6 +24,15 @@ final class AppRouter {
     /// language switch and must not yank the child back to Books then.
     @ObservationIgnored var studentHomeLandedFor: UUID?
 
+    /// The red count on a class account's "Class" tab: new assignments plus
+    /// an unread nudge (StudentAssignment.classBadgeCount). Written by the
+    /// home's MyAssignmentsSection while it is on screen, and by
+    /// MainTabView's own poll on every tab.
+    var classBadge = 0
+    /// Nudges dismissed with "Got it" on this device, so a poll racing the
+    /// PATCH can't bring the +1 (or the card) straight back.
+    @ObservationIgnored var dismissedNudges: Set<String> = []
+
     /// Where the sign-in flow is, held here rather than in the flow's own
     /// @State so a language switch (which rebuilds the view tree) keeps the
     /// screen.

@@ -4,6 +4,7 @@ import { checkRateLimit, getClientIp, handleCors, withCors } from './_rateLimit.
 import { verifyJwt } from './_auth.js'
 import { moderatePrompt } from './_aiGuard.js'
 import { rejectStudent } from './_school.js'
+import { capCustomBookText, publicBookText } from '../lib/bookLimits.js'
 
 function supabaseHeaders(serviceKey) {
   return {
@@ -127,7 +128,7 @@ export default async function handler(req) {
   const { allowed } = checkRateLimit(`publish:${userId}:${ip}`, 10)
   if (!allowed) return json(429, { error: 'Too many requests. Try again later.' })
 
-  const { book } = body
+  const book = capCustomBookText(body.book)
   if (!book || !book.title || !book.pages?.length) {
     return json(400, { error: 'A valid book is required' })
   }
@@ -143,14 +144,9 @@ export default async function handler(req) {
       error: 'Publishing is temporarily unavailable. Your book is safe on your shelf — please try again later.',
     })
   }
-  const publicText = [
-    book.title,
-    book.authorName,
-    ...(book.characters ?? []).map((c) => c?.name).filter(Boolean),
-    ...(book.pages ?? []).map((p) => p?.text).filter(Boolean),
-  ]
-    .filter(Boolean)
-    .join('\n')
+  // Character descriptions and the place (a child's own is free text) are
+  // printed on the public book too, so they are screened with the rest.
+  const publicText = publicBookText(book)
   const flagged = await moderatePrompt(publicText, req)
   if (flagged) return flagged
 

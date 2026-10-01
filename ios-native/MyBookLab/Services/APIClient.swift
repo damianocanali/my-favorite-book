@@ -35,13 +35,71 @@ enum APIError: Error, LocalizedError {
         case .sessionExpired:
             return String(appLocalized: Self.sessionExpiredText)
         case .http(let status, let body):
-            return "HTTP \(status): \(body)"
-        case .decoding(let e):
-            return "Decoding failed: \(e.localizedDescription)"
-        case .noData:
-            return "Empty response"
-        case .transport(let url, let underlying):
-            return "Request to \(url) failed: \(underlying.localizedDescription)"
+            // Never the server's raw (English) body: map its `code` to copy
+            // in the app language (web: src/lib/aiErrors.js). The raw body
+            // still goes to the log where the request fails.
+            return String(appLocalized: Self.friendly(status: status, code: Self.code(in: body),
+                                                      message: Self.message(in: body)))
+        case .decoding, .noData:
+            return String(appLocalized: Self.genericText)
+        case .transport(_, let underlying):
+            // Already localized by iOS ("The Internet connection appears to be offline").
+            return underlying.localizedDescription
+        }
+    }
+
+    /// The server's machine `code`, if its error body is JSON with one.
+    static func code(in body: String) -> String? { field("code", in: body) }
+    /// The server's English sentence — only consulted for older servers
+    /// that send no code.
+    static func message(in body: String) -> String? { field("error", in: body) }
+
+    private static func field(_ key: String, in body: String) -> String? {
+        guard let data = body.data(using: .utf8),
+              let obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { return nil }
+        return obj[key] as? String
+    }
+
+    /// The student-facing class picture limit (not the teacher's wording).
+    static var classImageLimitText: LocalizedStringResource {
+        AppText("errors.ai.class_image_limit", defaultValue: "That's all the pictures for today — ask your teacher.")
+    }
+
+    static var genericText: LocalizedStringResource {
+        AppText("errors.ai.generic", defaultValue: "Something went wrong. Please try again.")
+    }
+
+    static func friendly(status: Int, code: String?, message: String? = nil) -> LocalizedStringResource {
+        // No code (an older server): the daily cap's sentence still reads as
+        // the daily cap, not as a plain rate limit.
+        let code = code ?? {
+            let m = (message ?? "").lowercased()
+            if m.contains("creation limit") { return "daily_limit" }
+            if m.contains("all the pictures for today") { return "class_image_limit" }
+            if m.contains("kind and friendly") { return "unkind" }
+            return nil
+        }()
+        switch code {
+        case "class_image_limit":
+            return classImageLimitText
+        case "daily_limit":
+            return AppText("errors.ai.daily_limit", defaultValue: "You've reached today's creation limit — come back tomorrow!")
+        case "rate_limited":
+            return AppText("errors.ai.rate_limited", defaultValue: "Too many tries just now. Please try again a bit later.")
+        case "scene_unavailable":
+            return AppText("errors.ai.try_again", defaultValue: "We couldn't do that just now. Please try again in a moment.")
+        case "timeout":
+            return AppText("errors.ai.timeout", defaultValue: "That took too long. Please try again.")
+        case "unkind":
+            return AppText("errors.ai.unkind", defaultValue: "Let's keep our story kind and friendly — try different words!")
+        default:
+            if status == 429 {
+                return AppText("errors.ai.rate_limited", defaultValue: "Too many tries just now. Please try again a bit later.")
+            }
+            if status == 504 {
+                return AppText("errors.ai.timeout", defaultValue: "That took too long. Please try again.")
+            }
+            return genericText
         }
     }
 }
@@ -303,10 +361,15 @@ actor APIClient {
             /// offline fallback may draw, since name/description are typed
             /// by the child.
             let species: String?
+            /// A child-made ("create your own") character: the server's
+            /// offline fallback never draws from its name or description.
+            let custom: Bool
         }
         struct Setting: Encodable {
             let promptEn: String
             let description: String?
+            /// A child-made place: never looked up as a catalogue setting.
+            let custom: Bool
         }
 
         let kind: String            // "page" | "cover" | "portrait" | "edit"
@@ -332,10 +395,15 @@ actor APIClient {
                 let d = c.description?.trimmingCharacters(in: .whitespaces)
                 // Same caps the server keeps (lib/imageScene.js LIMITS); it
                 // truncates too, this just avoids sending what it drops.
+                let isCustom = c.custom == true
+                // A catalogue character goes by its frozen English catalogue
+                // name, which the server recognises (lib/imageCatalog.js).
+                let subject = (!isCustom ? c.promptEn?.name : nil) ?? c.imagePromptSubject
                 return Character(name: String(c.name.prefix(120)),
-                                 promptEn: String(c.imagePromptSubject.prefix(200)),
+                                 promptEn: String(subject.prefix(200)),
                                  description: (d?.isEmpty ?? true) ? nil : d.map { String($0.prefix(200)) },
-                                 species: BookCharacter.species(for: c.emoji))
+                                 species: BookCharacter.species(for: c.emoji),
+                                 custom: isCustom)
             }
         }
 
@@ -347,7 +415,8 @@ actor APIClient {
                   !name.isEmpty else { return nil }
             let d = s.description?.trimmingCharacters(in: .whitespaces)
             return Setting(promptEn: String(name.prefix(200)),
-                           description: (d?.isEmpty ?? true) ? nil : d.map { String($0.prefix(200)) })
+                           description: (d?.isEmpty ?? true) ? nil : d.map { String($0.prefix(200)) },
+                           custom: s.custom == true)
         }
     }
     struct GenerateImageResponse: Decodable {
@@ -1216,8 +1285,10 @@ actor APIClient {
                 title: book.title,
                 authorName: book.authorName,
                 authorAge: book.authorAge,
-                characters: book.characters.map { .init(name: $0.name) },
-                setting: book.setting.map { .init(name: $0.name) },
+                // The names the child sees, in their language — never the
+                // stored English catalogue names.
+                characters: book.characters.map { .init(name: $0.displayName) },
+                setting: book.setting.map { .init(name: $0.displayName) },
                 pages: book.pages.map { .init(pageNumber: $0.pageNumber, text: $0.text) }
             ),
             page: .init(pageNumber: page.pageNumber, text: page.text)

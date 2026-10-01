@@ -15,5 +15,16 @@
     "not_configured": "Autenticazione non configurata.",
     "reset_link_invalid": "Il link non è valido o è scaduto. Chiedine uno nuovo.",
     "generic_retry": "Qualcosa è andato storto. Riprova."
+  },
+  "ai": {
+    "daily_limit": "Hai raggiunto il limite di creazioni per oggi: torna domani!",
+    "unkind": "Teniamo la storia gentile e amichevole: prova con altre parole!",
+    "rate_limited": "Troppi tentativi in poco tempo. Riprova tra un po'.",
+    "too_long": "È un po' troppo lungo: prova ad accorciarlo.",
+    "buddy_unavailable": "Story Buddy si sta riposando. Riprova tra poco.",
+    "generic": "Qualcosa è andato storto. Riprova.",
+    "try_again": "Non ci siamo riusciti proprio ora. Riprova tra un momento.",
+    "timeout": "Ci è voluto troppo tempo. Riprova.",
+    "class_image_limit": "Per oggi le immagini sono finite: chiedi all'insegnante."
   }
 }

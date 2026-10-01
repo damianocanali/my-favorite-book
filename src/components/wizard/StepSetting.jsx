@@ -4,6 +4,7 @@ import { MapPin, ChevronLeft, Plus } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useBookStore } from '../../stores/useBookStore'
 import { scenes } from '../../data/scenes'
+import { CUSTOM_NAME_MAX, CUSTOM_DESCRIPTION_MAX } from '../../data/characters'
 import { displayName, displayDescription } from '../../i18n/contentCatalog'
 import GlowCard from '../ui/GlowCard'
 import SparkleButton from '../ui/SparkleButton'
@@ -26,17 +27,20 @@ export default function StepSetting({ onNext, onPrev }) {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false)
 
   const handleCreateCustomWorld = () => {
-    if (!customName.trim()) return
+    const name = customName.trim().slice(0, CUSTOM_NAME_MAX)
+    const description = customDesc.trim().slice(0, CUSTOM_DESCRIPTION_MAX)
+    if (!name) return
     setSetting({
       id: `custom-${Date.now()}`,
-      name: customName,
+      name,
       emoji: customEmoji,
-      // FROZEN ENGLISH for the same reason as StepCharacters: a custom world
-      // carries no `promptEn`, so this literal is what reaches the image
-      // prompt via the promptName()/promptDescription() fallback chain.
-      description: customDesc || 'A mysterious world...',
+      // Shown exactly as typed (see StepCharacters); the image prompt gets
+      // the child's words too, translated/sanitized server-side.
+      description,
+      promptEn: { name, description: description || 'a magical place' },
       color: '#06B6D4',
       gradient: 'from-cyan-900 to-teal-800',
+      custom: true,
       isCustom: true,
     })
     setCustomName('')
@@ -103,7 +107,7 @@ export default function StepSetting({ onNext, onPrev }) {
           ))}
 
           {/* Show already-created custom world if selected */}
-          {setting?.isCustom && (
+          {(setting?.custom || setting?.isCustom) && (
             <GlowCard
               selected={true}
               onClick={() => {}}
@@ -168,7 +172,7 @@ export default function StepSetting({ onNext, onPrev }) {
             onChange={(e) => setCustomName(e.target.value)}
             placeholder={t('wizard:setting.name_placeholder')}
             className="w-full px-4 py-3 bg-galaxy-bg border border-galaxy-secondary/30 rounded-xl text-galaxy-text placeholder:text-galaxy-text-muted/50 focus:border-galaxy-secondary focus:outline-none font-body"
-            maxLength={30}
+            maxLength={CUSTOM_NAME_MAX}
           />
           <input
             type="text"
@@ -176,7 +180,7 @@ export default function StepSetting({ onNext, onPrev }) {
             onChange={(e) => setCustomDesc(e.target.value)}
             placeholder={t('wizard:setting.description_placeholder')}
             className="w-full px-4 py-3 bg-galaxy-bg border border-galaxy-secondary/30 rounded-xl text-galaxy-text placeholder:text-galaxy-text-muted/50 focus:border-galaxy-secondary focus:outline-none font-body"
-            maxLength={80}
+            maxLength={CUSTOM_DESCRIPTION_MAX}
           />
           <div className="flex gap-3 justify-center">
             <SparkleButton onClick={() => { setShowCreate(false); setShowEmojiPicker(false) }} variant="secondary" size="small">

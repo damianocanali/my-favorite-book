@@ -1,6 +1,8 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { nanoid } from 'nanoid'
+import { MAX_CHARACTERS } from '../data/characters'
+import i18next from '../i18n'
 
 const createBlankPage = (pageNumber) => ({
   id: nanoid(),
@@ -22,6 +24,10 @@ const createBlankBook = () => ({
     text: '#F1F5F9',
     palette: 'starlight',
   },
+  // The language the child writes in (iPad: BookDraftStore stamps the same
+  // field): the printed back matter follows it, not the UI of whoever
+  // later orders the print.
+  language: (i18next.language || 'en').slice(0, 2),
   characters: [],
   setting: null,
   timePeriod: null,
@@ -111,13 +117,13 @@ export const useBookStore = create(
 
       addCharacter: (character) =>
         set((state) => ({
-          book: state.book
+          book: state.book && state.book.characters.length < MAX_CHARACTERS
             ? {
                 ...state.book,
                 characters: [...state.book.characters, { ...character, id: character.id || nanoid() }],
                 updatedAt: new Date().toISOString(),
               }
-            : null,
+            : state.book,
         })),
 
       removeCharacter: (id) =>
@@ -135,6 +141,7 @@ export const useBookStore = create(
         set((state) => {
           if (!state.book) return {}
           const exists = state.book.characters.find((c) => c.id === character.id)
+          if (!exists && state.book.characters.length >= MAX_CHARACTERS) return {}
           return {
             book: {
               ...state.book,

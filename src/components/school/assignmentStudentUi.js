@@ -145,7 +145,9 @@ export function pruneSeenAssignments(userId, liveIds, storage = globalThis.local
   const seen = readSeenAssignments(userId, storage)
   if (!userId) return seen
   const live = new Set(liveIds)
-  const kept = [...seen].filter((id) => live.has(id))
+  // A sent-back marker ("<id>#back:…", see sentBackKey) lives as long as
+  // its assignment does.
+  const kept = [...seen].filter((id) => live.has(String(id).split('#')[0]))
   if (kept.length === seen.size) return seen
   try {
     storage?.setItem(SEEN_PREFIX + userId, JSON.stringify(kept))
@@ -216,4 +218,35 @@ export async function runHandInSequence(syncFn, submitFn) {
   const synced = await syncFn()
   if (!synced) return { ok: false, code: 'sync_failed' }
   return submitFn()
+}
+
+// The number on a class account's "Class" tab (iPad: StudentClassBadge —
+// keep the two in step): open assignments this child has not opened yet
+// (exactly the ones whose card reads "New"), plus 1 for an unread teacher
+// nudge. 0 means no badge at all.
+export function classBadgeCount(assignments, { seen = new Set(), isStarted = () => false, hasNudge = false } = {}) {
+  const list = assignments ?? []
+  const fresh = list.filter(
+    (a) => a?.status === 'published' && homeStatus(a, { hasBook: isStarted(a.id), seen: seen.has(a.id) }) === 'new'
+  ).length
+  // Owner ruling: a book the teacher sent back that the child can still
+  // hand in again counts too, until the child opens that sent-back card.
+  const sentBack = list.filter((a) => isSentBack(a) && !seen.has(sentBackKey(a))).length
+  return fresh + sentBack + (hasNudge ? 1 : 0)
+}
+
+// The seen-set entry for one particular send-back of an assignment (its
+// submission and version), so a later send-back counts again. Stored in the
+// same per-child seen set as the assignment ids.
+export function sentBackKey(assignment) {
+  const sub = assignment?.my_submission
+  if (!assignment?.id || !sub) return null
+  return `${assignment.id}#back:${sub.id ?? ''}:${sub.version ?? 0}`
+}
+
+// Everything opening this card marks as seen: the assignment itself, and
+// its current send-back if there is one.
+export function seenKeysOnOpen(assignment) {
+  if (!assignment?.id) return []
+  return isSentBack(assignment) ? [assignment.id, sentBackKey(assignment)] : [assignment.id]
 }

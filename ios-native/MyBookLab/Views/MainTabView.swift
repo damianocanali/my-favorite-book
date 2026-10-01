@@ -37,6 +37,8 @@ struct MainTabView: View {
     @Environment(AudioService.self) private var audio
     @Environment(AuthStore.self) private var auth
     @Environment(TeacherStore.self) private var teacher
+    @Environment(BookshelfStore.self) private var bookshelf
+    @Environment(\.scenePhase) private var scenePhase
 
     /// A teacher gets Dashboard · Classes · Account instead of the family
     /// tabs (TeacherStore decides; a class account never does).
@@ -58,8 +60,22 @@ struct MainTabView: View {
     @ViewBuilder private var familyTabs: some View {
         @Bindable var router = router
         TabView(selection: $router.selectedTab) {
+            // A class account's home ("From your teacher" on top) is its
+            // "Class" tab, badged with new assignments + an unread nudge
+            // (web: TabBar's STUDENT_HOME_TAB).
             BookshelfView()
-                .tabItem { Label("Books", systemImage: "books.vertical.fill") }
+                .tabItem {
+                    if auth.isStudent {
+                        Label {
+                            Text(AppText("tabs.class", defaultValue: "Class"))
+                        } icon: {
+                            Image(systemName: "graduationcap.fill")
+                        }
+                    } else {
+                        Label("Books", systemImage: "books.vertical.fill")
+                    }
+                }
+                .badge(auth.isStudent ? router.classBadge : 0)
                 .tag(AppTab.books)
 
             // Owner decision: a class (student) account must never see the
@@ -107,6 +123,25 @@ struct MainTabView: View {
                 router.selectedTab = .books
             }
         }
+        // MyAssignmentsSection updates the badge the moment something
+        // changes while it is on screen; this poll keeps it fresh everywhere
+        // else — other tabs, and a book opened from the Class tab (which
+        // takes the section off screen). Same minute rhythm, active app only.
+        // A new child on a shared iPad starts from zero.
+        .task(id: BadgePollKey(
+            student: auth.isStudent, userId: auth.user?.id, active: scenePhase == .active
+        )) {
+            guard auth.isStudent, auth.user != nil else {
+                router.classBadge = 0
+                return
+            }
+            guard scenePhase == .active else { return }
+            while !Task.isCancelled {
+                await refreshClassBadge()
+                try? await Task.sleep(for: SchoolAssignments.pollInterval)
+            }
+        }
+        .onChange(of: auth.user?.id) { _, _ in router.classBadge = 0 }
         .onChange(of: auth.isStudent) { _, student in
             guard student else { return }
             if router.selectedTab == .orders { router.selectedTab = .create }
@@ -131,6 +166,32 @@ struct MainTabView: View {
             case .account: audio.play(.home)
             }
         }
+    }
+}
+
+private struct BadgePollKey: Equatable {
+    let student: Bool
+    let userId: UUID?
+    let active: Bool
+}
+
+extension MainTabView {
+    /// Same reads and rules as MyAssignmentsSection; a failed read keeps
+    /// whatever the badge shows.
+    fileprivate func refreshClassBadge() async {
+        guard let list = await SchoolAssignments.list(), !Task.isCancelled else { return }
+        let nudge = await SchoolAssignments.nudge() ?? nil
+        let userId = auth.user?.id.uuidString
+        let seen = AssignmentSeen.ids(userId: userId)
+        let books = bookshelf.books
+        let draftAssignment = BookDraftStore.shared.book?.assignmentId
+        let count = StudentAssignment.classBadgeCount(
+            list, seen: seen,
+            isStarted: { a in draftAssignment == a.id || books.contains { $0.assignmentId == a.id } },
+            hasNudge: nudge.map { !router.dismissedNudges.contains($0.id) } ?? false
+        )
+        guard !Task.isCancelled else { return }
+        router.classBadge = count
     }
 }
 

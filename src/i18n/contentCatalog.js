@@ -19,12 +19,18 @@
 // fall back to those legacy fields, and to whatever the child typed for
 // custom entries that were never in a catalogue at all.
 
+/// A "create your own" character or place: shown exactly as the child typed
+/// it, never looked up in the catalogue (its id is not a catalogue id).
+export function isChildAuthored(entity) {
+    return !!(entity?.custom || entity?.isCustom)
+}
+
 /// What to SHOW for a catalogue entry. Prefers the translated catalogue entry,
 /// falls back to the entry's own text (legacy books, child-authored entries).
 export function displayName(entity, t, kind) {
     if (!entity) return ''
     const legacy = entity.name ?? entity.label ?? ''
-    if (!entity.id || !kind || typeof t !== 'function') return legacy
+    if (isChildAuthored(entity) || !entity.id || !kind || typeof t !== 'function') return legacy
     return t(`content:${kind}.${entity.id}.name`, { defaultValue: legacy })
 }
 
@@ -32,7 +38,7 @@ export function displayName(entity, t, kind) {
 export function displayDescription(entity, t, kind) {
     if (!entity) return ''
     const legacy = entity.description ?? ''
-    if (!entity.id || !kind || typeof t !== 'function') return legacy
+    if (isChildAuthored(entity) || !entity.id || !kind || typeof t !== 'function') return legacy
     return t(`content:${kind}.${entity.id}.description`, { defaultValue: legacy })
 }
 

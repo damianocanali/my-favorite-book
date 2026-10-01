@@ -157,7 +157,9 @@ enum AssignmentSeen {
     static func prune(keeping liveIds: [String], userId: String?) -> Set<String> {
         let seen = ids(userId: userId)
         guard let userId else { return seen }
-        let kept = seen.intersection(liveIds)
+        // A sent-back marker ("<id>#back:…") lives as long as its assignment.
+        let live = Set(liveIds)
+        let kept = seen.filter { live.contains(String($0.split(separator: "#").first ?? "")) }
         if kept.count != seen.count {
             UserDefaults.standard.set(Array(kept), forKey: prefix + userId)
         }

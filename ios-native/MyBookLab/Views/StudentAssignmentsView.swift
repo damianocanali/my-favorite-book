@@ -197,10 +197,17 @@ struct MyAssignmentsSection: View {
                 }
                 // A failed read keeps what is on screen.
                 if let fresh = await SchoolAssignments.nudge() {
-                    nudge = fresh.flatMap { dismissedNudges.contains($0.id) ? nil : $0 }
+                    nudge = fresh.flatMap {
+                        dismissedNudges.contains($0.id) || router.dismissedNudges.contains($0.id) ? nil : $0
+                    }
                 }
                 try? await Task.sleep(for: SchoolAssignments.pollInterval)
             }
+        }
+        // The Class tab's badge follows this section while it is on screen:
+        // opening an assignment takes it off at once.
+        .onChange(of: badgeCount, initial: true) { _, count in
+            if let count { router.classBadge = count }
         }
         .sheet(item: $feedbackFor) { assignment in
             if let submissionId = assignment.my_submission?.id {
@@ -244,6 +251,14 @@ struct MyAssignmentsSection: View {
         let active: Bool
     }
 
+    /// nil until the list has loaded once (a failed first read leaves the
+    /// badge as it was).
+    private var badgeCount: Int? {
+        guard auth.isStudent, let assignments else { return nil }
+        return StudentAssignment.classBadgeCount(
+            assignments, seen: seen, isStarted: isStarted, hasNudge: nudge != nil)
+    }
+
     /// What the child has to act on first: new, then in progress, then
     /// fresh feedback, then the rest; each group in the server's order.
     private var visible: [StudentAssignment] {
@@ -270,9 +285,10 @@ struct MyAssignmentsSection: View {
     }
 
     private func markOpened(_ assignment: StudentAssignment) {
-        guard !seen.contains(assignment.id) else { return }
-        seen.insert(assignment.id)
-        AssignmentSeen.mark(assignment.id, userId: auth.user?.id.uuidString)
+        for key in assignment.seenKeysOnOpen where !seen.contains(key) {
+            seen.insert(key)
+            AssignmentSeen.mark(key, userId: auth.user?.id.uuidString)
+        }
     }
 
     /// A book already tagged for this assignment: "Start writing" resumes it
@@ -379,6 +395,7 @@ struct MyAssignmentsSection: View {
 
     private func dismissNudge(_ n: StudentNudge) {
         dismissedNudges.insert(n.id)
+        router.dismissedNudges.insert(n.id)
         nudge = nil
         Task { await SchoolAssignments.markNudgeSeen(id: n.id) }
     }

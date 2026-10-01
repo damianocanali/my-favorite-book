@@ -369,25 +369,25 @@ final class AuthStore: NSObject {
         let msg = error.localizedDescription.lowercased()
 
         if msg.contains("not confirmed") || msg.contains("email_not_confirmed") {
-            return "Please confirm your email first — check your inbox for the link we sent."
+            return String(appLocalized: AppText("auth.error.not_confirmed", defaultValue: "Please confirm your email first — check your inbox for the link we sent."))
         }
         if msg.contains("invalid login") || msg.contains("invalid_credentials") {
-            return "That email and password don't match. Try again, or reset your password."
+            return String(appLocalized: AppText("auth.error.invalid_credentials", defaultValue: "That email and password don't match. Try again, or reset your password."))
         }
         if msg.contains("rate limit") || msg.contains("only request this after")
             || msg.contains("too many") {
-            return "Too many attempts just now. Please wait a minute and try again."
+            return String(appLocalized: AppText("auth.error.rate_limited", defaultValue: "Too many attempts just now. Please wait a minute and try again."))
         }
         if msg.contains("password") && msg.contains("6") {
-            return "Passwords need to be at least 6 characters."
+            return String(appLocalized: AppText("auth.error.password_short", defaultValue: "Passwords need to be at least 6 characters."))
         }
         if msg.contains("network") || msg.contains("offline")
             || msg.contains("internet connection") {
-            return "Can't reach the internet. Check your connection and try again."
+            return String(appLocalized: AppText("auth.error.offline", defaultValue: "Can't reach the internet. Check your connection and try again."))
         }
         return signingUp
-            ? "Couldn't create your account. Please try again."
-            : "Couldn't sign in. Please try again."
+            ? String(appLocalized: AppText("auth.error.signup_failed", defaultValue: "Couldn't create your account. Please try again."))
+            : String(appLocalized: AppText("auth.error.signin_failed", defaultValue: "Couldn't sign in. Please try again."))
     }
 
     func signOut() async {

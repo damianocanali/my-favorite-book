@@ -1,5 +1,53 @@
 {
   "characters": {
+    "girl": {
+      "name": "Maya la coraggiosa",
+      "description": "Una bambina curiosa che adora le grandi avventure"
+    },
+    "boy": {
+      "name": "Leo il generoso",
+      "description": "Un bambino allegro, sempre pronto ad aiutare"
+    },
+    "aunt": {
+      "name": "Zia Sofia",
+      "description": "Una zia gentile, bravissima a risolvere i problemi"
+    },
+    "uncle": {
+      "name": "Zio Marco",
+      "description": "Uno zio simpatico che racconta le barzellette più belle"
+    },
+    "grandma": {
+      "name": "Nonna Greta",
+      "description": "Una nonna allegra che ha una storia per ogni cosa"
+    },
+    "grandpa": {
+      "name": "Nonno Tom",
+      "description": "Un nonno giocherellone che costruisce invenzioni straordinarie"
+    },
+    "teacher": {
+      "name": "Sam l'insegnante",
+      "description": "Insegna con passione e trasforma ogni lezione in un'avventura"
+    },
+    "firefighter": {
+      "name": "Alex dei vigili del fuoco",
+      "description": "Fa parte dei vigili del fuoco e aiuta chiunque sia in difficoltà"
+    },
+    "doctor": {
+      "name": "Doc Kim",
+      "description": "Cura persone e animali e li fa sentire subito meglio"
+    },
+    "chef": {
+      "name": "Chef Nico",
+      "description": "Cucina con gioia piatti sorprendenti e buonissimi"
+    },
+    "king": {
+      "name": "Re Theo",
+      "description": "Un re gentile che ascolta tutti nel suo regno"
+    },
+    "queen": {
+      "name": "Regina Zara",
+      "description": "Una regina saggia, coraggiosa, giusta e gentile"
+    },
     "astronaut": {
       "name": "Astro l'Esploratore",
       "description": "Un esploratore coraggioso che scopre pianeti nuovi"
@@ -79,8 +127,28 @@
       "description": "Un mondo dolcissimo con fiumi di cioccolato e montagne di caramelle"
     },
     "dinosaur-valley": {
-      "name": "Valle dei Dinosauri",
-      "description": "Una valle preistorica dove i dinosauri vivono ancora liberi"
+      "name": "La Valle dei Dinosauri",
+      "description": "Una valle nascosta dove i dinosauri giocano ancora."
+    },
+    "glowing-forest": {
+      "name": "Il Bosco Luminoso",
+      "description": "Un bosco magico dove di notte scendono le stelle."
+    },
+    "cloud-kingdom": {
+      "name": "Il Regno delle Nuvole",
+      "description": "Una terra che galleggia altissima sopra il mondo."
+    },
+    "coral-city": {
+      "name": "La Città di Corallo",
+      "description": "Una città sott'acqua con torri di corallo luminose."
+    },
+    "cookie-planet": {
+      "name": "Il Pianeta dei Biscotti",
+      "description": "Un pianeta fatto di tutti i dolci che puoi immaginare."
+    },
+    "snow-castle": {
+      "name": "Il Castello di Neve",
+      "description": "Un castello di ghiaccio e di luna argentata."
     }
   },
   "time_periods": {

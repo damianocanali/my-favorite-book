@@ -3,7 +3,7 @@ import { motion } from 'motion/react'
 import { Users, ChevronLeft, Plus } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useBookStore } from '../../stores/useBookStore'
-import { characters } from '../../data/characters'
+import { characters, MAX_CHARACTERS, CUSTOM_NAME_MAX, CUSTOM_DESCRIPTION_MAX } from '../../data/characters'
 import { displayName, displayDescription } from '../../i18n/contentCatalog'
 import GlowCard from '../ui/GlowCard'
 import SparkleButton from '../ui/SparkleButton'
@@ -28,18 +28,25 @@ export default function StepCharacters({ onNext, onPrev }) {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false)
 
   const selectedIds = new Set(book?.characters?.map((c) => c.id) ?? [])
+  const full = selectedIds.size >= MAX_CHARACTERS
 
   const handleCreateCustom = () => {
-    if (!customName.trim()) return
+    const name = customName.trim().slice(0, CUSTOM_NAME_MAX)
+    const description = customDesc.trim().slice(0, CUSTOM_DESCRIPTION_MAX)
+    if (!name || full) return
     addCharacter({
       id: `custom-${Date.now()}`,
-      name: customName,
+      name,
       emoji: customEmoji,
-      // FROZEN ENGLISH, deliberately not routed through t(): a custom
-      // character has no `promptEn`, so promptDescription() falls back to
-      // this exact string and concatenates it into the FLUX prompt.
-      description: customDesc || 'A mysterious character...',
+      // What the child typed is what they see (never an English stand-in).
+      description,
+      // The image prompt gets the child's own words; api/generate-image
+      // translates/sanitizes them server-side. The English fallback is
+      // prompt-only — displayDescription() never reads promptEn.
+      promptEn: { name, description: description || 'a friendly character' },
       color: '#8B5CF6',
+      custom: true,
+      // Legacy flag: books saved before `custom` still carry only this.
       isCustom: true,
     })
     setCustomName('')
@@ -64,7 +71,7 @@ export default function StepCharacters({ onNext, onPrev }) {
           {t('wizard:characters.heading')}
         </h2>
         <p className="text-galaxy-text-muted font-body text-lg">
-          {t('wizard:characters.subtitle')}
+          {t('wizard:characters.subtitle', { max: MAX_CHARACTERS })}
         </p>
       </motion.div>
 
@@ -76,6 +83,7 @@ export default function StepCharacters({ onNext, onPrev }) {
           animate={{ opacity: 1 }}
         >
           {t('wizard:characters.selected_count', { count: selectedIds.size })}
+          {full && <> · {t('wizard:characters.max_reached', { max: MAX_CHARACTERS })}</>}
         </motion.p>
       )}
 
@@ -89,9 +97,9 @@ export default function StepCharacters({ onNext, onPrev }) {
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
           {/* Create your own — first */}
           <GlowCard
-            onClick={() => setShowCreate(true)}
+            onClick={() => { if (!full) setShowCreate(true) }}
             color="#06B6D4"
-            className="flex flex-col items-center justify-center gap-2 py-4 border-dashed"
+            className={`flex flex-col items-center justify-center gap-2 py-4 border-dashed ${full ? 'opacity-40' : ''}`}
           >
             <Plus size={28} className="text-galaxy-secondary" />
             <span className="font-heading font-semibold text-sm text-galaxy-secondary text-center">
@@ -105,7 +113,7 @@ export default function StepCharacters({ onNext, onPrev }) {
               selected={selectedIds.has(char.id)}
               onClick={() => toggleCharacter(char)}
               color={char.color}
-              className="flex flex-col items-center gap-2 py-4"
+              className={`flex flex-col items-center gap-2 py-4 ${full && !selectedIds.has(char.id) ? 'opacity-40' : ''}`}
             >
               <span className="text-3xl">{char.emoji}</span>
               <span className="font-heading font-semibold text-sm text-galaxy-text text-center">
@@ -119,7 +127,7 @@ export default function StepCharacters({ onNext, onPrev }) {
 
           {/* Custom character cards that were already added */}
           {book?.characters
-            ?.filter((c) => c.isCustom)
+            ?.filter((c) => c.custom || c.isCustom)
             .map((char) => (
               <GlowCard
                 key={char.id}
@@ -187,7 +195,7 @@ export default function StepCharacters({ onNext, onPrev }) {
             onChange={(e) => setCustomName(e.target.value)}
             placeholder={t('wizard:characters.name_placeholder')}
             className="w-full px-4 py-3 bg-galaxy-bg border border-galaxy-secondary/30 rounded-xl text-galaxy-text placeholder:text-galaxy-text-muted/50 focus:border-galaxy-secondary focus:outline-none font-body"
-            maxLength={30}
+            maxLength={CUSTOM_NAME_MAX}
           />
           <input
             type="text"
@@ -195,7 +203,7 @@ export default function StepCharacters({ onNext, onPrev }) {
             onChange={(e) => setCustomDesc(e.target.value)}
             placeholder={t('wizard:characters.description_placeholder')}
             className="w-full px-4 py-3 bg-galaxy-bg border border-galaxy-secondary/30 rounded-xl text-galaxy-text placeholder:text-galaxy-text-muted/50 focus:border-galaxy-secondary focus:outline-none font-body"
-            maxLength={80}
+            maxLength={CUSTOM_DESCRIPTION_MAX}
           />
           <div className="flex gap-3 justify-center">
             <SparkleButton onClick={() => { setShowCreate(false); setShowEmojiPicker(false) }} variant="secondary" size="small">

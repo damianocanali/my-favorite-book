@@ -1,5 +1,53 @@
 {
   "characters": {
+    "girl": {
+      "name": "Maya the Brave Girl",
+      "description": "A curious girl who loves big adventures"
+    },
+    "boy": {
+      "name": "Leo the Helpful Boy",
+      "description": "A cheerful boy who is always ready to help"
+    },
+    "aunt": {
+      "name": "Aunt Sofia",
+      "description": "A kind aunt who is great at solving problems"
+    },
+    "uncle": {
+      "name": "Uncle Marco",
+      "description": "A friendly uncle who tells the best jokes"
+    },
+    "grandma": {
+      "name": "Grandma Greta",
+      "description": "A cheerful grandma who knows a story for everything"
+    },
+    "grandpa": {
+      "name": "Grandpa Tom",
+      "description": "A playful grandpa who builds amazing inventions"
+    },
+    "teacher": {
+      "name": "Teacher Sam",
+      "description": "A friendly teacher who makes every lesson an adventure"
+    },
+    "firefighter": {
+      "name": "Firefighter Alex",
+      "description": "A brave firefighter who helps anyone in trouble"
+    },
+    "doctor": {
+      "name": "Doc Kim",
+      "description": "A caring doctor who helps people and animals feel better"
+    },
+    "chef": {
+      "name": "Chef Nico",
+      "description": "A joyful chef who cooks surprising, delicious food"
+    },
+    "king": {
+      "name": "King Theo",
+      "description": "A kind king who listens to everyone in his kingdom"
+    },
+    "queen": {
+      "name": "Queen Zara",
+      "description": "A wise queen who is brave, fair and kind"
+    },
     "astronaut": {
       "name": "Astro the Explorer",
       "description": "A brave space explorer who discovers new planets"
@@ -79,8 +127,28 @@
       "description": "A sweet world made of chocolate rivers and candy mountains"
     },
     "dinosaur-valley": {
-      "name": "Dinosaur Valley",
-      "description": "A prehistoric valley where dinosaurs still roam free"
+      "name": "The Dinosaur Valley",
+      "description": "A hidden valley where dinosaurs still play."
+    },
+    "glowing-forest": {
+      "name": "The Glowing Forest",
+      "description": "A magical forest where stars come down at night."
+    },
+    "cloud-kingdom": {
+      "name": "The Cloud Kingdom",
+      "description": "A floating land high above the world."
+    },
+    "coral-city": {
+      "name": "The Coral City",
+      "description": "An underwater city of bright coral towers."
+    },
+    "cookie-planet": {
+      "name": "The Cookie Planet",
+      "description": "A planet made of every dessert imaginable."
+    },
+    "snow-castle": {
+      "name": "The Snow Castle",
+      "description": "A castle of ice and silver moonlight."
     }
   },
   "time_periods": {

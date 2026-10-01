@@ -592,13 +592,13 @@ struct AccountSignInForm: View {
                 )
                 switch outcome {
                 case .confirmationSent:
-                    error = "Check your email to confirm your account."
+                    error = String(appLocalized: AppText("auth.error.confirm_email", defaultValue: "Check your email to confirm your account."))
                 case .active:
                     error = nil
                 case .alreadyRegistered:
                     // No email was sent, so don't send them to their inbox.
                     mode = .signIn
-                    error = "That email already has an account — sign in instead."
+                    error = String(appLocalized: AppText("auth.error.email_taken", defaultValue: "That email already has an account — sign in instead."))
                 }
             }
         } catch {
@@ -628,7 +628,7 @@ struct AccountSignInForm: View {
             // Tokens revoked/expired, or a legacy password item that no
             // longer works — AuthStore already cleared the Keychain.
             hasStoredCredentials = false
-            self.error = "Saved login is out of date. Please sign in with your password."
+            self.error = String(appLocalized: AppText("auth.error.saved_login_stale", defaultValue: "Saved login is out of date. Please sign in with your password."))
         } catch BiometricCredentials.RetrieveError.cancelled {
             // They dismissed the prompt on purpose. Not an error.
             self.error = nil
@@ -636,9 +636,9 @@ struct AccountSignInForm: View {
             // Nothing stored, or the item was invalidated because the
             // device's enrolled biometrics changed. Stop offering it.
             hasStoredCredentials = false
-            self.error = "Saved login is out of date. Please sign in with your password."
+            self.error = String(appLocalized: AppText("auth.error.saved_login_stale", defaultValue: "Saved login is out of date. Please sign in with your password."))
         } catch {
-            self.error = "\(BiometricCredentials.biometryLabel) sign-in failed."
+            self.error = String(appLocalized: AppText("auth.error.biometric_failed", defaultValue: "\(BiometricCredentials.biometryLabel) sign-in failed."))
         }
     }
 
@@ -652,7 +652,7 @@ struct AccountSignInForm: View {
             // accounts too — honor the same remember toggle.
             if rememberWithBiometrics { auth.saveBiometricLogin() }
         } catch {
-            self.error = "Apple sign-in failed: \(error.localizedDescription)"
+            self.error = String(appLocalized: AppText("auth.error.apple_failed", defaultValue: "Apple sign-in failed: \(error.localizedDescription)"))
         }
     }
 
@@ -664,7 +664,7 @@ struct AccountSignInForm: View {
             if isTeacher { await auth.markClassroomOwner() }
             if rememberWithBiometrics { auth.saveBiometricLogin() }
         } catch {
-            self.error = "Google sign-in failed: \(error.localizedDescription)"
+            self.error = String(appLocalized: AppText("auth.error.google_failed", defaultValue: "Google sign-in failed: \(error.localizedDescription)"))
         }
     }
 }

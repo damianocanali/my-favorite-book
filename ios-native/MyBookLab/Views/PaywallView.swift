@@ -269,6 +269,6 @@ struct PaywallView: View {
         error = nil
         defer { purchasing = nil }
         do { try await subs.purchase(package) }
-        catch { self.error = "Couldn't complete purchase: \(error.localizedDescription)" }
+        catch { self.error = String(appLocalized: AppText("paywall.error.purchase", defaultValue: "Couldn't complete purchase: \(error.localizedDescription)")) }
     }
 }

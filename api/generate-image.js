@@ -53,7 +53,7 @@ export default async function handler(req) {
   )
   if (!allowed) {
     return new Response(
-      JSON.stringify({ error: 'Too many requests. Please try again in an hour.' }),
+      JSON.stringify({ error: 'Too many requests. Please try again in an hour.', code: 'rate_limited' }),
       { status: 429, headers: withCors({ 'Content-Type': 'application/json' }, req) }
     )
   }
@@ -209,7 +209,7 @@ export default async function handler(req) {
       if (e?.name !== 'AbortError') throw e
       console.error('[generate-image] Together timed out')
       return new Response(
-        JSON.stringify({ error: 'Image generation took too long. Please try again.' }),
+        JSON.stringify({ error: 'Image generation took too long. Please try again.', code: 'timeout' }),
         { status: 504, headers: withCors({ 'Content-Type': 'application/json' }, req) }
       )
     } finally {

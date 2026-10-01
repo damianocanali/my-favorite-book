@@ -253,6 +253,9 @@ struct CreatePrintOrderRequest: Codable, Sendable {
     var format: PrintFormat
     var quantity: Int
     var shipping: ShippingAddress
+    /// The app language, so a book saved before books carried their own
+    /// language prints its back matter in the right one.
+    var locale: String = AppLanguage.apiLocale
 }
 
 struct CreatePrintOrderResponse: Codable, Sendable {

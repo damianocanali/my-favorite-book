@@ -309,7 +309,7 @@ struct AvatarEditorView: View {
             // Load the picked image data.
             guard let data = try await item.loadTransferable(type: Data.self),
                   let original = UIImage(data: data) else {
-                self.error = "Couldn't read photo."
+                self.error = String(appLocalized: AppText("avatar.error.read_photo", defaultValue: "Couldn't read photo."))
                 return
             }
             sourceImage = original
@@ -317,7 +317,7 @@ struct AvatarEditorView: View {
             // Resize to ~768px and re-encode as JPEG (keeps the request body small).
             let resized = resize(original, maxDimension: 768)
             guard let jpeg = resized.jpegData(compressionQuality: 0.85) else {
-                self.error = "Couldn't process photo."
+                self.error = String(appLocalized: AppText("avatar.error.process_photo", defaultValue: "Couldn't process photo."))
                 return
             }
             let dataUrl = "data:image/jpeg;base64,\(jpeg.base64EncodedString())"
@@ -332,10 +332,10 @@ struct AvatarEditorView: View {
                 resultImage = img
                 // TODO: sync to user_metadata avatar field
             } else {
-                self.error = "Couldn't load your cartoon."
+                self.error = String(appLocalized: AppText("avatar.error.load_cartoon", defaultValue: "Couldn't load your cartoon."))
             }
         } catch {
-            self.error = "Couldn't make your cartoon: \(error.localizedDescription)"
+            self.error = String(appLocalized: AppText("avatar.error.make_cartoon", defaultValue: "Couldn't make your cartoon: \(error.localizedDescription)"))
         }
     }
 
@@ -363,7 +363,7 @@ struct AvatarEditorView: View {
             Haptics.celebrate()
             dismiss()
         } catch {
-            self.error = "Couldn't save: \(error.localizedDescription)"
+            self.error = String(appLocalized: AppText("avatar.error.save", defaultValue: "Couldn't save: \(error.localizedDescription)"))
         }
     }
 }

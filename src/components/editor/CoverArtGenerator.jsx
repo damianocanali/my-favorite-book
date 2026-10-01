@@ -1,3 +1,4 @@
+import { friendlyAiError } from '../../lib/aiErrors'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'motion/react'
@@ -43,7 +44,7 @@ export default function CoverArtGenerator() {
       setCoverImage(imageData)
       incrementImageGenerations()
     } catch (err) {
-      setError(err.message)
+      setError(friendlyAiError(err, t))
     } finally {
       setLoading(false)
     }

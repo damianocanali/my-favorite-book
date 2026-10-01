@@ -82,6 +82,41 @@ struct StudentAssignment: Decodable, Identifiable, Hashable, Sendable {
     /// stays reachable). A closed, never-started assignment is nothing to do.
     var showsOnHome: Bool { status == "published" || my_submission != nil }
 
+    /// The number on a class account's "Class" tab (web: classBadgeCount in
+    /// assignmentStudentUi.js — keep the two in step): open assignments the
+    /// child has not opened yet (the cards that read "New"), plus 1 for an
+    /// unread teacher nudge. 0 shows no badge.
+    static func classBadgeCount(
+        _ assignments: [StudentAssignment],
+        seen: Set<String>,
+        isStarted: (StudentAssignment) -> Bool,
+        hasNudge: Bool
+    ) -> Int {
+        let fresh = assignments.filter {
+            $0.status == "published"
+                && $0.homeStatus(hasBook: isStarted($0), seen: seen.contains($0.id)) == .new
+        }.count
+        // Owner ruling: a book sent back that the child can still hand in
+        // again counts too, until they open that sent-back card.
+        let sentBack = assignments.filter { a in
+            a.isSentBack && !(a.sentBackKey.map(seen.contains) ?? true)
+        }.count
+        return fresh + sentBack + (hasNudge ? 1 : 0)
+    }
+
+    /// The seen-set entry for this particular send-back (submission +
+    /// version), so a later send-back counts again (web: sentBackKey).
+    var sentBackKey: String? {
+        guard let sub = my_submission else { return nil }
+        return "\(id)#back:\(sub.id):\(sub.version ?? 0)"
+    }
+
+    /// Everything opening this card marks as seen (web: seenKeysOnOpen).
+    var seenKeysOnOpen: [String] {
+        if isSentBack, let key = sentBackKey { return [id, key] }
+        return [id]
+    }
+
     var dueDate: Date? { StudentAssignment.parseDate(due_at) }
 
     /// The friendly due wording ("Due Friday", "Due today", "Late is OK"),

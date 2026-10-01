@@ -1,4 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
+import i18next from '../i18n'
+import { speechLocale } from '../lib/speechLocale'
 
 export function useSpeechSynthesis() {
   const [isSpeaking, setIsSpeaking] = useState(false)
@@ -30,7 +32,8 @@ export function useSpeechSynthesis() {
     const utterance = new SpeechSynthesisUtterance(text)
     utterance.rate = 0.85
     utterance.pitch = 1.1
-    if (lang) utterance.lang = lang
+    // No language given: the app's, never the browser default.
+    utterance.lang = speechLocale(lang, i18next.language)
 
     utterance.onboundary = (e) => {
       if (e.name !== 'word') return

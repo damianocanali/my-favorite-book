@@ -41,16 +41,17 @@
   },
   "characters": {
     "heading": "Scegli i tuoi personaggi",
-    "subtitle": "Scegli gli eroi della tua storia! Puoi sceglierne quanti vuoi.",
+    "subtitle": "Scegli i protagonisti della tua storia: fino a {{max}}!",
     "selected_count_one": "{{count}} personaggio scelto",
     "selected_count_other": "{{count}} personaggi scelti",
     "create_card": "Crea il tuo!",
     "create_title": "Crea un personaggio",
-    "emoji_label": "Scegli un'emoji",
+    "emoji_label": "Scegli il suo aspetto (facoltativo)",
     "emoji_aria": "Scegli emoji",
-    "name_placeholder": "Nome del personaggio...",
-    "description_placeholder": "Descrivi il tuo personaggio...",
-    "add_button": "Aggiungi personaggio"
+    "name_placeholder": "Il suo nome…",
+    "description_placeholder": "Com'è? (per esempio: una presidente con un grande cappello)",
+    "add_button": "Aggiungi personaggio",
+    "max_reached": "una storia non può averne di più. Tocca uno di quelli scelti per toglierlo."
   },
   "setting": {
     "heading": "Dove succede la storia?",

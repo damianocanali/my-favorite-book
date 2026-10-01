@@ -1,3 +1,4 @@
+import { friendlyAiError } from '../../lib/aiErrors'
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { ImageIcon, Loader2, RefreshCw, Trash2, Lock, Wand2, X } from 'lucide-react'
@@ -55,7 +56,7 @@ export default function IllustrationGenerator({ page }) {
       incrementImageGenerations()
       earnBadge('added_illustration')
     } catch (err) {
-      setError(err.message)
+      setError(friendlyAiError(err, t))
     } finally {
       setLoading(false)
     }
@@ -81,7 +82,7 @@ export default function IllustrationGenerator({ page }) {
       setTweakText('')
       setTweakOpen(false)
     } catch (err) {
-      setError(err.message)
+      setError(friendlyAiError(err, t))
     } finally {
       setLoading(false)
     }

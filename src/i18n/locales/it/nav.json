@@ -21,7 +21,10 @@
     "orders": "Ordini",
     "account": "Account",
     "dashboard": "Dashboard",
-    "classes": "Classi"
+    "classes": "Classi",
+    "class": "Classe",
+    "class_badge_one": "{{count}} nuovo compito",
+    "class_badge_other": "{{count}} nuovi compiti"
   },
   "play": {
     "trigger": "Gioca",

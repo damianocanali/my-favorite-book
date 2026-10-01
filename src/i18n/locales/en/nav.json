@@ -21,7 +21,10 @@
     "orders": "Orders",
     "account": "Account",
     "dashboard": "Dashboard",
-    "classes": "Classes"
+    "classes": "Classes",
+    "class": "Class",
+    "class_badge_one": "{{count}} new assignment",
+    "class_badge_other": "{{count}} new assignments"
   },
   "play": {
     "trigger": "Play",

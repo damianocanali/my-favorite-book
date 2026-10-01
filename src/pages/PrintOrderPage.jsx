@@ -27,7 +27,7 @@ const isNativeIos =
 export default function PrintOrderPage() {
   const { bookId } = useParams()
   const navigate = useNavigate()
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
 
   const user = useAuthStore((s) => s.user)
   const books = useBookshelfStore((s) => s.books) ?? []
@@ -87,6 +87,7 @@ export default function PrintOrderPage() {
           format: store.format,
           quantity: store.quantity,
           shipping: store.shipping,
+          locale: i18n.language,
         }),
       })
       const body = await res.json()

@@ -14343,6 +14343,1757 @@
           }
         }
       }
+    },
+    "tabs.class": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Class"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Classe"
+          }
+        }
+      }
+    },
+    "content.characters.girl.name": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Maya the Brave Girl"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maya la coraggiosa"
+          }
+        }
+      }
+    },
+    "content.characters.girl.description": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "A curious girl who loves big adventures"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Una bambina curiosa che adora le grandi avventure"
+          }
+        }
+      }
+    },
+    "content.characters.boy.name": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Leo the Helpful Boy"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leo il generoso"
+          }
+        }
+      }
+    },
+    "content.characters.boy.description": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "A cheerful boy who is always ready to help"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un bambino allegro, sempre pronto ad aiutare"
+          }
+        }
+      }
+    },
+    "content.characters.aunt.name": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Aunt Sofia"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zia Sofia"
+          }
+        }
+      }
+    },
+    "content.characters.aunt.description": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "A kind aunt who is great at solving problems"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Una zia gentile, bravissima a risolvere i problemi"
+          }
+        }
+      }
+    },
+    "content.characters.uncle.name": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Uncle Marco"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zio Marco"
+          }
+        }
+      }
+    },
+    "content.characters.uncle.description": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "A friendly uncle who tells the best jokes"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uno zio simpatico che racconta le barzellette più belle"
+          }
+        }
+      }
+    },
+    "content.characters.grandma.name": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Grandma Greta"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nonna Greta"
+          }
+        }
+      }
+    },
+    "content.characters.grandma.description": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "A cheerful grandma who knows a story for everything"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Una nonna allegra che ha una storia per ogni cosa"
+          }
+        }
+      }
+    },
+    "content.characters.grandpa.name": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Grandpa Tom"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nonno Tom"
+          }
+        }
+      }
+    },
+    "content.characters.grandpa.description": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "A playful grandpa who builds amazing inventions"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un nonno giocherellone che costruisce invenzioni straordinarie"
+          }
+        }
+      }
+    },
+    "content.characters.teacher.name": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Teacher Sam"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sam l'insegnante"
+          }
+        }
+      }
+    },
+    "content.characters.teacher.description": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "A friendly teacher who makes every lesson an adventure"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Insegna con passione e trasforma ogni lezione in un'avventura"
+          }
+        }
+      }
+    },
+    "content.characters.firefighter.name": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Firefighter Alex"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alex dei vigili del fuoco"
+          }
+        }
+      }
+    },
+    "content.characters.firefighter.description": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "A brave firefighter who helps anyone in trouble"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fa parte dei vigili del fuoco e aiuta chiunque sia in difficoltà"
+          }
+        }
+      }
+    },
+    "content.characters.doctor.name": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Doc Kim"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Doc Kim"
+          }
+        }
+      }
+    },
+    "content.characters.doctor.description": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "A caring doctor who helps people and animals feel better"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cura persone e animali e li fa sentire subito meglio"
+          }
+        }
+      }
+    },
+    "content.characters.chef.name": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Chef Nico"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chef Nico"
+          }
+        }
+      }
+    },
+    "content.characters.chef.description": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "A joyful chef who cooks surprising, delicious food"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cucina con gioia piatti sorprendenti e buonissimi"
+          }
+        }
+      }
+    },
+    "content.characters.king.name": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "King Theo"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Re Theo"
+          }
+        }
+      }
+    },
+    "content.characters.king.description": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "A kind king who listens to everyone in his kingdom"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un re gentile che ascolta tutti nel suo regno"
+          }
+        }
+      }
+    },
+    "content.characters.queen.name": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Queen Zara"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Regina Zara"
+          }
+        }
+      }
+    },
+    "content.characters.queen.description": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "A wise queen who is brave, fair and kind"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Una regina saggia, coraggiosa, giusta e gentile"
+          }
+        }
+      }
+    },
+    "content.characters.astronaut.name": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Astro the Explorer"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Astro l'Esploratore"
+          }
+        }
+      }
+    },
+    "content.characters.astronaut.description": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "A brave space explorer who discovers new planets"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un esploratore coraggioso che scopre pianeti nuovi"
+          }
+        }
+      }
+    },
+    "content.characters.princess.name": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Princess Luna"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Principessa Luna"
+          }
+        }
+      }
+    },
+    "content.characters.princess.description": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "A magical princess who rules the moonlight kingdom"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Una principessa magica che governa il regno del chiaro di luna"
+          }
+        }
+      }
+    },
+    "content.characters.dragon.name": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Spark the Dragon"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scintilla il Drago"
+          }
+        }
+      }
+    },
+    "content.characters.dragon.description": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "A friendly dragon who breathes colorful fire"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un drago amico che sputa fiamme colorate"
+          }
+        }
+      }
+    },
+    "content.characters.robot.name": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Beeper Bot"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bip Bip il Robot"
+          }
+        }
+      }
+    },
+    "content.characters.robot.description": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "A clever robot who loves solving puzzles"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un robot sveglio che adora risolvere i rompicapo"
+          }
+        }
+      }
+    },
+    "content.characters.pirate.name": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Captain Waves"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Capitan Onda"
+          }
+        }
+      }
+    },
+    "content.characters.pirate.description": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "A fearless pirate sailing the seven seas"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un pirata senza paura che naviga per i sette mari"
+          }
+        }
+      }
+    },
+    "content.characters.unicorn.name": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Shimmer"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brillina"
+          }
+        }
+      }
+    },
+    "content.characters.unicorn.description": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "A magical unicorn with a rainbow mane"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un unicorno magico con la criniera arcobaleno"
+          }
+        }
+      }
+    },
+    "content.characters.wizard.name": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Merlo the Wise"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Merlino il Saggio"
+          }
+        }
+      }
+    },
+    "content.characters.wizard.description": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "An ancient wizard with powerful spells"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un mago antichissimo con incantesimi potenti"
+          }
+        }
+      }
+    },
+    "content.characters.fairy.name": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Twinkle"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lucilla"
+          }
+        }
+      }
+    },
+    "content.characters.fairy.description": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "A tiny fairy who grants wishes"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Una fatina piccolissima che esaudisce i desideri"
+          }
+        }
+      }
+    },
+    "content.characters.ninja.name": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Shadow"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ombra"
+          }
+        }
+      }
+    },
+    "content.characters.ninja.description": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "A stealthy ninja with incredible speed"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un ninja silenzioso e velocissimo"
+          }
+        }
+      }
+    },
+    "content.characters.mermaid.name": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Coral"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Corallina"
+          }
+        }
+      }
+    },
+    "content.characters.mermaid.description": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "A mermaid who sings to the ocean creatures"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Una sirena che canta per le creature del mare"
+          }
+        }
+      }
+    },
+    "content.characters.superhero.name": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Captain Blaze"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Capitan Fiamma"
+          }
+        }
+      }
+    },
+    "content.characters.superhero.description": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "A superhero with the power of the sun"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un supereroe con il potere del sole"
+          }
+        }
+      }
+    },
+    "content.characters.alien.name": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Zorp"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zorp"
+          }
+        }
+      }
+    },
+    "content.characters.alien.description": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "A friendly alien from the Andromeda galaxy"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un alieno simpatico che arriva dalla galassia di Andromeda"
+          }
+        }
+      }
+    },
+    "create.characters.heading": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Who is in your story?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chi c'è nella tua storia?"
+          }
+        }
+      }
+    },
+    "create.characters.subtitle": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Pick up to %lld characters, or make up your own."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scegli fino a %lld personaggi, oppure inventane di nuovi."
+          }
+        }
+      }
+    },
+    "create.characters.selected_count": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "%1$lld of %2$lld picked"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Personaggi: %1$lld su %2$lld"
+          }
+        }
+      }
+    },
+    "create.characters.remove_aria": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Remove %@"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Togli %@"
+          }
+        }
+      }
+    },
+    "create.characters.max_reached": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "That's the most a story can have. Remove one to pick another."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Una storia non può averne di più. Togline uno per sceglierne un altro."
+          }
+        }
+      }
+    },
+    "create.characters.create_own": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Create your own"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inventa il tuo"
+          }
+        }
+      }
+    },
+    "create.characters.custom_name": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Their name"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il suo nome"
+          }
+        }
+      }
+    },
+    "create.characters.custom_description": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "What are they like? (e.g. a president with a big hat)"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Com'è? (per esempio: una presidente con un grande cappello)"
+          }
+        }
+      }
+    },
+    "create.characters.add_custom": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Add to my story"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aggiungi alla mia storia"
+          }
+        }
+      }
+    },
+    "create.characters.create_title": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Make up a character"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inventa un personaggio"
+          }
+        }
+      }
+    },
+    "create.characters.pick_look": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Pick how they look (optional) 👇"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scegli il suo aspetto (facoltativo) 👇"
+          }
+        }
+      }
+    },
+    "create.setting.custom.title": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Create your own place"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inventa il tuo luogo"
+          }
+        }
+      }
+    },
+    "create.setting.custom.blurb": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Describe anywhere you can imagine."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Descrivi qualsiasi posto tu riesca a immaginare."
+          }
+        }
+      }
+    },
+    "create.setting.custom.placeholder": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "e.g. a treehouse school on the moon"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "per esempio: una scuola sugli alberi sulla Luna"
+          }
+        }
+      }
+    },
+    "auth.error.confirm_email": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Check your email to confirm your account."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Controlla la tua email per confermare l'account."
+          }
+        }
+      }
+    },
+    "auth.error.email_taken": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "That email already has an account — sign in instead."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questa email ha già un account: accedi."
+          }
+        }
+      }
+    },
+    "auth.error.saved_login_stale": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Saved login is out of date. Please sign in with your password."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L'accesso salvato non è più valido. Accedi con la password."
+          }
+        }
+      }
+    },
+    "auth.error.biometric_failed": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "%@ sign-in failed."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accesso con %@ non riuscito."
+          }
+        }
+      }
+    },
+    "auth.error.apple_failed": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Apple sign-in failed: %@"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accesso con Apple non riuscito: %@"
+          }
+        }
+      }
+    },
+    "auth.error.google_failed": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Google sign-in failed: %@"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accesso con Google non riuscito: %@"
+          }
+        }
+      }
+    },
+    "auth.error.not_confirmed": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Please confirm your email first — check your inbox for the link we sent."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prima conferma la tua email: controlla la posta, ti abbiamo mandato un link."
+          }
+        }
+      }
+    },
+    "auth.error.invalid_credentials": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "That email and password don't match. Try again, or reset your password."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Email e password non corrispondono. Riprova o reimposta la password."
+          }
+        }
+      }
+    },
+    "auth.error.rate_limited": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Too many attempts just now. Please wait a minute and try again."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Troppi tentativi. Aspetta un minuto e riprova."
+          }
+        }
+      }
+    },
+    "auth.error.password_short": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Passwords need to be at least 6 characters."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La password deve avere almeno 6 caratteri."
+          }
+        }
+      }
+    },
+    "auth.error.offline": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Can't reach the internet. Check your connection and try again."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nessuna connessione a internet. Controlla la connessione e riprova."
+          }
+        }
+      }
+    },
+    "auth.error.signup_failed": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Couldn't create your account. Please try again."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non è stato possibile creare l'account. Riprova."
+          }
+        }
+      }
+    },
+    "auth.error.signin_failed": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Couldn't sign in. Please try again."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accesso non riuscito. Riprova."
+          }
+        }
+      }
+    },
+    "gallery.error.load": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Couldn't load the gallery.\n%@"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non è stato possibile caricare la galleria.\n%@"
+          }
+        }
+      }
+    },
+    "gallery.error.not_found": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Book not found"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Libro non trovato"
+          }
+        }
+      }
+    },
+    "gallery.error.unfinished": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "This book hasn't been finished yet."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questo libro non è ancora finito."
+          }
+        }
+      }
+    },
+    "gallery.error.open": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Couldn't open this book."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non è stato possibile aprire questo libro."
+          }
+        }
+      }
+    },
+    "avatar.error.read_photo": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Couldn't read photo."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non è stato possibile leggere la foto."
+          }
+        }
+      }
+    },
+    "avatar.error.process_photo": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Couldn't process photo."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non è stato possibile elaborare la foto."
+          }
+        }
+      }
+    },
+    "avatar.error.load_cartoon": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Couldn't load your cartoon."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non è stato possibile caricare il tuo cartone."
+          }
+        }
+      }
+    },
+    "avatar.error.make_cartoon": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Couldn't make your cartoon: %@"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non è stato possibile creare il tuo cartone: %@"
+          }
+        }
+      }
+    },
+    "avatar.error.save": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Couldn't save: %@"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salvataggio non riuscito: %@"
+          }
+        }
+      }
+    },
+    "report.error.sign_in_report": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Please sign in to report a book."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accedi per segnalare un libro."
+          }
+        }
+      }
+    },
+    "report.error.send": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Couldn't send that report: %@"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non è stato possibile inviare la segnalazione: %@"
+          }
+        }
+      }
+    },
+    "report.error.sign_in_block": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Please sign in to block an author."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accedi per bloccare un autore o un'autrice."
+          }
+        }
+      }
+    },
+    "report.error.block": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Couldn't block that author: %@"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non è stato possibile bloccare questa persona: %@"
+          }
+        }
+      }
+    },
+    "book.reader.cover": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Cover"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copertina"
+          }
+        }
+      }
+    },
+    "book.reader.page_of": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Page %lld of %lld"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pagina %1$lld di %2$lld"
+          }
+        }
+      }
+    },
+    "paywall.error.purchase": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Couldn't complete purchase: %@"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non è stato possibile completare l'acquisto: %@"
+          }
+        }
+      }
+    },
+    "story_buddy.give_ideas": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Give me ideas"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dammi delle idee"
+          }
+        }
+      }
+    },
+    "story_buddy.help_think": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Help me think"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aiutami a pensare"
+          }
+        }
+      }
+    },
+    "story_buddy.error": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Buddy couldn't reply. Try again?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buddy non è riuscito a rispondere. Riprovi?"
+          }
+        }
+      }
+    },
+    "errors.ai.generic": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Something went wrong. Please try again."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Qualcosa è andato storto. Riprova."
+          }
+        }
+      }
+    },
+    "errors.ai.daily_limit": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "You've reached today's creation limit — come back tomorrow!"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hai raggiunto il limite di creazioni per oggi: torna domani!"
+          }
+        }
+      }
+    },
+    "errors.ai.rate_limited": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Too many tries just now. Please try again a bit later."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Troppi tentativi in poco tempo. Riprova tra un po'."
+          }
+        }
+      }
+    },
+    "errors.ai.try_again": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "We couldn't do that just now. Please try again in a moment."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non ci siamo riusciti proprio ora. Riprova tra un momento."
+          }
+        }
+      }
+    },
+    "errors.ai.timeout": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "That took too long. Please try again."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ci è voluto troppo tempo. Riprova."
+          }
+        }
+      }
+    },
+    "errors.ai.unkind": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Let's keep our story kind and friendly — try different words!"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Teniamo la storia gentile e amichevole: prova con altre parole!"
+          }
+        }
+      }
+    },
+    "school.teacher.errors.class_image_limit": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "This class has used today's pictures for this student. Try again tomorrow."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questa classe ha già usato le immagini di oggi per questo alunno. Riprova domani."
+          }
+        }
+      }
+    },
+    "errors.ai.class_image_limit": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "That's all the pictures for today — ask your teacher."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Per oggi le immagini sono finite: chiedi all'insegnante."
+          }
+        }
+      }
     }
   },
   "version": "1.0"
