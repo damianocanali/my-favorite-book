@@ -37,7 +37,7 @@ describe('teacher GET /api/school/submissions?classId=&assignmentId=', () => {
     const res = await (await load())(req('submissions', { query: q }))
     expect(res.status).toBe(200)
     const body = await res.json()
-    expect(body.assignment).toEqual({ id: ASSIGN_ID, title: 'My pet', status: 'published', due_at: '2026-09-25T00:00:00.000Z', allow_late: true })
+    expect(body.assignment).toEqual({ id: ASSIGN_ID, title: 'My pet', status: 'published', due_at: '2026-09-25T00:00:00.000Z', allow_late: true, kind: 'book', worksheet: null })
     expect(body.submissions).toEqual([
       { id: SUB_ID, student_id: STUDENT_ID, display_name: 'Ann', avatar_emoji: '🦊', status: 'handed_in', version: 2, submitted_at: '2026-09-26T00:00:00.000Z', late: true, book_title: 'Moon', feedback_count: 2, level: null, graded_version: null, returned: false },
       { id: null, student_id: STUDENT2_ID, display_name: 'Ben', avatar_emoji: '🐨', status: 'not_started', version: null, submitted_at: null, late: false, book_title: null, feedback_count: 0, level: null, graded_version: null, returned: false },
@@ -117,7 +117,7 @@ describe('teacher GET /api/school/submissions?classId=&id=', () => {
       submission: {
         id: SUB_ID, assignment_id: ASSIGN_ID, student_id: STUDENT_ID, display_name: 'Ann', avatar_emoji: '🦊',
         version: 1, submitted_at: '2026-09-24T00:00:00.000Z', late: false, book_id: 'book-1', book_title: 'Moon', book_snapshot: SNAP,
-        returned: false,
+        returned: false, kind: 'book', answers: null, worksheet: null,
       },
       feedback: [{ id: FEEDBACK_ID, comment: 'Lovely!', sticker: 'star', created_at: '2026-09-27T10:00:00.000Z', seen_at: null }],
       grades: [],
@@ -151,6 +151,7 @@ describe('student GET /api/school/submissions?id=', () => {
     expect(res.status).toBe(200)
     expect(await res.json()).toEqual({
       book_snapshot: SNAP,
+      kind: 'book', answers: null, worksheet: null,
       feedback: [{ id: FEEDBACK_ID, comment: 'Lovely!', sticker: 'star', created_at: '2026-09-27T10:00:00.000Z', seen_at: null }],
       grade: null,
       returned: false,

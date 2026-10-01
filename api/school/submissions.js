@@ -4,6 +4,7 @@ import { handleCors, checkRateLimit } from '../_rateLimit.js'
 import { requireClassOwner, requireStudent, sb, json, isUuid } from '../_school.js'
 import { isLate } from '../../lib/school/assignments.js'
 import { GRADE_SELECT, gradeShape, latestGrade } from '../../lib/school/grading.js'
+import { isWorksheetSnapshot } from '../../lib/school/worksheets.js'
 
 const FEEDBACK_SELECT = 'id,comment,sticker,created_at,seen_at'
 
@@ -13,6 +14,13 @@ const feedbackShape = (f) => ({ id: f.id, comment: f.comment, sticker: f.sticker
 // To-one embeds come back as objects; be defensive about one-element arrays
 // (same as dashboard.js's embeddedName).
 const one = (v) => (Array.isArray(v) ? v[0] : v) ?? {}
+
+// A worksheet hand-in (migration 023) is a snapshot of kind 'worksheet':
+// its answers (and the prompts they answered) are surfaced as their own
+// fields so neither client has to know where they are stored.
+const worksheetFields = (snap) => (isWorksheetSnapshot(snap)
+  ? { kind: 'worksheet', answers: snap.answers ?? {}, worksheet: { templateId: snap.templateId, boxes: snap.boxes ?? [], word: snap.word ?? null } }
+  : { kind: 'book', answers: null, worksheet: null })
 
 // Fails CLOSED: a non-2xx throws and becomes 503 upstream, never an empty
 // list that reads as "nobody handed in" or "no feedback yet".
@@ -28,7 +36,7 @@ const feedbackFor = (submissionId) =>
 async function teacherAssignmentView(req, classroomId, assignmentId) {
   if (!isUuid(assignmentId)) return json(req, 400, { error: 'Invalid assignment id', code: 'bad_request' })
   const [assignment] = await read(
-    `/rest/v1/assignments?id=eq.${assignmentId}&classroom_id=eq.${classroomId}&select=id,title,status,due_at,allow_late`,
+    `/rest/v1/assignments?id=eq.${assignmentId}&classroom_id=eq.${classroomId}&select=id,title,status,due_at,allow_late,kind,worksheet`,
     'assignment'
   )
   if (!assignment) return json(req, 404, { error: 'Assignment not found', code: 'assignment_not_found' })
@@ -74,7 +82,11 @@ async function teacherAssignmentView(req, classroomId, assignmentId) {
   ].sort((a, b) => String(a.display_name ?? '').localeCompare(String(b.display_name ?? '')))
 
   return json(req, 200, {
-    assignment: { id: assignment.id, title: assignment.title, status: assignment.status, due_at: assignment.due_at, allow_late: assignment.allow_late },
+    assignment: {
+      id: assignment.id, title: assignment.title, status: assignment.status, due_at: assignment.due_at, allow_late: assignment.allow_late,
+      kind: assignment.kind === 'worksheet' ? 'worksheet' : 'book',
+      worksheet: assignment.kind === 'worksheet' ? assignment.worksheet ?? null : null,
+    },
     submissions: rows,
   })
 }
@@ -97,6 +109,7 @@ async function teacherOne(req, classroomId, id) {
       version: s.version, submitted_at: s.submitted_at, late: isLate(s.submitted_at, one(s.assignments).due_at),
       book_id: s.book_id, book_title: s.book_title, book_snapshot: s.book_snapshot,
       returned: !!s.returned_at,
+      ...worksheetFields(s.book_snapshot),
     },
     feedback: feedback.map(feedbackShape),
     // Every graded version, newest first: the teacher sees the previous
@@ -120,6 +133,9 @@ async function studentOne(req, student, id) {
   const g = (s.submission_grades ?? []).find((x) => x.version === s.version)
   return json(req, 200, {
     book_snapshot: s.book_snapshot,
+    // Their own answers, so "Try again" on another device starts from
+    // what they handed in (drafts only live on the device).
+    ...worksheetFields(s.book_snapshot),
     feedback: feedback.map(feedbackShape),
     grade: g ? gradeShape(g) : null,
     returned: !!s.returned_at,

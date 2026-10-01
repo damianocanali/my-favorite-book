@@ -5,15 +5,22 @@ import { requireClassOwner, requireStudent, sb, json, isUuid } from '../_school.
 import {
   TITLE_MAX, PROMPT_MAX, STATUSES, canTransition, cleanText, parseDue, isLate, isPastDue, raisedName,
 } from '../../lib/school/assignments.js'
+import { cleanWorksheet } from '../../lib/school/worksheets.js'
 
-const SELECT = 'id,title,prompt,due_at,status,allow_late,created_at,updated_at'
+const SELECT = 'id,title,prompt,due_at,status,allow_late,created_at,updated_at,kind,worksheet'
+const KINDS = ['book', 'worksheet']
+
+// A row from before migration 023 (or a book) reads as a book.
+const kindOf = (r) => (r.kind === 'worksheet' ? 'worksheet' : 'book')
+const worksheetOf = (r) => (kindOf(r) === 'worksheet' ? r.worksheet ?? null : null)
 
 // Allowlisted output: classroom_id (and anything else PostgREST adds) is
 // never copied through by omission.
 function teacherShape(r, extra = {}) {
   return {
     id: r.id, title: r.title, prompt: r.prompt, due_at: r.due_at, status: r.status,
-    allow_late: r.allow_late, created_at: r.created_at, updated_at: r.updated_at, ...extra,
+    allow_late: r.allow_late, created_at: r.created_at, updated_at: r.updated_at,
+    kind: kindOf(r), worksheet: worksheetOf(r), ...extra,
   }
 }
 
@@ -60,7 +67,7 @@ function myGrade(s) {
 async function studentList(req, student) {
   const rows = await read(
     `/rest/v1/assignments?classroom_id=eq.${student.classroom_id}&status=in.(published,closed)` +
-      `&select=id,title,prompt,due_at,status,allow_late,created_at&order=created_at.desc`,
+      `&select=id,title,prompt,due_at,status,allow_late,created_at,kind,worksheet&order=created_at.desc`,
     'assignments'
   )
   // Their own hand-ins only, with the grades on them (migration 022).
@@ -85,6 +92,9 @@ async function studentList(req, student) {
       return {
         id: r.id, title: r.title, prompt: r.prompt, due_at: r.due_at, status: r.status,
         allow_late: r.allow_late, created_at: r.created_at,
+        // The worksheet's template and the teacher's prompts: what the
+        // child's fill-in view shows (migration 023).
+        kind: kindOf(r), worksheet: worksheetOf(r),
         past_due: isPastDue(r.due_at, now),
         my_submission: s
           ? {
@@ -100,7 +110,21 @@ async function studentList(req, student) {
 async function create(req, classroomId, body) {
   const title = cleanText(body.title, TITLE_MAX)
   if (!title) return bad(req, `Title must be 1-${TITLE_MAX} characters`)
-  const prompt = cleanText(body.prompt, PROMPT_MAX)
+  const kind = body.kind ?? 'book'
+  if (!KINDS.includes(kind)) return bad(req, 'Invalid kind')
+  let worksheet = null
+  if (kind === 'worksheet') {
+    const w = cleanWorksheet(body.worksheet)
+    if (!w.ok) return bad(req, w.error)
+    worksheet = w.worksheet
+  } else if (body.worksheet !== undefined && body.worksheet !== null) {
+    return bad(req, 'Only a worksheet assignment takes a worksheet')
+  }
+  // A worksheet's boxes carry the prompts; the class-wide instructions
+  // line is optional for it and falls back to the title.
+  const prompt = kind === 'worksheet' && (body.prompt === undefined || body.prompt === null || body.prompt === '')
+    ? title
+    : cleanText(body.prompt, PROMPT_MAX)
   if (!prompt) return bad(req, `Prompt must be 1-${PROMPT_MAX} characters`)
   const due = parseDue(body.due_at)
   if (!due.ok) return bad(req, 'Invalid due date')
@@ -113,6 +137,7 @@ async function create(req, classroomId, body) {
     headers: { Prefer: 'return=representation' },
     body: JSON.stringify({
       classroom_id: classroomId, title, prompt, due_at: due.value ?? null, allow_late: body.allow_late ?? true, status,
+      kind, worksheet,
     }),
   })
   if (!res.ok) return json(req, 502, { error: 'Could not save assignment', code: 'upstream' })
@@ -144,11 +169,31 @@ async function update(req, classroomId, body) {
     if (!STATUSES.includes(body.status)) return bad(req, 'Invalid status')
     patch.status = body.status
   }
+  let worksheet
+  if (body.worksheet !== undefined) {
+    const w = cleanWorksheet(body.worksheet)
+    if (!w.ok) return bad(req, w.error)
+    worksheet = w.worksheet
+    patch.worksheet = worksheet
+  }
+  // What an assignment is never changes (migration 023's trigger agrees).
+  if (body.kind !== undefined && !KINDS.includes(body.kind)) return bad(req, 'Invalid kind')
   if (!Object.keys(patch).length) return bad(req, 'Nothing to update')
 
   const scoped = `/rest/v1/assignments?id=eq.${body.id}&classroom_id=eq.${classroomId}`
-  const [current] = await read(`${scoped}&select=id,status`, 'assignment')
+  const [current] = await read(`${scoped}&select=id,status,kind,worksheet`, 'assignment')
   if (!current) return json(req, 404, { error: 'Assignment not found', code: 'assignment_not_found' })
+  if (body.kind !== undefined && body.kind !== kindOf(current)) {
+    return json(req, 409, { error: 'An assignment can\'t change between book and worksheet', code: 'kind_locked' })
+  }
+  if (worksheet) {
+    if (kindOf(current) !== 'worksheet') return bad(req, 'Only a worksheet assignment takes a worksheet')
+    // Prompts can be reworded any time (each hand-in keeps the prompts it
+    // answered); the template itself only while nobody can have started.
+    if (worksheet.templateId !== current.worksheet?.templateId && current.status !== 'draft') {
+      return json(req, 409, { error: 'The worksheet can only change while the assignment is a draft', code: 'template_locked' })
+    }
+  }
   if (patch.status && !canTransition(current.status, patch.status)) {
     return json(req, 409, { error: `Cannot go from ${current.status} to ${patch.status}`, code: 'invalid_transition' })
   }
@@ -156,7 +201,10 @@ async function update(req, classroomId, body) {
 
   // A status change only applies if the status is still the one checked
   // above: two tabs racing (close vs reopen) can't skip the transition rules.
-  const guard = patch.status ? `&status=eq.${current.status}` : ''
+  // Likewise a template swap only lands while the row is still the draft
+  // checked above.
+  const templateSwap = !!worksheet && worksheet.templateId !== current.worksheet?.templateId
+  const guard = patch.status || templateSwap ? `&status=eq.${current.status}` : ''
   const res = await sb(`${scoped}${guard}&select=${SELECT}`, {
     method: 'PATCH',
     headers: { Prefer: 'return=representation' },
