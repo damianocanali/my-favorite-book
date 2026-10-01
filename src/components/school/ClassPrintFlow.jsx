@@ -45,6 +45,9 @@ export default function ClassPrintFlow({ classId, canPrint, request, schoolYear,
     setBusy(false)
     if (!res.ok) {
       if (res.code === 'bad_address') { setBadField(res.data?.field ?? null); setStep('address') }
+      if (res.code === 'print_book_too_big' && res.data?.names?.length) {
+        return setError(t('school:writing_year.errors.print_book_too_big', { names: res.data.names.join(', ') }))
+      }
       return setError(wyErrorText(t, res.code))
     }
     setStep('idle')
@@ -67,7 +70,9 @@ export default function ClassPrintFlow({ classId, canPrint, request, schoolYear,
         <h3 className="font-heading text-sm font-bold text-galaxy-text">
           {t('school:writing_year.teacher.requests_heading', { year: String(schoolYear).replace('-', '–') })}
         </h3>
-        {request.status === 'requested' && <p className="text-xs font-body text-galaxy-text-muted">{t('school:writing_year.teacher.print_sent')}</p>}
+        {request.books_missing ? (
+          <p role="alert" className="text-sm font-body text-amber-200">{t('school:writing_year.teacher.books_missing')}</p>
+        ) : request.status === 'requested' && <p className="text-xs font-body text-galaxy-text-muted">{t('school:writing_year.teacher.print_sent')}</p>}
         {request.status === 'failed' ? (
           <p className="text-sm font-body text-amber-200">{t('school:writing_year.teacher.status.failed')} — {t('school:writing_year.teacher.failed_hint')}</p>
         ) : (

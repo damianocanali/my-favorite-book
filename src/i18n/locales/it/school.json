@@ -865,7 +865,8 @@
         "canceled": "Annullata",
         "failed": "Da controllare"
       },
-      "failed_hint": "Qualcosa non è andato con la tipografia. Ti contatteremo."
+      "failed_hint": "Qualcosa non è andato con la tipografia. Ti contatteremo.",
+      "books_missing": "Non siamo riusciti a preparare i libri per questa richiesta. Annullala e riprova."
     },
     "preview": {
       "heading": "Il libro di {{name}}",
@@ -910,7 +911,11 @@
       "bad_address": "Controlla l'indirizzo.",
       "cannot_cancel": "La richiesta è già in lavorazione. Contattaci per modificarla.",
       "book_too_big": "Questo libro è troppo grande per essere aggiunto.",
-      "class_archived": "Questa classe è archiviata. Ripristinala per fare modifiche."
+      "class_archived": "Questa classe è archiviata. Ripristinala per fare modifiche.",
+      "print_book_too_big": "Questi libri sono troppo grandi per la stampa: {{names}}. Togli un lavoro e riprova.",
+      "print_book_too_big_generic": "Un libro è troppo grande per la stampa. Togli un lavoro e riprova.",
+      "page_overflow": "Un testo non entra a pagina {{pages}}. Accorcia quel lavoro e riprova.",
+      "page_overflow_generic": "Un testo non entra in una pagina. Accorcia quel lavoro e riprova."
     }
   }
 }

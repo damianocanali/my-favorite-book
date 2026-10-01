@@ -865,7 +865,8 @@
         "canceled": "Canceled",
         "failed": "Needs attention"
       },
-      "failed_hint": "Something went wrong with the printer. We'll be in touch."
+      "failed_hint": "Something went wrong with the printer. We'll be in touch.",
+      "books_missing": "We couldn't prepare the books for this request. Cancel it and try again."
     },
     "preview": {
       "heading": "{{name}}'s book",
@@ -910,7 +911,11 @@
       "bad_address": "Check the address.",
       "cannot_cancel": "This request is already on its way. Contact us to change it.",
       "book_too_big": "That book is too big to add.",
-      "class_archived": "This class is archived. Restore it to make changes."
+      "class_archived": "This class is archived. Restore it to make changes.",
+      "print_book_too_big": "These books are too big to print: {{names}}. Remove a piece and try again.",
+      "print_book_too_big_generic": "A child's book is too big to print. Remove a piece and try again.",
+      "page_overflow": "Some text doesn't fit on page {{pages}}. Shorten that piece and try again.",
+      "page_overflow_generic": "Some text doesn't fit on a page. Shorten that piece and try again."
     }
   }
 }

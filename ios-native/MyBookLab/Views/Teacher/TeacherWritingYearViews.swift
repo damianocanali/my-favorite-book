@@ -535,7 +535,9 @@ struct TeacherClassPrintView: View {
         let at = WritingYearRules.statusSteps.firstIndex(of: r.status) ?? -1
         return VStack(alignment: .leading, spacing: 10) {
             Text(WritingYearCopy.requestsHeading(WritingYearRules.yearLabel(r.school_year))).font(.headline).foregroundStyle(.white)
-            if r.status == "requested" {
+            if r.books_missing == true {
+                Text(WritingYearCopy.booksMissing).font(.subheadline).foregroundStyle(.yellow)
+            } else if r.status == "requested" {
                 Text(WritingYearCopy.printSent).font(.footnote).foregroundStyle(TeacherTheme.secondaryText)
             }
             if r.status == "failed" {

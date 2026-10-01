@@ -19651,6 +19651,57 @@
           }
         }
       }
+    },
+    "school.writing_year.teacher.books_missing": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "We couldn't prepare the books for this request. Cancel it and try again."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non siamo riusciti a preparare i libri per questa richiesta. Annullala e riprova."
+          }
+        }
+      }
+    },
+    "school.writing_year.errors.print_book_too_big_generic": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A child's book is too big to print. Remove a piece and try again."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un libro è troppo grande per la stampa. Togli un lavoro e riprova."
+          }
+        }
+      }
+    },
+    "school.writing_year.errors.page_overflow_generic": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Some text doesn't fit on a page. Shorten that piece and try again."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un testo non entra in una pagina. Accorcia quel lavoro e riprova."
+          }
+        }
+      }
     }
   },
   "version": "1.0"

@@ -83,6 +83,7 @@ enum WritingYearCopy {
     static var cancelRequest: LocalizedStringResource { AppText("school.writing_year.teacher.cancel_request", defaultValue: "Cancel request") }
     static var cancelConfirm: LocalizedStringResource { AppText("school.writing_year.teacher.cancel_confirm", defaultValue: "Cancel this print request?") }
     static var track: LocalizedStringResource { AppText("school.writing_year.teacher.track", defaultValue: "Track the box") }
+    static var booksMissing: LocalizedStringResource { AppText("school.writing_year.teacher.books_missing", defaultValue: "We couldn't prepare the books for this request. Cancel it and try again.") }
     static var failedHint: LocalizedStringResource { AppText("school.writing_year.teacher.failed_hint", defaultValue: "Something went wrong with the printer. We'll be in touch.") }
     static func status(_ s: String) -> LocalizedStringResource {
         switch s {
@@ -138,6 +139,8 @@ enum WritingYearCopy {
         case "children_changed": AppText("school.writing_year.errors.children_changed", defaultValue: "The class changed. Refresh and try again.")
         case "bad_address": AppText("school.writing_year.errors.bad_address", defaultValue: "Check the address.")
         case "cannot_cancel": AppText("school.writing_year.errors.cannot_cancel", defaultValue: "This request is already on its way. Contact us to change it.")
+        case "print_book_too_big": AppText("school.writing_year.errors.print_book_too_big_generic", defaultValue: "A child's book is too big to print. Remove a piece and try again.")
+        case "page_overflow": AppText("school.writing_year.errors.page_overflow_generic", defaultValue: "Some text doesn't fit on a page. Shorten that piece and try again.")
         case "book_too_big": AppText("school.writing_year.errors.book_too_big", defaultValue: "That book is too big to add.")
         case nil, "upstream", "generic": AppText("school.writing_year.errors.generic", defaultValue: "Something went wrong. Try again.")
         default: TeacherCopy.error(code)

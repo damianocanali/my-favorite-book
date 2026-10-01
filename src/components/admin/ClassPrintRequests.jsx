@@ -68,10 +68,13 @@ function Detail({ id, onClose, onChanged }) {
     await run('Approving…', async () => {
       if (data.request.status === 'requested') await call('/api/admin/class-prints', { id, action: 'approve', shippingLevel: level || undefined })
       const todo = data.children.filter((c) => !c.removed && !c.rendered)
+      const problems = []
       for (const [i, c] of todo.entries()) {
         setBusy(`Rendering ${i + 1}/${todo.length} (${c.display_name})…`)
-        await call('/api/admin/class-prints', { id, action: 'render', childId: c.id })
+        // A page that doesn't fit is reported per child; the others still render.
+        try { await call('/api/admin/class-prints', { id, action: 'render', childId: c.id }) } catch (e) { problems.push(`${c.display_name}: ${e.message}`) }
       }
+      if (problems.length) throw new Error(problems.join(' · '))
       setEstimate(await call('/api/admin/class-prints', { id, action: 'estimate' }))
     })
   }
@@ -129,7 +132,8 @@ function Detail({ id, onClose, onChanged }) {
         {data.children.map((c) => (
           <li key={c.id} className={`py-2 flex items-center gap-3 text-sm ${c.removed ? 'opacity-50' : ''}`}>
             <span className="w-6 text-galaxy-text-muted tabular-nums">{c.position}</span>
-            <span className="flex-1">{c.display_name}{c.removed && <span className="ml-2 text-xs text-amber-200">left the class — not printed</span>}</span>
+            <span className="flex-1">{c.display_name}{c.removed && <span className="ml-2 text-xs text-amber-200">left the class — not printed</span>}
+              {c.problem && <span className="block text-xs text-red-300">{c.problem} — the teacher must shorten it; then re-render</span>}</span>
             {c.rendered ? (
               <>
                 <span className="text-xs text-galaxy-text-muted">{c.page_count} pages</span>
@@ -159,6 +163,7 @@ function Detail({ id, onClose, onChanged }) {
                   ))}
                 </select>
                 <span className="text-xs text-galaxy-text-muted">for {shipping.quantity} books</span>
+                {shipping.error && <span className="text-xs text-amber-200">Lulu's options failed ({shipping.error}) — the default will be used</span>}
               </label>
             ) : (
               <button disabled={!!busy} onClick={loadShipping} className="px-3 py-2 rounded-lg text-sm border border-white/15 disabled:opacity-50">Get shipping options</button>

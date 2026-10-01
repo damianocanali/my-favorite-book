@@ -53,6 +53,8 @@ struct WYPrintRequest: Decodable, Identifiable, Hashable {
     let children_count: Int?
     let excluded_count: Int?
     let tracking: WYTracking?
+    /// The books never finished saving: cancel and ask again.
+    let books_missing: Bool?
 }
 
 struct WYOverview: Decodable {

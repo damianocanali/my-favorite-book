@@ -98,7 +98,14 @@ export default function WritingYearChild({ classId, student, onClose, onChanged 
     setError(null)
     try {
       const r = await apiFetchAuthed(`/api/school/writing-year-pdf?classId=${encodeURIComponent(classId)}&studentId=${encodeURIComponent(student.student_id)}`)
-      if (!r.ok) throw new Error(String(r.status))
+      if (!r.ok) {
+        const body = await r.json().catch(() => ({}))
+        if (body.code === 'page_overflow' && body.pages?.length) {
+          setError(t('school:writing_year.errors.page_overflow', { pages: body.pages.join(', ') }))
+          return
+        }
+        throw new Error(String(r.status))
+      }
       const url = URL.createObjectURL(await r.blob())
       const a = document.createElement('a')
       a.href = url
