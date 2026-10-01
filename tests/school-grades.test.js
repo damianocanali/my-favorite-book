@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import {
-  TEACHER, STUDENT_USER, CLASS_ID, STUDENT_ID, STUDENT2_ID, ASSIGN_ID, ASSIGN2_ID, SUB_ID, FEEDBACK_ID,
+  TEACHER, STUDENT_USER, CLASS_ID, STUDENT_ID, STUDENT2_ID, ASSIGN_ID, ASSIGN2_ID, SUB_ID,
   setEnv, mockSupabase, ownerRoute, notOwnerRoute, studentSelfRoute, classroomRow, req, err500,
 } from './school-mock.js'
 import { cleanTips, csvCell, toCsv, csvFilename, TIP_KEYS, latestGrade } from '../lib/school/grading.js'
@@ -34,41 +34,44 @@ describe('teacher POST /api/school/grades', () => {
   const rpcOk = {
     method: 'POST', match: '/rpc/school_grade_submission',
     reply: (call) => ({
-      body: {
-        grade: gradeRow({ level: call.body.p_level, tips: call.body.p_tips, returned: call.body.p_returned }),
-        feedback: call.body.p_comment || call.body.p_sticker
-          ? { id: FEEDBACK_ID, submission_id: SUB_ID, comment: call.body.p_comment, sticker: call.body.p_sticker, created_at: T0, seen_at: null }
-          : null,
-      },
+      body: { grade: gradeRow({ level: call.body.p_level, tips: call.body.p_tips, returned: call.body.p_returned }) },
     }),
   }
   const base = { classId: CLASS_ID, submissionId: SUB_ID, version: 1, level: 'growing', tips: [{ key: 'ideas.more_detail' }] }
 
   it('grades through the locked RPC, scoped to the class, and returns the allowlisted grade', async () => {
     const log = mockSupabase({ user: TEACHER, routes: [ownerRoute, rpcOk] })
-    const res = await (await load())(post({ ...base, tips: [{ key: 'ideas.more_detail' }, { text: '  Add a dragon!  ' }], returned: true, comment: ' Nice ', sticker: 'star' }))
+    const res = await (await load())(post({ ...base, tips: [{ key: 'ideas.more_detail' }, { text: '  Add a dragon!  ' }], returned: true }))
     expect(res.status).toBe(201)
     const body = await res.json()
     expect(body.grade).toEqual({
       id: GRADE_ID, version: 1, level: 'growing', tips: [{ key: 'ideas.more_detail' }, { text: 'Add a dragon!' }], returned: true,
       created_at: T0, updated_at: T0, seen_at: null,
     })
-    expect(body.feedback).toEqual({ id: FEEDBACK_ID, submission_id: SUB_ID, comment: 'Nice', sticker: 'star', created_at: T0, seen_at: null })
+    expect(Object.keys(body)).toEqual(['grade'])
     expect(JSON.stringify(body)).not.toContain('author_user_id')
     const [call] = rpcCalls(log)
     expect(call.body).toEqual({
       p_classroom_id: CLASS_ID, p_submission_id: SUB_ID, p_version: 1, p_author_user_id: TEACHER.id,
       p_level: 'growing', p_tips: [{ key: 'ideas.more_detail' }, { text: 'Add a dragon!' }], p_returned: true,
-      p_comment: 'Nice', p_sticker: 'star',
     })
   })
 
-  it('a level alone is enough (no tips, not returned, no feedback row)', async () => {
+  it('a level alone is enough (no tips, not returned)', async () => {
     const log = mockSupabase({ user: TEACHER, routes: [ownerRoute, rpcOk] })
     const res = await (await load())(post({ classId: CLASS_ID, submissionId: SUB_ID, version: 2, level: 'wow' }))
     expect(res.status).toBe(201)
-    expect((await res.json()).feedback).toBeNull()
-    expect(rpcCalls(log)[0].body).toMatchObject({ p_version: 2, p_level: 'wow', p_tips: [], p_returned: false, p_comment: null, p_sticker: null })
+    expect(rpcCalls(log)[0].body).toEqual({
+      p_classroom_id: CLASS_ID, p_submission_id: SUB_ID, p_version: 2, p_author_user_id: TEACHER.id, p_level: 'wow', p_tips: [], p_returned: false,
+    })
+  })
+
+  it('stickers and comments are not part of a grade (they stay on /feedback): ignored, never sent', async () => {
+    const log = mockSupabase({ user: TEACHER, routes: [ownerRoute, rpcOk] })
+    const res = await (await load())(post({ ...base, comment: 'Nice', sticker: 'star' }))
+    expect(res.status).toBe(201)
+    expect(Object.keys(rpcCalls(log)[0].body)).not.toContain('p_comment')
+    expect(log.some((l) => l.url.includes('submission_feedback'))).toBe(false)
   })
 
   it.each([
@@ -89,9 +92,6 @@ describe('teacher POST /api/school/grades', () => {
     ['a non-object tip', { tips: ['ideas.why'] }],
     ['returned that is not a boolean', { returned: 'yes' }],
     ['returned with no tips', { returned: true, tips: [] }],
-    ['an unknown sticker', { sticker: 'skull' }],
-    ['a comment over 500 chars', { comment: 'x'.repeat(501) }],
-    ['a non-string comment', { comment: 5 }],
   ])('400 bad_request for %s, without calling the RPC', async (_, fields) => {
     const log = mockSupabase({ user: TEACHER, routes: [ownerRoute, rpcOk] })
     const res = await (await load())(post({ ...base, ...fields }))
@@ -232,6 +232,34 @@ describe('teacher GET /api/school/grades', () => {
     ])
   })
 
+  it('reads the class page by page in a fixed order, so >1000 hand-ins are never dropped', async () => {
+    const row = (i) => ({
+      id: `sub-${i}`, assignment_id: ASSIGN_ID, student_id: STUDENT_ID, class_students: { display_name: 'Ann' },
+      assignments: { title: 'My pet', created_at: T0 }, submission_grades: [{ version: 1, level: 'wow', returned: false, updated_at: T0 }],
+    })
+    const log = mockSupabase({ user: TEACHER, routes: [ownerRoute, {
+      method: 'GET', match: '/rest/v1/class_submissions',
+      reply: (call) => ({ body: call.url.includes('offset=0') ? Array.from({ length: 1000 }, (_, i) => row(i)) : [row(1000)] }),
+    }] })
+    const res = await (await load())(req('grades', { query: `?classId=${CLASS_ID}` }))
+    expect(res.status).toBe(200)
+    expect((await res.json()).grades).toHaveLength(1001)
+    const pages = log.filter((l) => l.url.includes('/rest/v1/class_submissions'))
+    expect(pages).toHaveLength(2)
+    expect(pages[0].url).toContain('order=id.asc&limit=1000&offset=0')
+    expect(pages[1].url).toContain('order=id.asc&limit=1000&offset=1000')
+  })
+
+  it('a failed second page fails the whole read (503), never a short CSV', async () => {
+    mockSupabase({ user: TEACHER, routes: [ownerRoute, {
+      method: 'GET', match: '/rest/v1/class_submissions',
+      reply: (call) => (call.url.includes('offset=0')
+        ? { body: Array.from({ length: 1000 }, (_, i) => ({ id: `s${i}`, submission_grades: [] })) }
+        : { status: 500, body: {} }),
+    }] })
+    expect((await (await load())(req('grades', { query: `?classId=${CLASS_ID}` }))).status).toBe(503)
+  })
+
   it('400 for a malformed studentId', async () => {
     mockSupabase({ user: TEACHER, routes: [ownerRoute, subsRoute] })
     expect((await (await load())(req('grades', { query: `?classId=${CLASS_ID}&studentId=x` }))).status).toBe(400)
@@ -348,6 +376,7 @@ describe('lib/school/grading', () => {
     expect(cleanTips([{ text: '  hi ' }, { key: 'ideas.why' }])).toEqual({ ok: true, tips: [{ text: 'hi' }, { key: 'ideas.why' }] })
     expect(cleanTips([{ text: 'hi' }, { text: ' hi' }]).ok).toBe(false)
     expect(cleanTips([{ key: '__proto__' }]).ok).toBe(false)
+    expect(cleanTips([{ text: 'Add a\r\ndragon\nnow' }])).toEqual({ ok: true, tips: [{ text: 'Add a dragon now' }] })
   })
 
   it('the library is 4 skills of 6-8 tips, every key unique', () => {
@@ -370,6 +399,12 @@ describe('lib/school/grading', () => {
     ['-2+3', `"'-2+3"`],
     ['@cmd', `"'@cmd"`],
     ['\tTab', `"'\tTab"`],
+    ['\nline', `"'\nline"`],
+    ['\rret', `"'\rret"`],
+    ['  =1+1', `"'  =1+1"`],
+    [' \t@x', `"' \t@x"`],
+    ['a=b', '"a=b"'],
+    ['Ann -2', '"Ann -2"'],
     ['She said "hi"', '"She said ""hi"""'],
     ['Zoë, 7', '"Zoë, 7"'],
     [null, '""'],

@@ -278,11 +278,18 @@ describe('notifyHandIn', () => {
     expect(log.find((l) => l.url.includes('/rest/v1/class_submissions')).url).toContain(`assignment_id=eq.${ASSIGN_ID}`)
   })
 
-  it('does not check "everyone in" on a resubmission (it cannot change the count)', async () => {
+  it('checks "everyone in" on a resubmission too: a sent-back child handing in again can complete the class', async () => {
     const log = mockAll({ students: [{ id: 's1' }], submissions: [{ student_id: 's1' }] })
     const { notifyHandIn } = await load()
     await notifyHandIn({ classroom: classroom(), student, assignment, submission: { id: 'sub', version: 2 }, late: false })
-    expect(kinds(log)).toEqual(['resubmit'])
+    expect(kinds(log)).toEqual(['resubmit', 'all_handed_in'])
+  })
+
+  it('a hand-in sent back to revise does not count toward "everyone in"', async () => {
+    const log = mockAll({ students: [{ id: 's1' }], submissions: [{ student_id: 's1' }] })
+    const { notifyHandIn } = await load()
+    await notifyHandIn({ classroom: classroom(), student, assignment, submission: { id: 'sub', version: 1 }, late: false })
+    expect(log.find((l) => l.url.includes('/rest/v1/class_submissions')).url).toContain('returned_at=is.null')
   })
 
   it('no all_handed_in when a read fails or the roster is empty', async () => {

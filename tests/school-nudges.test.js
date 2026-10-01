@@ -135,6 +135,14 @@ describe('POST /api/school/nudges (teacher)', () => {
     expect(log.find((l) => l.url.includes('school_send_nudge')).body.p_assignment_id).toBe(ASSIGN_ID)
   })
 
+  it('hand_in: a hand-in sent back to revise does not count as handed in (migration 022)', async () => {
+    const log = mockSupabase({ user: TEACHER, routes: [ownerRoute, assignmentRoute(), rosterRoute(),
+      { method: 'GET', match: '/rest/v1/class_submissions', reply: { body: [] } }, rpcOk] })
+    const body = await (await (await load())(post({ studentIds: [STUDENT_ID], preset: 'hand_in', assignmentId: ASSIGN_ID }))).json()
+    expect(body.sent.map((s) => s.student_id)).toEqual([STUDENT_ID])
+    expect(log.find((l) => l.url.includes('/rest/v1/class_submissions')).url).toContain('returned_at=is.null')
+  })
+
   it('hand_in skips children who already handed that assignment in, without calling the RPC for them', async () => {
     const log = mockSupabase({ user: TEACHER, routes: [ownerRoute, assignmentRoute(), rosterRoute(),
       { method: 'GET', match: '/rest/v1/class_submissions', reply: { body: [{ student_id: STUDENT2_ID }] } }, rpcOk] })

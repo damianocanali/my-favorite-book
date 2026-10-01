@@ -69,7 +69,7 @@ describe('022_grading.sql', () => {
     expect(f).toMatch(/on conflict \(submission_id, version\) do update set/i)
     expect(f).toMatch(/seen_at = null/)
     expect(f).toMatch(/set returned_at = case when coalesce\(p_returned, false\) then now\(\) else null end/i)
-    expect(f).toMatch(/insert into submission_feedback/i)
+    expect(f).not.toMatch(/submission_feedback/i)
   })
 
   it('school_submit still matches 019 except that handing in again clears returned_at', () => {
@@ -79,11 +79,20 @@ describe('022_grading.sql', () => {
     expect(now.replace(/,\s*returned_at = null/, '')).toBe(before)
   })
 
+  it('school_send_nudge still matches 021 except that a sent-back hand-in is not "handed in"', () => {
+    const SQL021 = readFileSync('supabase-migrations/021_nudges.sql', 'utf8')
+    const now = fnBody('school_send_nudge')
+    const before = SQL021.match(/create or replace function public\.school_send_nudge\([\s\S]*?\$\$([\s\S]*?)\$\$;/i)[1]
+    expect(now).toMatch(/student_id = p_student_id\n\s+and returned_at is null\n/)
+    expect(now.replace(/\n\s+and returned_at is null/, '')).toBe(before)
+  })
+
   it('every function is service-role only', () => {
     const sigs = [
       'school_valid_tips(jsonb)',
-      'school_grade_submission(uuid, uuid, int, uuid, text, jsonb, boolean, text, text)',
+      'school_grade_submission(uuid, uuid, int, uuid, text, jsonb, boolean)',
       'school_submit(uuid, uuid, uuid, uuid, text, text, jsonb)',
+      'school_send_nudge(uuid, uuid, uuid, text, text, text, uuid, int)',
     ]
     for (const sig of sigs) {
       const esc = sig.replace(/[()]/g, '\\$&')
@@ -91,7 +100,7 @@ describe('022_grading.sql', () => {
       expect(SQL).toMatch(new RegExp(`grant execute on function public\\.${esc} to service_role;`, 'i'))
     }
     const defs = SQL.match(/security definer[\s\S]*?\$\$/gi) ?? []
-    expect(defs.length).toBe(2)
+    expect(defs.length).toBe(3)
     for (const d of defs) expect(d).toMatch(/set search_path = public/i)
   })
 })

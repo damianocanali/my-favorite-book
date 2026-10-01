@@ -2,14 +2,14 @@ export const config = { runtime: 'edge' }
 
 import { handleCors, checkRateLimit } from '../_rateLimit.js'
 import { requireClassOwner, requireStudent, sb, json, isUuid } from '../_school.js'
-import { COMMENT_MAX, STICKERS, raisedName } from '../../lib/school/assignments.js'
+import { raisedName } from '../../lib/school/assignments.js'
 import { LEVELS, cleanTips, gradeShape, GRADE_SELECT } from '../../lib/school/grading.js'
 
 // Grading with tips (migration 022).
 //
-//   POST {classId, submissionId, version, level, tips?, returned?, comment?, sticker?}
+//   POST {classId, submissionId, version, level, tips?, returned?}
 //        teacher (class owner): grade one hand-in, optionally send it back
-//        to revise, optionally with a sticker/comment — one transaction.
+//        to revise. Stickers and comments stay on api/school/feedback.js.
 //   POST {id}                   student: mark their own grade as seen.
 //   GET  ?classId&studentId     teacher: one child's levels over time.
 //   GET  ?classId               teacher: every grade in the class (the CSV
@@ -28,7 +28,7 @@ const one = (v) => (Array.isArray(v) ? v[0] : v) ?? {}
 const RPC_ERRORS = {
   submission_not_found: [404, 'Submission not found', 'submission_not_found'],
   version_changed: [409, 'They handed in a new version. Have a look at it first.', 'version_changed'],
-  cannot_return: [409, 'This assignment is closed, so it can\'t be sent back', 'cannot_return'],
+  cannot_return: [409, 'This assignment is closed or past its due date, so it can\'t be sent back', 'cannot_return'],
 }
 
 // Fails CLOSED: a non-2xx throws and becomes 503 upstream.
@@ -38,8 +38,22 @@ async function read(path, what) {
   return res.json()
 }
 
+// PostgREST caps a response (1000 rows by default), so a whole class's
+// hand-ins are read page by page in a fixed order (same as readAll in
+// api/cron/teacher-summary.js): a CSV must never silently drop rows.
+export const PAGE = 1000
+async function readAll(path, order, what) {
+  const all = []
+  for (let offset = 0; ; offset += PAGE) {
+    const rows = await read(`${path}&order=${order}&limit=${PAGE}&offset=${offset}`, what)
+    if (!Array.isArray(rows)) throw new Error(`${what} not a list`)
+    all.push(...rows)
+    if (rows.length < PAGE) return all
+  }
+}
+
 async function teacherGrade(req, o, body) {
-  if (o.classroom.archived_at) return json(req, 409, { error: 'This class is archived', code: 'class_archived' })
+  if (o.classroom.archived_at) return json(req, 409, { error: 'This class is archived. Restore it to make changes.', code: 'class_archived' })
   if (!isUuid(body.submissionId)) return bad(req, 'Invalid submission id')
   if (!Number.isInteger(body.version) || body.version < 1) return bad(req, 'Invalid version')
   if (!LEVELS.includes(body.level)) return bad(req, 'Unknown level')
@@ -49,18 +63,6 @@ async function teacherGrade(req, o, body) {
   const returned = body.returned === true
   // Sending back is "try again, here's how": never without a tip.
   if (returned && !tips.tips.length) return bad(req, 'Add a tip so they know what to change')
-
-  let comment = null
-  if (body.comment !== undefined && body.comment !== null) {
-    if (typeof body.comment !== 'string') return bad(req, 'Invalid comment')
-    comment = body.comment.trim() || null
-    if (comment && comment.length > COMMENT_MAX) return bad(req, `Comment must be at most ${COMMENT_MAX} characters`)
-  }
-  let sticker = null
-  if (body.sticker !== undefined && body.sticker !== null) {
-    if (!STICKERS.includes(body.sticker)) return bad(req, 'Unknown sticker')
-    sticker = body.sticker
-  }
 
   // One locked transaction: scoped to the teacher's class (another class's
   // submission reads as missing), version-checked, re-checks that a sent-back
@@ -75,8 +77,6 @@ async function teacherGrade(req, o, body) {
       p_level: body.level,
       p_tips: tips.tips,
       p_returned: returned,
-      p_comment: comment,
-      p_sticker: sticker,
     }),
   })
   if (!res.ok) {
@@ -85,11 +85,7 @@ async function teacherGrade(req, o, body) {
     return json(req, 502, { error: 'Could not save the grade', code: 'upstream' })
   }
   const out = await res.json()
-  const f = out?.feedback
-  return json(req, 201, {
-    grade: gradeShape(out.grade),
-    feedback: f ? { id: f.id, submission_id: f.submission_id, comment: f.comment, sticker: f.sticker, created_at: f.created_at, seen_at: f.seen_at } : null,
-  })
+  return json(req, 201, { grade: gradeShape(out.grade) })
 }
 
 // Grades are embedded in the hand-in read (FK submission_grades ->
@@ -99,9 +95,10 @@ async function teacherGrade(req, o, body) {
 // oldest first, with the assignment title.
 async function teacherStudent(req, classroomId, studentId) {
   if (!isUuid(studentId)) return bad(req, 'Invalid student id')
-  const subs = await read(
+  const subs = await readAll(
     `/rest/v1/class_submissions?classroom_id=eq.${classroomId}&student_id=eq.${studentId}` +
       `&select=id,assignment_id,version,assignments(title),submission_grades(${GRADE_SELECT})`,
+    'id.asc',
     'class_submissions'
   )
   const history = subs
@@ -117,10 +114,11 @@ async function teacherStudent(req, classroomId, studentId) {
 // Display name and assignment title only: no account ids, no tips text,
 // nothing else about the child.
 async function teacherClass(req, classroomId) {
-  const subs = await read(
+  const subs = await readAll(
     `/rest/v1/class_submissions?classroom_id=eq.${classroomId}` +
       `&select=id,assignment_id,student_id,class_students(display_name),assignments(title,created_at),` +
       `submission_grades(version,level,returned,created_at,updated_at)`,
+    'id.asc',
     'class_submissions'
   )
   const rows = subs.flatMap((s) => (s.submission_grades ?? []).map((g) => ({

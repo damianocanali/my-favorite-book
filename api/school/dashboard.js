@@ -151,7 +151,7 @@ async function oneClassDashboard(req, o) {
     ? await (async () => {
         const r = await sb(
           `/rest/v1/class_submissions?classroom_id=eq.${classroomId}` +
-            `&assignment_id=in.(${assignments.map((a) => a.id).join(',')})&select=assignment_id,student_id,submitted_at`
+            `&assignment_id=in.(${assignments.map((a) => a.id).join(',')})&select=assignment_id,student_id,submitted_at,returned_at`
         )
         if (!r.ok) throw new Error(`class_submissions lookup failed: ${r.status}`)
         return r.json()
@@ -160,6 +160,10 @@ async function oneClassDashboard(req, o) {
   const dueById = new Map(assignments.map((a) => [a.id, a.due_at]))
   const handInState = new Map() // `${student_id}:${assignment_id}` -> 'handed_in' | 'late'
   for (const r of subRows) {
+    // Sent back to revise (migration 022): not done until they hand in
+    // again, so it reads not_started — for the chips, the counts and the
+    // nudge suggestions alike.
+    if (r.returned_at) continue
     handInState.set(`${r.student_id}:${r.assignment_id}`, isLate(r.submitted_at, dueById.get(r.assignment_id)) ? 'late' : 'handed_in')
   }
   const assignmentMap = (studentId) =>

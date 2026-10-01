@@ -31,7 +31,11 @@ async function read(path, what) {
 async function teacherList(req, classroomId) {
   const rows = await read(`/rest/v1/assignments?classroom_id=eq.${classroomId}&select=${SELECT}&order=created_at.desc`, 'assignments')
   const students = await read(`/rest/v1/class_students?classroom_id=eq.${classroomId}&status=eq.active&select=id`, 'class_students')
-  const subs = await read(`/rest/v1/class_submissions?classroom_id=eq.${classroomId}&select=assignment_id,student_id`, 'class_submissions')
+  // A hand-in sent back to revise is not done (migration 022).
+  const subs = await read(
+    `/rest/v1/class_submissions?classroom_id=eq.${classroomId}&returned_at=is.null&select=assignment_id,student_id`,
+    'class_submissions'
+  )
 
   // A removed student's old hand-in stays on record but no longer counts
   // toward "x of N" for the class as it is now.

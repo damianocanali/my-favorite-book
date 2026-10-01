@@ -50,6 +50,12 @@ describe('teacher GET /api/school/assignments?classId=', () => {
     expect(log.filter((l) => l.url.includes('/rest/v1/class_submissions'))).toHaveLength(1)
   })
 
+  it('a hand-in sent back to revise is not counted as handed in (migration 022)', async () => {
+    const log = mockSupabase({ user: TEACHER, routes: routes() })
+    await (await load())(req('assignments', { query: `?classId=${CLASS_ID}` }))
+    expect(log.find((l) => l.url.includes('/rest/v1/class_submissions')).url).toContain('returned_at=is.null')
+  })
+
   it('only counts hand-ins from students still active in the class', async () => {
     mockSupabase({ user: TEACHER, routes: routes({
       subs: { method: 'GET', match: '/rest/v1/class_submissions', reply: { body: [

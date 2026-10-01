@@ -83,8 +83,7 @@ alter table public.class_submissions add column if not exists returned_at timest
 -- Errors are raised with a bare message (SQLSTATE P0001); PostgREST returns
 -- it as {code:'P0001', message:'<name>'} and api/ maps the name.
 
--- Grade one hand-in (and optionally leave a sticker/comment in the same
--- transaction). The hand-in row is locked FOR UPDATE, which conflicts with
+-- Grade one hand-in. The hand-in row is locked FOR UPDATE, which conflicts with
 -- school_submit's ON CONFLICT update, so a resubmission can't land between
 -- the version check and the write: a grade always belongs to the version the
 -- teacher was looking at, and a stale screen gets 'version_changed'.
@@ -92,18 +91,17 @@ alter table public.class_submissions add column if not exists returned_at timest
 -- Sending back is only allowed while the child can actually hand in again:
 -- the assignment is published and not past a due date that refuses late
 -- work (the same rule school_submit applies), else 'cannot_return'.
--- Returns {grade: {...}, feedback: {...} | null}.
+-- Returns {grade: {...}}. Stickers and comments stay on their own route
+-- (submission_feedback, api/school/feedback.js).
 create or replace function public.school_grade_submission(
   p_classroom_id uuid, p_submission_id uuid, p_version int, p_author_user_id uuid,
-  p_level text, p_tips jsonb, p_returned boolean, p_comment text, p_sticker text
+  p_level text, p_tips jsonb, p_returned boolean
 )
 returns jsonb language plpgsql security definer set search_path = public as $$
 declare
   s record;
   a record;
   g record;
-  f record;
-  fb jsonb := null;
 begin
   select id, version, assignment_id into s
     from class_submissions
@@ -136,19 +134,10 @@ begin
     set returned_at = case when coalesce(p_returned, false) then now() else null end
     where id = s.id;
 
-  if p_comment is not null or p_sticker is not null then
-    insert into submission_feedback (submission_id, author_user_id, comment, sticker)
-      values (s.id, p_author_user_id, p_comment, p_sticker)
-      returning id, submission_id, comment, sticker, created_at, seen_at into f;
-    fb := jsonb_build_object('id', f.id, 'submission_id', f.submission_id, 'comment', f.comment,
-                             'sticker', f.sticker, 'created_at', f.created_at, 'seen_at', f.seen_at);
-  end if;
-
   return jsonb_build_object(
     'grade', jsonb_build_object('id', g.id, 'version', g.version, 'level', g.level, 'tips', g.tips,
                                 'returned', g.returned, 'created_at', g.created_at,
-                                'updated_at', g.updated_at, 'seen_at', g.seen_at),
-    'feedback', fb
+                                'updated_at', g.updated_at, 'seen_at', g.seen_at)
   );
 end $$;
 
@@ -186,11 +175,72 @@ begin
   return jsonb_build_object('id', r.id, 'version', r.version, 'submitted_at', r.submitted_at);
 end $$;
 
+-- school_send_nudge (021), unchanged except that a hand-in the teacher
+-- SENT BACK no longer counts as handed in: "Don't forget to hand in" may
+-- reach a child who is revising. Owner ruling: a sent-back hand-in is not
+-- done (nudge pre-ticks, the all-handed-in alert, the daily summary and the
+-- dashboard's handed-in counts all read it the same way).
+create or replace function public.school_send_nudge(
+  p_classroom_id uuid, p_student_id uuid, p_teacher_user_id uuid, p_teacher_name text,
+  p_preset text, p_message text, p_assignment_id uuid, p_daily_cap int
+)
+returns jsonb language plpgsql security definer set search_path = public as $$
+declare
+  st record;
+  tz text;
+  archived timestamptz;
+  today date;
+  sent int;
+  r record;
+begin
+  select id, nudges_day, nudges_today into st
+    from class_students
+    where id = p_student_id and classroom_id = p_classroom_id and status = 'active'
+    for update;
+  if not found then raise exception 'student_not_found'; end if;
+
+  select coalesce(nullif(timezone, ''), 'UTC'), archived_at into tz, archived
+    from classrooms where id = p_classroom_id;
+  if archived is not null then raise exception 'class_archived'; end if;
+
+  if p_assignment_id is not null then
+    perform 1 from assignments
+      where id = p_assignment_id and classroom_id = p_classroom_id and status = 'published'
+        and (allow_late or due_at is null or due_at >= now());
+    if not found then raise exception 'assignment_not_found'; end if;
+    if p_preset = 'hand_in' and exists (
+      select 1 from class_submissions where assignment_id = p_assignment_id and student_id = p_student_id
+        and returned_at is null
+    ) then
+      raise exception 'handed_in';
+    end if;
+  end if;
+
+  begin
+    today := (now() at time zone tz)::date;
+  exception when others then
+    today := (now() at time zone 'UTC')::date;
+  end;
+
+  sent := case when st.nudges_day is distinct from today then 0 else st.nudges_today end;
+  if sent >= p_daily_cap then raise exception 'daily_cap'; end if;
+
+  delete from class_nudges where student_id = p_student_id and seen_at is null;
+  insert into class_nudges (classroom_id, student_id, teacher_user_id, teacher_name, preset, message, assignment_id)
+    values (p_classroom_id, p_student_id, p_teacher_user_id, left(coalesce(p_teacher_name, ''), 60),
+            p_preset, p_message, p_assignment_id)
+    returning id, student_id, created_at into r;
+  update class_students set nudges_day = today, nudges_today = sent + 1 where id = p_student_id;
+  return jsonb_build_object('id', r.id, 'student_id', r.student_id, 'created_at', r.created_at);
+end $$;
+
 revoke all on function public.school_valid_tips(jsonb) from public, anon, authenticated;
-revoke all on function public.school_grade_submission(uuid, uuid, int, uuid, text, jsonb, boolean, text, text) from public, anon, authenticated;
+revoke all on function public.school_grade_submission(uuid, uuid, int, uuid, text, jsonb, boolean) from public, anon, authenticated;
 revoke all on function public.school_submit(uuid, uuid, uuid, uuid, text, text, jsonb) from public, anon, authenticated;
 -- The tips check runs as whoever writes the row: only ever the service role
 -- (or the RPC's owner).
 grant execute on function public.school_valid_tips(jsonb) to service_role;
-grant execute on function public.school_grade_submission(uuid, uuid, int, uuid, text, jsonb, boolean, text, text) to service_role;
+grant execute on function public.school_grade_submission(uuid, uuid, int, uuid, text, jsonb, boolean) to service_role;
 grant execute on function public.school_submit(uuid, uuid, uuid, uuid, text, text, jsonb) to service_role;
+revoke all on function public.school_send_nudge(uuid, uuid, uuid, text, text, text, uuid, int) from public, anon, authenticated;
+grant execute on function public.school_send_nudge(uuid, uuid, uuid, text, text, text, uuid, int) to service_role;
