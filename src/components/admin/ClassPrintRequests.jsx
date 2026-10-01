@@ -2,11 +2,14 @@
 // English only, like the rest of AdminPage (see the note there).
 // API: api/admin/class-prints.js — the security boundary; this is chrome.
 //
-// "Approve & send to printer" runs the three server steps in order and stops
-// at the first failure: approve → render each child's PDFs (one call per
-// child, so no single call runs long) → submit ONE Lulu order. The submit
-// is idempotent server-side (a claimed request can't be sent twice), so a
-// double click or a retry after a network blip can't place two orders.
+// Two separate steps, never one click to the printer:
+//   1. "Approve & render": pick Lulu's shipping option for this address,
+//      approve, then render each child's PDFs (one call per child).
+//   2. The owner opens every child's interior/cover (links last one hour),
+//      sees the estimate (books × pages), then "Send to printer" — ONE Lulu
+//      order. Idempotent server-side: a claimed request is never sent twice.
+// A request whose submit crashed stays claimed: it can't be canceled until
+// the owner reconciles (records Lulu's job id, or confirms no order).
 import { useCallback, useEffect, useState } from 'react'
 import { Loader2, RefreshCw, Printer, X, FileText } from 'lucide-react'
 import { apiFetchAuthed } from '../../lib/api'
@@ -34,49 +37,64 @@ function Detail({ id, onClose, onChanged }) {
   const [data, setData] = useState(null)
   const [busy, setBusy] = useState(null)
   const [error, setError] = useState(null)
+  const [shipping, setShipping] = useState(null) // { options, default, quantity }
+  const [level, setLevel] = useState('')
+  const [estimate, setEstimate] = useState(null)
+  const [jobId, setJobId] = useState('')
 
   const load = useCallback(async () => {
     try { setData(await call(`/api/admin/class-prints?id=${id}`)) } catch (e) { setError(e.message) }
   }, [id])
   useEffect(() => { load() }, [load])
 
-  async function approveAndSubmit() {
-    if (!window.confirm(`Send ${data.children.length} books to Lulu as one order? This spends real money.`)) return
+  async function run(label, fn) {
     setError(null)
-    try {
-      if (data.request.status === 'requested') {
-        setBusy('Approving…')
-        await call('/api/admin/class-prints', { id, action: 'approve' })
-      }
-      for (const [i, c] of data.children.entries()) {
-        if (c.rendered) continue
-        setBusy(`Rendering ${i + 1}/${data.children.length} (${c.display_name})…`)
-        await call('/api/admin/class-prints', { id, action: 'render', childId: c.id })
-      }
-      setBusy('Sending to Lulu…')
-      await call('/api/admin/class-prints', { id, action: 'submit' })
-    } catch (e) {
-      setError(e.message)
-    } finally {
-      setBusy(null)
-      await load()
-      onChanged()
-    }
-  }
-
-  async function simple(body, confirmText) {
-    if (confirmText && !window.confirm(confirmText)) return
-    setError(null)
-    setBusy('Working…')
-    try { await call('/api/admin/class-prints', { id, ...body }) } catch (e) { setError(e.message) }
+    setBusy(label)
+    try { await fn() } catch (e) { setError(e.message) }
     setBusy(null)
     await load()
     onChanged()
   }
 
+  async function loadShipping() {
+    await run('Asking Lulu for shipping options…', async () => {
+      const s = await call('/api/admin/class-prints', { id, action: 'shipping_options' })
+      setShipping(s)
+      setLevel(data.request.shipping_level || s.default)
+    })
+  }
+
+  async function approveAndRender() {
+    await run('Approving…', async () => {
+      if (data.request.status === 'requested') await call('/api/admin/class-prints', { id, action: 'approve', shippingLevel: level || undefined })
+      const todo = data.children.filter((c) => !c.removed && !c.rendered)
+      for (const [i, c] of todo.entries()) {
+        setBusy(`Rendering ${i + 1}/${todo.length} (${c.display_name})…`)
+        await call('/api/admin/class-prints', { id, action: 'render', childId: c.id })
+      }
+      setEstimate(await call('/api/admin/class-prints', { id, action: 'estimate' }))
+    })
+  }
+
+  async function rerender(c) {
+    if (!window.confirm(`Re-render ${c.display_name}'s book?`)) return
+    await run(`Re-rendering ${c.display_name}…`, () => call('/api/admin/class-prints', { id, action: 'render', childId: c.id, rerender: true }))
+  }
+
+  async function send() {
+    const est = estimate ?? await call('/api/admin/class-prints', { id, action: 'estimate' })
+    if (!window.confirm(`Send ${est.books} books (${est.pages_total} pages, ${est.shipping_level}) to Lulu as ONE order? This spends real money.`)) return
+    await run('Sending to Lulu…', () => call('/api/admin/class-prints', { id, action: 'submit' }))
+  }
+
   if (!data) return <div className="py-6 flex justify-center"><Loader2 className="animate-spin" /></div>
   const r = data.request
-  const canSend = ['requested', 'approved'].includes(r.status) && !r.submit_claimed_at
+  const active = data.children.filter((c) => !c.removed)
+  const allRendered = active.length > 0 && active.every((c) => c.rendered)
+  const claimed = !!r.submit_claimed_at
+  const canStep1 = (r.status === 'requested' || (r.status === 'approved' && !allRendered)) && !claimed
+  const canSend = r.status === 'approved' && allRendered && !claimed
+  const stuck = claimed && ['approved', 'failed'].includes(r.status)
   return (
     <div className="glass rounded-xl p-5 border border-galaxy-text-muted/10 space-y-4">
       <div className="flex items-start justify-between gap-3">
@@ -87,52 +105,96 @@ function Detail({ id, onClose, onChanged }) {
             {r.address_line1}{r.address_line2 ? `, ${r.address_line2}` : ''}, {r.city} {r.state_code ?? ''} {r.postal_code}, {r.country_code}
           </p>
           <p className="text-sm mt-1"><span className={`px-2 py-0.5 rounded-full text-xs ${STATUS_TONE[r.status]}`}>{r.status}</span>
+            {r.shipping_level && <span className="ml-2 text-xs text-galaxy-text-muted">Shipping {r.shipping_level}</span>}
             {r.lulu_print_job_id && <span className="ml-2 text-xs text-galaxy-text-muted">Lulu job {r.lulu_print_job_id} {r.lulu_status ? `(${r.lulu_status})` : ''}</span>}
           </p>
+          {!r.books_frozen_at && r.status === 'requested' && <p className="text-sm text-amber-200 mt-1">The books were not saved — this request can't be approved.</p>}
           {r.error && <p className="text-sm text-red-300 mt-1">{r.error}</p>}
-          {r.status === 'approved' && r.submit_claimed_at && (
-            <p className="text-sm text-amber-200 mt-1">Claimed for submission at {r.submit_claimed_at} but not marked submitted — check Lulu before doing anything else.</p>
-          )}
         </div>
         <button onClick={onClose} aria-label="Close" className="p-1 text-galaxy-text-muted hover:text-galaxy-text"><X size={18} /></button>
       </div>
 
+      {stuck && (
+        <div className="rounded-lg border border-amber-400/40 bg-amber-400/10 p-3 space-y-2 text-sm">
+          <p className="text-amber-100">Sending started at {r.submit_claimed_at} and did not finish. Lulu may have the order. Check the Lulu dashboard for external id <code>{r.id}</code>.</p>
+          <div className="flex flex-wrap gap-2 items-center">
+            <input value={jobId} onChange={(e) => setJobId(e.target.value.trim())} placeholder="Lulu job id" className="glass border border-white/15 rounded-lg px-2 py-1 text-sm" />
+            <button disabled={!jobId || !!busy} onClick={() => run('Recording…', () => call('/api/admin/class-prints', { id, action: 'reconcile', luluPrintJobId: jobId }))} className="px-3 py-1.5 rounded-lg border border-white/15 disabled:opacity-50">Record Lulu job</button>
+            <button disabled={!!busy} onClick={() => window.confirm('You checked Lulu and there is NO order for this request?') && run('Releasing…', () => call('/api/admin/class-prints', { id, action: 'reconcile', confirmNoOrder: true }))} className="px-3 py-1.5 rounded-lg border border-white/15 disabled:opacity-50">Checked Lulu — no order exists</button>
+          </div>
+        </div>
+      )}
+
       <ul className="divide-y divide-white/5">
         {data.children.map((c) => (
-          <li key={c.id} className="py-2 flex items-center gap-3 text-sm">
+          <li key={c.id} className={`py-2 flex items-center gap-3 text-sm ${c.removed ? 'opacity-50' : ''}`}>
             <span className="w-6 text-galaxy-text-muted tabular-nums">{c.position}</span>
-            <span className="flex-1">{c.display_name}</span>
+            <span className="flex-1">{c.display_name}{c.removed && <span className="ml-2 text-xs text-amber-200">left the class — not printed</span>}</span>
             {c.rendered ? (
               <>
                 <span className="text-xs text-galaxy-text-muted">{c.page_count} pages</span>
                 <a href={c.interior_url} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-galaxy-secondary text-xs"><FileText size={12} /> Interior</a>
                 <a href={c.cover_url} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-galaxy-secondary text-xs"><FileText size={12} /> Cover</a>
+                {r.status === 'approved' && !claimed && <button onClick={() => rerender(c)} className="text-xs text-galaxy-text-muted hover:underline">Re-render</button>}
               </>
-            ) : <span className="text-xs text-galaxy-text-muted">not rendered</span>}
+            ) : <span className="text-xs text-galaxy-text-muted">{c.removed ? '' : 'not rendered'}</span>}
           </li>
         ))}
       </ul>
-      <p className="text-xs text-galaxy-text-muted">{r.excluded_count} child(ren) excluded (no pieces).</p>
+      <p className="text-xs text-galaxy-text-muted">{r.excluded_count} child(ren) excluded at request time (no pieces). PDF links last one hour — reload to refresh.</p>
 
       {error && <p className="text-sm text-red-300">{error}</p>}
       {busy && <p className="text-sm text-galaxy-text-muted flex items-center gap-2"><Loader2 size={14} className="animate-spin" /> {busy}</p>}
 
-      <div className="flex flex-wrap gap-2">
-        {canSend && (
-          <button disabled={!!busy} onClick={approveAndSubmit} className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm bg-galaxy-primary/30 hover:bg-galaxy-primary/40 disabled:opacity-50">
-            <Printer size={14} /> Approve &amp; send to printer
+      {canStep1 && (
+        <div className="space-y-2">
+          <p className="text-xs uppercase tracking-wide text-galaxy-text-muted">Step 1 — approve &amp; render</p>
+          {r.status === 'requested' && (
+            shipping ? (
+              <label className="flex items-center gap-2 text-sm">Shipping
+                <select value={level} onChange={(e) => setLevel(e.target.value)} className="glass border border-white/15 rounded-lg px-2 py-1">
+                  {shipping.options.length === 0 && <option value={shipping.default}>{shipping.default} (default)</option>}
+                  {shipping.options.map((o) => (
+                    <option key={o.level} value={o.level}>{o.level}{o.cost ? ` — ${o.cost} ${o.currency ?? ''}` : ''}{o.max_days ? ` · ${o.min_days ?? '?'}–${o.max_days} days` : ''}</option>
+                  ))}
+                </select>
+                <span className="text-xs text-galaxy-text-muted">for {shipping.quantity} books</span>
+              </label>
+            ) : (
+              <button disabled={!!busy} onClick={loadShipping} className="px-3 py-2 rounded-lg text-sm border border-white/15 disabled:opacity-50">Get shipping options</button>
+            )
+          )}
+          <button disabled={!!busy || (r.status === 'requested' && (!shipping || !r.books_frozen_at))} onClick={approveAndRender} className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm bg-galaxy-primary/30 hover:bg-galaxy-primary/40 disabled:opacity-50">
+            <FileText size={14} /> {r.status === 'requested' ? 'Approve & render' : 'Render the rest'}
           </button>
-        )}
-        {['requested', 'approved', 'failed'].includes(r.status) && !(r.status === 'approved' && r.submit_claimed_at) && (
-          <button disabled={!!busy} onClick={() => simple({ action: 'cancel' }, 'Cancel this request? The teacher can ask again.')} className="px-3 py-2 rounded-lg text-sm border border-white/15 disabled:opacity-50">
+        </div>
+      )}
+
+      {canSend && (
+        <div className="space-y-2">
+          <p className="text-xs uppercase tracking-wide text-galaxy-text-muted">Step 2 — check every PDF above, then send</p>
+          {estimate ? (
+            <p className="text-sm">Estimate: {estimate.books} books · {estimate.pages_total} pages · shipping {estimate.shipping_level}. (Lulu's price is not calculated here.)</p>
+          ) : (
+            <button disabled={!!busy} onClick={() => run('Estimating…', async () => setEstimate(await call('/api/admin/class-prints', { id, action: 'estimate' })))} className="px-3 py-2 rounded-lg text-sm border border-white/15">Show estimate</button>
+          )}
+          <button disabled={!!busy} onClick={send} className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm bg-galaxy-primary/30 hover:bg-galaxy-primary/40 disabled:opacity-50">
+            <Printer size={14} /> Send to printer
+          </button>
+        </div>
+      )}
+
+      <div className="flex flex-wrap gap-2">
+        {['requested', 'approved', 'failed'].includes(r.status) && !claimed && (
+          <button disabled={!!busy} onClick={() => window.confirm('Cancel this request? The teacher can ask again.') && run('Canceling…', () => call('/api/admin/class-prints', { id, action: 'cancel' }))} className="px-3 py-2 rounded-lg text-sm border border-white/15 disabled:opacity-50">
             Cancel request
           </button>
         )}
         {r.status === 'submitted' && (
-          <button disabled={!!busy} onClick={() => simple({ action: 'mark', status: 'in_production' })} className="px-3 py-2 rounded-lg text-sm border border-white/15">Mark in production</button>
+          <button disabled={!!busy} onClick={() => run('Working…', () => call('/api/admin/class-prints', { id, action: 'mark', status: 'in_production' }))} className="px-3 py-2 rounded-lg text-sm border border-white/15">Mark in production</button>
         )}
         {['submitted', 'in_production'].includes(r.status) && (
-          <button disabled={!!busy} onClick={() => simple({ action: 'mark', status: 'shipped' })} className="px-3 py-2 rounded-lg text-sm border border-white/15">Mark shipped</button>
+          <button disabled={!!busy} onClick={() => run('Working…', () => call('/api/admin/class-prints', { id, action: 'mark', status: 'shipped' }))} className="px-3 py-2 rounded-lg text-sm border border-white/15">Mark shipped</button>
         )}
       </div>
     </div>
@@ -175,7 +237,7 @@ export default function ClassPrintRequests() {
                 <td>{r.school_name}</td>
                 <td>{r.school_year}</td>
                 <td className="tabular-nums">{r.children_count}</td>
-                <td><span className={`px-2 py-0.5 rounded-full text-xs ${STATUS_TONE[r.status]}`}>{r.status}</span></td>
+                <td><span className={`px-2 py-0.5 rounded-full text-xs ${STATUS_TONE[r.status]}`}>{r.status}</span>{r.submit_claimed_at && ['approved', 'failed'].includes(r.status) && <span className="ml-1 text-xs text-amber-200">needs reconcile</span>}</td>
                 <td className="text-right"><button onClick={() => setOpenId(r.id)} className="text-galaxy-secondary hover:underline">Open</button></td>
               </tr>
             ))}

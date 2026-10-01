@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { BookHeart } from 'lucide-react'
 import { schoolFetch } from '../../lib/schoolApi'
-import { liveRequest, wyErrorText } from './writingYearUi'
+import { wyErrorText } from './writingYearUi'
 import WritingYearChild from './WritingYearChild'
 import ClassPrintFlow from './ClassPrintFlow'
 
@@ -22,7 +22,8 @@ export default function WritingYearSection({ classId, locale }) {
 
   useEffect(() => { load() }, [load])
 
-  const request = data ? liveRequest(data.requests, data.school_year) : null
+  // The request that counts for this license term (R3), decided on the server.
+  const request = data?.current_request ?? null
 
   return (
     <section className="space-y-3" aria-labelledby="wy-heading">

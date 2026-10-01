@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Printer, Check, ExternalLink } from 'lucide-react'
+import { Capacitor } from '@capacitor/core'
 import { schoolFetch } from '../../lib/schoolApi'
 import { ADDRESS_FIELD_NAMES, REQUIRED_ADDRESS, STATUS_STEPS, emptyAddress, statusStep, wyErrorText } from './writingYearUi'
 
@@ -10,6 +11,11 @@ import { ADDRESS_FIELD_NAMES, REQUIRED_ADDRESS, STATUS_STEPS, emptyAddress, stat
 // follows it. A paid (or comped) license only — a trial class sees why
 // (web only; the iPad says "not available yet" with no pricing words).
 // iPad: ClassPrintView.swift.
+//
+// Inside the native shell (Capacitor) no licensing/pricing words either —
+// same neutral line as the iPad app (App Store 3.1.3).
+const inNativeShell = Capacitor.isNativePlatform()
+
 export default function ClassPrintFlow({ classId, canPrint, request, schoolYear, locale, onRequested }) {
   const { t } = useTranslation()
   const [step, setStep] = useState('idle') // idle | address | summary
@@ -102,7 +108,9 @@ export default function ClassPrintFlow({ classId, canPrint, request, schoolYear,
     return (
       <div className="space-y-1">
         <h3 className="font-heading text-sm font-bold text-galaxy-text">{t('school:writing_year.teacher.print_heading')}</h3>
-        <p className="text-sm font-body text-galaxy-text-muted">{t('school:writing_year.teacher.print_needs_license')}</p>
+        <p className="text-sm font-body text-galaxy-text-muted">
+          {inNativeShell ? t('school:writing_year.errors.print_not_available') : t('school:writing_year.teacher.print_needs_license')}
+        </p>
       </div>
     )
   }

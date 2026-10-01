@@ -95,7 +95,7 @@ struct TeacherWritingYearView: View {
                             classId: classId,
                             canPrint: overview.can_print,
                             schoolYear: overview.school_year,
-                            request: WritingYearRules.liveRequest(overview.requests, year: overview.school_year)
+                            request: overview.current_request
                         ) { Task { await load() } }
                     } else {
                         TeacherLoading()

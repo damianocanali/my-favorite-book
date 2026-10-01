@@ -19,11 +19,6 @@ enum WritingYearRules {
     /// "2026-27" → "2026–27".
     static func yearLabel(_ year: String?) -> String { (year ?? "").replacingOccurrences(of: "-", with: "–") }
 
-    /// The request that still counts for this school year, if any.
-    static func liveRequest(_ requests: [WYPrintRequest], year: String) -> WYPrintRequest? {
-        requests.first { $0.school_year == year && $0.status != "canceled" }
-    }
-
     /// `list` with the element at `from` moved to `to`.
     static func move<T>(_ list: [T], from: Int, to: Int) -> [T] {
         guard from != to, list.indices.contains(from), list.indices.contains(to) else { return list }
@@ -65,6 +60,8 @@ struct WYOverview: Decodable {
     let can_print: Bool
     let children: [WYChildSummary]
     let requests: [WYPrintRequest]
+    /// The request that counts for this license term (R3), decided by the server.
+    let current_request: WYPrintRequest?
 }
 
 struct WYItem: Decodable, Identifiable, Hashable {
