@@ -13,7 +13,8 @@ export const STATUS_CHIP_KEY = { draft: 'draft', published: 'open', closed: 'clo
 // A hand-in's chip key. submissions.js's per-row shape is
 // { status: 'handed_in'|'not_started', late: boolean }; the dashboard's
 // per-student map is already one of the flattened strings ('handed_in',
-// 'late', 'not_started', or 'revising' — sent back to revise). Both funnel
+// 'late', 'not_started', or 'revising' — sent back to revise, which the
+// server only reports while the assignment is still open for hand-ins). Both funnel
 // through this so the two surfaces render identical chips.
 export function handInChipKey(row) {
   if (!row) return 'not_started'

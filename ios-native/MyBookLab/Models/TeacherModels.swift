@@ -442,7 +442,8 @@ enum TeacherStickers {
 /// here so the two surfaces never disagree (web: assignmentUi.handInChipKey).
 enum HandInState: String, Sendable {
     /// revising: sent back to revise (migration 022), not handed in again
-    /// yet — dashboard only; still "not handed in" for nudges.
+    /// yet — dashboard only, and only while the assignment is still open
+    /// (api/school/dashboard.js decides); still "not handed in" for nudges.
     case handedIn = "handed_in", late, notStarted = "not_started", revising
 
     init(dashboardValue: String?) {

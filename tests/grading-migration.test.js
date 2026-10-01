@@ -72,11 +72,23 @@ describe('022_grading.sql', () => {
     expect(f).not.toMatch(/submission_feedback/i)
   })
 
-  it('school_submit still matches 019 except that handing in again clears returned_at', () => {
+  it('school_submit still matches 019 except: clears returned_at, reports was_returned (read under lock)', () => {
     const now = fnBody('school_submit')
     const before = SQL019.match(/create or replace function public\.school_submit\([\s\S]*?\$\$([\s\S]*?)\$\$;/i)[1]
     expect(now).toMatch(/submitted_at = now\(\),\s*returned_at = null/)
-    expect(now.replace(/,\s*returned_at = null/, '')).toBe(before)
+    expect(now).toMatch(/select returned_at is not null into was_returned\s+from class_submissions where assignment_id = p_assignment_id and student_id = p_student_id\s+for update;/)
+    const stripped = now
+      .replace(/,\s*returned_at = null/, '')
+      .replace(/\n  was_returned boolean := false;/, '')
+      .replace(/\n  select returned_at is not null into was_returned[\s\S]*?was_returned := coalesce\(was_returned, false\);\n/, '')
+      .replace(/,\s*'was_returned', was_returned\)/, ')')
+    expect(stripped).toBe(before)
+  })
+
+  it('drops the never-applied 9-argument grade RPC before defining the new one', () => {
+    const drop = SQL.indexOf('drop function if exists public.school_grade_submission(uuid, uuid, int, uuid, text, jsonb, boolean, text, text);')
+    expect(drop).toBeGreaterThan(-1)
+    expect(drop).toBeLessThan(SQL.indexOf('create or replace function public.school_grade_submission('))
   })
 
   it('school_send_nudge still matches 021 except that a sent-back hand-in is not "handed in"', () => {

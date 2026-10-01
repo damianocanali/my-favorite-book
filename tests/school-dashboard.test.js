@@ -210,6 +210,20 @@ describe('GET /api/school/dashboard?classId= (class owner view)', () => {
     expect(log.find((l) => l.url.includes('/rest/v1/class_submissions')).url).toContain('returned_at')
   })
 
+  it('"revising" only while the assignment is still open; after close or past a no-late due date it reads handed in', async () => {
+    const returned = { student_id: S1_ID, submitted_at: '2026-09-20T09:00:00.000Z', returned_at: '2026-09-21T09:00:00.000Z' }
+    mockSupabase({ user: TEACHER, routes: fullRoutes({
+      assignments: assignmentsRoute([
+        { id: A2, title: 'Space', status: 'published', due_at: '2026-09-26T00:00:00.000Z', allow_late: false }, // past due, no late work
+        { id: A1, title: 'My pet', status: 'closed', due_at: null, allow_late: true },
+      ]),
+      subs: subsRoute([{ ...returned, assignment_id: A2 }, { ...returned, assignment_id: A1 }]),
+    }) })
+    const { default: handler } = await import('../api/school/dashboard.js')
+    const body = await (await handler(call(`?classId=${CLASS_ID}`))).json()
+    expect(body.students.find((s) => s.id === S1_ID).assignments).toEqual({ [A2]: 'handed_in', [A1]: 'handed_in' })
+  })
+
   it('skips the submissions query when the class has no visible assignments', async () => {
     const log = mockSupabase({ user: TEACHER, routes: fullRoutes({ assignments: assignmentsRoute([]) }) })
     const { default: handler } = await import('../api/school/dashboard.js')

@@ -93,6 +93,11 @@ alter table public.class_submissions add column if not exists returned_at timest
 -- work (the same rule school_submit applies), else 'cannot_return'.
 -- Returns {grade: {...}}. Stickers and comments stay on their own route
 -- (submission_feedback, api/school/feedback.js).
+-- An earlier draft of this migration had a 9-argument version (with
+-- comment/sticker). Never applied, but dropped by its exact signature so a
+-- database that ever saw it can't keep a stale overload callable.
+drop function if exists public.school_grade_submission(uuid, uuid, int, uuid, text, jsonb, boolean, text, text);
+
 create or replace function public.school_grade_submission(
   p_classroom_id uuid, p_submission_id uuid, p_version int, p_author_user_id uuid,
   p_level text, p_tips jsonb, p_returned boolean
@@ -142,7 +147,12 @@ begin
 end $$;
 
 -- school_submit (019), unchanged except that handing in again clears
--- returned_at: the revision is in, so it is no longer "sent back".
+-- returned_at (the revision is in, so it is no longer "sent back") and the
+-- result says whether the hand-in it replaced HAD been sent back
+-- (was_returned): only then can a resubmission complete the class, so only
+-- then does api/ re-run the "everyone has handed in" check. The existing row
+-- is read FOR UPDATE first, so a send-back can't land between that read and
+-- the upsert.
 create or replace function public.school_submit(
   p_classroom_id uuid, p_assignment_id uuid, p_student_id uuid, p_user_id uuid,
   p_book_id text, p_book_title text, p_book_snapshot jsonb
@@ -151,6 +161,7 @@ returns jsonb language plpgsql security definer set search_path = public as $$
 declare
   a record;
   r record;
+  was_returned boolean := false;
 begin
   select status, due_at, allow_late into a
     from assignments where id = p_assignment_id and classroom_id = p_classroom_id
@@ -160,6 +171,11 @@ begin
   if not a.allow_late and a.due_at is not null and now() > a.due_at then
     raise exception 'past_due';
   end if;
+
+  select returned_at is not null into was_returned
+    from class_submissions where assignment_id = p_assignment_id and student_id = p_student_id
+    for update;
+  was_returned := coalesce(was_returned, false);
 
   insert into class_submissions (classroom_id, assignment_id, student_id, user_id, book_id, book_title, book_snapshot)
     values (p_classroom_id, p_assignment_id, p_student_id, p_user_id, p_book_id, coalesce(p_book_title, ''), p_book_snapshot)
@@ -172,7 +188,8 @@ begin
     submitted_at = now(),
     returned_at = null
   returning id, version, submitted_at into r;
-  return jsonb_build_object('id', r.id, 'version', r.version, 'submitted_at', r.submitted_at);
+  return jsonb_build_object('id', r.id, 'version', r.version, 'submitted_at', r.submitted_at,
+                            'was_returned', was_returned);
 end $$;
 
 -- school_send_nudge (021), unchanged except that a hand-in the teacher

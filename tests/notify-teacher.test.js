@@ -278,10 +278,18 @@ describe('notifyHandIn', () => {
     expect(log.find((l) => l.url.includes('/rest/v1/class_submissions')).url).toContain(`assignment_id=eq.${ASSIGN_ID}`)
   })
 
-  it('checks "everyone in" on a resubmission too: a sent-back child handing in again can complete the class', async () => {
+  it('does not check "everyone in" on a plain resubmission (it cannot change the count)', async () => {
     const log = mockAll({ students: [{ id: 's1' }], submissions: [{ student_id: 's1' }] })
     const { notifyHandIn } = await load()
-    await notifyHandIn({ classroom: classroom(), student, assignment, submission: { id: 'sub', version: 2 }, late: false })
+    await notifyHandIn({ classroom: classroom(), student, assignment, submission: { id: 'sub', version: 2, was_returned: false }, late: false })
+    expect(kinds(log)).toEqual(['resubmit'])
+    expect(log.some((l) => l.url.includes('/rest/v1/class_submissions'))).toBe(false)
+  })
+
+  it('re-checks on a resubmission of a hand-in that had been sent back: it can complete the class', async () => {
+    const log = mockAll({ students: [{ id: 's1' }], submissions: [{ student_id: 's1' }] })
+    const { notifyHandIn } = await load()
+    await notifyHandIn({ classroom: classroom(), student, assignment, submission: { id: 'sub', version: 2, was_returned: true }, late: false })
     expect(kinds(log)).toEqual(['resubmit', 'all_handed_in'])
   })
 

@@ -4,10 +4,16 @@
 // its English default — so a forgotten Italian string is invisible in an
 // English build and only shows up as English text in an Italian classroom.
 //
-// This walks every AppText("…") and String(appLocalized: "…") key literal in
-// ios-native/MyBookLab/**/*.swift and checks that the catalog has it with a
-// non-empty Italian value. Interpolated keys (AppText("Updated \(n)×")) are
-// matched against the catalog's format form ("Updated %lld×").
+// This walks every localized key literal in ios-native/MyBookLab/**/*.swift —
+// AppText("…"), String(appLocalized: "…"), and the SwiftUI initialisers that
+// take a LocalizedStringKey literal (Text, Label, Button, TextField, Toggle,
+// .navigationTitle, .accessibilityLabel; never `verbatim:`) when the literal
+// has a letter in it — and checks that the catalog has it with a non-empty
+// Italian value that isn't just the English copied over (multi-word strings;
+// brand names and the like are allowlisted). Interpolated keys
+// (AppText("Updated \(n)×")) are matched against the catalog's format form
+// ("Updated %lld×"). A literal the scanner can't read (multi-line, raw, an
+// unknown escape) is a FAILURE, never silently skipped.
 import { describe, it, expect } from 'vitest'
 import { readFileSync, readdirSync, statSync } from 'node:fs'
 import { join } from 'node:path'
@@ -76,9 +82,17 @@ function readLiteral(src, i) {
   return null
 }
 
+const CALLS = [
+  'AppText\\(', 'String\\(appLocalized:',
+  '\\bText\\(', '\\bLabel\\(', '\\bButton\\(', '\\bTextField\\(', '\\bToggle\\(',
+  '\\.navigationTitle\\(', '\\.accessibilityLabel\\(',
+]
+const HAS_LETTER = /\p{L}/u
+
 function keyUses() {
   const uses = []
-  const re = /\b(AppText\(|String\(appLocalized:)\s*/g
+  const unreadable = []
+  const re = new RegExp(`(?:${CALLS.join('|')})\\s*`, 'g')
   for (const file of swiftFiles(ROOT)) {
     const src = readFileSync(file, 'utf8')
     // The AppText function definitions themselves are not uses.
@@ -86,14 +100,23 @@ function keyUses() {
     let m
     while ((m = re.exec(src))) {
       const at = m.index + m[0].length
-      if (src[at] !== '"') continue // a variable, not a literal key
-      const lit = readLiteral(src, at)
-      if (!lit) continue
+      // A variable, `verbatim:`, a closure label… — not a literal key.
+      if (src[at] !== '"' && !src.startsWith('#"', at)) continue
       const line = src.slice(0, m.index).split('\n').length
+      // Skip comments: the scan is textual.
+      const lineStart = src.lastIndexOf('\n', m.index) + 1
+      if (/^\s*\/\//.test(src.slice(lineStart, m.index))) continue
+      const lit = src[at] === '"' ? readLiteral(src, at) : null
+      if (!lit) {
+        unreadable.push(`${file}:${line}`)
+        continue
+      }
+      const isAppText = m[0].startsWith('AppText') || m[0].startsWith('String')
+      if (!isAppText && !lit.parts.some((p) => p && HAS_LETTER.test(p))) continue
       uses.push({ file, line, parts: lit.parts })
     }
   }
-  return uses
+  return { uses, unreadable }
 }
 
 const catalog = JSON.parse(readFileSync(`${ROOT}/Localizable.xcstrings`, 'utf8')).strings
@@ -108,29 +131,49 @@ function catalogKeyFor(parts) {
   return keys.find((k) => re.test(k)) ?? null
 }
 
+const enValue = (key, entry) => entry?.localizations?.en?.stringUnit?.value ?? key
+
+// Multi-word strings whose Italian is legitimately the English text.
+const SAME_IN_ITALIAN = new Set([
+  'My Book Lab', // the app's name
+  'Story Buddy', // the helper's name, kept in Italian too (as on the web)
+  'avatar_style.pixel.label', // "Pixel Art" is the Italian term too
+])
+
 const itValue = (entry) =>
   entry?.localizations?.it?.stringUnit?.value ??
   // Plural / device variations: any non-empty Italian variant counts.
   JSON.stringify(entry?.localizations?.it?.variations ?? '').match(/"value":"([^"]+)"/)?.[1]
 
 describe('iOS string catalog covers every key in code (extraction is off)', () => {
-  const uses = keyUses()
+  const { uses, unreadable } = keyUses()
+
+  it('every literal at a localized call site is one the scanner can read', () => {
+    expect(unreadable, `unreadable literals (rewrite as a one-line literal, or extend the scanner):\n${unreadable.join('\n')}`).toEqual([])
+  })
 
   it('finds the keys (sanity: the scanner works)', () => {
     expect(uses.length).toBeGreaterThan(500)
     expect(uses.some((u) => u.parts[0] === 'school.grading.levels.wow')).toBe(true)
+    // SwiftUI literal sites are scanned too (e.g. the replace-draft dialog's Cancel).
+    expect(uses.filter((u) => /StudentAssignmentsView/.test(u.file) && u.parts[0] === 'Cancel').length).toBeGreaterThan(0)
   })
 
-  it('every AppText / String(appLocalized:) key literal is in Localizable.xcstrings with an Italian value', () => {
+  it('every localized key literal (AppText, String(appLocalized:), SwiftUI initialisers) is in the catalog with a real Italian value', () => {
     const missing = []
     const noItalian = []
+    const copied = []
     for (const u of uses) {
       const key = catalogKeyFor(u.parts)
       const where = `${u.file}:${u.line} ${u.parts.map((p) => p ?? '\\(…)').join('')}`
-      if (!key) missing.push(where)
-      else if (!itValue(catalog[key])?.trim()) noItalian.push(where)
+      if (!key) { missing.push(where); continue }
+      const it = itValue(catalog[key])?.trim()
+      if (!it) { noItalian.push(where); continue }
+      const en = enValue(key, catalog[key]).trim()
+      if (it === en && /\p{L}+\s+\p{L}+/u.test(en) && !SAME_IN_ITALIAN.has(key)) copied.push(`${where}  (it = en: "${en}")`)
     }
     expect(missing, `missing from the catalog:\n${missing.join('\n')}`).toEqual([])
     expect(noItalian, `no Italian value:\n${noItalian.join('\n')}`).toEqual([])
+    expect([...new Set(copied)], `Italian is the English copied over (translate, or allowlist in SAME_IN_ITALIAN):\n${[...new Set(copied)].join('\n')}`).toEqual([])
   })
 })
