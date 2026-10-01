@@ -1,5 +1,6 @@
-// Review one assignment: every student's hand-in status, then — for a
-// handed-in book — the book itself (the app's reader, read-only), the
+// Review one assignment: every student's hand-in status and level, then —
+// for a handed-in book — the book itself (the app's reader, read-only), the
+// grade (level, tips, send back to revise; TeacherGradeViews.swift), the
 // feedback already sent (Seen / Not seen yet), and new feedback: sticker
 // toggles plus a comment of at most 500 characters. Prev/Next walks the
 // handed-in books only. Counterpart of the web's AssignmentReview.jsx.
@@ -119,6 +120,14 @@ struct TeacherReviewView: View {
                 if let n = row.feedback_count, n > 0 {
                     Text(TeacherCopy.feedbackCount(n)).font(.caption).foregroundStyle(.white.opacity(0.65))
                 }
+                // Grading at a glance: the newest level, "Sent back" while
+                // waiting on the child, "New version" once they handed in again.
+                if row.returned == true {
+                    TeacherChip(text: GradingCopy.sentBack, tone: .warn)
+                } else if row.hasUngradedVersion {
+                    TeacherChip(text: GradingCopy.newVersion, tone: .good)
+                }
+                if let level = row.level { GradeLevelChip(level: level) }
                 HandInChip(state: HandInState(row: row))
                 if row.isHandedIn {
                     Image(systemName: "chevron.right").font(.caption).foregroundStyle(.white.opacity(0.5))
@@ -156,6 +165,14 @@ struct TeacherReviewView: View {
                 }
                 .buttonStyle(.plain)
             }
+            TeacherGradePanel(
+                classId: classId,
+                submissionId: detail.submission.id,
+                version: detail.submission.version ?? 1,
+                grades: detail.grades ?? []
+            ) { saved in gradeSaved(saved, submissionId: detail.submission.id) }
+            // Same reason as the feedback panel below: nothing carries over.
+            .id("grade-\(detail.submission.id)-\(detail.submission.version ?? 1)")
             TeacherFeedbackPanel(
                 classId: classId,
                 submissionId: detail.submission.id,
@@ -171,6 +188,20 @@ struct TeacherReviewView: View {
             .id(detail.submission.id)
         } else {
             TeacherLoading()
+        }
+    }
+
+    /// A saved grade replaces that version's in the history, and the list
+    /// row shows it at once (no reload).
+    private func gradeSaved(_ g: SubmissionGrade, submissionId: String) {
+        var grades = detail?.grades ?? []
+        grades.removeAll { $0.version == g.version }
+        grades.append(g)
+        detail?.grades = grades.sorted { $0.version > $1.version }
+        if let i = rows?.firstIndex(where: { $0.submissionId == submissionId }) {
+            rows?[i].level = g.level
+            rows?[i].graded_version = g.version
+            rows?[i].returned = g.returned == true
         }
     }
 

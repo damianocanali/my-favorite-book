@@ -412,6 +412,8 @@ enum TeacherCopy {
         case "assignment_closed": AppText("school.teacher.errors.assignment_closed", defaultValue: "This assignment is closed.")
         case "past_due": AppText("school.teacher.errors.past_due", defaultValue: "This assignment is past its due date.")
         case "class_archived": AppText("school.teacher.errors.class_archived", defaultValue: "This class is archived. Restore it to send nudges.")
+        case "version_changed": AppText("school.teacher.errors.version_changed", defaultValue: "They handed in a new version. Have a look at it first.")
+        case "cannot_return": AppText("school.teacher.errors.cannot_return", defaultValue: "This assignment is closed, so it can't be sent back.")
         case APIClient.sessionExpiredCode: APIError.sessionExpiredText
         default: AppText("school.teacher.errors.generic", defaultValue: "Something went wrong. Try again.")
         }

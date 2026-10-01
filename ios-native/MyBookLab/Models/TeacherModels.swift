@@ -336,13 +336,24 @@ struct TeacherSubmissionRow: Decodable, Identifiable, Hashable, Sendable {
     let late: Bool?
     let book_title: String?
     var feedback_count: Int?
+    /// The newest grade's level and the version it was for (migration 022);
+    /// `returned`: sent back and not handed in again yet.
+    var level: String?
+    var graded_version: Int?
+    var returned: Bool?
 
     var id: String { submissionId ?? "student-\(student_id)" }
     var isHandedIn: Bool { status == "handed_in" && submissionId != nil }
+    /// Handed in again since the last grade: the teacher hasn't looked yet.
+    var hasUngradedVersion: Bool {
+        guard let graded_version, let version else { return false }
+        return version > graded_version
+    }
 
     enum CodingKeys: String, CodingKey {
         case submissionId = "id"
         case student_id, display_name, avatar_emoji, status, version, submitted_at, late, book_title, feedback_count
+        case level, graded_version, returned
     }
 }
 
@@ -376,9 +387,12 @@ struct TeacherSubmissionDetail: Decodable, Sendable {
         let late: Bool?
         let book_title: String?
         let book_snapshot: Book?
+        let returned: Bool?
     }
     let submission: Submission
     var feedback: [TeacherFeedback]
+    /// Every graded version, newest first.
+    var grades: [SubmissionGrade]?
 }
 
 struct TeacherFeedbackResponse: Decodable, Sendable {
