@@ -199,14 +199,14 @@ describe('GET /api/school/dashboard?classId= (class owner view)', () => {
     expect(sCalls[0].url).toContain(`assignment_id=in.(${A2},${A1})`)
   })
 
-  it('a hand-in sent back to revise reads not_started (not done until handed in again)', async () => {
+  it('a hand-in sent back to revise reads "revising" — its own state, never "not_started"', async () => {
     const log = mockSupabase({ user: TEACHER, routes: fullRoutes({ subs: subsRoute([
       { assignment_id: A2, student_id: S1_ID, submitted_at: '2026-09-25T09:00:00.000Z', returned_at: '2026-09-26T09:00:00.000Z' },
       { assignment_id: A1, student_id: S1_ID, submitted_at: '2026-09-20T00:00:00.000Z', returned_at: null },
     ]) }) })
     const { default: handler } = await import('../api/school/dashboard.js')
     const body = await (await handler(call(`?classId=${CLASS_ID}`))).json()
-    expect(body.students.find((s) => s.id === S1_ID).assignments).toEqual({ [A2]: 'not_started', [A1]: 'handed_in' })
+    expect(body.students.find((s) => s.id === S1_ID).assignments).toEqual({ [A2]: 'revising', [A1]: 'handed_in' })
     expect(log.find((l) => l.url.includes('/rest/v1/class_submissions')).url).toContain('returned_at')
   })
 

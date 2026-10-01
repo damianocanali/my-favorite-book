@@ -4,6 +4,7 @@ import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { tipLabel, mergeGrade, gradeRowFlag, gradeProblem, gradesCsv, LEVEL_EMOJI, LEVELS } from '../src/components/school/gradingUi.js'
 import { hasUnseenFeedback, isSentBack, canTryAgain } from '../src/components/school/assignmentStudentUi.js'
+import { handInChipKey } from '../src/components/school/assignmentUi.js'
 
 const en = JSON.parse(readFileSync('src/i18n/locales/en/school.json', 'utf8'))
 const itL = JSON.parse(readFileSync('src/i18n/locales/it/school.json', 'utf8'))
@@ -76,5 +77,21 @@ describe('assignmentStudentUi grading state', () => {
     expect(isSentBack(a({ returned: true }, 'closed'))).toBe(false)
     expect(isSentBack(a({ returned: false }))).toBe(false)
     expect(isSentBack(a(null))).toBe(false)
+  })
+})
+
+describe('dashboard "revising" state', () => {
+  it('has its own chip copy in EN and IT, not "Not started"', () => {
+    expect(handInChipKey('revising')).toBe('revising')
+    expect(en.teacher.assignments.review.status.revising).toBe('Revising')
+    expect(itL.teacher.assignments.review.status.revising).toBe('In revisione')
+  })
+
+  it('the iPad decodes it as its own state with the same catalog copy, and nudges still count it as not done', () => {
+    const models = readFileSync('ios-native/MyBookLab/Models/TeacherModels.swift', 'utf8')
+    expect(models).toMatch(/case handedIn = "handed_in", late, notStarted = "not_started", revising/)
+    expect(models).toMatch(/return v == "not_started" \|\| v == "revising"/)
+    const cat = JSON.parse(readFileSync('ios-native/MyBookLab/Localizable.xcstrings', 'utf8')).strings
+    expect(cat['school.teacher.assignments.review.status.revising'].localizations.it.stringUnit.value).toBe('In revisione')
   })
 })

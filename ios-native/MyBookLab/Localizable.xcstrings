@@ -14326,6 +14326,23 @@
           }
         }
       }
+    },
+    "school.teacher.assignments.review.status.revising": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Revising"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In revisione"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

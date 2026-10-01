@@ -24,6 +24,9 @@ describe('nudgeReasons / suggestedIds', () => {
     expect(nudgeReasons(s, [A_OPEN, A_CLOSED], NOW)).toEqual(['not_handed_in'])
     expect(nudgeReasons({ ...s, assignments: { a1: 'handed_in' } }, [A_OPEN], NOW)).toEqual([])
     expect(nudgeReasons({ ...s, assignments: { a1: 'late' } }, [A_OPEN], NOW)).toEqual([])
+    // Sent back to revise (migration 022): still not handed in.
+    expect(nudgeReasons({ ...s, assignments: { a1: 'revising' } }, [A_OPEN], NOW)).toEqual(['not_handed_in'])
+    expect(openNotHandedIn({ assignments: { a1: 'revising' } }, [A_OPEN])).toEqual([A_OPEN])
     expect(openNotHandedIn({ assignments: {} }, [A_OPEN, A_CLOSED])).toEqual([A_OPEN])
   })
 

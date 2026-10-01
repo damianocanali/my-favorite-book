@@ -158,12 +158,15 @@ async function oneClassDashboard(req, o) {
       })()
     : []
   const dueById = new Map(assignments.map((a) => [a.id, a.due_at]))
-  const handInState = new Map() // `${student_id}:${assignment_id}` -> 'handed_in' | 'late'
+  const handInState = new Map() // `${student_id}:${assignment_id}` -> 'handed_in' | 'late' | 'revising'
   for (const r of subRows) {
-    // Sent back to revise (migration 022): not done until they hand in
-    // again, so it reads not_started — for the chips, the counts and the
-    // nudge suggestions alike.
-    if (r.returned_at) continue
+    // Sent back to revise (migration 022): its own state, 'revising' — not
+    // done until they hand in again (both clients' nudge suggestions treat
+    // it like not_started), but never shown to the teacher as "Not started".
+    if (r.returned_at) {
+      handInState.set(`${r.student_id}:${r.assignment_id}`, 'revising')
+      continue
+    }
     handInState.set(`${r.student_id}:${r.assignment_id}`, isLate(r.submitted_at, dueById.get(r.assignment_id)) ? 'late' : 'handed_in')
   }
   const assignmentMap = (studentId) =>

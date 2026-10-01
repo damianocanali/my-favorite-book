@@ -340,7 +340,8 @@
         "status": {
           "handed_in": "Handed in",
           "late": "Late",
-          "not_started": "Not started"
+          "not_started": "Not started",
+          "revising": "Revising"
         }
       },
       "feedback": {

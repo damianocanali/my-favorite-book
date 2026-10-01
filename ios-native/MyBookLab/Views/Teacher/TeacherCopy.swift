@@ -301,6 +301,7 @@ enum TeacherCopy {
         case .handedIn: AppText("school.teacher.assignments.review.status.handed_in", defaultValue: "Handed in")
         case .late: AppText("school.teacher.assignments.review.status.late", defaultValue: "Late")
         case .notStarted: AppText("school.teacher.assignments.review.status.not_started", defaultValue: "Not started")
+        case .revising: AppText("school.teacher.assignments.review.status.revising", defaultValue: "Revising")
         }
     }
 

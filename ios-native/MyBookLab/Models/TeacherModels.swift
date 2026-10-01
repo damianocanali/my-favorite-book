@@ -64,7 +64,7 @@ struct TeacherDashboardStudent: Decodable, Identifiable, Hashable, Sendable {
     let images_today: Int?
     let checkins_7d: [TeacherCheckin]?
     let inactive_7d: Bool?
-    /// assignment id -> "handed_in" | "late" | "not_started"
+    /// assignment id -> "handed_in" | "late" | "not_started" | "revising"
     let assignments: [String: String]?
 }
 
@@ -441,7 +441,9 @@ enum TeacherStickers {
 /// already the flattened string; a review row is {status, late}. Both land
 /// here so the two surfaces never disagree (web: assignmentUi.handInChipKey).
 enum HandInState: String, Sendable {
-    case handedIn = "handed_in", late, notStarted = "not_started"
+    /// revising: sent back to revise (migration 022), not handed in again
+    /// yet — dashboard only; still "not handed in" for nudges.
+    case handedIn = "handed_in", late, notStarted = "not_started", revising
 
     init(dashboardValue: String?) {
         self = HandInState(rawValue: dashboardValue ?? "") ?? .notStarted
@@ -704,6 +706,10 @@ enum NudgeRules {
     /// The open assignments a student has not handed in yet.
     static func openNotHandedIn(_ s: TeacherDashboardStudent, assignments: [TeacherDashboardAssignment],
                                 now: Date = Date()) -> [TeacherDashboardAssignment] {
-        open(assignments, now: now).filter { (s.assignments?[$0.id] ?? "not_started") == "not_started" }
+        // "revising" (sent back to revise) is not done either.
+        open(assignments, now: now).filter {
+            let v = s.assignments?[$0.id] ?? "not_started"
+            return v == "not_started" || v == "revising"
+        }
     }
 }

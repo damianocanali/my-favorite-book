@@ -10,7 +10,9 @@ export const NUDGE_MESSAGE_MAX = 140
 export const NUDGE_MAX_STUDENTS = 35
 export const QUIET_MS = 3 * 24 * 60 * 60 * 1000
 
-const notHandedIn = (student, a) => (student.assignments?.[a.id] ?? 'not_started') === 'not_started'
+// 'revising' (sent back to revise, migration 022) is not done either.
+const NOT_DONE = new Set(['not_started', 'revising'])
+const notHandedIn = (student, a) => NOT_DONE.has(student.assignments?.[a.id] ?? 'not_started')
 
 /// Open = published and not closed by a due date that refuses late work.
 /// Same rule as the API, the RPC (school_send_nudge) and the iPad.
