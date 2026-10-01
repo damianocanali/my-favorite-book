@@ -415,6 +415,15 @@ body.keyboard-open main {
   overflow: hidden;
 }
 
+/* A worksheet assignment printed FILLED with a child's answers
+   (components/worksheets/AssignmentSheet.jsx): the answers decide the
+   length, so the sheet grows past one page instead of clipping them. */
+.worksheet-sheet.worksheet-sheet-flow {
+  height: auto;
+  min-height: 11in;
+  overflow: visible;
+}
+
 /* ── Worksheets print (Task WS, §11) ───────────────────────
    Same bug class the sign-in cards section above exists to dodge: the
    pre-existing book-printing rule — `body > #root > * { display: none

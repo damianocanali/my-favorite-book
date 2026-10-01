@@ -756,6 +756,11 @@ actor APIClient {
         let assignmentId: String
         let bookId: String
     }
+    /// A worksheet hand-in (migration 023): the answers, no book.
+    private struct SchoolSubmitWorksheetBody: Encodable {
+        let assignmentId: String
+        let answers: [String: String]
+    }
     private struct SchoolFeedbackSeenBody: Encodable { let id: String }
     private struct StudentAssignmentsResponse: Decodable { let assignments: [StudentAssignment]? }
 
@@ -771,6 +776,13 @@ actor APIClient {
         try await schoolStudent(
             method: "POST", path: "/api/school/submit", query: [:],
             body: SchoolSubmitBody(assignmentId: assignmentId, bookId: bookId), bearerToken: bearerToken
+        )
+    }
+
+    func submitWorksheet(assignmentId: String, answers: [String: String], bearerToken: String) async throws -> SubmitResult {
+        try await schoolStudent(
+            method: "POST", path: "/api/school/submit", query: [:],
+            body: SchoolSubmitWorksheetBody(assignmentId: assignmentId, answers: answers), bearerToken: bearerToken
         )
     }
 
@@ -1046,9 +1058,12 @@ actor APIClient {
         var dueAt: String??
         var allowLate: Bool?
         var status: String?
+        /// "book" | "worksheet", on create only (it never changes).
+        var kind: String?
+        var worksheet: WorksheetDefinition?
 
         enum CodingKeys: String, CodingKey {
-            case classId, id, title, prompt, due_at, allow_late, status
+            case classId, id, title, prompt, due_at, allow_late, status, kind, worksheet
         }
 
         func encode(to encoder: Encoder) throws {
@@ -1062,6 +1077,8 @@ actor APIClient {
             }
             try c.encodeIfPresent(allowLate, forKey: .allow_late)
             try c.encodeIfPresent(status, forKey: .status)
+            try c.encodeIfPresent(kind, forKey: .kind)
+            try c.encodeIfPresent(worksheet, forKey: .worksheet)
         }
     }
 

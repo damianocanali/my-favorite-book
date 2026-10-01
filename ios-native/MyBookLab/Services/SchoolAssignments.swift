@@ -91,6 +91,28 @@ enum SchoolAssignments {
         }
     }
 
+    /// A worksheet hand-in (migration 023): the answers go straight to the
+    /// server (there is no book to sync). nil on success, else the error
+    /// code to show ("empty_worksheet", "unkind", "assignment_closed", ...).
+    static func handInWorksheet(assignmentId: String, answers: [String: String]) async -> String? {
+        guard let token = await bearer() else { return "generic" }
+        do {
+            _ = try await APIClient.shared.submitWorksheet(assignmentId: assignmentId, answers: answers, bearerToken: token)
+            return nil
+        } catch let e as APIClient.SchoolError {
+            return e.code ?? "generic"
+        } catch {
+            return "generic"
+        }
+    }
+
+    /// The child's own hand-in answers (to start "Try again" from on an
+    /// iPad that has no draft), or nil on failure.
+    static func handedInAnswers(submissionId: String) async -> [String: String]? {
+        guard let token = await bearer() else { return nil }
+        return try? await APIClient.shared.studentSubmission(id: submissionId, bearerToken: token).answers ?? [:]
+    }
+
     struct FeedbackLoad {
         let items: [StudentSubmission.Feedback]
         let grade: SubmissionGrade?

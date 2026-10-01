@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { schoolFetch } from '../lib/schoolApi'
+import { hasWorksheetDraft } from '../components/school/worksheetUi'
 import { classBadgeCount, readSeenAssignments } from '../components/school/assignmentStudentUi'
 import { useBookshelfStore } from './useBookshelfStore'
 import { useBookStore } from './useBookStore'
@@ -41,7 +42,8 @@ export const useClassBadgeStore = create((set, get) => ({
     const nudge = n.ok ? (n.data?.nudge ?? null) : null
     const books = useBookshelfStore.getState().books ?? []
     const draft = useBookStore.getState().book
-    const isStarted = (id) => draft?.assignmentId === id || books.some((b) => b.assignmentId === id)
+    // Same as MyAssignments: a worksheet with answers on this device counts.
+    const isStarted = (id) => draft?.assignmentId === id || books.some((b) => b.assignmentId === id) || hasWorksheetDraft(userId, id)
     get().setCount(classBadgeCount(res.data?.assignments ?? [], {
       seen: readSeenAssignments(userId),
       isStarted,

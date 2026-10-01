@@ -3,19 +3,22 @@ import { useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'motion/react'
 import { useTranslation } from 'react-i18next'
 import { ClipboardList } from 'lucide-react'
+import { nanoid } from 'nanoid'
 import { schoolFetch } from '../../lib/schoolApi'
 import { useBookStore } from '../../stores/useBookStore'
 import { useBookshelfStore } from '../../stores/useBookshelfStore'
-import { useAuthStore } from '../../stores/useAuthStore'
+import { useAuthStore, selectDisplayName } from '../../stores/useAuthStore'
 import AssignmentCard from './AssignmentCard'
 import {
   homeStatus, showsOnHome, sortForHome, startDecision, canTryAgain,
-  readSeenAssignments, markAssignmentSeen, pruneSeenAssignments, classBadgeCount, seenKeysOnOpen,
+  readSeenAssignments, markAssignmentSeen, pruneSeenAssignments, classBadgeCount, seenKeysOnOpen, draftHasWork,
 } from './assignmentStudentUi'
 import { useClassBadgeStore } from '../../stores/useClassBadgeStore'
 import StudentFeedbackModal from './StudentFeedbackModal'
 import StudentNudgeCard from './StudentNudgeCard'
 import { nudgeAction } from './nudgeUi'
+import WorksheetFill from './WorksheetFill'
+import { isWorksheet, hasWorksheetDraft, appendWorksheetPages, pruneWorksheetDrafts, pagesBase } from './worksheetUi'
 
 const POLL_MS = 60 * 1000
 
@@ -45,6 +48,10 @@ export default function MyAssignments() {
   const [assignments, setAssignments] = useState(null) // null while loading
   const [error, setError] = useState(null)
   const [feedbackFor, setFeedbackFor] = useState(null) // the assignment whose feedback is open
+  // The worksheet open full screen (WorksheetFill), and a counter bumped
+  // when it closes so "started" re-reads the device drafts.
+  const [worksheetFor, setWorksheetFor] = useState(null)
+  const [draftsTick, setDraftsTick] = useState(0)
   // The teacher's unread nudge (api/school/nudges.js), shown first. Ids
   // dismissed here stay hidden even if a poll races the "Got it" PATCH.
   const [nudge, setNudge] = useState(null)
@@ -58,6 +65,8 @@ export default function MyAssignments() {
       setError(null)
       const list = res.data.assignments ?? []
       setAssignments(list)
+      // Worksheet drafts never outlive an open assignment.
+      pruneWorksheetDrafts(useAuthStore.getState().user?.id ?? null, list)
       setSeen(pruneSeenAssignments(useAuthStore.getState().user?.id ?? null, list.map((a) => a.id)))
     } else if (!loaded.current) {
       // A failed poll keeps what is on screen; only a first load hides it.
@@ -106,10 +115,12 @@ export default function MyAssignments() {
   // actual submitted book rather than only offering to make a new one.
   const findBook = (assignmentId) => books.find((b) => b.assignmentId === assignmentId)
 
-  // Started counts the draft open in the editor too, not only saved books.
+  // Started counts the draft open in the editor too, not only saved books;
+  // for a worksheet, answers saved on this device (only worksheets have them).
   const isStarted = useCallback(
-    (id) => draft?.assignmentId === id || books.some((b) => b.assignmentId === id),
-    [books, draft]
+    (id) => draft?.assignmentId === id || books.some((b) => b.assignmentId === id) || hasWorksheetDraft(userId, id),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [books, draft, userId, draftsTick]
   )
   const statusOf = useCallback(
     (a) => homeStatus(a, { hasBook: isStarted(a.id), seen: seen.has(a.id) }),
@@ -134,6 +145,11 @@ export default function MyAssignments() {
   // replaced after the child says so (same as the iPad).
   function startOrContinue(assignment) {
     markOpened(assignment.id)
+    // A worksheet opens its fill-in view; never touches the book draft.
+    if (isWorksheet(assignment)) {
+      setWorksheetFor(assignment)
+      return true
+    }
     const decision = startDecision(useBookStore.getState().book, assignment.id)
     if (decision === 'resume') {
       navigate('/create')
@@ -156,6 +172,11 @@ export default function MyAssignments() {
   }
 
   function openHandedIn(assignment) {
+    if (isWorksheet(assignment)) {
+      markOpened(assignment.id)
+      setWorksheetFor(assignment)
+      return
+    }
     const existing = findBook(assignment.id)
     if (existing) navigate(`/preview/${existing.id}`)
     else startOrContinue(assignment)
@@ -164,6 +185,8 @@ export default function MyAssignments() {
   const nudgeNext = nudge ? nudgeAction(nudge, { assignments: assignments ?? [], books, draft }) : null
   const nudgeLabel = !nudgeNext
     ? ''
+    : nudgeNext.kind === 'assignment' && isWorksheet(nudgeNext.assignment)
+      ? (isStarted(nudgeNext.assignment.id) ? t('school:worksheet.student.continue') : t('school:worksheet.student.start'))
     : nudgeNext.kind === 'assignment'
       ? (isStarted(nudgeNext.assignment.id) ? t('school:student.assignments.continue_writing') : t('school:student.assignments.start_writing'))
       : nudgeNext.kind === 'create'
@@ -201,6 +224,37 @@ export default function MyAssignments() {
     } else if (next.kind === 'create') {
       startNewBook()
     }
+    navigate('/create')
+  }
+
+  // "Turn into book pages": a new book (titled after the worksheet) or the
+  // pages added to one of theirs, opened in the page editor. Untagged: a
+  // book made from a worksheet is the child's own, not a hand-in. Never
+  // silently replaces a draft with work in it.
+  function makePages({ texts, bookId }) {
+    const open = useBookStore.getState().book
+    const picked = bookId ? books.find((b) => b.id === bookId) : null
+    if (bookId && !picked) return
+    if (draftHasWork(open) && open?.id !== picked?.id && !window.confirm(t('school:student.assignments.replace_draft'))) return
+    // The book open in the editor is added to as it is now, unsaved edits
+    // and all — never replaced by its older shelf copy.
+    const target = pagesBase(open, picked)
+    if (target) {
+      const { pages } = appendWorksheetPages(target.pages ?? [], texts, nanoid)
+      loadBook({ ...target, pages, updatedAt: new Date().toISOString() })
+    } else {
+      startNewBook()
+      const fresh = useBookStore.getState().book
+      const { pages } = appendWorksheetPages([], texts, nanoid)
+      loadBook({
+        ...fresh,
+        title: worksheetFor?.title ?? fresh.title,
+        authorName: selectDisplayName(useAuthStore.getState()) ?? '',
+        pages,
+      })
+    }
+    useBookStore.getState().setStep(7)
+    setWorksheetFor(null)
     navigate('/create')
   }
 
@@ -255,6 +309,20 @@ export default function MyAssignments() {
           />
         ))}
       </motion.div>
+      )}
+
+      {worksheetFor && (
+        <WorksheetFill
+          assignment={worksheetFor}
+          userId={userId}
+          books={books}
+          onClose={() => {
+            setWorksheetFor(null)
+            setDraftsTick((n) => n + 1)
+          }}
+          onHandedIn={load}
+          onMakePages={makePages}
+        />
       )}
 
       <AnimatePresence>

@@ -297,6 +297,11 @@ struct TeacherAssignment: Decodable, Identifiable, Hashable, Sendable {
     var allow_late: Bool?
     let created_at: String?
     var counts: Counts?
+    /// "book" | "worksheet" (migration 023); nil reads as a book.
+    var kind: String? = nil
+    var worksheet: WorksheetDefinition? = nil
+
+    var isWorksheet: Bool { kind == "worksheet" && worksheet != nil }
 
     /// Delete is offered only while nobody has handed in — mirrors the
     /// server's has_submissions 409, so the button is absent rather than
@@ -364,6 +369,8 @@ struct TeacherReviewList: Decodable, Sendable {
         let status: String?
         let due_at: String?
         let allow_late: Bool?
+        var kind: String? = nil
+        var worksheet: WorksheetDefinition? = nil
 
         /// Still open for hand-ins: published, and not past a due date that
         /// refuses late work (same rule as NudgeRules.isOpen and the web).
@@ -397,6 +404,11 @@ struct TeacherSubmissionDetail: Decodable, Sendable {
         let book_title: String?
         let book_snapshot: Book?
         let returned: Bool?
+        /// A worksheet hand-in (migration 023): its answers and the prompts
+        /// the child answered.
+        var kind: String? = nil
+        var answers: [String: String]? = nil
+        var worksheet: WorksheetSnapshot? = nil
     }
     let submission: Submission
     var feedback: [TeacherFeedback]

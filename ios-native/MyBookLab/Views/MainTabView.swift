@@ -187,7 +187,10 @@ extension MainTabView {
         let draftAssignment = BookDraftStore.shared.book?.assignmentId
         let count = StudentAssignment.classBadgeCount(
             list, seen: seen,
-            isStarted: { a in draftAssignment == a.id || books.contains { $0.assignmentId == a.id } },
+            isStarted: { a in
+                draftAssignment == a.id || books.contains { $0.assignmentId == a.id }
+                    || (a.isWorksheet && WorksheetDrafts.hasDraft(userId: userId, assignmentId: a.id))
+            },
             hasNudge: nudge.map { !router.dismissedNudges.contains($0.id) } ?? false
         )
         guard !Task.isCancelled else { return }

@@ -40,7 +40,7 @@ describe('teacher GET /api/school/assignments?classId=', () => {
     expect(body.assignments[0]).toEqual({
       id: ASSIGN_ID, title: 'My pet', prompt: 'Write about a pet.', due_at: '2026-09-30T00:00:00.000Z',
       status: 'published', allow_late: true, created_at: '2026-09-20T00:00:00.000Z', updated_at: '2026-09-20T00:00:00.000Z',
-      counts: { handed_in: 1, total_students: 2 },
+      counts: { handed_in: 1, total_students: 2 }, kind: 'book', worksheet: null,
     })
     expect(body.assignments[1].counts).toEqual({ handed_in: 0, total_students: 2 })
     const a = log.find((l) => l.url.includes('/rest/v1/assignments'))
@@ -318,6 +318,7 @@ describe('student GET /api/school/assignments', () => {
     expect(body.assignments[0]).toEqual({
       id: ASSIGN2_ID, title: 'My pet', prompt: 'Write about a pet.', due_at: '2026-09-25T00:00:00.000Z',
       status: 'closed', allow_late: true, created_at: '2026-09-21T00:00:00.000Z', past_due: true,
+      kind: 'book', worksheet: null, class_locale: 'en',
       my_submission: {
         id: SUB_ID, version: 2, submitted_at: '2026-09-26T00:00:00.000Z', late: true, feedback_unseen: 2,
         level: null, grade_unseen: false, returned: false,

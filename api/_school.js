@@ -21,6 +21,19 @@ export function sb(path, init = {}) {
   })
 }
 
+// Migration 023's columns on an assignments read. A deploy that lands
+// before the migration must not 503 every assignment list (book ones
+// included): when PostgREST says the column doesn't exist (42703), the read
+// is retried once without them — every row then reads as a book.
+export const WORKSHEET_COLS = ',kind,worksheet'
+export async function sbAssignments(path, init = {}) {
+  const res = await sb(path, init)
+  if (res.ok || res.status !== 400 || !path.includes(WORKSHEET_COLS)) return res
+  const body = await res.clone().json().catch(() => null)
+  if (body?.code !== '42703') return res
+  return sb(path.replace(WORKSHEET_COLS, ''), init)
+}
+
 export function json(req, status, body) {
   return new Response(JSON.stringify(body), { status, headers: withCors({ 'Content-Type': 'application/json' }, req) })
 }

@@ -1,29 +1,38 @@
 export const config = { runtime: 'edge' }
 
 import { handleCors, checkRateLimit } from '../_rateLimit.js'
-import { requireClassOwner, requireStudent, sb, json, isUuid } from '../_school.js'
+import { requireClassOwner, requireStudent, sb, sbAssignments, json, isUuid } from '../_school.js'
 import {
   TITLE_MAX, PROMPT_MAX, STATUSES, canTransition, cleanText, parseDue, isLate, isPastDue, raisedName,
 } from '../../lib/school/assignments.js'
+import { cleanWorksheet } from '../../lib/school/worksheets.js'
 
-const SELECT = 'id,title,prompt,due_at,status,allow_late,created_at,updated_at'
+const SELECT = 'id,title,prompt,due_at,status,allow_late,created_at,updated_at,kind,worksheet'
+const KINDS = ['book', 'worksheet']
+
+// A row from before migration 023 (or a book) reads as a book.
+const kindOf = (r) => (r.kind === 'worksheet' ? 'worksheet' : 'book')
+const worksheetOf = (r) => (kindOf(r) === 'worksheet' ? r.worksheet ?? null : null)
 
 // Allowlisted output: classroom_id (and anything else PostgREST adds) is
 // never copied through by omission.
 function teacherShape(r, extra = {}) {
   return {
     id: r.id, title: r.title, prompt: r.prompt, due_at: r.due_at, status: r.status,
-    allow_late: r.allow_late, created_at: r.created_at, updated_at: r.updated_at, ...extra,
+    allow_late: r.allow_late, created_at: r.created_at, updated_at: r.updated_at,
+    kind: kindOf(r), worksheet: worksheetOf(r), ...extra,
   }
 }
 
 const bad = (req, error) => json(req, 400, { error, code: 'bad_request' })
+const isBlank = (v) => v === undefined || v === null || (typeof v === 'string' && !v.trim())
 
 // Every read below fails CLOSED: a non-2xx throws, and the handler's
 // try/catch turns it into 503 upstream rather than "no assignments" or
 // "nobody handed in" (which would let a DELETE through, for one).
 async function read(path, what) {
-  const res = await sb(path)
+  // Assignment reads tolerate migration 023 not being applied yet.
+  const res = await (path.startsWith('/rest/v1/assignments') ? sbAssignments(path) : sb(path))
   if (!res.ok) throw new Error(`${what} lookup failed: ${res.status}`)
   return res.json()
 }
@@ -57,10 +66,13 @@ function myGrade(s) {
   return { level: g?.level ?? null, grade_unseen: !!g && !g.seen_at, returned: !!s.returned_at }
 }
 
-async function studentList(req, student) {
+async function studentList(req, student, classroom) {
+  // What the class reads in: read-aloud of a worksheet's prompts uses it
+  // (the prompts are the teacher's text, written for the class).
+  const classLocale = classroom?.locale === 'it' ? 'it' : 'en'
   const rows = await read(
     `/rest/v1/assignments?classroom_id=eq.${student.classroom_id}&status=in.(published,closed)` +
-      `&select=id,title,prompt,due_at,status,allow_late,created_at&order=created_at.desc`,
+      `&select=id,title,prompt,due_at,status,allow_late,created_at,kind,worksheet&order=created_at.desc`,
     'assignments'
   )
   // Their own hand-ins only, with the grades on them (migration 022).
@@ -85,6 +97,9 @@ async function studentList(req, student) {
       return {
         id: r.id, title: r.title, prompt: r.prompt, due_at: r.due_at, status: r.status,
         allow_late: r.allow_late, created_at: r.created_at,
+        // The worksheet's template and the teacher's prompts: what the
+        // child's fill-in view shows (migration 023).
+        kind: kindOf(r), worksheet: worksheetOf(r), class_locale: classLocale,
         past_due: isPastDue(r.due_at, now),
         my_submission: s
           ? {
@@ -100,8 +115,21 @@ async function studentList(req, student) {
 async function create(req, classroomId, body) {
   const title = cleanText(body.title, TITLE_MAX)
   if (!title) return bad(req, `Title must be 1-${TITLE_MAX} characters`)
-  const prompt = cleanText(body.prompt, PROMPT_MAX)
-  if (!prompt) return bad(req, `Prompt must be 1-${PROMPT_MAX} characters`)
+  const kind = body.kind ?? 'book'
+  if (!KINDS.includes(kind)) return bad(req, 'Invalid kind')
+  let worksheet = null
+  if (kind === 'worksheet') {
+    const w = cleanWorksheet(body.worksheet)
+    if (!w.ok) return bad(req, w.error)
+    worksheet = w.worksheet
+  } else if (body.worksheet !== undefined && body.worksheet !== null) {
+    return bad(req, 'Only a worksheet assignment takes a worksheet')
+  }
+  // A worksheet's boxes carry the prompts; its class-wide instructions line
+  // is optional and may be empty (migration 023) — never a copy of the
+  // title that would go stale when the title changes.
+  const prompt = kind === 'worksheet' && isBlank(body.prompt) ? '' : cleanText(body.prompt, PROMPT_MAX)
+  if (prompt === null) return bad(req, `Prompt must be 1-${PROMPT_MAX} characters`)
   const due = parseDue(body.due_at)
   if (!due.ok) return bad(req, 'Invalid due date')
   if (body.allow_late !== undefined && typeof body.allow_late !== 'boolean') return bad(req, 'Invalid allow_late')
@@ -111,8 +139,11 @@ async function create(req, classroomId, body) {
   const res = await sb('/rest/v1/assignments', {
     method: 'POST',
     headers: { Prefer: 'return=representation' },
+    // A book leaves kind/worksheet to the column defaults, so creating a
+    // book works before migration 023 is applied too.
     body: JSON.stringify({
       classroom_id: classroomId, title, prompt, due_at: due.value ?? null, allow_late: body.allow_late ?? true, status,
+      ...(kind === 'worksheet' ? { kind, worksheet } : {}),
     }),
   })
   if (!res.ok) return json(req, 502, { error: 'Could not save assignment', code: 'upstream' })
@@ -127,9 +158,17 @@ async function update(req, classroomId, body) {
     patch.title = cleanText(body.title, TITLE_MAX)
     if (!patch.title) return bad(req, `Title must be 1-${TITLE_MAX} characters`)
   }
+  // An empty prompt clears a worksheet's instructions (checked against the
+  // row's kind below); a book's prompt is always 1-1000.
+  let clearPrompt = false
   if (body.prompt !== undefined) {
-    patch.prompt = cleanText(body.prompt, PROMPT_MAX)
-    if (!patch.prompt) return bad(req, `Prompt must be 1-${PROMPT_MAX} characters`)
+    if (typeof body.prompt === 'string' && !body.prompt.trim()) {
+      clearPrompt = true
+      patch.prompt = ''
+    } else {
+      patch.prompt = cleanText(body.prompt, PROMPT_MAX)
+      if (!patch.prompt) return bad(req, `Prompt must be 1-${PROMPT_MAX} characters`)
+    }
   }
   if (body.due_at !== undefined) {
     const due = parseDue(body.due_at)
@@ -144,11 +183,35 @@ async function update(req, classroomId, body) {
     if (!STATUSES.includes(body.status)) return bad(req, 'Invalid status')
     patch.status = body.status
   }
+  let worksheet
+  if (body.worksheet !== undefined) {
+    const w = cleanWorksheet(body.worksheet)
+    if (!w.ok) return bad(req, w.error)
+    worksheet = w.worksheet
+    patch.worksheet = worksheet
+  }
+  // What an assignment is never changes (migration 023's trigger agrees).
+  if (body.kind !== undefined && !KINDS.includes(body.kind)) return bad(req, 'Invalid kind')
   if (!Object.keys(patch).length) return bad(req, 'Nothing to update')
 
   const scoped = `/rest/v1/assignments?id=eq.${body.id}&classroom_id=eq.${classroomId}`
-  const [current] = await read(`${scoped}&select=id,status`, 'assignment')
+  const [current] = await read(`${scoped}&select=id,status,kind,worksheet`, 'assignment')
   if (!current) return json(req, 404, { error: 'Assignment not found', code: 'assignment_not_found' })
+  if (body.kind !== undefined && body.kind !== kindOf(current)) {
+    return json(req, 409, { error: 'An assignment can\'t change between book and worksheet', code: 'kind_locked' })
+  }
+  if (clearPrompt && kindOf(current) !== 'worksheet') return bad(req, `Prompt must be 1-${PROMPT_MAX} characters`)
+  if (worksheet) {
+    if (kindOf(current) !== 'worksheet') return bad(req, 'Only a worksheet assignment takes a worksheet')
+    // Prompts can be reworded any time (each hand-in keeps the prompts it
+    // answered); the template itself only while nobody can have started.
+    // The acrostic's word likewise: once children can see it, lines
+    // written for one word must not land under another.
+    if ((worksheet.templateId !== current.worksheet?.templateId || (worksheet.word ?? null) !== (current.worksheet?.word ?? null))
+        && current.status !== 'draft') {
+      return json(req, 409, { error: 'The worksheet can only change while the assignment is a draft', code: 'template_locked' })
+    }
+  }
   if (patch.status && !canTransition(current.status, patch.status)) {
     return json(req, 409, { error: `Cannot go from ${current.status} to ${patch.status}`, code: 'invalid_transition' })
   }
@@ -156,8 +219,12 @@ async function update(req, classroomId, body) {
 
   // A status change only applies if the status is still the one checked
   // above: two tabs racing (close vs reopen) can't skip the transition rules.
-  const guard = patch.status ? `&status=eq.${current.status}` : ''
-  const res = await sb(`${scoped}${guard}&select=${SELECT}`, {
+  // Likewise a template swap only lands while the row is still the draft
+  // checked above.
+  const templateSwap = !!worksheet && (worksheet.templateId !== current.worksheet?.templateId
+    || (worksheet.word ?? null) !== (current.worksheet?.word ?? null))
+  const guard = patch.status || templateSwap ? `&status=eq.${current.status}` : ''
+  const res = await sbAssignments(`${scoped}${guard}&select=${SELECT}`, {
     method: 'PATCH',
     headers: { Prefer: 'return=representation' },
     body: JSON.stringify(patch),
@@ -204,7 +271,7 @@ export default async function handler(req) {
         if (!s.ok) return s.response
         const rl = limited(req, `school-assignments-student:${s.student.id}`, 600)
         if (rl) return rl
-        return await studentList(req, s.student)
+        return await studentList(req, s.student, s.classroom)
       }
       const o = await requireClassOwner(req, classId)
       if (!o.ok) return o.response

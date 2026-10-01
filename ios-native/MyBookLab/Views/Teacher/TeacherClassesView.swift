@@ -339,6 +339,13 @@ struct TeacherClassDetailView: View {
                             HStack(spacing: 8) {
                                 Text(verbatim: a.title).font(.headline).foregroundStyle(.white)
                                 AssignmentStatusChip(status: a.status)
+                                if a.isWorksheet {
+                                    Text(WorksheetCopy.teacherChip)
+                                        .font(.caption2.bold())
+                                        .padding(.horizontal, 8).padding(.vertical, 3)
+                                        .foregroundStyle(.cyan)
+                                        .overlay(Capsule().strokeBorder(.cyan.opacity(0.4)))
+                                }
                             }
                             HStack(spacing: 6) {
                                 if let due = TeacherDates.dueString(a.due_at) {
@@ -367,6 +374,14 @@ struct TeacherClassDetailView: View {
                         ) { Task { await setStatus(a, status) } }
                     }
                     actionButton(TeacherCopy.edit, systemImage: "pencil", disabled: busy) { formTarget = .edit(a) }
+                    if a.isWorksheet, let ws = a.worksheet {
+                        // A blank sheet for a paper day (AirPrint).
+                        actionButton(WorksheetCopy.teacherPrintBlank, systemImage: "printer", disabled: busy) {
+                            WorksheetPrinter.print(
+                                WorksheetPDF.make(title: a.title, worksheet: ws, sheets: [.init(studentName: "", answers: nil)]),
+                                jobName: a.title)
+                        }
+                    }
                     if a.canDelete {
                         actionButton(TeacherCopy.delete, systemImage: "trash", destructive: true, disabled: busy) {
                             pendingDelete = a
@@ -471,6 +486,10 @@ struct TeacherAssignmentForm: View {
 
     @State private var title = ""
     @State private var prompt = ""
+    /// "book" | "worksheet" (migration 023): chosen on create, fixed after.
+    @State private var kind = "book"
+    @State private var worksheet: WorksheetDefinition?
+    @State private var acrosticWord = ""
     @State private var hasDue = false
     @State private var due = Calendar.current.date(byAdding: .day, value: 7, to: Date()) ?? Date()
     @State private var allowLate = true
@@ -481,6 +500,33 @@ struct TeacherAssignmentForm: View {
     var body: some View {
         NavigationStack {
             Form {
+                if existing == nil {
+                    Section {
+                        Picker(selection: $kind) {
+                            Text(WorksheetCopy.teacherKindBook).tag("book")
+                            Text(WorksheetCopy.teacherKindWorksheet).tag("worksheet")
+                        } label: { Text(WorksheetCopy.teacherKindLabel) }
+                        .pickerStyle(.segmented)
+                    } header: {
+                        Text(WorksheetCopy.teacherKindLabel)
+                    } footer: {
+                        Text(kind == "worksheet" ? WorksheetCopy.teacherKindWorksheetHint : WorksheetCopy.teacherKindBookHint)
+                    }
+                }
+                if kind == "worksheet" {
+                    TeacherWorksheetPicker(
+                        worksheet: $worksheet, word: $acrosticWord,
+                        canChangeTemplate: existing == nil || existing?.status == "draft"
+                    ) { templateId in
+                        // An empty title and instructions take the template's own.
+                        if title.trimmingCharacters(in: .whitespaces).isEmpty {
+                            title = TeacherStickers.truncated(String(appLocalized: WorksheetCopy.title(templateId)), max: TeacherStickers.titleMax)
+                        }
+                        if prompt.trimmingCharacters(in: .whitespaces).isEmpty {
+                            prompt = TeacherStickers.truncated(String(appLocalized: WorksheetCopy.description(templateId)), max: TeacherStickers.promptMax)
+                        }
+                    }
+                }
                 Section {
                     TextField(text: $title) { Text(TeacherCopy.formTitle) }
                         .onChange(of: title) { _, v in
@@ -497,7 +543,7 @@ struct TeacherAssignmentForm: View {
                             if cut != v { prompt = cut }
                         }
                 } header: {
-                    Text(TeacherCopy.formPrompt)
+                    Text(kind == "worksheet" ? WorksheetCopy.teacherInstructionsLabel : TeacherCopy.formPrompt)
                 } footer: {
                     Text(verbatim: "\(prompt.utf16.count)/\(TeacherStickers.promptMax)")
                         .frame(maxWidth: .infinity, alignment: .trailing)
@@ -544,6 +590,11 @@ struct TeacherAssignmentForm: View {
                 if let existing {
                     title = existing.title
                     prompt = existing.prompt ?? ""
+                    if existing.isWorksheet {
+                        kind = "worksheet"
+                        worksheet = existing.worksheet
+                        acrosticWord = existing.worksheet?.word ?? ""
+                    }
                     if let d = TeacherDates.parse(existing.due_at) { hasDue = true; due = d }
                     allowLate = existing.allow_late ?? true
                 }
@@ -558,7 +609,26 @@ struct TeacherAssignmentForm: View {
         let t = title.trimmingCharacters(in: .whitespacesAndNewlines)
         let p = prompt.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !t.isEmpty else { error = TeacherCopy.titleRequired; return }
-        guard !p.isEmpty else { error = TeacherCopy.promptRequired; return }
+        // A worksheet's boxes carry its prompts; the class-wide line is optional.
+        guard !p.isEmpty || kind == "worksheet" else { error = TeacherCopy.promptRequired; return }
+        var ws: WorksheetDefinition?
+        if kind == "worksheet" {
+            guard var def = worksheet, let template = def.template else { error = WorksheetCopy.teacherTemplateRequired; return }
+            for id in template.boxIds {
+                let v = (def.prompts[id] ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+                guard !v.isEmpty else { error = WorksheetCopy.teacherPromptRequired; return }
+                def.prompts[id] = v
+            }
+            def.prompts = def.prompts.filter { template.boxIds.contains($0.key) }
+            def.word = nil
+            if def.isAcrostic, !acrosticWord.trimmingCharacters(in: .whitespaces).isEmpty {
+                guard let w = WorksheetTemplates.cleanAcrosticWord(acrosticWord) else {
+                    error = WorksheetCopy.teacherAcrosticWordInvalid; return
+                }
+                def.word = w
+            }
+            ws = def
+        }
         saving = true
         error = nil
         defer { saving = false }
@@ -567,8 +637,12 @@ struct TeacherAssignmentForm: View {
         var body = APIClient.AssignmentWrite(classId: classId)
         body.id = existing?.id
         body.title = t
-        body.prompt = p
+        // A worksheet's instructions are optional: on an edit, an empty box
+        // clears them (sent as ""); a book always sends its prompt.
+        body.prompt = p.isEmpty ? (existing != nil && kind == "worksheet" ? "" : nil) : p
         body.dueAt = .some(dueIso)
+        body.worksheet = ws
+        if existing == nil { body.kind = kind }
         body.allowLate = allowLate
         if existing == nil { body.status = status }
         do {
