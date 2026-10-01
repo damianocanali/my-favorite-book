@@ -4,6 +4,7 @@ import { Volume2, VolumeX, Sparkles, PenLine } from 'lucide-react'
 import { useSpeechSynthesis } from '../../hooks/useSpeechSynthesis'
 import { assignmentCardStatus, canHandInAgain, hasUnseenFeedback, dueWording, isSentBack } from './assignmentStudentUi'
 import { StudentLevelBadge, SentBackBanner } from './StudentGrade'
+import { isWorksheet } from './worksheetUi'
 
 const STATUS_TONE = {
   new: 'bg-amber-400/20 text-amber-200 border-amber-400/40',
@@ -56,6 +57,14 @@ export default function AssignmentCard({
   const status = assignmentCardStatus(assignment)
   const unseen = hasUnseenFeedback(assignment)
   const canHandedInAgain = status === 'handed_in' && canHandInAgain(assignment)
+  // A worksheet's buttons say "worksheet" (same actions, its own view).
+  const ws = isWorksheet(assignment)
+  const startLabel = ws
+    ? (hasBook ? t('school:worksheet.student.continue') : t('school:worksheet.student.start'))
+    : (hasBook ? t('school:student.assignments.continue_writing') : t('school:student.assignments.start_writing'))
+  const openLabel = canHandedInAgain
+    ? t('school:student.assignments.hand_in_again')
+    : ws ? t('school:worksheet.student.open') : t('school:student.assignments.open_handed_in')
 
   function handleListen() {
     if (isSpeaking) stop()
@@ -118,7 +127,7 @@ export default function AssignmentCard({
             className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-body font-bold text-base text-white btn-fill-primary transition-colors"
           >
             <PenLine size={18} aria-hidden="true" />
-            {hasBook ? t('school:student.assignments.continue_writing') : t('school:student.assignments.start_writing')}
+            {startLabel}
           </button>
         )}
         {status === 'handed_in' && (
@@ -127,7 +136,7 @@ export default function AssignmentCard({
             onClick={onOpenHandedIn}
             className="px-4 py-2 rounded-xl font-body font-semibold text-sm text-galaxy-text border border-galaxy-text-muted/30 hover:border-galaxy-text-muted/50 transition-colors"
           >
-            {canHandedInAgain ? t('school:student.assignments.hand_in_again') : t('school:student.assignments.open_handed_in')}
+            {openLabel}
           </button>
         )}
         {assignment.my_submission && !unseen && (

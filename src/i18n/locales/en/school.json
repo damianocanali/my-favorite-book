@@ -783,7 +783,6 @@
       "make_pages_new": "Start a new book",
       "make_pages_append": "Add to one of my books",
       "make_pages_full": "This book is full.",
-      "make_pages_empty": "Write something first.",
       "print": "Print"
     }
   }
