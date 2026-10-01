@@ -191,7 +191,8 @@
       "generic": "Qualcosa non ha funzionato. Riprova.",
       "class_archived": "Questa classe è archiviata. Ripristinala per fare modifiche.",
       "version_changed": "Ha consegnato una nuova versione. Guardala prima di valutare.",
-      "cannot_return": "Questo compito è chiuso o scaduto, quindi non si può rimandare."
+      "cannot_return": "Questo compito è chiuso o scaduto, quindi non si può rimandare.",
+      "template_locked": "La scheda si può cambiare solo finché il compito è una bozza."
     },
     "class_page": {
       "back": "Torna alle tue classi",
@@ -430,7 +431,11 @@
         "book_too_large": "Questo libro è troppo grande da consegnare. Chiedi all'insegnante.",
         "assignment_not_found": "Non troviamo questo compito. Chiedi all'insegnante.",
         "book_not_found": "Non troviamo questo libro. Riprova.",
-        "generic": "Qualcosa non ha funzionato. Chiedi all'insegnante."
+        "generic": "Qualcosa non ha funzionato. Chiedi all'insegnante.",
+        "empty_worksheet": "Scrivi qualcosa in almeno un riquadro.",
+        "unkind": "Usiamo parole gentili — prova con parole diverse.",
+        "answer_too_long": "Una delle tue risposte è troppo lunga.",
+        "wrong_kind": "Questo compito è cambiato. Chiedi all’insegnante."
       }
     },
     "feedback": {
@@ -635,6 +640,151 @@
       "sent_back": "L'insegnante te l'ha rimandato con dei consigli. Riprova!",
       "try_again": "Riprova",
       "listen_tip": "Leggi il consiglio ad alta voce"
+    }
+  },
+  "worksheet": {
+    "templates": {
+      "story_map": {
+        "title": "Mappa della storia",
+        "description": "Progetta una storia: chi, dove, il problema, che cosa succede e il finale.",
+        "boxes": {
+          "characters": "Chi c’è nella tua storia?",
+          "setting": "Dove e quando succede?",
+          "problem": "Qual è il problema?",
+          "events": "Che cosa succede? Scrivi i momenti importanti.",
+          "ending": "Come finisce?"
+        }
+      },
+      "character_profile": {
+        "title": "Scheda del personaggio",
+        "description": "Conosci un personaggio prima di scriverne la storia.",
+        "boxes": {
+          "name": "Come si chiama il tuo personaggio?",
+          "looks_like": "Che aspetto ha?",
+          "likes": "Che cosa ama fare?",
+          "wants": "Che cosa desidera più di tutto?",
+          "afraid_of": "Di che cosa ha paura?"
+        }
+      },
+      "beginning_middle_end": {
+        "title": "Inizio, svolgimento, fine",
+        "description": "Tre grandi riquadri per le tre parti di una storia.",
+        "boxes": {
+          "beginning": "Inizio: come comincia la tua storia?",
+          "middle": "Svolgimento: che cosa succede dopo?",
+          "end": "Fine: come si conclude?"
+        }
+      },
+      "five_senses": {
+        "title": "Cinque sensi",
+        "description": "Descrivi un luogo con la vista, l’udito, l’olfatto, il tatto e il gusto.",
+        "boxes": {
+          "place": "Quale luogo descrivi?",
+          "see": "Che cosa vedi?",
+          "hear": "Quali suoni senti?",
+          "smell": "Quali profumi o odori senti?",
+          "touch": "Che cosa puoi toccare?",
+          "taste": "Quali sapori senti?"
+        }
+      },
+      "letter": {
+        "title": "Lettera a un personaggio",
+        "description": "Scrivi una lettera a qualcuno di una storia.",
+        "boxes": {
+          "greeting": "A chi scrivi?",
+          "opening": "Saluta e racconta perché scrivi.",
+          "body": "Che cosa vuoi raccontare o chiedere?",
+          "closing": "Come chiudi la lettera?",
+          "signature": "Firma con il tuo nome."
+        }
+      },
+      "opinion": {
+        "title": "Testo d’opinione (OREO)",
+        "description": "Opinione, ragione, esempio, di nuovo l’opinione.",
+        "boxes": {
+          "opinion": "O — Opinione: che cosa ne pensi?",
+          "reason": "R — Ragione: perché lo pensi?",
+          "example": "E — Esempio: fai un esempio.",
+          "conclusion": "O — Opinione: ripetila con altre parole."
+        }
+      },
+      "acrostic": {
+        "title": "Acrostico",
+        "description": "Un verso per ogni lettera di una parola.",
+        "boxes": {
+          "word": "Scegli una parola. Ogni lettera inizia un verso.",
+          "lines": "Scrivi una parola o una frase per ogni lettera."
+        }
+      },
+      "sequence": {
+        "title": "Sequenza degli eventi",
+        "description": "Prima, poi, dopo, alla fine.",
+        "boxes": {
+          "first": "Per prima cosa…",
+          "next": "Poi…",
+          "then": "Dopo…",
+          "last": "Alla fine…"
+        }
+      },
+      "my_week": {
+        "title": "La mia settimana",
+        "description": "Una pagina di diario sulla settimana.",
+        "boxes": {
+          "best": "La parte più bella della mia settimana è stata…",
+          "learned": "Una cosa nuova che ho imparato…",
+          "tricky": "Una cosa difficile è stata…",
+          "felt_good": "Una cosa che mi ha fatto stare bene…",
+          "next_week": "La prossima settimana voglio…"
+        }
+      }
+    },
+    "teacher": {
+      "kind_label": "Che cosa vuoi assegnare?",
+      "kind_book": "Un libro",
+      "kind_book_hint": "Ognuno scrive un libro tutto suo.",
+      "kind_worksheet": "Una scheda",
+      "kind_worksheet_hint": "Riquadri da completare, da un modello.",
+      "choose_template": "Scegli una scheda",
+      "change_template": "Cambia scheda",
+      "instructions_label": "Istruzioni per la classe",
+      "prompts_heading": "La domanda in ogni riquadro",
+      "prompts_hint": "Modifica le domande come preferisci.",
+      "reset_prompts": "Ripristina le domande",
+      "box_label": "Riquadro {{number}}",
+      "acrostic_word_label": "Parola dell’acrostico (facoltativa)",
+      "acrostic_word_hint": "Se la lasci vuota, la parola la sceglie chi scrive.",
+      "acrostic_word_invalid": "Usa da 2 a 12 lettere, senza spazi.",
+      "prompt_required": "Ogni riquadro ha bisogno di una domanda.",
+      "template_required": "Scegli una scheda.",
+      "chip": "Scheda",
+      "print_blank": "Stampa vuota",
+      "print_filled": "Stampa",
+      "answers_heading": "Risposte",
+      "no_answer": "(vuoto)",
+      "template_locked": "La scheda si può cambiare solo finché il compito è una bozza."
+    },
+    "student": {
+      "start": "Inizia la scheda",
+      "continue": "Continua la scheda",
+      "open": "Apri la mia scheda",
+      "hand_in": "Consegna",
+      "handing_in": "Consegna in corso…",
+      "saved_here": "Salvato su questo dispositivo",
+      "listen": "Leggi la domanda ad alta voce",
+      "dictate": "Dillo a voce invece di scrivere",
+      "stop_dictate": "Smetti di ascoltare",
+      "word_label": "La mia parola",
+      "word_placeholder": "Scrivi la tua parola",
+      "line_for": "Verso per {{letter}}",
+      "close": "Chiudi la scheda",
+      "make_pages": "Trasforma in pagine del libro",
+      "make_pages_heading": "Crea pagine del libro",
+      "make_pages_hint": "Le tue risposte diventano pagine su cui continuare a scrivere.",
+      "make_pages_new": "Inizia un nuovo libro",
+      "make_pages_append": "Aggiungi a un mio libro",
+      "make_pages_full": "Questo libro è pieno.",
+      "make_pages_empty": "Prima scrivi qualcosa.",
+      "print": "Stampa"
     }
   }
 }

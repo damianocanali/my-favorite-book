@@ -191,7 +191,8 @@
       "generic": "Something went wrong. Try again.",
       "class_archived": "This class is archived. Restore it to make changes.",
       "version_changed": "They handed in a new version. Have a look at it first.",
-      "cannot_return": "This assignment is closed or past its due date, so it can't be sent back."
+      "cannot_return": "This assignment is closed or past its due date, so it can't be sent back.",
+      "template_locked": "The worksheet can only change while the assignment is a draft."
     },
     "class_page": {
       "back": "Back to your classes",
@@ -430,7 +431,11 @@
         "book_too_large": "This book is too big to hand in. Ask your teacher.",
         "assignment_not_found": "We can't find that assignment. Ask your teacher.",
         "book_not_found": "We can't find that book. Try again.",
-        "generic": "Something went wrong. Ask your teacher."
+        "generic": "Something went wrong. Ask your teacher.",
+        "empty_worksheet": "Write something in at least one box.",
+        "unkind": "Let’s keep it kind — try different words.",
+        "answer_too_long": "One of your answers is too long.",
+        "wrong_kind": "This assignment changed. Ask your teacher."
       }
     },
     "feedback": {
@@ -635,6 +640,151 @@
       "sent_back": "Your teacher sent this back with tips. Try again!",
       "try_again": "Try again",
       "listen_tip": "Read the tip out loud"
+    }
+  },
+  "worksheet": {
+    "templates": {
+      "story_map": {
+        "title": "Story map",
+        "description": "Plan a story: who, where, the problem, what happens and the ending.",
+        "boxes": {
+          "characters": "Who is in your story?",
+          "setting": "Where and when does it happen?",
+          "problem": "What is the problem?",
+          "events": "What happens? Write the big moments.",
+          "ending": "How does it end?"
+        }
+      },
+      "character_profile": {
+        "title": "Character profile",
+        "description": "Get to know a character before writing about them.",
+        "boxes": {
+          "name": "What is your character’s name?",
+          "looks_like": "What do they look like?",
+          "likes": "What do they like to do?",
+          "wants": "What do they want most?",
+          "afraid_of": "What are they afraid of?"
+        }
+      },
+      "beginning_middle_end": {
+        "title": "Beginning, middle, end",
+        "description": "Three big boxes for the three parts of a story.",
+        "boxes": {
+          "beginning": "Beginning: how does your story start?",
+          "middle": "Middle: what happens next?",
+          "end": "End: how does it finish?"
+        }
+      },
+      "five_senses": {
+        "title": "Five senses",
+        "description": "Describe a place with sight, sound, smell, touch and taste.",
+        "boxes": {
+          "place": "Which place are you describing?",
+          "see": "What can you see?",
+          "hear": "What can you hear?",
+          "smell": "What can you smell?",
+          "touch": "What can you touch?",
+          "taste": "What can you taste?"
+        }
+      },
+      "letter": {
+        "title": "Letter to a character",
+        "description": "Write a letter to someone from a story.",
+        "boxes": {
+          "greeting": "Who are you writing to?",
+          "opening": "Say hello and why you are writing.",
+          "body": "What do you want to tell or ask?",
+          "closing": "How do you end your letter?",
+          "signature": "Sign your name."
+        }
+      },
+      "opinion": {
+        "title": "Opinion paragraph (OREO)",
+        "description": "Opinion, reason, example, opinion again.",
+        "boxes": {
+          "opinion": "O — Opinion: what do you think?",
+          "reason": "R — Reason: why do you think so?",
+          "example": "E — Example: give an example.",
+          "conclusion": "O — Opinion again: say it one more time."
+        }
+      },
+      "acrostic": {
+        "title": "Acrostic poem",
+        "description": "One line for each letter of a word.",
+        "boxes": {
+          "word": "Choose a word. Each letter starts a line.",
+          "lines": "Write a word or a line for each letter."
+        }
+      },
+      "sequence": {
+        "title": "Sequence of events",
+        "description": "First, next, then, last.",
+        "boxes": {
+          "first": "First…",
+          "next": "Next…",
+          "then": "Then…",
+          "last": "Last…"
+        }
+      },
+      "my_week": {
+        "title": "My week",
+        "description": "A journal page about the week.",
+        "boxes": {
+          "best": "The best part of my week was…",
+          "learned": "Something new I learned…",
+          "tricky": "Something tricky was…",
+          "felt_good": "Something that made me feel good…",
+          "next_week": "Next week I want to…"
+        }
+      }
+    },
+    "teacher": {
+      "kind_label": "What are you assigning?",
+      "kind_book": "A book",
+      "kind_book_hint": "Each child writes a book of their own.",
+      "kind_worksheet": "A worksheet",
+      "kind_worksheet_hint": "Boxes to fill in, from a template.",
+      "choose_template": "Choose a worksheet",
+      "change_template": "Change worksheet",
+      "instructions_label": "Instructions for the class",
+      "prompts_heading": "The prompt in each box",
+      "prompts_hint": "Edit any prompt to fit your class.",
+      "reset_prompts": "Reset prompts",
+      "box_label": "Box {{number}}",
+      "acrostic_word_label": "Word for the acrostic (optional)",
+      "acrostic_word_hint": "Leave it empty and each child chooses a word.",
+      "acrostic_word_invalid": "Use 2–12 letters, no spaces.",
+      "prompt_required": "Every box needs a prompt.",
+      "template_required": "Choose a worksheet.",
+      "chip": "Worksheet",
+      "print_blank": "Print blank",
+      "print_filled": "Print",
+      "answers_heading": "Answers",
+      "no_answer": "(empty)",
+      "template_locked": "The worksheet can only change while the assignment is a draft."
+    },
+    "student": {
+      "start": "Start worksheet",
+      "continue": "Continue worksheet",
+      "open": "Open my worksheet",
+      "hand_in": "Hand in",
+      "handing_in": "Handing in…",
+      "saved_here": "Saved on this device",
+      "listen": "Read the question out loud",
+      "dictate": "Say it instead of typing",
+      "stop_dictate": "Stop listening",
+      "word_label": "My word",
+      "word_placeholder": "Type your word",
+      "line_for": "Line for {{letter}}",
+      "close": "Close worksheet",
+      "make_pages": "Turn into book pages",
+      "make_pages_heading": "Make book pages",
+      "make_pages_hint": "Your answers become pages you can keep writing.",
+      "make_pages_new": "Start a new book",
+      "make_pages_append": "Add to one of my books",
+      "make_pages_full": "This book is full.",
+      "make_pages_empty": "Write something first.",
+      "print": "Print"
     }
   }
 }
