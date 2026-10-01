@@ -1,12 +1,13 @@
 export const config = { runtime: 'edge' }
 
 import { handleCors, checkRateLimit } from '../_rateLimit.js'
-import { requireStudent, sb, json, isUuid } from '../_school.js'
+import { requireStudent, sb, sbAssignments, json, isUuid } from '../_school.js'
 import { snapshotBook } from '../../lib/school/snapshot.js'
 import { isLate, isPastDue, raisedName } from '../../lib/school/assignments.js'
 import { startHandIn, runAfterResponse } from '../../lib/notify/notify.js'
 import { cleanAnswers, answersText, snapshotWorksheet } from '../../lib/school/worksheets.js'
 import { moderatePrompt } from '../_aiGuard.js'
+import { moderationChunks } from '../../lib/imageScene.js'
 
 const MAX_BOOK_ID_LEN = 128
 const MAX_TITLE_LEN = 200
@@ -18,10 +19,12 @@ const RPC_ERRORS = {
   past_due: [409, 'This assignment is past its due date', 'past_due'],
   // Migration 023: a book handed in to a worksheet assignment, or answers
   // to a book assignment.
-  wrong_kind: [409, 'This assignment takes a different kind of work', 'wrong_kind'],
+  wrong_kind: [409, 'This is a worksheet — update the app', 'wrong_kind'],
 }
 
-const wrongKind = (req) => json(req, 409, { error: 'This assignment takes a different kind of work', code: 'wrong_kind' })
+// A book sent to a worksheet assignment can only come from an app that
+// predates worksheets (or the reverse): the copy says so.
+const wrongKind = (req) => json(req, 409, { error: 'This is a worksheet — update the app', code: 'wrong_kind' })
 
 /// A worksheet hand-in (migration 023): the answers come from the request
 /// (there is no server draft — the device autosaves them), validated
@@ -37,7 +40,10 @@ async function worksheetHandIn(req, assignment, answersIn) {
   // going to an adult: same screen as the other child-text paths.
   // moderatePrompt fails open on a provider error (a child's hand-in is
   // never lost to an outage) and answers 400 'unkind' when flagged.
-  const flagged = await moderatePrompt(answersText(checked.answers), req)
+  // Chunked (overlapping), like generate-image: moderatePrompt reads only
+  // the first 8000 characters and a worksheet can hold ~26000.
+  const flags = await Promise.all(moderationChunks(answersText(checked.answers)).map((c) => moderatePrompt(c, req)))
+  const flagged = flags.find(Boolean)
   if (flagged) return { ok: false, response: flagged }
   return {
     ok: true,
@@ -83,7 +89,7 @@ export default async function handler(req, ctx) {
     // Fast path only: school_submit re-checks all of this under a lock with
     // the database clock (RPC_ERRORS below). Scoped to the student's own
     // class. Fails closed.
-    const aRes = await sb(
+    const aRes = await sbAssignments(
       `/rest/v1/assignments?id=eq.${assignmentId}&classroom_id=eq.${student.classroom_id}&select=id,title,status,due_at,allow_late,kind,worksheet`
     )
     if (!aRes.ok) throw new Error(`assignment lookup failed: ${aRes.status}`)

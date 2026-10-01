@@ -80,6 +80,15 @@ begin
       check ((kind = 'book' and worksheet is null)
           or (kind = 'worksheet' and public.school_valid_worksheet(worksheet)));
   end if;
+  -- 019's inline prompt check (1-1000 characters) becomes: a worksheet's
+  -- class-wide instructions may be empty (its boxes carry the prompts); a
+  -- book's prompt is still 1-1000.
+  if not exists (select 1 from pg_constraint where conname = 'assignments_prompt_kind_check'
+                 and conrelid = 'public.assignments'::regclass) then
+    alter table public.assignments drop constraint if exists assignments_prompt_check;
+    alter table public.assignments add constraint assignments_prompt_kind_check
+      check (char_length(prompt) <= 1000 and (kind = 'worksheet' or char_length(prompt) >= 1));
+  end if;
 end $$;
 
 -- What an assignment IS never changes once created: hand-ins (and a

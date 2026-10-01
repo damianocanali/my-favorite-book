@@ -1,7 +1,7 @@
 export const config = { runtime: 'edge' }
 
 import { handleCors, checkRateLimit } from '../_rateLimit.js'
-import { requireClassOwner, requireStudent, sb, json, isUuid } from '../_school.js'
+import { requireClassOwner, requireStudent, sb, sbAssignments, json, isUuid } from '../_school.js'
 import { isLate } from '../../lib/school/assignments.js'
 import { GRADE_SELECT, gradeShape, latestGrade } from '../../lib/school/grading.js'
 import { isWorksheetSnapshot } from '../../lib/school/worksheets.js'
@@ -25,7 +25,8 @@ const worksheetFields = (snap) => (isWorksheetSnapshot(snap)
 // Fails CLOSED: a non-2xx throws and becomes 503 upstream, never an empty
 // list that reads as "nobody handed in" or "no feedback yet".
 async function read(path, what) {
-  const res = await sb(path)
+  // Assignment reads tolerate migration 023 not being applied yet.
+  const res = await (path.startsWith('/rest/v1/assignments') ? sbAssignments(path) : sb(path))
   if (!res.ok) throw new Error(`${what} lookup failed: ${res.status}`)
   return res.json()
 }

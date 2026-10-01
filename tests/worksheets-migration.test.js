@@ -21,8 +21,8 @@ describe('023_worksheets.sql', () => {
     expect(SQL).not.toMatch(/grant [^;]* to (anon|authenticated|public)/i)
     expect(SQL).toMatch(/drop trigger if exists assignments_kind_locked on public\.assignments;/)
     // Constraints are added only when missing.
-    expect(SQL.match(/add constraint/gi)).toHaveLength(2)
-    expect(SQL.match(/if not exists \(select 1 from pg_constraint where conname = /gi)).toHaveLength(2)
+    expect(SQL.match(/add constraint/gi)).toHaveLength(3)
+    expect(SQL.match(/if not exists \(select 1 from pg_constraint where conname = /gi)).toHaveLength(3)
   })
 
   it('assignments get kind (book default) and a worksheet that only a worksheet carries', () => {
@@ -46,6 +46,15 @@ describe('023_worksheets.sql', () => {
       expect(boxIds(t).length).toBeLessThanOrEqual(12)
     }
     expect(f).toMatch(/k not in \('templateId', 'prompts', 'word'\)/)
+  })
+
+  it('a worksheet\'s instructions may be empty; a book\'s prompt is still 1-1000 (019\'s check replaced once)', () => {
+    expect(SQL).toMatch(/alter table public\.assignments drop constraint if exists assignments_prompt_check;/)
+    expect(SQL).toMatch(/check \(char_length\(prompt\) <= 1000 and \(kind = 'worksheet' or char_length\(prompt\) >= 1\)\)/)
+    // 019's inline check is the one being replaced.
+    expect(readFileSync('supabase-migrations/019_assignments.sql', 'utf8')).toMatch(/prompt text not null check \(char_length\(prompt\) between 1 and 1000\)/)
+    // The kind column exists before the new check refers to it.
+    expect(SQL.indexOf('add column if not exists kind')).toBeLessThan(SQL.indexOf('assignments_prompt_kind_check'))
   })
 
   it('kind can never change after creation', () => {
