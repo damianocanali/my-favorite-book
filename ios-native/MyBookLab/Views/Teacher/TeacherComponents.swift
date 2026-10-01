@@ -303,8 +303,7 @@ struct TeacherBellList: View {
                         .tint(.white)
                 }
             }
-            .confirmationDialog(Text(TeacherCopy.bellClearConfirm), isPresented: $confirmingClear,
-                                titleVisibility: .visible) {
+            .alert(Text(TeacherCopy.bellClearConfirm), isPresented: $confirmingClear) {
                 Button(role: .destructive) {
                     Task { await bell.clearAll() }
                 } label: {

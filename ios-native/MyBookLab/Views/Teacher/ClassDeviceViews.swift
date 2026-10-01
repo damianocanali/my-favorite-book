@@ -186,7 +186,7 @@ struct ClassDeviceConfirmSheet: View {
 extension View {
     /// "Remove 3B from this iPad?" → removes it.
     func classDeviceRemoveConfirmation(isPresented: Binding<Bool>, name: String) -> some View {
-        confirmationDialog(Text(SignInCopy.removeTitle(name)), isPresented: isPresented, titleVisibility: .visible) {
+        alert(Text(SignInCopy.removeTitle(name)), isPresented: isPresented) {
             Button(role: .destructive) {
                 ClassDeviceStore.shared.remove()
             } label: { Text(SignInCopy.remove) }

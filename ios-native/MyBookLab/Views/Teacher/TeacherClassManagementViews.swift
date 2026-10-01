@@ -255,7 +255,7 @@ struct TeacherClassSettingsView: View {
                 }
             }
         }
-        .confirmationDialog(Text(TeacherCopy.unsavedTitle), isPresented: $confirmLeave, titleVisibility: .visible) {
+        .alert(Text(TeacherCopy.unsavedTitle), isPresented: $confirmLeave) {
             Button {
                 Task {
                     if nameDirty { await saveName() }
