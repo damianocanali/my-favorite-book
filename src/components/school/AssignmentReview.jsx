@@ -9,6 +9,8 @@ import { relativeTime } from './relativeTime'
 import HandInChip from './HandInChip'
 import { STICKER_EMOJI } from './assignmentUi'
 import BookPreview from '../book/BookPreview'
+import GradePanel, { LevelChip, SentBackChip } from './GradePanel'
+import { gradeRowFlag, mergeGrade } from './gradingUi'
 
 const STICKERS = ['star', 'rocket', 'heart', 'wow', 'keep_going', 'rainbow']
 const COMMENT_MAX = 500
@@ -113,7 +115,9 @@ function FeedbackPanel({ classId, submissionId, feedback, onSent, locale }) {
 }
 
 // One student's row in the review list: name/avatar, hand-in chip, when,
-// version and feedback count. Not-started rows aren't clickable — there's
+// version, feedback count and — the per-assignment grid at a glance — the
+// newest level, "Sent back" while waiting on the child, "New version" once
+// they handed in again since the last grade. Not-started rows aren't clickable — there's
 // no book to open yet.
 function StudentRow({ row, onOpen }) {
   const { t } = useTranslation()
@@ -135,6 +139,13 @@ function StudentRow({ row, onOpen }) {
           {t('school:teacher.assignments.review.feedback_count', { count: row.feedback_count })}
         </span>
       )}
+      {gradeRowFlag(row) === 'sent_back' && <SentBackChip className="shrink-0" />}
+      {gradeRowFlag(row) === 'new_version' && (
+        <span className="inline-flex px-2 py-0.5 rounded-full border text-xs font-body font-semibold bg-emerald-500/15 text-emerald-300 border-emerald-500/30 shrink-0">
+          {t('school:grading.teacher.new_version')}
+        </span>
+      )}
+      {row.level && <LevelChip level={row.level} className="shrink-0" />}
       <HandInChip row={row} className="shrink-0" />
     </>
   )
@@ -237,6 +248,13 @@ export default function AssignmentReview({ classId, assignmentId, onClose }) {
     setOpenIndex(null)
     setDetail(null)
     setDetailError(null)
+  }
+
+  function gradeSaved(submissionId, grade) {
+    setDetail((prev) => (prev ? { ...prev, grades: mergeGrade(prev.grades, grade) } : prev))
+    setRows((prev) => (prev ?? []).map((r) => (
+      r.id === submissionId ? { ...r, level: grade.level, graded_version: grade.version, returned: !!grade.returned } : r
+    )))
   }
 
   function bumpFeedbackCount(submissionId) {
@@ -351,7 +369,18 @@ export default function AssignmentReview({ classId, assignmentId, onClose }) {
               <div className="flex justify-center">
                 <BookPreview book={detail.submission.book_snapshot} forceSinglePage />
               </div>
-              <div className="max-w-xl mx-auto">
+              <div className="max-w-xl mx-auto space-y-6">
+                <GradePanel
+                  // Remounted per hand-in AND per version, for the same
+                  // reason as FeedbackPanel below.
+                  key={`grade-${detail.submission.id}-${detail.submission.version}`}
+                  classId={classId}
+                  submissionId={detail.submission.id}
+                  version={detail.submission.version}
+                  grades={detail.grades ?? []}
+                  locale={i18n.language}
+                  onSaved={(g) => gradeSaved(detail.submission.id, g)}
+                />
                 <FeedbackPanel
                   // Remounts FeedbackPanel for each student — otherwise its
                   // own comment/sticker/error state (React state, not props)

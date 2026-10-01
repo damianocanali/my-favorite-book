@@ -11,7 +11,7 @@
 // Shape this all operates on is api/school/assignments.js's studentList
 // row: { id, title, prompt, due_at, status: 'published'|'closed',
 // allow_late, created_at, past_due, my_submission:
-// {id,version,submitted_at,late,feedback_unseen}|null }.
+// {id,version,submitted_at,late,feedback_unseen,level,grade_unseen,returned}|null }.
 
 // The card's three visible states (brief: "Not started" / "Handed in ✓" /
 // "Closed"). Closed wins over everything — once a teacher closes it, it
@@ -38,8 +38,16 @@ export function canSubmitTo(assignment) {
   return !!assignment && assignment.status === 'published'
 }
 
+// New feedback or a new grade (migration 022) the child hasn't opened yet.
 export function hasUnseenFeedback(assignment) {
-  return (assignment?.my_submission?.feedback_unseen ?? 0) > 0
+  const s = assignment?.my_submission
+  return (s?.feedback_unseen ?? 0) > 0 || s?.grade_unseen === true
+}
+
+// The teacher sent it back with tips and the child can still hand in again
+// (iPad: StudentAssignment.isSentBack).
+export function isSentBack(assignment) {
+  return !!assignment?.my_submission?.returned && canHandInAgain(assignment)
 }
 
 // What the home's "From your teacher" card says (iPad: StudentAssignment

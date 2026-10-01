@@ -5,13 +5,14 @@ import { useTranslation } from 'react-i18next'
 import { X } from 'lucide-react'
 import BooksPanelContent from './BooksPanelContent'
 import CheckInsPanelContent from './CheckInsPanelContent'
+import LevelsPanelContent from './LevelsPanelContent'
 import { NudgeChip } from './StudentsTable'
 
-const TAB_IDS = ['books', 'checkins']
+const TAB_IDS = ['books', 'levels', 'checkins']
 
 // Row click on the teacher dashboard's students table/cards opens this
 // (Task D2): ONE dialog (portal, role="dialog", focus captured on open and
-// restored on close, Escape alongside Close) whose Books/Check-ins tabs
+// restored on close, Escape alongside Close) whose Books/Levels/Check-ins tabs
 // swap which panel is visible. Both panels mount once, for the drawer's
 // whole lifetime, and switching tabs only toggles which one is hidden —
 // not which is mounted — so a tab switch never remounts the dialog itself
@@ -23,7 +24,7 @@ const TAB_IDS = ['books', 'checkins']
 // only one in the Tab order).
 function Tabs({ active, onChange }) {
   const { t } = useTranslation()
-  const refs = { books: useRef(null), checkins: useRef(null) }
+  const refs = { books: useRef(null), levels: useRef(null), checkins: useRef(null) }
 
   function onKeyDown(e) {
     if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return
@@ -55,6 +56,7 @@ function Tabs({ active, onChange }) {
   return (
     <div role="tablist" className="flex items-center gap-1 rounded-full bg-white/5 p-1 shrink-0">
       {tab('books', t('school:teacher.dashboard.drawer.tab_books'))}
+      {tab('levels', t('school:grading.teacher.levels_over_time'))}
       {tab('checkins', t('school:teacher.dashboard.drawer.tab_checkins'))}
     </div>
   )
@@ -134,6 +136,9 @@ export default function StudentDetailDrawer({ classId, student, nudge = null, on
             either panel's own state (e.g. Books' open-book sub-view). */}
         <div role="tabpanel" hidden={tab !== 'books'}>
           <BooksPanelContent classId={classId} student={student} />
+        </div>
+        <div role="tabpanel" hidden={tab !== 'levels'}>
+          <LevelsPanelContent classId={classId} student={student} />
         </div>
         <div role="tabpanel" hidden={tab !== 'checkins'}>
           <CheckInsPanelContent classId={classId} student={student} />
