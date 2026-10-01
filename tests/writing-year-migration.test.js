@@ -3,7 +3,7 @@
 // someone edits the SQL later.
 import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'node:fs'
-import { ABOUT_MAX, NOTE_MAX, PRINT_STATUSES } from '../lib/school/writingYear.js'
+import { ABOUT_MAX, NOTE_MAX, PRINT_STATUSES, SHIPPING_LEVELS } from '../lib/school/writingYear.js'
 
 const SQL = readFileSync('supabase-migrations/024_writing_year.sql', 'utf8')
 const DELETE_USER = readFileSync('lib/deleteUser.js', 'utf8')
@@ -61,12 +61,28 @@ describe('024_writing_year.sql', () => {
     expect(meta).toContain(`char_length(teacher_note) <= ${NOTE_MAX}`)
   })
 
-  it('print statuses match lib; one live request per class per year (R3)', () => {
+  it('print statuses match lib; one live request per LICENSE TERM (R3), race-safe in the index', () => {
     const b = tableBody('class_print_requests')
     const m = b.match(/check \(status in \(([^)]*)\)\)/i)
     expect(m[1].split(',').map((s) => s.trim().replace(/'/g, ''))).toEqual(PRINT_STATUSES)
-    expect(SQL).toMatch(/create unique index if not exists class_print_requests_live_uniq\s+on public\.class_print_requests \(classroom_id, school_year\) where status <> 'canceled'/i)
+    expect(b).toMatch(/license_id uuid not null references public\.class_licenses\(id\) on delete cascade/i)
+    expect(b).toMatch(/term_start timestamptz not null/i)
+    expect(SQL).toMatch(/create unique index if not exists class_print_requests_live_uniq\s+on public\.class_print_requests \(license_id, term_start\) where status <> 'canceled'/i)
     expect(b).toMatch(/submit_claimed_at timestamptz/i)
+    expect(b).toMatch(/books_frozen_at timestamptz/i)
+    expect(b).toMatch(/pdfs_purged_at timestamptz/i)
+    const levels = b.match(/shipping_level text check \(shipping_level in \(([^)]*)\)\)/i)
+    expect(levels[1].split(',').map((s) => s.trim().replace(/'/g, ''))).toEqual(SHIPPING_LEVELS)
+    // The RPC ties the request to the license read under the lock.
+    const f = fnBody('school_create_class_print')
+    expect(f).toMatch(/select id, status, starts_at, expires_at into lic from class_licenses where classroom_id = p_classroom_id for share/)
+    expect(f).toMatch(/values \(p_classroom_id, p_requested_by, lic\.id, lic\.starts_at,/)
+  })
+
+  it('a hand-in piece freezes the version chosen; books are written per child (2 MB cap each)', () => {
+    expect(tableBody('writing_year_items')).toMatch(/snapshot_version int check \(snapshot_version >= 1\)/i)
+    expect(fnBody('school_wy_add_item')).toMatch(/sub_snapshot := sub\.book_snapshot;\s+sub_version := sub\.version;/)
+    expect(tableBody('class_print_request_children')).toMatch(/book jsonb not null default '\{\}'::jsonb check \(jsonb_typeof\(book\) = 'object' and octet_length\(book::text\) <= 2000000\)/i)
   })
 
   it('pieces: one per hand-in/book per child, deferred position order, only suggestions wait', () => {

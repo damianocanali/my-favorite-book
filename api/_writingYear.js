@@ -2,8 +2,8 @@
 // routes (api/school/writing-year.js), the teacher's per-child PDF
 // (api/school/writing-year-pdf.js) and the class print request all build a
 // child's book from the same rows, the same way.
-import { sb } from './_school.js'
-import { buildChildBook, schoolYear } from '../lib/school/writingYear.js'
+import { sb, sbEnv } from './_school.js'
+import { buildChildBook, schoolYear, handInSnapshot } from '../lib/school/writingYear.js'
 
 // Fails CLOSED: a non-2xx throws and becomes 503 upstream.
 export async function read(path, what) {
@@ -44,19 +44,28 @@ export async function avatarsFor(authIds) {
 }
 
 /// Every APPROVED piece's content for the class (or one child), in order,
-/// grouped by student id. A hand-in piece reads the hand-in's latest version.
+/// grouped by student id. A hand-in piece prints its latest graded version
+/// (handInSnapshot): the hand-in's latest if graded, else the copy frozen
+/// when it was chosen, else the latest.
 export async function piecesByStudent(classroomId, studentId = null) {
   const rows = await readAll(
     `/rest/v1/writing_year_items?classroom_id=eq.${classroomId}&approved=is.true` +
       (studentId ? `&student_id=eq.${studentId}` : '') +
-      '&select=id,student_id,kind,title,position,book_snapshot,class_submissions(book_title,book_snapshot)',
+      '&select=id,student_id,kind,title,position,book_snapshot,snapshot_version,' +
+      'class_submissions(book_title,book_snapshot,version,submission_grades(version))',
     'student_id.asc,position.asc',
     'writing_year_items'
   )
   const by = {}
   for (const r of rows) {
     const sub = r.kind === 'submission' ? one(r.class_submissions) : null
-    const snapshot = sub ? sub.book_snapshot : r.book_snapshot
+    const snapshot = sub
+      ? handInSnapshot({
+        frozen: r.book_snapshot, frozenVersion: r.snapshot_version,
+        latest: sub.book_snapshot, latestVersion: sub.version,
+        gradedVersions: (sub.submission_grades ?? []).map((g) => g.version),
+      })
+      : r.book_snapshot
     ;(by[r.student_id] ??= []).push({ title: r.title || sub?.book_title || '', snapshot })
   }
   return by
@@ -93,6 +102,7 @@ export async function buildBooks(classroom, students, { now = new Date() } = {})
       year,
       pieces: pieces[s.id] ?? [],
       meta: meta[s.id],
+      imageOrigin: sbEnv()?.url ?? null,
     }),
   }))
 }

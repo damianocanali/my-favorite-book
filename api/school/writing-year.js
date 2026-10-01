@@ -81,7 +81,18 @@ const requestShape = (r) => ({
 const REQUEST_SELECT = 'id,status,school_year,children_count,excluded_count,school_name,created_at,approved_at,submitted_at,shipped_at,canceled_at,tracking'
 
 async function classLicense(classroomId) {
-  const rows = await read(`/rest/v1/class_licenses?classroom_id=eq.${classroomId}&select=status,expires_at`, 'class_licenses')
+  const rows = await read(`/rest/v1/class_licenses?classroom_id=eq.${classroomId}&select=id,status,starts_at,expires_at`, 'class_licenses')
+  return rows?.[0] ?? null
+}
+
+// R3: the live (non-canceled) request in the license's CURRENT term, if any.
+async function liveRequestFor(license) {
+  if (!license?.id || !license.starts_at) return null
+  const rows = await read(
+    `/rest/v1/class_print_requests?license_id=eq.${license.id}&term_start=eq.${encodeURIComponent(license.starts_at)}` +
+      `&status=neq.canceled&select=${REQUEST_SELECT}&limit=1`,
+    'class_print_requests'
+  )
   return rows?.[0] ?? null
 }
 
@@ -105,12 +116,13 @@ async function studentInClass(classroomId, studentId) {
 // ── Teacher ────────────────────────────────────────────────────────────
 
 async function teacherOverview(req, o) {
-  const [students, items, metas, requests, license] = await Promise.all([
+  const license = await classLicense(o.classroom.id)
+  const [students, items, metas, requests, current] = await Promise.all([
     activeStudents(o.classroom.id),
     readAll(`/rest/v1/writing_year_items?classroom_id=eq.${o.classroom.id}&select=student_id,approved`, 'id.asc', 'writing_year_items'),
     read(`/rest/v1/writing_year_meta?classroom_id=eq.${o.classroom.id}&select=student_id,about_favorite,about_best_sentence,about_learned,teacher_note`, 'writing_year_meta'),
     read(`/rest/v1/class_print_requests?classroom_id=eq.${o.classroom.id}&select=${REQUEST_SELECT}&order=created_at.desc&limit=20`, 'class_print_requests'),
-    classLicense(o.classroom.id),
+    liveRequestFor(license),
   ])
   const counts = {}
   for (const it of items) {
@@ -133,6 +145,9 @@ async function teacherOverview(req, o) {
       has_note: !!metaBy[s.id]?.teacher_note,
     })),
     requests: (requests ?? []).map(requestShape),
+    // The request that counts for this license term (R3), shown with its
+    // status timeline instead of the "Print" button.
+    current_request: current ? requestShape(current) : null,
   })
 }
 
@@ -264,36 +279,66 @@ async function teacherPrintSummary(req, o) {
 }
 
 async function teacherPrint(req, o, body) {
+  const license = await classLicense(o.classroom.id)
   // R1, fast path (school_create_class_print re-checks under a lock).
-  if (!canPrintClass(await classLicense(o.classroom.id))) {
+  if (!canPrintClass(license)) {
     return json(req, 403, { error: RPC_ERRORS.license_not_paid[1], code: 'print_not_available' })
   }
   const address = cleanAddress(body.address)
   if (!address.ok) return json(req, 400, { error: address.error, code: 'bad_address', field: address.field })
-  const year = schoolYear()
-  // R3, fast path (the partial unique index is the real guard).
-  const live = await read(
-    `/rest/v1/class_print_requests?classroom_id=eq.${o.classroom.id}&school_year=eq.${year}&status=neq.canceled&select=id`,
-    'class_print_requests'
-  )
-  if (live?.length) return json(req, 409, { error: RPC_ERRORS.already_requested[1], code: 'already_requested' })
+  // R3, fast path (the partial unique index on the license term is the real guard).
+  if (await liveRequestFor(license)) return json(req, 409, { error: RPC_ERRORS.already_requested[1], code: 'already_requested' })
 
   const { included, excluded } = await classBooks(o)
   if (!included.length) return json(req, 409, { error: RPC_ERRORS.no_children[1], code: 'no_children' })
+  const year = schoolYear()
   const r = await rpc(req, 'school_create_class_print', {
     p_classroom_id: o.classroom.id,
     p_requested_by: o.auth.userId,
     p_school_year: year,
     p_address: address.address,
-    p_children: included.map(({ student, book }) => ({ student_id: student.id, display_name: student.display_name, book })),
+    p_children: included.map(({ student }) => ({ student_id: student.id, display_name: student.display_name })),
     p_excluded_count: excluded.length,
   }, 'Could not send the request')
   if (r.response) return r.response
+
+  // The books, one child per write (a class's worth of books is too big
+  // for one request body), built here from the database — never sent by
+  // the client. All in, then books_frozen_at; anything fails, the request
+  // is canceled so the teacher can simply ask again.
+  const bookOf = Object.fromEntries(included.map(({ student, book }) => [student.id, book]))
+  const ok = await writeBooks(r.data.children ?? [], bookOf)
+  const now = new Date().toISOString()
+  const fin = await sb(`/rest/v1/class_print_requests?id=eq.${r.data.id}&status=eq.requested`, {
+    method: 'PATCH',
+    headers: { Prefer: 'return=minimal' },
+    body: JSON.stringify(ok
+      ? { books_frozen_at: now, updated_at: now }
+      : { status: 'canceled', canceled_at: now, updated_at: now, error: 'Books could not be saved' }),
+  }).catch(() => null)
+  if (!ok || !fin?.ok) {
+    console.error('school/writing-year: freezing the books failed', r.data.id)
+    return json(req, 502, { error: 'Could not send the request', code: 'upstream' })
+  }
   return json(req, 201, {
     request: { id: r.data.id, status: 'requested', school_year: year, children_count: r.data.children_count, excluded_count: excluded.length },
     included: named(included),
     excluded: named(excluded),
   })
+}
+
+const BOOK_WRITE_BATCH = 5
+async function writeBooks(children, bookOf) {
+  for (let i = 0; i < children.length; i += BOOK_WRITE_BATCH) {
+    const results = await Promise.all(children.slice(i, i + BOOK_WRITE_BATCH).map((c) =>
+      sb(`/rest/v1/class_print_request_children?id=eq.${c.id}`, {
+        method: 'PATCH',
+        headers: { Prefer: 'return=minimal' },
+        body: JSON.stringify({ book: bookOf[c.student_id] }),
+      }).then((res) => res.ok).catch(() => false)))
+    if (results.includes(false)) return false
+  }
+  return true
 }
 
 async function teacherCancelPrint(req, o, body) {

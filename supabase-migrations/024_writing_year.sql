@@ -19,13 +19,18 @@
 --     classroom; requested_by is ON DELETE SET NULL.
 --   * The rendered PDFs live in the print-pdfs bucket under
 --     writing-year/<child auth user id>/…; purgeUser removes that prefix.
+--     They are also deleted 30 days after the box ships (purge cron).
 --   None of these rows can block a purge: every FK cascades or sets null.
 --
 -- Apply BEFORE deploying the code that uses it. Idempotent: safe to re-run.
 
 -- ── Pieces in a child's Writing Year ───────────────────────────────────
--- kind 'submission': a graded hand-in (book or worksheet) — the content is
---   read from class_submissions at preview/print time (the latest version).
+-- kind 'submission': a graded hand-in (book or worksheet). Its snapshot is
+--   frozen when it is added (snapshot_version = the hand-in version then).
+--   class_submissions keeps only the LATEST version's content, so at
+--   preview/print time the book uses the hand-in's latest version if that
+--   version is graded, else this frozen copy (the version the teacher chose),
+--   else the latest (api/_writingYear.js).
 -- kind 'book': one of the child's own books, frozen when suggested (a
 --   data-URI-free copy, ≤ 200 KB — lib/school/snapshot.js).
 -- A child's suggestion waits for the teacher (approved = false); a teacher's
@@ -38,6 +43,7 @@ create table if not exists public.writing_year_items (
   submission_id uuid references public.class_submissions(id) on delete cascade,
   book_id text check (char_length(book_id) between 1 and 128),
   book_snapshot jsonb,
+  snapshot_version int check (snapshot_version >= 1),
   title text not null default '' check (char_length(title) <= 200),
   position int not null check (position >= 1),
   added_by text not null check (added_by in ('teacher','child_suggested')),
@@ -45,10 +51,10 @@ create table if not exists public.writing_year_items (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   check (
-    (kind = 'submission' and submission_id is not null and book_id is null and book_snapshot is null)
-    or (kind = 'book' and submission_id is null and book_id is not null
-        and jsonb_typeof(book_snapshot) = 'object' and octet_length(book_snapshot::text) <= 250000)
+    (kind = 'submission' and submission_id is not null and book_id is null)
+    or (kind = 'book' and submission_id is null and book_id is not null and jsonb_typeof(book_snapshot) = 'object')
   ),
+  check (book_snapshot is null or (jsonb_typeof(book_snapshot) = 'object' and octet_length(book_snapshot::text) <= 250000)),
   -- Only a child's suggestion can be waiting.
   check (approved or added_by = 'child_suggested')
 );
@@ -103,8 +109,13 @@ create table if not exists public.class_print_requests (
   id uuid primary key default gen_random_uuid(),
   classroom_id uuid not null references public.classrooms(id) on delete cascade,
   requested_by uuid references auth.users(id) on delete set null,
-  -- '2026-27': the school year the books are for (Aug 1 boundary,
-  -- lib/school/writingYear.js). One live request per class per year.
+  -- R3: one printed copy per child per LICENSE TERM. The license and the
+  -- start of its term when the teacher asked; one live request per term.
+  -- (A license is purged only after its classes, so the cascade never
+  -- outlives a request that still matters.)
+  license_id uuid not null references public.class_licenses(id) on delete cascade,
+  term_start timestamptz not null,
+  -- '2026-27': printed on the cover only (Aug 1 boundary, lib/school/writingYear.js).
   school_year text not null check (school_year ~ '^[0-9]{4}-[0-9]{2}$'),
   status text not null default 'requested'
     check (status in ('requested','approved','submitted','in_production','shipped','canceled','failed')),
@@ -120,9 +131,18 @@ create table if not exists public.class_print_requests (
   country_code text not null check (country_code ~ '^[A-Z]{2}$'),
   children_count int not null check (children_count between 1 and 35),
   excluded_count int not null default 0 check (excluded_count >= 0),
+  -- The children's books are written one by one after the request row
+  -- (a class's worth is too big for one request body); set when all are in.
+  -- Nothing can be approved before.
+  books_frozen_at timestamptz,
+  -- Chosen by the owner at approval from Lulu's shipping options.
+  shipping_level text check (shipping_level in ('MAIL','PRIORITY_MAIL','GROUND_HD','GROUND_BUS','GROUND','EXPEDITED','EXPRESS')),
   -- Set once, atomically, by the one admin call that is allowed to create
   -- the Lulu print job (status approved + submit_claimed_at null → now()).
-  -- A double click finds it set and never reaches Lulu.
+  -- A double click finds it set and never reaches Lulu. While it is set the
+  -- request can't be canceled: Lulu may have the order. Only the owner's
+  -- explicit reconcile (record the job id, or "checked Lulu — no order")
+  -- clears it.
   submit_claimed_at timestamptz,
   lulu_print_job_id text,
   lulu_status text,
@@ -133,12 +153,16 @@ create table if not exists public.class_print_requests (
   approved_at timestamptz,
   submitted_at timestamptz,
   shipped_at timestamptz,
-  canceled_at timestamptz
+  canceled_at timestamptz,
+  -- The rendered PDFs are deleted 30 days after shipping (api/cron/purge-deletions.js).
+  pdfs_purged_at timestamptz
 );
--- R3: one printed copy per child per year — a second request for the same
--- class and year is refused while one is live (canceled frees the slot).
+-- R3: one printed copy per child per license term — a second request in
+-- the same term is refused while one is live (canceled frees the slot).
+-- The index is the race-safe guard; api/ only pre-checks.
 create unique index if not exists class_print_requests_live_uniq
-  on public.class_print_requests (classroom_id, school_year) where status <> 'canceled';
+  on public.class_print_requests (license_id, term_start) where status <> 'canceled';
+create index if not exists class_print_requests_class_idx on public.class_print_requests (classroom_id, created_at desc);
 create index if not exists class_print_requests_status_idx on public.class_print_requests (status, created_at desc);
 create unique index if not exists class_print_requests_lulu_idx
   on public.class_print_requests (lulu_print_job_id) where lulu_print_job_id is not null;
@@ -154,7 +178,8 @@ create table if not exists public.class_print_request_children (
   student_id uuid not null references public.class_students(id) on delete cascade,
   display_name text not null check (char_length(display_name) between 1 and 24),
   position int not null check (position >= 1),
-  book jsonb not null check (jsonb_typeof(book) = 'object' and octet_length(book::text) <= 8000000),
+  -- '{}' until api/ writes the frozen book (see books_frozen_at).
+  book jsonb not null default '{}'::jsonb check (jsonb_typeof(book) = 'object' and octet_length(book::text) <= 2000000),
   interior_key text,
   cover_key text,
   page_count int check (page_count >= 1),
@@ -190,17 +215,24 @@ declare
   sid uuid := p_student_id;
   sub record;
   sub_title text := '';
+  sub_snapshot jsonb;
+  sub_version int;
   existing record;
   pos int;
   new_id uuid;
 begin
   if p_submission_id is not null then
-    select id, student_id, book_title into sub from class_submissions
+    select id, student_id, book_title, book_snapshot, version into sub from class_submissions
       where id = p_submission_id and classroom_id = p_classroom_id;
     if not found then raise exception 'submission_not_found'; end if;
     if sid is null then sid := sub.student_id; end if;
     if sub.student_id <> sid then raise exception 'submission_not_found'; end if;
     sub_title := coalesce(sub.book_title, '');
+    -- Frozen now: the version on screen when it was chosen.
+    if octet_length(sub.book_snapshot::text) <= 250000 then
+      sub_snapshot := sub.book_snapshot;
+      sub_version := sub.version;
+    end if;
     if p_added_by = 'teacher'
        and not exists (select 1 from submission_grades where submission_id = p_submission_id) then
       raise exception 'not_graded';
@@ -219,7 +251,11 @@ begin
         or (p_book_id is not null and book_id = p_book_id));
   if found then
     if p_added_by = 'teacher' and not existing.approved then
-      update writing_year_items set approved = true, updated_at = now() where id = existing.id;
+      -- Approving a child's suggestion freezes the version on screen now.
+      update writing_year_items set approved = true, updated_at = now(),
+        book_snapshot = case when p_submission_id is not null and sub_snapshot is not null then sub_snapshot else book_snapshot end,
+        snapshot_version = case when p_submission_id is not null and sub_snapshot is not null then sub_version else snapshot_version end
+        where id = existing.id;
       return jsonb_build_object('id', existing.id, 'position', existing.position, 'approved', true, 'existed', true);
     end if;
     return jsonb_build_object('id', existing.id, 'position', existing.position, 'approved', existing.approved, 'existed', true);
@@ -235,12 +271,13 @@ begin
 
   select coalesce(max(position), 0) + 1 into pos from writing_year_items where student_id = sid;
   insert into writing_year_items (classroom_id, student_id, kind, submission_id, book_id, book_snapshot,
-                                  title, position, added_by, approved)
+                                  snapshot_version, title, position, added_by, approved)
     values (p_classroom_id, sid,
             case when p_submission_id is not null then 'submission' else 'book' end,
             p_submission_id,
             case when p_submission_id is null then p_book_id end,
-            case when p_submission_id is null then p_book_snapshot end,
+            case when p_submission_id is null then p_book_snapshot else sub_snapshot end,
+            sub_version,
             left(coalesce(nullif(p_title, ''), sub_title), 200),
             pos, p_added_by, p_added_by = 'teacher')
     returning id into new_id;
@@ -273,11 +310,14 @@ begin
 end $$;
 
 -- Create a class print request and its children in one transaction. The
--- partial unique index refuses a second live request for the class and year
--- ('already_requested'); the license is re-checked here, under a share lock,
--- so a lapse between api/'s check and this write can't let it through
--- (R1: active, grace or comped — never a trial).
--- p_children: [{student_id, display_name, book}] in print order.
+-- license is read here, under a share lock, so a lapse between api/'s check
+-- and this write can't let it through (R1: active, grace or comped — never
+-- a trial), and the request is tied to that license's current term: the
+-- partial unique index refuses a second live request in the same term
+-- ('already_requested', R3).
+-- p_children: [{student_id, display_name}] in print order. Their books are
+-- written by api/ right after (one row at a time), then books_frozen_at.
+-- Returns {id, children_count, children: [{id, student_id}]}.
 create or replace function public.school_create_class_print(
   p_classroom_id uuid, p_requested_by uuid, p_school_year text, p_address jsonb,
   p_children jsonb, p_excluded_count int
@@ -288,7 +328,7 @@ declare
   req_id uuid;
   n int := coalesce(jsonb_array_length(p_children), 0);
 begin
-  select status, expires_at into lic from class_licenses where classroom_id = p_classroom_id for share;
+  select id, status, starts_at, expires_at into lic from class_licenses where classroom_id = p_classroom_id for share;
   if not found or lic.status not in ('active','grace','comped')
      or (lic.status <> 'grace' and lic.expires_at <= now()) then
     raise exception 'license_not_paid';
@@ -296,10 +336,10 @@ begin
   if n < 1 then raise exception 'no_children'; end if;
 
   begin
-    insert into class_print_requests (classroom_id, requested_by, school_year, school_name, contact_name,
+    insert into class_print_requests (classroom_id, requested_by, license_id, term_start, school_year, school_name, contact_name,
       contact_email, contact_phone, address_line1, address_line2, city, state_code, postal_code,
       country_code, children_count, excluded_count)
-    values (p_classroom_id, p_requested_by, p_school_year, p_address->>'school_name', p_address->>'contact_name',
+    values (p_classroom_id, p_requested_by, lic.id, lic.starts_at, p_school_year, p_address->>'school_name', p_address->>'contact_name',
       p_address->>'contact_email', p_address->>'contact_phone', p_address->>'address_line1',
       nullif(p_address->>'address_line2', ''), p_address->>'city', nullif(p_address->>'state_code', ''),
       p_address->>'postal_code', p_address->>'country_code', n, coalesce(p_excluded_count, 0))
@@ -308,15 +348,17 @@ begin
     raise exception 'already_requested';
   end;
 
-  insert into class_print_request_children (request_id, student_id, display_name, position, book)
-    select req_id, (c->>'student_id')::uuid, c->>'display_name', o.ord, c->'book'
+  insert into class_print_request_children (request_id, student_id, display_name, position)
+    select req_id, (c->>'student_id')::uuid, c->>'display_name', o.ord
       from jsonb_array_elements(p_children) with ordinality as o(c, ord)
       join class_students s on s.id = (c->>'student_id')::uuid
                            and s.classroom_id = p_classroom_id and s.status = 'active';
   get diagnostics n = row_count;
   if n <> jsonb_array_length(p_children) then raise exception 'children_changed'; end if;
 
-  return jsonb_build_object('id', req_id, 'children_count', n);
+  return jsonb_build_object('id', req_id, 'children_count', n,
+    'children', (select jsonb_agg(jsonb_build_object('id', id, 'student_id', student_id) order by position)
+                 from class_print_request_children where request_id = req_id));
 end $$;
 
 revoke all on function public.school_wy_add_item(uuid, uuid, uuid, text, jsonb, text, text, int, int) from public, anon, authenticated;

@@ -32,9 +32,18 @@ const ADDRESS = {
   contact_phone: '555 010 0199', address_line1: '1 Main St', city: 'Springfield', state_code: 'IL',
   postal_code: '62701', country_code: 'US',
 }
-const license = (status, expires_at = FUTURE) => ({ method: 'GET', match: '/rest/v1/class_licenses?', reply: { body: [{ status, expires_at }] } })
-const archivedOwner = { method: 'GET', match: '/rest/v1/classrooms?id=eq.', reply: { body: [{ ...classroomRow, archived_at: T0 }] } }
 const rpcRoute = (name, reply) => ({ method: 'POST', match: `/rpc/${name}`, reply })
+const LICENSE_ID = '6f1c1b1e-0000-4000-8000-0000000000aa'
+const TERM_START = '2026-08-15T00:00:00.000Z'
+const license = (status, expires_at = FUTURE) => ({
+  method: 'GET', match: '/rest/v1/class_licenses?',
+  reply: { body: [{ id: LICENSE_ID, status, starts_at: TERM_START, expires_at }] },
+})
+const CHILD_ROW = '6f1c1b1e-0000-4000-8000-0000000000d7'
+const createOk = rpcRoute('school_create_class_print', { body: { id: REQ_ID, children_count: 1, children: [{ id: CHILD_ROW, student_id: STUDENT_ID }] } })
+const childPatch = { method: 'PATCH', match: '/rest/v1/class_print_request_children?', reply: { body: [] } }
+const requestPatch = { method: 'PATCH', match: '/rest/v1/class_print_requests?', reply: { body: [] } }
+const archivedOwner = { method: 'GET', match: '/rest/v1/classrooms?id=eq.', reply: { body: [{ ...classroomRow, archived_at: T0 }] } }
 const raised = (message) => ({ status: 400, body: { code: 'P0001', message } })
 
 const STUDENTS = [
@@ -183,6 +192,21 @@ describe('teacher: pieces', () => {
     expect(body.children[0]).toMatchObject({ student_id: STUDENT_ID, item_count: 1, pending_count: 1, about_me_done: true, has_note: false })
     expect(body.children[1]).toMatchObject({ student_id: STUDENT2_ID, item_count: 0, about_me_done: false })
   })
+
+  it('overview: current_request is the live request of the license term', async () => {
+    const live = { id: REQ_ID, status: 'approved', school_year: '2026-27', children_count: 20 }
+    const log = mockSupabase({
+      user: TEACHER,
+      routes: [ownerRoute, studentsRoute, license('active'),
+        { method: 'GET', match: '/rest/v1/class_print_requests?license_id=eq.', reply: { body: [live] } },
+        { method: 'GET', match: '/rest/v1/class_print_requests?', reply: { body: [live] } }],
+    })
+    const body = await (await (await load())(get(`?classId=${CLASS_ID}`))).json()
+    expect(body.current_request).toMatchObject({ id: REQ_ID, status: 'approved' })
+    const termRead = calls(log, '/rest/v1/class_print_requests?license_id=eq.')[0].url
+    expect(termRead).toContain(`term_start=eq.${encodeURIComponent(TERM_START)}`)
+    expect(termRead).toContain('status=neq.canceled')
+  })
 })
 
 describe('teacher: class print (R1–R3)', () => {
@@ -193,6 +217,7 @@ describe('teacher: class print (R1–R3)', () => {
     { method: 'GET', match: '/rest/v1/writing_year_meta?', reply: { body: [] } },
     { method: 'GET', match: '/rest/v1/user_inventory?', reply: { body: [] } },
     ...extra,
+    childPatch, requestPatch,
   ]
 
   it('R1: a trial class cannot print — neutral copy, nothing created', async () => {
@@ -209,7 +234,7 @@ describe('teacher: class print (R1–R3)', () => {
     mockSupabase({ user: TEACHER, routes: printRoutes('active', [], '2026-01-01T00:00:00Z') })
     expect((await (await load())(post({ classId: CLASS_ID, action: 'print', address: ADDRESS }))).status).toBe(403)
     for (const lic of ['comped', 'grace']) {
-      mockSupabase({ user: TEACHER, routes: printRoutes(lic, [rpcRoute('school_create_class_print', { body: { id: REQ_ID, children_count: 1 } })]) })
+      mockSupabase({ user: TEACHER, routes: printRoutes(lic, [createOk]) })
       expect((await (await load())(post({ classId: CLASS_ID, action: 'print', address: ADDRESS }))).status).toBe(201)
     }
   })
@@ -222,8 +247,8 @@ describe('teacher: class print (R1–R3)', () => {
     expect(calls(log, '/rpc/').length).toBe(0)
   })
 
-  it('creates one request: children with zero pieces are excluded and listed; books frozen', async () => {
-    const log = mockSupabase({ user: TEACHER, routes: printRoutes('active', [rpcRoute('school_create_class_print', { body: { id: REQ_ID, children_count: 1 } })]) })
+  it('creates one request: children with zero pieces are excluded and listed; books frozen server-side', async () => {
+    const log = mockSupabase({ user: TEACHER, routes: printRoutes('active', [createOk]) })
     const res = await (await load())(post({ classId: CLASS_ID, action: 'print', address: ADDRESS }))
     expect(res.status).toBe(201)
     const body = await res.json()
@@ -232,12 +257,63 @@ describe('teacher: class print (R1–R3)', () => {
     const [call] = calls(log, '/rpc/school_create_class_print')
     expect(call.body).toMatchObject({ p_classroom_id: CLASS_ID, p_requested_by: TEACHER.id, p_school_year: '2026-27', p_excluded_count: 1 })
     expect(call.body.p_address).toMatchObject({ school_name: 'Lincoln Elementary', country_code: 'US' })
-    expect(call.body.p_children).toHaveLength(1)
-    expect(call.body.p_children[0].book).toMatchObject({ name: 'Ann', class_name: 'Room 5', year: '2026-27' })
-    expect(call.body.p_children[0].book.pieces[0]).toMatchObject({ kind: 'book', title: 'The Dragon' })
+    // The RPC gets ids only; each book is written to its own child row.
+    expect(call.body.p_children).toEqual([{ student_id: STUDENT_ID, display_name: 'Ann' }])
+    const [w] = calls(log, '/rest/v1/class_print_request_children?', 'PATCH')
+    expect(w.url).toContain(`id=eq.${CHILD_ROW}`)
+    expect(w.body.book).toMatchObject({ name: 'Ann', class_name: 'Room 5', year: '2026-27' })
+    expect(w.body.book.pieces[0]).toMatchObject({ kind: 'book', title: 'The Dragon' })
+    const fin = calls(log, '/rest/v1/class_print_requests?', 'PATCH').at(-1)
+    expect(fin.url).toContain('status=eq.requested')
+    expect(fin.body.books_frozen_at).toBeTruthy()
   })
 
-  it('R3: a live request for this class/year is refused (fast path and the RPC\'s unique index)', async () => {
+  it('a book that fails to save cancels the request (the teacher can ask again)', async () => {
+    const log = mockSupabase({
+      user: TEACHER,
+      routes: printRoutes('active', [createOk, { method: 'PATCH', match: '/rest/v1/class_print_request_children?', reply: { status: 500, body: {} } }]),
+    })
+    const res = await (await load())(post({ classId: CLASS_ID, action: 'print', address: ADDRESS }))
+    expect(res.status).toBe(502)
+    const fin = calls(log, '/rest/v1/class_print_requests?', 'PATCH').at(-1)
+    expect(fin.body).toMatchObject({ status: 'canceled' })
+    expect(fin.body.books_frozen_at).toBeUndefined()
+  })
+
+  it('35 children: each book is its own small write, never one giant body', async () => {
+    const many = Array.from({ length: 35 }, (_, i) => ({ id: `6f1c1b1e-0000-4000-8000-${String(i).padStart(12, '0')}`, display_name: `Kid${i}`, avatar_emoji: '🦊', auth_user_id: `a${i}` }))
+    const longText = 'word '.repeat(400)
+    const pieces = many.flatMap((st) => Array.from({ length: 30 }, (_, j) => ({
+      id: `${st.id}-${j}`, student_id: st.id, kind: 'book', title: `P${j}`, position: j + 1,
+      book_snapshot: { pages: Array.from({ length: 12 }, () => ({ text: longText })) },
+    })))
+    const log = mockSupabase({
+      user: TEACHER,
+      routes: [ownerRoute, license('active'),
+        { method: 'GET', match: '/rest/v1/class_print_requests?', reply: { body: [] } },
+        { method: 'GET', match: '/rest/v1/class_students?classroom_id=eq.', reply: { body: many } },
+        { method: 'GET', match: '/rest/v1/writing_year_items?classroom_id=eq.', reply: (c) => {
+          const off = Number(new URL(c.url).searchParams.get('offset'))
+          return { body: pieces.slice(off, off + 1000) }
+        } },
+        { method: 'GET', match: '/rest/v1/writing_year_meta?', reply: { body: [] } },
+        { method: 'GET', match: '/rest/v1/user_inventory?', reply: { body: [] } },
+        rpcRoute('school_create_class_print', { body: { id: REQ_ID, children_count: 35, children: many.map((st, i) => ({ id: `row-${i}`, student_id: st.id })) } }),
+        childPatch, requestPatch],
+    })
+    const res = await (await load())(post({ classId: CLASS_ID, action: 'print', address: ADDRESS }))
+    expect(res.status).toBe(201)
+    const rpcBody = JSON.stringify(calls(log, '/rpc/school_create_class_print')[0].body)
+    expect(rpcBody.length).toBeLessThan(10_000)
+    const writes = calls(log, '/rest/v1/class_print_request_children?', 'PATCH')
+    expect(writes).toHaveLength(35)
+    const biggest = Math.max(...writes.map((w) => JSON.stringify(w.body).length))
+    // 30 pieces × 12 full pages each: ~1.8 MB, under the 2 MB row check.
+    expect(biggest).toBeLessThan(2_000_000)
+    expect(writes[0].body.book.pieces).toHaveLength(30)
+  })
+
+  it('R3: a live request in this license term is refused (fast path and the RPC\'s unique index)', async () => {
     let log = mockSupabase({
       user: TEACHER,
       routes: [ownerRoute, license('active'), { method: 'GET', match: '/rest/v1/class_print_requests?', reply: { body: [{ id: REQ_ID }] } }],
@@ -245,8 +321,10 @@ describe('teacher: class print (R1–R3)', () => {
     let res = await (await load())(post({ classId: CLASS_ID, action: 'print', address: ADDRESS }))
     expect(res.status).toBe(409)
     expect((await res.json()).code).toBe('already_requested')
-    expect(calls(log, '/rest/v1/class_print_requests?')[0].url).toContain('status=neq.canceled')
-    expect(calls(log, '/rest/v1/class_print_requests?')[0].url).toContain('school_year=eq.2026-27')
+    const url = calls(log, '/rest/v1/class_print_requests?')[0].url
+    expect(url).toContain('status=neq.canceled')
+    expect(url).toContain(`license_id=eq.${LICENSE_ID}`)
+    expect(url).toContain(`term_start=eq.${encodeURIComponent(TERM_START)}`)
 
     log = mockSupabase({ user: TEACHER, routes: printRoutes('active', [rpcRoute('school_create_class_print', raised('already_requested'))]) })
     res = await (await load())(post({ classId: CLASS_ID, action: 'print', address: ADDRESS }))

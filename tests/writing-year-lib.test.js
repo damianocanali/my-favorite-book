@@ -1,9 +1,16 @@
 import { describe, it, expect } from 'vitest'
 import {
   schoolYear, schoolYearLabel, canPrintClass, cleanAddress, pieceContent, buildChildBook, hasPieces,
-  aboutMeDone, canMovePrint, cleanShortText,
+  aboutMeDone, canMovePrint, cleanShortText, storageImage, handInSnapshot, defaultShippingLevel,
 } from '../lib/school/writingYear.js'
-import { buildWritingYearInteriorHtml, buildWritingYearCoverHtml, MIN_PAGES } from '../lib/print/writing-year-html.js'
+import {
+  buildWritingYearInteriorHtml, buildWritingYearCoverHtml, MIN_PAGES, paginateLines, wrapLines, lineCount,
+  CHARS_PER_LINE, LINES_PER_PAGE, CONTENTS_PER_PAGE,
+} from '../lib/print/writing-year-html.js'
+
+const ORIGIN = 'https://proj.supabase.co'
+const IMG = `${ORIGIN}/storage/v1/object/public/book-illustrations/u/p1.png`
+const COVER = `${ORIGIN}/storage/v1/object/public/book-illustrations/u/c.png`
 
 const future = new Date(Date.now() + 86400_000 * 100).toISOString()
 const past = new Date(Date.now() - 86400_000).toISOString()
@@ -81,15 +88,34 @@ const WORKSHEET = {
   answers: { line_1: 'Shines bright', line_2: 'Up high', line_3: 'Never tired', why: 'I like summer', empty: '  ' },
 }
 const BOOK = {
-  title: 'The Dragon', coverImage: 'https://cdn/x.png',
-  pages: [{ text: 'Once upon a time', illustrationData: 'https://cdn/p1.png' }, { text: 'The end', illustrationData: '[saved-locally]' }, { text: '' }],
+  title: 'The Dragon', coverImage: COVER,
+  pages: [{ text: 'Once upon a time', illustrationData: IMG }, { text: 'The end', illustrationData: '[saved-locally]' }, { text: '' }],
 }
 
 describe('pieceContent', () => {
   it('a book: its pages, only real image URLs, empty pages dropped', () => {
-    const c = pieceContent('', BOOK)
-    expect(c).toMatchObject({ kind: 'book', title: 'The Dragon', cover: 'https://cdn/x.png' })
-    expect(c.pages).toEqual([{ text: 'Once upon a time', image: 'https://cdn/p1.png' }, { text: 'The end', image: null }])
+    const c = pieceContent('', BOOK, { imageOrigin: ORIGIN })
+    expect(c).toMatchObject({ kind: 'book', title: 'The Dragon', cover: COVER })
+    expect(c.pages).toEqual([{ text: 'Once upon a time', image: IMG }, { text: 'The end', image: null }])
+  })
+  it('only pictures from our storage origin pass (the renderer fetches every <img>)', () => {
+    expect(storageImage(IMG, ORIGIN)).toBe(IMG)
+    expect(storageImage('https://evil.example/x.png', ORIGIN)).toBeNull()
+    expect(storageImage(`http://proj.supabase.co/storage/v1/object/public/x.png`, ORIGIN)).toBeNull()
+    expect(storageImage(`${ORIGIN}/rest/v1/user_books`, ORIGIN)).toBeNull()
+    expect(storageImage('http://169.254.169.254/latest', ORIGIN)).toBeNull()
+    expect(storageImage(IMG, null)).toBeNull()
+    expect(pieceContent('', BOOK).pages[0].image).toBeNull()
+  })
+  it('a hand-in prints its latest graded version, else the frozen copy, else the latest', () => {
+    const latest = { v: 'latest' }, frozen = { v: 'frozen' }
+    expect(handInSnapshot({ latest, latestVersion: 3, frozen, frozenVersion: 2, gradedVersions: [2, 3] })).toBe(latest)
+    expect(handInSnapshot({ latest, latestVersion: 3, frozen, frozenVersion: 2, gradedVersions: [2] })).toBe(frozen)
+    expect(handInSnapshot({ latest, latestVersion: 3, frozen: null, gradedVersions: [] })).toBe(latest)
+  })
+  it('default shipping: ground in the US, priority mail elsewhere', () => {
+    expect(defaultShippingLevel('US')).toBe('GROUND')
+    expect(defaultShippingLevel('IT')).toBe('PRIORITY_MAIL')
   })
   it('a worksheet: prompt + answer per box, acrostic lines, empty boxes dropped', () => {
     const c = pieceContent('My acrostic', WORKSHEET)
@@ -168,5 +194,64 @@ describe('Writing Year PDF HTML (smoke)', () => {
     expect(html).toContain('Ann')
     expect(html).toContain('2026–27')
     expect(html).toContain('🦊')
+  })
+})
+
+describe('measured pagination (nothing is cut off)', () => {
+  const words = (n) => Array.from({ length: n }, (_, i) => `word${i}`).join(' ')
+  const pageTexts = (html) => [...html.matchAll(/<p class="body" style="margin:0;">([\s\S]*?)<\/p>/g)].map((m) => m[1])
+
+  it('wrapLines / lineCount: words wrap, typed line breaks count, long words are cut', () => {
+    expect(lineCount('a\nb\nc')).toBe(3)
+    expect(lineCount('')).toBe(0)
+    expect(wrapLines('x'.repeat(CHARS_PER_LINE * 2 + 5)).length).toBe(3)
+    for (const l of wrapLines(words(200))) expect(l.text.length).toBeLessThanOrEqual(CHARS_PER_LINE)
+  })
+
+  it('paginateLines keeps every word and line break, and respects the budgets', () => {
+    const text = `${words(300)}\nA\nB\n${words(50)}`
+    const chunks = paginateLines(text, LINES_PER_PAGE, 5)
+    expect(lineCount(chunks[0])).toBeLessThanOrEqual(5)
+    for (const c of chunks.slice(1)) expect(lineCount(c)).toBeLessThanOrEqual(LINES_PER_PAGE)
+    expect(chunks.join(' ').split(/\s+/).filter(Boolean)).toEqual(text.split(/\s+/).filter(Boolean))
+  })
+
+  it('a long book page continues on more pages; the picture stays on the first', () => {
+    const long = words(600)
+    const b = book({ pieces: [{ title: 'Long', snapshot: { pages: [{ text: long, illustrationData: IMG }] } }], imageOrigin: ORIGIN, meta: {} })
+    const { html } = buildWritingYearInteriorHtml(b)
+    const texts = pageTexts(html).filter((t) => t.includes('word'))
+    expect(texts.length).toBeGreaterThan(3)
+    expect(texts.join(' ').split(/\s+/)).toEqual(long.split(' '))
+    expect((html.match(/<img src=/g) || []).length).toBe(1)
+  })
+
+  it('a worksheet with many typed lines is paginated by lines, not characters', () => {
+    const answer = Array.from({ length: 60 }, (_, i) => `L${i}`).join('\n') // short, but 60 lines
+    const ws = { kind: 'worksheet', boxes: [{ id: 'a', prompt: 'P' }], answers: { a: answer } }
+    const { html } = buildWritingYearInteriorHtml(book({ pieces: [{ title: 'Lines', snapshot: ws }], meta: {} }))
+    const texts = pageTexts(html).filter((t) => /L\d/.test(t))
+    expect(texts.length).toBeGreaterThanOrEqual(4)
+    for (const t of texts) expect(lineCount(t)).toBeLessThanOrEqual(LINES_PER_PAGE)
+    expect(texts.join('\n')).toBe(answer)
+  })
+
+  it('the contents page is paginated for a full year', () => {
+    const pieces = Array.from({ length: 30 }, (_, i) => ({ title: `Piece ${i + 1}`, snapshot: { pages: [{ text: 'x' }] } }))
+    const { html } = buildWritingYearInteriorHtml(book({ pieces, meta: {} }))
+    const contentsPages = html.split('<section').filter((sec) => sec.includes('text-overflow:ellipsis'))
+    expect(contentsPages.length).toBe(Math.ceil(30 / CONTENTS_PER_PAGE))
+    for (const sec of contentsPages) expect((sec.match(/text-overflow:ellipsis/g) || []).length).toBeLessThanOrEqual(CONTENTS_PER_PAGE)
+    expect(html).toContain('30. Piece 30')
+  })
+
+  it('a long, many-line teacher note and full About me split across pages', () => {
+    const note = Array.from({ length: 40 }, (_, i) => `Line ${i}`).join('\n')
+    const about = { about_favorite: words(28), about_best_sentence: words(28), about_learned: words(28) }
+    const { html } = buildWritingYearInteriorHtml(book({ meta: { ...about, teacher_note: note } }))
+    const noteTexts = pageTexts(html).filter((t) => t.startsWith('Line'))
+    expect(noteTexts.length).toBeGreaterThanOrEqual(3)
+    expect(noteTexts.join('\n')).toBe(note)
+    for (const t of pageTexts(html)) expect(lineCount(t)).toBeLessThanOrEqual(LINES_PER_PAGE)
   })
 })

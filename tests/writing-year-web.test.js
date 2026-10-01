@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { moveItem, liveRequest, statusStep, emptyAddress, REQUIRED_ADDRESS, splitItems, wyErrorText } from '../src/components/school/writingYearUi.js'
+import { moveItem, statusStep, emptyAddress, REQUIRED_ADDRESS, splitItems, wyErrorText } from '../src/components/school/writingYearUi.js'
 
 describe('writingYearUi', () => {
   it('moveItem moves one element and leaves bad indexes alone', () => {
@@ -7,11 +7,6 @@ describe('writingYearUi', () => {
     expect(moveItem(['a', 'b', 'c'], 2, 0)).toEqual(['c', 'a', 'b'])
     const same = ['a']
     expect(moveItem(same, 0, 3)).toBe(same)
-  })
-  it('liveRequest ignores canceled and other years', () => {
-    const reqs = [{ id: 1, school_year: '2026-27', status: 'canceled' }, { id: 2, school_year: '2025-26', status: 'shipped' }, { id: 3, school_year: '2026-27', status: 'approved' }]
-    expect(liveRequest(reqs, '2026-27').id).toBe(3)
-    expect(liveRequest(reqs.slice(0, 2), '2026-27')).toBeNull()
   })
   it('status steps and address form', () => {
     expect(statusStep('requested')).toBe(0)
