@@ -1,7 +1,7 @@
 {
   "characters": {
     "girl": {
-      "name": "Mia the Brave Girl",
+      "name": "Maya the Brave Girl",
       "description": "A curious girl who loves big adventures"
     },
     "boy": {
@@ -17,7 +17,7 @@
       "description": "A friendly uncle who tells the best jokes"
     },
     "grandma": {
-      "name": "Grandma Rosa",
+      "name": "Grandma Greta",
       "description": "A cheerful grandma who knows a story for everything"
     },
     "grandpa": {
@@ -45,7 +45,7 @@
       "description": "A kind king who listens to everyone in his kingdom"
     },
     "queen": {
-      "name": "Queen Amara",
+      "name": "Queen Zara",
       "description": "A wise queen who is brave, fair and kind"
     },
     "astronaut": {

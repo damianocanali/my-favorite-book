@@ -4,7 +4,7 @@ import { aiResponseError } from '../lib/aiErrors'
 import { displayName } from '../i18n/contentCatalog'
 
 // The buddy talks to the child in their language, so it gets the names the
-// child SEES ("Nonna Rosa"), never the stored English catalogue names or the
+// child SEES ("Nonna Greta"), never the stored English catalogue names or the
 // frozen prompt text. Exported for tests.
 export function buddyBook(book, t = i18next.t.bind(i18next)) {
   if (!book) return book

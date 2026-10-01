@@ -19,8 +19,8 @@ export const characters = [
   // president drawn as a fox). Humans first so they are the first choice.
   {
     id: 'girl',
-    promptEn: { name: 'Mia the Brave Girl', description: 'A curious young girl who loves big adventures' },
-    name: 'Mia the Brave Girl',
+    promptEn: { name: 'Maya the Brave Girl', description: 'A curious young girl who loves big adventures' },
+    name: 'Maya the Brave Girl',
     emoji: '👧',
     description: 'A curious girl who loves big adventures',
     color: '#F472B6',
@@ -51,8 +51,8 @@ export const characters = [
   },
   {
     id: 'grandma',
-    promptEn: { name: 'Grandma Rosa', description: 'A cheerful grandmother who knows a story for everything' },
-    name: 'Grandma Rosa',
+    promptEn: { name: 'Grandma Greta', description: 'A cheerful grandmother who knows a story for everything' },
+    name: 'Grandma Greta',
     emoji: '👵',
     description: 'A cheerful grandma who knows a story for everything',
     color: '#FB923C',
@@ -107,8 +107,8 @@ export const characters = [
   },
   {
     id: 'queen',
-    promptEn: { name: 'Queen Amara', description: 'A wise queen who is brave, fair and kind' },
-    name: 'Queen Amara',
+    promptEn: { name: 'Queen Zara', description: 'A wise queen who is brave, fair and kind' },
+    name: 'Queen Zara',
     emoji: '🫅',
     description: 'A wise queen who is brave, fair and kind',
     color: '#C084FC',

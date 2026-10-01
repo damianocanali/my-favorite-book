@@ -118,15 +118,15 @@ describe('printed back matter language', () => {
       ...fixtureBook,
       language: 'it',
       characters: [
-        { id: 'grandma', name: 'Grandma Rosa', emoji: '👵', description: 'A cheerful grandma who knows a story for everything' },
+        { id: 'grandma', name: 'Grandma Greta', emoji: '👵', description: 'A cheerful grandma who knows a story for everything' },
         { id: 'custom-1', name: 'La Presidente', emoji: '🧑', description: 'con un grande cappello', custom: true },
       ],
     })
     expect(html).toContain('>Fine</p>')
     expect(html).toContain('Scritto e illustrato da Theo')
     expect(html).toContain('I personaggi')
-    expect(html).toContain('Nonna Rosa')
-    expect(html).not.toContain('Grandma Rosa')
+    expect(html).toContain('Nonna Greta')
+    expect(html).not.toContain('Grandma Greta')
     expect(html).toContain('La Presidente')
     expect(html).toContain('con un grande cappello')
     expect(html).not.toContain('Meet the Characters')

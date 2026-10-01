@@ -1,7 +1,7 @@
 {
   "characters": {
     "girl": {
-      "name": "Mia la coraggiosa",
+      "name": "Maya la coraggiosa",
       "description": "Una bambina curiosa che adora le grandi avventure"
     },
     "boy": {
@@ -17,7 +17,7 @@
       "description": "Uno zio simpatico che racconta le barzellette più belle"
     },
     "grandma": {
-      "name": "Nonna Rosa",
+      "name": "Nonna Greta",
       "description": "Una nonna allegra che ha una storia per ogni cosa"
     },
     "grandpa": {
@@ -45,7 +45,7 @@
       "description": "Un re gentile che ascolta tutti nel suo regno"
     },
     "queen": {
-      "name": "Regina Amara",
+      "name": "Regina Zara",
       "description": "Una regina saggia, coraggiosa, giusta e gentile"
     },
     "astronaut": {

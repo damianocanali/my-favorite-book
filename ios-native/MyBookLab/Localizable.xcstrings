@@ -14367,13 +14367,13 @@
         "en": {
           "stringUnit": {
             "state": "new",
-            "value": "Mia the Brave Girl"
+            "value": "Maya the Brave Girl"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mia la coraggiosa"
+            "value": "Maya la coraggiosa"
           }
         }
       }
@@ -14503,13 +14503,13 @@
         "en": {
           "stringUnit": {
             "state": "new",
-            "value": "Grandma Rosa"
+            "value": "Grandma Greta"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nonna Rosa"
+            "value": "Nonna Greta"
           }
         }
       }
@@ -14741,13 +14741,13 @@
         "en": {
           "stringUnit": {
             "state": "new",
-            "value": "Queen Amara"
+            "value": "Queen Zara"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Regina Amara"
+            "value": "Regina Zara"
           }
         }
       }

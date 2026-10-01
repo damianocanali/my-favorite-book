@@ -11,8 +11,8 @@ const grandma = characters.find((c) => c.id === 'grandma')
 const king = characters.find((c) => c.id === 'king')
 
 const customChar = {
-  id: 'custom-1', name: 'Grandma Rosa', description: 'una presidente col cappello',
-  promptEn: { name: 'Grandma Rosa', description: 'una presidente col cappello' }, custom: true,
+  id: 'custom-1', name: 'Grandma Greta', description: 'una presidente col cappello',
+  promptEn: { name: 'Grandma Greta', description: 'una presidente col cappello' }, custom: true,
 }
 const customPlace = {
   id: 'custom-2', name: 'Enchanted Forest', description: 'una scuola sulla luna',
@@ -37,25 +37,25 @@ describe('custom entries in the image payload', () => {
   it('the offline fallback never uses their text, even if it spells a catalogue entry', () => {
     const r = validateScenePayload(coverPayload({ title: 'T', characters: [customChar], setting: customPlace }, 'it'))
     const scene = fallbackScene(r.input)
-    expect(scene).not.toMatch(/Grandma Rosa|Enchanted Forest|presidente|luna/i)
+    expect(scene).not.toMatch(/Grandma Greta|Enchanted Forest|presidente|luna/i)
     expect(scene).toContain('a friendly character')
     expect(scene).toContain('a magical place')
   })
 
   it('a catalogue character still gets its catalogue words', () => {
     const r = validateScenePayload(coverPayload({ title: 'T', characters: [grandma], setting: null }, 'it'))
-    expect(fallbackScene(r.input)).toContain('Grandma Rosa')
+    expect(fallbackScene(r.input)).toContain('Grandma Greta')
   })
 })
 
 describe('Italian pages name the new people', () => {
   it('matches the shared given name on an Italian page', () => {
     const r = validateScenePayload(pagePayload(
-      { text: 'Nonna Rosa e Re Theo vanno al mercato.' },
+      { text: 'Nonna Greta e Re Theo vanno al mercato.' },
       { characters: [grandma, king, characters.find((c) => c.id === 'chef')] },
       'it'
     ))
     const named = charactersNamedIn(r.input.pageText, r.input.characters).map((c) => c.name)
-    expect(named).toEqual(['Grandma Rosa', 'King Theo'])
+    expect(named).toEqual(['Grandma Greta', 'King Theo'])
   })
 })

@@ -80,7 +80,7 @@ describe('Story Buddy gets the names the child sees', () => {
       characters: [grandma, { id: 'custom-1', name: 'Zorro', custom: true }],
       setting: { id: 'enchanted-forest', name: 'Enchanted Forest' },
     })
-    expect(out.characters.map((c) => c.name)).toEqual(['Nonna Rosa', 'Zorro'])
+    expect(out.characters.map((c) => c.name)).toEqual(['Nonna Greta', 'Zorro'])
     expect(out.characters[0].promptEn).toBeUndefined()
     expect(out.setting.name).not.toBe('Enchanted Forest')
     await i18next.changeLanguage('en')
@@ -93,5 +93,28 @@ describe('speechLocale', () => {
     expect(speechLocale(undefined, 'it')).toBe('it-IT')
     expect(speechLocale('fr', 'en-GB')).toBe('en-US')
     expect(speechLocale()).toBe('en-US')
+  })
+})
+
+describe('people given names are not everyday words', () => {
+  // A given name that is also a common word ("la mia casa", "una rosa",
+  // "medicina amara") makes the picture code think the page names the
+  // character (lib/imageScene.js charactersNamedIn).
+  const COMMON = new Set(`a an the and or but of to in on at by for with from as is it he she we you they my me his her
+    our your their this that mia mio mie miei tua tuo sua suo noi voi loro il lo la le gli un una uno di da con su per tra fra
+    e o ma se che chi non come dove quando rosa amara sole luna mare cielo fiore rose pink bitter will may mark grace hope joy`.split(/\s+/))
+  const TITLES = new Set(['the', 'grandma', 'grandpa', 'aunt', 'uncle', 'teacher', 'firefighter', 'doc', 'chef', 'king', 'queen',
+    'nonna', 'nonno', 'zia', 'zio', 're', 'regina', 'la', 'il', 'dei', 'vigili', 'del', 'fuoco', 'brave', 'helpful', 'girl', 'boy',
+    'coraggiosa', 'generoso', 'insegnante', "l'insegnante"])
+  const PEOPLE = ['girl', 'boy', 'aunt', 'uncle', 'grandma', 'grandpa', 'teacher', 'firefighter', 'doctor', 'chef', 'king', 'queen']
+
+  it('no new person is called by a common Italian or English word', async () => {
+    for (const lang of ['en', 'it']) {
+      const names = (await import(`../src/i18n/locales/${lang}/content.json`)).default.characters
+      for (const id of PEOPLE) {
+        const words = names[id].name.toLowerCase().split(/\s+/).filter((w) => !TITLES.has(w))
+        for (const w of words) expect(COMMON.has(w), `${lang} ${id}: "${w}"`).toBe(false)
+      }
+    }
   })
 })
