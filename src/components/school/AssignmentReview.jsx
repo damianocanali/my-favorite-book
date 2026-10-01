@@ -10,6 +10,7 @@ import HandInChip from './HandInChip'
 import { STICKER_EMOJI } from './assignmentUi'
 import BookPreview from '../book/BookPreview'
 import GradePanel, { LevelChip, SentBackChip } from './GradePanel'
+import WritingYearToggle from './WritingYearToggle'
 import { gradeRowFlag, mergeGrade } from './gradingUi'
 import WorksheetAnswers from './WorksheetAnswers'
 import AssignmentWorksheetPrint from '../worksheets/AssignmentSheet'
@@ -417,6 +418,12 @@ export default function AssignmentReview({ classId, assignmentId, onClose }) {
                   grades={detail.grades ?? []}
                   locale={i18n.language}
                   onSaved={(g) => gradeSaved(detail.submission.id, g)}
+                />
+                <WritingYearToggle
+                  key={`wy-${detail.submission.id}`}
+                  classId={classId}
+                  submissionId={detail.submission.id}
+                  graded={(detail.grades ?? []).length > 0}
                 />
                 <FeedbackPanel
                   // Remounts FeedbackPanel for each student — otherwise its

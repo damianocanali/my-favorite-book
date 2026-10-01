@@ -1,6 +1,7 @@
 export const config = { runtime: 'edge' }
 
 import { purgeUser, GRACE_DAYS } from '../../lib/deleteUser.js'
+import { purgeOldClassPrintPdfs } from '../../lib/school/printRetention.js'
 
 const CRON_SECRET = process.env.CRON_SECRET
 const NOTIFICATION_RETENTION_DAYS = 90
@@ -71,7 +72,16 @@ export default async function handler(req) {
     console.error('[purge-deletions] prune error:', e?.message)
   }
 
-  return new Response(JSON.stringify({ considered: list.length, purged, failed, notifications_pruned: notificationsPruned }), {
+  // Class print PDFs (children's books): gone 30 days after shipping or
+  // after a cancel. Best effort, retried nightly.
+  let printPdfs = { purged: 0, failed: 0 }
+  try {
+    printPdfs = await purgeOldClassPrintPdfs({ supabaseUrl, serviceKey })
+  } catch (e) {
+    console.error('[purge-deletions] print PDF retention error:', e?.message)
+  }
+
+  return new Response(JSON.stringify({ considered: list.length, purged, failed, notifications_pruned: notificationsPruned, print_pdfs: printPdfs }), {
     status: 200, headers: { 'Content-Type': 'application/json' },
   })
 }

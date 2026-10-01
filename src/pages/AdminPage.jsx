@@ -34,6 +34,7 @@ import { useTranslation } from 'react-i18next'
 import { Loader2, RefreshCw, AlertCircle } from 'lucide-react'
 import { useAuthStore } from '../stores/useAuthStore'
 import { apiFetchAuthed } from '../lib/api'
+import ClassPrintRequests from '../components/admin/ClassPrintRequests'
 
 const OWNER_ID = import.meta.env.VITE_OWNER_USER_ID
 
@@ -257,6 +258,8 @@ export default function AdminPage() {
             </p>
           </>
         )}
+
+        <ClassPrintRequests />
       </div>
     </div>
   )

@@ -12,6 +12,7 @@ enum TeacherClassesDest: Hashable {
     case classDetail(String)
     case roster(String)
     case settings(String)
+    case writingYear(String)
     case review(classId: String, assignmentId: String)
 }
 
@@ -53,6 +54,8 @@ struct TeacherClassesView: View {
                     TeacherRosterView(classId: id)
                 case .settings(let id):
                     TeacherClassSettingsView(classId: id)
+                case .writingYear(let id):
+                    TeacherWritingYearView(classId: id)
                 case .review(let classId, let assignmentId):
                     TeacherReviewView(classId: classId, assignmentId: assignmentId)
                 }
@@ -285,6 +288,10 @@ struct TeacherClassDetailView: View {
             .buttonStyle(.plain)
             NavigationLink(value: TeacherClassesDest.settings(classId)) {
                 manageCard(TeacherCopy.settingsCardTitle, TeacherCopy.settingsCardHint, systemImage: "gearshape.fill")
+            }
+            .buttonStyle(.plain)
+            NavigationLink(value: TeacherClassesDest.writingYear(classId)) {
+                manageCard(WritingYearCopy.sectionHeading, WritingYearCopy.sectionSub, systemImage: "book.closed.fill")
             }
             .buttonStyle(.plain)
         }

@@ -13,6 +13,7 @@ import StudentAvatarEditor from '../components/school/StudentAvatarEditor'
 import AssignmentsSection from '../components/school/AssignmentsSection'
 import AssignmentReview from '../components/school/AssignmentReview'
 import ClassDeviceCard from '../components/school/ClassDeviceCard'
+import WritingYearSection from '../components/school/WritingYearSection'
 import { schoolFetch } from '../lib/schoolApi'
 import { teacherErrorText } from '../components/school/teacherErrors'
 import { MAX_SEATS } from '../../lib/school/license.js'
@@ -336,6 +337,8 @@ export default function TeacherClassPage() {
         locale={i18n.language}
         onOpenReview={(assignmentId) => setReviewAssignmentId(assignmentId)}
       />
+
+      <WritingYearSection classId={classItem.id} locale={classItem.locale ?? i18n.language} />
 
       {cardsToShow && (
         <SignInCards
