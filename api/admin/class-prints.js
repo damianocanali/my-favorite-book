@@ -38,6 +38,7 @@ import { spineWidthInches } from '../../lib/print/spine-width.js'
 import { buildWritingYearInteriorHtml, buildWritingYearCoverHtml } from '../../lib/print/writing-year-html.js'
 import { canPrintClass, canMovePrint, SHIPPING_LEVELS, defaultShippingLevel } from '../../lib/school/writingYear.js'
 import { writingYearPdfPrefix } from '../../lib/deleteUser.js'
+import { PageOverflowError } from '../../lib/print/overflow.js'
 
 // Softcover, same SKU as api/print-orders/submit-to-lulu.js. Keep in sync.
 export const SOFTCOVER_POD = '0850X0850FCSTDPB080CW444MXX'
@@ -99,7 +100,7 @@ async function getRequest(id) {
 async function getChildren(id, { withBook = false, childId = null } = {}) {
   return read(
     `/rest/v1/class_print_request_children?request_id=eq.${id}${childId ? `&id=eq.${childId}` : ''}` +
-      `&select=id,student_id,display_name,position,interior_key,cover_key,page_count,rendered_at${withBook ? ',book' : ''},class_students(auth_user_id,status)` +
+      `&select=id,student_id,display_name,position,interior_key,cover_key,page_count,rendered_at,render_problem${withBook ? ',book' : ''},class_students(auth_user_id,status)` +
       '&order=position.asc',
     'class_print_request_children'
   )
@@ -156,14 +157,21 @@ async function shippingOptions(req, r) {
   }
   const children = await getChildren(r.id)
   const quantity = children.filter(isActive).length
-  const res = await new LuluClient().getShippingOptions({
-    country_code: r.country_code,
-    ...(r.state_code ? { state_code: r.state_code } : {}),
-    postcode: r.postal_code,
-    city: r.city,
-    pod_package_id: SOFTCOVER_POD,
-    quantity: String(quantity),
-  })
+  let res
+  try {
+    res = await new LuluClient().getShippingOptions({
+      country_code: r.country_code,
+      ...(r.state_code ? { state_code: r.state_code } : {}),
+      postcode: r.postal_code,
+      city: r.city,
+      pod_package_id: SOFTCOVER_POD,
+      quantity: String(quantity),
+    })
+  } catch (e) {
+    // Lulu's options are a help, not a gate: approve with the default.
+    console.warn('[admin/class-prints] shipping options failed', e?.message)
+    return reply(req, 200, { quantity, options: [], default: defaultShippingLevel(r.country_code), error: String(e?.message ?? e).slice(0, 200) })
+  }
   const list = Array.isArray(res) ? res : (res?.results ?? res?.shipping_options ?? [])
   const options = list
     .map((o) => ({
@@ -206,17 +214,32 @@ async function render(req, r, body) {
   const authId = authIdOf(child)
 
   const { html, pageCount } = buildWritingYearInteriorHtml(child.book)
-  const interior = await renderHtmlToPdf({ html })
-  const dims = await new LuluClient().getCoverDimensions({ pod_package_id: SOFTCOVER_POD, interior_page_count: pageCount, unit: 'inch' })
-  const widthInches = Number(dims.width)
-  const heightInches = Number(dims.height)
-  const coverHtml = buildWritingYearCoverHtml(child.book, {
-    widthInches, heightInches, spineWidthInches: spineWidthInches({ format: 'softcover', pageCount }),
-  })
-  const cover = await renderHtmlToPdf({ html: coverHtml, widthInches, heightInches })
+  let interior, cover
+  try {
+    // Every page is measured after layout: text that doesn't fit is a
+    // refusal naming the pages, never a clipped book.
+    interior = await renderHtmlToPdf({ html, checkOverflow: '.page' })
+    const dims = await new LuluClient().getCoverDimensions({ pod_package_id: SOFTCOVER_POD, interior_page_count: pageCount, unit: 'inch' })
+    const widthInches = Number(dims.width)
+    const heightInches = Number(dims.height)
+    const coverHtml = buildWritingYearCoverHtml(child.book, {
+      widthInches, heightInches, spineWidthInches: spineWidthInches({ format: 'softcover', pageCount }),
+    })
+    cover = await renderHtmlToPdf({ html: coverHtml, widthInches, heightInches, checkOverflow: '.panel' })
+  } catch (e) {
+    if (!(e instanceof PageOverflowError)) throw e
+    const problem = (interior ? `Cover: ${e.message}` : e.message).slice(0, 300)
+    await sb(`/rest/v1/class_print_request_children?id=eq.${child.id}`, {
+      method: 'PATCH', headers: { Prefer: 'return=minimal' }, body: JSON.stringify({ render_problem: problem }),
+    }).catch(() => {})
+    return reply(req, 409, { error: problem, code: 'page_overflow', pages: e.pages, part: interior ? 'cover' : 'interior' })
+  }
 
-  // Under the child's own folder, so purgeUser finds and deletes them.
-  const base = `${writingYearPdfPrefix(authId)}${r.id}`
+  // Under the child's own folder, so purgeUser finds and deletes them. A new
+  // name every render: a re-render never overwrites a file a reviewer (or
+  // a racing submit) is looking at; the old pair is deleted once replaced.
+  const stamp = `${Date.now().toString(36)}-${crypto.randomUUID().slice(0, 8)}`
+  const base = `${writingYearPdfPrefix(authId)}${r.id}-${stamp}`
   const interiorKey = `${base}-interior.pdf`
   const coverKey = `${base}-cover.pdf`
   await upload(interiorKey, interior)
@@ -230,9 +253,15 @@ async function render(req, r, body) {
   const res = await sb(`/rest/v1/class_print_request_children?id=eq.${child.id}`, {
     method: 'PATCH',
     headers: { Prefer: 'return=minimal' },
-    body: JSON.stringify({ interior_key: interiorKey, cover_key: coverKey, page_count: pageCount, rendered_at: new Date().toISOString() }),
+    body: JSON.stringify({ interior_key: interiorKey, cover_key: coverKey, page_count: pageCount, rendered_at: new Date().toISOString(), render_problem: null }),
   })
   if (!res.ok) throw new Error(`class_print_request_children patch failed: ${res.status}`)
+  const old = [child.interior_key, child.cover_key].filter(Boolean)
+  if (old.length) {
+    await sb(`/storage/v1/object/${BUCKET}`, { method: 'DELETE', body: JSON.stringify({ prefixes: old }) })
+      .then((d) => { if (!d.ok) console.warn('[admin/class-prints] old PDFs not deleted', d.status) })
+      .catch(() => {})
+  }
   return reply(req, 200, { child: { id: child.id, page_count: pageCount, rendered: true } })
 }
 
@@ -301,6 +330,13 @@ async function submit(req, r) {
     const urls = []
     for (const c of children) urls.push({ interior: await signedUrl(c.interior_key, LULU_URL_SECONDS), cover: await signedUrl(c.cover_key, LULU_URL_SECONDS) })
     job = await new LuluClient().createPrintJob(buildLuluPayload(claimed, children, urls))
+    if (job?.id === undefined || job?.id === null || job?.id === '') {
+      // Lulu answered without a job id: we can't tell whether it has the
+      // order. Same as a lost write: keep the claim, never "failed".
+      console.error('[admin/class-prints] CRITICAL Lulu returned no job id for request', r.id)
+      await patchRequest(r.id, '', { error: 'Lulu answered without a job id — check Lulu and reconcile' }).catch(() => {})
+      return reply(req, 502, { error: 'Lulu answered without a job id. Check Lulu, then reconcile.', code: 'record_failed', lulu_print_job_id: null })
+    }
     const row = await patchRequest(r.id, '', {
       status: 'submitted', lulu_print_job_id: String(job.id), lulu_status: job?.status?.name ?? null,
       submitted_at: new Date().toISOString(), children_count: children.length, error: null,
@@ -399,7 +435,7 @@ export async function GET(req) {
         const rendered = isRendered(c)
         out.push({
           id: c.id, student_id: c.student_id, display_name: c.display_name, position: c.position,
-          page_count: c.page_count, rendered, removed: !isActive(c),
+          page_count: c.page_count, rendered, removed: !isActive(c), problem: c.render_problem ?? null,
           interior_url: rendered ? await signedUrl(c.interior_key, ADMIN_URL_SECONDS) : null,
           cover_url: rendered ? await signedUrl(c.cover_key, ADMIN_URL_SECONDS) : null,
         })

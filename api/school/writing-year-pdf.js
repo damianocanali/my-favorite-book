@@ -10,6 +10,7 @@ import { requireClassOwner, json, isUuid } from '../_school.js'
 import { read, buildBooks } from '../_writingYear.js'
 import { buildWritingYearInteriorHtml } from '../../lib/print/writing-year-html.js'
 import { renderHtmlToPdf } from '../../lib/print/pdf-render.js'
+import { PageOverflowError } from '../../lib/print/overflow.js'
 
 const safeFileName = (s) => String(s ?? '').replace(/[^\p{L}\p{N} _-]/gu, '').trim().slice(0, 40) || 'writing-year'
 
@@ -33,7 +34,14 @@ export async function GET(req) {
     if (!rows?.[0]) return json(req, 404, { error: 'Student not found', code: 'student_not_found' })
     const [{ student, book }] = await buildBooks(o.classroom, [rows[0]])
     const { html } = buildWritingYearInteriorHtml(book)
-    const pdf = await renderHtmlToPdf({ html })
+    let pdf
+    try {
+      pdf = await renderHtmlToPdf({ html, checkOverflow: '.page' })
+    } catch (e) {
+      if (!(e instanceof PageOverflowError)) throw e
+      // Never a clipped book: name the pages so the teacher can shorten them.
+      return json(req, 409, { error: e.message, code: 'page_overflow', pages: e.pages })
+    }
     const headers = {
       'Content-Type': 'application/pdf',
       // ASCII fallback + the UTF-8 name (a header can't carry "Lucía" raw).

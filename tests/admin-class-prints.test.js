@@ -15,9 +15,8 @@ vi.mock('../lib/print/lulu.js', () => ({
     getShippingOptions(q) { return lulu.getShippingOptions(q) }
   },
 }))
-vi.mock('../lib/print/pdf-render.js', () => ({
-  renderHtmlToPdf: vi.fn(async () => Buffer.from('%PDF-1.4 fake')),
-}))
+const render = vi.hoisted(() => vi.fn())
+vi.mock('../lib/print/pdf-render.js', () => ({ renderHtmlToPdf: render }))
 
 const REQ_ID = '6f1c1b1e-0000-4000-8000-0000000000e9'
 const CHILD1 = '6f1c1b1e-0000-4000-8000-0000000000d7'
@@ -32,6 +31,8 @@ beforeEach(() => {
   delete process.env.PRINT_OPS_EMAIL
   for (const f of Object.values(lulu)) f.mockReset()
   lulu.getCoverDimensions.mockResolvedValue({ width: '17.4', height: '8.75' })
+  render.mockReset()
+  render.mockResolvedValue(Buffer.from('%PDF-1.4 fake'))
   vi.spyOn(console, 'error').mockImplementation(() => {})
 })
 afterEach(() => {
@@ -147,7 +148,11 @@ describe('step 1: shipping, approve, render', () => {
     const res = await (await load()).POST(post({ id: REQ_ID, action: 'render', childId: CHILD1 }))
     expect(res.status).toBe(200)
     const uploads = calls(log, '/storage/v1/object/print-pdfs/', 'POST').map((l) => l.url.split('/print-pdfs/')[1])
-    expect(uploads).toEqual([`writing-year/kid-auth-1/${REQ_ID}-interior.pdf`, `writing-year/kid-auth-1/${REQ_ID}-cover.pdf`])
+    expect(uploads).toHaveLength(2)
+    expect(uploads[0]).toMatch(new RegExp(`^writing-year/kid-auth-1/${REQ_ID}-[a-z0-9]+-[0-9a-f]{8}-interior\\.pdf$`))
+    expect(uploads[1]).toBe(uploads[0].replace('-interior.pdf', '-cover.pdf'))
+    // Every page is measured: interior and cover.
+    expect(render.mock.calls.map((c) => c[0].checkOverflow)).toEqual(['.page', '.panel'])
     expect(lulu.createPrintJob).not.toHaveBeenCalled()
     const [p] = calls(log, '/rest/v1/class_print_request_children?', 'PATCH')
     expect(p.body).toMatchObject({ interior_key: uploads[0], cover_key: uploads[1], page_count: 32 })
@@ -358,5 +363,56 @@ describe('Lulu webhook → class print status', () => {
     expect(p.url).toContain('status=eq.in_production')
     expect(p.body).toMatchObject({ status: 'shipped', tracking: { number: 'TRK', url: 'https://track', carrier: 'UPS' } })
     delete process.env.LULU_WEBHOOK_SECRET
+  })
+})
+
+describe('round 2', () => {
+  it('render: text that doesn\'t fit → 409 naming the pages, flagged on the child, nothing uploaded', async () => {
+    const { PageOverflowError } = await import('../lib/print/overflow.js')
+    render.mockRejectedValueOnce(new PageOverflowError([7, 12]))
+    const log = mockSupabase({ user: OWNER, routes: routes({ children: childRows({ rendered: false }) }) })
+    const res = await (await load()).POST(post({ id: REQ_ID, action: 'render', childId: CHILD1 }))
+    expect(res.status).toBe(409)
+    expect(await res.json()).toMatchObject({ code: 'page_overflow', pages: [7, 12], part: 'interior' })
+    expect(calls(log, '/storage/v1/object/print-pdfs/', 'POST')).toHaveLength(0)
+    const [flag] = calls(log, '/rest/v1/class_print_request_children?', 'PATCH')
+    expect(flag.body).toEqual({ render_problem: 'Text does not fit on page 7, 12' })
+  })
+
+  it('admin detail shows the child\'s render problem', async () => {
+    const children = [{ ...child(CHILD1, 'Ann', 1, 'kid-auth-1', { rendered: false }), render_problem: 'Text does not fit on page 7' }]
+    mockSupabase({ user: OWNER, routes: routes({ children }) })
+    const body = await (await (await load()).GET(getReq(`?id=${REQ_ID}`))).json()
+    expect(body.children[0].problem).toBe('Text does not fit on page 7')
+  })
+
+  it('re-render: a fresh file name, then the old pair is deleted', async () => {
+    const log = mockSupabase({ user: OWNER, routes: routes() })
+    expect((await (await load()).POST(post({ id: REQ_ID, action: 'render', childId: CHILD1, rerender: true }))).status).toBe(200)
+    const uploads = calls(log, '/storage/v1/object/print-pdfs/', 'POST').map((l) => l.url.split('/print-pdfs/')[1])
+    expect(uploads).not.toContain(`writing-year/kid-auth-1/${REQ_ID}-interior.pdf`)
+    const del = log.find((l) => l.method === 'DELETE' && l.url.endsWith('/storage/v1/object/print-pdfs'))
+    expect(del.body.prefixes).toEqual([`writing-year/kid-auth-1/${REQ_ID}-interior.pdf`, `writing-year/kid-auth-1/${REQ_ID}-cover.pdf`])
+    const recorded = calls(log, '/rest/v1/class_print_request_children?', 'PATCH')[0].body
+    expect(recorded).toMatchObject({ interior_key: uploads[0], render_problem: null })
+  })
+
+  it('Lulu answers without a job id → record_failed, claim kept, never "failed"', async () => {
+    lulu.createPrintJob.mockResolvedValue({ status: { name: 'CREATED' } })
+    const log = mockSupabase({ user: OWNER, routes: routes() })
+    const res = await (await load()).POST(post({ id: REQ_ID, action: 'submit' }))
+    expect(res.status).toBe(502)
+    expect((await res.json()).code).toBe('record_failed')
+    const patches = requestPatches(log)
+    expect(patches.some((p) => p.body.status)).toBe(false)
+    expect(patches.some((p) => p.body.submit_claimed_at === null)).toBe(false)
+  })
+
+  it('shipping options failing still lets the owner approve with the default', async () => {
+    lulu.getShippingOptions.mockRejectedValue(new Error('lulu down'))
+    mockSupabase({ user: OWNER, routes: routes({ request: requestRow({ status: 'requested' }) }) })
+    const res = await (await load()).POST(post({ id: REQ_ID, action: 'shipping_options' }))
+    expect(res.status).toBe(200)
+    expect(await res.json()).toMatchObject({ options: [], default: 'GROUND', error: 'lulu down' })
   })
 })

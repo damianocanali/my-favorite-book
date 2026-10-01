@@ -197,6 +197,29 @@ describe('Writing Year PDF HTML (smoke)', () => {
   })
 })
 
+describe('headings measured at their own size', () => {
+  it('a long title takes more room, so less body text goes under it', async () => {
+    const { h2Lines, h3Lines } = await import('../lib/print/writing-year-html.js')
+    expect(h2Lines('Short')).toBeLessThan(h2Lines('A very long worksheet title that wraps onto two or even three lines when printed'))
+    expect(h3Lines('')).toBe(0)
+    expect(h3Lines('x'.repeat(200))).toBeGreaterThan(h3Lines('x'))
+  })
+
+  it('a long book-page title leaves fewer lines for the first page of text', () => {
+    const w = Array.from({ length: 300 }, (_, i) => `w${i}`).join(' ')
+    const pagesFor = (title) => buildWritingYearInteriorHtml(book({ pieces: [{ title, snapshot: { pages: [{ text: w }] } }], meta: {} }))
+    const short = pagesFor('A').html.match(/<p class="body" style="margin:0;">(w0[\s\S]*?)<\/p>/)[1]
+    const long = pagesFor('T'.repeat(190)).html.match(/<p class="body" style="margin:0;">(w0[\s\S]*?)<\/p>/)[1]
+    expect(lineCount(long)).toBeLessThan(lineCount(short))
+  })
+
+  it('text and headings may break anywhere (no unbreakable overflow)', () => {
+    const { html } = buildWritingYearInteriorHtml(book())
+    expect(html).toMatch(/h1, h2, h3 \{[^}]*overflow-wrap: anywhere/)
+    expect(html).toMatch(/p \{ overflow-wrap: anywhere; \}/)
+  })
+})
+
 describe('measured pagination (nothing is cut off)', () => {
   const words = (n) => Array.from({ length: n }, (_, i) => `word${i}`).join(' ')
   const pageTexts = (html) => [...html.matchAll(/<p class="body" style="margin:0;">([\s\S]*?)<\/p>/g)].map((m) => m[1])

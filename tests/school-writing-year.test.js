@@ -450,4 +450,47 @@ describe('student', () => {
     expect(items).toContain(`student_id=eq.${STUDENT_ID}`)
     expect(items).toContain('approved=is.true')
   })
+
+  it('a request whose books never finished saving tells the teacher (after a grace period)', async () => {
+    const stuck = { id: REQ_ID, status: 'requested', school_year: '2026-27', children_count: 3, created_at: '2026-10-01T11:00:00.000Z', books_frozen_at: null }
+    mockSupabase({
+      user: TEACHER,
+      routes: [ownerRoute, studentsRoute, license('active'),
+        { method: 'GET', match: '/rest/v1/class_print_requests?', reply: { body: [stuck] } }],
+    })
+    let body = await (await (await load())(get(`?classId=${CLASS_ID}`))).json()
+    expect(body.current_request.books_missing).toBe(true)
+    // Just created (inside the grace period): not yet a problem.
+    mockSupabase({
+      user: TEACHER,
+      routes: [ownerRoute, studentsRoute, license('active'),
+        { method: 'GET', match: '/rest/v1/class_print_requests?', reply: { body: [{ ...stuck, created_at: '2026-10-01T11:59:30.000Z' }] } }],
+    })
+    body = await (await (await load())(get(`?classId=${CLASS_ID}`))).json()
+    expect(body.current_request.books_missing).toBe(false)
+  })
+
+  it('a book over 2 MB names the child, before anything is written', async () => {
+    const huge = 'x'.repeat(1900)
+    const big = Array.from({ length: 1100 }, (_, j) => ({
+      id: `i${j}`, student_id: STUDENT_ID, kind: 'book', title: `P${j}`, position: j + 1, book_snapshot: { pages: [{ text: huge }] },
+    }))
+    const log = mockSupabase({
+      user: TEACHER,
+      routes: [ownerRoute, license('active'),
+        { method: 'GET', match: '/rest/v1/class_print_requests?', reply: { body: [] } },
+        studentsRoute,
+        { method: 'GET', match: '/rest/v1/writing_year_items?classroom_id=eq.', reply: (c) => {
+          const off = Number(new URL(c.url).searchParams.get('offset'))
+          return { body: big.slice(off, off + 1000) }
+        } },
+        { method: 'GET', match: '/rest/v1/writing_year_meta?', reply: { body: [] } },
+        { method: 'GET', match: '/rest/v1/user_inventory?', reply: { body: [] } }],
+    })
+    const res = await (await load())(post({ classId: CLASS_ID, action: 'print', address: ADDRESS }))
+    expect(res.status).toBe(413)
+    expect(await res.json()).toMatchObject({ code: 'print_book_too_big', names: ['Ann'] })
+    expect(calls(log, '/rpc/').length).toBe(0)
+  })
 })
+

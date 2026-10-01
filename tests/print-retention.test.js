@@ -34,6 +34,14 @@ describe('class print PDF retention', () => {
     expect(log.find((l) => l.method === 'PATCH' && l.u.includes('class_print_requests')).body.pdfs_purged_at).toBeTruthy()
   })
 
+  it('failed requests are purged too (30 days after their last change)', async () => {
+    mock()
+    await purgeOldClassPrintPdfs(ENV)
+    const q = log.find((l) => l.u.includes('status=eq.failed'))
+    expect(q.u).toContain('updated_at=lt.')
+    expect(q.u).toContain('pdfs_purged_at=is.null')
+  })
+
   it('a storage failure leaves it for tomorrow (not stamped)', async () => {
     mock({
       'status=eq.canceled': { body: [{ id: 'r2' }] },

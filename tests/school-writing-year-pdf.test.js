@@ -49,4 +49,18 @@ describe('GET /api/school/writing-year-pdf', () => {
     expect((await (await load())(get(`?classId=${CLASS_ID}&studentId=${STUDENT_ID}`))).status).toBe(404)
     expect(render).not.toHaveBeenCalled()
   })
+
+  it('a page whose text doesn\'t fit → 409 with the page numbers, never a clipped PDF', async () => {
+    const { PageOverflowError } = await import('../lib/print/overflow.js')
+    render.mockRejectedValueOnce(new PageOverflowError([4]))
+    mockSupabase({
+      user: TEACHER,
+      routes: [ownerRoute, { method: 'GET', match: '/rest/v1/class_students?id=eq.', reply: { body: [{ id: STUDENT_ID, display_name: 'Ann', avatar_emoji: '🦊', auth_user_id: 'k' }] } }],
+    })
+    const res = await (await load())(get(`?classId=${CLASS_ID}&studentId=${STUDENT_ID}`))
+    expect(res.status).toBe(409)
+    expect(await res.json()).toMatchObject({ code: 'page_overflow', pages: [4] })
+    expect(render.mock.calls[0][0].checkOverflow).toBe('.page')
+  })
 })
+

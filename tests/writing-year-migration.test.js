@@ -82,6 +82,7 @@ describe('024_writing_year.sql', () => {
   it('a hand-in piece freezes the version chosen; books are written per child (2 MB cap each)', () => {
     expect(tableBody('writing_year_items')).toMatch(/snapshot_version int check \(snapshot_version >= 1\)/i)
     expect(fnBody('school_wy_add_item')).toMatch(/sub_snapshot := sub\.book_snapshot;\s+sub_version := sub\.version;/)
+    expect(tableBody('class_print_request_children')).toMatch(/render_problem text check \(char_length\(render_problem\) <= 300\)/i)
     expect(tableBody('class_print_request_children')).toMatch(/book jsonb not null default '\{\}'::jsonb check \(jsonb_typeof\(book\) = 'object' and octet_length\(book::text\) <= 2000000\)/i)
   })
 

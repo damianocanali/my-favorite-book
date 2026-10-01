@@ -77,8 +77,15 @@ const requestShape = (r) => ({
   excluded_count: r.excluded_count, school_name: r.school_name, created_at: r.created_at,
   approved_at: r.approved_at ?? null, submitted_at: r.submitted_at ?? null, shipped_at: r.shipped_at ?? null,
   canceled_at: r.canceled_at ?? null, tracking: r.tracking ?? null,
+  // The books never finished saving (the request is written first, the
+  // books right after): the teacher is told to cancel and ask again.
+  books_missing: booksMissing(r),
 })
-const REQUEST_SELECT = 'id,status,school_year,children_count,excluded_count,school_name,created_at,approved_at,submitted_at,shipped_at,canceled_at,tracking'
+const REQUEST_SELECT = 'id,status,school_year,children_count,excluded_count,school_name,created_at,approved_at,submitted_at,shipped_at,canceled_at,tracking,books_frozen_at'
+// Two minutes covers the request that is still being written.
+export const BOOKS_GRACE_MS = 2 * 60 * 1000
+const booksMissing = (r, now = Date.now()) =>
+  r.status === 'requested' && !r.books_frozen_at && now - new Date(r.created_at).getTime() > BOOKS_GRACE_MS
 
 async function classLicense(classroomId) {
   const rows = await read(`/rest/v1/class_licenses?classroom_id=eq.${classroomId}&select=id,status,starts_at,expires_at`, 'class_licenses')
@@ -291,6 +298,16 @@ async function teacherPrint(req, o, body) {
 
   const { included, excluded } = await classBooks(o)
   if (!included.length) return json(req, 409, { error: RPC_ERRORS.no_children[1], code: 'no_children' })
+  // Each child's book is one row, capped at 2 MB (migration 024): name the
+  // children whose book is too big before anything is written.
+  const tooBig = included.filter(({ book }) => new TextEncoder().encode(JSON.stringify(book)).length > MAX_BOOK_BYTES)
+  if (tooBig.length) {
+    const names = tooBig.map(({ student }) => student.display_name)
+    return json(req, 413, {
+      error: `These books are too big to print: ${names.join(', ')}. Remove a piece and try again.`,
+      code: 'print_book_too_big', names,
+    })
+  }
   const year = schoolYear()
   const r = await rpc(req, 'school_create_class_print', {
     p_classroom_id: o.classroom.id,
@@ -328,6 +345,8 @@ async function teacherPrint(req, o, body) {
 }
 
 const BOOK_WRITE_BATCH = 5
+// Must match the class_print_request_children.book check in 024 (2 MB).
+export const MAX_BOOK_BYTES = 2_000_000
 async function writeBooks(children, bookOf) {
   for (let i = 0; i < children.length; i += BOOK_WRITE_BATCH) {
     const results = await Promise.all(children.slice(i, i + BOOK_WRITE_BATCH).map((c) =>

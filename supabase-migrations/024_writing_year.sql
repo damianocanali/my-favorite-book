@@ -184,6 +184,9 @@ create table if not exists public.class_print_request_children (
   cover_key text,
   page_count int check (page_count >= 1),
   rendered_at timestamptz,
+  -- Set when the last render was refused because text didn't fit a page
+  -- (lib/print/overflow.js), e.g. 'Text does not fit on page 7, 12'.
+  render_problem text check (char_length(render_problem) <= 300),
   unique (request_id, student_id)
 );
 create index if not exists class_print_request_children_student_idx
