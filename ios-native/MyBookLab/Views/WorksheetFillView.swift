@@ -89,10 +89,11 @@ struct WorksheetFillView: View {
                 showPages = false
             }
         }
-        .confirmationDialog(
+        // An alert, not a confirmationDialog: on iPad a dialog is a popover
+        // that needs an anchor, and attached here it never presents.
+        .alert(
             Text(AssignmentCopy.replaceDraftTitle),
             isPresented: Binding(get: { confirmPages != nil }, set: { if !$0 { confirmPages = nil } }),
-            titleVisibility: .visible,
             presenting: confirmPages
         ) { pick in
             Button(role: .destructive) {
