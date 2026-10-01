@@ -211,6 +211,12 @@ struct TeacherReviewView: View {
             ) { saved in gradeSaved(saved, submissionId: detail.submission.id) }
             // Same reason as the feedback panel below: nothing carries over.
             .id("grade-\(detail.submission.id)-\(detail.submission.version ?? 1)")
+            WritingYearToggle(
+                classId: classId,
+                submissionId: detail.submission.id,
+                graded: !(detail.grades ?? []).isEmpty
+            )
+            .id("wy-\(detail.submission.id)")
             TeacherFeedbackPanel(
                 classId: classId,
                 submissionId: detail.submission.id,

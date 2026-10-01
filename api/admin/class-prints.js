@@ -81,9 +81,9 @@ async function getRequest(id) {
   return rows?.[0] ?? null
 }
 
-async function getChildren(id, { withBook = false } = {}) {
+async function getChildren(id, { withBook = false, childId = null } = {}) {
   return read(
-    `/rest/v1/class_print_request_children?request_id=eq.${id}` +
+    `/rest/v1/class_print_request_children?request_id=eq.${id}${childId ? `&id=eq.${childId}` : ''}` +
       `&select=id,student_id,display_name,position,interior_key,cover_key,page_count,rendered_at${withBook ? ',book' : ''},class_students(auth_user_id)` +
       '&order=position.asc',
     'class_print_request_children'
@@ -131,7 +131,8 @@ async function render(req, r, childId) {
     return reply(req, 409, { error: 'Only an approved request that has not been sent can be rendered', code: 'bad_status' })
   }
   if (!isUuid(childId)) return reply(req, 400, { error: 'Invalid child id' })
-  const children = await getChildren(r.id, { withBook: true })
+  // Only this child's frozen book: a class's worth is megabytes.
+  const children = await getChildren(r.id, { withBook: true, childId })
   const child = children.find((c) => c.id === childId)
   if (!child) return reply(req, 404, { error: 'Child not found' })
   const authId = authIdOf(child)

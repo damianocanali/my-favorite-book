@@ -57,6 +57,7 @@ struct BookshelfView: View {
                 // account's home. Renders nothing for a family account.
                 if auth.isStudent {
                     MyAssignmentsSection()
+                    MyWritingYearCard()
                 }
 
                 HStack {
@@ -173,6 +174,7 @@ struct BookshelfView: View {
                 // assignments' "Start writing".
                 if auth.isStudent {
                     MyAssignmentsSection()
+                    MyWritingYearCard()
                 }
                 VStack(spacing: 8) {
                     Text("📖").font(.system(size: 56))

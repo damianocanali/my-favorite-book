@@ -1326,3 +1326,153 @@ actor APIClient {
         }.filter { !$0.isEmpty }
     }
 }
+
+// MARK: - Schools ("My Writing Year", api/school/writing-year.js)
+//
+// Teacher calls carry classId and go through teacherCall (TeacherError with
+// the server's code); a class account's own calls go through schoolStudent
+// (SchoolError). Printing never reaches the printer from here: a class
+// print request waits for the owner's review. No prices anywhere.
+extension APIClient {
+    private struct WYAction: Encodable {
+        let classId: String?
+        let action: String
+        var submissionId: String? = nil
+        var itemId: String? = nil
+        var studentId: String? = nil
+        var itemIds: [String]? = nil
+        var teacherNote: String? = nil
+        var coverTitle: String? = nil
+        var bookId: String? = nil
+        var requestId: String? = nil
+        var address: [String: String]? = nil
+    }
+    private struct WYAboutBody: Encodable {
+        let action = "about"
+        let about_favorite: String
+        let about_best_sentence: String
+        let about_learned: String
+    }
+    struct WYItemState: Decodable { let id: String; let approved: Bool }
+    private struct WYItemStateResponse: Decodable { let item: WYItemState? }
+    private struct WYBookResponse: Decodable { let book: WYBook }
+    private struct WYAboutResponse: Decodable { let about: WYStudentView.About }
+
+    private func wyTeacher<R: Decodable>(_ body: WYAction, bearerToken: String) async throws -> R {
+        try await teacherCall(method: "POST", path: "/api/school/writing-year", query: [:], body: body, bearerToken: bearerToken)
+    }
+
+    func writingYearOverview(classId: String, bearerToken: String) async throws -> WYOverview {
+        try await teacherCall(method: "GET", path: "/api/school/writing-year", query: ["classId": classId],
+                              body: Optional<EmptyBody>.none, bearerToken: bearerToken)
+    }
+
+    func writingYearChild(classId: String, studentId: String, bearerToken: String) async throws -> WYChildDetail {
+        try await teacherCall(method: "GET", path: "/api/school/writing-year",
+                              query: ["classId": classId, "studentId": studentId],
+                              body: Optional<EmptyBody>.none, bearerToken: bearerToken)
+    }
+
+    func writingYearPreview(classId: String, studentId: String, bearerToken: String) async throws -> WYBook {
+        let res: WYBookResponse = try await teacherCall(
+            method: "GET", path: "/api/school/writing-year",
+            query: ["classId": classId, "studentId": studentId, "preview": "1"],
+            body: Optional<EmptyBody>.none, bearerToken: bearerToken)
+        return res.book
+    }
+
+    /// The grade panel's toggle state: the hand-in's piece, if it has one.
+    func writingYearItem(classId: String, submissionId: String, bearerToken: String) async throws -> WYItemState? {
+        let res: WYItemStateResponse = try await teacherCall(
+            method: "GET", path: "/api/school/writing-year",
+            query: ["classId": classId, "submissionId": submissionId],
+            body: Optional<EmptyBody>.none, bearerToken: bearerToken)
+        return res.item
+    }
+
+    func writingYearAdd(classId: String, submissionId: String, bearerToken: String) async throws -> WYItemState {
+        struct R: Decodable { let item: WYItemState }
+        let r: R = try await wyTeacher(WYAction(classId: classId, action: "add", submissionId: submissionId), bearerToken: bearerToken)
+        return r.item
+    }
+
+    func writingYearApprove(classId: String, itemId: String, bearerToken: String) async throws {
+        let _: Ignored = try await wyTeacher(WYAction(classId: classId, action: "approve", itemId: itemId), bearerToken: bearerToken)
+    }
+
+    func writingYearRemove(classId: String, itemId: String, bearerToken: String) async throws {
+        let _: Ignored = try await wyTeacher(WYAction(classId: classId, action: "remove", itemId: itemId), bearerToken: bearerToken)
+    }
+
+    func writingYearReorder(classId: String, studentId: String, itemIds: [String], bearerToken: String) async throws {
+        let _: Ignored = try await wyTeacher(
+            WYAction(classId: classId, action: "reorder", studentId: studentId, itemIds: itemIds), bearerToken: bearerToken)
+    }
+
+    func writingYearNote(classId: String, studentId: String, note: String, coverTitle: String, bearerToken: String) async throws {
+        let _: Ignored = try await wyTeacher(
+            WYAction(classId: classId, action: "note", studentId: studentId, teacherNote: note, coverTitle: coverTitle),
+            bearerToken: bearerToken)
+    }
+
+    func writingYearPrintSummary(classId: String, bearerToken: String) async throws -> WYPrintSummary {
+        try await wyTeacher(WYAction(classId: classId, action: "print_summary"), bearerToken: bearerToken)
+    }
+
+    func writingYearPrint(classId: String, address: [String: String], bearerToken: String) async throws {
+        let _: Ignored = try await wyTeacher(WYAction(classId: classId, action: "print", address: address), bearerToken: bearerToken)
+    }
+
+    func writingYearCancelPrint(classId: String, requestId: String, bearerToken: String) async throws {
+        let _: Ignored = try await wyTeacher(
+            WYAction(classId: classId, action: "cancel_print", requestId: requestId), bearerToken: bearerToken)
+    }
+
+    /// The child's free PDF (api/school/writing-year-pdf.js), as raw bytes.
+    func writingYearPdf(classId: String, studentId: String, bearerToken: String) async throws -> Data {
+        let url = makeURL(path: "/api/school/writing-year-pdf", query: ["classId": classId, "studentId": studentId])
+        var req = URLRequest(url: url, timeoutInterval: 120)
+        req.setValue("Bearer \(bearerToken)", forHTTPHeaderField: "Authorization")
+        let (data, response) = try await URLSession.shared.data(for: req)
+        guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
+            throw TeacherError(code: (try? decoder.decode(SchoolErrorBody.self, from: data))?.code)
+        }
+        return data
+    }
+
+    // A class account's own Writing Year.
+
+    func myWritingYear(bearerToken: String) async throws -> WYStudentView {
+        try await schoolStudent(method: "GET", path: "/api/school/writing-year", query: [:],
+                                body: Optional<EmptyBody>.none, bearerToken: bearerToken)
+    }
+
+    func myWritingYearBook(bearerToken: String) async throws -> WYBook {
+        let res: WYBookResponse = try await schoolStudent(
+            method: "GET", path: "/api/school/writing-year", query: ["preview": "1"],
+            body: Optional<EmptyBody>.none, bearerToken: bearerToken)
+        return res.book
+    }
+
+    func suggestForWritingYear(submissionId: String?, bookId: String?, bearerToken: String) async throws {
+        let _: Ignored = try await schoolStudent(
+            method: "POST", path: "/api/school/writing-year", query: [:],
+            body: WYAction(classId: nil, action: "suggest", submissionId: submissionId, bookId: bookId),
+            bearerToken: bearerToken)
+    }
+
+    func withdrawWritingYearSuggestion(itemId: String, bearerToken: String) async throws {
+        let _: Ignored = try await schoolStudent(
+            method: "POST", path: "/api/school/writing-year", query: [:],
+            body: WYAction(classId: nil, action: "withdraw", itemId: itemId), bearerToken: bearerToken)
+    }
+
+    func saveAboutMe(_ about: WYStudentView.About, bearerToken: String) async throws -> WYStudentView.About {
+        let res: WYAboutResponse = try await schoolStudent(
+            method: "POST", path: "/api/school/writing-year", query: [:],
+            body: WYAboutBody(about_favorite: about.about_favorite, about_best_sentence: about.about_best_sentence,
+                              about_learned: about.about_learned),
+            bearerToken: bearerToken)
+        return res.about
+    }
+}
