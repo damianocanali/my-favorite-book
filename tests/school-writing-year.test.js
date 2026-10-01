@@ -356,4 +356,20 @@ describe('student', () => {
     expect(calls(log, '/rest/v1/class_submissions?')[0].url).toContain(`student_id=eq.${STUDENT_ID}`)
     expect(calls(log, '/rest/v1/user_books?')[0].url).toContain(`user_id=eq.${STUDENT_USER.id}`)
   })
+
+  it('preview: their own book, built from their own approved pieces, without the teacher\'s note', async () => {
+    const log = mockSupabase({
+      user: STUDENT_USER,
+      routes: [studentSelfRoute,
+        { method: 'GET', match: '/rest/v1/writing_year_items?', reply: { body: [{ student_id: STUDENT_ID, kind: 'book', title: 'Space', position: 1, book_snapshot: { pages: [{ text: 'Zoom' }] } }] } },
+        { method: 'GET', match: '/rest/v1/writing_year_meta?', reply: { body: [{ student_id: STUDENT_ID, about_favorite: 'Space', teacher_note: 'Secret note' }] } }],
+    })
+    const body = await (await (await load())(get('?preview=1'))).json()
+    expect(body.book.pieces[0].pages[0].text).toBe('Zoom')
+    expect(body.book.about.about_favorite).toBe('Space')
+    expect(JSON.stringify(body)).not.toContain('Secret note')
+    const items = calls(log, '/rest/v1/writing_year_items?')[0].url
+    expect(items).toContain(`student_id=eq.${STUDENT_ID}`)
+    expect(items).toContain('approved=is.true')
+  })
 })

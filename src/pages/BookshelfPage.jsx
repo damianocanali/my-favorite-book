@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { Library, Plus, LogIn } from 'lucide-react'
 import Bookshelf from '../components/bookshelf/Bookshelf'
 import MyAssignments from '../components/school/MyAssignments'
+import MyWritingYear from '../components/school/MyWritingYear'
 import SparkleButton from '../components/ui/SparkleButton'
 import { playTrack } from '../services/audioService'
 import { useAuthStore } from '../stores/useAuthStore'
@@ -88,6 +89,7 @@ export default function BookshelfPage() {
           Sits above the shelf itself so a class account sees what's due
           before scrolling to their own books. */}
       {isStudent && <MyAssignments />}
+      {isStudent && <MyWritingYear />}
 
       {/* Bookshelf */}
       <motion.div

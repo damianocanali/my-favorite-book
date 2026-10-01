@@ -319,7 +319,8 @@ async function studentView(req, s, preview) {
   const self = { id: s.student.id, display_name: s.student.display_name, avatar_emoji: s.student.avatar_emoji, auth_user_id: s.auth.userId }
   if (preview) {
     const [{ book }] = await buildBooks(s.classroom, [self])
-    return json(req, 200, { book })
+    // The teacher's note is a surprise for the printed book.
+    return json(req, 200, { book: { ...book, teacher_note: '' } })
   }
   const [items, metas, handIns, books] = await Promise.all([
     readAll(`/rest/v1/writing_year_items?student_id=eq.${s.student.id}&select=${ITEM_SELECT}`, 'position.asc', 'writing_year_items'),
