@@ -6,6 +6,8 @@ import { schoolFetch } from '../../lib/schoolApi'
 import { teacherErrorText } from './teacherErrors'
 import { STATUS_CHIP_KEY, formatDueDate, canDeleteAssignment, nextStatusActions } from './assignmentUi'
 import AssignmentForm from './AssignmentForm'
+import AssignmentWorksheetPrint from '../worksheets/AssignmentSheet'
+import { isWorksheet } from './worksheetUi'
 import { gradesCsv, csvFilename } from './gradingUi'
 
 const STATUS_TONE = {
@@ -37,6 +39,7 @@ export default function AssignmentsSection({ classId, className, locale, onOpenR
   const [formTarget, setFormTarget] = useState(null) // null (closed) | 'new' | an assignment (edit)
   const [busyId, setBusyId] = useState(null)
   const [exporting, setExporting] = useState(false)
+  const [printJob, setPrintJob] = useState(null)
 
   const load = useCallback(async () => {
     setError(null)
@@ -169,6 +172,11 @@ export default function AssignmentsSection({ classId, className, locale, onOpenR
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="font-body font-semibold text-galaxy-text truncate">{a.title}</span>
                     <StatusChip status={a.status} />
+                    {isWorksheet(a) && (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-body font-semibold border border-galaxy-secondary/30 text-galaxy-secondary">
+                        {t('school:worksheet.teacher.chip')}
+                      </span>
+                    )}
                   </div>
                   <div className="mt-1 flex items-center gap-2 flex-wrap text-xs font-body text-galaxy-text-muted">
                     <span>{due ? t('school:teacher.assignments.due', { when: due }) : t('school:teacher.assignments.no_due_date')}</span>
@@ -212,6 +220,17 @@ export default function AssignmentsSection({ classId, className, locale, onOpenR
                       and the class name, straight into the Customize panel
                       (WorksheetsPage reads these same query params via
                       parseWorksheetParams). */}
+                  {isWorksheet(a) ? (
+                    // A worksheet assignment prints its own boxes and
+                    // prompts, blank, for a paper day.
+                    <button
+                      type="button"
+                      onClick={() => setPrintJob({ title: a.title, className, worksheet: a.worksheet, sheets: [{ studentName: '', answers: null }] })}
+                      className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-body font-semibold text-galaxy-secondary hover:text-galaxy-text transition-colors"
+                    >
+                      <Printer size={13} /> {t('school:worksheet.teacher.print_blank')}
+                    </button>
+                  ) : (
                   <Link
                     to={{
                       pathname: '/worksheets',
@@ -225,6 +244,7 @@ export default function AssignmentsSection({ classId, className, locale, onOpenR
                   >
                     <Printer size={13} /> {t('school:teacher.assignments.actions.print_worksheet')}
                   </Link>
+                  )}
                   {canDeleteAssignment(a.counts) && (
                     <button
                       type="button"
@@ -242,6 +262,8 @@ export default function AssignmentsSection({ classId, className, locale, onOpenR
           })}
         </ul>
       )}
+
+      {printJob && <AssignmentWorksheetPrint job={printJob} onDone={() => setPrintJob(null)} />}
 
       {formTarget && (
         <AssignmentForm

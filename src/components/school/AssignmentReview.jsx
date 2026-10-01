@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion } from 'motion/react'
 import { useTranslation } from 'react-i18next'
-import { X, ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react'
+import { X, ArrowLeft, ChevronLeft, ChevronRight, Printer } from 'lucide-react'
 import { schoolFetch } from '../../lib/schoolApi'
 import { teacherErrorText } from './teacherErrors'
 import { relativeTime } from './relativeTime'
@@ -11,6 +11,8 @@ import { STICKER_EMOJI } from './assignmentUi'
 import BookPreview from '../book/BookPreview'
 import GradePanel, { LevelChip, SentBackChip } from './GradePanel'
 import { gradeRowFlag, mergeGrade } from './gradingUi'
+import WorksheetAnswers from './WorksheetAnswers'
+import AssignmentWorksheetPrint from '../worksheets/AssignmentSheet'
 
 const STICKERS = ['star', 'rocket', 'heart', 'wow', 'keep_going', 'rainbow']
 const COMMENT_MAX = 500
@@ -181,6 +183,7 @@ export default function AssignmentReview({ classId, assignmentId, onClose }) {
   const [detail, setDetail] = useState(null)
   const [detailLoading, setDetailLoading] = useState(false)
   const [detailError, setDetailError] = useState(null)
+  const [printJob, setPrintJob] = useState(null)
 
   const loadList = useCallback(async () => {
     setListError(null)
@@ -259,6 +262,25 @@ export default function AssignmentReview({ classId, assignmentId, onClose }) {
 
   function bumpFeedbackCount(submissionId) {
     setRows((prev) => (prev ?? []).map((r) => (r.id === submissionId ? { ...r, feedback_count: (r.feedback_count ?? 0) + 1 } : r)))
+  }
+
+  // Worksheets (migration 023): blank sheets for the whole class, one per
+  // child with their name on it, or one child's hand-in filled in.
+  const isWorksheetAssignment = assignment?.kind === 'worksheet' && !!assignment?.worksheet
+  function printClassBlank() {
+    const names = (rows ?? []).map((r) => r.display_name ?? '').filter(Boolean)
+    setPrintJob({
+      title: assignment.title, worksheet: assignment.worksheet,
+      sheets: (names.length ? names : ['']).map((studentName) => ({ studentName, answers: null })),
+    })
+  }
+  function printHandIn(sub) {
+    setPrintJob({
+      title: assignment?.title ?? sub.book_title ?? '',
+      // The prompts the child answered, not today's.
+      worksheet: { templateId: sub.worksheet.templateId, word: sub.worksheet.word, prompts: Object.fromEntries((sub.worksheet.boxes ?? []).map((b) => [b.id, b.prompt])) },
+      sheets: [{ studentName: sub.display_name ?? '', answers: sub.answers ?? {} }],
+    })
   }
 
   const heading = t('school:teacher.assignments.review.heading', { title: assignment?.title ?? '' })
@@ -366,9 +388,24 @@ export default function AssignmentReview({ classId, assignmentId, onClose }) {
             // (`el.clientWidth`), so it fits whatever width this panel
             // actually has.
             <div className="space-y-6">
+              {detail.submission.kind === 'worksheet' && detail.submission.worksheet ? (
+                <div className="max-w-xl mx-auto space-y-3">
+                  <div className="flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => printHandIn(detail.submission)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-body font-semibold text-galaxy-secondary border border-galaxy-secondary/30 hover:text-galaxy-text transition-colors"
+                    >
+                      <Printer size={13} aria-hidden="true" /> {t('school:worksheet.teacher.print_filled')}
+                    </button>
+                  </div>
+                  <WorksheetAnswers worksheet={detail.submission.worksheet} answers={detail.submission.answers ?? {}} />
+                </div>
+              ) : (
               <div className="flex justify-center">
                 <BookPreview book={detail.submission.book_snapshot} forceSinglePage />
               </div>
+              )}
               <div className="max-w-xl mx-auto space-y-6">
                 <GradePanel
                   // Remounted per hand-in AND per version, for the same
@@ -417,6 +454,18 @@ export default function AssignmentReview({ classId, assignmentId, onClose }) {
         ) : rows.length === 0 ? (
           <p className="text-galaxy-text-muted font-body text-sm text-center py-8">{t('school:teacher.assignments.review.empty')}</p>
         ) : (
+          <>
+          {isWorksheetAssignment && (
+            <div className="flex justify-end mb-3">
+              <button
+                type="button"
+                onClick={printClassBlank}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-body font-semibold text-galaxy-secondary border border-galaxy-secondary/30 hover:text-galaxy-text transition-colors"
+              >
+                <Printer size={13} aria-hidden="true" /> {t('school:worksheet.teacher.print_blank')}
+              </button>
+            </div>
+          )}
           <ul className="space-y-2">
             {rows.map((row) => (
               <li key={row.id ?? row.student_id}>
@@ -424,7 +473,9 @@ export default function AssignmentReview({ classId, assignmentId, onClose }) {
               </li>
             ))}
           </ul>
+          </>
         )}
+        {printJob && <AssignmentWorksheetPrint job={printJob} onDone={() => setPrintJob(null)} />}
       </motion.div>
     </motion.div>,
     document.body
