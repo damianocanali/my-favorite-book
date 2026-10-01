@@ -11,6 +11,7 @@
 export const config = { runtime: 'edge' }
 
 import { canAdvance } from '../../lib/print/state.js'
+import { canMovePrint } from '../../lib/school/writingYear.js'
 
 const SUPABASE = process.env.SUPABASE_URL
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -105,6 +106,43 @@ async function findOrderByLuluId(luluId) {
   return rows?.[0] ?? null
 }
 
+// A class print (the "My Writing Year" books, migration 024) is one Lulu
+// print job too; its id lives on class_print_requests.
+async function findClassPrintByLuluId(luluId) {
+  const r = await fetch(`${SUPABASE}/rest/v1/class_print_requests?lulu_print_job_id=eq.${encodeURIComponent(luluId)}&select=id,status`, {
+    headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
+  })
+  if (!r.ok) return null
+  const rows = await r.json().catch(() => [])
+  return rows?.[0] ?? null
+}
+
+async function advanceClassPrint(req, luluId, event) {
+  const cp = await findClassPrintByLuluId(luluId)
+  if (!cp) return new Response(JSON.stringify({ received: true, unknown: luluId }), { status: 200 })
+  const luluStatus = event?.data?.status?.name
+  const target = STATUS_MAP[luluStatus]
+  const patch = { lulu_status: luluStatus ?? null, updated_at: new Date().toISOString() }
+  if (target && canMovePrint(cp.status, target)) {
+    patch.status = target
+    if (target === 'shipped') {
+      patch.shipped_at = new Date().toISOString()
+      patch.tracking = {
+        url: event?.data?.tracking_urls?.[0] ?? null,
+        number: event?.data?.tracking_id ?? null,
+        carrier: event?.data?.carrier_name ?? null,
+      }
+    }
+    if (target === 'failed') patch.error = `Lulu reported ${luluStatus}`
+  }
+  await fetch(`${SUPABASE}/rest/v1/class_print_requests?id=eq.${cp.id}&status=eq.${cp.status}`, {
+    method: 'PATCH',
+    headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+    body: JSON.stringify(patch),
+  })
+  return new Response(JSON.stringify({ received: true, class_print: cp.id, advanced_to: patch.status ?? null }), { status: 200 })
+}
+
 async function patchOrder(id, patch) {
   await fetch(`${SUPABASE}/rest/v1/print_orders?id=eq.${id}`, {
     method: 'PATCH',
@@ -137,7 +175,7 @@ export default async function handler(req) {
   if (!luluId) return new Response(JSON.stringify({ received: true }), { status: 200 })
 
   const order = await findOrderByLuluId(luluId)
-  if (!order) return new Response(JSON.stringify({ received: true, unknown: luluId }), { status: 200 })
+  if (!order) return advanceClassPrint(req, luluId, event)
 
   const luluStatus = event?.data?.status?.name
   const targetStatus = STATUS_MAP[luluStatus]

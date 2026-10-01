@@ -27,7 +27,9 @@ export function mockSupabase({ user, routes }) {
   const log = []
   globalThis.fetch = vi.fn(async (url, init = {}) => {
     const u = String(url), method = init.method || 'GET'
-    log.push({ method, url: u, headers: init.headers, body: init.body ? JSON.parse(init.body) : undefined })
+    let body
+    try { body = init.body ? JSON.parse(init.body) : undefined } catch { body = init.body } // e.g. a PDF upload
+    log.push({ method, url: u, headers: init.headers, body })
     if (u.endsWith('/auth/v1/user')) return new Response(JSON.stringify(user))
     for (const r of routes) {
       if (r.method === method && u.includes(r.match)) {
