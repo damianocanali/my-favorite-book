@@ -31,7 +31,11 @@ async function read(path, what) {
 async function teacherList(req, classroomId) {
   const rows = await read(`/rest/v1/assignments?classroom_id=eq.${classroomId}&select=${SELECT}&order=created_at.desc`, 'assignments')
   const students = await read(`/rest/v1/class_students?classroom_id=eq.${classroomId}&status=eq.active&select=id`, 'class_students')
-  const subs = await read(`/rest/v1/class_submissions?classroom_id=eq.${classroomId}&select=assignment_id,student_id`, 'class_submissions')
+  // A hand-in sent back to revise is not done (migration 022).
+  const subs = await read(
+    `/rest/v1/class_submissions?classroom_id=eq.${classroomId}&returned_at=is.null&select=assignment_id,student_id`,
+    'class_submissions'
+  )
 
   // A removed student's old hand-in stays on record but no longer counts
   // toward "x of N" for the class as it is now.
@@ -46,13 +50,25 @@ async function teacherList(req, classroomId) {
   })
 }
 
+// The child's own level for the version they handed in last (none once
+// they hand in again), whether it is new to them, and "sent back".
+function myGrade(s) {
+  const g = (s.submission_grades ?? []).find((x) => x.version === s.version)
+  return { level: g?.level ?? null, grade_unseen: !!g && !g.seen_at, returned: !!s.returned_at }
+}
+
 async function studentList(req, student) {
   const rows = await read(
     `/rest/v1/assignments?classroom_id=eq.${student.classroom_id}&status=in.(published,closed)` +
       `&select=id,title,prompt,due_at,status,allow_late,created_at&order=created_at.desc`,
     'assignments'
   )
-  const subs = await read(`/rest/v1/class_submissions?student_id=eq.${student.id}&select=id,assignment_id,version,submitted_at`, 'class_submissions')
+  // Their own hand-ins only, with the grades on them (migration 022).
+  const subs = await read(
+    `/rest/v1/class_submissions?student_id=eq.${student.id}` +
+      `&select=id,assignment_id,version,submitted_at,returned_at,submission_grades(id,version,level,seen_at)`,
+    'class_submissions'
+  )
   const unseen = new Map()
   if (subs.length) {
     const fb = await read(
@@ -71,7 +87,10 @@ async function studentList(req, student) {
         allow_late: r.allow_late, created_at: r.created_at,
         past_due: isPastDue(r.due_at, now),
         my_submission: s
-          ? { id: s.id, version: s.version, submitted_at: s.submitted_at, late: isLate(s.submitted_at, r.due_at), feedback_unseen: unseen.get(s.id) ?? 0 }
+          ? {
+              id: s.id, version: s.version, submitted_at: s.submitted_at, late: isLate(s.submitted_at, r.due_at),
+              feedback_unseen: unseen.get(s.id) ?? 0, ...myGrade(s),
+            }
           : null,
       }
     }),

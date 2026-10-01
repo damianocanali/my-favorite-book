@@ -23,6 +23,7 @@ import SwiftUI
 
 struct CheckInHost: ViewModifier {
     @Environment(CheckInStore.self) private var store
+    @Environment(AuthStore.self) private var auth
 
     @State private var breaking = false
     /// nil while closed. Pending the instant "I need a grown-up" lands, then
@@ -56,6 +57,16 @@ struct CheckInHost: ViewModifier {
                 if let teacherHelp { TeacherHelpView(phase: teacherHelp) }
             }
             .onChange(of: store.latest?.id) { _, _ in respond() }
+            // The session ended (sign-out, expiry, or a class iPad handing
+            // over to the next child): every screen this host opened closes,
+            // so child B never sees child A's break, quiet or "teacher is
+            // coming" screen.
+            .onChange(of: auth.user?.id) { _, id in
+                guard id == nil else { return }
+                breaking = false
+                quieted = false
+                closeTeacherHelp()
+            }
     }
 
     private func respond() {

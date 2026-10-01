@@ -1,8 +1,10 @@
-// Full-screen sign-in. One cover owned by the app root (MyBookLabApp,
-// driven by AppRouter.signInPresented), never a sheet: on iPad a tap
-// outside a sheet dismissed it and everything typed was lost. Nothing in
-// this flow can be swiped or tapped away; every exit is a button, and a
-// Back that would throw away typed text asks first.
+// Sign-in, rendered in place — never presented. Signed out, it is the app's
+// root (MyBookLabApp's AppRootView); for a guest who chose "Explore first"
+// it is the Account tab's content. No sheet and no cover: on iPad a tap
+// outside a sheet dismissed it and everything typed was lost, and a cover
+// still read as a modal. Nothing in this flow can be swiped or tapped away;
+// every exit is a button, and a Back that would throw away typed text asks
+// first.
 //
 // Where it opens:
 //   - a class iPad (ClassDeviceStore) with nobody signed in: that class's
@@ -22,11 +24,15 @@ import SwiftUI
 import AuthenticationServices
 
 struct SignInFlowView: View {
-    @Environment(AuthStore.self) private var auth
     @Environment(AppRouter.self) private var router
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     typealias Door = SignInDoor
+
+    /// Inside the Account tab (a guest's inline sign-in) rather than the
+    /// app's root: the tab already has its background and is the guest's
+    /// way to keep exploring, so no "Explore first".
+    var embedded = false
 
     private var classDevice: ClassDevice? { ClassDeviceStore.shared.device }
 
@@ -35,7 +41,7 @@ struct SignInFlowView: View {
         // rebuilds this view) keeps it.
         @Bindable var router = router
         ZStack {
-            CosmicBackground().ignoresSafeArea()
+            if !embedded { CosmicBackground().ignoresSafeArea() }
             Group {
                 switch router.signInDoor {
                 case .student:
@@ -54,7 +60,7 @@ struct SignInFlowView: View {
                         WelcomeDoorsView(
                             onChoose: { router.signInDoor = $0 },
                             onBackToClass: classDevice == nil ? nil : { router.signInWelcomeOverClass = false },
-                            onExplore: { router.exploreAsGuest() })
+                            onExplore: embedded ? nil : { router.exploreAsGuest() })
                     }
                 }
             }
@@ -62,10 +68,6 @@ struct SignInFlowView: View {
         }
         .animation(reduceMotion ? nil : .easeInOut(duration: 0.2), value: router.signInDoor)
         .animation(reduceMotion ? nil : .easeInOut(duration: 0.2), value: router.signInWelcomeOverClass)
-        .interactiveDismissDisabled()
-        .onChange(of: auth.isSignedIn) { _, signedIn in
-            if signedIn { router.dismissSignIn() }
-        }
     }
 }
 
@@ -74,11 +76,15 @@ struct SignInFlowView: View {
 /// read last. An empty bar keeps the same height.
 struct SignInTopBar: View {
     var onBack: (() -> Void)?
+    /// The language menu, top-trailing: on the screens someone meets
+    /// before choosing anything (welcome, a class iPad's name list).
+    var showsLanguage = false
 
     var body: some View {
-        HStack {
+        HStack(spacing: 12) {
             if let onBack { SignInBackButton(action: onBack) }
-            Spacer()
+            Spacer(minLength: 0)
+            if showsLanguage { LanguageMenu() }
         }
         .frame(minHeight: 48)
         .padding(.horizontal, 16)
@@ -92,14 +98,18 @@ private struct WelcomeDoorsView: View {
     var onChoose: (SignInFlowView.Door) -> Void
     /// Set on a class iPad: Back returns to the class's name list.
     var onBackToClass: (() -> Void)?
-    var onExplore: () -> Void
+    /// nil inside the Account tab (see SignInFlowView.embedded).
+    var onExplore: (() -> Void)?
 
     @Environment(\.horizontalSizeClass) private var hSize
     private var regular: Bool { hSize == .regular }
 
     var body: some View {
         VStack(spacing: 0) {
-            if let onBackToClass { SignInTopBar(onBack: onBackToClass) }
+            // Before choosing a door: someone who can't read English has to
+            // be able to find Italian first — top-trailing, out of the doors'
+            // column.
+            SignInTopBar(onBack: onBackToClass, showsLanguage: true)
             ScrollView { content }
         }
     }
@@ -164,7 +174,7 @@ private struct WelcomeDoorsView: View {
 
                 // Not on a class iPad: its way out is the class list, not
                 // guest browsing on the classroom's device.
-                if onBackToClass == nil {
+                if onBackToClass == nil, let onExplore {
                     Button(action: onExplore) {
                         Text(SignInCopy.exploreFirst)
                             .font(.callout)
@@ -174,14 +184,9 @@ private struct WelcomeDoorsView: View {
                     }
                     .padding(.top, 4)
                 }
-
-                // Before choosing a door: someone who can't read English has
-                // to be able to find Italian first.
-                SignInLanguagePicker()
-                    .padding(.top, 4)
             }
             .padding(.horizontal)
-            .padding(.top, onBackToClass == nil ? 40 : 16)
+            .padding(.top, 8)
             .padding(.bottom, 24)
             .contentColumn(maxWidth: 520)
     }
@@ -222,13 +227,19 @@ private struct WelcomeDoorsView: View {
     }
 }
 
-/// English | Italiano, each in its own language.
-private struct SignInLanguagePicker: View {
+/// The language switch: a small globe menu ("English ▾" / "Italiano ▾"),
+/// each language named in its own language. Its label never wraps; at the
+/// accessibility text sizes it is the globe alone (VoiceOver still hears
+/// "Language, English"). Switching is live, behind the root's "Changing
+/// language…" overlay.
+struct LanguageMenu: View {
+    @Environment(\.dynamicTypeSize) private var typeSize
+
     var body: some View {
         let current = AppLanguage.uiLanguage
-        HStack(spacing: 12) {
-            Image(systemName: "globe").foregroundStyle(.cyan).accessibilityHidden(true)
-            Picker("Language", selection: Binding(
+        let currentName = AppLanguage.supported.first { $0.code == current }?.name ?? current
+        Menu {
+            Picker(selection: Binding(
                 get: { current },
                 set: { code in
                     guard code != current else { return }
@@ -236,13 +247,34 @@ private struct SignInLanguagePicker: View {
                 }
             )) {
                 ForEach(AppLanguage.supported, id: \.code) { lang in
+                    // Verbatim: a language's own name is never translated.
                     Text(verbatim: lang.name).tag(lang.code)
                 }
+            } label: {
+                Text("Language")
             }
-            .pickerStyle(.segmented)
-            .frame(maxWidth: 240)
-            .disabled(AppLanguageState.shared.switching != nil)
+        } label: {
+            HStack(spacing: 6) {
+                Image(systemName: "globe")
+                if !typeSize.isAccessibilitySize {
+                    Text(verbatim: currentName)
+                    Image(systemName: "chevron.down")
+                        .font(.caption.weight(.bold))
+                }
+            }
+            .font(.system(.subheadline, design: .rounded, weight: .semibold))
+            .lineLimit(1)
+            .fixedSize()
+            .foregroundStyle(.white)
+            .padding(.horizontal, 14)
+            .frame(minWidth: 48, minHeight: 44)
+            .background(.white.opacity(0.14), in: Capsule())
+            .contentShape(Capsule())
         }
+        .accessibilityLabel(Text("Language"))
+        .accessibilityValue(Text(verbatim: currentName))
+        // One switch at a time: the rebuild is under way.
+        .disabled(AppLanguageState.shared.switching != nil)
     }
 }
 

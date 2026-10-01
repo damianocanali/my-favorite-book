@@ -3,6 +3,7 @@ export const config = { runtime: 'edge' }
 import { handleCors, checkRateLimit } from '../_rateLimit.js'
 import { requireClassOwner, requireStudent, sb, json, isUuid } from '../_school.js'
 import { isLate } from '../../lib/school/assignments.js'
+import { GRADE_SELECT, gradeShape, latestGrade } from '../../lib/school/grading.js'
 
 const FEEDBACK_SELECT = 'id,comment,sticker,created_at,seen_at'
 
@@ -38,7 +39,8 @@ async function teacherAssignmentView(req, classroomId, assignmentId) {
   )
   const subs = await read(
     `/rest/v1/class_submissions?assignment_id=eq.${assignmentId}&classroom_id=eq.${classroomId}` +
-      `&select=id,student_id,version,submitted_at,book_title,class_students(display_name,avatar_emoji)`,
+      `&select=id,student_id,version,submitted_at,returned_at,book_title,class_students(display_name,avatar_emoji),` +
+      `submission_grades(version,level)`,
     'class_submissions'
   )
   const feedbackCount = new Map()
@@ -54,15 +56,20 @@ async function teacherAssignmentView(req, classroomId, assignmentId) {
   const rows = [
     ...subs.map((s) => {
       const who = one(s.class_students)
+      // The newest grade, whichever version it was for: a "v2" chip next to
+      // a v1 level tells the teacher the revision hasn't been looked at yet.
+      const g = latestGrade(s.submission_grades)
       return {
         id: s.id, student_id: s.student_id, display_name: who.display_name ?? null, avatar_emoji: who.avatar_emoji ?? null,
         status: 'handed_in', version: s.version, submitted_at: s.submitted_at, late: isLate(s.submitted_at, assignment.due_at),
         book_title: s.book_title, feedback_count: feedbackCount.get(s.id) ?? 0,
+        level: g?.level ?? null, graded_version: g?.version ?? null, returned: !!s.returned_at,
       }
     }),
     ...students.filter((st) => !handedIn.has(st.id)).map((st) => ({
       id: null, student_id: st.id, display_name: st.display_name, avatar_emoji: st.avatar_emoji,
       status: 'not_started', version: null, submitted_at: null, late: false, book_title: null, feedback_count: 0,
+      level: null, graded_version: null, returned: false,
     })),
   ].sort((a, b) => String(a.display_name ?? '').localeCompare(String(b.display_name ?? '')))
 
@@ -76,8 +83,8 @@ async function teacherOne(req, classroomId, id) {
   if (!isUuid(id)) return json(req, 400, { error: 'Invalid submission id', code: 'bad_request' })
   const [s] = await read(
     `/rest/v1/class_submissions?id=eq.${id}&classroom_id=eq.${classroomId}` +
-      `&select=id,assignment_id,student_id,version,submitted_at,book_id,book_title,book_snapshot,` +
-      `class_students(display_name,avatar_emoji),assignments(due_at)`,
+      `&select=id,assignment_id,student_id,version,submitted_at,returned_at,book_id,book_title,book_snapshot,` +
+      `class_students(display_name,avatar_emoji),assignments(due_at),submission_grades(${GRADE_SELECT})`,
     'class_submissions'
   )
   if (!s) return json(req, 404, { error: 'Submission not found', code: 'submission_not_found' })
@@ -89,18 +96,34 @@ async function teacherOne(req, classroomId, id) {
       display_name: who.display_name ?? null, avatar_emoji: who.avatar_emoji ?? null,
       version: s.version, submitted_at: s.submitted_at, late: isLate(s.submitted_at, one(s.assignments).due_at),
       book_id: s.book_id, book_title: s.book_title, book_snapshot: s.book_snapshot,
+      returned: !!s.returned_at,
     },
     feedback: feedback.map(feedbackShape),
+    // Every graded version, newest first: the teacher sees the previous
+    // grade (and whether it was sent back) next to the new version.
+    grades: (s.submission_grades ?? []).map(gradeShape).sort((a, b) => b.version - a.version),
   })
 }
 
 async function studentOne(req, student, id) {
   if (!isUuid(id)) return json(req, 400, { error: 'Invalid submission id', code: 'bad_request' })
   // Scoped by the student's own id: someone else's submission id reads as missing.
-  const [s] = await read(`/rest/v1/class_submissions?id=eq.${id}&student_id=eq.${student.id}&select=id,book_snapshot`, 'class_submissions')
+  const [s] = await read(
+    `/rest/v1/class_submissions?id=eq.${id}&student_id=eq.${student.id}` +
+      `&select=id,version,returned_at,book_snapshot,submission_grades(${GRADE_SELECT})`,
+    'class_submissions'
+  )
   if (!s) return json(req, 404, { error: 'Submission not found', code: 'submission_not_found' })
   const feedback = await feedbackFor(s.id)
-  return json(req, 200, { book_snapshot: s.book_snapshot, feedback: feedback.map(feedbackShape) })
+  // Only the grade for the version they handed in last: once they hand in
+  // again, the old level and tips have done their job.
+  const g = (s.submission_grades ?? []).find((x) => x.version === s.version)
+  return json(req, 200, {
+    book_snapshot: s.book_snapshot,
+    feedback: feedback.map(feedbackShape),
+    grade: g ? gradeShape(g) : null,
+    returned: !!s.returned_at,
+  })
 }
 
 export default async function handler(req) {

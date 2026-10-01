@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Plus, Pencil, Trash2, Printer } from 'lucide-react'
+import { Plus, Pencil, Trash2, Printer, Download } from 'lucide-react'
 import { schoolFetch } from '../../lib/schoolApi'
 import { teacherErrorText } from './teacherErrors'
 import { STATUS_CHIP_KEY, formatDueDate, canDeleteAssignment, nextStatusActions } from './assignmentUi'
 import AssignmentForm from './AssignmentForm'
+import { gradesCsv, csvFilename } from './gradingUi'
 
 const STATUS_TONE = {
   draft: 'bg-galaxy-text-muted/10 text-galaxy-text-muted border-galaxy-text-muted/20',
@@ -35,6 +36,7 @@ export default function AssignmentsSection({ classId, className, locale, onOpenR
   const [banner, setBanner] = useState(null)
   const [formTarget, setFormTarget] = useState(null) // null (closed) | 'new' | an assignment (edit)
   const [busyId, setBusyId] = useState(null)
+  const [exporting, setExporting] = useState(false)
 
   const load = useCallback(async () => {
     setError(null)
@@ -85,10 +87,41 @@ export default function AssignmentsSection({ classId, className, locale, onOpenR
     else setBanner(teacherErrorText(t, res.code || 'generic'))
   }
 
+  // Every graded version in the class as a CSV (student name, assignment,
+  // level, version, date, sent back), built here so the headers and level
+  // names are in the teacher's language. Nothing about a child beyond the
+  // display name the teacher gave them.
+  async function handleExport() {
+    setExporting(true)
+    setBanner(null)
+    const res = await schoolFetch(`/api/school/grades?classId=${encodeURIComponent(classId)}`)
+    setExporting(false)
+    if (!res.ok) return setBanner(teacherErrorText(t, res.code || 'generic'))
+    const rows = res.data?.grades ?? []
+    if (!rows.length) return setBanner(t('school:grading.teacher.export_empty'))
+    const url = URL.createObjectURL(new Blob([gradesCsv(t, rows)], { type: 'text/csv;charset=utf-8' }))
+    const a = document.createElement('a')
+    a.href = url
+    a.download = csvFilename(className)
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    setTimeout(() => URL.revokeObjectURL(url), 1000)
+  }
+
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="font-heading text-lg font-bold text-galaxy-text">{t('school:teacher.assignments.heading')}</h2>
+        <div className="flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          disabled={exporting}
+          onClick={handleExport}
+          className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-body font-semibold text-galaxy-text border border-galaxy-text-muted/30 hover:border-galaxy-text-muted/50 transition-colors disabled:opacity-60"
+        >
+          <Download size={16} aria-hidden="true" /> {t('school:grading.teacher.export_csv')}
+        </button>
         <button
           type="button"
           onClick={() => setFormTarget('new')}
@@ -96,6 +129,7 @@ export default function AssignmentsSection({ classId, className, locale, onOpenR
         >
           <Plus size={16} /> {t('school:teacher.assignments.new')}
         </button>
+        </div>
       </div>
 
       {banner && <p className="text-red-400 text-sm font-body">{banner}</p>}

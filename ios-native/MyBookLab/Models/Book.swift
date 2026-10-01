@@ -171,20 +171,19 @@ extension BookCharacter {
     /// species from their chosen emoji — so a dragon named "Neo" is drawn
     /// as a dragon, not a boy named Neo. Without this the model guesses
     /// from the name and the kid keeps regenerating (wasting credits).
-    var imagePromptDescription: String {
+    ///
+    /// Who to draw, without the child's free-text description: "a fox named
+    /// Neo". Sent as the character's `promptEn` to /api/generate-image (the
+    /// description travels separately).
+    var imagePromptSubject: String {
         let species = BookCharacter.species(for: emoji)
         let trimmedName = name.trimmingCharacters(in: .whitespaces)
-        let base: String
         switch (species, trimmedName.isEmpty) {
-        case let (s?, false): base = "\(s) named \(trimmedName)"
-        case let (s?, true):  base = s
-        case (nil, false):    base = trimmedName
-        case (nil, true):     base = "a friendly character"
+        case let (s?, false): return "\(s) named \(trimmedName)"
+        case let (s?, true):  return s
+        case (nil, false):    return trimmedName
+        case (nil, true):     return "a friendly character"
         }
-        if let d = description?.trimmingCharacters(in: .whitespaces), !d.isEmpty {
-            return "\(base), \(d)"
-        }
-        return base
     }
 
     static func species(for emoji: String?) -> String? {

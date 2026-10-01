@@ -1,14 +1,19 @@
 import { checkRateLimit, handleCors, withCors } from './_rateLimit.js'
-import { logUsage, estimateTogetherImageCostCents } from './_usage.js'
+import { logUsage, estimateTogetherImageCostCents, estimateAnthropicCostCents } from './_usage.js'
 import { requireUser, validatePrompt, validateSourceImage, moderatePrompt, enforceDailyCap } from './_aiGuard.js'
 import { classifyAttestation, dailyCapFor, hourlyLimitFor } from './_appAttest.js'
 import { storeIllustration } from './_imageStore.js'
 import { isStudent, rejectStudent, enforceStudentImageCap } from './_school.js'
+import { validateScenePayload, rawTextForModeration, moderationChunks, writeScene, buildFluxPrompt, SCENE_MODEL } from '../lib/imageScene.js'
 
 export const config = { runtime: 'edge' }
 
 const TOGETHER_API_URL = 'https://api.together.xyz/v1/images/generations'
 const IMAGE_GEN_LIMIT = 20 // requests per hour per IP
+// The whole request stays under ~23 s (Vercel edge functions must start
+// responding within 25 s). Together gets whatever is left, but at least 5 s.
+const REQUEST_DEADLINE_MS = 23_000
+const MIN_TOGETHER_MS = 5_000
 
 export default async function handler(req) {
   const corsResponse = handleCors(req)
@@ -21,6 +26,7 @@ export default async function handler(req) {
     })
   }
 
+  const startedAt = Date.now()
   const auth = await requireUser(req)
   if (!auth.ok) return auth.response
 
@@ -61,25 +67,88 @@ export default async function handler(req) {
   }
 
   try {
-    const { prompt, sourceImage, strength } = payload
+    const { sourceImage, strength } = payload
 
     // A class account never uploads a photo of a child to a model — no
     // consent chain for that image exists on this account type (same guard
     // as generate-avatar.js).
     if (isStudent(auth) && sourceImage) return rejectStudent(auth, req)
 
-    const promptErr = validatePrompt(prompt, req)
-    if (promptErr) return promptErr
-    const imageErr = validateSourceImage(sourceImage, req)
+    // Two request shapes:
+    //  - STRUCTURED ({ kind, pageText, characters, setting, ... }): current
+    //    web + iOS. The server writes the English scene (lib/imageScene.js),
+    //    so the child's prose never reaches the image model verbatim.
+    //  - LEGACY ({ prompt }): older app builds that still send a finished
+    //    prompt. Kept working unchanged.
+    const structured = payload?.kind != null
+    let input = null
+    if (structured) {
+      const v = validateScenePayload(payload)
+      if (!v.ok) {
+        return new Response(JSON.stringify({ error: v.error }), {
+          status: v.status, headers: withCors({ 'Content-Type': 'application/json' }, req),
+        })
+      }
+      input = v.input
+      if (input.kind === 'edit' && !sourceImage) {
+        return new Response(JSON.stringify({ error: 'Missing sourceImage' }), {
+          status: 400, headers: withCors({ 'Content-Type': 'application/json' }, req),
+        })
+      }
+    } else {
+      const promptErr = validatePrompt(payload?.prompt, req)
+      if (promptErr) return promptErr
+    }
+    // Edits may point at the caller's own saved picture in our bucket.
+    const imageErr = validateSourceImage(sourceImage, req, { storedFor: auth.userId })
     if (imageErr) return imageErr
-    const modErr = await moderatePrompt(prompt, req)
+
+    // Moderate the child's RAW text before anything paid sees it.
+    // Chunked (overlapping) so the whole text is read — moderatePrompt
+    // truncates at 8000 — and in parallel so a long page isn't slower.
+    const rawText = structured ? rawTextForModeration(input) : payload.prompt
+    const modErrs = await Promise.all(moderationChunks(rawText).map((chunk) => moderatePrompt(chunk, req)))
+    const modErr = modErrs.find(Boolean)
     if (modErr) return modErr
+
     // Students draw from their class's shared allowance, not the consumer
-    // daily cap (owner decision D5) — checked before the paid model call.
+    // daily cap (owner decision D5) — checked before any paid model call,
+    // including the scene writer. One image = one cap tick; the scene call
+    // is part of that image, never counted separately.
     const capErr = isStudent(auth)
       ? await enforceStudentImageCap(auth, req)
       : await enforceDailyCap(auth.userId, req, dailyCapFor(attest.attested))
     if (capErr) return capErr
+
+    let prompt = payload.prompt
+    if (structured) {
+      const written = await writeScene(input, { apiKey: process.env.ANTHROPIC_API_KEY })
+      if (written.usage) {
+        logUsage({
+          service: 'anthropic',
+          feature: 'image_scene',
+          model: SCENE_MODEL,
+          input_tokens: written.usage.input_tokens,
+          output_tokens: written.usage.output_tokens,
+          cost_cents: estimateAnthropicCostCents({ model: SCENE_MODEL, ...written.usage }),
+        })
+      }
+      if (!written.scene) {
+        // Only an edit gets here: its fallback would have to carry the
+        // child's own words, so we refuse rather than send them to FLUX.
+        return new Response(
+          JSON.stringify({ error: "We couldn't change the picture just now. Please try again in a moment.", code: 'scene_unavailable' }),
+          { status: 503, headers: withCors({ 'Content-Type': 'application/json' }, req) }
+        )
+      }
+      prompt = buildFluxPrompt(written.scene, input.kind)
+      const finalErr = validatePrompt(prompt, req)
+      if (finalErr) return finalErr
+      // And the FINAL prompt, in case the rewrite produced something the
+      // raw text didn't (legacy prompts ARE their raw text: moderated above).
+      const modErr = await moderatePrompt(prompt, req)
+      if (modErr) return modErr
+    }
 
     // Image edits go through FLUX.1-Kontext-Dev (purpose-built for editing
     // an existing image with a text instruction). Falls back to FLUX.2-dev
@@ -112,19 +181,40 @@ export default async function handler(req) {
           prompt,
           width: 768,
           height: 512,
-          steps: 4,
+          // FLUX.2-dev is a guidance-distilled dev model: ~28 steps is its
+          // default. 4 was a leftover from FLUX.1-schnell and produced
+          // under-cooked, smeary pictures.
+          steps: 28,
           n: 1,
           response_format: 'b64_json',
         }
 
-    const response = await fetch(TOGETHER_API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify(body),
-    })
+    // 28 steps takes a while, but a hung upstream must not hold the
+    // function open until the platform kills it.
+    const controller = new AbortController()
+    const togetherMs = Math.max(MIN_TOGETHER_MS, startedAt + REQUEST_DEADLINE_MS - Date.now())
+    const timer = setTimeout(() => controller.abort(), togetherMs)
+    let response
+    try {
+      response = await fetch(TOGETHER_API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify(body),
+        signal: controller.signal,
+      })
+    } catch (e) {
+      if (e?.name !== 'AbortError') throw e
+      console.error('[generate-image] Together timed out')
+      return new Response(
+        JSON.stringify({ error: 'Image generation took too long. Please try again.' }),
+        { status: 504, headers: withCors({ 'Content-Type': 'application/json' }, req) }
+      )
+    } finally {
+      clearTimeout(timer)
+    }
 
     if (!response.ok) {
       const detail = await response.text().catch(() => '')

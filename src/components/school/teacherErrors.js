@@ -17,8 +17,9 @@ const FRAGMENT_CODES = new Set(['duplicate_name', 'create_failed'])
 
 // Codes with their own sentence under school:teacher.errors.* (a code not
 // listed here and without a key falls back to `generic`). class_archived:
-// api/school/nudges.js refuses to nudge an archived class.
-export const KNOWN_CODES = ['class_archived']
+// api/school/{nudges,grades}.js refuse to change an archived class;
+// version_changed / cannot_return: api/school/grades.js.
+export const KNOWN_CODES = ['class_archived', 'version_changed', 'cannot_return']
 
 export function errorKeyFor(code, { standalone = true } = {}) {
   if (standalone && FRAGMENT_CODES.has(code)) return `${code}_full`

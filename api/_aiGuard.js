@@ -4,6 +4,7 @@
 // SSRF-safe, and (for free-text prompts) moderated.
 import { verifyJwt } from './_auth.js'
 import { withCors } from './_rateLimit.js'
+import { isOwnStoredIllustration } from './_imageStore.js'
 
 // Generous caps — large enough for legitimate kid content, small enough to
 // stop a single request from ballooning cost or memory.
@@ -14,6 +15,7 @@ const MAX_SOURCE_IMAGE_CHARS = 8 * 1024 * 1024
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
 const DAILY_IMAGE_LIMIT = Number(process.env.DAILY_IMAGE_LIMIT || 50)
+const MODERATION_TIMEOUT_MS = 3000
 
 function aiError(status, message, req) {
   return new Response(JSON.stringify({ error: message }), {
@@ -34,12 +36,18 @@ export async function requireUser(req) {
 
 /**
  * SSRF + size guard for a client-supplied source image. It MUST be an inline
- * data:image/ URI — never a remote URL, which the upstream model would fetch
- * on our behalf (SSRF to internal/metadata hosts). Returns an error Response
- * to return, or null when valid/absent.
+ * data:image/ URI — never an arbitrary remote URL, which the upstream model
+ * would fetch on our behalf (SSRF to internal/metadata hosts). Returns an
+ * error Response to return, or null when valid/absent.
+ *
+ * The one exception, opt-in via `storedFor: userId` (generate-image edits):
+ * the public URL of an illustration that user stored in OUR bucket — see
+ * isOwnStoredIllustration for how strict that match is. Saved pictures are
+ * URLs now, so without this "tweak" on a saved picture always 400'd.
  */
-export function validateSourceImage(sourceImage, req) {
+export function validateSourceImage(sourceImage, req, { storedFor = null } = {}) {
   if (sourceImage == null) return null // optional
+  if (storedFor && isOwnStoredIllustration(sourceImage, storedFor)) return null
   if (typeof sourceImage !== 'string' || !sourceImage.startsWith('data:image/')) {
     return aiError(400, 'sourceImage must be an inline data:image/ URI', req)
   }
@@ -105,11 +113,16 @@ export async function moderatePrompt(text, req) {
     console.warn('[moderation] OPENAI_API_KEY is unset — prompt moderation is DISABLED')
     return null
   }
+  // Bounded like every other upstream call; a timeout fails open (below),
+  // same as any other transient moderation error.
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), MODERATION_TIMEOUT_MS)
   try {
     const res = await fetch('https://api.openai.com/v1/moderations', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` },
       body: JSON.stringify({ model: 'omni-moderation-latest', input: String(text).slice(0, 8000) }),
+      signal: controller.signal,
     })
     if (!res.ok) {
       console.error('[moderation] OpenAI moderation request failed:', res.status)
@@ -122,7 +135,9 @@ export async function moderatePrompt(text, req) {
     }
     return null
   } catch (e) {
-    console.error('[moderation] error:', e?.message)
+    console.error('[moderation] error:', e?.name === 'AbortError' ? 'timeout' : e?.message)
     return null
+  } finally {
+    clearTimeout(timer)
   }
 }

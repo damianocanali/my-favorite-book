@@ -2,7 +2,8 @@ import { useTranslation } from 'react-i18next'
 import { motion, useReducedMotion } from 'motion/react'
 import { Volume2, VolumeX, Sparkles, PenLine } from 'lucide-react'
 import { useSpeechSynthesis } from '../../hooks/useSpeechSynthesis'
-import { assignmentCardStatus, canHandInAgain, hasUnseenFeedback, dueWording } from './assignmentStudentUi'
+import { assignmentCardStatus, canHandInAgain, hasUnseenFeedback, dueWording, isSentBack } from './assignmentStudentUi'
+import { StudentLevelBadge, SentBackBanner } from './StudentGrade'
 
 const STATUS_TONE = {
   new: 'bg-amber-400/20 text-amber-200 border-amber-400/40',
@@ -47,7 +48,7 @@ function DueText({ assignment }) {
 // click on the card calls `onOpen` (clears "New").
 export default function AssignmentCard({
   assignment, homeStatus = 'not_started', hasBook = false,
-  onOpen, onStartWriting, onOpenHandedIn, onSeeFeedback,
+  onOpen, onStartWriting, onOpenHandedIn, onSeeFeedback, onTryAgain,
 }) {
   const { t } = useTranslation()
   const prefersReducedMotion = useReducedMotion()
@@ -91,6 +92,11 @@ export default function AssignmentCard({
       </div>
 
       <p className="text-xs font-body"><DueText assignment={assignment} /></p>
+
+      {/* The child's own level; when sent back, "try again" instead. */}
+      {isSentBack(assignment)
+        ? <SentBackBanner onTryAgain={onTryAgain} />
+        : assignment.my_submission?.level ? <StudentLevelBadge level={assignment.my_submission.level} compact /> : null}
 
       {unseen && (
         <motion.button

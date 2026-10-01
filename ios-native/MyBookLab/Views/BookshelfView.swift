@@ -38,7 +38,7 @@ struct BookshelfView: View {
             .toolbar {
                 if !auth.isSignedIn {
                     ToolbarItem(placement: .topBarTrailing) {
-                        Button("Sign in") { AppRouter.shared.presentSignIn() }
+                        Button("Sign in") { AppRouter.shared.openSignIn() }
                             .foregroundStyle(.white)
                     }
                 }
@@ -151,7 +151,7 @@ struct BookshelfView: View {
                         .foregroundStyle(.white.opacity(0.75))
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 32)
-                    SparkleButton(action: { AppRouter.shared.presentSignIn() }) {
+                    SparkleButton(action: { AppRouter.shared.openSignIn() }) {
                         Text("Sign in")
                     }
                     .frame(maxWidth: 360)

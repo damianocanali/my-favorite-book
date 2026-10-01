@@ -7,6 +7,7 @@ import { schoolFetch } from '../../lib/schoolApi'
 import { useSpeechSynthesis } from '../../hooks/useSpeechSynthesis'
 import { STICKER_EMOJI } from './assignmentUi'
 import { relativeTime } from './relativeTime'
+import { StudentGradeCard, SentBackBanner } from './StudentGrade'
 
 // One feedback comment/sticker, spoken aloud on request (brief S3 #4: "with
 // Read it to me"). The sticker itself plays its pop-in animation once, the
@@ -70,10 +71,14 @@ function FeedbackItem({ item }) {
 // feedback.js's studentSeen) — the brief's "Opening it marks it seen" — and
 // tells the caller via onSeen so it can clear the card's badge without
 // waiting on a full assignments re-fetch.
-export default function StudentFeedbackModal({ submissionId, onSeen, onClose }) {
+// The child's level and tips sit on top (StudentGrade.jsx); `onTryAgain`
+// is offered when the teacher sent it back and they can hand in again.
+export default function StudentFeedbackModal({ submissionId, onSeen, onClose, onTryAgain }) {
   const { t } = useTranslation()
   const panelRef = useRef(null)
   const [feedback, setFeedback] = useState(null)
+  const [grade, setGrade] = useState(null)
+  const [returned, setReturned] = useState(false)
   const [error, setError] = useState(null)
 
   useEffect(() => {
@@ -87,14 +92,21 @@ export default function StudentFeedbackModal({ submissionId, onSeen, onClose }) 
         return
       }
       const list = res.data.feedback ?? []
+      const g = res.data.grade ?? null
+      setGrade(g)
+      setReturned(!!res.data.returned)
       setFeedback(list)
       // Mark every not-yet-seen item seen. api/school/feedback.js's
       // seen_at=is.null guard keeps the FIRST time it was seen even if this
       // fires more than once (e.g. a re-render), so firing it here rather
       // than tracking "have we already marked these" locally is safe.
       const unseen = list.filter((f) => !f.seen_at)
-      if (unseen.length) {
-        await Promise.all(unseen.map((f) => schoolFetch('/api/school/feedback', { method: 'POST', body: JSON.stringify({ id: f.id }) })))
+      const gradeUnseen = g && !g.seen_at
+      if (unseen.length || gradeUnseen) {
+        await Promise.all([
+          ...unseen.map((f) => schoolFetch('/api/school/feedback', { method: 'POST', body: JSON.stringify({ id: f.id }) })),
+          ...(gradeUnseen ? [schoolFetch('/api/school/grades', { method: 'POST', body: JSON.stringify({ id: g.id }) })] : []),
+        ])
         if (!cancelled) onSeen?.()
       }
     }
@@ -153,14 +165,20 @@ export default function StudentFeedbackModal({ submissionId, onSeen, onClose }) 
           <div className="flex items-center justify-center py-12">
             <div className="w-8 h-8 border-2 border-galaxy-secondary border-t-transparent rounded-full animate-spin" />
           </div>
-        ) : feedback.length === 0 ? (
+        ) : feedback.length === 0 && !grade ? (
           <p className="text-galaxy-text-muted font-body text-sm text-center py-8">{t('school:student.feedback.empty')}</p>
         ) : (
-          <ul className="space-y-3">
-            {feedback.map((item) => (
-              <FeedbackItem key={item.id} item={item} />
-            ))}
-          </ul>
+          <div className="space-y-3">
+            {returned && onTryAgain && <SentBackBanner onTryAgain={onTryAgain} />}
+            <StudentGradeCard grade={grade} />
+            {feedback.length > 0 && (
+              <ul className="space-y-3">
+                {feedback.map((item) => (
+                  <FeedbackItem key={item.id} item={item} />
+                ))}
+              </ul>
+            )}
+          </div>
         )}
       </motion.div>
     </motion.div>,
