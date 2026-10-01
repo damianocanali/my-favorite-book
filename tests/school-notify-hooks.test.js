@@ -32,10 +32,19 @@ function gateFetch(match) {
 beforeEach(() => {
   vi.resetModules()
   setEnv()
+  // A fixed weekday mid-morning in the class's time zone (Wed 2026-09-30,
+  // 10:00 America/New_York), so "inside school hours" never depends on
+  // when the suite runs. Only Date is faked: the async work keeps real
+  // timers.
+  vi.useFakeTimers({ toFake: ['Date'] })
+  vi.setSystemTime(new Date('2026-09-30T14:00:00.000Z'))
   vi.spyOn(console, 'error').mockImplementation(() => {})
   vi.spyOn(console, 'info').mockImplementation(() => {})
 })
-afterEach(() => vi.restoreAllMocks())
+afterEach(() => {
+  vi.useRealTimers()
+  vi.restoreAllMocks()
+})
 
 describe('api/school/help.js → notifications', () => {
   const load = async () => (await import('../api/school/help.js')).default

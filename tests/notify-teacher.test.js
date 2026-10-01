@@ -81,6 +81,12 @@ const ENV_KEYS = ['VAPID_PUBLIC_KEY', 'VAPID_PRIVATE_KEY', 'VAPID_SUBJECT', 'RES
 
 beforeEach(async () => {
   vi.resetModules()
+  // A fixed weekday mid-morning in the class's time zone (Wed 2026-09-30,
+  // 10:00 America/New_York), so "inside school hours" never depends on
+  // when the suite runs. Only Date is faked: the async work keeps real
+  // timers.
+  vi.useFakeTimers({ toFake: ['Date'] })
+  vi.setSystemTime(new Date('2026-09-30T14:00:00.000Z'))
   for (const k of ENV_KEYS) delete process.env[k]
   process.env.SUPABASE_URL = 'https://example.supabase.co'
   process.env.SUPABASE_SERVICE_ROLE_KEY = 'service'
@@ -90,6 +96,7 @@ beforeEach(async () => {
 })
 afterEach(() => {
   for (const k of ENV_KEYS) delete process.env[k]
+  vi.useRealTimers()
   vi.restoreAllMocks()
 })
 
