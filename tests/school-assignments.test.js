@@ -312,7 +312,10 @@ describe('student GET /api/school/assignments', () => {
     expect(body.assignments[0]).toEqual({
       id: ASSIGN2_ID, title: 'My pet', prompt: 'Write about a pet.', due_at: '2026-09-25T00:00:00.000Z',
       status: 'closed', allow_late: true, created_at: '2026-09-21T00:00:00.000Z', past_due: true,
-      my_submission: { id: SUB_ID, version: 2, submitted_at: '2026-09-26T00:00:00.000Z', late: true, feedback_unseen: 2 },
+      my_submission: {
+        id: SUB_ID, version: 2, submitted_at: '2026-09-26T00:00:00.000Z', late: true, feedback_unseen: 2,
+        level: null, grade_unseen: false, returned: false,
+      },
     })
     expect(body.assignments[1]).toMatchObject({ id: ASSIGN_ID, past_due: false, my_submission: null })
   })
