@@ -212,10 +212,11 @@ struct TeacherWritingYearChildView: View {
             }
         }
         .task { await load() }
-        .confirmationDialog(
+        // Alerts, not confirmationDialogs: on iPad a dialog is an anchorless
+        // popover here and never presents.
+        .alert(
             Text(WritingYearCopy.removeConfirm),
             isPresented: Binding(get: { pendingRemove != nil }, set: { if !$0 { pendingRemove = nil } }),
-            titleVisibility: .visible,
             presenting: pendingRemove
         ) { item in
             Button(role: .destructive) {
@@ -468,7 +469,7 @@ struct TeacherClassPrintView: View {
                 if let error { Text(error).font(.footnote).foregroundStyle(TeacherTheme.urgent) }
             }
         }
-        .confirmationDialog(Text(WritingYearCopy.cancelConfirm), isPresented: $confirmCancel, titleVisibility: .visible) {
+        .alert(Text(WritingYearCopy.cancelConfirm), isPresented: $confirmCancel) {
             Button(role: .destructive) { Task { await cancelRequest() } } label: { Text(WritingYearCopy.cancelRequest) }
             Button(role: .cancel) {} label: { Text(WritingYearCopy.cancel) }
         }
