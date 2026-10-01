@@ -88,6 +88,24 @@ describe('purgeUser', () => {
     })
   })
 
+  it('deletes the child\'s rendered Writing Year PDFs (print-pdfs bucket) before the auth delete', async () => {
+    mockFetch({
+      '/storage/v1/object/list/print-pdfs': {
+        ok: true, status: 200, json: async () => [{ name: 'req-1-interior.pdf' }, { name: 'req-1-cover.pdf' }], text: async () => '',
+      },
+    })
+    await purgeUser(USER, ENV)
+    const list = globalThis.fetch.mock.calls.find(([url]) => String(url).includes('/storage/v1/object/list/print-pdfs'))
+    expect(JSON.parse(list[1].body).prefix).toBe(`writing-year/${USER}/`)
+    const del = globalThis.fetch.mock.calls.find(
+      ([url, init]) => String(url).endsWith('/storage/v1/object/print-pdfs') && init?.method === 'DELETE'
+    )
+    expect(JSON.parse(del[1].body)).toEqual({
+      prefixes: [`writing-year/${USER}/req-1-interior.pdf`, `writing-year/${USER}/req-1-cover.pdf`],
+    })
+    expect(indexOfCall('DELETE /storage/v1/object/print-pdfs')).toBeLessThan(indexOfCall('/auth/v1/admin/users/'))
+  })
+
   it('still deletes the account when storage cleanup fails', async () => {
     mockFetch({
       '/storage/v1/object/list/': { ok: false, status: 503, json: async () => ({}), text: async () => '' },
