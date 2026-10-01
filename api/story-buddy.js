@@ -211,7 +211,7 @@ export default async function handler(req) {
   )
   if (!allowed) {
     return new Response(
-      JSON.stringify({ error: 'Too many requests. Please try again in an hour.' }),
+      JSON.stringify({ error: 'Too many requests. Please try again in an hour.', code: 'rate_limited' }),
       { status: 429, headers: withCors({ 'Content-Type': 'application/json' }, req) }
     )
   }

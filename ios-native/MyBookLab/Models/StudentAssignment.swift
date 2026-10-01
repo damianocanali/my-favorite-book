@@ -96,7 +96,25 @@ struct StudentAssignment: Decodable, Identifiable, Hashable, Sendable {
             $0.status == "published"
                 && $0.homeStatus(hasBook: isStarted($0), seen: seen.contains($0.id)) == .new
         }.count
-        return fresh + (hasNudge ? 1 : 0)
+        // Owner ruling: a book sent back that the child can still hand in
+        // again counts too, until they open that sent-back card.
+        let sentBack = assignments.filter { a in
+            a.isSentBack && !(a.sentBackKey.map(seen.contains) ?? true)
+        }.count
+        return fresh + sentBack + (hasNudge ? 1 : 0)
+    }
+
+    /// The seen-set entry for this particular send-back (submission +
+    /// version), so a later send-back counts again (web: sentBackKey).
+    var sentBackKey: String? {
+        guard let sub = my_submission else { return nil }
+        return "\(id)#back:\(sub.id):\(sub.version ?? 0)"
+    }
+
+    /// Everything opening this card marks as seen (web: seenKeysOnOpen).
+    var seenKeysOnOpen: [String] {
+        if isSentBack, let key = sentBackKey { return [id, key] }
+        return [id]
     }
 
     var dueDate: Date? { StudentAssignment.parseDate(due_at) }

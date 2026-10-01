@@ -5,7 +5,7 @@
 // vitest.config.js).
 import { describe, it, expect } from 'vitest'
 import { getTabs, badgeText } from '../src/components/layout/TabBar.jsx'
-import { classBadgeCount } from '../src/components/school/assignmentStudentUi.js'
+import { classBadgeCount, seenKeysOnOpen, sentBackKey, markAssignmentSeen, pruneSeenAssignments } from '../src/components/school/assignmentStudentUi.js'
 
 describe('getTabs', () => {
   it('gives a consumer account the gallery tab', () => {
@@ -71,5 +71,41 @@ describe('classBadgeCount', () => {
     expect(classBadgeCount([a('x')], { hasNudge: true })).toBe(2)
     expect(classBadgeCount([], { hasNudge: true })).toBe(1)
     expect(classBadgeCount([], {})).toBe(0)
+  })
+})
+
+describe('classBadgeCount — sent back to try again (owner ruling)', () => {
+  const sentBack = {
+    id: 'sb', status: 'published', past_due: false,
+    my_submission: { id: 'sub1', version: 2, returned: true, feedback_unseen: 0 },
+  }
+
+  it('counts a sent-back assignment the child can still try again', () => {
+    expect(classBadgeCount([sentBack], { seen: new Set(['sb']) })).toBe(1)
+  })
+
+  it('stops counting once the child opens that send-back', () => {
+    const seen = new Set(seenKeysOnOpen(sentBack))
+    expect(classBadgeCount([sentBack], { seen })).toBe(0)
+  })
+
+  it('counts again for a later send-back', () => {
+    const seen = new Set(seenKeysOnOpen(sentBack))
+    const again = { ...sentBack, my_submission: { ...sentBack.my_submission, version: 3 } }
+    expect(classBadgeCount([again], { seen })).toBe(1)
+  })
+
+  it('does not count one that can no longer be handed in', () => {
+    const closed = { ...sentBack, past_due: true, allow_late: false }
+    expect(classBadgeCount([closed], { seen: new Set(['sb']) })).toBe(0)
+    expect(sentBackKey({ id: 'x', my_submission: null })).toBeNull()
+  })
+
+  it('prune keeps a send-back marker while its assignment is listed', () => {
+    const mem = new Map()
+    const storage = { getItem: (k) => mem.get(k) ?? null, setItem: (k, v) => mem.set(k, v) }
+    for (const k of seenKeysOnOpen(sentBack)) markAssignmentSeen('u1', k, storage)
+    expect([...pruneSeenAssignments('u1', ['sb'], storage)].sort()).toEqual(['sb', sentBackKey(sentBack)].sort())
+    expect([...pruneSeenAssignments('u1', [], storage)]).toEqual([])
   })
 })

@@ -285,9 +285,10 @@ struct MyAssignmentsSection: View {
     }
 
     private func markOpened(_ assignment: StudentAssignment) {
-        guard !seen.contains(assignment.id) else { return }
-        seen.insert(assignment.id)
-        AssignmentSeen.mark(assignment.id, userId: auth.user?.id.uuidString)
+        for key in assignment.seenKeysOnOpen where !seen.contains(key) {
+            seen.insert(key)
+            AssignmentSeen.mark(key, userId: auth.user?.id.uuidString)
+        }
     }
 
     /// A book already tagged for this assignment: "Start writing" resumes it

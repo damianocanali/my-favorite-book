@@ -17,8 +17,11 @@ const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
 const DAILY_IMAGE_LIMIT = Number(process.env.DAILY_IMAGE_LIMIT || 50)
 const MODERATION_TIMEOUT_MS = 3000
 
-function aiError(status, message, req) {
-  return new Response(JSON.stringify({ error: message }), {
+// `code` is what the apps map to copy in the child's language
+// (src/lib/aiErrors.js, iPad APIError.friendly); `message` stays for logs
+// and older clients.
+function aiError(status, message, req, code) {
+  return new Response(JSON.stringify(code ? { error: message, code } : { error: message }), {
     status,
     headers: withCors({ 'Content-Type': 'application/json' }, req),
   })
@@ -60,7 +63,7 @@ export function validateSourceImage(sourceImage, req, { storedFor = null } = {})
 /** Reject empty/oversized prompts. Returns an error Response or null. */
 export function validatePrompt(prompt, req) {
   if (typeof prompt !== 'string' || !prompt.trim()) return aiError(400, 'Missing prompt', req)
-  if (prompt.length > MAX_PROMPT_CHARS) return aiError(413, 'Prompt is too long', req)
+  if (prompt.length > MAX_PROMPT_CHARS) return aiError(413, 'Prompt is too long', req, 'prompt_too_long')
   return null
 }
 
@@ -98,7 +101,7 @@ export async function enforceDailyCap(userId, req, limit = DAILY_IMAGE_LIMIT) {
     }
     const allowed = await res.json().catch(() => true)
     if (allowed === false) {
-      return aiError(429, "You've reached today's creation limit — come back tomorrow!", req)
+      return aiError(429, "You've reached today's creation limit — come back tomorrow!", req, 'daily_limit')
     }
     return null
   } catch (e) {
@@ -131,7 +134,7 @@ export async function moderatePrompt(text, req) {
     const data = await res.json().catch(() => null)
     if (data?.results?.[0]?.flagged) {
       console.warn('[moderation] prompt flagged and rejected')
-      return aiError(400, "Let's keep our story kind and friendly — try different words!", req)
+      return aiError(400, "Let's keep our story kind and friendly — try different words!", req, 'unkind')
     }
     return null
   } catch (e) {

@@ -38,7 +38,8 @@ enum APIError: Error, LocalizedError {
             // Never the server's raw (English) body: map its `code` to copy
             // in the app language (web: src/lib/aiErrors.js). The raw body
             // still goes to the log where the request fails.
-            return String(appLocalized: Self.friendly(status: status, code: Self.code(in: body)))
+            return String(appLocalized: Self.friendly(status: status, code: Self.code(in: body),
+                                                      message: Self.message(in: body)))
         case .decoding, .noData:
             return String(appLocalized: Self.genericText)
         case .transport(_, let underlying):
@@ -48,21 +49,39 @@ enum APIError: Error, LocalizedError {
     }
 
     /// The server's machine `code`, if its error body is JSON with one.
-    static func code(in body: String) -> String? {
+    static func code(in body: String) -> String? { field("code", in: body) }
+    /// The server's English sentence — only consulted for older servers
+    /// that send no code.
+    static func message(in body: String) -> String? { field("error", in: body) }
+
+    private static func field(_ key: String, in body: String) -> String? {
         guard let data = body.data(using: .utf8),
               let obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { return nil }
-        return obj["code"] as? String
+        return obj[key] as? String
+    }
+
+    /// The student-facing class picture limit (not the teacher's wording).
+    static var classImageLimitText: LocalizedStringResource {
+        AppText("errors.ai.class_image_limit", defaultValue: "That's all the pictures for today — ask your teacher.")
     }
 
     static var genericText: LocalizedStringResource {
         AppText("errors.ai.generic", defaultValue: "Something went wrong. Please try again.")
     }
 
-    static func friendly(status: Int, code: String?) -> LocalizedStringResource {
+    static func friendly(status: Int, code: String?, message: String? = nil) -> LocalizedStringResource {
+        // No code (an older server): the daily cap's sentence still reads as
+        // the daily cap, not as a plain rate limit.
+        let code = code ?? {
+            let m = (message ?? "").lowercased()
+            if m.contains("creation limit") { return "daily_limit" }
+            if m.contains("all the pictures for today") { return "class_image_limit" }
+            if m.contains("kind and friendly") { return "unkind" }
+            return nil
+        }()
         switch code {
         case "class_image_limit":
-            return AppText("school.teacher.errors.class_image_limit",
-                           defaultValue: "This class has used today's pictures for this student. Try again tomorrow.")
+            return classImageLimitText
         case "daily_limit":
             return AppText("errors.ai.daily_limit", defaultValue: "You've reached today's creation limit — come back tomorrow!")
         case "rate_limited":

@@ -6,7 +6,8 @@
 // a fallback, and everything else to a friendly generic line. Pure (t is
 // injected) so it is unit-tested without React.
 const BY_CODE = {
-  class_image_limit: 'school:teacher.errors.class_image_limit',
+  // Student-facing (the teacher's own wording lives in school:teacher.errors).
+  class_image_limit: 'errors:ai.class_image_limit',
   daily_limit: 'errors:ai.daily_limit',
   rate_limited: 'errors:ai.rate_limited',
   scene_unavailable: 'errors:ai.try_again',
@@ -20,7 +21,7 @@ const BY_CODE = {
 const BY_MESSAGE = [
   [/timed? ?out|took too long|timeout/i, 'errors:ai.timeout'],
   [/creation limit/i, 'errors:ai.daily_limit'],
-  [/all the pictures for today/i, 'school:teacher.errors.class_image_limit'],
+  [/all the pictures for today/i, 'errors:ai.class_image_limit'],
   [/kind and friendly/i, 'errors:ai.unkind'],
   [/too many requests/i, 'errors:ai.rate_limited'],
   [/^prompt is too long/i, 'errors:ai.too_long'],
@@ -31,11 +32,14 @@ const BY_MESSAGE = [
 export function friendlyAiError(err, t) {
   const code = typeof err === 'object' && err ? err.code : undefined
   if (code && BY_CODE[code]) return t(BY_CODE[code])
-  if (typeof err === 'object' && err?.status === 429) return t('errors:ai.rate_limited')
-  if (typeof err === 'object' && err?.status === 504) return t('errors:ai.timeout')
+  // No code (an older server): the known sentence beats the bare status,
+  // so the daily cap's 429 still says "come back tomorrow".
   const message = typeof err === 'string' ? err : err?.message ?? ''
   const hit = BY_MESSAGE.find(([re]) => re.test(message))
-  return t(hit ? hit[1] : 'errors:ai.generic')
+  if (hit) return t(hit[1])
+  if (typeof err === 'object' && err?.status === 429) return t('errors:ai.rate_limited')
+  if (typeof err === 'object' && err?.status === 504) return t('errors:ai.timeout')
+  return t('errors:ai.generic')
 }
 
 /// Builds the Error a fetch helper throws from a failed AI response, keeping

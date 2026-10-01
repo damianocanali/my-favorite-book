@@ -24,6 +24,7 @@
     "buddy_unavailable": "Story Buddy si sta riposando. Riprova tra poco.",
     "generic": "Qualcosa è andato storto. Riprova.",
     "try_again": "Non ci siamo riusciti proprio ora. Riprova tra un momento.",
-    "timeout": "Ci è voluto troppo tempo. Riprova."
+    "timeout": "Ci è voluto troppo tempo. Riprova.",
+    "class_image_limit": "Per oggi le immagini sono finite: chiedi all'insegnante."
   }
 }

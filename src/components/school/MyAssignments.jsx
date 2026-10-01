@@ -10,7 +10,7 @@ import { useAuthStore } from '../../stores/useAuthStore'
 import AssignmentCard from './AssignmentCard'
 import {
   homeStatus, showsOnHome, sortForHome, startDecision, canTryAgain,
-  readSeenAssignments, markAssignmentSeen, pruneSeenAssignments, classBadgeCount,
+  readSeenAssignments, markAssignmentSeen, pruneSeenAssignments, classBadgeCount, seenKeysOnOpen,
 } from './assignmentStudentUi'
 import { useClassBadgeStore } from '../../stores/useClassBadgeStore'
 import StudentFeedbackModal from './StudentFeedbackModal'
@@ -86,8 +86,12 @@ export default function MyAssignments() {
   }, [load])
 
   function markOpened(assignmentId) {
-    if (seen.has(assignmentId)) return
-    const next = new Set(markAssignmentSeen(userId, assignmentId))
+    const assignment = (assignments ?? []).find((a) => a.id === assignmentId)
+    const keys = assignment ? seenKeysOnOpen(assignment) : [assignmentId]
+    if (keys.every((k) => seen.has(k))) return
+    let next = seen
+    for (const k of keys) next = markAssignmentSeen(userId, k)
+    next = new Set(next)
     setSeen(next)
     // Straight onto the tab badge: opening an assignment usually navigates
     // away at once, unmounting this section before its effect would run.

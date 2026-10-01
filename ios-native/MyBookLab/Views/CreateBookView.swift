@@ -10,7 +10,7 @@ import PhotosUI
 /// server answers 429 with code "class_image_limit". Any other 429 (a rate
 /// limit) keeps the normal error. A class account is never sold
 /// anything, so it gets this neutral line instead of an upsell or raw error.
-private let classImageLimitMessage: LocalizedStringResource = "That's all for today. Ask your teacher."
+private var classImageLimitMessage: LocalizedStringResource { APIError.classImageLimitText }
 
 private func isClassImageLimit(_ error: Error, isStudent: Bool) -> Bool {
     guard isStudent, case APIError.http(let status, let body) = error, status == 429 else { return false }

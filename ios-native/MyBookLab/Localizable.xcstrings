@@ -16077,6 +16077,23 @@
           }
         }
       }
+    },
+    "errors.ai.class_image_limit": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "That's all the pictures for today — ask your teacher."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Per oggi le immagini sono finite: chiedi all'insegnante."
+          }
+        }
+      }
     }
   },
   "version": "1.0"
