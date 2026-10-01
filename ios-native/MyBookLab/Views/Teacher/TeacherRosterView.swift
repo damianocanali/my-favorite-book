@@ -97,18 +97,16 @@ struct TeacherRosterView: View {
             Button { Task { await rename(s, to: renameText) } } label: { Text(TeacherCopy.save) }
             Button(role: .cancel) {} label: { Text(TeacherCopy.cancel) }
         }
-        .confirmationDialog(
+        .alert(
             Text(TeacherCopy.removeConfirm(removeTarget?.display_name ?? "")),
-            isPresented: Binding(get: { removeTarget != nil }, set: { if !$0 { removeTarget = nil } }),
-            titleVisibility: .visible, presenting: removeTarget
+            isPresented: Binding(get: { removeTarget != nil }, set: { if !$0 { removeTarget = nil } }), presenting: removeTarget
         ) { s in
             Button(role: .destructive) { Task { await act(s, "remove") } } label: { Text(TeacherCopy.remove) }
             Button(role: .cancel) {} label: { Text(TeacherCopy.cancel) }
         }
-        .confirmationDialog(
+        .alert(
             Text(TeacherCopy.newPicturesConfirm(resetTarget?.display_name ?? "")),
-            isPresented: Binding(get: { resetTarget != nil }, set: { if !$0 { resetTarget = nil } }),
-            titleVisibility: .visible, presenting: resetTarget
+            isPresented: Binding(get: { resetTarget != nil }, set: { if !$0 { resetTarget = nil } }), presenting: resetTarget
         ) { s in
             Button { Task { await resetPictures(s) } } label: { Text(TeacherCopy.newPictures) }
             Button(role: .cancel) {} label: { Text(TeacherCopy.cancel) }
@@ -482,7 +480,11 @@ struct TeacherSignInCardsView: View {
     /// proves nothing was kept, so closing still asks.
     @State private var kept = false
     @State private var confirmClose = false
+    /// Set by the alert's Close: the cover is closed once the alert has gone,
+    /// so two dismissals never race (iPad ignored the old popover dialog).
+    @State private var closeRequested = false
     @State private var pdfURL: URL?
+    @Environment(\.dismiss) private var dismissCover
     /// The Print button's frame in window coordinates (the iPad popover anchor).
     @State private var printAnchor: CGRect = .zero
     @Environment(\.horizontalSizeClass) private var hSize
@@ -524,12 +526,18 @@ struct TeacherSignInCardsView: View {
                     .tint(.white)
                 }
             }
-            .confirmationDialog(Text(TeacherCopy.cardsCloseTitle), isPresented: $confirmClose, titleVisibility: .visible) {
-                Button(role: .destructive, action: close) { Text(TeacherCopy.cardsClose) }
+            // An alert, not a confirmation dialog: on iPad a dialog attached
+            // here is a popover with no anchor and never appeared, so Done
+            // looked dead and the teacher was stuck in the cards.
+            .alert(Text(TeacherCopy.cardsCloseTitle), isPresented: $confirmClose) {
+                Button(role: .destructive) { closeRequested = true } label: { Text(TeacherCopy.cardsClose) }
                 Button(role: .cancel) {} label: { Text(TeacherCopy.cancel) }
             }
         }
         .preferredColorScheme(.dark)
+        .onChange(of: confirmClose) { _, showing in
+            if !showing && closeRequested { close() }
+        }
         .task { pdfURL = writePDF() }
         .onChange(of: batch) { _, _ in pdfURL = writePDF() }
     }
@@ -623,8 +631,13 @@ struct TeacherSignInCardsView: View {
     }
 
     private func close() {
+        closeRequested = false
         if let pdfURL { try? FileManager.default.removeItem(at: pdfURL) }
+        // The owner clears the pending batch first (so nothing re-opens the
+        // cards), then drops its flag; dismissing here too makes sure the
+        // cover goes even if the owner's flag was already false.
         onClose()
+        dismissCover()
     }
 
     private func printCards() {

@@ -252,10 +252,9 @@ struct TeacherClassDetailView: View {
                 if wasNew { Task { await load() } } else { upsert(saved) }
             }
         }
-        .confirmationDialog(
+        .alert(
             Text(TeacherCopy.deleteConfirm(pendingDelete?.title ?? "")),
             isPresented: Binding(get: { pendingDelete != nil }, set: { if !$0 { pendingDelete = nil } }),
-            titleVisibility: .visible,
             presenting: pendingDelete
         ) { a in
             Button(role: .destructive) {

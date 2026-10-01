@@ -240,7 +240,7 @@ struct MyAssignmentsSection: View {
                 onMakePages: { texts, book in makePagesNow(texts, into: book, title: a.title) }
             )
         }
-        .confirmationDialog(
+        .alert(
             Text(AssignmentCopy.replaceDraftTitle),
             // Any dismissal (a button, a tap outside, the system) clears the
             // pending start. Replace still acts on the `presenting:` value
@@ -249,7 +249,6 @@ struct MyAssignmentsSection: View {
                 get: { pendingStart != nil },
                 set: { if !$0 { pendingStart = nil } }
             ),
-            titleVisibility: .visible,
             presenting: pendingStart
         ) { pending in
             Button(role: .destructive) {
