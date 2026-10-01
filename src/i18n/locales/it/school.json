@@ -189,7 +189,9 @@
       "past_due": "Questo compito ha superato la scadenza.",
       "book_too_large": "Questo libro è troppo grande per essere consegnato.",
       "generic": "Qualcosa non ha funzionato. Riprova.",
-      "class_archived": "Questa classe è archiviata. Ripristinala per inviare incoraggiamenti."
+      "class_archived": "Questa classe è archiviata. Ripristinala per inviare incoraggiamenti.",
+      "version_changed": "Ha consegnato una nuova versione. Guardala prima di valutare.",
+      "cannot_return": "Questo compito è chiuso, quindi non si può rimandare."
     },
     "class_page": {
       "back": "Torna alle tue classi",
@@ -541,6 +543,99 @@
       "capped_count_other": "{{count}} hanno già ricevuto 3 incoraggiamenti oggi: non l'abbiamo inviato di nuovo.",
       "handed_in_count_one": "{{count}} ha già consegnato il compito: non l'abbiamo inviato.",
       "handed_in_count_other": "{{count}} hanno già consegnato il compito: non l'abbiamo inviato."
+    }
+  },
+  "grading": {
+    "levels": {
+      "getting_started": "Primi passi",
+      "growing": "In crescita",
+      "got_it": "Ci sei!",
+      "wow": "Wow!"
+    },
+    "skills": {
+      "ideas": "Idee",
+      "order": "Ordine",
+      "words": "Scelta delle parole",
+      "spelling": "Ortografia e punteggiatura"
+    },
+    "tips": {
+      "ideas": {
+        "more_detail": "Aggiungi un dettaglio che mi aiuti a immaginarlo.",
+        "feelings": "Raccontami come si sente il tuo personaggio.",
+        "senses": "Usa i sensi: cosa si vede, si sente, che odore c'è?",
+        "what_next": "Cosa succede dopo? Aggiungi un'altra parte.",
+        "problem": "Dai al tuo personaggio un problema da risolvere.",
+        "why": "Spiegami perché succede.",
+        "own_idea": "Aggiungi un'idea tutta tua."
+      },
+      "order": {
+        "beginning": "Dai alla tua storia un inizio chiaro.",
+        "middle": "Racconta di più sulla parte centrale.",
+        "ending": "Chiudi con un finale che conclude la storia.",
+        "time_words": "Usa parole come prima, poi, dopo e alla fine.",
+        "one_idea_per_page": "Metti un'idea principale su ogni pagina.",
+        "check_order": "Rileggi: le parti sono nell'ordine giusto?",
+        "new_line": "Vai a capo quando inizia un'idea nuova."
+      },
+      "words": {
+        "strong_verbs": "Prova un verbo più forte, come sfrecciò invece di andò.",
+        "describing": "Aggiungi una parola che descrive, per far vedere la scena.",
+        "repeated": "Trova una parola ripetuta tante volte e cambiala con una nuova.",
+        "dialogue": "Fai parlare i tuoi personaggi tra loro.",
+        "new_word": "Prova a usare una parola nuova di questa settimana.",
+        "said": "Prova un'altra parola al posto di disse, come sussurrò o gridò.",
+        "sound_words": "Aggiungi una parola-suono, come crash o splash!"
+      },
+      "spelling": {
+        "capitals": "Inizia ogni frase con la lettera maiuscola.",
+        "end_marks": "Chiudi ogni frase con un punto, ? o !",
+        "names": "I nomi propri iniziano con la maiuscola.",
+        "read_aloud": "Rileggi ad alta voce e correggi le parole che non ti convincono.",
+        "commas": "Usa le virgole tra le cose di un elenco.",
+        "quotation_marks": "Metti le virgolette intorno a quello che dicono i personaggi.",
+        "spaces": "Lascia uno spazio tra una parola e l'altra."
+      }
+    },
+    "teacher": {
+      "heading": "Valutazione",
+      "level_label": "Livello",
+      "tips_label": "Consigli (massimo 3)",
+      "tips_full": "Sono già 3 consigli: bastano!",
+      "custom_placeholder": "Scrivi un consiglio tuo, breve…",
+      "custom_add": "Aggiungi",
+      "remove_tip": "Togli il consiglio",
+      "return_label": "Rimanda da rivedere",
+      "return_hint": "Vedrà i tuoi consigli e potrà consegnarlo di nuovo.",
+      "save": "Salva la valutazione",
+      "save_return": "Rimanda con i consigli",
+      "saving": "Salvataggio…",
+      "saved": "Salvata",
+      "need_level": "Scegli un livello.",
+      "need_tip": "Aggiungi un consiglio, così sa cosa cambiare.",
+      "history": "Valutazioni precedenti",
+      "sent_back": "Da rivedere",
+      "not_graded": "Da valutare",
+      "new_version": "Nuova versione",
+      "levels_over_time": "Livelli nel tempo",
+      "no_grades": "Ancora nessuna valutazione.",
+      "export_csv": "Esporta valutazioni (CSV)",
+      "export_empty": "Ancora nessuna valutazione da esportare.",
+      "csv_student": "Nome",
+      "csv_assignment": "Compito",
+      "csv_level": "Livello",
+      "csv_version": "Versione",
+      "csv_date": "Data",
+      "csv_sent_back": "Da rivedere",
+      "csv_yes": "sì",
+      "csv_no": "no"
+    },
+    "student": {
+      "level_heading": "Il tuo livello",
+      "tips_heading": "Consigli da provare",
+      "sent_back": "L'insegnante te l'ha rimandato con dei consigli. Riprova!",
+      "try_again": "Riprova",
+      "listen_tip": "Leggi il consiglio ad alta voce",
+      "status_sent_back": "Riprova"
     }
   }
 }
