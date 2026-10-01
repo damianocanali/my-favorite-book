@@ -28,11 +28,25 @@ configFiles:
 settings:
   base:
     SWIFT_VERSION: "5.10"
-    # String Catalog extraction. SWIFT_EMIT_LOC_STRINGS makes the compiler
-    # emit .stringsdata for every Text("literal") / LocalizedStringKey, which
-    # is what populates Localizable.xcstrings — without it the catalogs stay
-    # empty no matter how many literals exist.
-    SWIFT_EMIT_LOC_STRINGS: "YES"
+    # String Catalog extraction is OFF: the catalogs are the source of truth
+    # and are edited by hand (or by a script), never rewritten by a build.
+    #
+    # With SWIFT_EMIT_LOC_STRINGS on, the compiler emits .stringsdata for
+    # every Text("literal") / AppText(...) and Xcode (the IDE, after every
+    # build) syncs Localizable.xcstrings from them — re-sorting it, flipping
+    # extractionState, marking strings stale — so every pull came with a
+    # dirty catalog. LOCALIZED_STRING_SWIFTUI_SUPPORT is the SwiftUI half of
+    # the same extraction. Neither affects lookup at run time: the catalog
+    # is still compiled into en.lproj / it.lproj on every build, and
+    # Text("literal") / AppText keys resolve exactly as before.
+    #
+    # So a NEW string must be added to Localizable.xcstrings by hand, with
+    # its "it" value (extractionState "manual"). Missing keys fall back to
+    # their English default value — never a crash, never a raw key.
+    # LOCALIZATION_EXPORT_SUPPORTED stays on: Product > Export Localizations
+    # only writes when asked, never on build.
+    SWIFT_EMIT_LOC_STRINGS: "NO"
+    LOCALIZED_STRING_SWIFTUI_SUPPORT: "NO"
     LOCALIZATION_PREFERS_STRING_CATALOGS: "YES"
     LOCALIZED_STRING_CODE_COMMENTS: "YES"
     MARKETING_VERSION: "2.0.0"
