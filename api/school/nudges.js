@@ -86,11 +86,13 @@ async function send(req, o, body) {
     'class_students'
   )
   const inClass = new Set(rows.map((r) => r.id))
-  // "Don't forget to hand in" never goes to a child who already has.
+  // "Don't forget to hand in" never goes to a child who already has. A
+  // hand-in the teacher sent back to revise is not done (migration 022).
   const handedIn = new Set()
   if (preset === 'hand_in' && inClass.size) {
     const subs = await read(
-      `/rest/v1/class_submissions?assignment_id=eq.${assignmentId}&student_id=in.(${[...inClass].join(',')})&select=student_id`,
+      `/rest/v1/class_submissions?assignment_id=eq.${assignmentId}&student_id=in.(${[...inClass].join(',')})` +
+        `&returned_at=is.null&select=student_id`,
       'class_submissions'
     )
     for (const s of subs) handedIn.add(s.student_id)

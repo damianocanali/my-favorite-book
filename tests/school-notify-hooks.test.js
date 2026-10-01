@@ -103,11 +103,11 @@ describe('api/school/help.js → notifications', () => {
 
 describe('api/school/submit.js → notifications', () => {
   const load = async () => (await import('../api/school/submit.js')).default
-  const routes = ({ version = 1, due = '2026-09-30T00:00:00.000Z', students = [{ id: STUDENT_ID }, { id: 'other' }], subs = [{ student_id: STUDENT_ID }], bellStatus = 201 } = {}) => [
+  const routes = ({ version = 1, wasReturned = false, due = '2026-09-30T00:00:00.000Z', students = [{ id: STUDENT_ID }, { id: 'other' }], subs = [{ student_id: STUDENT_ID }], bellStatus = 201 } = {}) => [
     studentRoute({}),
     { method: 'GET', match: '/rest/v1/assignments', reply: { body: [{ id: ASSIGN_ID, title: 'My pet', status: 'published', due_at: due, allow_late: true }] } },
     { method: 'GET', match: '/rest/v1/user_books', reply: { body: [{ title: 'Moon', book_data: { title: 'Moon', pages: [] } }] } },
-    { method: 'POST', match: '/rest/v1/rpc/school_submit', reply: { body: { id: SUB_ID, version, submitted_at: '2026-09-27T12:00:00.000Z' } } },
+    { method: 'POST', match: '/rest/v1/rpc/school_submit', reply: { body: { id: SUB_ID, version, submitted_at: '2026-09-27T12:00:00.000Z', was_returned: wasReturned } } },
     { method: 'GET', match: '/rest/v1/class_students?classroom_id=eq.', reply: { body: students } },
     { method: 'GET', match: '/rest/v1/class_submissions', reply: { body: subs } },
     { method: 'POST', match: '/rest/v1/teacher_notifications', reply: { status: bellStatus, body: bellStatus < 300 ? [{ id: 'n' }] : {} } },
@@ -136,6 +136,18 @@ describe('api/school/submit.js → notifications', () => {
     log = mockSupabase({ user: STUDENT_USER, routes: routes({ version: 2 }) })
     await (await load())(submit())
     expect(bell(log).map((b) => b.body.kind)).toEqual(['resubmit'])
+  })
+
+  it('a resubmission re-checks "everyone in" only when the replaced hand-in had been sent back', async () => {
+    let log = mockSupabase({ user: STUDENT_USER, routes: routes({ version: 2, students: [{ id: STUDENT_ID }], subs: [{ student_id: STUDENT_ID }] }) })
+    let res = await (await load())(submit())
+    expect(bell(log).map((b) => b.body.kind)).toEqual(['resubmit'])
+    expect(Object.keys(await res.json())).not.toContain('was_returned')
+
+    vi.resetModules()
+    log = mockSupabase({ user: STUDENT_USER, routes: routes({ version: 2, wasReturned: true, students: [{ id: STUDENT_ID }], subs: [{ student_id: STUDENT_ID }] }) })
+    res = await (await load())(submit())
+    expect(bell(log).map((b) => b.body.kind)).toEqual(['resubmit', 'all_handed_in'])
   })
 
   it('the last student handing in adds all_handed_in (deduped per assignment)', async () => {

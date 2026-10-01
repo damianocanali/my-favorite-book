@@ -11,7 +11,7 @@
 // Shape this all operates on is api/school/assignments.js's studentList
 // row: { id, title, prompt, due_at, status: 'published'|'closed',
 // allow_late, created_at, past_due, my_submission:
-// {id,version,submitted_at,late,feedback_unseen}|null }.
+// {id,version,submitted_at,late,feedback_unseen,level,grade_unseen,returned}|null }.
 
 // The card's three visible states (brief: "Not started" / "Handed in ✓" /
 // "Closed"). Closed wins over everything — once a teacher closes it, it
@@ -38,8 +38,27 @@ export function canSubmitTo(assignment) {
   return !!assignment && assignment.status === 'published'
 }
 
+// New feedback or a new grade (migration 022) the child hasn't opened yet.
 export function hasUnseenFeedback(assignment) {
-  return (assignment?.my_submission?.feedback_unseen ?? 0) > 0
+  const s = assignment?.my_submission
+  return (s?.feedback_unseen ?? 0) > 0 || s?.grade_unseen === true
+}
+
+// "Try again" is only offered when handing in again can actually succeed:
+// open, already handed in, and not past a due date that refuses late work.
+// Stricter than canHandInAgain on purpose — that one keeps "Hand in again"
+// visible and lets the server explain past_due; a "Try again" invitation
+// that then fails would be a broken promise to a child. (iPad:
+// StudentAssignment.canTryAgain.)
+export function canTryAgain(assignment) {
+  return canHandInAgain(assignment) && !(assignment.past_due && assignment.allow_late === false)
+}
+
+// The teacher sent it back with tips and the child can still hand in again
+// (iPad: StudentAssignment.isSentBack). Otherwise the card just shows the
+// level and the feedback shows the tips.
+export function isSentBack(assignment) {
+  return !!assignment?.my_submission?.returned && canTryAgain(assignment)
 }
 
 // What the home's "From your teacher" card says (iPad: StudentAssignment

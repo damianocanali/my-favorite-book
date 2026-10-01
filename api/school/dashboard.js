@@ -3,6 +3,7 @@ export const config = { runtime: 'edge' }
 import { handleCors, checkRateLimit } from '../_rateLimit.js'
 import { requireTeacher, requireClassOwner, sb, json } from '../_school.js'
 import { isLate } from '../../lib/school/assignments.js'
+import { isOpenAssignment } from '../../lib/school/nudges.js'
 
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000
 const MAX_CHECKINS_PER_STUDENT = 20
@@ -151,15 +152,26 @@ async function oneClassDashboard(req, o) {
     ? await (async () => {
         const r = await sb(
           `/rest/v1/class_submissions?classroom_id=eq.${classroomId}` +
-            `&assignment_id=in.(${assignments.map((a) => a.id).join(',')})&select=assignment_id,student_id,submitted_at`
+            `&assignment_id=in.(${assignments.map((a) => a.id).join(',')})&select=assignment_id,student_id,submitted_at,returned_at`
         )
         if (!r.ok) throw new Error(`class_submissions lookup failed: ${r.status}`)
         return r.json()
       })()
     : []
   const dueById = new Map(assignments.map((a) => [a.id, a.due_at]))
-  const handInState = new Map() // `${student_id}:${assignment_id}` -> 'handed_in' | 'late'
+  const openIds = new Set(assignments.filter((a) => isOpenAssignment(a)).map((a) => a.id))
+  const handInState = new Map() // `${student_id}:${assignment_id}` -> 'handed_in' | 'late' | 'revising'
   for (const r of subRows) {
+    // Sent back to revise (migration 022): its own state, 'revising' — not
+    // done until they hand in again (both clients' nudge suggestions treat
+    // it like not_started), but never shown to the teacher as "Not started".
+    // Only while the assignment is still open for hand-ins: once it closes
+    // (or passes a due date that refuses late work) nobody can revise, and
+    // the hand-in reads as handed in — it has its grade.
+    if (r.returned_at && openIds.has(r.assignment_id)) {
+      handInState.set(`${r.student_id}:${r.assignment_id}`, 'revising')
+      continue
+    }
     handInState.set(`${r.student_id}:${r.assignment_id}`, isLate(r.submitted_at, dueById.get(r.assignment_id)) ? 'late' : 'handed_in')
   }
   const assignmentMap = (studentId) =>

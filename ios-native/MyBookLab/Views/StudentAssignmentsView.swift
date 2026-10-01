@@ -204,7 +204,15 @@ struct MyAssignmentsSection: View {
         }
         .sheet(item: $feedbackFor) { assignment in
             if let submissionId = assignment.my_submission?.id {
-                StudentFeedbackSheet(submissionId: submissionId) { markSeen(assignment.id) }
+                StudentFeedbackSheet(
+                    submissionId: submissionId,
+                    onSeen: { markSeen(assignment.id) },
+                    // "Try again" opens their book to revise and hand in again.
+                    onTryAgain: assignment.canTryAgain ? {
+                        feedbackFor = nil
+                        startOrContinue(assignment)
+                    } : nil
+                )
             }
         }
         .confirmationDialog(
@@ -377,11 +385,9 @@ struct MyAssignmentsSection: View {
 
     private func markSeen(_ assignmentId: String) {
         guard let i = assignments?.firstIndex(where: { $0.id == assignmentId }),
-              let sub = assignments?[i].my_submission else { return }
-        assignments?[i].my_submission = .init(
-            id: sub.id, version: sub.version, submitted_at: sub.submitted_at,
-            late: sub.late, feedback_unseen: 0
-        )
+              assignments?[i].my_submission != nil else { return }
+        assignments?[i].my_submission?.feedback_unseen = 0
+        assignments?[i].my_submission?.grade_unseen = false
     }
 }
 
@@ -437,6 +443,14 @@ private struct AssignmentCard: View {
             Text(AssignmentCopy.due(assignment.due()))
                 .font(.caption.weight(dueIsUrgent ? .bold : .regular))
                 .foregroundStyle(dueColor)
+
+            if let level = assignment.my_submission?.level, !assignment.isSentBack {
+                StudentLevelBadge(level: level, compact: true)
+            }
+
+            if assignment.isSentBack {
+                SentBackBanner(onTryAgain: onWrite)
+            }
 
             if assignment.hasUnseenFeedback {
                 Button(action: onSeeFeedback) {
@@ -580,15 +594,20 @@ private struct AssignmentCard: View {
 
 // MARK: - Feedback sheet
 
-/// One hand-in's feedback thread. Opening it marks every unseen item seen
-/// and tells the caller, so the card's "New feedback!" badge clears without
-/// waiting for a re-fetch.
+/// One hand-in's feedback thread, with the child's level and tips on top
+/// (StudentGradeViews.swift). Opening it marks every unseen item seen and
+/// tells the caller, so the card's "New feedback!" badge clears without
+/// waiting for a re-fetch. `onTryAgain`: offered when the teacher sent it
+/// back and the child can still hand in again.
 struct StudentFeedbackSheet: View {
     let submissionId: String
     var onSeen: () -> Void = {}
+    var onTryAgain: (() -> Void)? = nil
 
     @Environment(\.dismiss) private var dismiss
     @State private var items: [StudentSubmission.Feedback]?
+    @State private var grade: SubmissionGrade?
+    @State private var returned = false
     @State private var failed = false
     @State private var speaker = SpeechSpeaker()
 
@@ -614,7 +633,7 @@ struct StudentFeedbackSheet: View {
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 24)
             } else if let items {
-                if items.isEmpty {
+                if items.isEmpty && grade == nil {
                     Text(AssignmentCopy.feedbackEmpty)
                         .foregroundStyle(.white.opacity(0.7))
                         .frame(maxWidth: .infinity)
@@ -622,6 +641,12 @@ struct StudentFeedbackSheet: View {
                 } else {
                     ScrollView {
                         VStack(spacing: 12) {
+                            if returned, let onTryAgain {
+                                SentBackBanner(onTryAgain: onTryAgain)
+                            }
+                            if let grade {
+                                StudentGradeCard(grade: grade, speaker: speaker)
+                            }
                             ForEach(items) { item in
                                 FeedbackRow(item: item, speaker: speaker)
                             }
@@ -645,6 +670,8 @@ struct StudentFeedbackSheet: View {
         .presentationDragIndicator(.visible)
         .task {
             if let res = await SchoolAssignments.feedback(submissionId: submissionId) {
+                grade = res.grade
+                returned = res.returned
                 items = res.items
                 if res.markedSeen { onSeen() }
             } else {

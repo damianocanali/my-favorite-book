@@ -9,7 +9,7 @@ import { useBookshelfStore } from '../../stores/useBookshelfStore'
 import { useAuthStore } from '../../stores/useAuthStore'
 import AssignmentCard from './AssignmentCard'
 import {
-  homeStatus, showsOnHome, sortForHome, startDecision,
+  homeStatus, showsOnHome, sortForHome, startDecision, canTryAgain,
   readSeenAssignments, markAssignmentSeen, pruneSeenAssignments,
 } from './assignmentStudentUi'
 import StudentFeedbackModal from './StudentFeedbackModal'
@@ -183,7 +183,7 @@ export default function MyAssignments() {
     setAssignments((prev) =>
       (prev ?? []).map((a) =>
         a.id === assignmentId && a.my_submission
-          ? { ...a, my_submission: { ...a.my_submission, feedback_unseen: 0 } }
+          ? { ...a, my_submission: { ...a.my_submission, feedback_unseen: 0, grade_unseen: false } }
           : a
       )
     )
@@ -226,6 +226,7 @@ export default function MyAssignments() {
               markOpened(assignment.id)
               setFeedbackFor(assignment)
             }}
+            onTryAgain={() => startOrContinue(assignment)}
           />
         ))}
       </motion.div>
@@ -237,6 +238,12 @@ export default function MyAssignments() {
             submissionId={feedbackFor.my_submission.id}
             onSeen={() => markSeen(feedbackFor.id)}
             onClose={() => setFeedbackFor(null)}
+            // Sent back: open their book to revise and hand in again.
+            onTryAgain={canTryAgain(feedbackFor) ? () => {
+              const a = feedbackFor
+              setFeedbackFor(null)
+              startOrContinue(a)
+            } : undefined}
           />
         )}
       </AnimatePresence>

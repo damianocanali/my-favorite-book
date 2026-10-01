@@ -1,5 +1,6 @@
 // One student, from the dashboard roster: their books (a list, then the
-// app's own book reader, read-only) and the last 30 days of check-ins as a
+// app's own book reader, read-only), their levels over time (each graded
+// hand-in version, oldest first) and the last 30 days of check-ins as a
 // plain list grouped by day — no totals, no ranking, no per-feeling counts
 // (owner decision D7, same as the web). Counterpart of the web's
 // StudentDetailDrawer + BooksPanelContent + CheckInsPanelContent.
@@ -24,7 +25,7 @@ struct TeacherStudentDetailView: View {
 
     @Environment(AuthStore.self) private var auth
 
-    enum Tab: Hashable { case books, checkins }
+    enum Tab: Hashable { case books, checkins, levels }
     @State private var tab: Tab = .books
 
     @State private var books: [TeacherStudentBook]?
@@ -66,6 +67,7 @@ struct TeacherStudentDetailView: View {
                     Picker(selection: $tab) {
                         Text(TeacherCopy.tabBooks).tag(Tab.books)
                         Text(TeacherCopy.tabCheckins).tag(Tab.checkins)
+                        Text(GradingCopy.levelsOverTime).tag(Tab.levels)
                     } label: {
                         Text(TeacherCopy.studentDetails(student.display_name))
                     }
@@ -75,6 +77,7 @@ struct TeacherStudentDetailView: View {
                     switch tab {
                     case .books: booksPanel
                     case .checkins: checkinsPanel
+                    case .levels: TeacherLevelsOverTime(classId: classId, studentId: student.id)
                     }
                 }
                 .padding()

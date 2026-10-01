@@ -719,6 +719,14 @@ actor APIClient {
         )
     }
 
+    /// The child's own grade, opened: seen (the server keeps the first time).
+    func markGradeSeen(id: String, bearerToken: String) async throws {
+        let _: Ignored = try await schoolStudent(
+            method: "POST", path: "/api/school/grades", query: [:],
+            body: SchoolFeedbackSeenBody(id: id), bearerToken: bearerToken
+        )
+    }
+
     // MARK: - Schools (a class account's teacher nudge)
     //
     // api/school/nudges.js: GET with no classId is the caller's own unread
@@ -1027,6 +1035,33 @@ actor APIClient {
             body: FeedbackBody(classId: classId, submissionId: submissionId, comment: comment, sticker: sticker),
             bearerToken: bearerToken)
         return res.feedback
+    }
+
+    private struct GradeBody: Encodable {
+        let classId: String
+        let submissionId: String
+        let version: Int
+        let level: String
+        let tips: [GradeTip]
+        let returned: Bool
+    }
+
+    /// Grades the version the teacher is looking at (api/school/grades.js);
+    /// a newer hand-in since then is a version_changed error.
+    func teacherGrade(classId: String, submissionId: String, version: Int, level: String,
+                      tips: [GradeTip], returned: Bool, bearerToken: String) async throws -> TeacherGradeResult {
+        try await teacherCall(
+            method: "POST", path: "/api/school/grades", query: [:],
+            body: GradeBody(classId: classId, submissionId: submissionId, version: version,
+                            level: level, tips: tips, returned: returned),
+            bearerToken: bearerToken)
+    }
+
+    func teacherStudentGrades(classId: String, studentId: String, bearerToken: String) async throws -> [TeacherStudentGrade] {
+        let res: TeacherStudentGradesResponse = try await teacherCall(
+            method: "GET", path: "/api/school/grades", query: ["classId": classId, "studentId": studentId],
+            body: Optional<EmptyBody>.none, bearerToken: bearerToken)
+        return res.grades ?? []
     }
 
     func teacherNotifications(bearerToken: String) async throws -> TeacherNotificationsResponse {

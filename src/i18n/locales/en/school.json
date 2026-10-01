@@ -189,7 +189,9 @@
       "past_due": "This assignment is past its due date.",
       "book_too_large": "This book is too big to hand in.",
       "generic": "Something went wrong. Try again.",
-      "class_archived": "This class is archived. Restore it to send nudges."
+      "class_archived": "This class is archived. Restore it to make changes.",
+      "version_changed": "They handed in a new version. Have a look at it first.",
+      "cannot_return": "This assignment is closed or past its due date, so it can't be sent back."
     },
     "class_page": {
       "back": "Back to your classes",
@@ -338,7 +340,8 @@
         "status": {
           "handed_in": "Handed in",
           "late": "Late",
-          "not_started": "Not started"
+          "not_started": "Not started",
+          "revising": "Revising"
         }
       },
       "feedback": {
@@ -541,6 +544,97 @@
       "capped_count_other": "{{count}} children already had 3 nudges today, so we didn't send it again.",
       "handed_in_count_one": "{{count}} child has already handed it in, so we skipped them.",
       "handed_in_count_other": "{{count}} children have already handed it in, so we skipped them."
+    }
+  },
+  "grading": {
+    "levels": {
+      "getting_started": "Getting started",
+      "growing": "Growing",
+      "got_it": "Got it!",
+      "wow": "Wow!"
+    },
+    "skills": {
+      "ideas": "Ideas",
+      "order": "Order",
+      "words": "Word choice",
+      "spelling": "Spelling & punctuation"
+    },
+    "tips": {
+      "ideas": {
+        "more_detail": "Add a detail that helps me picture it.",
+        "feelings": "Tell me how your character feels.",
+        "senses": "Use your senses: what can you see, hear or smell?",
+        "what_next": "What happens next? Add one more part.",
+        "problem": "Give your character a problem to solve.",
+        "why": "Tell me why it happens.",
+        "own_idea": "Add an idea that only you could think of."
+      },
+      "order": {
+        "beginning": "Give your story a clear beginning.",
+        "middle": "Tell me more about the middle.",
+        "ending": "Finish with an ending that wraps it up.",
+        "time_words": "Use words like first, then, next and at last.",
+        "one_idea_per_page": "Put one main idea on each page.",
+        "check_order": "Read it again: are the parts in the right order?",
+        "new_line": "Start a new line when a new idea begins."
+      },
+      "words": {
+        "strong_verbs": "Try a stronger action word, like dashed instead of went.",
+        "describing": "Add a describing word to paint a picture.",
+        "repeated": "Find a word you used a lot and swap it for a new one.",
+        "dialogue": "Let your characters talk to each other.",
+        "new_word": "Try a new word you learned this week.",
+        "said": "Try another word for said, like whispered or shouted.",
+        "sound_words": "Add a sound word, like crash or whoosh!"
+      },
+      "spelling": {
+        "capitals": "Start each sentence with a capital letter.",
+        "end_marks": "End each sentence with a period, ? or !",
+        "names": "Names start with a capital letter.",
+        "read_aloud": "Read it aloud and fix any words that look wrong.",
+        "commas": "Use commas between things in a list.",
+        "quotation_marks": "Put quotation marks around what characters say.",
+        "spaces": "Leave a space between words."
+      }
+    },
+    "teacher": {
+      "heading": "Grade",
+      "level_label": "Level",
+      "tips_label": "Tips (up to 3)",
+      "tips_full": "That's 3 tips: plenty!",
+      "custom_placeholder": "Write your own short tip…",
+      "custom_add": "Add tip",
+      "remove_tip": "Remove tip",
+      "return_label": "Send back to revise",
+      "return_hint": "They'll see your tips and can hand it in again.",
+      "save": "Save grade",
+      "save_return": "Send back with tips",
+      "saving": "Saving…",
+      "saved": "Saved",
+      "need_level": "Pick a level.",
+      "need_tip": "Add a tip so they know what to change.",
+      "history": "Earlier grades",
+      "sent_back": "Sent back",
+      "new_version": "New version",
+      "levels_over_time": "Levels over time",
+      "no_grades": "No grades yet.",
+      "export_csv": "Export grades (CSV)",
+      "export_empty": "No grades to export yet.",
+      "csv_student": "Student",
+      "csv_assignment": "Assignment",
+      "csv_level": "Level",
+      "csv_version": "Version",
+      "csv_date": "Date",
+      "csv_sent_back": "Sent back",
+      "csv_yes": "yes",
+      "csv_no": "no"
+    },
+    "student": {
+      "level_heading": "Your level",
+      "tips_heading": "Tips to try",
+      "sent_back": "Your teacher sent this back with tips. Try again!",
+      "try_again": "Try again",
+      "listen_tip": "Read the tip out loud"
     }
   }
 }

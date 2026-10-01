@@ -64,7 +64,7 @@ struct TeacherDashboardStudent: Decodable, Identifiable, Hashable, Sendable {
     let images_today: Int?
     let checkins_7d: [TeacherCheckin]?
     let inactive_7d: Bool?
-    /// assignment id -> "handed_in" | "late" | "not_started"
+    /// assignment id -> "handed_in" | "late" | "not_started" | "revising"
     let assignments: [String: String]?
 }
 
@@ -336,13 +336,24 @@ struct TeacherSubmissionRow: Decodable, Identifiable, Hashable, Sendable {
     let late: Bool?
     let book_title: String?
     var feedback_count: Int?
+    /// The newest grade's level and the version it was for (migration 022);
+    /// `returned`: sent back and not handed in again yet.
+    var level: String?
+    var graded_version: Int?
+    var returned: Bool?
 
     var id: String { submissionId ?? "student-\(student_id)" }
     var isHandedIn: Bool { status == "handed_in" && submissionId != nil }
+    /// Handed in again since the last grade: the teacher hasn't looked yet.
+    var hasUngradedVersion: Bool {
+        guard let graded_version, let version else { return false }
+        return version > graded_version
+    }
 
     enum CodingKeys: String, CodingKey {
         case submissionId = "id"
         case student_id, display_name, avatar_emoji, status, version, submitted_at, late, book_title, feedback_count
+        case level, graded_version, returned
     }
 }
 
@@ -352,6 +363,15 @@ struct TeacherReviewList: Decodable, Sendable {
         let title: String
         let status: String?
         let due_at: String?
+        let allow_late: Bool?
+
+        /// Still open for hand-ins: published, and not past a due date that
+        /// refuses late work (same rule as NudgeRules.isOpen and the web).
+        func isOpen(now: Date = Date()) -> Bool {
+            guard status == "published" else { return false }
+            if allow_late == false, let due = TeacherDates.parse(due_at), due < now { return false }
+            return true
+        }
     }
     let assignment: Assignment
     let submissions: [TeacherSubmissionRow]?
@@ -376,9 +396,12 @@ struct TeacherSubmissionDetail: Decodable, Sendable {
         let late: Bool?
         let book_title: String?
         let book_snapshot: Book?
+        let returned: Bool?
     }
     let submission: Submission
     var feedback: [TeacherFeedback]
+    /// Every graded version, newest first.
+    var grades: [SubmissionGrade]?
 }
 
 struct TeacherFeedbackResponse: Decodable, Sendable {
@@ -418,7 +441,10 @@ enum TeacherStickers {
 /// already the flattened string; a review row is {status, late}. Both land
 /// here so the two surfaces never disagree (web: assignmentUi.handInChipKey).
 enum HandInState: String, Sendable {
-    case handedIn = "handed_in", late, notStarted = "not_started"
+    /// revising: sent back to revise (migration 022), not handed in again
+    /// yet — dashboard only, and only while the assignment is still open
+    /// (api/school/dashboard.js decides); still "not handed in" for nudges.
+    case handedIn = "handed_in", late, notStarted = "not_started", revising
 
     init(dashboardValue: String?) {
         self = HandInState(rawValue: dashboardValue ?? "") ?? .notStarted
@@ -681,6 +707,10 @@ enum NudgeRules {
     /// The open assignments a student has not handed in yet.
     static func openNotHandedIn(_ s: TeacherDashboardStudent, assignments: [TeacherDashboardAssignment],
                                 now: Date = Date()) -> [TeacherDashboardAssignment] {
-        open(assignments, now: now).filter { (s.assignments?[$0.id] ?? "not_started") == "not_started" }
+        // "revising" (sent back to revise) is not done either.
+        open(assignments, now: now).filter {
+            let v = s.assignments?[$0.id] ?? "not_started"
+            return v == "not_started" || v == "revising"
+        }
     }
 }

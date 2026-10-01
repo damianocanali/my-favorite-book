@@ -72,7 +72,8 @@ async function classStats(classIds, eventsByClass) {
   for (const a of assignments) if (!openByClass.has(a.classroom_id)) openByClass.set(a.classroom_id, a)
   const openIds = [...openByClass.values()].map((a) => a.id)
   const subs = openIds.length
-    ? await readAll(`/rest/v1/class_submissions?assignment_id=${inList(openIds)}&select=assignment_id,student_id`, 'assignment_id.asc,student_id.asc')
+    // A hand-in sent back to revise is not done (migration 022).
+    ? await readAll(`/rest/v1/class_submissions?assignment_id=${inList(openIds)}&returned_at=is.null&select=assignment_id,student_id`, 'assignment_id.asc,student_id.asc')
     : []
   const handed = new Set(subs.map((s) => `${s.assignment_id}:${s.student_id}`))
 

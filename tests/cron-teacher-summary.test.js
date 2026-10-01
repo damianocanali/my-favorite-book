@@ -138,6 +138,19 @@ describe('daily summary', () => {
     expect(stamps(log)[0].body).toEqual([{ user_id: T1, last_summary_at: SUNDAY }])
   })
 
+  it('a hand-in sent back to revise counts as not handed in yet (migration 022)', async () => {
+    const log = mock({
+      classes: [{ id: C1, name: 'Room 5', owner_user_id: T1, locale: 'en' }],
+      events: [ev(T1, C1, 'hand_in')],
+      assignments: [{ id: A1, classroom_id: C1, title: 'My pet', created_at: '2026-09-20T00:00:00Z' }],
+      students: [{ id: 's1', classroom_id: C1 }],
+      submissions: [],
+    })
+    await run()
+    expect(log.find((l) => l.url.includes('/rest/v1/class_submissions')).url).toContain('returned_at=is.null')
+    expect(emails(log)[0].body.text).toContain('1 not handed in yet for "My pet"')
+  })
+
   it('counts only activity since last_summary_at', async () => {
     const log = mock({
       classes,

@@ -75,6 +75,7 @@ struct HandInChip: View {
             case .handedIn: .good
             case .late: .warn
             case .notStarted: .muted
+            case .revising: .warn
             }
         }())
     }

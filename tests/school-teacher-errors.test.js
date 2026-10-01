@@ -20,13 +20,18 @@ describe('errorKeyFor', () => {
   })
 })
 
-describe('class_archived (nudges to an archived class)', () => {
+describe('class_archived (an archived class: nudges, grading)', () => {
   const en = JSON.parse(readFileSync('src/i18n/locales/en/school.json', 'utf8'))
   const it_ = JSON.parse(readFileSync('src/i18n/locales/it/school.json', 'utf8'))
   it('has its own EN and IT sentence', () => {
     expect(KNOWN_CODES).toContain('class_archived')
     expect(en.teacher.errors.class_archived).toMatch(/archived/)
     expect(it_.teacher.errors.class_archived).toMatch(/archiviata/)
+  })
+  it('is generic (nudges and grading both return it), never about nudges only', () => {
+    expect(en.teacher.errors.class_archived).toBe('This class is archived. Restore it to make changes.')
+    expect(it_.teacher.errors.class_archived).toBe('Questa classe è archiviata. Ripristinala per fare modifiche.')
+    expect(KNOWN_CODES).toEqual(expect.arrayContaining(['version_changed', 'cannot_return']))
   })
   it('renders through teacherErrorText with that key', () => {
     const t = (k) => k
