@@ -638,7 +638,9 @@ struct TeacherAssignmentForm: View {
         var body = APIClient.AssignmentWrite(classId: classId)
         body.id = existing?.id
         body.title = t
-        body.prompt = p.isEmpty ? nil : p
+        // A worksheet's instructions are optional: on an edit, an empty box
+        // clears them (sent as ""); a book always sends its prompt.
+        body.prompt = p.isEmpty ? (existing != nil && kind == "worksheet" ? "" : nil) : p
         body.dueAt = .some(dueIso)
         body.worksheet = ws
         if existing == nil { body.kind = kind }

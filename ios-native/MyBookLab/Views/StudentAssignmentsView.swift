@@ -115,14 +115,6 @@ struct MyAssignmentsSection: View {
     /// bumped when it closes so "started" re-reads the device drafts.
     @State private var worksheetFor: StudentAssignment?
     @State private var draftsTick = 0
-    /// "Turn into book pages" waiting on "replace your unsaved book?".
-    @State private var pendingPages: PendingPages?
-
-    private struct PendingPages {
-        let texts: [String]
-        let book: Book?
-        let title: String
-    }
     /// The teacher's unread nudge (api/school/nudges.js), shown first.
     @State private var nudge: StudentNudge?
     /// Dismissed with "Got it" on this device: a poll racing the PATCH
@@ -205,6 +197,8 @@ struct MyAssignmentsSection: View {
             while !Task.isCancelled {
                 if let fresh = await SchoolAssignments.list() {
                     assignments = fresh
+                    // Worksheet drafts never outlive an open assignment.
+                    WorksheetDrafts.prune(userId: auth.user?.id.uuidString, keeping: fresh)
                     seen = AssignmentSeen.prune(keeping: fresh.map(\.id), userId: auth.user?.id.uuidString)
                 }
                 // A failed read keeps what is on screen.
@@ -242,25 +236,9 @@ struct MyAssignmentsSection: View {
                         if let fresh = await SchoolAssignments.list() { assignments = fresh }
                     }
                 },
-                onMakePages: { texts, book in makePages(texts, into: book, title: a.title) }
+                // The fill-in view has already asked "replace your book?".
+                onMakePages: { texts, book in makePagesNow(texts, into: book, title: a.title) }
             )
-        }
-        .confirmationDialog(
-            Text(AssignmentCopy.replaceDraftTitle),
-            isPresented: Binding(
-                get: { pendingPages != nil },
-                set: { if !$0 { pendingPages = nil } }
-            ),
-            titleVisibility: .visible,
-            presenting: pendingPages
-        ) { pending in
-            Button(role: .destructive) {
-                pendingPages = nil
-                makePagesNow(pending.texts, into: pending.book, title: pending.title)
-            } label: {
-                Text(AssignmentCopy.replaceDraftConfirm)
-            }
-            Button("Cancel", role: .cancel) { pendingPages = nil }
         }
         .confirmationDialog(
             Text(AssignmentCopy.replaceDraftTitle),
@@ -386,19 +364,12 @@ struct MyAssignmentsSection: View {
     /// "Turn into book pages": a new book titled after the worksheet, or
     /// the pages added to one of theirs, opened in the page editor.
     /// Untagged: a book made from a worksheet is the child's own, not a
-    /// hand-in. Never silently replaces a draft with work in it.
-    private func makePages(_ texts: [String], into book: Book?, title: String) {
-        if let open = BookDraftStore.shared.book, Self.hasWork(open), open.id != book?.id {
-            pendingPages = PendingPages(texts: texts, book: book, title: title)
-            return
-        }
-        makePagesNow(texts, into: book, title: title)
-    }
-
+    /// hand-in. The fill-in view confirms before an unsaved book is
+    /// replaced; the book open in the editor is added to as it is now.
     private func makePagesNow(_ texts: [String], into book: Book?, title: String) {
         let draft = BookDraftStore.shared
         if let book {
-            draft.edit(WorksheetPages.append(texts, to: book))
+            draft.edit(WorksheetPages.append(texts, to: WorksheetPages.base(open: draft.book, picked: book)))
         } else {
             draft.begin()
             guard var fresh = draft.book else { return }
@@ -410,7 +381,7 @@ struct MyAssignmentsSection: View {
     }
 
     /// Whether an open draft holds anything a child would miss.
-    private static func hasWork(_ b: Book) -> Bool {
+    static func hasWork(_ b: Book) -> Bool {
         !b.title.trimmingCharacters(in: .whitespaces).isEmpty
             || !b.authorName.trimmingCharacters(in: .whitespaces).isEmpty
             || !b.characters.isEmpty
@@ -522,7 +493,7 @@ private struct AssignmentCard: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                     Button {
                         onOpen()
-                        speaker.toggle(prompt)
+                        speaker.toggle(prompt, language: assignment.class_locale)
                     } label: {
                         Image(systemName: speaker.isSpeaking(prompt) ? "stop.fill" : "speaker.wave.2.fill")
                             .font(.body)

@@ -24,15 +24,27 @@ struct WorksheetFillView: View {
     @State private var error: String?
     @State private var handedIn = false
     @State private var showPages = false
+    /// Hand in again only once something changed since the last hand-in.
+    @State private var changedSinceHandIn = true
+    /// The book picked in the pages sheet, acted on once the sheet is gone
+    /// (a dialog presented during a dismissal can be swallowed).
+    @State private var pickedPages: PagesPick?
+    /// Waiting on "replace your unsaved book?", shown on this screen.
+    @State private var confirmPages: PagesPick?
     @State private var speaker = SpeechSpeaker()
+
+    private struct PagesPick { let book: Book? }
 
     private var definition: WorksheetDefinition {
         assignment.worksheet ?? WorksheetDefinition(templateId: "", prompts: [:], word: nil)
     }
     private var userId: String? { auth.user?.id.uuidString }
     private var items: [WorksheetItem] { WorksheetLayout.items(definition, childWord: answers?["word"]) }
-    private var canSubmit: Bool { assignment.canSubmit }
-    private var ready: Bool { WorksheetLayout.hasAnswers(answers ?? [:]) }
+    /// Open, and not past a due date that refuses late work.
+    private var canSubmit: Bool { assignment.canSubmit && !(assignment.past_due == true && assignment.allow_late == false) }
+    private var ready: Bool { WorksheetLayout.hasAnswers(answers ?? [:]) && changedSinceHandIn }
+    /// The teacher's prompts are read in the class's language.
+    private var promptLanguage: String? { assignment.class_locale }
     private var pageTexts: [String] {
         WorksheetPages.pages(definition, answers: WorksheetLayout.answersForSubmit(definition, answers ?? [:]))
     }
@@ -71,13 +83,23 @@ struct WorksheetFillView: View {
         .preferredColorScheme(.dark)
         .task { await loadStart() }
         .onDisappear { speaker.stop() }
-        .sheet(isPresented: $showPages) {
+        .sheet(isPresented: $showPages, onDismiss: afterPagesSheet) {
             WorksheetPagesSheet(texts: pageTexts, books: bookshelf.books) { book in
+                pickedPages = PagesPick(book: book)
                 showPages = false
-                speaker.stop()
-                onMakePages(pageTexts, book)
-                dismiss()
             }
+        }
+        .confirmationDialog(
+            Text(AssignmentCopy.replaceDraftTitle),
+            isPresented: Binding(get: { confirmPages != nil }, set: { if !$0 { confirmPages = nil } }),
+            titleVisibility: .visible,
+            presenting: confirmPages
+        ) { pick in
+            Button(role: .destructive) {
+                confirmPages = nil
+                commitPages(pick.book)
+            } label: { Text(AssignmentCopy.replaceDraftConfirm) }
+            Button("Cancel", role: .cancel) { confirmPages = nil }
         }
     }
 
@@ -90,7 +112,7 @@ struct WorksheetFillView: View {
             Text(verbatim: assignment.title)
                 .font(.system(.largeTitle, design: .rounded).bold())
                 .foregroundStyle(.white)
-            if let p = assignment.prompt, !p.isEmpty, p != assignment.title {
+            if let p = assignment.prompt, !p.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                 promptRow(p, font: .body, color: .white.opacity(0.8))
             }
         }
@@ -101,7 +123,7 @@ struct WorksheetFillView: View {
         HStack(alignment: .top, spacing: 10) {
             Text(verbatim: text).font(font).foregroundStyle(color)
                 .frame(maxWidth: .infinity, alignment: .leading)
-            Button { speaker.toggle(text) } label: {
+            Button { speaker.toggle(text, language: promptLanguage) } label: {
                 Image(systemName: speaker.isSpeaking(text) ? "stop.fill" : "speaker.wave.2.fill")
                     .font(.body)
                     .frame(width: 44, height: 44)
@@ -119,20 +141,21 @@ struct WorksheetFillView: View {
             card {
                 if !prompt.isEmpty { promptRow(prompt) }
                 editor(id: id, minHeight: Self.height(size))
+                    .accessibilityLabel(Text(verbatim: prompt))
             }
         case .word(let prompt, let fixed):
             card {
                 if !prompt.isEmpty { promptRow(prompt) }
                 if fixed {
                     Text(verbatim: definition.word ?? "")
-                        .font(.system(size: 40, weight: .bold, design: .rounded))
+                        .font(.system(.largeTitle, design: .rounded).bold())
                         .tracking(10)
                         .foregroundStyle(.cyan)
                 } else {
                     TextField(text: binding("word", max: WorksheetTemplates.acrosticWordMax, noSpaces: true)) {
                         Text(WorksheetCopy.studentWordPlaceholder)
                     }
-                    .font(.system(size: 34, weight: .bold, design: .rounded))
+                    .font(.system(.largeTitle, design: .rounded).bold())
                     .textInputAutocapitalization(.characters)
                     .autocorrectionDisabled()
                     .padding(12)
@@ -146,9 +169,9 @@ struct WorksheetFillView: View {
                 ForEach(letters) { l in
                     HStack(alignment: .top, spacing: 12) {
                         Text(verbatim: l.letter)
-                            .font(.system(size: 34, weight: .bold, design: .rounded))
+                            .font(.system(.largeTitle, design: .rounded).bold())
                             .foregroundStyle(.cyan)
-                            .frame(width: 40)
+                            .frame(minWidth: 40)
                             .accessibilityHidden(true)
                         editor(id: l.id, minHeight: 60)
                             .accessibilityLabel(Text(WorksheetCopy.studentLineFor(l.letter)))
@@ -166,14 +189,20 @@ struct WorksheetFillView: View {
     }
 
     private func editor(id: String, minHeight: CGFloat) -> some View {
-        TextField(text: binding(id, max: WorksheetTemplates.answerMax), axis: .vertical) { EmptyView() }
-            .font(.system(.title2, design: .rounded))
-            .foregroundStyle(.white)
-            .lineLimit(2...20)
-            .padding(14)
-            .frame(minHeight: minHeight, alignment: .topLeading)
-            .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 14))
-            .overlay(RoundedRectangle(cornerRadius: 14).stroke(.white.opacity(0.15)))
+        VStack(alignment: .leading, spacing: 4) {
+            TextField(text: binding(id, max: WorksheetTemplates.answerMax), axis: .vertical) { EmptyView() }
+                .font(.system(.title2, design: .rounded))
+                .foregroundStyle(.white)
+                .lineLimit(2...20)
+                .padding(14)
+                .frame(minHeight: minHeight, alignment: .topLeading)
+                .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 14))
+                .overlay(RoundedRectangle(cornerRadius: 14).stroke(.white.opacity(0.15)))
+            // Counted in UTF-16 units, like the server and the web.
+            if (answers?[id] ?? "").utf16.count >= WorksheetTemplates.answerMax {
+                Text(WorksheetCopy.studentBoxFull).font(.footnote.bold()).foregroundStyle(.orange)
+            }
+        }
     }
 
     private static func height(_ size: WorksheetTemplate.Size) -> CGFloat {
@@ -190,11 +219,13 @@ struct WorksheetFillView: View {
             get: { answers?[id] ?? "" },
             set: { v in
                 var text = noSpaces ? v.filter { !$0.isWhitespace } : v
-                if text.count > max { text = String(text.prefix(max)) }
+                // UTF-16 units: the unit the server's 2000 limit counts.
+                text = TeacherStickers.truncated(text, max: max)
                 var next = answers ?? [:]
                 next[id] = text
                 answers = next
                 error = nil
+                changedSinceHandIn = true
                 WorksheetDrafts.write(next, userId: userId, assignmentId: assignment.id)
             }
         )
@@ -251,20 +282,41 @@ struct WorksheetFillView: View {
 
     // MARK: Actions
 
-    /// This iPad's draft, else (already handed in elsewhere) the hand-in.
+    /// This iPad's draft, unless the hand-in is newer (then the hand-in:
+    /// what the teacher has, and what becomes book pages).
     private func loadStart() async {
         guard answers == nil else { return }
-        if let draft = WorksheetDrafts.read(userId: userId, assignmentId: assignment.id) {
-            answers = draft
-        } else if let sid = assignment.my_submission?.id {
-            if let handed = await SchoolAssignments.handedInAnswers(submissionId: sid) {
+        let draft = WorksheetDrafts.read(userId: userId, assignmentId: assignment.id)
+        switch WorksheetDrafts.startingPoint(draft: draft, submission: assignment.my_submission) {
+        case .draft:
+            answers = draft?.answers ?? [:]
+        case .handedIn:
+            if let sid = assignment.my_submission?.id, let handed = await SchoolAssignments.handedInAnswers(submissionId: sid) {
                 answers = handed
             } else {
                 loadFailed = true
             }
-        } else {
+        case .empty:
             answers = [:]
         }
+    }
+
+    /// After the pages sheet has gone: confirm here first if that would
+    /// replace an unsaved book, else make the pages.
+    private func afterPagesSheet() {
+        guard let pick = pickedPages else { return }
+        pickedPages = nil
+        if let open = BookDraftStore.shared.book, MyAssignmentsSection.hasWork(open), open.id != pick.book?.id {
+            confirmPages = pick
+        } else {
+            commitPages(pick.book)
+        }
+    }
+
+    private func commitPages(_ book: Book?) {
+        speaker.stop()
+        onMakePages(pageTexts, book)
+        dismiss()
     }
 
     private func handIn() async {
@@ -278,6 +330,9 @@ struct WorksheetFillView: View {
             error = code
         } else {
             handedIn = true
+            changedSinceHandIn = false
+            // Handed in: the draft has done its job (the hand-in is the copy now).
+            WorksheetDrafts.remove(userId: userId, assignmentId: assignment.id)
             onHandedIn()
         }
     }

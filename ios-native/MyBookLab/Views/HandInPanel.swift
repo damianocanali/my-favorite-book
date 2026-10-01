@@ -38,7 +38,7 @@ enum HandInCopy {
         case "answer_too_long":
             AppText("school.student.hand_in.errors.answer_too_long", defaultValue: "One of your answers is too long.")
         case "wrong_kind":
-            AppText("school.student.hand_in.errors.wrong_kind", defaultValue: "This assignment changed. Ask your teacher.")
+            AppText("school.student.hand_in.errors.wrong_kind", defaultValue: "This is a worksheet — update the app to fill it in.")
         case APIClient.sessionExpiredCode:
             APIError.sessionExpiredText
         default:

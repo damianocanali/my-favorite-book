@@ -111,8 +111,34 @@ describe('the iPad flows treat a worksheet as a worksheet', () => {
     expect(readFileSync('src/stores/useClassBadgeStore.js', 'utf8')).toContain('hasWorksheetDraft(userId, id)')
   })
 
+  it('review round 1: open-draft pages, draft pruning, confirm inside the fill-in view, a11y, UTF-16 limit, class language', () => {
+    // I1: pages go into the book open in the editor when it is the one picked.
+    expect(model).toMatch(/static func base\(open: Book\?, picked: Book\) -> Book \{\n\s+if let open, open\.id == picked\.id \{ return open \}/)
+    expect(section).toContain('WorksheetPages.append(texts, to: WorksheetPages.base(open: draft.book, picked: book))')
+    // I3: deleted after a hand-in, pruned on every list load.
+    expect(fill).toContain('WorksheetDrafts.remove(userId: userId, assignmentId: assignment.id)')
+    expect(section).toContain('WorksheetDrafts.prune(userId: auth.user?.id.uuidString, keeping: fresh)')
+    expect(model).toContain('let keep = Set(assignments.filter { $0.status == "published" }.map(\\.id))')
+    // I4: the replace-draft question is asked on the fill-in view, after the sheet is gone.
+    expect(fill).toContain('.sheet(isPresented: $showPages, onDismiss: afterPagesSheet)')
+    expect(fill).toContain('MyAssignmentsSection.hasWork(open), open.id != pick.book?.id')
+    expect(section).not.toContain('pendingPages')
+    // I5: each answer box is labelled with its prompt.
+    expect(fill).toContain('.accessibilityLabel(Text(verbatim: prompt))')
+    // UTF-16 limit with a per-box message; class language; Dynamic Type.
+    expect(fill).toContain('text = TeacherStickers.truncated(text, max: max)')
+    expect(fill).toContain('WorksheetCopy.studentBoxFull')
+    expect(fill).toContain('speaker.toggle(text, language: promptLanguage)')
+    expect(fill).not.toMatch(/\.font\(\.system\(size:/)
+    // Hand in follows past-due-no-late and waits for a change.
+    expect(fill).toContain('assignment.canSubmit && !(assignment.past_due == true && assignment.allow_late == false)')
+    expect(fill).toContain('changedSinceHandIn = false')
+    // A newer hand-in wins over an older device draft.
+    expect(model).toMatch(/submitted > draft\.updatedAt \{\n\s+return \.handedIn/)
+  })
+
   it('read-aloud per prompt, device autosave, hand-in of the cleaned answers', () => {
-    expect(fill).toContain('speaker.toggle(text)')
+    expect(fill).toContain('speaker.toggle(text, language: promptLanguage)')
     expect(fill).toContain('WorksheetDrafts.write(next, userId: userId, assignmentId: assignment.id)')
     expect(fill).toContain('SchoolAssignments.handInWorksheet(\n            assignmentId: assignment.id, answers: WorksheetLayout.answersForSubmit(definition, answers))')
   })

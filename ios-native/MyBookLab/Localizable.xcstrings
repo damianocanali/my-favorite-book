@@ -17818,13 +17818,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This assignment changed. Ask your teacher."
+            "value": "This is a worksheet — update the app to fill it in."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Questo compito è cambiato. Chiedi all’insegnante."
+            "value": "Questa è una scheda — aggiorna l’app per completarla."
           }
         }
       }
@@ -17876,6 +17876,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "La scheda si può cambiare solo finché il compito è una bozza."
+          }
+        }
+      }
+    },
+    "school.worksheet.student.box_full": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This box is full."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questo riquadro è pieno."
           }
         }
       }

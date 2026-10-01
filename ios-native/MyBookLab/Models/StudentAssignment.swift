@@ -36,6 +36,9 @@ struct StudentAssignment: Decodable, Identifiable, Hashable, Sendable {
     /// reads as a book. A worksheet carries its template and prompts.
     var kind: String? = nil
     var worksheet: WorksheetDefinition? = nil
+    /// The class's language ("en" | "it"): a worksheet's prompts are the
+    /// teacher's text for the class, so they are read aloud in it.
+    var class_locale: String? = nil
 
     /// A worksheet opens its fill-in view instead of the book editor.
     var isWorksheet: Bool { kind == "worksheet" && worksheet != nil }

@@ -129,4 +129,5 @@ enum WorksheetCopy {
     static var studentMakePagesNew: LocalizedStringResource { AppText("school.worksheet.student.make_pages_new", defaultValue: "Start a new book") }
     static var studentMakePagesAppend: LocalizedStringResource { AppText("school.worksheet.student.make_pages_append", defaultValue: "Add to one of my books") }
     static var studentMakePagesFull: LocalizedStringResource { AppText("school.worksheet.student.make_pages_full", defaultValue: "This book is full.") }
+    static var studentBoxFull: LocalizedStringResource { AppText("school.worksheet.student.box_full", defaultValue: "This box is full.") }
 }

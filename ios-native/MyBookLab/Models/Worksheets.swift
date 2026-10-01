@@ -225,6 +225,14 @@ enum WorksheetPages {
         return result
     }
 
+    /// The book pages are added to: the one open in the editor when it is
+    /// the one picked (its unsaved edits must never be lost), else the
+    /// shelf copy (web: pagesBase).
+    static func base(open: Book?, picked: Book) -> Book {
+        if let open, open.id == picked.id { return open }
+        return picked
+    }
+
     /// `book` with `texts` added as new pages, numbered on, never past the
     /// page limit.
     static func append(_ texts: [String], to book: Book) -> Book {
@@ -242,24 +250,61 @@ enum WorksheetPages {
 // MARK: - On-device draft (no server drafts in v1)
 
 /// A child's answers, autosaved on this iPad per child and assignment (a
-/// shared class iPad never shows one child's answers to the next). Same
-/// idea as the web's localStorage draft; the two never meet.
+/// shared class iPad never shows one child's answers to the next). Kept
+/// across sign-out (a child picks up where they left off), but never past
+/// their assignment: deleted after a successful hand-in, and pruned on
+/// every assignments load for assignments no longer listed or closed.
+/// Same rules as the web's localStorage drafts; the two never meet.
 enum WorksheetDrafts {
+    struct Draft: Codable, Equatable {
+        var answers: [String: String]
+        var updatedAt: Date
+    }
+
+    private static func prefix(_ userId: String) -> String { "mbl.worksheetDraft.\(userId)." }
     private static func key(_ userId: String, _ assignmentId: String) -> String {
         "mbl.worksheetDraft.\(userId).\(assignmentId)"
     }
 
-    static func read(userId: String?, assignmentId: String) -> [String: String]? {
-        guard let userId, let data = UserDefaults.standard.data(forKey: key(userId, assignmentId)) else { return nil }
-        return try? JSONDecoder().decode([String: String].self, from: data)
+    static func read(userId: String?, assignmentId: String, defaults: UserDefaults = .standard) -> Draft? {
+        guard let userId, let data = defaults.data(forKey: key(userId, assignmentId)) else { return nil }
+        return try? JSONDecoder().decode(Draft.self, from: data)
     }
 
-    static func write(_ answers: [String: String], userId: String?, assignmentId: String) {
-        guard let userId, let data = try? JSONEncoder().encode(answers) else { return }
-        UserDefaults.standard.set(data, forKey: key(userId, assignmentId))
+    static func write(_ answers: [String: String], userId: String?, assignmentId: String, defaults: UserDefaults = .standard) {
+        guard let userId, let data = try? JSONEncoder().encode(Draft(answers: answers, updatedAt: Date())) else { return }
+        defaults.set(data, forKey: key(userId, assignmentId))
+    }
+
+    static func remove(userId: String?, assignmentId: String, defaults: UserDefaults = .standard) {
+        guard let userId else { return }
+        defaults.removeObject(forKey: key(userId, assignmentId))
+    }
+
+    /// Deletes this child's drafts for every assignment that isn't listed
+    /// and open (published) any more.
+    static func prune(userId: String?, keeping assignments: [StudentAssignment], defaults: UserDefaults = .standard) {
+        guard let userId else { return }
+        let keep = Set(assignments.filter { $0.status == "published" }.map(\.id))
+        let p = prefix(userId)
+        for k in defaults.dictionaryRepresentation().keys where k.hasPrefix(p) {
+            if !keep.contains(String(k.dropFirst(p.count))) { defaults.removeObject(forKey: k) }
+        }
     }
 
     static func hasDraft(userId: String?, assignmentId: String) -> Bool {
-        WorksheetLayout.hasAnswers(read(userId: userId, assignmentId: assignmentId) ?? [:])
+        WorksheetLayout.hasAnswers(read(userId: userId, assignmentId: assignmentId)?.answers ?? [:])
+    }
+
+    enum Start: Equatable { case draft, handedIn, empty }
+
+    /// This iPad's draft, unless the hand-in is newer (handed in again on
+    /// another device since): then the hand-in (web: startingPoint).
+    static func startingPoint(draft: Draft?, submission: StudentAssignment.MySubmission?) -> Start {
+        if let draft, let submitted = StudentAssignment.parseDate(submission?.submitted_at), submitted > draft.updatedAt {
+            return .handedIn
+        }
+        if draft != nil { return .draft }
+        return submission != nil ? .handedIn : .empty
     }
 }
