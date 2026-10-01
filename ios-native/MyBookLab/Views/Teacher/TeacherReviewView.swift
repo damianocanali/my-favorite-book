@@ -82,6 +82,23 @@ struct TeacherReviewView: View {
         if let listError {
             TeacherErrorBlock(message: TeacherCopy.error(listError)) { Task { await loadList() } }
         } else if let rows {
+            if let a = assignment, a.kind == "worksheet", let ws = a.worksheet {
+                // Blank sheets for a paper day, one per child with their name.
+                HStack {
+                    Spacer()
+                    Button {
+                        let names = rows.compactMap(\.display_name).filter { !$0.isEmpty }
+                        WorksheetPrinter.print(
+                            WorksheetPDF.make(title: a.title, worksheet: ws,
+                                              sheets: (names.isEmpty ? [""] : names).map { .init(studentName: $0, answers: nil) }),
+                            jobName: a.title)
+                    } label: {
+                        Label { Text(WorksheetCopy.teacherPrintBlank) } icon: { Image(systemName: "printer") }
+                            .font(.caption.weight(.semibold))
+                    }
+                    .tint(.cyan)
+                }
+            }
             if rows.isEmpty {
                 Text(TeacherCopy.reviewEmpty).foregroundStyle(.white.opacity(0.7))
                     .frame(maxWidth: .infinity).padding(.vertical, 24)
@@ -147,7 +164,26 @@ struct TeacherReviewView: View {
                 if let current { Task { await loadDetail(current) } }
             }
         } else if let detail {
-            if let book = detail.submission.book_snapshot {
+            if detail.submission.kind == "worksheet", let ws = detail.submission.worksheet {
+                // A worksheet hand-in (migration 023): the boxes, as the
+                // child saw them, with their answers; then the same grade
+                // and feedback panels as a book.
+                HStack {
+                    Spacer()
+                    Button {
+                        WorksheetPrinter.print(
+                            WorksheetPDF.make(title: title ?? detail.submission.book_title ?? "", worksheet: ws.definition,
+                                              sheets: [.init(studentName: detail.submission.display_name ?? "",
+                                                             answers: detail.submission.answers ?? [:])]),
+                            jobName: title ?? "")
+                    } label: {
+                        Label { Text(WorksheetCopy.teacherPrintFilled) } icon: { Image(systemName: "printer") }
+                            .font(.caption.weight(.semibold))
+                    }
+                    .tint(.cyan)
+                }
+                TeacherWorksheetAnswers(worksheet: ws, answers: detail.submission.answers ?? [:])
+            } else if let book = detail.submission.book_snapshot {
                 NavigationLink {
                     BookDetailView(book: book, readOnly: true)
                 } label: {

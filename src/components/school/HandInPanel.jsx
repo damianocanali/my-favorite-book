@@ -213,7 +213,8 @@ export default function HandInPanel({ book }) {
 
       {showPicker && (
         <AssignmentPickerModal
-          assignments={assignments.filter(canSubmitTo)}
+          // A book can't go to a worksheet assignment (migration 023).
+          assignments={assignments.filter((a) => canSubmitTo(a) && a.kind !== 'worksheet')}
           onPick={(id) => { setShowPicker(false); submitTo(id) }}
           onClose={() => setShowPicker(false)}
         />

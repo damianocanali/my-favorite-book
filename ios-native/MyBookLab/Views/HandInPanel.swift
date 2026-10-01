@@ -30,6 +30,15 @@ enum HandInCopy {
             AppText("school.student.hand_in.errors.assignment_not_found", defaultValue: "We can't find that assignment. Ask your teacher.")
         case "book_not_found":
             AppText("school.student.hand_in.errors.book_not_found", defaultValue: "We can't find that book. Try again.")
+        // Worksheet hand-ins (migration 023).
+        case "empty_worksheet":
+            AppText("school.student.hand_in.errors.empty_worksheet", defaultValue: "Write something in at least one box.")
+        case "unkind":
+            AppText("school.student.hand_in.errors.unkind", defaultValue: "Let’s keep it kind — try different words.")
+        case "answer_too_long":
+            AppText("school.student.hand_in.errors.answer_too_long", defaultValue: "One of your answers is too long.")
+        case "wrong_kind":
+            AppText("school.student.hand_in.errors.wrong_kind", defaultValue: "This assignment changed. Ask your teacher.")
         case APIClient.sessionExpiredCode:
             APIError.sessionExpiredText
         default:
@@ -87,7 +96,8 @@ struct HandInPanel: View {
         }
         .sheet(isPresented: $showPicker) {
             AssignmentPickerSheet(
-                assignments: (assignments ?? []).filter(\.canSubmit),
+                // A book can't go to a worksheet assignment (migration 023).
+                assignments: (assignments ?? []).filter { $0.canSubmit && !$0.isWorksheet },
                 onPick: { id in
                     showPicker = false
                     Task { await submit(to: id) }

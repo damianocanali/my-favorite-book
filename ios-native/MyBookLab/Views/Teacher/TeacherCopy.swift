@@ -415,6 +415,7 @@ enum TeacherCopy {
         case "class_archived": AppText("school.teacher.errors.class_archived", defaultValue: "This class is archived. Restore it to make changes.")
         case "version_changed": AppText("school.teacher.errors.version_changed", defaultValue: "They handed in a new version. Have a look at it first.")
         case "cannot_return": AppText("school.teacher.errors.cannot_return", defaultValue: "This assignment is closed or past its due date, so it can't be sent back.")
+        case "template_locked": AppText("school.teacher.errors.template_locked", defaultValue: "The worksheet can only change while the assignment is a draft.")
         case APIClient.sessionExpiredCode: APIError.sessionExpiredText
         default: AppText("school.teacher.errors.generic", defaultValue: "Something went wrong. Try again.")
         }

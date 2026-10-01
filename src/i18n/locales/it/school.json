@@ -760,8 +760,7 @@
       "print_blank": "Stampa vuota",
       "print_filled": "Stampa",
       "answers_heading": "Risposte",
-      "no_answer": "(vuoto)",
-      "template_locked": "La scheda si può cambiare solo finché il compito è una bozza."
+      "no_answer": "(vuoto)"
     },
     "student": {
       "start": "Inizia la scheda",
@@ -782,8 +781,7 @@
       "make_pages_hint": "Le tue risposte diventano pagine su cui continuare a scrivere.",
       "make_pages_new": "Inizia un nuovo libro",
       "make_pages_append": "Aggiungi a un mio libro",
-      "make_pages_full": "Questo libro è pieno.",
-      "print": "Stampa"
+      "make_pages_full": "Questo libro è pieno."
     }
   }
 }

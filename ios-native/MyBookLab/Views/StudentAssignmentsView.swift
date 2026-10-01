@@ -111,6 +111,18 @@ struct MyAssignmentsSection: View {
         let assignment: StudentAssignment
         var nudge: StudentNudge?
     }
+    /// The worksheet open full screen (WorksheetFillView), and a counter
+    /// bumped when it closes so "started" re-reads the device drafts.
+    @State private var worksheetFor: StudentAssignment?
+    @State private var draftsTick = 0
+    /// "Turn into book pages" waiting on "replace your unsaved book?".
+    @State private var pendingPages: PendingPages?
+
+    private struct PendingPages {
+        let texts: [String]
+        let book: Book?
+        let title: String
+    }
     /// The teacher's unread nudge (api/school/nudges.js), shown first.
     @State private var nudge: StudentNudge?
     /// Dismissed with "Got it" on this device: a poll racing the PATCH
@@ -222,6 +234,34 @@ struct MyAssignmentsSection: View {
                 )
             }
         }
+        .fullScreenCover(item: $worksheetFor, onDismiss: { draftsTick += 1 }) { a in
+            WorksheetFillView(
+                assignment: a,
+                onHandedIn: {
+                    Task {
+                        if let fresh = await SchoolAssignments.list() { assignments = fresh }
+                    }
+                },
+                onMakePages: { texts, book in makePages(texts, into: book, title: a.title) }
+            )
+        }
+        .confirmationDialog(
+            Text(AssignmentCopy.replaceDraftTitle),
+            isPresented: Binding(
+                get: { pendingPages != nil },
+                set: { if !$0 { pendingPages = nil } }
+            ),
+            titleVisibility: .visible,
+            presenting: pendingPages
+        ) { pending in
+            Button(role: .destructive) {
+                pendingPages = nil
+                makePagesNow(pending.texts, into: pending.book, title: pending.title)
+            } label: {
+                Text(AssignmentCopy.replaceDraftConfirm)
+            }
+            Button("Cancel", role: .cancel) { pendingPages = nil }
+        }
         .confirmationDialog(
             Text(AssignmentCopy.replaceDraftTitle),
             // Any dismissal (a button, a tap outside, the system) clears the
@@ -281,7 +321,12 @@ struct MyAssignmentsSection: View {
     /// Started = a saved book is tagged for it, or the draft open in the
     /// editor is this assignment's (not saved to the shelf yet).
     private func isStarted(_ assignment: StudentAssignment) -> Bool {
-        taggedBook(for: assignment) != nil || BookDraftStore.shared.book?.assignmentId == assignment.id
+        if assignment.isWorksheet {
+            // Answers saved on this iPad (re-read when the worksheet closes).
+            _ = draftsTick
+            return WorksheetDrafts.hasDraft(userId: auth.user?.id.uuidString, assignmentId: assignment.id)
+        }
+        return taggedBook(for: assignment) != nil || BookDraftStore.shared.book?.assignmentId == assignment.id
     }
 
     private func markOpened(_ assignment: StudentAssignment) {
@@ -307,6 +352,11 @@ struct MyAssignmentsSection: View {
     /// Returns false when it is waiting on the "replace?" confirmation.
     @discardableResult
     private func startOrContinue(_ assignment: StudentAssignment, nudge: StudentNudge? = nil) -> Bool {
+        // A worksheet opens its fill-in view and never touches the book draft.
+        if assignment.isWorksheet {
+            worksheetFor = assignment
+            return true
+        }
         let draft = BookDraftStore.shared
         if draft.book?.assignmentId == assignment.id {
             router.selectedTab = .create
@@ -329,6 +379,32 @@ struct MyAssignmentsSection: View {
             draft.book?.title = assignment.title
             draft.book?.assignmentId = assignment.id
             draft.book?.assignmentPrompt = assignment.prompt
+        }
+        router.selectedTab = .create
+    }
+
+    /// "Turn into book pages": a new book titled after the worksheet, or
+    /// the pages added to one of theirs, opened in the page editor.
+    /// Untagged: a book made from a worksheet is the child's own, not a
+    /// hand-in. Never silently replaces a draft with work in it.
+    private func makePages(_ texts: [String], into book: Book?, title: String) {
+        if let open = BookDraftStore.shared.book, Self.hasWork(open), open.id != book?.id {
+            pendingPages = PendingPages(texts: texts, book: book, title: title)
+            return
+        }
+        makePagesNow(texts, into: book, title: title)
+    }
+
+    private func makePagesNow(_ texts: [String], into book: Book?, title: String) {
+        let draft = BookDraftStore.shared
+        if let book {
+            draft.edit(WorksheetPages.append(texts, to: book))
+        } else {
+            draft.begin()
+            guard var fresh = draft.book else { return }
+            fresh.title = title
+            fresh.authorName = auth.displayName ?? ""
+            draft.edit(WorksheetPages.append(texts, to: fresh))
         }
         router.selectedTab = .create
     }
@@ -362,6 +438,7 @@ struct MyAssignmentsSection: View {
 
     private func nudgeActionLabel(_ n: StudentNudge) -> LocalizedStringResource {
         if let a = nudgeAssignment(n) {
+            if a.isWorksheet { return isStarted(a) ? WorksheetCopy.studentContinue : WorksheetCopy.studentStart }
             return isStarted(a) ? AssignmentCopy.continueWriting : AssignmentCopy.startWriting
         }
         if let open = BookDraftStore.shared.book, Self.hasWork(open) { return NudgeCopy.keepWriting }
@@ -547,15 +624,20 @@ private struct AssignmentCard: View {
                 // The one big thing to do on a card.
                 SparkleButton(action: onWrite, size: .regular) {
                     Label {
-                        Text(started ? AssignmentCopy.continueWriting : AssignmentCopy.startWriting)
+                        if assignment.isWorksheet {
+                            Text(started ? WorksheetCopy.studentContinue : WorksheetCopy.studentStart)
+                        } else {
+                            Text(started ? AssignmentCopy.continueWriting : AssignmentCopy.startWriting)
+                        }
                     } icon: {
-                        Image(systemName: "pencil.and.scribble")
+                        Image(systemName: assignment.isWorksheet ? "list.bullet.clipboard" : "pencil.and.scribble")
                     }
                 }
                 .fixedSize()
             case .handedIn:
-                let label = assignment.canHandInAgain ? AssignmentCopy.handInAgain : AssignmentCopy.openHandedIn
-                if let book {
+                let label = assignment.canHandInAgain ? AssignmentCopy.handInAgain
+                    : assignment.isWorksheet ? WorksheetCopy.studentOpen : AssignmentCopy.openHandedIn
+                if let book, !assignment.isWorksheet {
                     NavigationLink {
                         BookDetailView(book: book)
                     } label: {

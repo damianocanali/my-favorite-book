@@ -760,8 +760,7 @@
       "print_blank": "Print blank",
       "print_filled": "Print",
       "answers_heading": "Answers",
-      "no_answer": "(empty)",
-      "template_locked": "The worksheet can only change while the assignment is a draft."
+      "no_answer": "(empty)"
     },
     "student": {
       "start": "Start worksheet",
@@ -782,8 +781,7 @@
       "make_pages_hint": "Your answers become pages you can keep writing.",
       "make_pages_new": "Start a new book",
       "make_pages_append": "Add to one of my books",
-      "make_pages_full": "This book is full.",
-      "print": "Print"
+      "make_pages_full": "This book is full."
     }
   }
 }

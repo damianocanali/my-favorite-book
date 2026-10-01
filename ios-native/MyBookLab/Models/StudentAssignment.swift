@@ -32,6 +32,13 @@ struct StudentAssignment: Decodable, Identifiable, Hashable, Sendable {
     /// hand-in re-checks against), so it is never recomputed here.
     let past_due: Bool?
     var my_submission: MySubmission?
+    /// "book" or "worksheet" (migration 023); nil from an older server
+    /// reads as a book. A worksheet carries its template and prompts.
+    var kind: String? = nil
+    var worksheet: WorksheetDefinition? = nil
+
+    /// A worksheet opens its fill-in view instead of the book editor.
+    var isWorksheet: Bool { kind == "worksheet" && worksheet != nil }
 
     enum CardStatus { case notStarted, handedIn, closed }
 
@@ -187,4 +194,8 @@ struct StudentSubmission: Decodable, Sendable {
     let grade: SubmissionGrade?
     /// Sent back to revise, not handed in again yet.
     let returned: Bool?
+    /// A worksheet hand-in's answers and the prompts they answered, so
+    /// "Try again" on another iPad starts from what was handed in.
+    var answers: [String: String]? = nil
+    var worksheet: WorksheetSnapshot? = nil
 }
