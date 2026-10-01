@@ -44,6 +44,9 @@ struct TeacherWorksheetPicker: View {
                     TextField(text: $word) { Text(WorksheetCopy.teacherAcrosticWordLabel) }
                         .textInputAutocapitalization(.characters)
                         .autocorrectionDisabled()
+                        // Same rule as the API's: locked once not a draft
+                        // (canChangeTemplate is that same condition).
+                        .disabled(!canChangeTemplate)
                         .onChange(of: word) { _, v in
                             let cut = String(v.filter { !$0.isWhitespace }.prefix(WorksheetTemplates.acrosticWordMax))
                             if cut != v { word = cut }
@@ -51,7 +54,7 @@ struct TeacherWorksheetPicker: View {
                 } header: {
                     Text(WorksheetCopy.teacherAcrosticWordLabel)
                 } footer: {
-                    Text(WorksheetCopy.teacherAcrosticWordHint)
+                    Text(canChangeTemplate ? WorksheetCopy.teacherAcrosticWordHint : WorksheetCopy.teacherAcrosticWordLocked)
                 }
             }
         } else {

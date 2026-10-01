@@ -140,8 +140,7 @@ struct WorksheetFillView: View {
         case .box(let id, let prompt, let size):
             card {
                 if !prompt.isEmpty { promptRow(prompt) }
-                editor(id: id, minHeight: Self.height(size))
-                    .accessibilityLabel(Text(verbatim: prompt))
+                editor(id: id, minHeight: Self.height(size), label: Text(verbatim: prompt))
             }
         case .word(let prompt, let fixed):
             card {
@@ -173,8 +172,7 @@ struct WorksheetFillView: View {
                             .foregroundStyle(.cyan)
                             .frame(minWidth: 40)
                             .accessibilityHidden(true)
-                        editor(id: l.id, minHeight: 60)
-                            .accessibilityLabel(Text(WorksheetCopy.studentLineFor(l.letter)))
+                        editor(id: l.id, minHeight: 60, label: Text(WorksheetCopy.studentLineFor(l.letter)))
                     }
                 }
             }
@@ -188,9 +186,12 @@ struct WorksheetFillView: View {
             .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 20))
     }
 
-    private func editor(id: String, minHeight: CGFloat) -> some View {
+    /// `label`: the box's accessibility label, on the text field itself so
+    /// the "box is full" note below keeps its own.
+    private func editor(id: String, minHeight: CGFloat, label: Text) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             TextField(text: binding(id, max: WorksheetTemplates.answerMax), axis: .vertical) { EmptyView() }
+                .accessibilityLabel(label)
                 .font(.system(.title2, design: .rounded))
                 .foregroundStyle(.white)
                 .lineLimit(2...20)

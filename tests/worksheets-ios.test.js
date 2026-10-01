@@ -124,7 +124,8 @@ describe('the iPad flows treat a worksheet as a worksheet', () => {
     expect(fill).toContain('MyAssignmentsSection.hasWork(open), open.id != pick.book?.id')
     expect(section).not.toContain('pendingPages')
     // I5: each answer box is labelled with its prompt.
-    expect(fill).toContain('.accessibilityLabel(Text(verbatim: prompt))')
+    expect(fill).toContain('editor(id: id, minHeight: Self.height(size), label: Text(verbatim: prompt))')
+    expect(fill).toMatch(/axis: .vertical\) \{ EmptyView\(\) \}\n\s+\.accessibilityLabel\(label\)/)
     // UTF-16 limit with a per-box message; class language; Dynamic Type.
     expect(fill).toContain('text = TeacherStickers.truncated(text, max: max)')
     expect(fill).toContain('WorksheetCopy.studentBoxFull')
@@ -135,6 +136,16 @@ describe('the iPad flows treat a worksheet as a worksheet', () => {
     expect(fill).toContain('changedSinceHandIn = false')
     // A newer hand-in wins over an older device draft.
     expect(model).toMatch(/submitted > draft\.updatedAt \{\n\s+return \.handedIn/)
+  })
+
+  it('the acrostic word field locks once the assignment isn\'t a draft (web too)', () => {
+    const picker = readFileSync('ios-native/MyBookLab/Views/Teacher/TeacherWorksheetViews.swift', 'utf8')
+    expect(picker).toContain('.disabled(!canChangeTemplate)')
+    expect(picker).toContain('canChangeTemplate ? WorksheetCopy.teacherAcrosticWordHint : WorksheetCopy.teacherAcrosticWordLocked')
+    const web = readFileSync('src/components/school/WorksheetPicker.jsx', 'utf8')
+    expect(web).toContain('disabled={!canChangeTemplate}')
+    expect(web).toContain("'school:worksheet.teacher.acrostic_word_locked'")
+    expect(readFileSync('src/components/school/AssignmentForm.jsx', 'utf8')).toContain("canChangeTemplate={!isEdit || assignment.status === 'draft'}")
   })
 
   it('read-aloud per prompt, device autosave, hand-in of the cleaned answers', () => {

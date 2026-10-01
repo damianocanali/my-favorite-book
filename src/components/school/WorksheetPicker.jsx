@@ -107,10 +107,15 @@ export default function WorksheetPicker({ value, onChange, canChangeTemplate = t
             type="text"
             value={value.word ?? ''}
             maxLength={ACROSTIC_WORD_MAX}
+            // Same rule as the API's: the word locks once the assignment
+            // isn't a draft (canChangeTemplate is that same condition).
+            disabled={!canChangeTemplate}
             onChange={(e) => onChange({ ...value, word: e.target.value })}
-            className="w-full px-3 py-2 glass border border-white/15 rounded-xl text-galaxy-text focus:border-galaxy-primary focus:outline-none font-body uppercase tracking-widest"
+            className="w-full px-3 py-2 glass border border-white/15 rounded-xl text-galaxy-text focus:border-galaxy-primary focus:outline-none font-body uppercase tracking-widest disabled:opacity-60"
           />
-          <p className="text-galaxy-text-muted text-xs font-body">{t('school:worksheet.teacher.acrostic_word_hint')}</p>
+          <p className="text-galaxy-text-muted text-xs font-body">
+            {t(canChangeTemplate ? 'school:worksheet.teacher.acrostic_word_hint' : 'school:worksheet.teacher.acrostic_word_locked')}
+          </p>
         </div>
       )}
     </div>

@@ -108,6 +108,7 @@ enum WorksheetCopy {
     static var teacherPrintFilled: LocalizedStringResource { AppText("school.worksheet.teacher.print_filled", defaultValue: "Print") }
     static var teacherAnswersHeading: LocalizedStringResource { AppText("school.worksheet.teacher.answers_heading", defaultValue: "Answers") }
     static var teacherNoAnswer: LocalizedStringResource { AppText("school.worksheet.teacher.no_answer", defaultValue: "(empty)") }
+    static var teacherAcrosticWordLocked: LocalizedStringResource { AppText("school.worksheet.teacher.acrostic_word_locked", defaultValue: "Locked after publishing: children may already be writing to this word.") }
     // MARK: student
 
     static var studentStart: LocalizedStringResource { AppText("school.worksheet.student.start", defaultValue: "Start worksheet") }

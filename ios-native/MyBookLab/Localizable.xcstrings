@@ -17896,6 +17896,23 @@
           }
         }
       }
+    },
+    "school.worksheet.teacher.acrostic_word_locked": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Locked after publishing: children may already be writing to this word."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bloccata dopo la pubblicazione: la classe potrebbe già scrivere su questa parola."
+          }
+        }
+      }
     }
   },
   "version": "1.0"

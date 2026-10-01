@@ -760,7 +760,8 @@
       "print_blank": "Stampa vuota",
       "print_filled": "Stampa",
       "answers_heading": "Risposte",
-      "no_answer": "(vuoto)"
+      "no_answer": "(vuoto)",
+      "acrostic_word_locked": "Bloccata dopo la pubblicazione: la classe potrebbe già scrivere su questa parola."
     },
     "student": {
       "start": "Inizia la scheda",

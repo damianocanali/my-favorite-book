@@ -760,7 +760,8 @@
       "print_blank": "Print blank",
       "print_filled": "Print",
       "answers_heading": "Answers",
-      "no_answer": "(empty)"
+      "no_answer": "(empty)",
+      "acrostic_word_locked": "Locked after publishing: children may already be writing to this word."
     },
     "student": {
       "start": "Start worksheet",
