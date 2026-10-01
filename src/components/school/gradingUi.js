@@ -3,6 +3,7 @@
 // tips). i18n-free and DOM-free like assignmentUi.js, so they're unit-tested
 // directly; the rules themselves come from lib/school/grading.js, the same
 // module the API validates with.
+import { isOpenAssignment } from '../../../lib/school/nudges.js'
 import { LEVELS, SKILLS, TIP_SKILLS, TIP_KEYS, TIPS_MAX, TIP_TEXT_MAX, toCsv, csvFilename } from '../../../lib/school/grading.js'
 
 export { LEVELS, SKILLS, TIP_SKILLS, TIPS_MAX, TIP_TEXT_MAX, csvFilename }
@@ -34,10 +35,12 @@ export function mergeGrade(grades, grade) {
 }
 
 /// What the review row says next to the level: 'sent_back' while waiting on
-/// the child, 'new_version' once they handed in again since the last grade.
-export function gradeRowFlag(row) {
+/// the child — only while the assignment is still open for hand-ins (else
+/// nobody is waiting on anything) — and 'new_version' once they handed in
+/// again since the last grade.
+export function gradeRowFlag(row, assignment, now = Date.now()) {
   if (!row || row.status !== 'handed_in') return null
-  if (row.returned) return 'sent_back'
+  if (row.returned) return isOpenAssignment(assignment, now) ? 'sent_back' : null
   if (row.graded_version != null && row.version > row.graded_version) return 'new_version'
   return null
 }

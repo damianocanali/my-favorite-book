@@ -3,7 +3,7 @@
 import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { tipLabel, mergeGrade, gradeRowFlag, gradeProblem, gradesCsv, LEVEL_EMOJI, LEVELS } from '../src/components/school/gradingUi.js'
-import { hasUnseenFeedback, isSentBack } from '../src/components/school/assignmentStudentUi.js'
+import { hasUnseenFeedback, isSentBack, canTryAgain } from '../src/components/school/assignmentStudentUi.js'
 
 const en = JSON.parse(readFileSync('src/i18n/locales/en/school.json', 'utf8'))
 const itL = JSON.parse(readFileSync('src/i18n/locales/it/school.json', 'utf8'))
@@ -29,8 +29,13 @@ describe('gradingUi', () => {
     expect(mergeGrade(undefined, { version: 1 })).toEqual([{ version: 1 }])
   })
 
-  it('gradeRowFlag: sent back wins, then a newer version than the graded one', () => {
-    expect(gradeRowFlag({ status: 'handed_in', returned: true, version: 1, graded_version: 1 })).toBe('sent_back')
+  it('gradeRowFlag: sent back (only while still open) wins, then a newer version than the graded one', () => {
+    const open = { status: 'published', due_at: null, allow_late: true }
+    const sentBack = { status: 'handed_in', returned: true, version: 1, graded_version: 1 }
+    expect(gradeRowFlag(sentBack, open)).toBe('sent_back')
+    expect(gradeRowFlag(sentBack, { ...open, status: 'closed' })).toBeNull()
+    expect(gradeRowFlag(sentBack, { status: 'published', due_at: '2026-01-01T00:00:00.000Z', allow_late: false }, Date.parse('2026-02-01'))).toBeNull()
+    expect(gradeRowFlag(sentBack, { status: 'published', due_at: '2026-01-01T00:00:00.000Z', allow_late: true }, Date.parse('2026-02-01'))).toBe('sent_back')
     expect(gradeRowFlag({ status: 'handed_in', returned: false, version: 2, graded_version: 1 })).toBe('new_version')
     expect(gradeRowFlag({ status: 'handed_in', returned: false, version: 2, graded_version: 2 })).toBeNull()
     expect(gradeRowFlag({ status: 'handed_in', version: 1, graded_version: null })).toBeNull()
@@ -64,6 +69,10 @@ describe('assignmentStudentUi grading state', () => {
 
   it('isSentBack only while the child can still hand in again', () => {
     expect(isSentBack(a({ returned: true }))).toBe(true)
+    // Past a due date that refuses late work: no "Try again", just level + tips.
+    expect(isSentBack({ status: 'published', past_due: true, allow_late: false, my_submission: { returned: true } })).toBe(false)
+    expect(isSentBack({ status: 'published', past_due: true, allow_late: true, my_submission: { returned: true } })).toBe(true)
+    expect(canTryAgain({ status: 'published', past_due: true, allow_late: false, my_submission: { id: 's' } })).toBe(false)
     expect(isSentBack(a({ returned: true }, 'closed'))).toBe(false)
     expect(isSentBack(a({ returned: false }))).toBe(false)
     expect(isSentBack(a(null))).toBe(false)

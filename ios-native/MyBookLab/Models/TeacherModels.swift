@@ -363,6 +363,15 @@ struct TeacherReviewList: Decodable, Sendable {
         let title: String
         let status: String?
         let due_at: String?
+        let allow_late: Bool?
+
+        /// Still open for hand-ins: published, and not past a due date that
+        /// refuses late work (same rule as NudgeRules.isOpen and the web).
+        func isOpen(now: Date = Date()) -> Bool {
+            guard status == "published" else { return false }
+            if allow_late == false, let due = TeacherDates.parse(due_at), due < now { return false }
+            return true
+        }
     }
     let assignment: Assignment
     let submissions: [TeacherSubmissionRow]?

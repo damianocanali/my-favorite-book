@@ -22,6 +22,13 @@ enum GradingRules {
     /// UTF-16 units, like the server's JS `.length`.
     static let tipTextMax = 140
 
+    /// Line breaks (any kind) become spaces: a custom tip is one line, and
+    /// the server normalises the same way (lib/school/grading.js cleanTips).
+    static func singleLine(_ s: String) -> String {
+        guard s.contains(where: \.isNewline) else { return s }
+        return s.split(omittingEmptySubsequences: true, whereSeparator: \.isNewline).joined(separator: " ")
+    }
+
     /// A growing plant, then a star: friendly, never a score.
     static func emoji(_ level: String?) -> String {
         switch level {

@@ -13240,18 +13240,18 @@
       }
     },
     "school.teacher.errors.class_archived": {
-      "extractionState": "extracted_with_value",
+      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
-            "state": "new",
-            "value": "This class is archived. Restore it to send nudges."
+            "state": "translated",
+            "value": "This class is archived. Restore it to make changes."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Questa classe è archiviata. Ripristinala per inviare incoraggiamenti."
+            "value": "Questa classe è archiviata. Ripristinala per fare modifiche."
           }
         }
       }
@@ -14157,23 +14157,6 @@
         }
       }
     },
-    "school.grading.teacher.not_graded": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Not graded"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Da valutare"
-          }
-        }
-      }
-    },
     "school.grading.teacher.new_version": {
       "extractionState": "manual",
       "localizations": {
@@ -14310,23 +14293,6 @@
         }
       }
     },
-    "school.grading.student.status_sent_back": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Try again"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Riprova"
-          }
-        }
-      }
-    },
     "school.teacher.errors.version_changed": {
       "extractionState": "manual",
       "localizations": {
@@ -14350,13 +14316,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This assignment is closed, so it can't be sent back."
+            "value": "This assignment is closed or past its due date, so it can't be sent back."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Questo compito è chiuso, quindi non si può rimandare."
+            "value": "Questo compito è chiuso o scaduto, quindi non si può rimandare."
           }
         }
       }

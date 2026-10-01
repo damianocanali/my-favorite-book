@@ -9,7 +9,7 @@ import { useBookshelfStore } from '../../stores/useBookshelfStore'
 import { useAuthStore } from '../../stores/useAuthStore'
 import AssignmentCard from './AssignmentCard'
 import {
-  homeStatus, showsOnHome, sortForHome, startDecision, canHandInAgain,
+  homeStatus, showsOnHome, sortForHome, startDecision, canTryAgain,
   readSeenAssignments, markAssignmentSeen, pruneSeenAssignments,
 } from './assignmentStudentUi'
 import StudentFeedbackModal from './StudentFeedbackModal'
@@ -239,7 +239,7 @@ export default function MyAssignments() {
             onSeen={() => markSeen(feedbackFor.id)}
             onClose={() => setFeedbackFor(null)}
             // Sent back: open their book to revise and hand in again.
-            onTryAgain={canHandInAgain(feedbackFor) ? () => {
+            onTryAgain={canTryAgain(feedbackFor) ? () => {
               const a = feedbackFor
               setFeedbackFor(null)
               startOrContinue(a)

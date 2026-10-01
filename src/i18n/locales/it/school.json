@@ -189,9 +189,9 @@
       "past_due": "Questo compito ha superato la scadenza.",
       "book_too_large": "Questo libro è troppo grande per essere consegnato.",
       "generic": "Qualcosa non ha funzionato. Riprova.",
-      "class_archived": "Questa classe è archiviata. Ripristinala per inviare incoraggiamenti.",
+      "class_archived": "Questa classe è archiviata. Ripristinala per fare modifiche.",
       "version_changed": "Ha consegnato una nuova versione. Guardala prima di valutare.",
-      "cannot_return": "Questo compito è chiuso, quindi non si può rimandare."
+      "cannot_return": "Questo compito è chiuso o scaduto, quindi non si può rimandare."
     },
     "class_page": {
       "back": "Torna alle tue classi",
@@ -614,7 +614,6 @@
       "need_tip": "Aggiungi un consiglio, così sa cosa cambiare.",
       "history": "Valutazioni precedenti",
       "sent_back": "Da rivedere",
-      "not_graded": "Da valutare",
       "new_version": "Nuova versione",
       "levels_over_time": "Livelli nel tempo",
       "no_grades": "Ancora nessuna valutazione.",
@@ -634,8 +633,7 @@
       "tips_heading": "Consigli da provare",
       "sent_back": "L'insegnante te l'ha rimandato con dei consigli. Riprova!",
       "try_again": "Riprova",
-      "listen_tip": "Leggi il consiglio ad alta voce",
-      "status_sent_back": "Riprova"
+      "listen_tip": "Leggi il consiglio ad alta voce"
     }
   }
 }

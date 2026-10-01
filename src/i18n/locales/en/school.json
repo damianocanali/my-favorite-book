@@ -189,9 +189,9 @@
       "past_due": "This assignment is past its due date.",
       "book_too_large": "This book is too big to hand in.",
       "generic": "Something went wrong. Try again.",
-      "class_archived": "This class is archived. Restore it to send nudges.",
+      "class_archived": "This class is archived. Restore it to make changes.",
       "version_changed": "They handed in a new version. Have a look at it first.",
-      "cannot_return": "This assignment is closed, so it can't be sent back."
+      "cannot_return": "This assignment is closed or past its due date, so it can't be sent back."
     },
     "class_page": {
       "back": "Back to your classes",
@@ -614,7 +614,6 @@
       "need_tip": "Add a tip so they know what to change.",
       "history": "Earlier grades",
       "sent_back": "Sent back",
-      "not_graded": "Not graded",
       "new_version": "New version",
       "levels_over_time": "Levels over time",
       "no_grades": "No grades yet.",
@@ -634,8 +633,7 @@
       "tips_heading": "Tips to try",
       "sent_back": "Your teacher sent this back with tips. Try again!",
       "try_again": "Try again",
-      "listen_tip": "Read the tip out loud",
-      "status_sent_back": "Try again"
+      "listen_tip": "Read the tip out loud"
     }
   }
 }

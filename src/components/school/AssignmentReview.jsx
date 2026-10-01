@@ -119,7 +119,7 @@ function FeedbackPanel({ classId, submissionId, feedback, onSent, locale }) {
 // newest level, "Sent back" while waiting on the child, "New version" once
 // they handed in again since the last grade. Not-started rows aren't clickable — there's
 // no book to open yet.
-function StudentRow({ row, onOpen }) {
+function StudentRow({ row, assignment, onOpen }) {
   const { t } = useTranslation()
   const clickable = row.status === 'handed_in'
   const content = (
@@ -139,8 +139,8 @@ function StudentRow({ row, onOpen }) {
           {t('school:teacher.assignments.review.feedback_count', { count: row.feedback_count })}
         </span>
       )}
-      {gradeRowFlag(row) === 'sent_back' && <SentBackChip className="shrink-0" />}
-      {gradeRowFlag(row) === 'new_version' && (
+      {gradeRowFlag(row, assignment) === 'sent_back' && <SentBackChip className="shrink-0" />}
+      {gradeRowFlag(row, assignment) === 'new_version' && (
         <span className="inline-flex px-2 py-0.5 rounded-full border text-xs font-body font-semibold bg-emerald-500/15 text-emerald-300 border-emerald-500/30 shrink-0">
           {t('school:grading.teacher.new_version')}
         </span>
@@ -420,7 +420,7 @@ export default function AssignmentReview({ classId, assignmentId, onClose }) {
           <ul className="space-y-2">
             {rows.map((row) => (
               <li key={row.id ?? row.student_id}>
-                <StudentRow row={row} onOpen={openRow} />
+                <StudentRow row={row} assignment={assignment} onOpen={openRow} />
               </li>
             ))}
           </ul>

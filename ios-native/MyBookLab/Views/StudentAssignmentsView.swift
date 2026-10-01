@@ -208,7 +208,7 @@ struct MyAssignmentsSection: View {
                     submissionId: submissionId,
                     onSeen: { markSeen(assignment.id) },
                     // "Try again" opens their book to revise and hand in again.
-                    onTryAgain: assignment.canHandInAgain ? {
+                    onTryAgain: assignment.canTryAgain ? {
                         feedbackFor = nil
                         startOrContinue(assignment)
                     } : nil

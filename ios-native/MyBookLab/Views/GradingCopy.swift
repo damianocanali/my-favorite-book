@@ -79,7 +79,6 @@ enum GradingCopy {
     static var needTip: LocalizedStringResource { AppText("school.grading.teacher.need_tip", defaultValue: "Add a tip so they know what to change.") }
     static var history: LocalizedStringResource { AppText("school.grading.teacher.history", defaultValue: "Earlier grades") }
     static var sentBack: LocalizedStringResource { AppText("school.grading.teacher.sent_back", defaultValue: "Sent back") }
-    static var notGraded: LocalizedStringResource { AppText("school.grading.teacher.not_graded", defaultValue: "Not graded") }
     static var newVersion: LocalizedStringResource { AppText("school.grading.teacher.new_version", defaultValue: "New version") }
     static var levelsOverTime: LocalizedStringResource { AppText("school.grading.teacher.levels_over_time", defaultValue: "Levels over time") }
     static var noGrades: LocalizedStringResource { AppText("school.grading.teacher.no_grades", defaultValue: "No grades yet.") }
@@ -90,5 +89,4 @@ enum GradingCopy {
     static var studentSentBack: LocalizedStringResource { AppText("school.grading.student.sent_back", defaultValue: "Your teacher sent this back with tips. Try again!") }
     static var studentTryAgain: LocalizedStringResource { AppText("school.grading.student.try_again", defaultValue: "Try again") }
     static var studentListenTip: LocalizedStringResource { AppText("school.grading.student.listen_tip", defaultValue: "Read the tip out loud") }
-    static var studentStatusSentBack: LocalizedStringResource { AppText("school.grading.student.status_sent_back", defaultValue: "Try again") }
 }

@@ -96,7 +96,7 @@ export default function AssignmentCard({
       {/* The child's own level; when sent back, "try again" instead. */}
       {isSentBack(assignment)
         ? <SentBackBanner onTryAgain={onTryAgain} />
-        : assignment.my_submission?.level && <StudentLevelBadge level={assignment.my_submission.level} compact />}
+        : assignment.my_submission?.level ? <StudentLevelBadge level={assignment.my_submission.level} compact /> : null}
 
       {unseen && (
         <motion.button

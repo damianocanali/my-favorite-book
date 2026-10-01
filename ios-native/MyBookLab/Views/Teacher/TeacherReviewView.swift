@@ -13,6 +13,7 @@ struct TeacherReviewView: View {
     @Environment(AuthStore.self) private var auth
 
     @State private var title: String?
+    @State private var assignment: TeacherReviewList.Assignment?
     @State private var rows: [TeacherSubmissionRow]?
     @State private var listError: String??
     /// Index into `handedIn`, nil on the list.
@@ -121,9 +122,10 @@ struct TeacherReviewView: View {
                     Text(TeacherCopy.feedbackCount(n)).font(.caption).foregroundStyle(.white.opacity(0.65))
                 }
                 // Grading at a glance: the newest level, "Sent back" while
-                // waiting on the child, "New version" once they handed in again.
+                // waiting on the child (only while the assignment is still
+                // open for hand-ins), "New version" once they handed in again.
                 if row.returned == true {
-                    TeacherChip(text: GradingCopy.sentBack, tone: .warn)
+                    if assignment?.isOpen() == true { TeacherChip(text: GradingCopy.sentBack, tone: .warn) }
                 } else if row.hasUngradedVersion {
                     TeacherChip(text: GradingCopy.newVersion, tone: .good)
                 }
@@ -213,6 +215,7 @@ struct TeacherReviewView: View {
             let res = try await APIClient.shared.teacherReviewList(
                 classId: classId, assignmentId: assignmentId, bearerToken: token)
             title = res.assignment.title
+            assignment = res.assignment
             rows = res.submissions ?? []
             listError = nil
         } catch {

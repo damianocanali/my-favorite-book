@@ -231,13 +231,17 @@ struct TeacherGradePanel: View {
     private var customTip: some View {
         HStack(alignment: .top, spacing: 8) {
             VStack(alignment: .trailing, spacing: 2) {
-                TextField(text: $custom, axis: .vertical) { Text(GradingCopy.customPlaceholder) }
-                    .lineLimit(1...3)
+                // One line, like the web: a tip is a short sentence, and a
+                // pasted line break becomes a space.
+                TextField(text: $custom) { Text(GradingCopy.customPlaceholder) }
+                    .submitLabel(.done)
+                    .onSubmit(addCustom)
                     .padding(10)
                     .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
                     .foregroundStyle(.white)
                     .onChange(of: custom) { _, v in
-                        let cut = TeacherStickers.truncated(v, max: GradingRules.tipTextMax)
+                        let oneLine = GradingRules.singleLine(v)
+                        let cut = TeacherStickers.truncated(oneLine, max: GradingRules.tipTextMax)
                         if cut != v { custom = cut }
                     }
                 Text(verbatim: "\(custom.utf16.count)/\(GradingRules.tipTextMax)")

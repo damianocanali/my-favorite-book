@@ -53,9 +53,16 @@ struct StudentAssignment: Decodable, Identifiable, Hashable, Sendable {
         (my_submission?.feedback_unseen ?? 0) > 0 || my_submission?.grade_unseen == true
     }
 
+    /// "Try again" is only offered when handing in again can succeed: open,
+    /// already handed in, and not past a due date that refuses late work.
+    /// Stricter than canHandInAgain on purpose (that one lets the server
+    /// explain past_due); a "Try again" that then fails is a broken promise.
+    /// Web: canTryAgain in assignmentStudentUi.js.
+    var canTryAgain: Bool { canHandInAgain && !(past_due == true && allow_late == false) }
+
     /// The teacher sent it back with tips and the child can still hand in
-    /// again: the card says "try again".
-    var isSentBack: Bool { my_submission?.returned == true && canHandInAgain }
+    /// again: the card says "try again". Otherwise it just shows the level.
+    var isSentBack: Bool { my_submission?.returned == true && canTryAgain }
 
     /// What the home's "From your teacher" card says (web: homeStatus in
     /// assignmentStudentUi.js). `hasBook`: a book on this device is already
