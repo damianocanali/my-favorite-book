@@ -435,7 +435,7 @@
         "empty_worksheet": "Write something in at least one box.",
         "unkind": "Let’s keep it kind — try different words.",
         "answer_too_long": "One of your answers is too long.",
-        "wrong_kind": "This assignment changed. Ask your teacher."
+        "wrong_kind": "This is a worksheet — update the app to fill it in."
       }
     },
     "feedback": {
@@ -781,7 +781,8 @@
       "make_pages_hint": "Your answers become pages you can keep writing.",
       "make_pages_new": "Start a new book",
       "make_pages_append": "Add to one of my books",
-      "make_pages_full": "This book is full."
+      "make_pages_full": "This book is full.",
+      "box_full": "This box is full."
     }
   }
 }

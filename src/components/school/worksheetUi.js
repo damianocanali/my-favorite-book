@@ -103,6 +103,48 @@ export function writeWorksheetDraft(userId, assignmentId, answers, storage = glo
   }
 }
 
+export function removeWorksheetDraft(userId, assignmentId, storage = globalThis.localStorage) {
+  if (!userId || !assignmentId) return
+  try {
+    storage?.removeItem(draftKey(userId, assignmentId))
+  } catch {
+    // Blocked storage: nothing was saved there either.
+  }
+}
+
+/// Drafts stay per child across sign-out (a class iPad is shared and a
+/// child picks up where they left off), but never outlive their
+/// assignment: on every assignments load, drafts for assignments no longer
+/// listed, or closed, are deleted. (A successful hand-in deletes its own.)
+export function pruneWorksheetDrafts(userId, assignments = [], storage = globalThis.localStorage) {
+  if (!userId) return
+  const keep = new Set(assignments.filter((a) => a?.status === 'published').map((a) => a.id))
+  const prefix = `${DRAFT_PREFIX}${userId}.`
+  try {
+    const keys = []
+    for (let i = 0; i < (storage?.length ?? 0); i++) keys.push(storage.key(i))
+    for (const k of keys) {
+      if (k?.startsWith(prefix) && !keep.has(k.slice(prefix.length))) storage.removeItem(k)
+    }
+  } catch {
+    // Blocked storage: nothing to prune.
+  }
+}
+
+/// Where a worksheet starts: this device's draft, unless the hand-in is
+/// newer (handed in again on another device since) — then the hand-in.
+/// 'draft' | 'handed_in' | 'empty'.
+export function startingPoint(draft, submission) {
+  if (draft && submission?.submitted_at && draft.updatedAt
+      && Date.parse(submission.submitted_at) > Date.parse(draft.updatedAt)) return 'handed_in'
+  if (draft) return 'draft'
+  return submission?.id ? 'handed_in' : 'empty'
+}
+
+/// Hand-in is possible: published and not past a due date that refuses
+/// late work (same rule as canTryAgain).
+export const canHandInWorksheet = (a) => a?.status === 'published' && !(a.past_due && a.allow_late === false)
+
 /// Started = there is a draft with something in it on this device.
 export const hasWorksheetDraft = (userId, assignmentId, storage) =>
   hasAnswers(readWorksheetDraft(userId, assignmentId, storage)?.answers ?? {})
@@ -114,6 +156,11 @@ export const hasWorksheetDraft = (userId, assignmentId, storage) =>
 export function pagesFor(worksheet, answers) {
   return worksheetPages(worksheet?.templateId, answers ?? {}, worksheet?.word || null)
 }
+
+/// The book "Turn into book pages" adds to: the book open in the editor
+/// when it is the one picked (its unsaved edits must never be lost), else
+/// the shelf copy.
+export const pagesBase = (open, picked) => (open && picked && open.id === picked.id ? open : picked)
 
 /// `existing` book pages (web shape) + new page texts, numbered on, never
 /// past the book page limit. `makeId` gives each new page an id.

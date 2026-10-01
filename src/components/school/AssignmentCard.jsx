@@ -68,7 +68,7 @@ export default function AssignmentCard({
 
   function handleListen() {
     if (isSpeaking) stop()
-    else speak(assignment.prompt)
+    else speak(assignment.prompt, assignment.class_locale)
   }
 
   return (
@@ -86,6 +86,7 @@ export default function AssignmentCard({
         </span>
       </div>
 
+      {assignment.prompt?.trim() && (
       <div className="flex items-start gap-2">
         <p className="flex-1 min-w-0 text-galaxy-text-muted font-body text-sm">{assignment.prompt}</p>
         {ttsSupported && (
@@ -99,6 +100,7 @@ export default function AssignmentCard({
           </button>
         )}
       </div>
+      )}
 
       <p className="text-xs font-body"><DueText assignment={assignment} /></p>
 

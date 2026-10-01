@@ -435,7 +435,7 @@
         "empty_worksheet": "Scrivi qualcosa in almeno un riquadro.",
         "unkind": "Usiamo parole gentili — prova con parole diverse.",
         "answer_too_long": "Una delle tue risposte è troppo lunga.",
-        "wrong_kind": "Questo compito è cambiato. Chiedi all’insegnante."
+        "wrong_kind": "Questa è una scheda — aggiorna l’app per completarla."
       }
     },
     "feedback": {
@@ -781,7 +781,8 @@
       "make_pages_hint": "Le tue risposte diventano pagine su cui continuare a scrivere.",
       "make_pages_new": "Inizia un nuovo libro",
       "make_pages_append": "Aggiungi a un mio libro",
-      "make_pages_full": "Questo libro è pieno."
+      "make_pages_full": "Questo libro è pieno.",
+      "box_full": "Questo riquadro è pieno."
     }
   }
 }

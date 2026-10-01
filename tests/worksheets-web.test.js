@@ -8,6 +8,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import {
   fillLayout, answersForSubmit, hasAnswers, readWorksheetDraft, writeWorksheetDraft, hasWorksheetDraft,
   appendWorksheetPages, pagesFor, defaultPrompts, isWorksheet,
+  removeWorksheetDraft, pruneWorksheetDrafts, startingPoint, canHandInWorksheet, pagesBase,
 } from '../src/components/school/worksheetUi.js'
 import { AssignmentWorksheetSheet } from '../src/components/worksheets/AssignmentSheet.jsx'
 import { BOOK_PAGES_MAX } from '../lib/school/worksheets.js'
@@ -21,7 +22,10 @@ const tEn = (key, opts) => {
 
 function fakeStorage() {
   const m = new Map()
-  return { getItem: (k) => m.get(k) ?? null, setItem: (k, v) => m.set(k, String(v)), _m: m }
+  return {
+    getItem: (k) => m.get(k) ?? null, setItem: (k, v) => m.set(k, String(v)), removeItem: (k) => m.delete(k),
+    get length() { return m.size }, key: (i) => [...m.keys()][i] ?? null, _m: m,
+  }
 }
 
 const SEQ = { templateId: 'sequence', prompts: { first: 'First…', next: 'Next…', then: 'Then…', last: 'Last…' } }
@@ -73,6 +77,51 @@ describe('worksheetUi', () => {
     expect(readWorksheetDraft('kid-1', 'a1', throwing)).toBeNull()
     expect(() => writeWorksheetDraft('kid-1', 'a1', {}, throwing)).not.toThrow()
     expect(readWorksheetDraft(null, 'a1', s)).toBeNull()
+  })
+
+  it('drafts are pruned: after a hand-in, and for assignments no longer listed or closed — only this child\'s', () => {
+    const s = fakeStorage()
+    for (const id of ['open', 'closed', 'gone']) writeWorksheetDraft('kid-1', id, { first: 'x' }, s)
+    writeWorksheetDraft('kid-2', 'gone', { first: 'x' }, s)
+    s.setItem('unrelated', '1')
+    pruneWorksheetDrafts('kid-1', [{ id: 'open', status: 'published' }, { id: 'closed', status: 'closed' }], s)
+    expect(readWorksheetDraft('kid-1', 'open', s)).not.toBeNull()
+    expect(readWorksheetDraft('kid-1', 'closed', s)).toBeNull()
+    expect(readWorksheetDraft('kid-1', 'gone', s)).toBeNull()
+    expect(readWorksheetDraft('kid-2', 'gone', s)).not.toBeNull()
+    expect(s.getItem('unrelated')).toBe('1')
+    removeWorksheetDraft('kid-1', 'open', s)
+    expect(readWorksheetDraft('kid-1', 'open', s)).toBeNull()
+    const throwing = { get length() { throw new Error('blocked') }, removeItem: () => { throw new Error('blocked') } }
+    expect(() => pruneWorksheetDrafts('kid-1', [], throwing)).not.toThrow()
+    expect(() => removeWorksheetDraft('kid-1', 'a', throwing)).not.toThrow()
+  })
+
+  it('starts from the hand-in when it is newer than this device\'s draft (so pages use what was handed in)', () => {
+    const draft = { answers: { first: 'old' }, updatedAt: '2026-09-27T10:00:00.000Z' }
+    expect(startingPoint(draft, { id: 's', submitted_at: '2026-09-27T11:00:00.000Z' })).toBe('handed_in')
+    expect(startingPoint(draft, { id: 's', submitted_at: '2026-09-27T09:00:00.000Z' })).toBe('draft')
+    expect(startingPoint(draft, null)).toBe('draft')
+    expect(startingPoint(null, { id: 's', submitted_at: '2026-09-27T09:00:00.000Z' })).toBe('handed_in')
+    expect(startingPoint(null, null)).toBe('empty')
+  })
+
+  it('hand-in is offered only when it can succeed (past due without late work: no)', () => {
+    expect(canHandInWorksheet({ status: 'published' })).toBe(true)
+    expect(canHandInWorksheet({ status: 'published', past_due: true, allow_late: true })).toBe(true)
+    expect(canHandInWorksheet({ status: 'published', past_due: true, allow_late: false })).toBe(false)
+    expect(canHandInWorksheet({ status: 'closed' })).toBe(false)
+  })
+
+  it('turn into pages into the book that is open: the open draft (unsaved edits kept), not the shelf copy', () => {
+    const shelf = { id: 'b1', pages: [{ id: 'x', pageNumber: 1, text: 'saved' }] }
+    const open = { id: 'b1', pages: [{ id: 'x', pageNumber: 1, text: 'saved' }, { id: 'y', pageNumber: 2, text: 'unsaved edit' }] }
+    expect(pagesBase(open, shelf)).toBe(open)
+    let n = 0
+    const { pages } = appendWorksheetPages(pagesBase(open, shelf).pages, ['new'], () => `p${++n}`)
+    expect(pages.map((p) => p.text)).toEqual(['saved', 'unsaved edit', 'new'])
+    expect(pagesBase({ id: 'other' }, shelf)).toBe(shelf)
+    expect(pagesBase(open, null)).toBeNull()
   })
 
   it('turn into pages: numbered on from the existing pages, never past the limit', () => {
@@ -133,6 +182,13 @@ describe('the child\'s fill-in view reuses the existing pieces', () => {
     expect(fill).toContain("from '../../hooks/useSpeechSynthesis'")
     expect(fill).toContain("from '../../hooks/useSpeechRecognition'")
     expect(fill).toContain("from '../editor/WritingScaffold'")
+    // Word help only on large boxes, with fixed middle-of-story starters.
+    expect(fill).toContain("{ scaffold: box.size === 'large' }")
+    expect(fill).toMatch(/page=\{\{ id, pageNumber: 2, text: value \}\}\n\s+totalPages=\{3\}/)
+    // Prompts read in the class language; a hand-in clears the draft.
+    expect(fill).toContain('synth.speak(text, assignment.class_locale)')
+    expect(fill).toContain('removeWorksheetDraft(userId, assignment.id)')
+    expect(fill).toContain('canHandInWorksheet(assignment)')
     expect(fill).toMatch(/writeWorksheetDraft\(userId, assignment\.id, next\)/)
     expect(fill).toMatch(/schoolFetch\('\/api\/school\/submit'[\s\S]*answers: answersForSubmit\(worksheet, answers\)/)
   })

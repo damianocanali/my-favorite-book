@@ -18,7 +18,7 @@ import StudentFeedbackModal from './StudentFeedbackModal'
 import StudentNudgeCard from './StudentNudgeCard'
 import { nudgeAction } from './nudgeUi'
 import WorksheetFill from './WorksheetFill'
-import { isWorksheet, hasWorksheetDraft, appendWorksheetPages } from './worksheetUi'
+import { isWorksheet, hasWorksheetDraft, appendWorksheetPages, pruneWorksheetDrafts, pagesBase } from './worksheetUi'
 
 const POLL_MS = 60 * 1000
 
@@ -65,6 +65,8 @@ export default function MyAssignments() {
       setError(null)
       const list = res.data.assignments ?? []
       setAssignments(list)
+      // Worksheet drafts never outlive an open assignment.
+      pruneWorksheetDrafts(useAuthStore.getState().user?.id ?? null, list)
       setSeen(pruneSeenAssignments(useAuthStore.getState().user?.id ?? null, list.map((a) => a.id)))
     } else if (!loaded.current) {
       // A failed poll keeps what is on screen; only a first load hides it.
@@ -231,9 +233,12 @@ export default function MyAssignments() {
   // silently replaces a draft with work in it.
   function makePages({ texts, bookId }) {
     const open = useBookStore.getState().book
-    const target = bookId ? books.find((b) => b.id === bookId) : null
-    if (bookId && !target) return
-    if (draftHasWork(open) && open?.id !== target?.id && !window.confirm(t('school:student.assignments.replace_draft'))) return
+    const picked = bookId ? books.find((b) => b.id === bookId) : null
+    if (bookId && !picked) return
+    if (draftHasWork(open) && open?.id !== picked?.id && !window.confirm(t('school:student.assignments.replace_draft'))) return
+    // The book open in the editor is added to as it is now, unsaved edits
+    // and all — never replaced by its older shelf copy.
+    const target = pagesBase(open, picked)
     if (target) {
       const { pages } = appendWorksheetPages(target.pages ?? [], texts, nanoid)
       loadBook({ ...target, pages, updatedAt: new Date().toISOString() })

@@ -105,7 +105,9 @@ export default function AssignmentForm({ classId, assignment, onClose, onSaved }
     setSaving(true)
     setError(null)
     const dueIso = localInputToIso(due)
-    const promptField = trimmedPrompt ? { prompt: trimmedPrompt } : {}
+    // A worksheet's instructions are optional: on an edit an empty box
+    // clears them (sent as ''); a book always sends its prompt.
+    const promptField = trimmedPrompt || (isEdit && isWorksheet) ? { prompt: trimmedPrompt } : {}
     const body = isEdit
       ? { classId, id: assignment.id, title: trimmedTitle, ...promptField, due_at: dueIso, allow_late: allowLate, ...(ws ? { worksheet: ws } : {}) }
       : { classId, title: trimmedTitle, ...promptField, due_at: dueIso, allow_late: allowLate, status, kind, ...(ws ? { worksheet: ws } : {}) }

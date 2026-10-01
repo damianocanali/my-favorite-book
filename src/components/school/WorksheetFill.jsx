@@ -18,7 +18,8 @@ import { useSpeechRecognition } from '../../hooks/useSpeechRecognition'
 import WritingScaffold from '../editor/WritingScaffold'
 import { ANSWER_MAX, ACROSTIC_WORD_MAX, BOOK_PAGES_MAX } from '../../../lib/school/worksheets.js'
 import {
-  fillLayout, BOX_ROWS, readWorksheetDraft, writeWorksheetDraft, answersForSubmit, hasAnswers, pagesFor,
+  fillLayout, BOX_ROWS, readWorksheetDraft, writeWorksheetDraft, removeWorksheetDraft, answersForSubmit, hasAnswers,
+  pagesFor, startingPoint, canHandInWorksheet,
 } from './worksheetUi'
 
 function ListenButton({ text, speech }) {
@@ -66,11 +67,18 @@ export default function WorksheetFill({ assignment, userId, books = [], onClose,
   const worksheet = assignment.worksheet
   const submission = assignment.my_submission
 
-  const [answers, setAnswers] = useState(() => readWorksheetDraft(userId, assignment.id)?.answers ?? null)
+  // This device's draft, unless the hand-in is newer (then the hand-in is
+  // what they last gave the teacher, and what becomes book pages).
+  const [answers, setAnswers] = useState(() => {
+    const draft = readWorksheetDraft(userId, assignment.id)
+    return startingPoint(draft, submission) === 'draft' ? draft.answers : null
+  })
   const [loadError, setLoadError] = useState(false)
   const [sending, setSending] = useState(false)
   const [error, setError] = useState(null)
   const [handedIn, setHandedIn] = useState(false)
+  // Hand in again only once something changed since the last hand-in here.
+  const [changedSinceHandIn, setChangedSinceHandIn] = useState(true)
   const [pagesOpen, setPagesOpen] = useState(false)
 
   // No draft on this device but already handed in: start from the hand-in.
@@ -98,6 +106,7 @@ export default function WorksheetFill({ assignment, userId, books = [], onClose,
       return next
     })
     setError(null)
+    setChangedSinceHandIn(true)
   }, [userId, assignment.id])
 
   // Read-aloud: one voice for the sheet, in the app's language.
@@ -107,7 +116,8 @@ export default function WorksheetFill({ assignment, userId, books = [], onClose,
     isSupported: synth.isSupported,
     isSpeaking: synth.isSpeaking,
     current: currentSpoken,
-    say: (text) => { setCurrentSpoken(text); synth.speak(text) },
+    // The teacher's prompts are written in the class's language.
+    say: (text) => { setCurrentSpoken(text); synth.speak(text, assignment.class_locale) },
     stop: () => synth.stop(),
   }
 
@@ -147,9 +157,8 @@ export default function WorksheetFill({ assignment, userId, books = [], onClose,
   }, [])
 
   const layout = useMemo(() => fillLayout(worksheet, answers?.word ?? ''), [worksheet, answers?.word])
-  const totalBoxes = layout.reduce((n, b) => n + (b.type === 'letters' ? b.letters.length : b.type === 'box' ? 1 : 0), 0)
-  const canSubmit = assignment.status === 'published'
-  const ready = answers !== null && hasAnswers(answers)
+  const canSubmit = canHandInWorksheet(assignment)
+  const ready = answers !== null && hasAnswers(answers) && changedSinceHandIn
 
   async function handIn() {
     if (!ready || sending) return
@@ -163,6 +172,9 @@ export default function WorksheetFill({ assignment, userId, books = [], onClose,
     setSending(false)
     if (!res.ok) return setError(res.code || 'generic')
     setHandedIn(true)
+    setChangedSinceHandIn(false)
+    // Handed in: the draft has done its job (the hand-in is the copy now).
+    removeWorksheetDraft(userId, assignment.id)
     celebrateBig()
     onHandedIn?.()
   }
@@ -170,7 +182,7 @@ export default function WorksheetFill({ assignment, userId, books = [], onClose,
   const pageTexts = answers ? pagesFor(worksheet, answersForSubmit(worksheet, answers)) : []
   const canMakePages = (handedIn || !!submission) && pageTexts.length > 0
 
-  function boxEditor(id, prompt, rows, index, label) {
+  function boxEditor(id, prompt, rows, label, { scaffold = false } = {}) {
     const value = answers?.[id] ?? ''
     return (
       <div key={id} className="glass rounded-2xl p-4 border border-galaxy-text-muted/10 space-y-2">
@@ -192,17 +204,24 @@ export default function WorksheetFill({ assignment, userId, books = [], onClose,
           />
           <MicButton boxId={id} dictation={dictation} />
         </div>
-        <WritingScaffold
-          page={{ id, pageNumber: index + 1, text: value }}
-          totalPages={Math.max(totalBoxes, 1)}
-          characterName=""
-          onInsertText={(boxId, text) => update(boxId, text)}
-        />
+        {value.length >= ANSWER_MAX && (
+          <p className="text-amber-300 text-sm font-body">{t('school:worksheet.student.box_full')}</p>
+        )}
+        {/* Word help only on the big free-writing boxes, and always the
+            "middle of a story" starters: a worksheet box has no page
+            position for opening/ending starters to fit. */}
+        {scaffold && (
+          <WritingScaffold
+            page={{ id, pageNumber: 2, text: value }}
+            totalPages={3}
+            characterName=""
+            onInsertText={(boxId, text) => update(boxId, text)}
+          />
+        )}
       </div>
     )
   }
 
-  let boxIndex = 0
   return createPortal(
     <motion.div
       ref={panelRef}
@@ -221,7 +240,7 @@ export default function WorksheetFill({ assignment, userId, books = [], onClose,
               {t(`school:worksheet.templates.${worksheet.templateId}.title`)}
             </p>
             <h2 className="font-heading text-2xl font-bold text-galaxy-text break-words">{assignment.title}</h2>
-            {assignment.prompt && assignment.prompt !== assignment.title && (
+            {assignment.prompt?.trim() && (
               <div className="flex items-start gap-2 mt-1">
                 <p className="flex-1 font-body text-galaxy-text-muted">{assignment.prompt}</p>
                 <ListenButton text={assignment.prompt} speech={speech} />
@@ -279,11 +298,11 @@ export default function WorksheetFill({ assignment, userId, books = [], onClose,
                         <ListenButton text={box.prompt} speech={speech} />
                       </div>
                     )}
-                    {box.letters.map((l) => boxEditor(l.id, null, 2, boxIndex++, l.letter))}
+                    {box.letters.map((l) => boxEditor(l.id, null, 2, l.letter))}
                   </div>
                 )
               }
-              return boxEditor(box.id, box.prompt, BOX_ROWS[box.size] ?? 4, boxIndex++)
+              return boxEditor(box.id, box.prompt, BOX_ROWS[box.size] ?? 4, null, { scaffold: box.size === 'large' })
             })}
           </div>
         )}
