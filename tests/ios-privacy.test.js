@@ -17,14 +17,19 @@ describe('PrivacyInfo.xcprivacy', () => {
   })
 })
 
-describe('student sign-out clears the child state on a shared iPad', () => {
+describe('student sign-out on a shared iPad', () => {
   const auth = read('MyBookLab/Stores/AuthStore.swift')
-  const signOut = auth.slice(auth.indexOf('func signOut() async'), auth.indexOf('private func clearLocalUserData'))
-  it('drops worksheet drafts and seen-assignment ids for the child', () => {
-    expect(signOut).toMatch(/if isStudent \{[\s\S]*WorksheetDrafts\.removeAll\(userId: childId\)[\s\S]*AssignmentSeen\.clear\(userId: childId\)/)
+  const signOut = auth.slice(auth.indexOf('func signOut() async'), auth.indexOf('func signInAsStudent'))
+  it("clears the child's books, draft, check-ins, coins, rewards and avatar", () => {
+    for (const c of ['CheckInStore.shared.clear()', 'BookshelfStore.shared.clear()', 'BookDraftStore.shared.clear()',
+      'CoinsStore.shared.clearLocal()', 'RewardsStore.shared.clearLocal()', 'removeObject(forKey: avatarDefaultsKey)']) {
+      expect(signOut, c).toContain(c)
+    }
   })
-  it('keeps device-level settings (class device, language, music)', () => {
+  it('KEEPS worksheet drafts and seen-assignment markers (owner ruling: autosave on shared class iPads) and device settings', () => {
+    expect(signOut).not.toMatch(/WorksheetDrafts\.(remove|prune)|AssignmentSeen\./)
     expect(signOut).not.toMatch(/ClassDeviceStore|AppLanguage|music_muted/)
+    expect(signOut).toContain('Deliberately KEPT across a class account')
   })
 })
 

@@ -292,16 +292,6 @@ enum WorksheetDrafts {
         }
     }
 
-    /// Every draft this child has on this device — called on a class
-    /// account's sign-out (shared iPads: the next child must not find a
-    /// classmate's answers at rest on the device). Unsent answers are lost
-    /// by design; the hand-in itself lives on the server.
-    static func removeAll(userId: String?, defaults: UserDefaults = .standard) {
-        guard let userId else { return }
-        let p = prefix(userId)
-        for k in defaults.dictionaryRepresentation().keys where k.hasPrefix(p) { defaults.removeObject(forKey: k) }
-    }
-
     static func hasDraft(userId: String?, assignmentId: String) -> Bool {
         WorksheetLayout.hasAnswers(read(userId: userId, assignmentId: assignmentId)?.answers ?? [:])
     }
