@@ -11,7 +11,7 @@ import { schoolFetch } from '../lib/schoolApi'
 import { teacherErrorText } from '../components/school/teacherErrors'
 import TeacherVerificationNotice from '../components/school/TeacherVerificationNotice'
 import { formatDate, formatMoneyCents } from '../i18n/formats'
-import { quoteSchool, MIN_SCHOOL_SEATS, MAX_CLASS_SEATS } from '../../lib/school/pricing.js'
+import { quoteSchool, seatAddQuote, MIN_SCHOOL_SEATS, MAX_CLASS_SEATS } from '../../lib/school/pricing.js'
 import { NDPA_PATH } from '../../lib/school/billingApi.js'
 
 const input = 'px-3 py-2 rounded-xl bg-galaxy-bg/60 border border-galaxy-text-muted/20 text-galaxy-text font-body text-sm focus:outline-none focus:border-galaxy-primary'
@@ -60,6 +60,11 @@ export default function TeacherSchoolPlanPage() {
   useEffect(() => { load() }, [load])
 
   const plan = plans?.find((x) => ['pending_payment', 'active', 'grace'].includes(x.status)) ?? null
+  // Review I6: an invoice plan waits for the owner's approval first.
+  const waiting = plans?.find((x) => x.status === 'pending_approval') ?? null
+  const declined = !plan && !waiting && plans?.[0]?.status === 'declined' ? plans[0] : null
+  const addCost = plan && planSeats != null && Number(planSeats) > plan.seats
+    ? seatAddQuote(plan.price_tier ?? 'school', Number(planSeats) - plan.seats) : null
   const quote = quoteSchool(Number(seats))
 
   async function act(body, after) {
@@ -83,7 +88,7 @@ export default function TeacherSchoolPlanPage() {
     setBusy(false)
     if (!res.ok) { setError(res.code || 'generic'); return }
     if (res.data?.url) { window.location.assign(res.data.url); return }
-    setNotice('school:teacher.school_plan.invoice_sent')
+    setNotice('school:teacher.school_plan.requested')
     await load()
   }
 
@@ -107,7 +112,16 @@ export default function TeacherSchoolPlanPage() {
       {error && <p role="alert" className="text-sm font-body text-red-400">{teacherErrorText(t, error)}</p>}
       {plans === null && !error && <p className="text-sm font-body text-galaxy-text-muted">{t('school:teacher.school_plan.loading')}</p>}
 
-      {plans && !plan && verified && (
+      {waiting && (
+        <section className={card}>
+          <h2 className="font-heading text-lg font-bold text-galaxy-text">{waiting.school_name}</h2>
+          <p className="font-body font-semibold text-galaxy-text">{t('school:teacher.billing.status.pending_approval')}</p>
+          <p className="text-sm font-body text-galaxy-text-muted">{t('school:teacher.school_plan.requested')}</p>
+        </section>
+      )}
+      {declined && <p role="status" className="text-sm font-body text-amber-300">{t('school:teacher.school_plan.declined', { reason: declined.decline_reason ?? '' })}</p>}
+
+      {plans && !plan && !waiting && verified && (
         <section className={card} aria-labelledby="buy-plan">
           <h2 id="buy-plan" className="font-heading text-lg font-bold text-galaxy-text">{t('school:teacher.school_plan.buy.heading')}</h2>
           <label className="block space-y-1">
@@ -160,6 +174,7 @@ export default function TeacherSchoolPlanPage() {
                   ? t('school:teacher.billing.cancel_at_end', { date: formatDate(plan.expires_at, 'long') })
                   : t('school:teacher.billing.renews', { date: formatDate(plan.expires_at, 'long') })}
             </p>
+            {plan.status === 'pending_payment' && <p className="text-sm font-body text-amber-200">{t('school:teacher.school_plan.unpaid_note')}</p>}
             <p className="text-sm font-body text-galaxy-text">{t('school:teacher.school_plan.seats_given', { used: plan.used, total: plan.seats })}</p>
             {plan.pending_seats != null && <p className="text-sm font-body text-galaxy-text-muted">{t('school:teacher.billing.pending_seats', { count: plan.pending_seats })}</p>}
             <div className="flex flex-wrap items-center gap-3">
@@ -170,7 +185,8 @@ export default function TeacherSchoolPlanPage() {
               </button>
               <button className={secondary} disabled={busy} onClick={portal}><ExternalLink size={14} /> {t('school:teacher.billing.manage')}</button>
             </div>
-            <p className="text-xs font-body text-galaxy-text-muted">{t('school:teacher.school_plan.change_hint')}</p>
+            <p className="text-xs font-body text-galaxy-text-muted">{t('school:teacher.school_plan.change_hint')} {t('school:teacher.billing.seats_add_rule')}</p>
+            {addCost && <p className="text-sm font-body text-galaxy-text">{t('school:teacher.billing.seats_add_cost', { count: addCost.added, total: formatMoneyCents(addCost.total_cents) })}</p>}
           </section>
 
           <section className={card}>

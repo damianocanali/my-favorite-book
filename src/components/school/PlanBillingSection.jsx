@@ -13,7 +13,7 @@ import { schoolFetch } from '../../lib/schoolApi'
 import { teacherErrorText } from './teacherErrors'
 import { formatDate, formatMoneyCents } from '../../i18n/formats'
 import {
-  quoteClass, isFoundingEligible, MIN_CLASS_SEATS, MIN_SCHOOL_SEATS, MAX_CLASS_SEATS, FOUNDING_LAST_DAY
+  quoteClass, seatAddQuote, isFoundingEligible, MIN_CLASS_SEATS, MIN_SCHOOL_SEATS, MAX_CLASS_SEATS, FOUNDING_LAST_DAY
 } from '../../../lib/school/pricing.js'
 import { NDPA_PATH } from '../../../lib/school/billingApi.js'
 
@@ -81,6 +81,8 @@ export default function PlanBillingSection({ classId, onChanged }) {
   const quote = useMemo(() => quoteClass(Number(seats)), [seats])
   const license = data?.license ?? null
   const canBuy = !license || BUYABLE.includes(license.status)
+  const addCost = license && newSeats != null && Number(newSeats) > license.seats
+    ? seatAddQuote(license.tier ?? 'standard', Number(newSeats) - license.seats) : null
   const canChangeSeats = license && !license.school_plan && ['active', 'grace'].includes(license.status) && data?.can_manage_billing
 
   async function post(body, key) {
@@ -156,6 +158,11 @@ export default function PlanBillingSection({ classId, onChanged }) {
               {data.plan && <p>{t('school:teacher.billing.school_plan', { school: data.plan.school_name })}</p>}
             </div>
           )}
+          {data.over_seats && (
+            <p role="status" className="text-sm font-body text-amber-200">
+              {t('school:teacher.billing.over_seats', { count: data.students, seats: license.seats })}
+            </p>
+          )}
 
           {data.offers?.length > 0 && (
             <div className="space-y-2">
@@ -215,7 +222,8 @@ export default function PlanBillingSection({ classId, onChanged }) {
           {canChangeSeats && (
             <div className="space-y-2 border-t border-galaxy-text-muted/10 pt-4">
               <h3 className="font-heading font-semibold text-galaxy-text">{t('school:teacher.billing.seats.heading')}</h3>
-              <p className="text-xs font-body text-galaxy-text-muted">{t('school:teacher.billing.seats.more_now')} {t('school:teacher.billing.seats.fewer_later')}</p>
+              <p className="text-xs font-body text-galaxy-text-muted">{t('school:teacher.billing.seats_add_rule')} {t('school:teacher.billing.seats.fewer_later')}</p>
+              {addCost && <p className="text-sm font-body text-galaxy-text">{t('school:teacher.billing.seats_add_cost', { count: addCost.added, total: formatMoneyCents(addCost.total_cents) })}</p>}
               <div className="flex items-center gap-3">
                 <input type="number" inputMode="numeric" min={Math.max(MIN_CLASS_SEATS, data.students)} max={MAX_CLASS_SEATS}
                   value={newSeats ?? license.pending_seats ?? license.seats} onChange={(e) => setNewSeats(e.target.value)}

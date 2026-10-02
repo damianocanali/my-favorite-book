@@ -223,7 +223,11 @@
       "own_class": "È una tua classe: assegnale i posti direttamente.",
       "bad_code": "Inserisci il codice della classe.",
       "bad_billing": "Scegli carta o fattura.",
-      "no_email": "Il tuo account ha bisogno di un indirizzo email."
+      "no_email": "Il tuo account ha bisogno di un indirizzo email.",
+      "over_seats": "Questa classe ha più nomi che posti pagati. Aggiungi posti in Piano e pagamenti prima di aggiungere altri nomi.",
+      "too_many_children": "Più libri che posti pagati: togli alcuni nomi da questa stampa.",
+      "plan_unpaid": "Puoi aggiungere posti dopo il pagamento della fattura.",
+      "reason_required": "Serve un motivo."
     },
     "class_page": {
       "back": "Torna alle tue classi",
@@ -466,7 +470,9 @@
         "lapsed": "Terminato",
         "canceled": "Annullato",
         "comped": "Offerta",
-        "none": "Ancora nessun piano"
+        "none": "Ancora nessun piano",
+        "pending_approval": "In attesa della nostra approvazione",
+        "declined": "Non approvato"
       },
       "seats_used": "{{used}} posti usati su {{total}}",
       "pending_seats": "Scende a {{count}} posti al rinnovo",
@@ -495,7 +501,6 @@
       "seats": {
         "heading": "Cambia i posti",
         "save": "Salva",
-        "more_now": "I posti in più si aggiungono subito e paghi la differenza per il resto dell'anno.",
         "fewer_later": "La riduzione dei posti vale dal rinnovo, e mai sotto il numero di persone iscritte alla classe.",
         "done_increase": "Posti aggiunti.",
         "done_decrease": "Fatto: al rinnovo la classe scende a {{count}} posti.",
@@ -521,7 +526,10 @@
         "decline": "Rifiuta"
       },
       "success": "Grazie! Il pagamento è andato a buon fine; il piano compare qui tra poco.",
-      "canceled_checkout": "Pagamento annullato. Non è stato addebitato nulla."
+      "canceled_checkout": "Pagamento annullato. Non è stato addebitato nulla.",
+      "over_seats": "Questa classe ha {{count}} nomi ma {{seats}} posti pagati. Continua a funzionare, ma non si possono aggiungere nomi finché i posti non bastano, e i libri della classe si stampano per al massimo {{seats}} persone.",
+      "seats_add_cost": "Aggiungere {{count}} posti costa {{total}} ora: il prezzo annuale intero di ogni posto per quest'anno scolastico, perché ogni posto include un libro stampato.",
+      "seats_add_rule": "I posti aggiunti durante l'anno costano il prezzo annuale intero per quest'anno scolastico (ognuno include un libro stampato e 300 immagini)."
     },
     "school_plan": {
       "title": "Piano scuola",
@@ -535,11 +543,10 @@
         "billing": "Come preferisci pagare?",
         "card": "Carta",
         "invoice": "Fattura (pagamento entro 30 giorni)",
-        "invoice_note": "Con la fattura le classi possono usare subito il piano mentre la fattura è aperta (30 giorni). La stampa parte dopo il pagamento.",
+        "invoice_note": "Controlliamo a mano i piani con fattura (di solito entro un giorno), poi ti mandiamo la fattura, da pagare entro 30 giorni. Mentre è aperta, le classi possono usare il piano con 50 immagini per posto; la stampa e le 300 immagini per posto partono dopo il pagamento.",
         "pay": "Continua al pagamento",
         "send_invoice": "Invia la fattura"
       },
-      "invoice_sent": "Fattura inviata alla tua email. Le classi possono già usare il piano.",
       "seats_given": "{{used}} posti assegnati alle classi su {{total}}",
       "assign": {
         "heading": "Assegna posti alle tue classi",
@@ -565,7 +572,10 @@
         "none": "Ancora nessuna classe."
       },
       "change_seats": "Cambia i posti del piano",
-      "change_hint": "I posti in più si aggiungono subito; la riduzione vale dal rinnovo e mai sotto i posti già assegnati."
+      "change_hint": "I posti in più si aggiungono subito; la riduzione vale dal rinnovo e mai sotto i posti già assegnati.",
+      "requested": "Richiesta inviata. Controlliamo a mano i piani con fattura, di solito entro un giorno; ti mandiamo la fattura appena è approvato.",
+      "declined": "Non abbiamo potuto approvare questo piano: {{reason}}",
+      "unpaid_note": "Finché la fattura non è pagata: 50 immagini per posto, niente stampa della classe e nessun posto in più."
     }
   },
   "student": {
@@ -1054,7 +1064,8 @@
         "failed": "Da controllare"
       },
       "failed_hint": "Qualcosa non è andato con la tipografia. Ti contatteremo.",
-      "books_missing": "Non siamo riusciti a preparare i libri per questa richiesta. Annullala e riprova."
+      "books_missing": "Non siamo riusciti a preparare i libri per questa richiesta. Annullala e riprova.",
+      "over_seats": "Questa classe ha {{seats}} posti pagati, quindi si stampano fino a {{seats}} libri. Togli la spunta finché ne restano {{seats}} o meno (ora {{count}}), oppure aggiungi posti in Piano e pagamenti."
     },
     "preview": {
       "heading": "Il libro di {{name}}",
@@ -1103,7 +1114,8 @@
       "print_book_too_big": "Questi libri sono troppo grandi per la stampa: {{names}}. Togli un lavoro e riprova.",
       "print_book_too_big_generic": "Un libro è troppo grande per la stampa. Togli un lavoro e riprova.",
       "page_overflow": "Un testo non entra a pagina {{pages}}. Accorcia quel lavoro e riprova.",
-      "page_overflow_generic": "Un testo non entra in una pagina. Accorcia quel lavoro e riprova."
+      "page_overflow_generic": "Un testo non entra in una pagina. Accorcia quel lavoro e riprova.",
+      "too_many_children": "Più libri che posti pagati ({{count}} per {{seats}} posti). Togli la spunta ad alcuni nomi oppure aggiungi posti."
     }
   }
 }

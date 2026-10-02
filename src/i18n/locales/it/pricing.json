@@ -118,11 +118,11 @@
       "ndpa_q": "Firmate un accordo sulla privacy dei dati?",
       "ndpa_a": "Sì. Usiamo il National Data Privacy Agreement (NDPA) dello Student Data Privacy Consortium. La dirigenza o il distretto lo firma con noi, e altri distretti dello stesso stato possono adottarlo. Non chiediamo mai l'email di chi è in classe, e quei dati non servono mai ad addestrare l'AI.",
       "invoice_q": "La scuola può pagare con fattura?",
-      "invoice_a": "Sì, con il piano scuola. Inviamo una fattura da pagare entro 30 giorni e le classi possono usare subito il piano mentre è aperta. I libri stampati si ordinano dopo il pagamento.",
+      "invoice_a": "Sì, con il piano scuola. Controlliamo a mano i piani con fattura (di solito entro un giorno), poi inviamo una fattura da pagare entro 30 giorni. Mentre è aperta, le classi possono usare il piano con 50 immagini per posto; i libri stampati e le 300 immagini per posto partono dopo il pagamento.",
       "trial_q": "Cosa succede quando finisce la prova gratuita?",
-      "trial_a": "La classe va in pausa: non si cancella nulla. Puoi acquistare i posti quando vuoi e riprendere da dove avevi lasciato.",
+      "trial_a": "La classe va in pausa e non si può usare finché non acquisti i posti. Se non li acquisti, la classe e tutto il suo contenuto vengono eliminati circa 90 giorni dopo la fine della prova; ti scriviamo 30 e 7 giorni prima. Puoi acquistare i posti in qualsiasi momento prima di allora e riprendere da dove avevi lasciato.",
       "renew_q": "Il piano si rinnova?",
-      "renew_a": "Sì, ogni anno. Puoi aggiungere posti quando vuoi (paghi la differenza per il resto dell'anno), ridurli per l'anno successivo o annullare prima del rinnovo.",
+      "renew_a": "Sì, ogni anno. Puoi aggiungere posti quando vuoi: ogni posto aggiunto costa il prezzo annuale intero per l'anno scolastico in corso, perché ogni posto include un libro stampato. Puoi anche ridurre i posti per l'anno successivo o annullare prima del rinnovo.",
       "ipad_q": "Posso acquistare dall'iPad?",
       "ipad_a": "I piani si acquistano qui sul sito. L'app per iPad mostra il piano e i posti."
     }

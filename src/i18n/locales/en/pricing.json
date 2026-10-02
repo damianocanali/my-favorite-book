@@ -118,11 +118,11 @@
       "ndpa_q": "Do you sign a data privacy agreement?",
       "ndpa_a": "Yes. We use the Student Data Privacy Consortium's National Data Privacy Agreement (NDPA). Your principal or district signs it with us, and other districts in the same state can adopt it. We never ask for children's email addresses, and children's data is never used to train AI.",
       "invoice_q": "Can the school pay by invoice?",
-      "invoice_a": "Yes, with the school plan. We email an invoice payable within 30 days, and your classes can use the plan straight away while it's open. The printed books are ordered once it's paid.",
+      "invoice_a": "Yes, with the school plan. We check invoice plans by hand (usually within a day), then email an invoice payable within 30 days. While it's open, your classes can use the plan with 50 pictures per seat; the printed books and the full 300 pictures per seat start once it's paid.",
       "trial_q": "What happens when the free trial ends?",
-      "trial_a": "The class rests: nothing is deleted. Buy seats any time to carry on where you left off.",
+      "trial_a": "Your class rests and can't be used until you buy seats. If no seats are bought, the class and everything in it is deleted about 90 days after the trial ends; we email you 30 and 7 days before. Buy seats any time before then to carry on where you left off.",
       "renew_q": "Does the plan renew?",
-      "renew_a": "Yes, every year. You can add seats at any time (you pay the difference for the rest of the year), reduce them for the next year, or cancel before the renewal.",
+      "renew_a": "Yes, every year. You can add seats at any time: each added seat costs the full yearly price for the current school year, because every seat includes a printed book. You can also reduce seats for the next year or cancel before the renewal.",
       "ipad_q": "Can I buy on the iPad?",
       "ipad_a": "Plans are bought here on the website. The iPad app shows your plan and seats."
     }

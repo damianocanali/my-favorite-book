@@ -9,7 +9,7 @@ import { ShieldCheck } from 'lucide-react'
 import { schoolFetch } from '../../lib/schoolApi'
 
 export default function TeacherVerificationNotice({ onVerified }) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const [state, setState] = useState(null)
   const [schoolName, setSchoolName] = useState('')
   const [sending, setSending] = useState(false)
@@ -31,7 +31,7 @@ export default function TeacherVerificationNotice({ onVerified }) {
     setError(false)
     const res = await schoolFetch('/api/school/verification', {
       method: 'POST',
-      body: JSON.stringify({ school_name: schoolName.trim() || undefined }),
+      body: JSON.stringify({ school_name: schoolName.trim() || undefined, locale: i18n.language === 'it' ? 'it' : 'en' }),
     })
     setSending(false)
     if (!res.ok) { setError(true); return }

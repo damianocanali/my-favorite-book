@@ -223,7 +223,11 @@
       "own_class": "That's your own class: give it seats directly.",
       "bad_code": "Enter the class code.",
       "bad_billing": "Choose card or invoice.",
-      "no_email": "Your account needs an email address."
+      "no_email": "Your account needs an email address.",
+      "over_seats": "This class has more children than paid seats. Add seats in Plan & billing before adding anyone.",
+      "too_many_children": "More books than paid seats: leave some children out of this print.",
+      "plan_unpaid": "Seats can be added once the invoice is paid.",
+      "reason_required": "A reason is required."
     },
     "class_page": {
       "back": "Back to your classes",
@@ -466,7 +470,9 @@
         "lapsed": "Ended",
         "canceled": "Canceled",
         "comped": "Comped",
-        "none": "No plan yet"
+        "none": "No plan yet",
+        "pending_approval": "Waiting for our approval",
+        "declined": "Not approved"
       },
       "seats_used": "{{used}} of {{total}} seats used",
       "pending_seats": "Going down to {{count}} seats at renewal",
@@ -495,7 +501,6 @@
       "seats": {
         "heading": "Change seats",
         "save": "Save",
-        "more_now": "Extra seats are added now and you pay the difference for the rest of the year.",
         "fewer_later": "Fewer seats take effect at renewal, and never fewer than the students in the class.",
         "done_increase": "Seats added.",
         "done_decrease": "Done: the class goes down to {{count}} seats at renewal.",
@@ -521,7 +526,10 @@
         "decline": "Decline"
       },
       "success": "Thank you! The payment went through; the plan shows here in a moment.",
-      "canceled_checkout": "Payment canceled. Nothing was charged."
+      "canceled_checkout": "Payment canceled. Nothing was charged.",
+      "over_seats": "This class has {{count}} children but {{seats}} paid seats. It keeps working, but no one can be added until there are enough seats, and the class books print for up to {{seats}} children.",
+      "seats_add_cost": "Adding {{count}} seats costs {{total}} now: the full yearly price of each seat for this school year, because every seat includes a printed book.",
+      "seats_add_rule": "Seats added during the year are charged the full yearly price for this school year (each includes a printed book and 300 pictures)."
     },
     "school_plan": {
       "title": "School plan",
@@ -535,11 +543,10 @@
         "billing": "How would you like to pay?",
         "card": "Card",
         "invoice": "Invoice (pay within 30 days)",
-        "invoice_note": "With an invoice, your classes can use the plan straight away while the invoice is open (30 days). Printing starts once it's paid.",
+        "invoice_note": "We check invoice plans by hand (usually within a day), then email the invoice, payable within 30 days. While it's open, your classes can use the plan with 50 pictures per seat; printing and the full 300 pictures per seat start once it's paid.",
         "pay": "Continue to payment",
         "send_invoice": "Send the invoice"
       },
-      "invoice_sent": "Invoice sent to your email. Your classes can use the plan now.",
       "seats_given": "{{used}} of {{total}} seats given to classes",
       "assign": {
         "heading": "Give seats to your classes",
@@ -565,7 +572,10 @@
         "none": "No classes yet."
       },
       "change_seats": "Change the plan's seats",
-      "change_hint": "More seats are added now; fewer take effect at renewal and never below the seats given to classes."
+      "change_hint": "More seats are added now; fewer take effect at renewal and never below the seats given to classes.",
+      "requested": "Request sent. We check invoice plans by hand, usually within a day; we'll email the invoice once it's approved.",
+      "declined": "We couldn't approve this plan: {{reason}}",
+      "unpaid_note": "Until the invoice is paid: 50 pictures per seat, no class printing, and no extra seats."
     }
   },
   "student": {
@@ -1054,7 +1064,8 @@
         "failed": "Needs attention"
       },
       "failed_hint": "Something went wrong with the printer. We'll be in touch.",
-      "books_missing": "We couldn't prepare the books for this request. Cancel it and try again."
+      "books_missing": "We couldn't prepare the books for this request. Cancel it and try again.",
+      "over_seats": "This class has {{seats}} paid seats, so up to {{seats}} books print. Untick children until {{seats}} or fewer are left ({{count}} now), or add seats in Plan & billing first."
     },
     "preview": {
       "heading": "{{name}}'s book",
@@ -1103,7 +1114,8 @@
       "print_book_too_big": "These books are too big to print: {{names}}. Remove a piece and try again.",
       "print_book_too_big_generic": "A child's book is too big to print. Remove a piece and try again.",
       "page_overflow": "Some text doesn't fit on page {{pages}}. Shorten that piece and try again.",
-      "page_overflow_generic": "Some text doesn't fit on a page. Shorten that piece and try again."
+      "page_overflow_generic": "Some text doesn't fit on a page. Shorten that piece and try again.",
+      "too_many_children": "More books than paid seats ({{count}} for {{seats}} seats). Untick some children, or add seats first."
     }
   }
 }
