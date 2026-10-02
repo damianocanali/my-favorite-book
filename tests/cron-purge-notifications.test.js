@@ -50,3 +50,27 @@ describe('purge-deletions: teacher_notifications retention', () => {
     expect(globalThis.fetch).not.toHaveBeenCalled()
   })
 })
+
+describe('purge-deletions: owner alert (review §7.26)', () => {
+  it('emails the owner (counts only) when a purge fails', async () => {
+    process.env.RESEND_API_KEY = 're_test'
+    process.env.EMAIL_FROM = 'x <x@mybooklab.app>'
+    process.env.OWNER_ALERT_EMAIL = 'owner@example.com'
+    const sent = []
+    globalThis.fetch = vi.fn(async (url, init = {}) => {
+      const u = String(url)
+      if (u.includes('api.resend.com')) { sent.push(JSON.parse(init.body)); return new Response('{}') }
+      if (u.includes('account_deletions?requested_at')) return new Response(JSON.stringify([{ user_id: 'u-1' }]))
+      if (u.includes('/auth/v1/admin/users/')) return new Response('{}', { status: 500 })
+      return new Response('[]')
+    })
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const res = await run()
+    expect((await res.json()).failed).toBe(1)
+    expect(sent).toHaveLength(1)
+    expect(sent[0].to).toEqual(['owner@example.com'])
+    expect(sent[0].text).toContain('failed: 1')
+    expect(sent[0].text).not.toContain('u-1')
+    delete process.env.RESEND_API_KEY; delete process.env.EMAIL_FROM; delete process.env.OWNER_ALERT_EMAIL
+  })
+})

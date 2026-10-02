@@ -2,6 +2,7 @@ export const config = { runtime: 'edge' }
 
 import { purgeUser, GRACE_DAYS } from '../../lib/deleteUser.js'
 import { purgeOldClassPrintPdfs } from '../../lib/school/printRetention.js'
+import { sendOwnerAlert, summaryLines } from '../../lib/notify/ownerAlert.js'
 
 const CRON_SECRET = process.env.CRON_SECRET
 const NOTIFICATION_RETENTION_DAYS = 90
@@ -82,7 +83,16 @@ export default async function handler(req) {
     console.error('[purge-deletions] print PDF retention error:', e?.message)
   }
 
-  return new Response(JSON.stringify({ considered: list.length, purged, failed, notifications_pruned: notificationsPruned, print_pdfs: printPdfs }), {
+  const result = { considered: list.length, purged, failed, notifications_pruned: notificationsPruned, print_pdfs: printPdfs }
+  // Review §7.26: a failure here used to reach only console.error.
+  if (failed > 0 || !notificationsPruned || printPdfs.failed > 0) {
+    await sendOwnerAlert({
+      subject: `Account purge: ${failed} failed`,
+      lines: ['The nightly purge (api/cron/purge-deletions.js) did not finish cleanly.', '', ...summaryLines(result)],
+      idempotencyKey: `purge-alert-${new Date().toISOString().slice(0, 10)}`,
+    })
+  }
+  return new Response(JSON.stringify(result), {
     status: 200, headers: { 'Content-Type': 'application/json' },
   })
 }
