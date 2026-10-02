@@ -17,6 +17,7 @@ import { requireClassOwner, requireTeacher, teacherVerification, sb, json, isUui
 import { checkoutBaseUrl } from '../_origin.js'
 import { stripe as defaultStripe } from '../../lib/school/stripe.js'
 import { listInvoices, portalUrl, subscriptionItem, setQuantity, chargeSeatAdd } from '../../lib/school/billingApi.js'
+import { refundInvoice } from '../../lib/school/stripe.js'
 import { sendOwnerAlert } from '../../lib/notify/ownerAlert.js'
 import { planSeatChange } from '../../lib/school/billingState.js'
 import { MIN_CLASS_SEATS, MAX_CLASS_SEATS, imageAllowanceFor, seatAddQuote } from '../../lib/school/pricing.js'
@@ -169,9 +170,16 @@ export default async function handler(req) {
       })
       if (!change.ok) return json(req, 400, { error: 'That seat count is not possible', code: change.code, ...(change.min != null ? { min: change.min } : {}), ...(change.max != null ? { max: change.max } : {}) })
       if (change.mode === 'none') return json(req, 200, { license: licenseView(license) })
+      // Review N2: the browser sends one request_id per seat form, reused on
+      // a retry or double click, so Stripe sees the same idempotency keys.
+      if (!isUuid(body.request_id)) return json(req, 400, { error: 'Missing request id', code: 'bad_request' })
+      const requestId = body.request_id
+      // Review N8: no seat purchases while the renewal payment is failing.
+      if (change.mode === 'increase' && license.status === 'grace') {
+        return json(req, 409, { error: 'Pay the renewal first, then add seats', code: 'renewal_failed' })
+      }
       const item = await subscriptionItem(deps.stripe, license.stripe_subscription_id)
       if (!item) return json(req, 502, { error: 'Could not change seats', code: 'upstream' })
-      const requestId = isUuid(body.request_id) ? body.request_id : crypto.randomUUID()
       const setStripe = (q) => setQuantity(deps.stripe, license.stripe_subscription_id, item.itemId, q, `seats-${license.id}-${q}-${requestId}`)
       const patchRow = async (patch) => {
         const upd = await sb(`/rest/v1/class_licenses?id=eq.${license.id}`, {
@@ -200,16 +208,32 @@ export default async function handler(req) {
           key: `seat-add-${license.id}-${license.seats}-${body.seats}-${requestId}`,
         })
         if (!charged.ok) {
+          if (charged.voidFailed) await sendOwnerAlert({ subject: 'Seat-add invoice not voided', lines: [`Class license ${license.id}: invoice ${charged.invoiceId} failed to charge and could not be voided. Check it in Stripe.`] })
           return charged.code === 'payment_failed'
             ? json(req, 402, { error: 'The card was declined; seats are unchanged', code: 'payment_failed' })
             : json(req, 502, { error: 'Could not change seats', code: 'upstream' })
         }
-        // Our row first, then Stripe: the webhook then sees quantity ==
-        // seats and changes nothing.
-        const after = await patchRow({ seats: body.seats, image_allowance: imageAllowanceFor(body.seats), pending_seats: null })
-        if (!after) {
+        // Our row first (only if it still has the seats we charged from —
+        // review N2), then Stripe: the webhook then sees quantity == seats.
+        const cas = await sb(`/rest/v1/class_licenses?id=eq.${license.id}&seats=eq.${license.seats}`, {
+          method: 'PATCH', headers: { Prefer: 'return=representation' },
+          body: JSON.stringify({ seats: body.seats, image_allowance: imageAllowanceFor(body.seats), pending_seats: null, updated_at: new Date().toISOString() }),
+        })
+        if (!cas.ok) {
           await sendOwnerAlert({ subject: 'Seats paid but not recorded', lines: [`Class license ${license.id}: seats ${license.seats} → ${body.seats} were paid (invoice ${charged.invoiceId}) but the row update failed.`] })
           return json(req, 502, { error: 'Seats paid; refresh in a minute', code: 'upstream' })
+        }
+        let [after] = await cas.json().catch(() => [])
+        if (!after) {
+          const now = await loadLicense(o.classroom.id)
+          // The same request replayed (double click): already applied.
+          if (now?.seats !== body.seats) {
+            // Another change won in between: give this charge back.
+            const refunded = await refundInvoice(deps.stripe, charged.invoiceId, `seat-add-refund-${charged.invoiceId}`)
+            await sendOwnerAlert({ subject: 'Seat add refunded (seats changed meanwhile)', lines: [`Class license ${license.id}: ${license.seats} → ${body.seats} charged on invoice ${charged.invoiceId}, but the seats had changed. Refunded: ${refunded ? 'yes' : 'NO — refund it in Stripe'}.`] })
+            return json(req, 409, { error: 'The seats changed meanwhile. Nothing was charged; take another look.', code: 'seats_changed' })
+          }
+          after = now
         }
         const q = await setStripe(body.seats)
         if (!q.ok) await sendOwnerAlert({ subject: 'Stripe quantity not raised', lines: [`Class license ${license.id} paid for ${body.seats} seats (invoice ${charged.invoiceId}); set the subscription quantity to ${body.seats} (no proration).`] })

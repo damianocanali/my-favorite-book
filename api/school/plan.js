@@ -21,6 +21,7 @@ import { requireTeacher, requireVerifiedTeacher, sb, json, isUuid } from '../_sc
 import { checkoutBaseUrl } from '../_origin.js'
 import { stripe as defaultStripe } from '../../lib/school/stripe.js'
 import { listInvoices, portalUrl, subscriptionItem, setQuantity, chargeSeatAdd } from '../../lib/school/billingApi.js'
+import { refundInvoice } from '../../lib/school/stripe.js'
 import { sendOwnerAlert } from '../../lib/notify/ownerAlert.js'
 import { planSeatChange } from '../../lib/school/billingState.js'
 import { MIN_SCHOOL_SEATS, MAX_SCHOOL_SEATS, MAX_CLASS_SEATS, seatAddQuote } from '../../lib/school/pricing.js'
@@ -90,7 +91,9 @@ export default async function handler(req) {
       for (const p of await res.json()) {
         const offersRes = await sb(`/rest/v1/school_seat_offers?plan_id=eq.${p.id}&status=eq.pending&select=id,seats,created_at`)
         const offers = offersRes.ok ? await offersRes.json() : []
-        plans.push(planView(p, await blocksOf(p.id), offers, t.auth.userId))
+        const addRes = await sb(`/rest/v1/school_seat_add_invoices?plan_id=eq.${p.id}&status=eq.pending&select=seats_to,due_at`)
+        const [pendingAdd] = addRes.ok ? await addRes.json() : []
+        plans.push({ ...planView(p, await blocksOf(p.id), offers, t.auth.userId), pending_seat_add: pendingAdd ?? null })
       }
       return json(req, 200, { plans })
     }
@@ -177,9 +180,22 @@ export default async function handler(req) {
       if (change.mode === 'increase' && plan.status === 'pending_payment') {
         return json(req, 409, { error: 'Seats can be added once the invoice is paid', code: 'plan_unpaid' })
       }
+      // Review N8: no seat purchases while the renewal payment is failing.
+      if (change.mode === 'increase' && plan.status === 'grace') {
+        return json(req, 409, { error: 'Pay the renewal first, then add seats', code: 'renewal_failed' })
+      }
+      // Review N2: one request_id per seat form, reused on retry.
+      if (!isUuid(body.request_id)) return json(req, 400, { error: 'Missing request id', code: 'bad_request' })
+      const requestId = body.request_id
+      if (change.mode === 'increase') {
+        // Review N3: one seat add waiting for its invoice at a time.
+        const waiting = await sb(`/rest/v1/school_seat_add_invoices?plan_id=eq.${plan.id}&status=eq.pending&select=invoice_id,seats_to`)
+        if (!waiting.ok) return json(req, 503, { error: 'Service unavailable, try again', code: 'upstream' })
+        const [w] = await waiting.json()
+        if (w) return json(req, 409, { error: 'An invoice for extra seats is still waiting to be paid', code: 'seat_add_pending', seats: w.seats_to })
+      }
       const item = await subscriptionItem(deps.stripe, plan.stripe_subscription_id)
       if (!item) return json(req, 502, { error: 'Could not change seats', code: 'upstream' })
-      const requestId = isUuid(body.request_id) ? body.request_id : crypto.randomUUID()
       const setStripe = (q) => setQuantity(deps.stripe, plan.stripe_subscription_id, item.itemId, q, `plan-seats-${plan.id}-${q}-${requestId}`)
 
       if (change.mode === 'increase') {
@@ -197,18 +213,46 @@ export default async function handler(req) {
           key: `plan-seat-add-${plan.id}-${plan.seats}-${body.seats}-${requestId}`,
         })
         if (!charged.ok) {
+          if (charged.voidFailed) await sendOwnerAlert({ subject: 'Seat-add invoice not voided', lines: [`School plan ${plan.id}: invoice ${charged.invoiceId} failed to charge and could not be voided. Check it in Stripe.`] })
           return charged.code === 'payment_failed'
             ? json(req, 402, { error: 'The card was declined; seats are unchanged', code: 'payment_failed' })
             : json(req, 502, { error: 'Could not change seats', code: 'upstream' })
         }
-        const upd = await sb(`/rest/v1/school_plans?id=eq.${plan.id}`, { method: 'PATCH', body: JSON.stringify({ seats: body.seats, pending_seats: null, updated_at: new Date().toISOString() }) })
-        if (!upd.ok) {
+        if (!charged.paid) {
+          // Review N3: invoice billing — the seats arrive when the invoice
+          // is paid (webhook). A replay finds the same invoice row (409).
+          const ins = await sb('/rest/v1/school_seat_add_invoices', {
+            method: 'POST', headers: { Prefer: 'return=minimal' },
+            body: JSON.stringify({ invoice_id: charged.invoiceId, plan_id: plan.id, seats_from: plan.seats, seats_to: body.seats, due_at: charged.dueDate }),
+          })
+          if (!ins.ok && ins.status !== 409) {
+            await sendOwnerAlert({ subject: 'Seat-add invoice not tracked', lines: [`School plan ${plan.id}: invoice ${charged.invoiceId} (${plan.seats} → ${body.seats}) was sent but could not be recorded. Grant the seats by hand when it is paid, or void it.`] })
+            return json(req, 502, { error: 'Could not change seats', code: 'upstream' })
+          }
+          return json(req, 202, { ok: true, mode: 'increase', pending_payment: true, seats: body.seats })
+        }
+        // Card: our row first, only if it still has the seats we charged
+        // from (review N2), then Stripe.
+        const cas = await sb(`/rest/v1/school_plans?id=eq.${plan.id}&seats=eq.${plan.seats}`, {
+          method: 'PATCH', headers: { Prefer: 'return=representation' },
+          body: JSON.stringify({ seats: body.seats, pending_seats: null, updated_at: new Date().toISOString() }),
+        })
+        if (!cas.ok) {
           await sendOwnerAlert({ subject: 'Plan seats paid but not recorded', lines: [`School plan ${plan.id}: seats ${plan.seats} → ${body.seats} (invoice ${charged.invoiceId}); the row update failed.`] })
           return json(req, 502, { error: 'Seats paid; refresh in a minute', code: 'upstream' })
         }
+        const [after] = await cas.json().catch(() => [])
+        if (!after) {
+          const now = await ownPlan(userId, plan.id)
+          if (now?.seats !== body.seats) {
+            const refunded = await refundInvoice(deps.stripe, charged.invoiceId, `seat-add-refund-${charged.invoiceId}`)
+            await sendOwnerAlert({ subject: 'Seat add refunded (seats changed meanwhile)', lines: [`School plan ${plan.id}: ${plan.seats} → ${body.seats} charged on invoice ${charged.invoiceId}, but the seats had changed. Refunded: ${refunded ? 'yes' : 'NO — refund it in Stripe'}.`] })
+            return json(req, 409, { error: 'The seats changed meanwhile. Nothing was charged; take another look.', code: 'seats_changed' })
+          }
+        }
         const q = await setStripe(body.seats)
         if (!q.ok) await sendOwnerAlert({ subject: 'Stripe quantity not raised', lines: [`School plan ${plan.id} paid for ${body.seats} seats (invoice ${charged.invoiceId}); set the subscription quantity to ${body.seats} (no proration).`] })
-        return json(req, 200, { ok: true, mode: 'increase', invoiced: !charged.paid })
+        return json(req, 200, { ok: true, mode: 'increase' })
       }
 
       // A reduction (or undoing one), checked against the seats given out

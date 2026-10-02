@@ -227,7 +227,10 @@
       "over_seats": "Questa classe ha più nomi che posti pagati. Aggiungi posti in Piano e pagamenti prima di aggiungere altri nomi.",
       "too_many_children": "Più libri che posti pagati: togli alcuni nomi da questa stampa.",
       "plan_unpaid": "Puoi aggiungere posti dopo il pagamento della fattura.",
-      "reason_required": "Serve un motivo."
+      "reason_required": "Serve un motivo.",
+      "seats_changed": "I posti sono cambiati mentre salvavi, quindi non è stato addebitato nulla. Ricontrolla e riprova.",
+      "renewal_failed": "Il pagamento del rinnovo non è andato a buon fine. Pagalo prima (Gestisci il pagamento), poi aggiungi posti.",
+      "seat_add_pending": "Una fattura per posti in più è ancora da pagare. Potrai aggiungerne altri dopo il pagamento."
     },
     "class_page": {
       "back": "Torna alle tue classi",
@@ -575,7 +578,9 @@
       "change_hint": "I posti in più si aggiungono subito; la riduzione vale dal rinnovo e mai sotto i posti già assegnati.",
       "requested": "Richiesta inviata. Controlliamo a mano i piani con fattura, di solito entro un giorno; ti mandiamo la fattura appena è approvato.",
       "declined": "Non abbiamo potuto approvare questo piano: {{reason}}",
-      "unpaid_note": "Finché la fattura non è pagata: 50 immagini per posto, niente stampa della classe e nessun posto in più."
+      "unpaid_note": "Finché la fattura non è pagata: 50 immagini per posto, niente stampa della classe e nessun posto in più.",
+      "seat_add_pending": "Sale a {{count}} posti appena la fattura è pagata (scadenza {{date}}).",
+      "seat_add_sent": "Fattura inviata per i posti in più. Si aggiungono appena è pagata."
     }
   },
   "student": {

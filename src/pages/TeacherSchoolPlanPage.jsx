@@ -42,6 +42,8 @@ export default function TeacherSchoolPlanPage() {
   const [offerCode, setOfferCode] = useState('')
   const [offerSeats, setOfferSeats] = useState(25)
   const [planSeats, setPlanSeats] = useState(null)
+  // One request id per seat change, reused on retry (review N2).
+  const [seatRequestId, setSeatRequestId] = useState(() => crypto.randomUUID())
 
   const load = useCallback(async () => {
     const [p, c] = await Promise.all([schoolFetch('/api/school/plan'), schoolFetch('/api/school/classes')])
@@ -177,10 +179,18 @@ export default function TeacherSchoolPlanPage() {
             {plan.status === 'pending_payment' && <p className="text-sm font-body text-amber-200">{t('school:teacher.school_plan.unpaid_note')}</p>}
             <p className="text-sm font-body text-galaxy-text">{t('school:teacher.school_plan.seats_given', { used: plan.used, total: plan.seats })}</p>
             {plan.pending_seats != null && <p className="text-sm font-body text-galaxy-text-muted">{t('school:teacher.billing.pending_seats', { count: plan.pending_seats })}</p>}
+            {plan.pending_seat_add && (
+              <p className="text-sm font-body text-amber-200">{t('school:teacher.school_plan.seat_add_pending', { count: plan.pending_seat_add.seats_to, date: formatDate(plan.pending_seat_add.due_at, 'long') })}</p>
+            )}
             <div className="flex flex-wrap items-center gap-3">
               <input type="number" inputMode="numeric" min={Math.max(MIN_SCHOOL_SEATS, plan.used)} value={planSeats ?? plan.pending_seats ?? plan.seats}
                 onChange={(e) => setPlanSeats(e.target.value)} className={`${input} max-w-[8rem]`} aria-label={t('school:teacher.school_plan.change_seats')} />
-              <button className={primary} disabled={busy || planSeats == null} onClick={() => act({ action: 'seats', seats: Number(planSeats) }).then(() => setPlanSeats(null))}>
+              <button className={primary} disabled={busy || planSeats == null} onClick={() => act({ action: 'seats', seats: Number(planSeats), request_id: seatRequestId }).then((d) => {
+                if (!d) return
+                setPlanSeats(null)
+                setSeatRequestId(crypto.randomUUID())
+                if (d.pending_payment) setNotice('school:teacher.school_plan.seat_add_sent')
+              })}>
                 {t('school:teacher.school_plan.change_seats')}
               </button>
               <button className={secondary} disabled={busy} onClick={portal}><ExternalLink size={14} /> {t('school:teacher.billing.manage')}</button>

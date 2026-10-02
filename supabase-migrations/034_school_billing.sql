@@ -193,6 +193,27 @@ alter table public.stripe_school_events add column if not exists processed_at ti
 alter table public.stripe_school_events enable row level security;
 revoke all on public.stripe_school_events from anon, authenticated;
 
+-- ── 5b. Seat additions on invoice-billed plans (review N3) ─────────────
+-- A seat add on a plan billed by invoice (net 30) is NOT granted when the
+-- invoice is sent: the seats arrive with invoice.paid of that stand-alone
+-- invoice (lib/school/billingWebhook.js). One pending add per plan. An
+-- overdue one is reported to the owner by the nightly job.
+create table if not exists public.school_seat_add_invoices (
+  invoice_id text primary key check (char_length(invoice_id) between 1 and 255),
+  plan_id uuid not null references public.school_plans(id) on delete cascade,
+  seats_from int not null check (seats_from >= 1),
+  seats_to int not null check (seats_to > seats_from),
+  status text not null default 'pending' check (status in ('pending','paid','void')),
+  due_at timestamptz,
+  overdue_alerted_at timestamptz,
+  created_at timestamptz not null default now(),
+  decided_at timestamptz
+);
+create unique index if not exists school_seat_add_one_pending
+  on public.school_seat_add_invoices (plan_id) where status = 'pending';
+alter table public.school_seat_add_invoices enable row level security;
+revoke all on public.school_seat_add_invoices from anon, authenticated;
+
 -- ── 6. Seat-block assignment (atomic) ───────────────────────────────────
 -- Gives (or resizes) a class's block from a school plan. Locks the plan row
 -- so two parallel assignments can't oversell it. Rules:

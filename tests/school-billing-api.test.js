@@ -6,6 +6,7 @@ import { readFileSync } from 'node:fs'
 const URL_ = 'https://example.supabase.co'
 const CLASS_ID = '6f1c1b1e-0000-4000-8000-000000000001'
 const PLAN_ID = '6f1c1b1e-0000-4000-8000-0000000000f1'
+const RID = '6f1c1b1e-0000-4000-8000-0000000000ab'
 const OFFER_ID = '6f1c1b1e-0000-4000-8000-0000000000f2'
 const VERIFIED = { id: 'teacher-1', email: 'pat@lincoln.edu', email_confirmed_at: 'x', app_metadata: { teacher_verified_at: '2026-09-01T00:00:00Z', teacher_verified_by: 'domain' } }
 const UNVERIFIED = { id: 'teacher-1', email: 'pat@gmail.com', email_confirmed_at: 'x', app_metadata: {} }
@@ -236,11 +237,11 @@ describe('/api/school/billing — plan & billing for a class', () => {
     routes.push(ownerRoute, licenseRoute(cardLicense), students(18), { method: 'PATCH', match: '/rest/v1/class_licenses?id=eq.lic-1', reply: (c) => ({ body: [{ ...cardLicense, ...c.body }] }) })
     payable()
     const handler = await load('billing')
-    const res = await handler(call('billing', { body: { classId: CLASS_ID, action: 'seats', seats: 30 } }))
+    const res = await handler(call('billing', { body: { classId: CLASS_ID, action: 'seats', seats: 30, request_id: RID } }))
     expect(res.status).toBe(200)
     const item = stripeCalls.find((c) => c.path === 'invoiceitems').params
-    expect(item).toMatchObject({ customer: 'cus_1', amount: 5 * 1500, currency: 'usd' })
-    expect(stripeCalls.find((c) => c.path === 'invoices').params).toMatchObject({ customer: 'cus_1', collection_method: 'charge_automatically', default_payment_method: 'pm_1', pending_invoice_items_behavior: 'include' })
+    expect(item).toMatchObject({ customer: 'cus_1', invoice: 'in_add', amount: 5 * 1500, currency: 'usd' })
+    expect(stripeCalls.find((c) => c.path === 'invoices').params).toMatchObject({ customer: 'cus_1', collection_method: 'charge_automatically', default_payment_method: 'pm_1', pending_invoice_items_behavior: 'exclude' })
     const qty = stripeCalls.find((c) => c.method === 'POST' && c.path === 'subscriptions/sub_1').params
     expect(qty).toEqual({ items: [{ id: 'si_1', quantity: 30 }], proration_behavior: 'none' })
     const patch = log.find((l) => l.method === 'PATCH').body
@@ -257,11 +258,81 @@ describe('/api/school/billing — plan & billing for a class', () => {
     payable()
     stripeReplies['GET subscriptions/sub_1'].data.items.data[0].quantity = 20 // Stripe already holds the reduction
     const handler = await load('billing')
-    const res = await handler(call('billing', { body: { classId: CLASS_ID, action: 'seats', seats: 32 } }))
+    const res = await handler(call('billing', { body: { classId: CLASS_ID, action: 'seats', seats: 32, request_id: RID } }))
     expect(res.status).toBe(200)
     expect(stripeCalls.find((c) => c.path === 'invoiceitems').params.amount).toBe(2 * 1500)
     expect(log.find((l) => l.method === 'PATCH').body).toMatchObject({ seats: 32, pending_seats: null })
     expect(stripeCalls.find((c) => c.method === 'POST' && c.path === 'subscriptions/sub_1').params).toEqual({ items: [{ id: 'si_1', quantity: 32 }], proration_behavior: 'none' })
+  })
+
+  it('N2: a double submit (same request_id) charges ONCE and applies once', async () => {
+    let lic = { ...cardLicense, seats: 30 }
+    routes.push(
+      ownerRoute,
+      { method: 'GET', match: '/rest/v1/class_licenses?classroom_id=eq.', reply: () => ({ body: [lic] }) },
+      students(18),
+      { method: 'PATCH', match: '/rest/v1/class_licenses?id=eq.lic-1', reply: (c) => {
+        if (!c.u.includes(`seats=eq.${lic.seats}`)) return { body: [] } // CAS miss
+        lic = { ...lic, ...c.body }
+        return { body: [lic] }
+      } },
+    )
+    payable()
+    // Stripe idempotency: a replayed key returns the first result, no new charge.
+    const seen = new Map()
+    const charges = []
+    const idem = async (path, opts = {}) => {
+      if (opts.idempotencyKey && seen.has(opts.idempotencyKey)) return seen.get(opts.idempotencyKey)
+      const r = await mockStripe(path, opts)
+      if (path.endsWith('/pay')) charges.push(opts.idempotencyKey)
+      if (opts.idempotencyKey) seen.set(opts.idempotencyKey, r)
+      return r
+    }
+    const mod = await import('../api/school/billing.js')
+    mod.deps.stripe = idem
+    const body = { classId: CLASS_ID, action: 'seats', seats: 32, request_id: RID }
+    const [a, b] = [await mod.default(call('billing', { body })), await mod.default(call('billing', { body }))]
+    expect(a.status).toBe(200)
+    expect(b.status).toBe(200)
+    expect(charges).toHaveLength(1)
+    expect(lic.seats).toBe(32)
+    expect(stripeCalls.some((c) => c.path === 'refunds')).toBe(false)
+  })
+
+  it('N2: seats changed by another request meanwhile → this charge is refunded, 409 seats_changed', async () => {
+    routes.push(
+      ownerRoute,
+      { method: 'GET', match: '/rest/v1/class_licenses?classroom_id=eq.', reply: (() => { let n = 0; return () => ({ body: [n++ === 0 ? cardLicense : { ...cardLicense, seats: 27 }] }) })() },
+      students(18),
+      { method: 'PATCH', match: '/rest/v1/class_licenses?id=eq.lic-1', reply: { body: [] } },
+    )
+    payable()
+    stripeReplies['GET invoices/in_add'] = { ok: true, data: { id: 'in_add', status: 'paid', charge: 'ch_old' } }
+    const handler = await load('billing')
+    const res = await handler(call('billing', { body: { classId: CLASS_ID, action: 'seats', seats: 30, request_id: RID } }))
+    expect(res.status).toBe(409)
+    expect((await res.json()).code).toBe('seats_changed')
+    // Pre-2025 shape: refund by charge (N5).
+    expect(stripeCalls.find((c) => c.path === 'refunds').params).toEqual({ charge: 'ch_old', reason: 'duplicate' })
+  })
+
+  it('N8: no seat purchase while the renewal is failing (grace)', async () => {
+    routes.push(ownerRoute, licenseRoute({ ...cardLicense, status: 'grace' }), students(18))
+    const handler = await load('billing')
+    const res = await handler(call('billing', { body: { classId: CLASS_ID, action: 'seats', seats: 30, request_id: RID } }))
+    expect((await res.json()).code).toBe('renewal_failed')
+    expect(stripeCalls).toHaveLength(0)
+  })
+
+  it('N6: a pay call that fails but actually charged is treated as paid (re-read before voiding)', async () => {
+    routes.push(ownerRoute, licenseRoute(cardLicense), students(18), { method: 'PATCH', match: '/rest/v1/class_licenses?id=eq.lic-1', reply: (c) => ({ body: [{ ...cardLicense, ...c.body }] }) })
+    payable()
+    stripeReplies['POST invoices/in_add/pay'] = { ok: false, status: 0, data: {} }
+    stripeReplies['GET invoices/in_add'] = { ok: true, data: { id: 'in_add', status: 'paid' } }
+    const handler = await load('billing')
+    const res = await handler(call('billing', { body: { classId: CLASS_ID, action: 'seats', seats: 30, request_id: RID } }))
+    expect(res.status).toBe(200)
+    expect(stripeCalls.some((c) => c.path === 'invoices/in_add/void')).toBe(false)
   })
 
   it('a declined card voids the invoice and leaves the seats alone', async () => {
@@ -269,7 +340,7 @@ describe('/api/school/billing — plan & billing for a class', () => {
     payable()
     stripeReplies['POST invoices/in_add/pay'] = { ok: false, status: 402, data: {} }
     const handler = await load('billing')
-    const res = await handler(call('billing', { body: { classId: CLASS_ID, action: 'seats', seats: 30 } }))
+    const res = await handler(call('billing', { body: { classId: CLASS_ID, action: 'seats', seats: 30, request_id: RID } }))
     expect(res.status).toBe(402)
     expect(stripeCalls.some((c) => c.path === 'invoices/in_add/void')).toBe(true)
     expect(log.some((l) => l.method === 'PATCH')).toBe(false)
@@ -288,9 +359,9 @@ describe('/api/school/billing — plan & billing for a class', () => {
     stripeReplies['GET subscriptions/sub_1'] = { ok: true, data: { items: { data: [{ id: 'si_1', quantity: 25 }] } } }
     stripeReplies['POST subscriptions/sub_1'] = { ok: true, data: { items: { data: [{ quantity: 20 }] } } }
     const handler = await load('billing')
-    let res = await handler(call('billing', { body: { classId: CLASS_ID, action: 'seats', seats: 17 } }))
+    let res = await handler(call('billing', { body: { classId: CLASS_ID, action: 'seats', seats: 17, request_id: RID } }))
     expect(await res.json()).toMatchObject({ code: 'below_enrolled', min: 18 })
-    res = await handler(call('billing', { body: { classId: CLASS_ID, action: 'seats', seats: 20 } }))
+    res = await handler(call('billing', { body: { classId: CLASS_ID, action: 'seats', seats: 20, request_id: RID } }))
     expect(res.status).toBe(200)
     expect(stripeCalls.find((c) => c.method === 'POST' && c.path === 'subscriptions/sub_1').params.proration_behavior).toBe('none')
     expect(stripeCalls.some((c) => c.path === 'invoiceitems')).toBe(false)
@@ -302,13 +373,13 @@ describe('/api/school/billing — plan & billing for a class', () => {
   it('a school-plan block is resized by the school admin, not here; unverified can\'t change seats', async () => {
     routes.push(ownerRoute, licenseRoute({ ...cardLicense, school_plan_id: PLAN_ID }), { method: 'GET', match: '/rest/v1/school_plans?id=eq.', reply: { body: [{ id: PLAN_ID, owner_user_id: 'admin-9' }] } })
     const handler = await load('billing')
-    let res = await handler(call('billing', { body: { classId: CLASS_ID, action: 'seats', seats: 30 } }))
+    let res = await handler(call('billing', { body: { classId: CLASS_ID, action: 'seats', seats: 30, request_id: RID } }))
     expect((await res.json()).code).toBe('managed_by_school_plan')
     // …and the portal belongs to the payer (the school admin).
     res = await handler(call('billing', { body: { classId: CLASS_ID, action: 'portal' } }))
     expect(res.status).toBe(403)
     user = UNVERIFIED
-    res = await handler(call('billing', { body: { classId: CLASS_ID, action: 'seats', seats: 30 } }))
+    res = await handler(call('billing', { body: { classId: CLASS_ID, action: 'seats', seats: 30, request_id: RID } }))
     expect((await res.json()).code).toBe('teacher_unverified')
   })
 

@@ -227,7 +227,10 @@
       "over_seats": "This class has more children than paid seats. Add seats in Plan & billing before adding anyone.",
       "too_many_children": "More books than paid seats: leave some children out of this print.",
       "plan_unpaid": "Seats can be added once the invoice is paid.",
-      "reason_required": "A reason is required."
+      "reason_required": "A reason is required.",
+      "seats_changed": "The seats changed while you were saving, so nothing was charged. Take another look and try again.",
+      "renewal_failed": "The renewal payment didn't go through. Pay it first (Manage payment), then add seats.",
+      "seat_add_pending": "An invoice for extra seats is still waiting to be paid. You can add more once it's paid."
     },
     "class_page": {
       "back": "Back to your classes",
@@ -575,7 +578,9 @@
       "change_hint": "More seats are added now; fewer take effect at renewal and never below the seats given to classes.",
       "requested": "Request sent. We check invoice plans by hand, usually within a day; we'll email the invoice once it's approved.",
       "declined": "We couldn't approve this plan: {{reason}}",
-      "unpaid_note": "Until the invoice is paid: 50 pictures per seat, no class printing, and no extra seats."
+      "unpaid_note": "Until the invoice is paid: 50 pictures per seat, no class printing, and no extra seats.",
+      "seat_add_pending": "Going up to {{count}} seats once the invoice is paid (due {{date}}).",
+      "seat_add_sent": "Invoice sent for the extra seats. They're added as soon as it's paid."
     }
   },
   "student": {

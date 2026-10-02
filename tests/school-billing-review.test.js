@@ -76,11 +76,23 @@ describe('C1/I1: a colleague with a seat block never reaches the school admin\'s
   // Customer: every lookup must still refuse it.
   const leakyLicenses = (c) => ok(c.u.includes('school_plan_id=is.null') ? [] : [{ stripe_customer_id: 'cus_admin' }])()
 
-  it('deleting the colleague\'s account never deletes the admin\'s Stripe Customer', async () => {
-    routes.push({ method: 'GET', match: '/rest/v1/class_licenses?owner_user_id', reply: leakyLicenses })
+  it('N4: deleting a colleague deletes THEIR Customer kept on a block, never the admin\'s', async () => {
+    routes.push(
+      // Block 1 (legacy shape) carries the plan's Customer; block 2 keeps the
+      // colleague's own Customer from the class's earlier card purchase.
+      { method: 'GET', match: '/rest/v1/class_licenses?owner_user_id', reply: ok([{ stripe_customer_id: 'cus_admin', school_plan_id: PLAN_ID }, { stripe_customer_id: 'cus_lee', school_plan_id: PLAN_ID }]) },
+      { method: 'GET', match: '/rest/v1/school_plans?id=in.', reply: ok([{ id: PLAN_ID, stripe_customer_id: 'cus_admin' }]) },
+    )
     await purgeUser(COLLEAGUE, { supabaseUrl: URL_, serviceKey: 'service', stripeSecretKey: 'sk_test_x' })
     expect(log.some((l) => l.method === 'DELETE' && l.u.includes('api.stripe.com/v1/customers/cus_admin'))).toBe(false)
-    expect(log.find((l) => l.u.includes('/rest/v1/class_licenses?owner_user_id') && l.method === 'GET').u).toContain('school_plan_id=is.null')
+    expect(log.some((l) => l.method === 'DELETE' && l.u.includes('api.stripe.com/v1/customers/cus_lee'))).toBe(true)
+  })
+
+  it('M15: a 400 on the class_licenses lookup (after 034) aborts the purge', async () => {
+    routes.push({ method: 'GET', match: '/rest/v1/class_licenses?owner_user_id', reply: ok({ code: '42703' }, 400) })
+    const result = await purgeUser(COLLEAGUE, { supabaseUrl: URL_, serviceKey: 'service', stripeSecretKey: 'sk_test_x' })
+    expect(result.ok).toBe(false)
+    expect(log.some((l) => l.method === 'DELETE' && l.u.includes('/auth/v1/admin/users/'))).toBe(false)
   })
 
   it('the colleague buying a class of their own gets their OWN Customer, never the admin\'s', async () => {
@@ -134,7 +146,7 @@ describe('I3/I6: school plan seats', () => {
     stripeReplies['GET subscriptions/sub_p'] = { ok: true, data: { customer: 'cus_admin', items: { data: [{ id: 'si_p', quantity: 300 }] } } }
     stripeReplies['POST subscriptions/sub_p'] = { ok: true, data: { items: { data: [{ quantity: 150 }] } } }
     const handler = await load()
-    const res = await handler(call('school/plan', { body: { action: 'seats', planId: PLAN_ID, seats: 150 } }))
+    const res = await handler(call('school/plan', { body: { action: 'seats', planId: PLAN_ID, seats: 150, request_id: REQ_ID } }))
     expect(res.status).toBe(200)
     const iRpc = log.findIndex((l) => l.u.includes('school_plan_reserve_decrease'))
     expect(log[iRpc].body).toEqual({ p_plan_id: PLAN_ID, p_seats: 150 })
@@ -149,7 +161,7 @@ describe('I3/I6: school plan seats', () => {
     )
     stripeReplies['GET subscriptions/sub_p'] = { ok: true, data: { items: { data: [{ id: 'si_p', quantity: 300 }] } } }
     const handler = await load()
-    const res = await handler(call('school/plan', { body: { action: 'seats', planId: PLAN_ID, seats: 160 } }))
+    const res = await handler(call('school/plan', { body: { action: 'seats', planId: PLAN_ID, seats: 160, request_id: REQ_ID } }))
     expect(await res.json()).toMatchObject({ code: 'below_enrolled', min: 180 })
     expect(stripeCalls.some((c) => c.method === 'POST')).toBe(false)
   })
@@ -160,26 +172,59 @@ describe('I3/I6: school plan seats', () => {
       { method: 'GET', match: '/rest/v1/class_licenses?school_plan_id=eq.', reply: ok([]) },
     )
     const handler = await load()
-    const res = await handler(call('school/plan', { body: { action: 'seats', planId: PLAN_ID, seats: 400 } }))
+    const res = await handler(call('school/plan', { body: { action: 'seats', planId: PLAN_ID, seats: 400, request_id: REQ_ID } }))
     expect(await res.json()).toMatchObject({ code: 'plan_unpaid' })
     expect(stripeCalls).toHaveLength(0)
   })
 
-  it('a paid plan increase charges the full yearly price of the added seats', async () => {
+  it('N3: an invoice-billed plan increase sends the full-year invoice but grants NOTHING until it is paid', async () => {
+    routes.push(
+      { method: 'GET', match: '/rest/v1/school_plans?id=eq.', reply: ok([plan]) },
+      { method: 'GET', match: '/rest/v1/class_licenses?school_plan_id=eq.', reply: ok([]) },
+      { method: 'POST', match: '/rest/v1/school_seat_add_invoices', reply: ok(null, 201) },
+    )
+    stripeReplies['GET subscriptions/sub_p'] = { ok: true, data: { customer: 'cus_admin', collection_method: 'send_invoice', items: { data: [{ id: 'si_p', quantity: 300 }] } } }
+    stripeReplies['POST invoices'] = { ok: true, data: { id: 'in_x' } }
+    stripeReplies['POST invoiceitems'] = { ok: true, data: { id: 'ii' } }
+    stripeReplies['POST invoices/in_x/finalize'] = { ok: true, data: { due_date: 1_800_000_000 } }
+    stripeReplies['POST invoices/in_x/send'] = { ok: true, data: {} }
+    const handler = await load()
+    const res = await handler(call('school/plan', { body: { action: 'seats', planId: PLAN_ID, seats: 320, request_id: REQ_ID } }))
+    expect(res.status).toBe(202)
+    expect(await res.json()).toMatchObject({ pending_payment: true, seats: 320 })
+    // Invoice first, then the item attached to it — never other pending items (N6).
+    expect(stripeCalls.find((c) => c.path === 'invoices').params).toMatchObject({ collection_method: 'send_invoice', days_until_due: 30, pending_invoice_items_behavior: 'exclude' })
+    expect(stripeCalls.find((c) => c.path === 'invoiceitems').params).toMatchObject({ invoice: 'in_x', amount: 20 * 1700 })
+    expect(stripeCalls.findIndex((c) => c.path === 'invoices')).toBeLessThan(stripeCalls.findIndex((c) => c.path === 'invoiceitems'))
+    expect(log.some((l) => l.method === 'PATCH' && l.u.includes('/rest/v1/school_plans'))).toBe(false)
+    expect(stripeCalls.some((c) => c.method === 'POST' && c.path === 'subscriptions/sub_p')).toBe(false)
+    expect(log.find((l) => l.u.includes('school_seat_add_invoices') && l.method === 'POST').body).toMatchObject({ invoice_id: 'in_x', plan_id: PLAN_ID, seats_from: 300, seats_to: 320 })
+  })
+
+  it('N3: a second add while one invoice is unpaid is refused; N8: no adds during grace', async () => {
+    routes.push(
+      { method: 'GET', match: '/rest/v1/school_plans?id=eq.', reply: ok([plan]) },
+      { method: 'GET', match: '/rest/v1/class_licenses?school_plan_id=eq.', reply: ok([]) },
+      { method: 'GET', match: '/rest/v1/school_seat_add_invoices', reply: ok([{ invoice_id: 'in_x', seats_to: 320 }]) },
+    )
+    const handler = await load()
+    let res = await handler(call('school/plan', { body: { action: 'seats', planId: PLAN_ID, seats: 330, request_id: REQ_ID } }))
+    expect(await res.json()).toMatchObject({ code: 'seat_add_pending' })
+    routes.unshift({ method: 'GET', match: '/rest/v1/school_plans?id=eq.', reply: ok([{ ...plan, status: 'grace' }]) })
+    res = await handler(call('school/plan', { body: { action: 'seats', planId: PLAN_ID, seats: 330, request_id: REQ_ID } }))
+    expect(await res.json()).toMatchObject({ code: 'renewal_failed' })
+    expect(stripeCalls).toHaveLength(0)
+  })
+
+  it('N2: a seat change without a request id is refused', async () => {
     routes.push(
       { method: 'GET', match: '/rest/v1/school_plans?id=eq.', reply: ok([plan]) },
       { method: 'GET', match: '/rest/v1/class_licenses?school_plan_id=eq.', reply: ok([]) },
     )
-    stripeReplies['GET subscriptions/sub_p'] = { ok: true, data: { customer: 'cus_admin', collection_method: 'send_invoice', items: { data: [{ id: 'si_p', quantity: 300 }] } } }
-    stripeReplies['POST invoiceitems'] = { ok: true, data: { id: 'ii' } }
-    stripeReplies['POST invoices'] = { ok: true, data: { id: 'in_x' } }
-    stripeReplies['POST invoices/in_x/finalize'] = { ok: true, data: {} }
-    stripeReplies['POST invoices/in_x/send'] = { ok: true, data: {} }
     const handler = await load()
     const res = await handler(call('school/plan', { body: { action: 'seats', planId: PLAN_ID, seats: 320 } }))
-    expect(await res.json()).toMatchObject({ ok: true, mode: 'increase', invoiced: true })
-    expect(stripeCalls.find((c) => c.path === 'invoiceitems').params.amount).toBe(20 * 1700)
-    expect(stripeCalls.find((c) => c.path === 'invoices').params).toMatchObject({ collection_method: 'send_invoice', days_until_due: 30 })
+    expect(res.status).toBe(400)
+    expect(stripeCalls).toHaveLength(0)
   })
 })
 
@@ -206,7 +251,7 @@ describe('I6: owner approval of invoice plans (/api/admin/school-plans)', () => 
     const handler = await load()
     const res = await handler(call('admin/school-plans', { body: { id: PLAN_ID, decision: 'approve', reason: 'Called the school' }, who: 'owner' }))
     expect(res.status).toBe(200)
-    const sub = stripeCalls.find((c) => c.path === 'subscriptions')
+    const sub = stripeCalls.find((c) => c.path === 'subscriptions' && c.method === 'POST')
     expect(sub.params).toMatchObject({ customer: 'cus_admin', items: [{ price: 'price_p', quantity: 200 }], collection_method: 'send_invoice', days_until_due: 30, metadata: { type: 'school_plan', plan_id: PLAN_ID } })
     expect(sub.idempotencyKey).toBe(`school-plan-approve-${PLAN_ID}`)
     const iLog = log.findIndex((l) => l.u.includes('/rest/v1/admin_access_log'))
@@ -214,6 +259,20 @@ describe('I6: owner approval of invoice plans (/api/admin/school-plans)', () => 
     expect(iLog).toBeLessThan(iPatch)
     expect(log[iPatch].body).toMatchObject({ status: 'pending_payment', stripe_subscription_id: 'sub_inv', approved_by: OWNER })
     expect(log[iPatch].u).toContain('status=eq.pending_approval')
+  })
+
+  it('N7: a retried approval reuses the subscription an earlier attempt created', async () => {
+    routes.push(
+      { method: 'GET', match: '/rest/v1/school_plans?id=eq.', reply: ok([waiting]) },
+      { method: 'GET', match: `/auth/v1/admin/users/${ADMIN}`, reply: ok({ id: ADMIN, email: 'admin@lincoln.edu' }) },
+    )
+    stripeReplies['POST customers'] = { ok: true, data: { id: 'cus_admin' } }
+    stripeReplies['GET subscriptions'] = { ok: true, data: { data: [{ id: 'sub_first', status: 'active', metadata: { plan_id: PLAN_ID }, items: { data: [{ quantity: 200 }] } }] } }
+    const handler = await load()
+    const res = await handler(call('admin/school-plans', { body: { id: PLAN_ID, decision: 'approve', reason: 'retry' }, who: 'owner' }))
+    expect(res.status).toBe(200)
+    expect(stripeCalls.some((c) => c.path === 'subscriptions' && c.method === 'POST')).toBe(false)
+    expect(log.find((l) => l.method === 'PATCH' && l.u.includes('/rest/v1/school_plans')).body.stripe_subscription_id).toBe('sub_first')
   })
 
   it('decline needs a reason; nothing goes to Stripe; no log → no change', async () => {

@@ -522,3 +522,85 @@ describe('C1/I6: school-plan blocks', () => {
     expect(stripe).toHaveBeenCalledWith('subscriptions/sub_card2', expect.objectContaining({ method: 'DELETE' }))
   })
 })
+
+describe('round 2 review fixes', () => {
+  const planMd = { type: 'school_plan', owner_user_id: 'admin-1', school_name: 'Lincoln District' }
+
+  it('N1: checkout.session.completed and invoice.paid for ONE new card plan, interleaved, never cancel it', async () => {
+    stripeSubs.sub_card = subscription({ id: 'sub_card', quantity: 180, price: 'price_p', metadata: planMd })
+    // Worker A (checkout) has already inserted the plan; worker B (invoice.paid)
+    // read "no plan for this subscription" just before that, then goes on.
+    db.t('school_plans').push({
+      id: 'plan-a', owner_user_id: 'admin-1', school_name: 'Lincoln District', status: 'pending_payment', billing_method: 'card',
+      seats: 180, price_tier: 'school', expires_at: new Date().toISOString(), stripe_customer_id: 'cus_1', stripe_subscription_id: 'sub_card',
+      stripe_period_start: null, stripe_event_at: null, cancel_at_period_end: false, needs_review: false, updated_at: 'a0',
+    })
+    let stale = true
+    const racing = async (path, init = {}) => {
+      if (stale && (init.method ?? 'GET') === 'GET' && path.startsWith('/rest/v1/school_plans?stripe_subscription_id=eq.sub_card')) {
+        stale = false
+        return new Response('[]')
+      }
+      return db.sb(path, init)
+    }
+    const r = await handleSchoolStripeEvent(ev('invoice.paid', invoice({ sub: 'sub_card', period: P1, quantity: 180, reason: 'subscription_create', metadata: planMd })), { sb: racing, stripe })
+    expect(r.status).toBe(200)
+    expect(stripe).not.toHaveBeenCalledWith('subscriptions/sub_card', expect.objectContaining({ method: 'DELETE' }))
+    expect(stripe).not.toHaveBeenCalledWith('refunds', expect.anything())
+    expect(db.t('school_plans')).toHaveLength(1)
+    expect(db.t('school_plans')[0]).toMatchObject({ status: 'active', needs_review: false })
+  })
+
+  describe('N3: seat adds on invoice plans arrive with the paid invoice', () => {
+    beforeEach(() => {
+      db.t('school_plans').push({
+        id: 'plan-n3', owner_user_id: 'admin-1', school_name: 'L', status: 'active', billing_method: 'invoice', seats: 300, pending_seats: null,
+        price_tier: 'school', expires_at: isoS(P1[1]), stripe_customer_id: 'cus_1', stripe_subscription_id: 'sub_n3', updated_at: 'n0',
+      })
+      stripeSubs.sub_n3 = { ...subscription({ id: 'sub_n3', quantity: 300, metadata: planMd }), items: { data: [{ id: 'si_n3', quantity: 300 }] } }
+      db.t('school_seat_add_invoices').push({ invoice_id: 'in_add', plan_id: 'plan-n3', seats_from: 300, seats_to: 320, status: 'pending' })
+    })
+    const addInvoice = (type) => ev(type, { id: 'in_add', object: 'invoice', customer: 'cus_1', billing_reason: 'manual', metadata: { type: 'school_plan_seats', plan_id: 'plan-n3' } })
+
+    it('invoice.paid grants the seats and raises the Stripe quantity (no proration); a replay changes nothing', async () => {
+      const paid = addInvoice('invoice.paid')
+      expect((await run(paid)).status).toBe(200)
+      expect(db.t('school_plans').find((p) => p.id === 'plan-n3').seats).toBe(320)
+      expect(db.t('school_seat_add_invoices')[0].status).toBe('paid')
+      expect(stripe).toHaveBeenCalledWith('subscriptions/sub_n3', expect.objectContaining({ method: 'POST', params: { items: [{ id: 'si_n3', quantity: 320 }], proration_behavior: 'none' } }))
+      await run({ ...paid, id: 'evt_resend' })
+      expect(db.t('school_plans').find((p) => p.id === 'plan-n3').seats).toBe(320)
+    })
+
+    it('voided or uncollectible: the add is dropped, seats unchanged', async () => {
+      await run(addInvoice('invoice.voided'))
+      expect(db.t('school_plans').find((p) => p.id === 'plan-n3').seats).toBe(300)
+      expect(db.t('school_seat_add_invoices')[0].status).toBe('void')
+    })
+
+    it('a consumer invoice.voided is not a school event', async () => {
+      expect(await run(ev('invoice.voided', { id: 'in_c', metadata: {} }))).toEqual({ handled: false })
+    })
+
+    it('overdue adds are reported once to the owner (nightly)', async () => {
+      const { alertOverdueSeatAdds } = await import('../lib/school/seatAdds.js')
+      db.t('school_seat_add_invoices')[0].due_at = '2026-01-01T00:00:00.000Z'
+      expect(await alertOverdueSeatAdds(db.sb, { now: new Date('2026-02-01'), dryRun: true })).toEqual({ overdue: 1, failed: 0 })
+      expect(db.t('school_seat_add_invoices')[0].overdue_alerted_at).toBeUndefined()
+      await alertOverdueSeatAdds(db.sb, { now: new Date('2026-02-01'), dryRun: false })
+      expect(db.t('school_seat_add_invoices')[0].overdue_alerted_at).toBeTruthy()
+      expect(await alertOverdueSeatAdds(db.sb, { now: new Date('2026-02-01'), dryRun: false })).toEqual({ overdue: 0, failed: 0 })
+    })
+  })
+
+  it('N5: the refund works on pre-2025 shapes (latest_invoice.charge) when payments can\'t be expanded', async () => {
+    await buyClass()
+    stripeSubs.sub_old = { ...subscription({ id: 'sub_old' }), latest_invoice: { id: 'in_o', charge: 'ch_o' } }
+    const oldApi = vi.fn(async (path, opts = {}) => {
+      if (opts.params?.expand?.[0] === 'latest_invoice.payments') return { ok: false, status: 400, data: {} }
+      return stripe(path, opts)
+    })
+    await handleSchoolStripeEvent(ev('checkout.session.completed', checkout(classMd, 'sub_old')), { sb: db.sb, stripe: oldApi })
+    expect(oldApi).toHaveBeenCalledWith('refunds', expect.objectContaining({ params: { charge: 'ch_o', reason: 'duplicate' } }))
+  })
+})

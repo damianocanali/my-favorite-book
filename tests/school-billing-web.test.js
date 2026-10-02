@@ -39,3 +39,14 @@ describe('Stage 4 web', () => {
     expect(src).not.toMatch(/r\.email\b/)
   })
 })
+
+describe('Stage 4 review N2: seat forms send a stable request id', () => {
+  it('generated once per change, reused on retry, renewed after success', () => {
+    for (const p of ['src/components/school/PlanBillingSection.jsx', 'src/pages/TeacherSchoolPlanPage.jsx']) {
+      const src = read(p)
+      expect(src).toMatch(/useState\(\(\) => crypto\.randomUUID\(\)\)/)
+      expect(src).toMatch(/action: 'seats', seats: [^}]*request_id: seatRequestId/)
+      expect(src).toMatch(/setSeatRequestId\(crypto\.randomUUID\(\)\)/)
+    }
+  })
+})

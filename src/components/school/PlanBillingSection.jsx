@@ -53,8 +53,11 @@ export default function PlanBillingSection({ classId, onChanged }) {
   const [seats, setSeats] = useState(20)
   const [schoolName, setSchoolName] = useState('')
   const [dpa, setDpa] = useState(false)
-  // Seat change form
+  // Seat change form. One request id per change (review N2): reused on a
+  // retry or double click so the server/Stripe charge once; renewed after
+  // the change goes through.
   const [newSeats, setNewSeats] = useState(null)
+  const [seatRequestId, setSeatRequestId] = useState(() => crypto.randomUUID())
 
   const load = useCallback(async () => {
     const res = await schoolFetch(`/api/school/billing?classId=${encodeURIComponent(classId)}`)
@@ -114,8 +117,9 @@ export default function PlanBillingSection({ classId, onChanged }) {
 
   async function changeSeats() {
     const n = Number(newSeats)
-    const out = await post({ action: 'seats', seats: n }, 'seats')
+    const out = await post({ action: 'seats', seats: n, request_id: seatRequestId }, 'seats')
     if (!out) return
+    setSeatRequestId(crypto.randomUUID())
     setNotice(out.mode === 'increase' ? 'seats.done_increase' : out.mode === 'decrease' ? 'seats.done_decrease' : 'seats.done_cancel')
     setNewSeats(null)
     await load()

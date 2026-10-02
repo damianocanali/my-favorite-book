@@ -88,7 +88,13 @@ export default async function handler(req) {
       type: 'school_plan', plan_id: plan.id, owner_user_id: plan.owner_user_id, school_name: plan.school_name,
       dpa_version: plan.dpa_version, dpa_accepted_at: plan.dpa_accepted_at,
     }
-    const sub = await deps.stripe('subscriptions', {
+    // Review N7: a retry (even after the 24 h idempotency window) reuses a
+    // subscription an earlier attempt already created for this plan.
+    const existing = await deps.stripe('subscriptions', { params: { customer: customer.id, status: 'all', limit: 100 } })
+    const prior = existing.ok
+      ? (existing.data?.data ?? []).find((x) => x?.metadata?.plan_id === plan.id && !['canceled', 'incomplete_expired'].includes(x.status))
+      : null
+    const sub = prior ? { ok: true, data: prior } : await deps.stripe('subscriptions', {
       method: 'POST',
       idempotencyKey: `school-plan-approve-${plan.id}`,
       params: {
