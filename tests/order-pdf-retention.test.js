@@ -1,6 +1,6 @@
 // Consumer print PDFs: deleted 90 days after the order is final (review §7.5).
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { purgeOldOrderPdfs, ORDER_PDF_RETENTION_DAYS } from '../lib/print/orderRetention.js'
+import { purgeOldOrderPdfs, ORDER_PDF_RETENTION_DAYS, DEAD_ORDER_PDF_RETENTION_DAYS } from '../lib/print/orderRetention.js'
 
 const ENV = { supabaseUrl: 'https://x.supabase.co', serviceKey: 'svc' }
 let log
@@ -26,17 +26,20 @@ beforeEach(() => {
 const now = Date.parse('2026-12-01T00:00:00Z')
 
 describe('consumer print PDF retention', () => {
-  it('purges final orders older than 90 days, clears the URLs and stamps them', async () => {
+  it('purges shipped orders after 90 days, clears the URLs and stamps them', async () => {
     mock({
-      '/rest/v1/print_orders?status=in.': { method: 'GET', body: [{ id: 'o1' }] },
+      '/rest/v1/print_orders?status=in.(shipped': { method: 'GET', body: [{ id: 'o1' }] },
       '/storage/v1/object/list/print-pdfs': { body: [{ name: 'interior.pdf' }, { name: 'cover.pdf' }] },
     })
     const out = await purgeOldOrderPdfs({ ...ENV, now })
     expect(out).toEqual({ purged: 1, failed: 0 })
     const q = log[0].u
-    expect(q).toContain('status=in.(shipped,delivered,refunded,failed)')
+    expect(q).toContain('status=in.(shipped,delivered)')
     expect(q).toContain(`updated_at=lt.${encodeURIComponent(new Date(now - ORDER_PDF_RETENTION_DAYS * 86400000).toISOString())}`)
     expect(q).toContain('pdfs_purged_at=is.null')
+    const q2 = log[1].u
+    expect(q2).toContain('status=in.(refunded,failed)')
+    expect(q2).toContain(`updated_at=lt.${encodeURIComponent(new Date(now - DEAD_ORDER_PDF_RETENTION_DAYS * 86400000).toISOString())}`)
     const del = log.find((l) => l.method === 'DELETE')
     expect(del.body.prefixes).toEqual(['o1/interior.pdf', 'o1/cover.pdf'])
     const patch = log.find((l) => l.method === 'PATCH')
@@ -46,7 +49,7 @@ describe('consumer print PDF retention', () => {
 
   it('a storage failure leaves the order unstamped for tomorrow', async () => {
     mock({
-      '/rest/v1/print_orders?status=in.': { method: 'GET', body: [{ id: 'o1' }] },
+      '/rest/v1/print_orders?status=in.(refunded': { method: 'GET', body: [{ id: 'o1' }] },
       '/storage/v1/object/list/print-pdfs': { body: [{ name: 'interior.pdf' }] },
       '/storage/v1/object/print-pdfs': { method: 'DELETE', status: 500, body: {} },
     })

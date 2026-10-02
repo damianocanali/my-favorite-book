@@ -81,23 +81,45 @@ describe('retryVendorDeletions', () => {
 
   it('retries queued rows, deletes them on success, bumps attempts on failure', async () => {
     mock({
-      'vendor_deletion_queue?attempts=lt.': { method: 'GET', body: [
+      'vendor_deletion_queue?vendor=in.(stripe,revenuecat)&attempts=lt.': { method: 'GET', body: [
         { id: 1, vendor: 'stripe', external_id: 'cus_1', attempts: 1 },
         { id: 2, vendor: 'revenuecat', external_id: USER, attempts: 3 },
       ] },
       'api.revenuecat.com': { status: 500, body: {} },
     })
     const out = await retryVendorDeletions(sb, { stripeSecretKey: 'sk', revenueCatKey: 'rc' })
-    expect(out).toEqual({ retried: 2, done: 1, failed: 1 })
+    expect(out).toMatchObject({ retried: 2, done: 1, failed: 1, exhausted: 0 })
     expect(log.some((l) => l.method === 'DELETE' && l.u.endsWith('vendor_deletion_queue?id=eq.1'))).toBe(true)
     const patch = log.find((l) => l.method === 'PATCH' && l.u.endsWith('vendor_deletion_queue?id=eq.2'))
     expect(patch.body).toMatchObject({ attempts: 4, last_status: 500 })
-    expect(log[0].u).toContain(`attempts=lt.${MAX_VENDOR_ATTEMPTS}`)
+    expect(log.find((l) => l.u.includes('attempts=lt.')).u).toContain(`attempts=lt.${MAX_VENDOR_ATTEMPTS}`)
   })
 
-  it('leaves rows for an unconfigured vendor queued', async () => {
-    mock({ 'vendor_deletion_queue?attempts=lt.': { method: 'GET', body: [{ id: 1, vendor: 'stripe', external_id: 'cus_1', attempts: 1 }] } })
-    const out = await retryVendorDeletions(sb, {})
-    expect(out).toEqual({ retried: 0, done: 0, failed: 0 })
+  it('reads only configured vendors, so an unconfigured one takes no batch slots', async () => {
+    mock()
+    await retryVendorDeletions(sb, { stripeSecretKey: 'sk' })
+    expect(log.find((l) => l.u.includes('attempts=lt.')).u).toContain('vendor=in.(stripe)&')
+    log.length = 0
+    expect(await retryVendorDeletions(sb, {})).toEqual({ retried: 0, done: 0, failed: 0, exhausted: 0 })
+    expect(log).toHaveLength(0)
+  })
+
+  it('counts maxed-out rows as failures (so the owner is alerted)', async () => {
+    log = []
+    globalThis.fetch = vi.fn(async (url, init = {}) => {
+      const u = String(url)
+      log.push({ method: init.method || 'GET', u })
+      if (u.includes('attempts=gte.')) return new Response('[]', { headers: { 'content-range': '0-0/2' } })
+      return new Response('[]')
+    })
+    const out = await retryVendorDeletions(sb, { stripeSecretKey: 'sk' })
+    expect(out).toMatchObject({ exhausted: 2, failed: 2 })
+  })
+
+  it('dry run retries nothing', async () => {
+    mock({ 'attempts=lt.': { method: 'GET', body: [{ id: 1, vendor: 'stripe', external_id: 'cus_1', attempts: 1 }] } })
+    const out = await retryVendorDeletions(sb, { stripeSecretKey: 'sk' }, { dryRun: true })
+    expect(out.would_retry).toBe(1)
+    expect(log.some((l) => l.u.includes('api.stripe.com'))).toBe(false)
   })
 })

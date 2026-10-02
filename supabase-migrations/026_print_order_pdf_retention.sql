@@ -6,7 +6,8 @@
 --   * lib/deleteUser.js purgeUser deletes every order's folder BEFORE the
 --     auth delete (print_orders.user_id cascades, so the ids die with it);
 --   * api/cron/retention.js (lib/print/orderRetention.js) deletes them 90
---     days after the order reached a final state and stamps this column.
+--     days after the order shipped/was delivered, or 30 days after it was
+--     refunded or failed, and stamps this column.
 --
 -- Apply BEFORE deploying the code that uses it. Idempotent.
 

@@ -35,6 +35,8 @@ beforeEach(() => {
   process.env.EMAIL_FROM = 'My Book Lab <hello@mybooklab.app>'
   process.env.OWNER_ALERT_EMAIL = 'owner@example.com'
   delete process.env.LEGACY_SUBMIT_SUNSET
+  // Live mode for most tests; the dry-run describe below unsets it.
+  process.env.RETENTION_DRY_RUN = 'false'
   vi.useFakeTimers({ toFake: ['Date'] })
   vi.setSystemTime(NOW)
   vi.spyOn(console, 'error').mockImplementation(() => {})
@@ -43,7 +45,7 @@ beforeEach(() => {
 })
 afterEach(() => {
   vi.useRealTimers()
-  for (const k of ['CRON_SECRET', 'RESEND_API_KEY', 'EMAIL_FROM', 'OWNER_ALERT_EMAIL']) delete process.env[k]
+  for (const k of ['CRON_SECRET', 'RESEND_API_KEY', 'EMAIL_FROM', 'OWNER_ALERT_EMAIL', 'RETENTION_DRY_RUN']) delete process.env[k]
   vi.restoreAllMocks()
 })
 
@@ -53,30 +55,37 @@ const run = async (auth = 'Bearer cron-secret') =>
   )
 
 describe('license lifecycle: nextStep', () => {
-  const lic = (over) => ({ status: 'trial', expires_at: daysAgo(10), updated_at: daysAgo(200), ...over })
+  const lic = (over) => ({ status: 'trial', expires_at: daysAgo(10), updated_at: daysAgo(1), status_changed_at: daysAgo(200), ...over })
 
-  it('grace and live licenses are never lapsed', () => {
+  it('grace and comped are never lapsed; live licenses are not', () => {
     expect(lapseDate(lic({ status: 'grace' }))).toBe(null)
+    expect(lapseDate(lic({ status: 'comped', expires_at: daysAgo(400) }))).toBe(null)
+    expect(nextStep(lic({ status: 'comped', expires_at: daysAgo(400) }), NOW)).toBe(null)
     expect(nextStep(lic({ expires_at: new Date(NOW.getTime() + DAY).toISOString() }), NOW)).toBe(null)
   })
-  it('lapsed/canceled count from updated_at, expiring ones from expires_at', () => {
-    expect(lapseDate(lic({ status: 'lapsed', updated_at: daysAgo(5) })).toISOString()).toBe(daysAgo(5))
+  it('lapsed/canceled count from status_changed_at (not updated_at), expiring ones from expires_at', () => {
+    expect(lapseDate(lic({ status: 'lapsed', status_changed_at: daysAgo(5), updated_at: daysAgo(1) })).toISOString()).toBe(daysAgo(5))
     expect(lapseDate(lic({ expires_at: daysAgo(7) })).toISOString()).toBe(daysAgo(7))
   })
-  it('warns at 60 days, again at 83, purges at 90 only after the 7-day warning is 6+ days old', () => {
+  it('30-day warning at 60 days; 7-day warning only after the 30-day one is 23+ days old', () => {
     expect(nextStep(lic({ expires_at: daysAgo(59) }), NOW)).toBe(null)
     expect(nextStep(lic({ expires_at: daysAgo(60) }), NOW)).toBe('warn30')
-    expect(nextStep(lic({ expires_at: daysAgo(70), purge_warning_30_at: daysAgo(10) }), NOW)).toBe(null)
+    expect(nextStep(lic({ expires_at: daysAgo(83), purge_warning_30_at: daysAgo(22) }), NOW)).toBe(null)
     expect(nextStep(lic({ expires_at: daysAgo(83), purge_warning_30_at: daysAgo(23) }), NOW)).toBe('warn7')
-    expect(nextStep(lic({ expires_at: daysAgo(90), purge_warning_7_at: daysAgo(7) }), NOW)).toBe('purge')
-    // Never a surprise purge: no 7-day warning yet → warn first.
-    expect(nextStep(lic({ expires_at: daysAgo(200) }), NOW)).toBe('warn7')
-    // Warned only yesterday → wait.
-    expect(nextStep(lic({ expires_at: daysAgo(200), purge_warning_7_at: daysAgo(1) }), NOW)).toBe(null)
+    // Never a 7-day warning without the 30-day one.
+    expect(nextStep(lic({ expires_at: daysAgo(85), purge_warning_7_at: daysAgo(1) }), NOW)).toBe('warn30')
   })
-  it('a warning from before a renewal does not count', () => {
-    // Lapsed 90 days ago, but the 7-day stamp predates this lapse.
-    expect(nextStep(lic({ expires_at: daysAgo(90), purge_warning_7_at: daysAgo(400) }), NOW)).toBe('warn7')
+  it('purges only with 30+ days of notice: 30-day warning 30+ days old and 7-day warning 7+ days old', () => {
+    expect(nextStep(lic({ expires_at: daysAgo(90), purge_warning_30_at: daysAgo(30), purge_warning_7_at: daysAgo(7) }), NOW)).toBe('purge')
+    expect(nextStep(lic({ expires_at: daysAgo(90), purge_warning_30_at: daysAgo(29), purge_warning_7_at: daysAgo(7) }), NOW)).toBe(null)
+    expect(nextStep(lic({ expires_at: daysAgo(90), purge_warning_30_at: daysAgo(30), purge_warning_7_at: daysAgo(6) }), NOW)).toBe(null)
+  })
+  it('a long-ago lapse first seen today starts the full schedule today', () => {
+    expect(nextStep(lic({ expires_at: daysAgo(400) }), NOW)).toBe('warn30')
+    expect(nextStep(lic({ expires_at: daysAgo(400), purge_warning_30_at: daysAgo(1) }), NOW)).toBe(null)
+  })
+  it('a warning from before the current lapse does not count', () => {
+    expect(nextStep(lic({ status: 'lapsed', status_changed_at: daysAgo(90), purge_warning_30_at: daysAgo(400), purge_warning_7_at: daysAgo(300) }), NOW)).toBe('warn30')
   })
   it('the email says permanent, in the class language, with no child data', () => {
     const en = warningEmail({ days: 7, className: 'Room 5', purgeOn: new Date(NOW.getTime() + 7 * DAY), locale: 'en' })
@@ -151,12 +160,29 @@ describe('api/cron/retention', () => {
     expect(alert.body.text).not.toMatch(/kid-1|@/)
   })
 
+  const EXPIRING_Q = 'status=in.(trial,active,pending_payment)'
+  const ENDED_Q = 'status=in.(lapsed,canceled)'
+  const lic = (over) => ({
+    id: 'L1', owner_user_id: 'teacher-1', classroom_id: 'c1', status: 'trial', expires_at: daysAgo(61), updated_at: daysAgo(61),
+    status_changed_at: daysAgo(400), classrooms: { id: 'c1', code: 'ABC234', name: 'Room 5', locale: 'en' }, ...over,
+  })
+
+  it('selects only licenses due today, both groups, paged and ordered by lapse date', async () => {
+    mock()
+    await run()
+    const qs = log.filter((l) => l.u.includes('/rest/v1/class_licenses?'))
+    const exp = qs.find((l) => l.u.includes(EXPIRING_Q)).u
+    const end = qs.find((l) => l.u.includes(ENDED_Q)).u
+    expect(exp).toContain('order=expires_at.asc')
+    expect(end).toContain('order=status_changed_at.asc')
+    expect(exp).toContain('purge_warning_30_at.is.null')
+    expect(exp).toContain('limit=1000&offset=0')
+    expect(exp).not.toContain('comped')
+  })
+
   it('emails the 30-day lapse warning to the class owner and stamps it', async () => {
     mock([
-      { method: 'GET', match: '/rest/v1/class_licenses?classroom_id=not.is.null', reply: { body: [{
-        id: 'L1', owner_user_id: 'teacher-1', classroom_id: 'c1', status: 'trial', expires_at: daysAgo(61), updated_at: daysAgo(61),
-        classrooms: { id: 'c1', code: 'ABC234', name: 'Room 5', locale: 'en' },
-      }] } },
+      { method: 'GET', match: EXPIRING_Q, reply: { body: [lic()] } },
       { method: 'GET', match: '/auth/v1/admin/users/teacher-1', reply: { body: { id: 'teacher-1', email: 'teach@example.com' } } },
       { method: 'POST', match: 'api.resend.com', reply: { body: { id: 'em_1' } } },
     ])
@@ -169,24 +195,60 @@ describe('api/cron/retention', () => {
     expect(Object.keys(stamp.body)).toEqual(['purge_warning_30_at'])
   })
 
-  it('purges a class lapsed 90+ days after the 7-day warning, logging it', async () => {
+  it('fails closed without an email provider: no stamp, no purge, owner alerted with class ids', async () => {
+    delete process.env.RESEND_API_KEY // owner alert can't send either; check the response instead
+    mock([{ method: 'GET', match: EXPIRING_Q, reply: { body: [lic()] } }])
+    const out = await (await run()).json()
+    expect(out.licenses).toMatchObject({ warned30: 0, unsendable: ['c1'] })
+    expect(log.some((l) => l.method === 'PATCH' && l.u.includes('class_licenses'))).toBe(false)
+  })
+
+  it('fails closed when the teacher has no address, and tells the owner which class', async () => {
     mock([
-      { method: 'GET', match: '/rest/v1/class_licenses?classroom_id=not.is.null', reply: { body: [{
-        id: 'L1', owner_user_id: 'teacher-1', classroom_id: 'c1', status: 'lapsed', expires_at: daysAgo(150), updated_at: daysAgo(95),
-        purge_warning_7_at: daysAgo(8), classrooms: [{ id: 'c1', code: 'ABC234', name: 'Room 5', locale: 'en' }],
-      }] } },
+      { method: 'GET', match: EXPIRING_Q, reply: { body: [lic()] } },
+      { method: 'GET', match: '/auth/v1/admin/users/teacher-1', reply: { body: { id: 'teacher-1' } } },
+      { method: 'POST', match: 'api.resend.com', reply: { body: { id: 'em_1' } } },
+    ])
+    const out = await (await run()).json()
+    expect(out.licenses.unsendable).toEqual(['c1'])
+    expect(log.some((l) => l.method === 'PATCH' && l.u.includes('class_licenses'))).toBe(false)
+    const alert = log.find((l) => l.u.includes('api.resend.com'))
+    expect(alert.body.to).toEqual(['owner@example.com'])
+    expect(alert.body.text).toContain('class ids: c1')
+  })
+
+  it('purges a class only after the full warning schedule, logging the class and each child', async () => {
+    mock([
+      { method: 'GET', match: ENDED_Q, reply: { body: [lic({
+        status: 'lapsed', status_changed_at: daysAgo(95), purge_warning_30_at: daysAgo(31), purge_warning_7_at: daysAgo(8),
+        classrooms: [{ id: 'c1', code: 'ABC234', name: 'Room 5', locale: 'en' }],
+      })] } },
       { method: 'POST', match: '/rest/v1/deletion_log', reply: { status: 201, body: [{ id: 5 }] } },
-      { method: 'GET', match: 'class_students?classroom_id=eq.c1&select=auth_user_id', reply: { body: [{ auth_user_id: 'kid-9' }] } },
+      { method: 'GET', match: 'class_students?classroom_id=eq.c1&select=id,auth_user_id', reply: { body: [{ id: 's9', auth_user_id: 'kid-9' }] } },
     ])
     const out = await (await run()).json()
     expect(out.licenses).toMatchObject({ purged: 1, failed: 0 })
-    const open = log.find((l) => l.method === 'POST' && l.u.includes('deletion_log'))
-    expect(open.body).toMatchObject({ action: 'purge_lapsed_class', actor_kind: 'system', classroom_id: 'c1' })
+    const opens = log.filter((l) => l.method === 'POST' && l.u.includes('deletion_log')).map((l) => l.body)
+    expect(opens[0]).toMatchObject({ action: 'purge_lapsed_class', actor_kind: 'system', classroom_id: 'c1' })
+    expect(opens.find((b) => b.action === 'purge_class_student')).toMatchObject({ target_id: 's9' })
     expect(log.some((l) => l.method === 'DELETE' && l.u.endsWith('/auth/v1/admin/users/kid-9'))).toBe(true)
     expect(log.some((l) => l.method === 'DELETE' && l.u.includes('/rest/v1/classrooms?id=eq.c1'))).toBe(true)
   })
 
-  it('leaves legacy submissions alone before the sunset, deletes ownerless ones after', async () => {
+  it('resumes a partial teacher class delete', async () => {
+    mock([
+      { method: 'GET', match: '/rest/v1/deletion_log?action=eq.delete_class', reply: { body: [{ id: 44, classroom_id: 'c7', actor_user_id: 'teacher-1' }] } },
+      { method: 'GET', match: '/rest/v1/classrooms?id=eq.c7', reply: { body: [{ id: 'c7', code: 'XYZ234' }] } },
+      { method: 'POST', match: '/rest/v1/deletion_log', reply: { status: 201, body: [{ id: 45 }] } },
+    ])
+    const out = await (await run()).json()
+    expect(out.class_deletes).toEqual({ resumed: 1, failed: 0 })
+    expect(log.some((l) => l.method === 'DELETE' && l.u.includes('/rest/v1/classrooms?id=eq.c7'))).toBe(true)
+    const close = log.filter((l) => l.method === 'PATCH' && l.u.includes('deletion_log?id=eq.44')).at(-1)
+    expect(close.body.status).toBe('done')
+  })
+
+  it('leaves legacy submissions alone before the sunset; after it, logs then deletes ownerless ones', async () => {
     mock()
     let out = await (await run()).json()
     expect(out.legacy_submissions).toMatchObject({ active: false })
@@ -194,12 +256,27 @@ describe('api/cron/retention', () => {
 
     vi.resetModules()
     process.env.LEGACY_SUBMIT_SUNSET = '2026-11-01T00:00:00Z'
-    mock()
+    mock([
+      { method: 'GET', match: '/rest/v1/submissions?user_id=is.null', reply: { headers: { 'content-range': '0-0/4' }, body: [{ id: 'x' }] } },
+      { method: 'DELETE', match: '/rest/v1/submissions?', reply: { headers: { 'content-range': '*/4' } } },
+      { method: 'POST', match: '/rest/v1/deletion_log', reply: { status: 201, body: [{ id: 3 }] } },
+    ])
     out = await (await run()).json()
-    expect(out.legacy_submissions).toMatchObject({ active: true, failed: 0 })
+    expect(out.legacy_submissions).toMatchObject({ active: true, failed: 0, deleted: 4 })
     const del = log.find((l) => l.method === 'DELETE' && l.u.includes('/rest/v1/submissions'))
     expect(del.u).toContain('user_id=is.null')
     expect(del.u).toContain('submitted_at=lt.2026-11-01T00:00:00.000Z')
+    const open = log.find((l) => l.method === 'POST' && l.u.includes('deletion_log'))
+    expect(open.body).toMatchObject({ action: 'legacy_sunset', counts: { submissions: 4 } })
+    expect(log.indexOf(open)).toBeLessThan(log.indexOf(del))
+  })
+
+  it('purges print PDFs of refunded/failed orders after 30 days, shipped after 90', async () => {
+    mock()
+    await run()
+    const qs = log.filter((l) => l.u.includes('/rest/v1/print_orders?status=in.'))
+    expect(qs.find((l) => l.u.includes('status=in.(shipped,delivered)')).u).toContain(`updated_at=lt.${daysAgo(90)}`)
+    expect(qs.find((l) => l.u.includes('status=in.(refunded,failed)')).u).toContain(`updated_at=lt.${daysAgo(30)}`)
   })
 
   it('one failing job does not stop the others', async () => {
@@ -209,5 +286,49 @@ describe('api/cron/retention', () => {
     expect(log.some((l) => l.method === 'DELETE' && l.u.includes('student_sign_in_attempts'))).toBe(true)
     expect(log.some((l) => l.u.includes('vendor_deletion_queue'))).toBe(true)
     expect(out.failed).toBeGreaterThan(0)
+  })
+})
+
+describe('api/cron/retention DRY RUN (default)', () => {
+  beforeEach(() => { delete process.env.RETENTION_DRY_RUN })
+
+  it('is the default: deletes nothing, emails no teacher, stamps nothing, tells the owner what it would do', async () => {
+    mock([
+      { method: 'GET', match: '/rest/v1/class_checkins?', reply: { headers: { 'content-range': '0-0/12' }, body: [{ id: 1 }] } },
+      { method: 'GET', match: '/rest/v1/class_students?status=eq.removed', reply: { body: [{ id: 's1', classroom_id: 'c1', auth_user_id: 'kid-1' }] } },
+      { method: 'GET', match: 'status=in.(trial,active,pending_payment)', reply: { body: [{
+        id: 'L1', owner_user_id: 'teacher-1', classroom_id: 'c1', status: 'trial', expires_at: daysAgo(61),
+        classrooms: { id: 'c1', code: 'ABC234', name: 'Room 5', locale: 'en' },
+      }] } },
+      { method: 'GET', match: '/rest/v1/print_orders?status=in.(refunded,failed)', reply: { body: [{ id: 'o1' }] } },
+      { method: 'POST', match: 'api.resend.com', reply: { body: { id: 'em' } } },
+    ])
+    const out = await (await run()).json()
+    expect(out.dry_run).toBe(true)
+    expect(out.checkins).toEqual({ would_delete: 12, failed: 0 })
+    expect(out.removed_students).toMatchObject({ would_purge: 1, student_ids: ['s1'] })
+    expect(out.licenses.planned).toEqual([{ step: 'warn30', license_id: 'L1', classroom_id: 'c1' }])
+    expect(out.order_pdfs).toMatchObject({ would_purge: 1, order_ids: ['o1'] })
+    // Nothing destructive, nothing written.
+    expect(log.filter((l) => ['DELETE', 'PATCH'].includes(l.method))).toEqual([])
+    expect(log.some((l) => l.method === 'POST' && l.u.includes('/rest/v1/'))).toBe(false)
+    // One email: the owner's summary, never the teacher.
+    const mails = log.filter((l) => l.u.includes('api.resend.com'))
+    expect(mails).toHaveLength(1)
+    expect(mails[0].body.to).toEqual(['owner@example.com'])
+    expect(mails[0].body.subject).toContain('DRY RUN')
+    expect(mails[0].body.text).toContain('would warn30: class c1')
+    expect(mails[0].body.text).toContain('would purge removed students: s1')
+    expect(mails[0].body.text).not.toContain('Room 5')
+  })
+
+  it('anything but exactly "false" stays dry', async () => {
+    process.env.RETENTION_DRY_RUN = 'no'
+    mock()
+    expect((await (await run()).json()).dry_run).toBe(true)
+    process.env.RETENTION_DRY_RUN = 'false'
+    vi.resetModules()
+    mock()
+    expect((await (await run()).json()).dry_run).toBe(false)
   })
 })
