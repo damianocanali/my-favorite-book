@@ -1275,10 +1275,11 @@ actor APIClient {
         /// See StoryBuddyRequest.locale.
         var locale: String = AppLanguage.apiLocale
 
+        /// Data minimisation: no author name and no exact age — an age
+        /// band is all Story Buddy needs (mirrors api/story-buddy.js).
         struct SlimBook: Encodable {
             let title: String
-            let authorName: String
-            let authorAge: Int?
+            let ageBand: String?
             let characters: [SlimCharacter]
             let setting: SlimSetting?
             let pages: [SlimPage]
@@ -1300,8 +1301,7 @@ actor APIClient {
             intent: intent,
             book: .init(
                 title: book.title,
-                authorName: book.authorName,
-                authorAge: book.authorAge,
+                ageBand: Self.ageBand(book.authorAge),
                 // The names the child sees, in their language — never the
                 // stored English catalogue names.
                 characters: book.characters.map { .init(name: $0.displayName) },
@@ -1315,6 +1315,14 @@ actor APIClient {
             body: body, bearerToken: bearerToken
         )
         return Self.parseIdeaList(res.content.first?.text ?? "")
+    }
+
+    /// "6-8" / "9-10" / "11-12" — the only age signal Story Buddy gets.
+    static func ageBand(_ age: Int?) -> String? {
+        guard let age else { return nil }
+        if age <= 8 { return "6-8" }
+        if age <= 10 { return "9-10" }
+        return "11-12"
     }
 
     /// Splits Claude's numbered list into clean lines (mirrors the web app).
