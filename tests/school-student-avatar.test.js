@@ -269,6 +269,7 @@ describe('POST /api/school/student-avatar — happy path', () => {
     expect(mod.body.input[0].image_url.url).toBe('data:image/png;base64,BASE64DATA')
     expect(log.some((l) => l.url.includes('/storage/v1/object/'))).toBe(false)
     expect(log.some((l) => l.url.includes('/rest/v1/user_inventory'))).toBe(false)
+    expect(log.some((l) => l.url.includes('school_refund_image'))).toBe(false)
     warn.mockRestore()
   })
 
@@ -286,6 +287,8 @@ describe('POST /api/school/student-avatar — happy path', () => {
     expect(res.status).toBe(503)
     expect((await res.json()).code).toBe('moderation_unavailable')
     expect(log.some((l) => l.url.includes('/storage/v1/object/'))).toBe(false)
+    const refund = log.find((l) => l.url.includes('school_refund_image'))
+    expect(refund.body).toEqual({ p_student_id: STUDENT_ID })
     err.mockRestore()
   })
 

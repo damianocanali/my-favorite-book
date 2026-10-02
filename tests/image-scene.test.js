@@ -528,6 +528,7 @@ describe('POST /api/generate-image', () => {
         return reply()
       }
       if (u.includes('school_bump_image')) { calls.push({ u, body: null }); return new Response('true') }
+      if (u.includes('school_refund_image')) { calls.push({ u, body: JSON.parse(init.body) }); return new Response('true') }
       return base(url, init)
     })
   }
@@ -569,6 +570,16 @@ describe('POST /api/generate-image', () => {
     expect(res.status).toBe(503)
     expect((await res.json()).code).toBe('moderation_unavailable')
     expect(storeIllustration).not.toHaveBeenCalled()
+    // Review fix I4: the class allowance gets the picture back.
+    expect(of('school_refund_image').map((c) => c.body)).toEqual([{ p_student_id: 's1' }])
+  })
+
+  it('a FLAGGED student picture stays charged (no refund)', async () => {
+    const { verifyJwt } = await import('../api/_auth.js')
+    verifyJwt.mockResolvedValueOnce({ ok: true, userId: 'u1', appMetadata: { role: 'student', student_id: 's1' } })
+    withImageVerdict(() => new Response(JSON.stringify({ results: [{ flagged: true }] })))
+    expect((await post(page)).status).toBe(400)
+    expect(of('school_refund_image')).toHaveLength(0)
   })
 
   it('holds back time for the image check: Together is cut off at ~20 s, not 23 s', async () => {

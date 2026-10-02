@@ -3,7 +3,7 @@ import { logUsage, estimateTogetherImageCostCents, estimateAnthropicCostCents } 
 import { requireUser, validatePrompt, validateSourceImage, moderatePrompt, moderateImage, enforceDailyCap, IMAGE_MODERATION_TIMEOUT_MS } from './_aiGuard.js'
 import { classifyAttestation, dailyCapFor, hourlyLimitFor } from './_appAttest.js'
 import { storeIllustration } from './_imageStore.js'
-import { isStudent, rejectStudent, enforceStudentImageCap } from './_school.js'
+import { isStudent, rejectStudent, enforceStudentImageCap, refundStudentImage } from './_school.js'
 import { validateScenePayload, rawTextForModeration, moderationChunks, writeScene, buildFluxPrompt, SCENE_MODEL } from '../lib/imageScene.js'
 import { safeDetail } from './_logSafe.js'
 
@@ -20,7 +20,8 @@ const MIN_TOGETHER_MS = 5_000
 // share of the deadline; it gets whatever is left, at least 1 s, at most
 // IMAGE_MODERATION_TIMEOUT_MS.
 const IMAGE_MODERATION_RESERVE_MS = 3_000
-const MIN_IMAGE_MODERATION_MS = 1_000
+// The check always gets at least the reserve, even if Together ran long.
+const MIN_IMAGE_MODERATION_MS = IMAGE_MODERATION_RESERVE_MS
 
 export default async function handler(req) {
   const corsResponse = handleCors(req)
@@ -184,6 +185,9 @@ export default async function handler(req) {
           steps: 12,
           n: 1,
           response_format: 'b64_json',
+          // PNG explicitly: output moderation and Storage both label it image/png
+          // (api/_aiGuard.js sniffs the bytes anyway).
+          output_format: 'png',
         }
       : {
           model,
@@ -196,6 +200,9 @@ export default async function handler(req) {
           steps: 28,
           n: 1,
           response_format: 'b64_json',
+          // PNG explicitly: output moderation and Storage both label it image/png
+          // (api/_aiGuard.js sniffs the bytes anyway).
+          output_format: 'png',
         }
 
     // 28 steps takes a while, but a hung upstream must not hold the
@@ -259,7 +266,13 @@ export default async function handler(req) {
       Math.max(MIN_IMAGE_MODERATION_MS, startedAt + REQUEST_DEADLINE_MS - Date.now())
     )
     const outputErr = await moderateImage(b64, req, { failClosed: isStudent(auth), timeoutMs: imageModMs })
-    if (outputErr) return outputErr
+    if (outputErr) {
+      // Refused because moderation was DOWN (fail closed, students only):
+      // the class allowance must not pay for a picture the child never got.
+      // A flagged picture (400) stays charged — it was a real generation.
+      if (outputErr.status === 503 && isStudent(auth)) await refundStudentImage(auth.appMetadata?.student_id)
+      return outputErr
+    }
 
     // Park the art in Storage and hand back a URL. Books sync with a URL
     // intact, so the print pipeline can actually fetch the image — a

@@ -73,6 +73,24 @@ export async function bumpStudentImage(studentId, req) {
   }
 }
 
+/// Gives back one picture a student was metered for but never received
+/// (output moderation down → refused, review fix I4; migration 033).
+/// Best-effort: a failure is logged, the refusal stands either way.
+export async function refundStudentImage(studentId) {
+  if (!studentId) return false
+  try {
+    const res = await sb('/rest/v1/rpc/school_refund_image', {
+      method: 'POST',
+      body: JSON.stringify({ p_student_id: studentId }),
+    })
+    if (!res.ok) console.error('[school] refund image failed', res.status)
+    return res.ok
+  } catch (e) {
+    console.error('[school] refund image error', e?.message)
+    return false
+  }
+}
+
 // Students draw AI images from their class's allowance (owner decision D5),
 // not the consumer daily cap. Fails CLOSED: an unmetered class is a bill.
 export async function enforceStudentImageCap(auth, req) {

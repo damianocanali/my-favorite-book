@@ -12,7 +12,7 @@ export const config = { runtime: 'edge' }
 //     server-side from classId+studentId), never the teacher's, so the
 //     avatar follows the child's account exactly like a self-made one would.
 import { handleCors, checkRateLimit } from '../_rateLimit.js'
-import { requireClassOwner, sb, json, isUuid, bumpStudentImage } from '../_school.js'
+import { requireClassOwner, sb, json, isUuid, bumpStudentImage, refundStudentImage } from '../_school.js'
 import { buildAvatarPrompt, isValidFeatures, isValidArtStyle } from '../../lib/avatarPrompt.js'
 import { storeIllustration, isFetchableImage } from '../_imageStore.js'
 import { logUsage, estimateTogetherImageCostCents } from '../_usage.js'
@@ -111,6 +111,9 @@ export default async function handler(req) {
         // and produced under-cooked avatars.
         width: 512, height: 512, steps: 28, n: 1,
         response_format: 'b64_json',
+        // PNG explicitly: output moderation and Storage both label it image/png
+        // (api/_aiGuard.js sniffs the bytes anyway).
+        output_format: 'png',
       }),
     })
     if (!response.ok) {
@@ -139,6 +142,8 @@ export default async function handler(req) {
       return json(req, 400, { error: "That picture didn't turn out right. Try different choices.", code: 'image_flagged' })
     }
     if (verdict === 'unavailable') {
+      // Fail closed, but give the student's picture back (review fix I4).
+      await refundStudentImage(studentId)
       return json(req, 503, { error: 'Try again in a moment', code: 'moderation_unavailable' })
     }
 

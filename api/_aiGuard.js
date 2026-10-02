@@ -168,9 +168,20 @@ export async function moderatePrompt(text, req, { failClosed = false } = {}) {
 
 export const IMAGE_MODERATION_TIMEOUT_MS = 4000
 
-/// Screens a base64 PNG. Returns 'ok', 'flagged' or 'unavailable' (no key,
-/// timeout, provider error, unreadable answer). Never throws.
-export async function checkImage(b64, { timeoutMs = IMAGE_MODERATION_TIMEOUT_MS, mime = 'image/png' } = {}) {
+/// The image type from the base64 bytes themselves (magic numbers), so the
+/// data URL sent to moderation never lies about it: JPEG "/9j/", PNG
+/// "iVBOR", WebP "UklGR". Unknown → PNG (what we ask Together for).
+export function sniffImageMime(b64) {
+  const s = String(b64 ?? '')
+  if (s.startsWith('/9j/')) return 'image/jpeg'
+  if (s.startsWith('iVBOR')) return 'image/png'
+  if (s.startsWith('UklGR')) return 'image/webp'
+  return 'image/png'
+}
+
+/// Screens a base64 image. Returns 'ok', 'flagged' or 'unavailable' (no
+/// key, timeout, provider error, unreadable answer). Never throws.
+export async function checkImage(b64, { timeoutMs = IMAGE_MODERATION_TIMEOUT_MS, mime = sniffImageMime(b64) } = {}) {
   const key = process.env.OPENAI_API_KEY
   if (!key) {
     console.warn('[moderation] OPENAI_API_KEY is unset — image moderation is DISABLED')
