@@ -1,9 +1,9 @@
 export const config = { runtime: 'edge' }
 
-import { handleCors, checkRateLimit, getClientIp } from '../_rateLimit.js'
+import { handleCors, checkRateLimit, hashedClientIp } from '../_rateLimit.js'
 import { sb, sbEnv, json, isUuid } from '../_school.js'
 import { openClassByCode } from './roster.js'
-import { hashPictureSecret, hashIp, isValidPictureSecret, timingSafeEqualHex, randomPassword } from '../../lib/school/crypto.js'
+import { hashPictureSecret, isValidPictureSecret, timingSafeEqualHex, randomPassword } from '../../lib/school/crypto.js'
 import { mintStudentSession } from '../../lib/school/session.js'
 
 // school_begin_attempt's `state` field, for every outcome other than 'ok'.
@@ -23,7 +23,7 @@ const AFTER_REPLY = {
   locked: [423, 'locked'],
 }
 
-export default async function handler(req) {
+export default async function handler(req, ctx) {
   const cors = handleCors(req)
   if (cors) return cors
 
@@ -36,7 +36,10 @@ export default async function handler(req) {
 
     // Defense in depth on top of the per-student/per-IP throttle inside
     // school_begin_attempt: a generous cap that only bites a genuine flood.
-    if (!checkRateLimit(`school-sign-in:${getClientIp(req)}`, 600).allowed) {
+    // The IP is only ever used as an HMAC with IP_HASH_KEY (falls back to
+    // the pepper until that is set): rate-limit keys and attempt rows alike.
+    const ipHash = await hashedClientIp(req)
+    if (!checkRateLimit(`school-sign-in:${ipHash}`, 600, ctx).allowed) {
       return json(req, 429, { error: 'Too many requests', code: 'too_many' })
     }
 
@@ -61,7 +64,6 @@ export default async function handler(req) {
     const student = rows?.[0]
     if (!student) return json(req, 404, { error: 'Student not found', code: 'student_not_found' })
 
-    const ipHash = await hashIp(pepper, getClientIp(req))
     // Fails closed: a non-2xx RPC response throws instead of being read as
     // an unmatched state, which would otherwise let a DB error bypass the
     // lockout check entirely.

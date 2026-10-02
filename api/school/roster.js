@@ -1,6 +1,6 @@
 export const config = { runtime: 'edge' }
 
-import { handleCors, checkRateLimit, getClientIp } from '../_rateLimit.js'
+import { handleCors, checkRateLimit, hashedClientIp } from '../_rateLimit.js'
 import { sb, sbEnv, json } from '../_school.js'
 import { CODE_RE } from '../../lib/school/crypto.js'
 import { isLicenseUsable } from '../../lib/school/license.js'
@@ -30,14 +30,14 @@ export async function openClassByCode(rawCode) {
   return { classroom: { id: c.id, name: c.name, locale: c.locale } }
 }
 
-export default async function handler(req) {
+export default async function handler(req, ctx) {
   const cors = handleCors(req)
   if (cors) return cors
 
   try {
     if (req.method !== 'GET') return json(req, 405, { error: 'Method not allowed', code: 'method_not_allowed' })
     if (!sbEnv()) return json(req, 503, { error: 'Schools feature not configured', code: 'not_configured' })
-    if (!checkRateLimit(`school-roster:${getClientIp(req)}`, 60).allowed) {
+    if (!checkRateLimit(`school-roster:${await hashedClientIp(req)}`, 60, ctx).allowed) {
       return json(req, 429, { error: 'Too many requests', code: 'too_many' })
     }
     const found = await openClassByCode(new URL(req.url).searchParams.get('code'))
