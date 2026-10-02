@@ -87,6 +87,13 @@ export async function requireTeacher(req) {
   const auth = await verifyJwt(req)
   if (!auth.ok) return { ok: false, response: auth.response }
   if (isStudent(auth)) return fail(req, 403, 'student_forbidden', 'Not available for class accounts')
+  // 2-step sign-in (review §7 item 15): a teacher who turned it on must
+  // present an aal2 session to reach class data. Off until the owner sets
+  // TEACHER_MFA_ENFORCE=on — the iPad app has no code step yet, so turning
+  // this on would lock an enrolled teacher out of the iPad teacher views.
+  if (process.env.TEACHER_MFA_ENFORCE === 'on' && auth.mfaEnrolled && auth.aal !== 'aal2') {
+    return fail(req, 401, 'mfa_required', 'Enter your 2-step sign-in code')
+  }
   return { ok: true, auth }
 }
 

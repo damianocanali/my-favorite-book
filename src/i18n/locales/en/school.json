@@ -194,7 +194,8 @@
       "cannot_return": "This assignment is closed or past its due date, so it can't be sent back.",
       "template_locked": "The worksheet can only change while the assignment is a draft.",
       "image_flagged": "That picture didn't turn out right. Try different choices.",
-      "moderation_unavailable": "We couldn't check that picture just now. Try again in a moment."
+      "moderation_unavailable": "We couldn't check that picture just now. Try again in a moment.",
+      "mfa_required": "Enter your 2-step sign-in code to continue."
     },
     "class_page": {
       "back": "Back to your classes",

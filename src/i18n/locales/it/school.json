@@ -194,7 +194,8 @@
       "cannot_return": "Questo compito è chiuso o scaduto, quindi non si può rimandare.",
       "template_locked": "La scheda si può cambiare solo finché il compito è una bozza.",
       "image_flagged": "Questa immagine non è venuta bene. Prova con altre scelte.",
-      "moderation_unavailable": "Non siamo riusciti a controllare l'immagine proprio ora. Riprova tra un momento."
+      "moderation_unavailable": "Non siamo riusciti a controllare l'immagine proprio ora. Riprova tra un momento.",
+      "mfa_required": "Inserisci il codice dell'accesso in 2 passaggi per continuare."
     },
     "class_page": {
       "back": "Torna alle tue classi",
