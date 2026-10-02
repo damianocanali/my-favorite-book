@@ -8,9 +8,9 @@
 //   removed_students    students removed 30+ days ago → full account purge
 //                       (purgeUser), with a deletion_log row each
 //   licenses            lapse → warnings → class purge (lib/school/lifecycle.js)
-//   class_deletes       resumes a teacher's class delete that stopped
-//                       part-way (deletion_log 'partial', or 'started' and
-//                       over an hour old)
+//   teacher_deletes     resumes a teacher's class or child delete that
+//                       stopped part-way (deletion_log 'partial', or
+//                       'started' and over an hour old)
 //   legacy_submissions  after the sunset, ownerless legacy hand-ins (with a
 //                       deletion_log row)
 //   order_pdfs          consumer print PDFs (lib/print/orderRetention.js)
@@ -74,6 +74,22 @@ async function ageJob(sb, path, dryRun) {
 
 async function purgeRemovedStudents(sb, ctx, now, dryRun) {
   const out = { purged: 0, failed: 0 }
+  if (dryRun) {
+    // Every student who is due, not just tonight's batch, paged.
+    const ids = []
+    for (let offset = 0; ; offset += 1000) {
+      const r = await sb(
+        `/rest/v1/class_students?status=eq.removed&removed_at=lt.${iso(now, REMOVED_STUDENT_DAYS)}` +
+          `&select=id&order=removed_at.asc,id.asc&limit=1000&offset=${offset}`
+      )
+      if (!r.ok) return { ...out, failed: 1 }
+      const page = await r.json().catch(() => null)
+      if (!Array.isArray(page)) return { ...out, failed: 1 }
+      ids.push(...page.map((x) => x.id))
+      if (page.length < 1000) break
+    }
+    return { ...out, would_purge: ids.length, student_ids: ids }
+  }
   const res = await sb(
     `/rest/v1/class_students?status=eq.removed&removed_at=lt.${iso(now, REMOVED_STUDENT_DAYS)}` +
       `&select=id,classroom_id,auth_user_id&order=removed_at.asc&limit=${REMOVED_BATCH}`
@@ -85,7 +101,6 @@ async function purgeRemovedStudents(sb, ctx, now, dryRun) {
   }
   const rows = await res.json().catch(() => null)
   const list = Array.isArray(rows) ? rows : []
-  if (dryRun) return { ...out, would_purge: list.length, student_ids: list.map((s) => s.id) }
   for (const s of list) {
     try {
       const logId = await startDeletionLog(sb, {
@@ -105,14 +120,15 @@ async function purgeRemovedStudents(sb, ctx, now, dryRun) {
   return out
 }
 
-/// A teacher's class delete that stopped part-way (api/school/classes.js
-/// marks it 'partial'; a crash leaves 'started'). Finish it.
-async function resumeClassDeletes(sb, ctx, now, dryRun) {
+/// A teacher's delete (class or child) that stopped part-way (marked
+/// 'partial'), or whose request died after opening its evidence row
+/// ('started' for over an hour). Finish it.
+async function resumeTeacherDeletes(sb, ctx, now, dryRun) {
   const out = { resumed: 0, failed: 0 }
   const res = await sb(
-    `/rest/v1/deletion_log?action=eq.delete_class&status=in.(started,partial)` +
+    `/rest/v1/deletion_log?action=in.(delete_class,delete_student)&status=in.(started,partial)` +
       `&created_at=lt.${encodeURIComponent(new Date(now - 3600000).toISOString())}` +
-      `&select=id,classroom_id,actor_user_id&order=created_at.asc&limit=${RESUME_BATCH}`
+      `&select=id,action,classroom_id,target_id,actor_user_id&order=created_at.asc&limit=${RESUME_BATCH}`
   )
   if (!res.ok) {
     out.failed++
@@ -120,24 +136,32 @@ async function resumeClassDeletes(sb, ctx, now, dryRun) {
   }
   const rows = await res.json().catch(() => null)
   const list = Array.isArray(rows) ? rows : []
-  if (dryRun) return { ...out, would_resume: list.length, classroom_ids: list.map((r) => r.classroom_id) }
+  if (dryRun) {
+    return { ...out, would_resume: list.length, classroom_ids: list.filter((r) => r.action === 'delete_class').map((r) => r.classroom_id),
+      student_ids: list.filter((r) => r.action === 'delete_student').map((r) => r.target_id) }
+  }
   for (const row of list) {
     try {
-      const c = await sb(`/rest/v1/classrooms?id=eq.${row.classroom_id}&select=id,code`)
-      if (!c.ok) throw new Error(`classroom ${c.status}`)
-      const [classroom] = await c.json()
-      if (!classroom) { // already gone
-        await finishDeletionLog(sb, row.id, true)
-        out.resumed++
-        continue
+      let r
+      if (row.action === 'delete_class') {
+        const c = await sb(`/rest/v1/classrooms?id=eq.${row.classroom_id}&select=id,code`)
+        if (!c.ok) throw new Error(`classroom ${c.status}`)
+        const [classroom] = await c.json()
+        r = classroom
+          ? await purgeClassroom(classroom, { ...ctx, deletionLog: { actorKind: 'teacher', actorUserId: row.actor_user_id } })
+          : { ok: true } // already gone
+      } else {
+        const c = await sb(`/rest/v1/class_students?id=eq.${row.target_id}&select=auth_user_id`)
+        if (!c.ok) throw new Error(`student ${c.status}`)
+        const [student] = await c.json()
+        r = student ? await purgeUser(student.auth_user_id, { ...ctx, skipVendors: true }) : { ok: true }
       }
-      const r = await purgeClassroom(classroom, { ...ctx, deletionLog: { actorKind: 'teacher', actorUserId: row.actor_user_id } })
       await finishDeletionLog(sb, row.id, r.ok ? true : 'partial')
-      if (!r.ok) throw new Error('class purge failed')
+      if (!r.ok) throw new Error('purge failed')
       out.resumed++
     } catch (e) {
       out.failed++
-      console.error('[retention] class delete resume failed', row.id, e?.message)
+      console.error('[retention] teacher delete resume failed', row.id, e?.message)
     }
   }
   return out
@@ -196,26 +220,29 @@ export async function GET(req) {
     ageJob(sb, `/rest/v1/student_sign_in_attempts?created_at=lt.${iso(now, ATTEMPT_RETENTION_DAYS)}`, dryRun))
   result.removed_students = await job('removed_students', () => purgeRemovedStudents(sb, ctx, now, dryRun))
   result.licenses = await job('licenses', () => runLicenseLifecycle(sb, ctx, { now, dryRun }))
-  result.class_deletes = await job('class_deletes', () => resumeClassDeletes(sb, ctx, now, dryRun))
+  result.teacher_deletes = await job('teacher_deletes', () => resumeTeacherDeletes(sb, ctx, now, dryRun))
   result.legacy_submissions = await job('legacy_submissions', () => legacySubmissions(sb, now, dryRun))
   result.order_pdfs = await job('order_pdfs', () => purgeOldOrderPdfs({ supabaseUrl, serviceKey, now: now.getTime(), dryRun }))
   result.vendor_retries = await job('vendor_retries', () => retryVendorDeletions(sb, ctx, { dryRun }))
 
   const failed = Object.values(result).reduce((n, r) => n + (r?.failed ?? 0), 0)
   const unsendable = result.licenses?.unsendable ?? []
+  const needsHuman = result.licenses?.needs_human ?? []
   const lines = summaryLines(result)
   // Ids (never names) for what needs a human, or what a dry run would touch.
   const idLines = []
+  if (needsHuman.length) idLines.push(`HALF-DELETED classes whose license is no longer due a purge (renewed?) — stopped, need a human, class ids: ${needsHuman.join(', ')}`)
   if (unsendable.length) idLines.push(`Lapse warnings NOT sent (no email provider or no teacher address), class ids: ${unsendable.join(', ')}`)
   if (dryRun) {
     const planned = result.licenses?.planned ?? []
     for (const p of planned) idLines.push(`would ${p.step}: class ${p.classroom_id} (license ${p.license_id})`)
     if (result.removed_students?.student_ids?.length) idLines.push(`would purge removed students: ${result.removed_students.student_ids.join(', ')}`)
-    if (result.class_deletes?.classroom_ids?.length) idLines.push(`would resume class deletes: ${result.class_deletes.classroom_ids.join(', ')}`)
+    if (result.teacher_deletes?.classroom_ids?.length) idLines.push(`would resume class deletes: ${result.teacher_deletes.classroom_ids.join(', ')}`)
+    if (result.teacher_deletes?.student_ids?.length) idLines.push(`would resume student deletes: ${result.teacher_deletes.student_ids.join(', ')}`)
     if (result.order_pdfs?.order_ids?.length) idLines.push(`would purge print PDFs of orders: ${result.order_pdfs.order_ids.join(', ')}`)
   }
   console.log('[retention] run', JSON.stringify({ dry_run: dryRun, failed, lines }))
-  if (dryRun || failed > 0 || unsendable.length) {
+  if (dryRun || failed > 0 || unsendable.length || needsHuman.length) {
     const date = now.toISOString().slice(0, 10)
     await sendOwnerAlert({
       subject: dryRun ? `Retention DRY RUN: what tonight's run would do` : `Retention job: ${failed} failure(s)`,

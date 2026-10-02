@@ -6,7 +6,7 @@ import { generateClassCode } from '../../lib/school/crypto.js'
 import { DEFAULT_SCHOOL_HOURS, validateSchoolHours } from '../../lib/school/hours.js'
 import { TRIAL_DAYS, TRIAL_IMAGES, MAX_SEATS, MAX_TRIALS_PER_TEACHER } from '../../lib/school/license.js'
 import { purgeClassroom } from '../../lib/deleteUser.js'
-import { startDeletionLog, finishDeletionLog, classCounts } from '../../lib/school/deletionLog.js'
+import { openTeacherDeletionLog, finishDeletionLog, classCounts } from '../../lib/school/deletionLog.js'
 import { namesMatch } from '../../lib/school/confirmName.js'
 
 const SELECT =
@@ -169,11 +169,13 @@ export default async function handler(req) {
       if (!namesMatch(body.confirm_name, o.classroom.name)) {
         return json(req, 400, { error: 'Type the class name to confirm', code: 'confirm_mismatch' })
       }
-      const logId = await startDeletionLog(sb, {
+      const opened = await openTeacherDeletionLog(sb, {
         actorUserId: o.auth.userId, actorKind: 'teacher', action: 'delete_class',
         classroomId: o.classroom.id, targetId: o.classroom.id, counts: await classCounts(sb, o.classroom.id),
       })
-      if (logId == null) return json(req, 503, { error: 'Service unavailable, try again', code: 'upstream' })
+      if (opened.pending) return json(req, 202, { deleted: false, pending: true, id: o.classroom.id, code: 'delete_pending' })
+      if (opened.failed) return json(req, 503, { error: 'Service unavailable, try again', code: 'upstream' })
+      const logId = opened.id
       const result = await purgeClassroom(o.classroom, {
         supabaseUrl: process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL,
         serviceKey: process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY,

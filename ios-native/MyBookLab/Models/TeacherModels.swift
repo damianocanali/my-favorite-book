@@ -182,6 +182,8 @@ struct TeacherAddStudentsResponse: Decodable, Sendable {
 struct TeacherDeletedResponse: Decodable, Sendable {
     let deleted: Bool?
     let id: String?
+    /// 202: the deletion is under way and finishes on its own.
+    let pending: Bool?
 }
 
 struct TeacherStudentActionResponse: Decodable, Sendable {

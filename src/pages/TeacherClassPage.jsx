@@ -133,6 +133,7 @@ export default function TeacherClassPage() {
     })
     if (res.ok && action === 'delete_now') {
       setStudents((prev) => prev.filter((s) => s.id !== studentId))
+      if (res.data?.pending) setBanner(t('school:teacher.data.delete_pending'))
       return res
     }
     if (res.ok) {

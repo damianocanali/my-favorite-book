@@ -400,10 +400,10 @@ struct TeacherRosterView: View {
         defer { busyId = nil }
         guard let token = await auth.validAccessToken() else { return }
         do {
-            try await APIClient.shared.teacherDeleteStudent(
+            let res = try await APIClient.shared.teacherDeleteStudent(
                 classId: classId, studentId: s.id, confirmName: typed, bearerToken: token)
             students?.removeAll { $0.id == s.id }
-            show(TeacherCopy.studentDeleted(s.display_name), error: false)
+            show(res.pending == true ? TeacherCopy.deletePending : TeacherCopy.studentDeleted(s.display_name), error: false)
         } catch {
             show(TeacherCopy.error(error), error: true)
         }

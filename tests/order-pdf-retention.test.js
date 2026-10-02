@@ -38,7 +38,7 @@ describe('consumer print PDF retention', () => {
     expect(q).toContain(`updated_at=lt.${encodeURIComponent(new Date(now - ORDER_PDF_RETENTION_DAYS * 86400000).toISOString())}`)
     expect(q).toContain('pdfs_purged_at=is.null')
     const q2 = log[1].u
-    expect(q2).toContain('status=in.(refunded,failed)')
+    expect(q2).toContain('status=in.(refunded,failed,pending,paid,pdf_ready)')
     expect(q2).toContain(`updated_at=lt.${encodeURIComponent(new Date(now - DEAD_ORDER_PDF_RETENTION_DAYS * 86400000).toISOString())}`)
     const del = log.find((l) => l.method === 'DELETE')
     expect(del.body.prefixes).toEqual(['o1/interior.pdf', 'o1/cover.pdf'])

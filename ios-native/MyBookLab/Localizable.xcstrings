@@ -19724,13 +19724,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Part of the class is still being deleted. It will finish overnight, or try again now."
+            "value": "The deletion stopped part-way. It will finish overnight, or try again now."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Una parte della classe è ancora in eliminazione. Verrà completata durante la notte, oppure riprova ora."
+            "value": "L'eliminazione si è interrotta a metà. Verrà completata durante la notte, oppure riprova ora."
           }
         }
       }
@@ -20083,6 +20083,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "I check-in sono disattivati per questa classe."
+          }
+        }
+      }
+    },
+    "school.teacher.data.delete_pending": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The deletion is in progress and will finish shortly."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L'eliminazione è in corso e verrà completata a breve."
           }
         }
       }

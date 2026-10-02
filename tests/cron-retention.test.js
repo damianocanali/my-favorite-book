@@ -235,14 +235,19 @@ describe('api/cron/retention', () => {
     expect(log.some((l) => l.method === 'DELETE' && l.u.includes('/rest/v1/classrooms?id=eq.c1'))).toBe(true)
   })
 
-  it('resumes a partial teacher class delete', async () => {
+  it('resumes partial teacher deletes (class and child)', async () => {
     mock([
-      { method: 'GET', match: '/rest/v1/deletion_log?action=eq.delete_class', reply: { body: [{ id: 44, classroom_id: 'c7', actor_user_id: 'teacher-1' }] } },
+      { method: 'GET', match: '/rest/v1/deletion_log?action=in.(delete_class,delete_student)', reply: { body: [
+        { id: 44, action: 'delete_class', classroom_id: 'c7', target_id: 'c7', actor_user_id: 'teacher-1' },
+        { id: 46, action: 'delete_student', classroom_id: 'c8', target_id: 's8', actor_user_id: 'teacher-1' },
+      ] } },
+      { method: 'GET', match: '/rest/v1/class_students?id=eq.s8', reply: { body: [{ auth_user_id: 'kid-8' }] } },
       { method: 'GET', match: '/rest/v1/classrooms?id=eq.c7', reply: { body: [{ id: 'c7', code: 'XYZ234' }] } },
       { method: 'POST', match: '/rest/v1/deletion_log', reply: { status: 201, body: [{ id: 45 }] } },
     ])
     const out = await (await run()).json()
-    expect(out.class_deletes).toEqual({ resumed: 1, failed: 0 })
+    expect(out.teacher_deletes).toEqual({ resumed: 2, failed: 0 })
+    expect(log.some((l) => l.method === 'DELETE' && l.u.endsWith('/auth/v1/admin/users/kid-8'))).toBe(true)
     expect(log.some((l) => l.method === 'DELETE' && l.u.includes('/rest/v1/classrooms?id=eq.c7'))).toBe(true)
     const close = log.filter((l) => l.method === 'PATCH' && l.u.includes('deletion_log?id=eq.44')).at(-1)
     expect(close.body.status).toBe('done')
@@ -271,12 +276,12 @@ describe('api/cron/retention', () => {
     expect(log.indexOf(open)).toBeLessThan(log.indexOf(del))
   })
 
-  it('purges print PDFs of refunded/failed orders after 30 days, shipped after 90', async () => {
+  it('purges print PDFs of refunded/failed/abandoned orders after 30 days, shipped after 90', async () => {
     mock()
     await run()
     const qs = log.filter((l) => l.u.includes('/rest/v1/print_orders?status=in.'))
     expect(qs.find((l) => l.u.includes('status=in.(shipped,delivered)')).u).toContain(`updated_at=lt.${daysAgo(90)}`)
-    expect(qs.find((l) => l.u.includes('status=in.(refunded,failed)')).u).toContain(`updated_at=lt.${daysAgo(30)}`)
+    expect(qs.find((l) => l.u.includes('status=in.(refunded,failed,pending,paid,pdf_ready)')).u).toContain(`updated_at=lt.${daysAgo(30)}`)
   })
 
   it('one failing job does not stop the others', async () => {
@@ -300,7 +305,7 @@ describe('api/cron/retention DRY RUN (default)', () => {
         id: 'L1', owner_user_id: 'teacher-1', classroom_id: 'c1', status: 'trial', expires_at: daysAgo(61),
         classrooms: { id: 'c1', code: 'ABC234', name: 'Room 5', locale: 'en' },
       }] } },
-      { method: 'GET', match: '/rest/v1/print_orders?status=in.(refunded,failed)', reply: { body: [{ id: 'o1' }] } },
+      { method: 'GET', match: '/rest/v1/print_orders?status=in.(refunded,failed,pending,paid,pdf_ready)', reply: { body: [{ id: 'o1' }] } },
       { method: 'POST', match: 'api.resend.com', reply: { body: { id: 'em' } } },
     ])
     const out = await (await run()).json()
@@ -330,5 +335,73 @@ describe('api/cron/retention DRY RUN (default)', () => {
     vi.resetModules()
     mock()
     expect((await (await run()).json()).dry_run).toBe(false)
+  })
+})
+
+describe('round 2: half-deleted lapse purges, dry-run paging (N3, N4)', () => {
+  const ENDED_Q = 'status=in.(lapsed,canceled)'
+  const dueLic = {
+    id: 'L1', owner_user_id: 'teacher-1', classroom_id: 'c1', status: 'lapsed', status_changed_at: daysAgo(95),
+    purge_warning_30_at: daysAgo(31), purge_warning_7_at: daysAgo(8), classrooms: { id: 'c1', code: 'ABC234', name: 'Room 5', locale: 'en' },
+  }
+  const halfRoute = { method: 'GET', match: '/rest/v1/deletion_log?action=eq.purge_lapsed_class', reply: { body: [{ id: 70, classroom_id: 'c1' }] } }
+  const aliveRoute = { method: 'GET', match: '/rest/v1/classrooms?id=in.(c1)', reply: { body: [{ id: 'c1' }] } }
+
+  it('a renewed half-deleted class is left alone and the owner is told its id', async () => {
+    mock([halfRoute, aliveRoute, { method: 'POST', match: 'api.resend.com', reply: { body: { id: 'em' } } }])
+    const out = await (await run()).json()
+    expect(out.licenses.needs_human).toEqual(['c1'])
+    expect(log.some((l) => l.method === 'DELETE' && l.u.includes('/rest/v1/classrooms'))).toBe(false)
+    const alert = log.find((l) => l.u.includes('api.resend.com'))
+    expect(alert.body.to).toEqual(['owner@example.com'])
+    expect(alert.body.text).toContain('HALF-DELETED')
+    expect(alert.body.text).toContain('c1')
+  })
+
+  it('a half-deleted class still due a purge is finished, and the old row closed', async () => {
+    mock([
+      halfRoute, aliveRoute,
+      { method: 'GET', match: ENDED_Q, reply: { body: [dueLic] } },
+      { method: 'POST', match: '/rest/v1/deletion_log', reply: { status: 201, body: [{ id: 71 }] } },
+    ])
+    const out = await (await run()).json()
+    expect(out.licenses).toMatchObject({ purged: 1, needs_human: [] })
+    expect(log.find((l) => l.method === 'PATCH' && l.u.includes('deletion_log?id=eq.70')).body.status).toBe('done')
+  })
+
+  it('a lapse purge that stops part-way is marked partial', async () => {
+    mock([
+      { method: 'GET', match: ENDED_Q, reply: { body: [dueLic] } },
+      { method: 'POST', match: '/rest/v1/deletion_log', reply: { status: 201, body: [{ id: 72 }] } },
+      { method: 'GET', match: 'class_students?classroom_id=eq.c1&select=id,auth_user_id', reply: { body: [{ id: 's1', auth_user_id: 'k1' }] } },
+      { method: 'DELETE', match: '/auth/v1/admin/users/k1', reply: { status: 500, body: {} } },
+    ])
+    const out = await (await run()).json()
+    expect(out.licenses.failed).toBe(1)
+    const close = log.filter((l) => l.method === 'PATCH' && l.u.includes('deletion_log?id=eq.72')).at(-1)
+    expect(close.body.status).toBe('partial')
+  })
+
+  it('does nothing to licenses when the unfinished-purge read fails', async () => {
+    mock([
+      { method: 'GET', match: '/rest/v1/deletion_log?action=eq.purge_lapsed_class', reply: { status: 500, body: {} } },
+      { method: 'GET', match: ENDED_Q, reply: { body: [dueLic] } },
+    ])
+    const out = await (await run()).json()
+    expect(out.licenses.failed).toBe(1)
+    expect(log.some((l) => l.method === 'DELETE' && /\/rest\/v1\/classrooms|\/auth\/v1\/admin\/users/.test(l.u))).toBe(false)
+    expect(log.some((l) => l.u.includes('class_students?classroom_id=eq.c1'))).toBe(false)
+  })
+
+  it('the dry run lists every removed student due, paging past 1000', async () => {
+    delete process.env.RETENTION_DRY_RUN
+    let pageNo = 0
+    mock([{ method: 'GET', match: '/rest/v1/class_students?status=eq.removed', reply: () => {
+      pageNo++
+      return { body: Array.from({ length: pageNo === 1 ? 1000 : 3 }, (_, i) => ({ id: `s${pageNo}-${i}` })) }
+    } }])
+    const out = await (await run()).json()
+    expect(out.removed_students.would_purge).toBe(1003)
+    expect(log.filter((l) => l.u.includes('class_students?status=eq.removed')).map((l) => l.u.match(/offset=(\d+)/)[1])).toEqual(['0', '1000'])
   })
 })

@@ -1039,9 +1039,10 @@ actor APIClient {
     /// deletion of one child's class account and everything in it. The
     /// server re-checks the typed name (confirm_mismatch) and writes the
     /// deletion_log evidence row before purging.
+    @discardableResult
     func teacherDeleteStudent(classId: String, studentId: String, confirmName: String,
-                              bearerToken: String) async throws {
-        let _: TeacherDeletedResponse = try await teacherCall(
+                              bearerToken: String) async throws -> TeacherDeletedResponse {
+        try await teacherCall(
             method: "PATCH", path: "/api/school/students", query: [:],
             body: DeleteStudentBody(classId: classId, id: studentId, confirm_name: confirmName),
             bearerToken: bearerToken)
@@ -1052,8 +1053,9 @@ actor APIClient {
     /// DELETE /api/school/classes?id=: permanent, immediate deletion of the
     /// class and every child's class account in it. delete_incomplete means
     /// some of it is gone and trying again finishes the job.
-    func teacherDeleteClass(classId: String, confirmName: String, bearerToken: String) async throws {
-        let _: TeacherDeletedResponse = try await teacherCall(
+    @discardableResult
+    func teacherDeleteClass(classId: String, confirmName: String, bearerToken: String) async throws -> TeacherDeletedResponse {
+        try await teacherCall(
             method: "DELETE", path: "/api/school/classes", query: ["id": classId],
             body: DeleteClassBody(confirm_name: confirmName), bearerToken: bearerToken)
     }

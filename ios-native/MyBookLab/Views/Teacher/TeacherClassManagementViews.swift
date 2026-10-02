@@ -457,8 +457,13 @@ struct TeacherClassSettingsView: View {
         defer { deletingClass = false }
         guard let token = await auth.validAccessToken() else { return }
         do {
-            try await APIClient.shared.teacherDeleteClass(classId: classId, confirmName: deleteTyped, bearerToken: token)
-            onDeleted()
+            let res = try await APIClient.shared.teacherDeleteClass(classId: classId, confirmName: deleteTyped, bearerToken: token)
+            if res.pending == true {
+                // Under way and finishing on its own: say so, stay here.
+                deleteError = TeacherCopy.deletePending
+            } else {
+                onDeleted()
+            }
         } catch {
             deleteError = TeacherCopy.error(error)
         }

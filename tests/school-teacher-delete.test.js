@@ -152,3 +152,42 @@ describe('PATCH /api/school/classes checkins_enabled (review §7.28)', () => {
     expect(patch.body).toEqual({ checkins_enabled: false })
   })
 })
+
+describe('round 2: lost evidence-row response (N2)', () => {
+  const lostInsert = { method: 'POST', match: '/rest/v1/deletion_log', reply: { status: 502, body: {} } }
+
+  it('row found after all: the delete goes ahead', async () => {
+    const log = mockSupabase({ user: TEACHER, routes: [ownerRoute, studentLookup, lostInsert,
+      { method: 'GET', match: '/rest/v1/deletion_log?action=eq.delete_student', reply: { body: [{ id: 33 }] } }] })
+    const res = await (await students())(req('students', { method: 'PATCH', body: { classId: CLASS_ID, id: STUDENT_ID, action: 'delete_now', confirm_name: 'Lucía' } }))
+    expect(res.status).toBe(200)
+    expect(log.some((l) => l.method === 'DELETE' && l.url.endsWith('/auth/v1/admin/users/kid-auth-1'))).toBe(true)
+    expect(log.find((l) => l.method === 'PATCH' && l.url.includes('deletion_log?id=eq.33')).body.status).toBe('done')
+  })
+
+  it("can't tell: the teacher is told it's in progress (202 delete_pending), nothing purged now", async () => {
+    const log = mockSupabase({ user: TEACHER, routes: [ownerRoute, studentLookup, lostInsert,
+      { method: 'GET', match: '/rest/v1/deletion_log?action=eq.delete_student', reply: { status: 503, body: {} } }] })
+    const res = await (await students())(req('students', { method: 'PATCH', body: { classId: CLASS_ID, id: STUDENT_ID, action: 'delete_now', confirm_name: 'Lucía' } }))
+    expect(res.status).toBe(202)
+    expect(await res.json()).toMatchObject({ pending: true, code: 'delete_pending' })
+    expect(log.some((l) => l.url.endsWith('/auth/v1/admin/users/kid-auth-1'))).toBe(false)
+  })
+
+  it('definitely not written: 503, try again', async () => {
+    mockSupabase({ user: TEACHER, routes: [ownerRoute, studentLookup, lostInsert,
+      { method: 'GET', match: '/rest/v1/deletion_log?action=eq.delete_student', reply: { body: [] } }] })
+    const res = await (await students())(req('students', { method: 'PATCH', body: { classId: CLASS_ID, id: STUDENT_ID, action: 'delete_now', confirm_name: 'Lucía' } }))
+    expect(res.status).toBe(503)
+  })
+
+  it('class delete: pending too', async () => {
+    mockSupabase({ user: TEACHER, routes: [ownerRoute, lostInsert,
+      { method: 'GET', match: '/rest/v1/deletion_log?action=eq.delete_class', reply: { status: 503, body: {} } }] })
+    const res = await (await classes())(new Request(`https://app.test/api/school/classes?id=${CLASS_ID}`, {
+      method: 'DELETE', headers: { authorization: 'Bearer jwt', 'content-type': 'application/json' }, body: JSON.stringify({ confirm_name: 'Room 5' }),
+    }))
+    expect(res.status).toBe(202)
+    expect((await res.json()).code).toBe('delete_pending')
+  })
+})

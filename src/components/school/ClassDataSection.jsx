@@ -12,6 +12,7 @@ import { teacherErrorText } from './teacherErrors'
 export default function ClassDataSection({ classItem, onPatch, onDeleted }) {
   const { t } = useTranslation()
   const [confirming, setConfirming] = useState(false)
+  const [deletePending, setDeletePending] = useState(false)
   const [exporting, setExporting] = useState(false)
   const [exportError, setExportError] = useState(null)
   const [savingCheckins, setSavingCheckins] = useState(false)
@@ -41,7 +42,10 @@ export default function ClassDataSection({ classItem, onPatch, onDeleted }) {
     })
     if (res.ok) {
       setConfirming(false)
-      onDeleted?.()
+      // 202: the server couldn't confirm its evidence row; the deletion
+      // finishes on its own. Say so rather than leaving the page.
+      if (res.data?.pending) setDeletePending(true)
+      else onDeleted?.()
     }
     return res
   }
@@ -90,6 +94,8 @@ export default function ClassDataSection({ classItem, onPatch, onDeleted }) {
           <Trash2 size={14} /> {t('school:teacher.data.delete_class.button')}
         </button>
       </div>
+
+      {deletePending && <p className="font-body text-sm text-galaxy-text" role="status">{t('school:teacher.data.delete_pending')}</p>}
 
       {confirming && (
         <TypedConfirmDialog

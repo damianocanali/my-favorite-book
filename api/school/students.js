@@ -6,7 +6,7 @@ import { generatePictureSecret, hashPictureSecret, syntheticStudentEmail, random
 import { AVATAR_EMOJI } from '../../lib/school/pictures.js'
 import { isLicenseUsable, MAX_SEATS } from '../../lib/school/license.js'
 import { purgeUser } from '../../lib/deleteUser.js'
-import { startDeletionLog, finishDeletionLog, studentCounts } from '../../lib/school/deletionLog.js'
+import { openTeacherDeletionLog, finishDeletionLog, studentCounts } from '../../lib/school/deletionLog.js'
 import { namesMatch } from '../../lib/school/confirmName.js'
 
 const PUBLIC = 'id,display_name,avatar_emoji,status,locked_until,hard_locked,last_sign_in_at,created_at'
@@ -348,14 +348,19 @@ export default async function handler(req) {
             return json(req, 400, { error: 'Type the name to confirm', code: 'confirm_mismatch' })
           }
           const env = sbEnvForPurge()
-          const logId = await startDeletionLog(sb, {
+          const opened = await openTeacherDeletionLog(sb, {
             actorUserId: o.auth.userId, actorKind: 'teacher', action: 'delete_student',
             classroomId, targetId: student.id, counts: await studentCounts(sb, student),
           })
-          if (logId == null) return json(req, 503, { error: 'Service unavailable, try again', code: 'upstream' })
+          // Response lost and unknowable: tell the teacher it's under way;
+          // the retention cron finishes a 'started' row (lib/school/deletionLog.js).
+          if (opened.pending) return json(req, 202, { deleted: false, pending: true, id: student.id, code: 'delete_pending' })
+          if (opened.failed) return json(req, 503, { error: 'Service unavailable, try again', code: 'upstream' })
+          const logId = opened.id
           const result = await purgeUser(authId, { ...env, skipVendors: true })
-          await finishDeletionLog(sb, logId, result.ok)
-          if (!result.ok) return json(req, 502, { error: 'Could not delete student', code: 'upstream' })
+          // A stopped purge stays 'partial' and the retention cron finishes it.
+          await finishDeletionLog(sb, logId, result.ok ? true : 'partial')
+          if (!result.ok) return json(req, 502, { error: 'Still deleting; it will finish overnight', code: 'delete_incomplete' })
           return json(req, 200, { deleted: true, id: student.id })
         }
         default:

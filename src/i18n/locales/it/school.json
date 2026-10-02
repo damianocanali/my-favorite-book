@@ -194,7 +194,7 @@
       "cannot_return": "Questo compito è chiuso o scaduto, quindi non si può rimandare.",
       "template_locked": "La scheda si può cambiare solo finché il compito è una bozza.",
       "confirm_mismatch": "Il nome scritto non corrisponde. Non è stato eliminato nulla.",
-      "delete_incomplete": "Una parte della classe è ancora in eliminazione. Verrà completata durante la notte, oppure riprova ora.",
+      "delete_incomplete": "L'eliminazione si è interrotta a metà. Verrà completata durante la notte, oppure riprova ora.",
       "checkins_off": "I check-in sono disattivati per questa classe."
     },
     "class_page": {
@@ -412,7 +412,8 @@
         "label": "Bambine e bambini possono condividere i check-in con te",
         "hint_on": "Il check-in di ogni account (come si sente, di cosa ha bisogno) arriva a te. I check-in vengono eliminati dopo 30 giorni.",
         "hint_off": "Disattivati: il pulsante del check-in non compare e non viene raccolto nulla."
-      }
+      },
+      "delete_pending": "L'eliminazione è in corso e verrà completata a breve."
     }
   },
   "student": {
