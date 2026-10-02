@@ -187,3 +187,11 @@ describe('/api/admin/picture-reset (bulk, pepper rotation)', () => {
     expect(out.processed).toBe(1)
   })
 })
+
+describe('bulk reset UI resumes from the last cursor (review minor)', () => {
+  it('starts each run from the saved next_after, not from scratch', () => {
+    const src = readFileSync('src/components/admin/AdminAccessLog.jsx', 'utf8')
+    expect(src).toMatch(/let after = cursor/)
+    expect(src).toMatch(/setCursor\(after\)/)
+  })
+})

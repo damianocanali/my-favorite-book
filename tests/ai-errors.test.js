@@ -49,3 +49,13 @@ describe('friendlyAiError', () => {
     expect(friendlyAiError(undefined, t)).toBe('errors:ai.generic')
   })
 })
+
+describe('web avatar errors use the server code, never raw text (review minor)', () => {
+  it('AvatarPage throws aiResponseError and shows friendlyAiError', async () => {
+    const { readFileSync } = await import('node:fs')
+    const src = readFileSync('src/pages/AvatarPage.jsx', 'utf8')
+    expect(src.match(/throw await aiResponseError\(res/g)).toHaveLength(2)
+    expect(src).not.toMatch(/setError\(msg\)/)
+    expect(src).not.toMatch(/new Error\(data\.error/)
+  })
+})

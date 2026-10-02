@@ -259,7 +259,11 @@ export default async function handler(req) {
 
     // Native app sends a free-form chat message; web app sends an intent.
     if (typeof payload?.message === 'string' && payload.message.trim()) {
-      const modErr = await moderatePrompt(payload.message, req, modOpts)
+      // The page text sent as `context` goes into the system prompt, so it
+      // is screened too (same fail-closed rule for students).
+      const texts = [payload.message]
+      if (typeof payload.context === 'string' && payload.context.trim()) texts.push(payload.context)
+      const modErr = (await Promise.all(texts.map((t) => moderatePrompt(t, req, modOpts)))).find(Boolean)
       if (modErr) return modErr
       return await handleChat(payload, apiKey, locale, req)
     }

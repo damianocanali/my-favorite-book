@@ -1,4 +1,4 @@
-import { friendlyAiError } from '../lib/aiErrors'
+import { friendlyAiError, aiResponseError } from '../lib/aiErrors'
 import { useState, useEffect } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'motion/react'
@@ -132,8 +132,10 @@ export default function AvatarPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ features, artStyle }),
       })
+      // The server's CODE travels on the error (mapped to copy in the
+      // child's language by friendlyAiError) — never its raw English text.
+      if (!res.ok) throw await aiResponseError(res, 'Avatar generation failed')
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error || t('account:avatar.errors.generate_failed'))
       setAvatarImage(data.image)
       earnBadge('made_avatar')
       incrementGenerations()
@@ -170,8 +172,8 @@ export default function AvatarPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sourceImage, artStyle }),
       })
+      if (!res.ok) throw await aiResponseError(res, 'Cartoonify failed')
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error || t('account:avatar.errors.cartoonify_failed'))
       setAvatarImage(data.image)
       earnBadge('made_avatar')
       incrementGenerations()
@@ -180,7 +182,8 @@ export default function AvatarPage() {
       // don't show as a payment failure.
       const msg = err?.message ?? String(err)
       if (!/cancel/i.test(msg) && !/no photo/i.test(msg) && !/no file/i.test(msg)) {
-        setError(msg)
+        // Mapped copy only (server code → friendly line); never raw text.
+        setError(friendlyAiError(err, t))
         refreshCoins()
       }
     } finally {

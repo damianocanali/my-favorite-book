@@ -81,7 +81,11 @@ function PictureReset() {
   const [confirm, setConfirm] = useState('')
   const [reason, setReason] = useState('')
   const [busy, setBusy] = useState(false)
-  const [progress, setProgress] = useState(null)
+  const [progress, setProgress] = useState(null) // { processed, failed }
+  // The cursor survives a failed batch: "Reset" again resumes after the
+  // last student done instead of starting over.
+  const [cursor, setCursor] = useState(null)
+  const [done, setDone] = useState(false)
   const [error, setError] = useState(null)
 
   async function check() {
@@ -92,19 +96,20 @@ function PictureReset() {
   async function run() {
     setBusy(true)
     setError(null)
-    let after = null
-    let processed = 0
-    const failed = []
+    let after = cursor
+    let processed = progress?.processed ?? 0
+    let failed = progress?.failed ?? 0
     try {
       for (;;) {
         const d = await call('/api/admin/picture-reset', {
           confirm, reason, expectedCount: preview.active_students, after,
         })
         processed += d.processed
-        failed.push(...d.failed)
-        setProgress({ processed, failed: failed.length })
-        if (d.done) break
+        failed += d.failed.length
+        setProgress({ processed, failed })
         after = d.next_after
+        setCursor(after)
+        if (d.done) { setDone(true); break }
       }
     } catch (e) {
       setError(e.message)
@@ -112,7 +117,7 @@ function PictureReset() {
     setBusy(false)
   }
 
-  const ready = preview && confirm === preview.confirm_phrase && reason.trim().length > 0 && !busy
+  const ready = preview && confirm === preview.confirm_phrase && reason.trim().length > 0 && !busy && !done
 
   return (
     <section className="mb-8 rounded-2xl border border-red-400/30 bg-red-500/5 p-4">
@@ -141,7 +146,7 @@ function PictureReset() {
             onClick={run} disabled={!ready}
             className="px-3 py-1.5 rounded-lg bg-red-500/80 text-white disabled:opacity-40 flex items-center gap-2"
           >
-            {busy && <Loader2 className="w-4 h-4 animate-spin" />} Reset all pictures
+            {busy && <Loader2 className="w-4 h-4 animate-spin" />} {cursor && !done ? 'Resume reset' : 'Reset all pictures'}
           </button>
         </div>
       )}

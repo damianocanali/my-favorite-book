@@ -67,6 +67,20 @@ describe('moderatePrompt failClosed', () => {
   })
 })
 
+describe('story-buddy chat moderates the page context too', () => {
+  it('a flagged context blocks the chat before Anthropic', async () => {
+    moderation = async (_u, init) => new Response(JSON.stringify({ results: [{ flagged: JSON.parse(init.body).input.includes('BADCONTEXT') }] }))
+    const { default: handler } = await import('../api/story-buddy.js')
+    const res = await handler(new Request('https://app.test/api/story-buddy', {
+      method: 'POST', headers: { authorization: 'Bearer t', 'content-type': 'application/json' },
+      body: JSON.stringify({ message: 'help me', context: 'page says BADCONTEXT' }),
+    }))
+    expect(res.status).toBe(400)
+    expect(calls.filter((u) => u.includes('moderations'))).toHaveLength(2)
+    expect(calls.some((u) => u.includes('anthropic'))).toBe(false)
+  })
+})
+
 describe('story-buddy wires failClosed to the student role', () => {
   const post = async () => {
     const { default: handler } = await import('../api/story-buddy.js')

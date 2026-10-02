@@ -24,7 +24,10 @@ describe('vercel.json security headers', () => {
     expect(csp).toMatch(/connect-src[^;]*https:\/\/\*\.supabase\.co[^;]*wss:\/\/\*\.supabase\.co/)
     expect(csp).toMatch(/script-src 'self' https:\/\/js\.stripe\.com/)
     expect(csp).toMatch(/font-src 'self' data:/)
-    expect(csp).not.toMatch(/googleapis|gstatic|cdnfonts|unsafe-eval/)
+    expect(csp).not.toMatch(/fonts\.googleapis|fonts\.gstatic|cdnfonts|unsafe-eval/)
+    // Stripe Elements + wallets (Apple Pay / Google Pay)
+    expect(csp).toMatch(/frame-src[^;]*https:\/\/\*\.js\.stripe\.com[^;]*https:\/\/pay\.google\.com/)
+    expect(csp).toMatch(/img-src[^;]*applepay\.cdn-apple\.com/)
   })
   it('keeps the crons and rewrites intact', () => {
     expect(cfg.crons.length).toBeGreaterThan(0)
