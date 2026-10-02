@@ -40,6 +40,7 @@
     "@stripe/stripe-js": "^9.4.0",
     "@supabase/supabase-js": "^2.49.4",
     "canvas-confetti": "^1.9.4",
+    "fflate": "^0.8.3",
     "i18next": "^26.4.2",
     "lucide-react": "^0.577.0",
     "motion": "^12.38.0",

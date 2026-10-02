@@ -5,9 +5,12 @@ import { requireTeacher, requireClassOwner, sb, json } from '../_school.js'
 import { generateClassCode } from '../../lib/school/crypto.js'
 import { DEFAULT_SCHOOL_HOURS, validateSchoolHours } from '../../lib/school/hours.js'
 import { TRIAL_DAYS, TRIAL_IMAGES, MAX_SEATS, MAX_TRIALS_PER_TEACHER } from '../../lib/school/license.js'
+import { purgeClassroom } from '../../lib/deleteUser.js'
+import { openTeacherDeletionLog, finishDeletionLog, classCounts } from '../../lib/school/deletionLog.js'
+import { namesMatch } from '../../lib/school/confirmName.js'
 
 const SELECT =
-  'id,code,name,locale,sign_in_open,timezone,school_hours,created_at,' +
+  'id,code,name,locale,sign_in_open,checkins_enabled,timezone,school_hours,created_at,' +
   'class_licenses(id,status,origin,expires_at,seats,image_allowance,images_used),class_students(count)'
 
 // class_licenses.classroom_id is UNIQUE, so PostgREST treats the embed as
@@ -123,6 +126,7 @@ export default async function handler(req) {
         patch.name = name
       }
       if (body.sign_in_open !== undefined) patch.sign_in_open = !!body.sign_in_open
+      if (body.checkins_enabled !== undefined) patch.checkins_enabled = !!body.checkins_enabled
       if (body.locale !== undefined) patch.locale = body.locale === 'it' ? 'it' : 'en'
       if (body.timezone !== undefined) {
         if (!validTimezone(body.timezone)) return json(req, 400, { error: 'Unknown time zone', code: 'bad_timezone' })
@@ -139,6 +143,47 @@ export default async function handler(req) {
       const res = body.rotate_code ? await withFreshCode((code) => write({ code })) : await write({})
       if (!res.ok) return json(req, 502, { error: 'Could not update class', code: 'upstream' })
       return json(req, 200, { class: await loadOne(o.classroom.id) })
+    }
+
+    if (req.method === 'DELETE') {
+      // Permanent, immediate deletion of a class and everything in it
+      // (review §7.3, spec "Teacher deletes the class"): every student's
+      // account is purged, then the class (lib/deleteUser.js
+      // purgeClassroom), each child with their own deletion_log row. The
+      // teacher must type the class name; the class's evidence row is
+      // written first and nothing is deleted without it.
+      //
+      // Edge time budget: if the purge stops part-way (a failure, or a very
+      // slow run), the row is marked 'partial' and api/cron/retention.js
+      // finishes the job overnight — the teacher is told so
+      // (delete_incomplete), and trying again also finishes it.
+      const id = new URL(req.url).searchParams.get('id')
+      const o = await requireClassOwner(req, id)
+      if (!o.ok) return o.response
+      // Rate limit before the name check, so the check itself can't be
+      // used to probe class names.
+      if (!checkRateLimit(`school-class-delete:${o.auth.userId}`, 10).allowed) {
+        return json(req, 429, { error: 'Too many requests', code: 'rate_limited' })
+      }
+      const body = await req.json().catch(() => ({}))
+      if (!namesMatch(body.confirm_name, o.classroom.name)) {
+        return json(req, 400, { error: 'Type the class name to confirm', code: 'confirm_mismatch' })
+      }
+      const opened = await openTeacherDeletionLog(sb, {
+        actorUserId: o.auth.userId, actorKind: 'teacher', action: 'delete_class',
+        classroomId: o.classroom.id, targetId: o.classroom.id, counts: await classCounts(sb, o.classroom.id),
+      })
+      if (opened.pending) return json(req, 202, { deleted: false, pending: true, id: o.classroom.id, code: 'delete_pending' })
+      if (opened.failed) return json(req, 503, { error: 'Service unavailable, try again', code: 'upstream' })
+      const logId = opened.id
+      const result = await purgeClassroom(o.classroom, {
+        supabaseUrl: process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL,
+        serviceKey: process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY,
+        deletionLog: { actorKind: 'teacher', actorUserId: o.auth.userId },
+      })
+      await finishDeletionLog(sb, logId, result.ok ? true : 'partial')
+      if (!result.ok) return json(req, 502, { error: 'Part of the class is still being deleted; it will finish overnight', code: 'delete_incomplete' })
+      return json(req, 200, { deleted: true, id: o.classroom.id })
     }
 
     return json(req, 405, { error: 'Method not allowed', code: 'method_not_allowed' })

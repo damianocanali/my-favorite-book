@@ -537,3 +537,28 @@ describe('POST /api/school/sign-in', () => {
     expect((await last.json()).code).toBe('too_many')
   })
 })
+
+describe('sign-in pause alert (review §7.26)', () => {
+  it('emails the owner once (class id only) when sign-in is paused', async () => {
+    process.env.RESEND_API_KEY = 're_test'
+    process.env.EMAIL_FROM = 'x <x@mybooklab.app>'
+    process.env.OWNER_ALERT_EMAIL = 'owner@example.com'
+    const log = mockSupabase({
+      user: null,
+      routes: [
+        classroomRoute(classroomRow({ sign_in_paused_until: '2099-01-01T00:00:00.000Z' })),
+        { method: 'POST', match: 'api.resend.com', reply: { body: { id: 'em' } } },
+      ],
+    })
+    const { default: handler } = await import('../api/school/sign-in.js')
+    const body = { code: CODE, studentId: STUDENT_ID, pictures: RIGHT_PICTURES }
+    expect((await handler(signInCall(body))).status).toBe(423)
+    expect((await handler(signInCall(body))).status).toBe(423)
+    const mails = log.filter((l) => l.url.includes('api.resend.com'))
+    expect(mails).toHaveLength(1)
+    expect(mails[0].body.to).toEqual(['owner@example.com'])
+    expect(mails[0].body.text).toContain(CLASS_ID)
+    expect(mails[0].body.text).not.toContain('Room 5')
+    delete process.env.RESEND_API_KEY; delete process.env.EMAIL_FROM; delete process.env.OWNER_ALERT_EMAIL
+  })
+})

@@ -16,6 +16,11 @@ export default async function handler(req) {
     if (req.method !== 'POST') return json(req, 405, { error: 'Method not allowed', code: 'method_not_allowed' })
     const s = await requireStudent(req)
     if (!s.ok) return s.response
+    // The class's check-ins switch (migration 030, review §7.28): a school
+    // or district can turn feelings collection off. Nothing is stored.
+    if (s.classroom?.checkins_enabled === false) {
+      return json(req, 403, { error: 'Check-ins are off for this class', code: 'checkins_off' })
+    }
     if (!checkRateLimit(`school-checkin:${s.student.id}`, 30).allowed) {
       return json(req, 429, { error: 'Too many requests', code: 'rate_limited' })
     }

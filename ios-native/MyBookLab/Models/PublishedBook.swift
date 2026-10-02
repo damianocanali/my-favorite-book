@@ -15,9 +15,12 @@ struct PublishedBookSummary: Codable, Identifiable, Hashable, Sendable {
     var publishedAt: String?
     var featured: Bool?
     var reactionCounts: [String: Int]?
-    /// Author's user id — returned by the recent listing, absent from
-    /// the featured one. Needed to block an author.
-    var userId: String?
+    /// An opaque, server-sealed handle for the author (never their account
+    /// id — api/publish-book.js, lib/authorRef.js). Sent back to block them.
+    /// Older servers put the raw id in `user_id`; either decodes here.
+    var authorRef: String?
+    /// The server's answer to "is this the signed-in reader's own book?".
+    var isOwner: Bool?
 
     var id: String { slug }
 
@@ -29,7 +32,9 @@ struct PublishedBookSummary: Codable, Identifiable, Hashable, Sendable {
         case coverColor = "cover_color"
         case publishedAt = "published_at"
         case reactionCounts = "reaction_counts"
-        case userId = "user_id"
+        case authorRef = "author_ref"
+        case legacyUserId = "user_id"
+        case isOwner = "is_owner"
     }
 
     init(from decoder: Decoder) throws {
@@ -43,7 +48,23 @@ struct PublishedBookSummary: Codable, Identifiable, Hashable, Sendable {
         self.publishedAt = try? c.decode(String.self, forKey: .publishedAt)
         self.featured = try? c.decode(Bool.self, forKey: .featured)
         self.reactionCounts = try? c.decode([String: Int].self, forKey: .reactionCounts)
-        self.userId = try? c.decode(String.self, forKey: .userId)
+        self.authorRef = (try? c.decode(String.self, forKey: .authorRef)) ?? (try? c.decode(String.self, forKey: .legacyUserId))
+        self.isOwner = try? c.decode(Bool.self, forKey: .isOwner)
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encode(slug, forKey: .slug)
+        try c.encode(title, forKey: .title)
+        try c.encode(authorName, forKey: .authorName)
+        try c.encodeIfPresent(authorAge, forKey: .authorAge)
+        try c.encodeIfPresent(coverEmoji, forKey: .coverEmoji)
+        try c.encodeIfPresent(coverColor, forKey: .coverColor)
+        try c.encodeIfPresent(publishedAt, forKey: .publishedAt)
+        try c.encodeIfPresent(featured, forKey: .featured)
+        try c.encodeIfPresent(reactionCounts, forKey: .reactionCounts)
+        try c.encodeIfPresent(authorRef, forKey: .authorRef)
+        try c.encodeIfPresent(isOwner, forKey: .isOwner)
     }
 }
 
@@ -57,7 +78,7 @@ struct ReportBookRequest: Codable, Sendable {
 
 struct BlockAuthorRequest: Codable, Sendable {
     var action: String
-    var userId: String
+    var authorRef: String
 }
 
 struct ReportBookResponse: Codable, Sendable {

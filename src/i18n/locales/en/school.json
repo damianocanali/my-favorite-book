@@ -195,7 +195,10 @@
       "template_locked": "The worksheet can only change while the assignment is a draft.",
       "image_flagged": "That picture didn't turn out right. Try different choices.",
       "moderation_unavailable": "We couldn't check that picture just now. Try again in a moment.",
-      "mfa_required": "Enter your 2-step sign-in code to continue."
+      "mfa_required": "Enter your 2-step sign-in code to continue.",
+      "confirm_mismatch": "The name you typed doesn't match. Nothing was deleted.",
+      "delete_incomplete": "The deletion stopped part-way. It will finish overnight, or try again now.",
+      "checkins_off": "Check-ins are off for this class."
     },
     "class_page": {
       "back": "Back to your classes",
@@ -263,7 +266,9 @@
         "avatar": "Avatar",
         "sign_out": "Sign out everywhere",
         "remove": "Remove",
-        "restore": "Restore"
+        "restore": "Restore",
+        "delete_now": "Delete permanently…",
+        "export": "Export data"
       },
       "remove_confirm": "Remove {{name}} from this class? They'll be signed out everywhere.",
       "rename_dialog": {
@@ -273,7 +278,14 @@
       },
       "books_button": "Books",
       "open_books_aria": "See {{name}}'s books",
-      "avatar_thumb_alt": "{{name}}'s avatar"
+      "avatar_thumb_alt": "{{name}}'s avatar",
+      "delete_dialog": {
+        "heading": "Delete {{name}} permanently?",
+        "body": "This deletes {{name}}'s class account and everything in it right now: books, pictures, hand-ins, feedback, Writing Year pages and check-ins. It can't be undone, and we can't get it back. To keep a copy, export the class data first.",
+        "prompt": "Type {{name}} to confirm",
+        "confirm": "Delete forever"
+      },
+      "deleted_banner": "{{name}} was deleted."
     },
     "student_books": {
       "heading": "{{name}}'s books",
@@ -381,6 +393,30 @@
       "remove_body": "Children will need the class code to sign in on this browser again.",
       "cancel": "Cancel",
       "save_failed": "Couldn't set up this browser. Check that it allows saving site data, then try again."
+    },
+    "data": {
+      "heading": "Data and privacy",
+      "deleting": "Deleting…",
+      "delete_class": {
+        "button": "Delete this class…",
+        "hint": "Deletes the class and every child's class account in it, permanently.",
+        "heading": "Delete “{{name}}” permanently?",
+        "body": "This deletes the class and every child's class account in it right now, with all their books, pictures, hand-ins, feedback, Writing Year pages and check-ins. It can't be undone, and we can't get it back. To keep a copy, export the class data first.",
+        "prompt": "Type the class name ({{name}}) to confirm",
+        "confirm": "Delete class forever"
+      },
+      "export": {
+        "button": "Export class data",
+        "working": "Preparing…",
+        "hint": "Download a ZIP with every child's books, hand-ins, feedback, grades, recent check-ins and Writing Year (JSON, spreadsheets and a page to open in a browser).",
+        "share": "Save or share the export"
+      },
+      "checkins": {
+        "label": "Children can share check-ins with you",
+        "hint_on": "A child's check-in (how they feel, what they need) reaches you. Check-ins are deleted after 30 days.",
+        "hint_off": "Off: children don't see the check-in button and nothing is collected."
+      },
+      "delete_pending": "The deletion is in progress and will finish shortly."
     }
   },
   "student": {

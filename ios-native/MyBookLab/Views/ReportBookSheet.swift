@@ -124,9 +124,9 @@ struct ReportBookSheet: View {
                 .disabled(sending)
                 .padding(.horizontal)
 
-                if let authorId = book.userId {
+                if let authorRef = book.authorRef {
                     Button {
-                        Task { await block(authorId) }
+                        Task { await block(authorRef) }
                     } label: {
                         Text("Also hide everything by this author")
                             .font(.footnote)
@@ -171,13 +171,13 @@ struct ReportBookSheet: View {
         }
     }
 
-    private func block(_ authorId: String) async {
+    private func block(_ authorRef: String) async {
         guard let token = await auth.validAccessToken() else {
             error = String(appLocalized: AppText("report.error.sign_in_block", defaultValue: "Please sign in to block an author."))
             return
         }
         do {
-            try await APIClient.shared.blockAuthor(userId: authorId, bearerToken: token)
+            try await APIClient.shared.blockAuthor(authorRef: authorRef, bearerToken: token)
             sent = true
             onReported?()
         } catch {

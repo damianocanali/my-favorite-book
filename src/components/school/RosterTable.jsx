@@ -7,6 +7,8 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { MoreVertical, Lock, HelpCircle, Trash2, BookOpen } from 'lucide-react'
 import { teacherErrorText } from './teacherErrors'
+import TypedConfirmDialog from './TypedConfirmDialog'
+import { downloadSchoolExport } from '../../lib/schoolExport'
 import { relativeTime } from './relativeTime'
 import { AVATAR_EMOJI } from '../../../lib/school/pictures.js'
 
@@ -161,16 +163,26 @@ function RowMenu({ student, open, onToggle, onAction }) {
         ) : (
           item(t('school:teacher.roster.menu.restore'), 'restore')
         )}
+        {item(t('school:teacher.roster.menu.export'), 'export')}
+        <div className="my-1 border-t border-white/10" />
+        <button
+          type="button"
+          onClick={() => onAction('delete_now')}
+          className="w-full text-left px-3 py-2 text-sm font-body text-red-300 hover:bg-red-500/10 rounded-lg transition-colors"
+        >
+          {t('school:teacher.roster.menu.delete_now')}
+        </button>
       </div>
     </div>
   )
 }
 
-export default function RosterTable({ students, onAction, onOpenBooks, onOpenAvatar }) {
+export default function RosterTable({ classId, students, onAction, onOpenBooks, onOpenAvatar }) {
   const { t, i18n } = useTranslation()
   const [openMenu, setOpenMenu] = useState(null)
   const [renaming, setRenaming] = useState(null)
   const [rowError, setRowError] = useState(null)
+  const [deleting, setDeleting] = useState(null)
 
   async function runAction(student, action, extra) {
     setOpenMenu(null)
@@ -180,6 +192,16 @@ export default function RosterTable({ students, onAction, onOpenBooks, onOpenAva
     }
     if (action === 'avatar') {
       onOpenAvatar(student)
+      return
+    }
+    if (action === 'delete_now') {
+      setDeleting(student)
+      return
+    }
+    if (action === 'export') {
+      setRowError(null)
+      const res = await downloadSchoolExport({ classId, studentId: student.id, name: student.display_name })
+      if (!res.ok) setRowError({ id: student.id, code: res.code || 'generic' })
       return
     }
     if (action === 'remove') {
@@ -260,6 +282,22 @@ export default function RosterTable({ students, onAction, onOpenBooks, onOpenAva
           </div>
         )
       })}
+
+      {deleting && (
+        <TypedConfirmDialog
+          heading={t('school:teacher.roster.delete_dialog.heading', { name: deleting.display_name })}
+          body={t('school:teacher.roster.delete_dialog.body', { name: deleting.display_name })}
+          prompt={t('school:teacher.roster.delete_dialog.prompt', { name: deleting.display_name })}
+          expected={deleting.display_name}
+          confirmLabel={t('school:teacher.roster.delete_dialog.confirm')}
+          onCancel={() => setDeleting(null)}
+          onConfirm={async (typed) => {
+            const res = await onAction(deleting.id, 'delete_now', { confirm_name: typed })
+            if (res?.ok) setDeleting(null)
+            return res
+          }}
+        />
+      )}
 
       {renaming && (
         <RenameDialog

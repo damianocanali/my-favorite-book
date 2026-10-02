@@ -5,6 +5,28 @@ import { sb, sbEnv, json, isUuid } from '../_school.js'
 import { openClassByCode } from './roster.js'
 import { hashPictureSecret, isValidPictureSecret, timingSafeEqualHex, randomPassword } from '../../lib/school/crypto.js'
 import { mintStudentSession } from '../../lib/school/session.js'
+import { sendOwnerAlert } from '../../lib/notify/ownerAlert.js'
+
+// Review §7.26: tell the owner when the attack throttle pauses a class's
+// sign-in (school_begin_attempt: 60+ wrong guesses in 10 minutes). Once per
+// class per hour: this instance remembers what it sent, and the Resend
+// idempotency key folds duplicates from other instances. Class id only.
+const pauseAlerted = new Map()
+async function alertClassPaused(classroomId) {
+  const hour = new Date().toISOString().slice(0, 13)
+  if (pauseAlerted.get(classroomId) === hour) return
+  pauseAlerted.set(classroomId, hour)
+  if (pauseAlerted.size > 500) pauseAlerted.clear()
+  await sendOwnerAlert({
+    subject: 'Class sign-in paused by the attack throttle',
+    lines: [
+      'Picture sign-in for one class was paused for 10 minutes after more than 60 wrong guesses in 10 minutes.',
+      `Class id: ${classroomId}`,
+      `Hour (UTC): ${hour}`,
+    ],
+    idempotencyKey: `class-paused-${classroomId}-${hour}`,
+  })
+}
 
 // school_begin_attempt's `state` field, for every outcome other than 'ok'.
 const BEGIN_STATE_REPLY = {
@@ -49,7 +71,10 @@ export default async function handler(req, ctx) {
     }
 
     const found = await openClassByCode(body.code)
-    if (!found.classroom) return json(req, found.status, { error: 'Class not available', code: found.code })
+    if (!found.classroom) {
+      if (found.code === 'class_paused' && found.pausedClassId) await alertClassPaused(found.pausedClassId)
+      return json(req, found.status, { error: 'Class not available', code: found.code })
+    }
     const classroomId = found.classroom.id
 
     // Fails closed: a non-2xx/thrown lookup must not read as "no such
@@ -86,6 +111,7 @@ export default async function handler(req, ctx) {
     if (begin?.state !== 'ok') {
       const mapped = BEGIN_STATE_REPLY[begin?.state]
       if (mapped) {
+        if (begin.state === 'class_paused') await alertClassPaused(classroomId)
         const [status, code] = mapped
         return json(req, status, { error: 'Sign-in not available right now', code })
       }

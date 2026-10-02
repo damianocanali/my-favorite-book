@@ -195,7 +195,10 @@
       "template_locked": "La scheda si può cambiare solo finché il compito è una bozza.",
       "image_flagged": "Questa immagine non è venuta bene. Prova con altre scelte.",
       "moderation_unavailable": "Non siamo riusciti a controllare l'immagine proprio ora. Riprova tra un momento.",
-      "mfa_required": "Inserisci il codice dell'accesso in 2 passaggi per continuare."
+      "mfa_required": "Inserisci il codice dell'accesso in 2 passaggi per continuare.",
+      "confirm_mismatch": "Il nome scritto non corrisponde. Non è stato eliminato nulla.",
+      "delete_incomplete": "L'eliminazione si è interrotta a metà. Verrà completata durante la notte, oppure riprova ora.",
+      "checkins_off": "I check-in sono disattivati per questa classe."
     },
     "class_page": {
       "back": "Torna alle tue classi",
@@ -263,7 +266,9 @@
         "avatar": "Avatar",
         "sign_out": "Disconnetti ovunque",
         "remove": "Rimuovi",
-        "restore": "Ripristina"
+        "restore": "Ripristina",
+        "delete_now": "Elimina definitivamente…",
+        "export": "Esporta i dati"
       },
       "remove_confirm": "Rimuovere {{name}} da questa classe? Verrà disconnesso ovunque.",
       "rename_dialog": {
@@ -273,7 +278,14 @@
       },
       "books_button": "Libri",
       "open_books_aria": "Vedi i libri di {{name}}",
-      "avatar_thumb_alt": "Avatar di {{name}}"
+      "avatar_thumb_alt": "Avatar di {{name}}",
+      "delete_dialog": {
+        "heading": "Eliminare definitivamente {{name}}?",
+        "body": "Elimina subito l'account di classe di {{name}} e tutto il suo contenuto: libri, immagini, consegne, commenti, pagine del Mio anno di scrittura e check-in. L'operazione non si può annullare e non potremo recuperare nulla. Per tenerne una copia, esporta prima i dati della classe.",
+        "prompt": "Scrivi {{name}} per confermare",
+        "confirm": "Elimina per sempre"
+      },
+      "deleted_banner": "L'account di {{name}} è stato eliminato."
     },
     "student_books": {
       "heading": "I libri di {{name}}",
@@ -381,6 +393,30 @@
       "remove_body": "I bambini avranno di nuovo bisogno del codice della classe per entrare su questo browser.",
       "cancel": "Annulla",
       "save_failed": "Impossibile configurare questo browser. Controlla che consenta di salvare i dati del sito e riprova."
+    },
+    "data": {
+      "heading": "Dati e privacy",
+      "deleting": "Eliminazione…",
+      "delete_class": {
+        "button": "Elimina questa classe…",
+        "hint": "Elimina in modo definitivo la classe e tutti gli account di classe al suo interno.",
+        "heading": "Eliminare definitivamente “{{name}}”?",
+        "body": "Elimina subito la classe e tutti gli account di classe al suo interno, con libri, immagini, consegne, commenti, pagine del Mio anno di scrittura e check-in. L'operazione non si può annullare e non potremo recuperare nulla. Per tenerne una copia, esporta prima i dati della classe.",
+        "prompt": "Scrivi il nome della classe ({{name}}) per confermare",
+        "confirm": "Elimina la classe per sempre"
+      },
+      "export": {
+        "button": "Esporta i dati della classe",
+        "working": "Preparazione…",
+        "hint": "Scarica uno ZIP con libri, consegne, commenti, valutazioni, check-in recenti e Mio anno di scrittura di ogni account della classe (JSON, fogli di calcolo e una pagina da aprire nel browser).",
+        "share": "Salva o condividi l'esportazione"
+      },
+      "checkins": {
+        "label": "Bambine e bambini possono condividere i check-in con te",
+        "hint_on": "Il check-in di ogni account (come si sente, di cosa ha bisogno) arriva a te. I check-in vengono eliminati dopo 30 giorni.",
+        "hint_off": "Disattivati: il pulsante del check-in non compare e non viene raccolto nulla."
+      },
+      "delete_pending": "L'eliminazione è in corso e verrà completata a breve."
     }
   },
   "student": {

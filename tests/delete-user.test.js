@@ -27,6 +27,10 @@ function mockFetch(overrides = {}) {
     for (const [needle, res] of Object.entries(overrides)) {
       if (String(url).includes(needle)) return res
     }
+    // deletion_log opens answer with a row id (lib/school/deletionLog.js).
+    if (String(url).includes('/rest/v1/deletion_log') && method === 'POST') {
+      return { ok: true, status: 201, json: async () => [{ id: 1 }], text: async () => '' }
+    }
     return { ok: true, status: 200, json: async () => [], text: async () => '' }
   })
 }
@@ -154,7 +158,7 @@ describe('purgeUser', () => {
         ok: true, status: 200, json: async () => [{ id: 'c1', code: 'ABC234' }], text: async () => '',
       },
       'class_students?classroom_id=eq.c1': {
-        ok: true, status: 200, json: async () => [{ auth_user_id: 'kid1' }], text: async () => '',
+        ok: true, status: 200, json: async () => [{ id: 's1', auth_user_id: 'kid1' }], text: async () => '',
       },
     })
     await purgeUser(USER, ENV)
@@ -306,5 +310,164 @@ describe('purgeClassroom with assignments (migration 019)', () => {
     // Nothing new has to be deleted first: every 019 FK cascades.
     expect(calls.some((c) => c.includes('/rest/v1/assignments'))).toBe(false)
     expect(calls.some((c) => c.includes('/rest/v1/submission_feedback'))).toBe(false)
+  })
+})
+
+// Review §7 items 5 and 6: storage purges page through every object, and a
+// consumer's printed-book PDFs (print-pdfs/<order id>/) go with the account.
+describe('purgeUser storage completeness', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks()
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+  })
+
+  const okJson = (body) => ({ ok: true, status: 200, json: async () => body, text: async () => '' })
+  const page = (n, tag) => Array.from({ length: n }, (_, i) => ({ name: `${tag}-${i}.png` }))
+
+  it('keeps listing and deleting illustrations until a page comes back short', async () => {
+    let lists = 0
+    calls = []
+    globalThis.fetch = vi.fn(async (url, init = {}) => {
+      const u = String(url)
+      calls.push(`${init.method || 'GET'} ${u.replace(ENV.supabaseUrl, '')}`)
+      if (u.includes('/storage/v1/object/list/book-illustrations')) {
+        lists++
+        // 1000, 1000, then 3: three lists, three deletes.
+        return okJson(lists < 3 ? page(1000, `p${lists}`) : lists === 3 ? page(3, 'last') : [])
+      }
+      return okJson([])
+    })
+    const result = await purgeUser(USER, ENV)
+    expect(result).toEqual({ ok: true })
+    expect(lists).toBe(3)
+    const dels = globalThis.fetch.mock.calls.filter(
+      ([u, i]) => String(u).endsWith('/storage/v1/object/book-illustrations') && i?.method === 'DELETE'
+    )
+    expect(dels).toHaveLength(3)
+    expect(JSON.parse(dels[2][1].body).prefixes).toEqual([`${USER}/last-0.png`, `${USER}/last-1.png`, `${USER}/last-2.png`])
+    // Always offset 0: the page just deleted is gone.
+    const listBodies = globalThis.fetch.mock.calls
+      .filter(([u]) => String(u).includes('/storage/v1/object/list/book-illustrations'))
+      .map(([, i]) => JSON.parse(i.body))
+    expect(listBodies.every((b) => b.offset === 0 && b.limit === 1000)).toBe(true)
+  })
+
+  it('stops (without spinning) when a delete fails mid-way, and still deletes the account', async () => {
+    let lists = 0
+    calls = []
+    globalThis.fetch = vi.fn(async (url, init = {}) => {
+      const u = String(url)
+      calls.push(`${init.method || 'GET'} ${u.replace(ENV.supabaseUrl, '')}`)
+      if (u.includes('/storage/v1/object/list/book-illustrations')) { lists++; return okJson(page(1000, 'x')) }
+      if (u.endsWith('/storage/v1/object/book-illustrations')) return { ok: false, status: 500, json: async () => ({}), text: async () => '' }
+      return okJson([])
+    })
+    const result = await purgeUser(USER, ENV)
+    expect(lists).toBe(1)
+    expect(result).toEqual({ ok: true })
+  })
+
+  it('pages the Writing Year PDFs the same way', async () => {
+    let lists = 0
+    calls = []
+    globalThis.fetch = vi.fn(async (url, init = {}) => {
+      const u = String(url)
+      calls.push(`${init.method || 'GET'} ${u.replace(ENV.supabaseUrl, '')}`)
+      if (u.includes('/storage/v1/object/list/print-pdfs')) {
+        lists++
+        return okJson(lists === 1 ? page(1000, 'wy') : [])
+      }
+      return okJson([])
+    })
+    await purgeUser(USER, ENV)
+    expect(lists).toBe(2)
+  })
+
+  it("deletes a consumer's print-order PDFs (print-pdfs/<order id>/) before the auth delete", async () => {
+    mockFetch({
+      [`print_orders?user_id=eq.${USER}&select=id`]: okJson([{ id: 'order-1' }, { id: 'order-2' }]),
+      '/storage/v1/object/list/print-pdfs': okJson([{ name: 'interior.pdf' }, { name: 'cover.pdf' }]),
+    })
+    const result = await purgeUser(USER, ENV)
+    expect(result).toEqual({ ok: true })
+    const dels = globalThis.fetch.mock.calls
+      .filter(([u, i]) => String(u).endsWith('/storage/v1/object/print-pdfs') && i?.method === 'DELETE')
+      .map(([, i]) => JSON.parse(i.body).prefixes)
+    expect(dels).toContainEqual(['order-1/interior.pdf', 'order-1/cover.pdf'])
+    expect(dels).toContainEqual(['order-2/interior.pdf', 'order-2/cover.pdf'])
+    const lastPdfDelete = calls.map((c, i) => (c === 'DELETE /storage/v1/object/print-pdfs' ? i : -1)).filter((i) => i >= 0).at(-1)
+    expect(lastPdfDelete).toBeLessThan(indexOfCall(`DELETE /auth/v1/admin/users/${USER}`))
+  })
+
+  it('aborts (fail closed) when the print_orders lookup fails — the order ids die with the account', async () => {
+    mockFetch({
+      [`print_orders?user_id=eq.${USER}`]: { ok: false, status: 500, json: async () => ({}), text: async () => '' },
+    })
+    expect(await purgeUser(USER, ENV)).toEqual({ ok: false })
+    expect(indexOfCall(`DELETE /auth/v1/admin/users/${USER}`)).toBe(-1)
+  })
+
+  it('aborts when a print-order PDF delete fails', async () => {
+    calls = []
+    globalThis.fetch = vi.fn(async (url, init = {}) => {
+      const u = String(url)
+      calls.push(`${init.method || 'GET'} ${u.replace(ENV.supabaseUrl, '')}`)
+      if (u.includes(`print_orders?user_id=eq.${USER}`)) return okJson([{ id: 'order-1' }])
+      if (u.includes('/storage/v1/object/list/print-pdfs')) return okJson([{ name: 'interior.pdf' }])
+      if (u.endsWith('/storage/v1/object/print-pdfs')) return { ok: false, status: 500, json: async () => ({}), text: async () => '' }
+      return okJson([])
+    })
+    expect(await purgeUser(USER, ENV)).toEqual({ ok: false })
+    expect(indexOfCall(`DELETE /auth/v1/admin/users/${USER}`)).toBe(-1)
+  })
+})
+
+// Review fix I5 and M3.
+describe('purgeUser evidence and Stripe lookup', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks()
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+  })
+  const okJson = (body) => ({ ok: true, status: 200, json: async () => body, text: async () => '' })
+
+  it("writes a deletion_log row for every class and every child a teacher's account purge removes", async () => {
+    mockFetch({
+      [`classrooms?owner_user_id=eq.${USER}&select=id,code`]: okJson([{ id: 'c1', code: 'ABC234' }]),
+      'class_students?classroom_id=eq.c1&select=id,auth_user_id': okJson([{ id: 's1', auth_user_id: 'kid1' }, { id: 's2', auth_user_id: 'kid2' }]),
+    })
+    expect(await purgeUser(USER, ENV)).toEqual({ ok: true })
+    const opens = globalThis.fetch.mock.calls
+      .filter(([u, i]) => String(u).includes('/rest/v1/deletion_log') && i?.method === 'POST')
+      .map(([, i]) => JSON.parse(i.body))
+    expect(opens.find((b) => b.action === 'purge_teacher_class')).toMatchObject({ classroom_id: 'c1', actor_kind: 'system', actor_user_id: USER })
+    expect(opens.filter((b) => b.action === 'purge_class_student').map((b) => b.target_id).sort()).toEqual(['s1', 's2'])
+    // The class row opens before any child's account is deleted.
+    expect(indexOfCall('POST /rest/v1/deletion_log')).toBeLessThan(indexOfCall('DELETE /auth/v1/admin/users/kid'))
+  })
+
+  it('aborts before a class purge when the evidence row cannot be written', async () => {
+    mockFetch({
+      [`classrooms?owner_user_id=eq.${USER}&select=id,code`]: okJson([{ id: 'c1', code: 'ABC234' }]),
+      '/rest/v1/deletion_log': { ok: false, status: 500, json: async () => ({}), text: async () => '' },
+    })
+    expect(await purgeUser(USER, ENV)).toEqual({ ok: false })
+    expect(indexOfCall('DELETE /rest/v1/classrooms?id=eq.c1')).toBe(-1)
+    expect(indexOfCall(`DELETE /auth/v1/admin/users/${USER}`)).toBe(-1)
+  })
+
+  it('a failed subscriptions lookup aborts (retried tomorrow) instead of reading as "no customer"', async () => {
+    mockFetch({ 'subscriptions?user_id=eq.': { ok: false, status: 503, json: async () => ({}), text: async () => '' } })
+    expect(await purgeUser(USER, { ...ENV, stripeSecretKey: 'sk' })).toEqual({ ok: false })
+    expect(indexOfCall(`DELETE /rest/v1/subscriptions?user_id=eq.${USER}`)).toBe(-1)
+    expect(indexOfCall(`DELETE /auth/v1/admin/users/${USER}`)).toBe(-1)
+  })
+
+  it('never logs a Supabase response body', async () => {
+    mockFetch({ 'published_books': { ok: false, status: 500, json: async () => ({}), text: async () => 'SECRET-BODY' } })
+    await purgeUser(USER, ENV)
+    const logged = JSON.stringify([...console.error.mock.calls, ...console.warn.mock.calls])
+    expect(logged).not.toContain('SECRET-BODY')
   })
 })

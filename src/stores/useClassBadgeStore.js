@@ -20,6 +20,15 @@ import { useAuthStore } from './useAuthStore'
 export const useClassBadgeStore = create((set, get) => ({
   count: 0,
   dismissedNudges: new Set(),
+  // The class's check-ins switch (review §7.28), from the same
+  // /api/school/assignments read. Unknown → true: the server refuses a
+  // check-in for a class that turned them off either way.
+  checkinsEnabled: true,
+
+  setClassSettings: (cls) => {
+    const on = cls?.checkins_enabled !== false
+    if (get().checkinsEnabled !== on) set({ checkinsEnabled: on })
+  },
 
   setCount: (count) => {
     if (get().count !== count) set({ count })
@@ -38,6 +47,7 @@ export const useClassBadgeStore = create((set, get) => ({
     if (!userId) return
     const res = await schoolFetch('/api/school/assignments')
     if (!res.ok) return
+    get().setClassSettings(res.data?.class)
     const n = await schoolFetch('/api/school/nudges')
     const nudge = n.ok ? (n.data?.nudge ?? null) : null
     const books = useBookshelfStore.getState().books ?? []
@@ -51,5 +61,5 @@ export const useClassBadgeStore = create((set, get) => ({
     }))
   },
 
-  reset: () => set({ count: 0, dismissedNudges: new Set() }),
+  reset: () => set({ count: 0, dismissedNudges: new Set(), checkinsEnabled: true }),
 }))

@@ -4,7 +4,6 @@ import { handleCors, withCors } from './_rateLimit.js'
 import { verifyJwt } from './_auth.js'
 import { GRACE_DAYS } from '../lib/deleteUser.js'
 import { rejectStudent } from './_school.js'
-import { safeDetail } from './_logSafe.js'
 
 // Recoverable deletion: POST schedules it (idempotent), GET reports status.
 // The actual hard delete happens later in the purge cron (lib/deleteUser.js).
@@ -63,7 +62,7 @@ export default async function handler(req) {
       body: JSON.stringify({ user_id: userId }),
     })
     if (!res.ok) {
-      console.error('[delete-account] schedule failed', res.status, safeDetail(await res.text().catch(() => '')))
+      console.error('[delete-account] schedule failed', res.status)
       return json(500, { error: 'Could not schedule deletion' }, req)
     }
     let rows = await res.json().catch(() => [])

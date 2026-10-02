@@ -127,10 +127,20 @@ struct FeelingConstellation: View {
 /// reached flow is actively harmful.
 struct CheckInButton: View {
     @Environment(CheckInStore.self) private var store
+    @Environment(AuthStore.self) private var auth
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var nudge = false
 
     var body: some View {
+        // A class whose teacher turned check-ins off (review §7.28): no entry.
+        if auth.isStudent && !StudentClassSettings.shared.checkinsEnabled {
+            EmptyView()
+        } else {
+            button
+        }
+    }
+
+    private var button: some View {
         Button { store.open() } label: {
             VStack(spacing: 2) {
                 Mascot(mood: .welcome, size: 38)

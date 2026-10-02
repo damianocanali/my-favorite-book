@@ -17,7 +17,7 @@ export default function ViewBookPage() {
   const { t } = useTranslation()
   const user = useAuthStore((s) => s.user)
   const [book, setBook] = useState(null)
-  const [publishedUserId, setPublishedUserId] = useState(null)
+  const [isOwner, setIsOwner] = useState(false)
   const [reactions, setReactions] = useState({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -29,11 +29,13 @@ export default function ViewBookPage() {
   useEffect(() => {
     async function fetchBook() {
       try {
-        const res = await apiFetch(`/api/publish-book?slug=${slug}`)
+        // Authed so the server can say whether this is the reader's own
+        // book; the author's account id is never sent (review §7.8).
+        const res = await apiFetchAuthed(`/api/publish-book?slug=${slug}`)
         if (!res.ok) throw new Error('Book not found')
         const data = await res.json()
         setBook(data.book_data)
-        setPublishedUserId(data.user_id)
+        setIsOwner(data.is_owner === true)
         setReactions(data.reaction_counts || {})
       } catch {
         setError(t('gallery:view.not_found_body'))
@@ -139,7 +141,7 @@ export default function ViewBookPage() {
           <span className="toolbar-btn__label">{t('gallery:view.back_label')}</span>
         </Link>
 
-        {user && publishedUserId === user.id && (
+        {user && isOwner && (
           confirmRemove ? (
             <>
               <button

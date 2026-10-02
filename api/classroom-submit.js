@@ -3,6 +3,7 @@ export const config = { runtime: 'edge' }
 import { checkRateLimit, getClientIp, handleCors, withCors } from './_rateLimit.js'
 import { verifyJwt } from './_auth.js'
 import { isStudent } from './_school.js'
+import { legacySunsetPassed } from '../lib/school/legacy.js'
 
 const CODE_RE = /^[A-Z0-9]{6,8}$/
 // After stripping illustrations a book should be well under this; we still
@@ -53,6 +54,13 @@ export default async function handler(req) {
       return json(403, { error: 'Students hand in through assignments, not this form.', code: 'use_hand_in' })
     }
     submitterId = auth.userId
+  }
+
+  // Sunset (lib/school/legacy.js, review §7.22): anonymous books have no
+  // owner, so no deletion request can ever reach them. After the date only
+  // signed-in submits (which carry user_id) are accepted.
+  if (!submitterId && legacySunsetPassed()) {
+    return json(410, { error: 'Sign in to send your book to your class.', code: 'sign_in_required' })
   }
 
   const { code, book } = await req.json().catch(() => ({}))

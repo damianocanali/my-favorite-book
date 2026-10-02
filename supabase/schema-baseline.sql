@@ -2527,6 +2527,259 @@ grant execute on function public.school_wy_reorder(uuid, uuid, uuid[]) to servic
 grant execute on function public.school_create_class_print(uuid, uuid, text, jsonb, jsonb, int) to service_role;
 
 
+-- ════════ supabase-migrations/025_illustrations_no_listing.sql ════════
+-- book-illustrations: no more bucket listing by anyone (privacy review
+-- §4.2 / §7.7). ALREADY APPLIED IN PRODUCTION by the owner; this file
+-- records exactly that change so the repo matches the database.
+--
+-- Migration 014 created "Illustrations are publicly readable", a SELECT
+-- policy on storage.objects with no role restriction. A public bucket does
+-- not need a SELECT policy for downloads (public URLs bypass RLS), so the
+-- policy's only effect was to let the anon key call
+-- POST /storage/v1/object/list/book-illustrations and enumerate every
+-- user-id folder and file name.
+--
+-- Replaced with a policy that lets a signed-in user see (and so list) only
+-- their own folder. Public URL downloads are unaffected: the PDF worker,
+-- Lulu, the gallery and the apps keep fetching by URL with no session.
+--
+-- NOT done here: restricting direct client WRITES for student accounts.
+-- The iOS app's drawing canvas (ios-native/MyBookLab/Services/
+-- IllustrationUploader.swift, used by CreateBookView "Draw" and the avatar
+-- editor) uploads straight into <user id>/ with the user's own session, and
+-- it is available to class (student) accounts. Adding
+-- `coalesce(auth.jwt()->'app_metadata'->>'role','') <> 'student'` to the
+-- 014 insert/update policies would break drawing for students, so that
+-- change waits for a server-side drawing upload (or a private
+-- student-illustrations bucket with signed URLs).
+--
+-- Idempotent: safe to re-run.
+
+drop policy if exists "Illustrations are publicly readable" on storage.objects;
+drop policy if exists "Users read their own illustrations" on storage.objects;
+
+create policy "Users read their own illustrations"
+  on storage.objects for select
+  to authenticated
+  using (
+    bucket_id = 'book-illustrations'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+
+-- ════════ supabase-migrations/026_print_order_pdf_retention.sql ════════
+-- Consumer printed-book PDFs: retention marker (privacy review §4.6 / §7.5).
+--
+-- api/print-orders/pdf-worker.js stores each order's PDFs in the private
+-- print-pdfs bucket as <order id>/{interior,cover}.pdf. Until now nothing
+-- ever deleted them. Two paths now do:
+--   * lib/deleteUser.js purgeUser deletes every order's folder BEFORE the
+--     auth delete (print_orders.user_id cascades, so the ids die with it);
+--   * api/cron/retention.js (lib/print/orderRetention.js) deletes them 90
+--     days after the order shipped/was delivered, or 30 days after it was
+--     refunded or failed or was left in pending/paid/pdf_ready, and stamps
+--     this column.
+--
+-- Apply BEFORE deploying the code that uses it. Idempotent.
+
+alter table public.print_orders
+  add column if not exists pdfs_purged_at timestamptz;
+
+-- The nightly job's lookup: final orders not yet purged, oldest first.
+create index if not exists idx_print_orders_pdf_retention
+  on public.print_orders (updated_at)
+  where pdfs_purged_at is null;
+
+
+-- ════════ supabase-migrations/027_vendor_deletion_queue.sql ════════
+-- Vendor-side deletion retries (privacy review §4.6 / §7.23).
+--
+-- lib/deleteUser.js purgeUser deletes the account's Stripe Customer and
+-- RevenueCat subscriber (lib/vendorDeletion.js). A failed call never blocks
+-- the purge; it lands here and api/cron/retention.js retries it nightly,
+-- deleting the row on success. After 8 attempts a row stays for a human.
+--
+-- external_id is the vendor's own id only: a Stripe customer id (cus_…) or
+-- the RevenueCat app_user_id (the deleted Supabase user's UUID). No names,
+-- no emails. Deliberately no FK to auth.users: the account is gone.
+--
+-- Service role only: RLS on, no policies, client grants revoked.
+-- Apply BEFORE deploying the code that uses it. Idempotent.
+
+create table if not exists public.vendor_deletion_queue (
+  id bigint generated always as identity primary key,
+  vendor text not null check (vendor in ('stripe','revenuecat')),
+  external_id text not null check (char_length(external_id) between 1 and 255),
+  attempts int not null default 1 check (attempts >= 0),
+  last_status int,
+  last_attempt_at timestamptz not null default now(),
+  created_at timestamptz not null default now(),
+  unique (vendor, external_id)
+);
+alter table public.vendor_deletion_queue enable row level security;
+revoke all on public.vendor_deletion_queue from anon, authenticated;
+
+
+-- ════════ supabase-migrations/028_retention_and_deletion_log.sql ════════
+-- Data lifecycle: retention jobs, license-lapse purge, teacher deletes and
+-- the deletion evidence log (privacy review §4.7 / §7.1, 7.2, 7.3, 7.22).
+--
+-- * deletion_log — one row per deletion of school data (teacher "delete
+--   now" of a student or a class, the nightly purge of removed students and
+--   of classes 90 days after their license lapsed). Ids, action, actor and
+--   row counts only; never a name or content. It is the evidence an NDPA
+--   Exhibit D disposal certificate is written from, so it deliberately has
+--   no FKs (the things it describes are gone) and is never purged by the
+--   jobs it records. Written by lib/school/deletionLog.js. A class purge
+--   also writes one 'purge_class_student' row per child; a teacher account
+--   purge writes 'purge_teacher_class' per class. status 'partial' = a class
+--   delete that stopped part-way; api/cron/retention.js resumes it.
+-- * class_licenses.purge_warning_30_at / purge_warning_7_at — when the
+--   teacher was emailed "this class will be deleted in 30 / 7 days".
+--   Migration 031 clears them whenever the status or expiry changes, so a
+--   renewed and re-lapsed license is warned again (lib/school/lifecycle.js).
+-- * Indexes for the nightly deletes by age (api/cron/retention.js).
+--
+-- Service role only: RLS on, no policies, client grants revoked.
+-- Apply BEFORE deploying the code that uses it. Idempotent.
+
+create table if not exists public.deletion_log (
+  id bigint generated always as identity primary key,
+  actor_user_id uuid,
+  actor_kind text not null check (actor_kind in ('teacher','system')),
+  action text not null check (action in (
+    'delete_student','delete_class','purge_removed_student','purge_lapsed_class',
+    'purge_teacher_class','purge_class_student','legacy_sunset'
+  )),
+  classroom_id uuid,
+  target_id uuid,
+  counts jsonb not null default '{}'::jsonb,
+  reason text check (char_length(reason) <= 200),
+  status text not null default 'started' check (status in ('started','done','partial','failed','dry_run')),
+  created_at timestamptz not null default now(),
+  completed_at timestamptz
+);
+create index if not exists deletion_log_class_idx on public.deletion_log (classroom_id, created_at desc);
+create index if not exists deletion_log_resume_idx on public.deletion_log (status, created_at) where status in ('started','partial');
+create index if not exists deletion_log_actor_idx on public.deletion_log (actor_user_id, created_at desc);
+alter table public.deletion_log enable row level security;
+revoke all on public.deletion_log from anon, authenticated;
+
+alter table public.class_licenses
+  add column if not exists purge_warning_30_at timestamptz,
+  add column if not exists purge_warning_7_at timestamptz;
+
+-- Nightly deletes by age.
+create index if not exists class_checkins_created_idx on public.class_checkins (created_at);
+create index if not exists ssia_created_idx on public.student_sign_in_attempts (created_at);
+create index if not exists class_students_removed_idx on public.class_students (removed_at) where status = 'removed';
+create index if not exists submissions_legacy_anon_idx on public.submissions (submitted_at) where user_id is null;
+
+
+-- ════════ supabase-migrations/029_published_books_visibility.sql ════════
+-- published_books: hidden books and author account ids stay private
+-- (privacy review §4.2 / §7.8).
+--
+-- 001 created "Published books are publicly readable" USING (true), so the
+-- anon key could read every row straight from PostgREST — reported books
+-- that were auto-hidden (016) included — with user_id, the author's
+-- account UUID (often a child's).
+--
+-- No client reads this table directly: the web app and the iOS app both go
+-- through api/publish-book.js (service role), which now returns is_owner
+-- and an opaque author handle instead of user_id (lib/authorRef.js), and
+-- api/report-book.js resolves that handle for "block this author". So:
+--   * the read policy only shows visible books;
+--   * anon/authenticated lose SELECT on user_id (and on the moderation
+--     columns), keeping column-level SELECT on the public ones. A
+--     column-level REVOKE does nothing while a table-level grant exists,
+--     hence revoke-all-then-grant-columns.
+-- The service role (API) is unaffected.
+--
+-- Deploy the API change first or together; this only removes access no
+-- shipped client uses. Idempotent.
+
+drop policy if exists "Published books are publicly readable" on public.published_books;
+drop policy if exists "Visible published books are publicly readable" on public.published_books;
+create policy "Visible published books are publicly readable"
+  on public.published_books for select
+  using (hidden = false);
+
+revoke select on public.published_books from anon, authenticated;
+grant select (
+  id, slug, title, author_name, author_age, cover_emoji, cover_color,
+  book_data, reaction_counts, featured, featured_at, published_at, created_at
+) on public.published_books to anon, authenticated;
+
+
+-- ════════ supabase-migrations/030_checkins_toggle.sql ════════
+-- Per-class switch for student check-ins (privacy review §7.28): a school
+-- or district can turn feelings collection off (PPRA / district
+-- preference). Default ON keeps today's behaviour.
+--
+-- When off: POST /api/school/checkin refuses (403 checkins_off) and stores
+-- nothing; the child's app hides the check-in entry (it reads the flag
+-- from GET /api/school/assignments). Existing check-ins are not deleted by
+-- the switch; they age out with the 30-day retention (api/cron/retention.js).
+--
+-- Apply BEFORE deploying the code that reads it (classes list, student
+-- routes select it). Idempotent.
+
+alter table public.classrooms
+  add column if not exists checkins_enabled boolean not null default true;
+
+
+-- ════════ supabase-migrations/031_license_status_changed_at.sql ════════
+-- License lifecycle dating (review fix I3/I4, lib/school/lifecycle.js).
+--
+-- * status_changed_at: when the license last changed status. A lapsed or
+--   canceled license is dated from this, not from updated_at (which moves
+--   on any edit, e.g. images_used). Existing rows start at now(), so no
+--   license already lapsed/canceled can be purged sooner than 90 days after
+--   this migration — and only after the full 30 + 7 day warning schedule.
+-- * The lapse warnings (028) are cleared whenever the status or the expiry
+--   changes: a renewal (or any re-lapse) restarts the schedule from zero,
+--   and the nightly query can select "needs a warning" with plain
+--   IS NULL filters.
+-- * Indexes for the nightly selection.
+--
+-- Apply BEFORE deploying the code that uses it. Idempotent.
+
+alter table public.class_licenses
+  add column if not exists status_changed_at timestamptz not null default now();
+
+create or replace function public.class_licenses_lifecycle_stamps()
+returns trigger
+language plpgsql
+set search_path = public
+as $$
+begin
+  if new.status is distinct from old.status then
+    new.status_changed_at := now();
+  end if;
+  if new.status is distinct from old.status or new.expires_at is distinct from old.expires_at then
+    new.purge_warning_30_at := null;
+    new.purge_warning_7_at := null;
+  end if;
+  return new;
+end;
+$$;
+
+revoke all on function public.class_licenses_lifecycle_stamps() from public, anon, authenticated;
+
+drop trigger if exists class_licenses_lifecycle_stamps on public.class_licenses;
+create trigger class_licenses_lifecycle_stamps
+  before update on public.class_licenses
+  for each row execute function public.class_licenses_lifecycle_stamps();
+
+create index if not exists class_licenses_ended_idx
+  on public.class_licenses (status_changed_at)
+  where classroom_id is not null and status in ('lapsed','canceled');
+create index if not exists class_licenses_expiring_idx
+  on public.class_licenses (expires_at)
+  where classroom_id is not null and status in ('trial','active','pending_payment');
+
+
 -- ════════ supabase-migrations/032_admin_access_log.sql ════════
 -- Hardening sprint B: owner/admin access log (privacy review §4.11, §7 item 16).
 --

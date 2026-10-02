@@ -3,7 +3,6 @@ export const config = { runtime: 'edge' }
 import { handleCors, withCors } from './_rateLimit.js'
 import { verifyJwt } from './_auth.js'
 import { rejectStudent } from './_school.js'
-import { safeDetail } from './_logSafe.js'
 
 export default async function handler(req) {
   const corsResponse = handleCors(req)
@@ -31,7 +30,7 @@ export default async function handler(req) {
     headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` },
   })
   if (!res.ok) {
-    console.error('[cancel-deletion] failed', res.status, safeDetail(await res.text().catch(() => '')))
+    console.error('[cancel-deletion] failed', res.status)
     return json(500, { error: 'Could not cancel deletion' })
   }
   return json(200, { cancelled: true })
