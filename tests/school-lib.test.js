@@ -5,7 +5,7 @@ import {
   hashPictureSecret, timingSafeEqualHex, hashIp, syntheticStudentEmail,
 } from '../lib/school/crypto.js'
 import { DEFAULT_SCHOOL_HOURS, validateSchoolHours, isWithinSchoolHours } from '../lib/school/hours.js'
-import { isLicenseUsable, TRIAL_IMAGES, PAID_IMAGES, MAX_SEATS } from '../lib/school/license.js'
+import { isLicenseUsable, TRIAL_IMAGES, IMAGES_PER_SEAT, MAX_SEATS } from '../lib/school/license.js'
 
 describe('pictures', () => {
   it('has 16 distinct language-free pictures', () => {
@@ -126,15 +126,19 @@ describe('licenses', () => {
   it('grace is usable even though expires_at has passed', () => {
     expect(isLicenseUsable({ status: 'grace', expires_at: past }, now)).toBe(true)
   })
-  it('lapsed, canceled, pending_payment and missing are not usable', () => {
-    for (const status of ['lapsed', 'canceled', 'pending_payment']) {
+  it('lapsed, canceled and missing are not usable', () => {
+    for (const status of ['lapsed', 'canceled']) {
       expect(isLicenseUsable({ status, expires_at: future }, now)).toBe(false)
     }
     expect(isLicenseUsable(null, now)).toBe(false)
   })
+  it('pending_payment (an open invoice, Stage 4) is usable until its due date', () => {
+    expect(isLicenseUsable({ status: 'pending_payment', expires_at: future }, now)).toBe(true)
+    expect(isLicenseUsable({ status: 'pending_payment', expires_at: past }, now)).toBe(false)
+  })
   it('constants match the owner decisions', () => {
     expect(TRIAL_IMAGES).toBe(300)
-    expect(PAID_IMAGES).toBe(7500)
+    expect(IMAGES_PER_SEAT).toBe(300)
     expect(MAX_SEATS).toBe(35)
   })
 })

@@ -3068,7 +3068,6 @@ begin
   if has_lic then
     update class_licenses set
       school_plan_id = p_plan_id,
-      origin = 'purchase',
       status = pl.status,
       billing_method = pl.billing_method,
       price_tier = pl.price_tier,

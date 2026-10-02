@@ -2,6 +2,13 @@ export const config = { runtime: 'edge' }
 
 // Handles Stripe webhook events to sync subscription status to Supabase.
 // Uses Web Crypto API (Edge-compatible, no Node.js crypto import).
+//
+// School billing (Stage 4) is routed FIRST, after the signature check, to
+// lib/school/billingWebhook.js: a class-license or school-plan event must
+// never reach upsertSubscription below (which would overwrite the teacher's
+// personal plan row). School events are idempotent per event id and
+// ordered by Stripe period, not arrival.
+import { handleSchoolStripeEvent } from '../lib/school/billingWebhook.js'
 
 async function verifyStripeSignature(body, signature, secret) {
   const parts = signature.split(',').reduce((acc, part) => {
@@ -104,6 +111,13 @@ export default async function handler(req) {
   }
 
   const event = JSON.parse(body)
+
+  const school = await handleSchoolStripeEvent(event)
+  if (school.handled) {
+    return new Response(JSON.stringify(school.status === 200 ? { received: true } : { error: 'Retry' }), {
+      status: school.status, headers: { 'Content-Type': 'application/json' },
+    })
+  }
 
   try {
     switch (event.type) {
