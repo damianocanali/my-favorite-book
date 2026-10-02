@@ -24,6 +24,7 @@ export default async function handler(req) {
   const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
   const stripeSecretKey = process.env.STRIPE_SECRET_KEY
+  const revenueCatKey = process.env.REVENUECAT_SECRET_API_KEY
   if (!supabaseUrl || !serviceKey) {
     return new Response(JSON.stringify({ error: 'Not configured' }), {
       status: 503, headers: { 'Content-Type': 'application/json' },
@@ -48,7 +49,7 @@ export default async function handler(req) {
   let failed = 0
   for (const row of list) {
     try {
-      const { ok } = await purgeUser(row.user_id, { supabaseUrl, serviceKey, stripeSecretKey })
+      const { ok } = await purgeUser(row.user_id, { supabaseUrl, serviceKey, stripeSecretKey, revenueCatKey })
       if (ok) purged++
       else failed++
     } catch (e) {
