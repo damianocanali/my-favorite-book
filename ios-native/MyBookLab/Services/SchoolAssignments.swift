@@ -154,10 +154,11 @@ enum SchoolAssignments {
 
 /// Which assignments this child has opened, so a new one wears a "New" badge
 /// until they do. On the device only, per student user id (class iPads are
-/// shared, and ids never cross between children). Deliberately KEPT across
-/// sign-out: a child signing back in must not see everything as New again.
-/// It stays small because every load prunes it to the assignments still
-/// listed.
+/// shared, and ids never cross between children). Cleared on a class
+/// account's sign-out with the rest of the child's on-device state (shared
+/// iPads, review §7 item 27) — the cost is that "New" badges come back once
+/// on the next sign-in. It stays small because every load prunes it to the
+/// assignments still listed.
 @MainActor
 enum AssignmentSeen {
     private static let prefix = "assignmentsSeen."
@@ -165,6 +166,11 @@ enum AssignmentSeen {
     static func ids(userId: String?) -> Set<String> {
         guard let userId else { return [] }
         return Set(UserDefaults.standard.stringArray(forKey: prefix + userId) ?? [])
+    }
+
+    static func clear(userId: String?) {
+        guard let userId else { return }
+        UserDefaults.standard.removeObject(forKey: prefix + userId)
     }
 
     static func mark(_ assignmentId: String, userId: String?) {

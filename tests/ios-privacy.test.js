@@ -1,0 +1,47 @@
+// Review §7 item 27 (iPad has no test target; these pin the source).
+import { describe, it, expect } from 'vitest'
+import { readFileSync } from 'node:fs'
+
+const read = (p) => readFileSync(`ios-native/${p}`, 'utf8')
+
+describe('PrivacyInfo.xcprivacy', () => {
+  const plist = read('MyBookLab/PrivacyInfo.xcprivacy')
+  const section = plist.slice(plist.indexOf('<key>NSPrivacyCollectedDataTypes</key>'))
+  it('declares what the app collects, none of it for tracking', () => {
+    for (const t of ['Name', 'EmailAddress', 'PhysicalAddress', 'OtherUserContent', 'UserID', 'PurchaseHistory', 'PhotosorVideos']) {
+      expect(section, t).toContain(`NSPrivacyCollectedDataType${t}<`)
+    }
+    expect(section).not.toMatch(/NSPrivacyCollectedDataTypeTracking<\/key>\s*<true\/>/)
+    expect(section).not.toMatch(/<array\/>\s*<\/dict>\s*<\/plist>/)
+    expect(plist).toMatch(/<key>NSPrivacyTracking<\/key>\s*<false\/>/)
+  })
+})
+
+describe('student sign-out clears the child state on a shared iPad', () => {
+  const auth = read('MyBookLab/Stores/AuthStore.swift')
+  const signOut = auth.slice(auth.indexOf('func signOut() async'), auth.indexOf('private func clearLocalUserData'))
+  it('drops worksheet drafts and seen-assignment ids for the child', () => {
+    expect(signOut).toMatch(/if isStudent \{[\s\S]*WorksheetDrafts\.removeAll\(userId: childId\)[\s\S]*AssignmentSeen\.clear\(userId: childId\)/)
+  })
+  it('keeps device-level settings (class device, language, music)', () => {
+    expect(signOut).not.toMatch(/ClassDeviceStore|AppLanguage|music_muted/)
+  })
+})
+
+describe('first-use AI disclosure for family accounts (5.1.2(i))', () => {
+  const tabs = read('MyBookLab/Views/MainTabView.swift')
+  it('is presented for signed-in non-student accounts until acknowledged', () => {
+    expect(tabs).toContain('.fullScreenCover(isPresented: showAIDisclosure)')
+    expect(tabs).toMatch(/auth\.user != nil && !auth\.isStudent\s*&& !AIDisclosure\.isAcknowledged/)
+  })
+  it('has Italian copy for every line', () => {
+    const cat = JSON.parse(read('MyBookLab/Localizable.xcstrings')).strings
+    const keys = Object.keys(cat).filter((k) => k.startsWith('ai_disclosure.'))
+    expect(keys.length).toBe(8)
+    for (const k of keys) expect(cat[k].localizations.it.stringUnit.value, k).toBeTruthy()
+  })
+  it('never names the child in what it promises the AI receives', () => {
+    const view = read('MyBookLab/Views/AIDisclosureView.swift')
+    expect(view).toContain("never your child's name or exact age")
+  })
+})

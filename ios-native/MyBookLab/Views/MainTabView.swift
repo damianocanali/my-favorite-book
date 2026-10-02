@@ -39,6 +39,22 @@ struct MainTabView: View {
     @Environment(TeacherStore.self) private var teacher
     @Environment(BookshelfStore.self) private var bookshelf
     @Environment(\.scenePhase) private var scenePhase
+    /// Bumped when the AI disclosure is acknowledged, so the cover's
+    /// binding re-reads UserDefaults.
+    @State private var aiDisclosureTick = 0
+
+    /// Family (consumer) accounts see the AI disclosure once, before the
+    /// app is usable (App Store 5.1.2(i)); class accounts never do.
+    private var showAIDisclosure: Binding<Bool> {
+        Binding(
+            get: {
+                _ = aiDisclosureTick
+                return auth.user != nil && !auth.isStudent
+                    && !AIDisclosure.isAcknowledged(userId: auth.user?.id.uuidString)
+            },
+            set: { _ in }
+        )
+    }
 
     /// A teacher gets Dashboard · Classes · Account instead of the family
     /// tabs (TeacherStore decides; a class account never does).
@@ -105,6 +121,12 @@ struct MainTabView: View {
         }
         .tint(.white)
         .background(Color.clear)
+        .fullScreenCover(isPresented: showAIDisclosure) {
+            AIDisclosureView {
+                AIDisclosure.acknowledge(userId: auth.user?.id.uuidString)
+                aiDisclosureTick += 1
+            }
+        }
         .overlay { BadgePopup() }
         .overlay { WelcomeBackMoment() }
         // A widget link or a stale selection must not land a class account

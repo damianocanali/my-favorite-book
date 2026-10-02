@@ -401,6 +401,15 @@ final class AuthStore: NSObject {
         // get their alerts. Bounded to a few seconds; a class account never
         // registered one.
         if !isStudent { await PushRegistrar.shared.forget() }
+        if isStudent {
+            // Shared class iPads: everything else this device keeps for the
+            // child, keyed by their id — worksheet drafts (their answers)
+            // and the assignments they've opened. Device-level settings
+            // (class device, language, music, App Attest key) stay.
+            let childId = user?.id.uuidString
+            WorksheetDrafts.removeAll(userId: childId)
+            AssignmentSeen.clear(userId: childId)
+        }
         TeacherStore.shared.reset()
         TeacherNotificationsStore.shared.clear()
         clearLocalUserData()

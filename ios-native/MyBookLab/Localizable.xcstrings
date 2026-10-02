@@ -2,6 +2,150 @@
   "sourceLanguage": "en",
   "strings": {
     "": {},
+    "ai_disclosure.continue": {
+      "comment": "First-use AI disclosure for family accounts (App Store 5.1.2(i)), AIDisclosureView.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I understand, continue"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ho capito, continua"
+          }
+        }
+      }
+    },
+    "ai_disclosure.intro": {
+      "comment": "First-use AI disclosure for family accounts (App Store 5.1.2(i)), AIDisclosureView.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "For grown-ups: My Book Lab uses outside AI services for Story Buddy and pictures. Here is what they receive."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Per gli adulti: My Book Lab usa servizi di IA esterni per Story Buddy e per le immagini. Ecco cosa ricevono."
+          }
+        }
+      }
+    },
+    "ai_disclosure.pictures": {
+      "comment": "First-use AI disclosure for family accounts (App Store 5.1.2(i)), AIDisclosureView.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pictures are drawn by Together AI. It receives a short description of the scene that we write, not your child's own words."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le immagini sono disegnate da Together AI, che riceve una breve descrizione della scena scritta da noi, non le parole di chi scrive la storia."
+          }
+        }
+      }
+    },
+    "ai_disclosure.privacy_link": {
+      "comment": "First-use AI disclosure for family accounts (App Store 5.1.2(i)), AIDisclosureView.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read the Privacy Policy"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leggi l'Informativa sulla privacy"
+          }
+        }
+      }
+    },
+    "ai_disclosure.safety": {
+      "comment": "First-use AI disclosure for family accounts (App Store 5.1.2(i)), AIDisclosureView.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OpenAI's safety filter checks the words and every finished picture, to keep things kind and safe."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il filtro di sicurezza di OpenAI controlla le parole e ogni immagine finita, perché tutto resti gentile e sicuro."
+          }
+        }
+      }
+    },
+    "ai_disclosure.story_buddy": {
+      "comment": "First-use AI disclosure for family accounts (App Store 5.1.2(i)), AIDisclosureView.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Story Buddy ideas come from Anthropic (Claude). It receives the story text and the book's title, characters and place — never your child's name or exact age."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le idee di Story Buddy arrivano da Anthropic (Claude), che riceve il testo della storia e il titolo, i personaggi e il luogo del libro, mai il nome o l'età esatta di chi scrive."
+          }
+        }
+      }
+    },
+    "ai_disclosure.title": {
+      "comment": "First-use AI disclosure for family accounts (App Store 5.1.2(i)), AIDisclosureView.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "How the AI helpers work"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Come funzionano gli assistenti IA"
+          }
+        }
+      }
+    },
+    "ai_disclosure.use": {
+      "comment": "First-use AI disclosure for family accounts (App Store 5.1.2(i)), AIDisclosureView.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "These services get only what each request needs. The Privacy Policy says how long each one keeps it."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questi servizi ricevono solo ciò che serve per ogni richiesta. L'Informativa sulla privacy indica per quanto tempo ciascuno lo conserva."
+          }
+        }
+      }
+    },
     "errors.ai.image_flagged": {
       "comment": "A generated picture failed safety screening and was not kept (api/_aiGuard.js moderateImage).",
       "extractionState": "manual",
