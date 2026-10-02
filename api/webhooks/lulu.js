@@ -1,13 +1,16 @@
 // Edge runtime. Verifies the HMAC signature on inbound Lulu webhooks.
 //
-// Lulu's docs are thin on the exact signing scheme, so we try multiple
-// known/plausible combinations:
-//   - header: Lulu-HMAC-SHA256 | X-Lulu-HMAC-SHA256 | Lulu-Signature
-//   - secret: LULU_WEBHOOK_SECRET (set explicitly) || LULU_CLIENT_SECRET
-//             (some providers re-use the API client secret for webhook signing)
-//   - encoding: hex || base64
-// If none match, we log the full header set + a body prefix so we can see
-// what Lulu actually sent and tighten the verifier on the next deploy.
+// ONE pinned scheme (review §7 item 21) — the old verifier tried three
+// headers × two secrets × two encodings, i.e. twelve ways in:
+//   header  Lulu-HMAC-SHA256 (Lulu's documented header)
+//   digest  HMAC-SHA256 of the raw body, hex
+//   secret  LULU_WEBHOOK_SECRET when set, else LULU_CLIENT_SECRET (Lulu
+//           signs with the API client secret)
+// LULU_WEBHOOK_SCHEME overrides it with the exact scheme the old verifier
+// logged in production ("[lulu-webhook] verified via <header>:<SECRET_ENV>:<hex|base64>"),
+// e.g. LULU_WEBHOOK_SCHEME=lulu-hmac-sha256:LULU_CLIENT_SECRET:hex.
+// A failure logs header NAMES and the body length only — never the body
+// (shipping PII).
 export const config = { runtime: 'edge' }
 
 import { canAdvance } from '../../lib/print/state.js'
@@ -15,8 +18,6 @@ import { canMovePrint } from '../../lib/school/writingYear.js'
 
 const SUPABASE = process.env.SUPABASE_URL
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
-const WEBHOOK_SECRET = process.env.LULU_WEBHOOK_SECRET
-const CLIENT_SECRET = process.env.LULU_CLIENT_SECRET
 
 const STATUS_MAP = {
   CREATED: 'submitted',
@@ -57,27 +58,33 @@ async function hmac(secret, body) {
   return new Uint8Array(sig)
 }
 
-// Tries every plausible combination of header / secret / encoding. Returns
-// the matching scheme name on success, or null if none verified.
-async function verifyAny(req, body) {
-  const headers = ['lulu-hmac-sha256', 'x-lulu-hmac-sha256', 'lulu-signature']
-  const secrets = [
-    WEBHOOK_SECRET && ['LULU_WEBHOOK_SECRET', WEBHOOK_SECRET],
-    CLIENT_SECRET && ['LULU_CLIENT_SECRET', CLIENT_SECRET],
-  ].filter(Boolean)
+const HEADERS = new Set(['lulu-hmac-sha256', 'x-lulu-hmac-sha256', 'lulu-signature'])
+const SECRET_ENVS = new Set(['LULU_WEBHOOK_SECRET', 'LULU_CLIENT_SECRET'])
 
-  for (const h of headers) {
-    const provided = req.headers.get(h)
-    if (!provided) continue
-    for (const [secretName, secret] of secrets) {
-      const sigBytes = await hmac(secret, body)
-      const hex = bytesToHex(sigBytes)
-      const b64 = bytesToBase64(sigBytes)
-      if (constantTimeEq(hex, provided.trim())) return `${h}:${secretName}:hex`
-      if (constantTimeEq(b64, provided.trim())) return `${h}:${secretName}:base64`
-    }
+/// The single accepted scheme: { header, secretEnv, encoding }, or null when
+/// misconfigured (then every webhook is refused, loudly). Exported for tests.
+export function pinnedScheme(env = process.env) {
+  const raw = env.LULU_WEBHOOK_SCHEME
+  if (raw) {
+    const [header, secretEnv, encoding] = String(raw).trim().split(':')
+    if (!HEADERS.has(header?.toLowerCase()) || !SECRET_ENVS.has(secretEnv) || !['hex', 'base64'].includes(encoding)) return null
+    return { header: header.toLowerCase(), secretEnv, encoding }
   }
-  return null
+  return { header: 'lulu-hmac-sha256', secretEnv: env.LULU_WEBHOOK_SECRET ? 'LULU_WEBHOOK_SECRET' : 'LULU_CLIENT_SECRET', encoding: 'hex' }
+}
+
+export async function verifyLuluSignature(req, body, env = process.env) {
+  const scheme = pinnedScheme(env)
+  if (!scheme) {
+    console.error('[lulu-webhook] LULU_WEBHOOK_SCHEME is malformed — refusing every webhook')
+    return null
+  }
+  const secret = env[scheme.secretEnv]
+  const provided = (req.headers.get(scheme.header) || '').trim()
+  if (!secret || !provided) return null
+  const sig = await hmac(secret, body)
+  const expected = scheme.encoding === 'hex' ? bytesToHex(sig) : bytesToBase64(sig)
+  return constantTimeEq(expected, provided) ? `${scheme.header}:${scheme.secretEnv}:${scheme.encoding}` : null
 }
 
 // Used when verification fails — captures headers + body prefix to Vercel
@@ -161,16 +168,16 @@ export default async function handler(req) {
     return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405 })
   }
   const body = await req.text()
-  const scheme = await verifyAny(req, body)
+  const scheme = await verifyLuluSignature(req, body)
   if (!scheme) {
     logFailedVerification(req, body)
     return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 })
   }
-  // Once we see which scheme works in production logs, narrow this verifier
-  // to a single, fast path for security/clarity.
-  console.log('[lulu-webhook] verified via', scheme)
 
-  const event = JSON.parse(body)
+  let event
+  try { event = JSON.parse(body) } catch {
+    return new Response(JSON.stringify({ error: 'Invalid JSON' }), { status: 400 })
+  }
   const luluId = String(event?.data?.id ?? '')
   if (!luluId) return new Response(JSON.stringify({ received: true }), { status: 200 })
 
