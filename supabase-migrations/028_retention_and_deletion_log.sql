@@ -7,12 +7,14 @@
 --   row counts only; never a name or content. It is the evidence an NDPA
 --   Exhibit D disposal certificate is written from, so it deliberately has
 --   no FKs (the things it describes are gone) and is never purged by the
---   jobs it records. Written by lib/school/deletionLog.js.
+--   jobs it records. Written by lib/school/deletionLog.js. A class purge
+--   also writes one 'purge_class_student' row per child; a teacher account
+--   purge writes 'purge_teacher_class' per class. status 'partial' = a class
+--   delete that stopped part-way; api/cron/retention.js resumes it.
 -- * class_licenses.purge_warning_30_at / purge_warning_7_at — when the
---   teacher was emailed "this class will be deleted in 30 / 7 days". A
---   stamp only counts if it is later than the current lapse, so a renewed
---   and re-lapsed license is warned again. The purge itself waits until
---   the 7-day warning is at least 6 days old (lib/school/lifecycle.js).
+--   teacher was emailed "this class will be deleted in 30 / 7 days".
+--   Migration 031 clears them whenever the status or expiry changes, so a
+--   renewed and re-lapsed license is warned again (lib/school/lifecycle.js).
 -- * Indexes for the nightly deletes by age (api/cron/retention.js).
 --
 -- Service role only: RLS on, no policies, client grants revoked.
@@ -22,16 +24,20 @@ create table if not exists public.deletion_log (
   id bigint generated always as identity primary key,
   actor_user_id uuid,
   actor_kind text not null check (actor_kind in ('teacher','system')),
-  action text not null check (action in ('delete_student','delete_class','purge_removed_student','purge_lapsed_class')),
+  action text not null check (action in (
+    'delete_student','delete_class','purge_removed_student','purge_lapsed_class',
+    'purge_teacher_class','purge_class_student','legacy_sunset'
+  )),
   classroom_id uuid,
   target_id uuid,
   counts jsonb not null default '{}'::jsonb,
   reason text check (char_length(reason) <= 200),
-  status text not null default 'started' check (status in ('started','done','failed')),
+  status text not null default 'started' check (status in ('started','done','partial','failed','dry_run')),
   created_at timestamptz not null default now(),
   completed_at timestamptz
 );
 create index if not exists deletion_log_class_idx on public.deletion_log (classroom_id, created_at desc);
+create index if not exists deletion_log_resume_idx on public.deletion_log (status, created_at) where status in ('started','partial');
 create index if not exists deletion_log_actor_idx on public.deletion_log (actor_user_id, created_at desc);
 alter table public.deletion_log enable row level security;
 revoke all on public.deletion_log from anon, authenticated;

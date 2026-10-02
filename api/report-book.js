@@ -127,7 +127,7 @@ export default async function handler(req) {
 
   if (!res.ok) {
     // Don't echo the upstream body — it can carry schema details.
-    console.error('[report-book] rpc failed', res.status, (await res.text()).slice(0, 200))
+    console.error('[report-book] rpc failed', res.status)
     return json(500, { error: 'Could not file that report. Please try again.' })
   }
 

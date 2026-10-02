@@ -27,6 +27,10 @@ function mockFetch(overrides = {}) {
     for (const [needle, res] of Object.entries(overrides)) {
       if (String(url).includes(needle)) return res
     }
+    // deletion_log opens answer with a row id (lib/school/deletionLog.js).
+    if (String(url).includes('/rest/v1/deletion_log') && method === 'POST') {
+      return { ok: true, status: 201, json: async () => [{ id: 1 }], text: async () => '' }
+    }
     return { ok: true, status: 200, json: async () => [], text: async () => '' }
   })
 }
@@ -154,7 +158,7 @@ describe('purgeUser', () => {
         ok: true, status: 200, json: async () => [{ id: 'c1', code: 'ABC234' }], text: async () => '',
       },
       'class_students?classroom_id=eq.c1': {
-        ok: true, status: 200, json: async () => [{ auth_user_id: 'kid1' }], text: async () => '',
+        ok: true, status: 200, json: async () => [{ id: 's1', auth_user_id: 'kid1' }], text: async () => '',
       },
     })
     await purgeUser(USER, ENV)
@@ -416,5 +420,54 @@ describe('purgeUser storage completeness', () => {
     })
     expect(await purgeUser(USER, ENV)).toEqual({ ok: false })
     expect(indexOfCall(`DELETE /auth/v1/admin/users/${USER}`)).toBe(-1)
+  })
+})
+
+// Review fix I5 and M3.
+describe('purgeUser evidence and Stripe lookup', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks()
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+  })
+  const okJson = (body) => ({ ok: true, status: 200, json: async () => body, text: async () => '' })
+
+  it("writes a deletion_log row for every class and every child a teacher's account purge removes", async () => {
+    mockFetch({
+      [`classrooms?owner_user_id=eq.${USER}&select=id,code`]: okJson([{ id: 'c1', code: 'ABC234' }]),
+      'class_students?classroom_id=eq.c1&select=id,auth_user_id': okJson([{ id: 's1', auth_user_id: 'kid1' }, { id: 's2', auth_user_id: 'kid2' }]),
+    })
+    expect(await purgeUser(USER, ENV)).toEqual({ ok: true })
+    const opens = globalThis.fetch.mock.calls
+      .filter(([u, i]) => String(u).includes('/rest/v1/deletion_log') && i?.method === 'POST')
+      .map(([, i]) => JSON.parse(i.body))
+    expect(opens.find((b) => b.action === 'purge_teacher_class')).toMatchObject({ classroom_id: 'c1', actor_kind: 'system', actor_user_id: USER })
+    expect(opens.filter((b) => b.action === 'purge_class_student').map((b) => b.target_id).sort()).toEqual(['s1', 's2'])
+    // The class row opens before any child's account is deleted.
+    expect(indexOfCall('POST /rest/v1/deletion_log')).toBeLessThan(indexOfCall('DELETE /auth/v1/admin/users/kid'))
+  })
+
+  it('aborts before a class purge when the evidence row cannot be written', async () => {
+    mockFetch({
+      [`classrooms?owner_user_id=eq.${USER}&select=id,code`]: okJson([{ id: 'c1', code: 'ABC234' }]),
+      '/rest/v1/deletion_log': { ok: false, status: 500, json: async () => ({}), text: async () => '' },
+    })
+    expect(await purgeUser(USER, ENV)).toEqual({ ok: false })
+    expect(indexOfCall('DELETE /rest/v1/classrooms?id=eq.c1')).toBe(-1)
+    expect(indexOfCall(`DELETE /auth/v1/admin/users/${USER}`)).toBe(-1)
+  })
+
+  it('a failed subscriptions lookup aborts (retried tomorrow) instead of reading as "no customer"', async () => {
+    mockFetch({ 'subscriptions?user_id=eq.': { ok: false, status: 503, json: async () => ({}), text: async () => '' } })
+    expect(await purgeUser(USER, { ...ENV, stripeSecretKey: 'sk' })).toEqual({ ok: false })
+    expect(indexOfCall(`DELETE /rest/v1/subscriptions?user_id=eq.${USER}`)).toBe(-1)
+    expect(indexOfCall(`DELETE /auth/v1/admin/users/${USER}`)).toBe(-1)
+  })
+
+  it('never logs a Supabase response body', async () => {
+    mockFetch({ 'published_books': { ok: false, status: 500, json: async () => ({}), text: async () => 'SECRET-BODY' } })
+    await purgeUser(USER, ENV)
+    const logged = JSON.stringify([...console.error.mock.calls, ...console.warn.mock.calls])
+    expect(logged).not.toContain('SECRET-BODY')
   })
 })
