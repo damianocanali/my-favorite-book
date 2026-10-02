@@ -53,7 +53,11 @@ struct TeacherClassesView: View {
                 case .roster(let id):
                     TeacherRosterView(classId: id)
                 case .settings(let id):
-                    TeacherClassSettingsView(classId: id)
+                    TeacherClassSettingsView(classId: id) {
+                        // The class is gone: back to the list, refreshed.
+                        path = []
+                        Task { await load() }
+                    }
                 case .writingYear(let id):
                     TeacherWritingYearView(classId: id)
                 case .review(let classId, let assignmentId):

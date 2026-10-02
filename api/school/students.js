@@ -5,6 +5,9 @@ import { requireClassOwner, sb, json, isUuid } from '../_school.js'
 import { generatePictureSecret, hashPictureSecret, syntheticStudentEmail, randomPassword } from '../../lib/school/crypto.js'
 import { AVATAR_EMOJI } from '../../lib/school/pictures.js'
 import { isLicenseUsable, MAX_SEATS } from '../../lib/school/license.js'
+import { purgeUser } from '../../lib/deleteUser.js'
+import { startDeletionLog, finishDeletionLog, studentCounts } from '../../lib/school/deletionLog.js'
+import { namesMatch } from '../../lib/school/confirmName.js'
 
 const PUBLIC = 'id,display_name,avatar_emoji,status,locked_until,hard_locked,last_sign_in_at,created_at'
 const SELECT_WITH_AUTH = `${PUBLIC},auth_user_id`
@@ -27,6 +30,11 @@ function publicShape(row) {
     locked: !!locked_until && new Date(locked_until) > new Date(),
   }
 }
+
+const sbEnvForPurge = () => ({
+  supabaseUrl: process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL,
+  serviceKey: process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY,
+})
 
 const cleanName = (n) => String(n ?? '').trim().replace(/\s+/g, ' ').slice(0, 24)
 
@@ -326,6 +334,29 @@ export default async function handler(req) {
             return json(req, 502, { error: 'Could not update student', code: 'upstream' })
           }
           return reply(res)
+        }
+        case 'delete_now': {
+          // Permanent, immediate deletion of one child's account and
+          // everything in it (review §7.3) — the same purgeUser a 30-day-old
+          // removal gets from the retention cron, without the wait. The
+          // teacher must type the child's name; the evidence row is written
+          // first and the purge never runs without it.
+          if (!namesMatch(body.confirm_name, student.display_name)) {
+            return json(req, 400, { error: 'Type the name to confirm', code: 'confirm_mismatch' })
+          }
+          if (!checkRateLimit(`school-delete:${o.auth.userId}`, 40).allowed) {
+            return json(req, 429, { error: 'Too many requests', code: 'rate_limited' })
+          }
+          const env = sbEnvForPurge()
+          const logId = await startDeletionLog(sb, {
+            actorUserId: o.auth.userId, actorKind: 'teacher', action: 'delete_student',
+            classroomId, targetId: student.id, counts: await studentCounts(sb, student),
+          })
+          if (logId == null) return json(req, 503, { error: 'Service unavailable, try again', code: 'upstream' })
+          const result = await purgeUser(authId, { ...env, skipVendors: true })
+          await finishDeletionLog(sb, logId, result.ok)
+          if (!result.ok) return json(req, 502, { error: 'Could not delete student', code: 'upstream' })
+          return json(req, 200, { deleted: true, id: student.id })
         }
         default:
           return json(req, 400, { error: 'Unknown action', code: 'bad_request' })

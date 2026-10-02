@@ -14,6 +14,7 @@ import AssignmentsSection from '../components/school/AssignmentsSection'
 import AssignmentReview from '../components/school/AssignmentReview'
 import ClassDeviceCard from '../components/school/ClassDeviceCard'
 import WritingYearSection from '../components/school/WritingYearSection'
+import ClassDataSection from '../components/school/ClassDataSection'
 import { schoolFetch } from '../lib/schoolApi'
 import { teacherErrorText } from '../components/school/teacherErrors'
 import { MAX_SEATS } from '../../lib/school/license.js'
@@ -130,6 +131,10 @@ export default function TeacherClassPage() {
       method: 'PATCH',
       body: JSON.stringify({ classId: classItem.id, id: studentId, action, ...extra }),
     })
+    if (res.ok && action === 'delete_now') {
+      setStudents((prev) => prev.filter((s) => s.id !== studentId))
+      return res
+    }
     if (res.ok) {
       const updated = res.data.student
       setStudents((prev) => prev.map((s) => (s.id === updated.id ? updated : s)))
@@ -362,6 +367,7 @@ export default function TeacherClassPage() {
           </div>
         ) : (
           <RosterTable
+            classId={classItem.id}
             students={students}
             onAction={handleStudentAction}
             onOpenBooks={setViewingStudent}
@@ -369,6 +375,8 @@ export default function TeacherClassPage() {
           />
         )}
       </div>
+
+      <ClassDataSection classItem={classItem} onPatch={patchClass} onDeleted={() => navigate('/teacher/classes', { replace: true })} />
 
       {viewingStudent && (
         <StudentBooks

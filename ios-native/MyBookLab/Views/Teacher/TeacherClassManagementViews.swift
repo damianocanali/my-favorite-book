@@ -192,6 +192,8 @@ struct TeacherCreateClassSheet: View {
 
 struct TeacherClassSettingsView: View {
     let classId: String
+    /// Called after the class was permanently deleted.
+    var onDeleted: () -> Void = {}
 
     @Environment(AuthStore.self) private var auth
     @Environment(\.dismiss) private var dismiss
@@ -201,6 +203,9 @@ struct TeacherClassSettingsView: View {
     @State private var loadError: String??
     @State private var name = ""
     @State private var signInOpen = true
+    @State private var checkinsOn = true
+    @State private var savingCheckins = false
+    @State private var checkinsError: LocalizedStringResource?
     @State private var locale = "en"
     @State private var timezone = TimeZone.current.identifier
     @State private var hours: [SchoolDayHours] = SchoolDayHours.rows(from: nil)
@@ -212,6 +217,13 @@ struct TeacherClassSettingsView: View {
     @State private var toggleError: LocalizedStringResource?
     @State private var hoursStatus: Status?
     @State private var confirmLeave = false
+    @State private var confirmDelete = false
+    @State private var deleteTyped = ""
+    @State private var deletingClass = false
+    @State private var deleteError: LocalizedStringResource?
+    @State private var exporting = false
+    @State private var exportURL: URL?
+    @State private var exportError: LocalizedStringResource?
 
     enum Status: Equatable { case saved, failed(LocalizedStringResource) }
 
@@ -266,7 +278,22 @@ struct TeacherClassSettingsView: View {
             Button(role: .destructive) { dismiss() } label: { Text(TeacherCopy.unsavedDiscard) }
             Button(role: .cancel) {} label: { Text(TeacherCopy.cancel) }
         }
+        // Typed-name alert, never a confirmationDialog (iPad).
+        .alert(Text(TeacherCopy.deleteClassTitle(cls?.name ?? "")), isPresented: $confirmDelete) {
+            TextField(text: $deleteTyped) { Text(TeacherCopy.deleteClassPrompt(cls?.name ?? "")) }
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+            Button(role: .destructive) { Task { await deleteClass() } } label: { Text(TeacherCopy.deleteClassConfirm) }
+                .disabled(!TeacherRosterRules.namesMatch(deleteTyped, cls?.name ?? ""))
+            Button(role: .cancel) {} label: { Text(TeacherCopy.cancel) }
+        } message: {
+            Text(TeacherCopy.deleteClassBody)
+        }
         .task { await load() }
+        .onDisappear {
+            if let exportURL { TeacherExportFile.remove(exportURL) }
+            exportURL = nil
+        }
     }
 
     private func form(_ cls: TeacherClass) -> some View {
@@ -343,9 +370,98 @@ struct TeacherClassSettingsView: View {
             } footer: {
                 Text(TeacherCopy.hoursHint)
             }
+
+            dataSection(cls)
         }
         .scrollContentBackground(.hidden)
         .contentColumn(maxWidth: ContentWidth.reading)
+    }
+
+    /// Data and privacy: the permanent class delete (review §7.3).
+    @ViewBuilder
+    private func dataSection(_ cls: TeacherClass) -> some View {
+        Section {
+            Toggle(isOn: Binding(get: { checkinsOn }, set: { v in Task { await setCheckins(v) } })) {
+                Text(TeacherCopy.checkinsLabel)
+            }
+            .tint(.purple)
+            .disabled(savingCheckins)
+            Text(checkinsOn ? TeacherCopy.checkinsHintOn : TeacherCopy.checkinsHintOff)
+                .font(.footnote).foregroundStyle(.secondary)
+            if let checkinsError { Text(checkinsError).foregroundStyle(TeacherTheme.urgent) }
+        } header: {
+            Text(TeacherCopy.dataHeading)
+        }
+
+        Section {
+            if let exportURL {
+                ShareLink(item: exportURL) {
+                    Label { Text(TeacherCopy.exportShare) } icon: { Image(systemName: "square.and.arrow.up") }
+                        .frame(minHeight: 44)
+                }
+            } else {
+                Button {
+                    Task { await exportClass(cls) }
+                } label: {
+                    HStack {
+                        if exporting { ProgressView() }
+                        Label { Text(exporting ? TeacherCopy.exportWorking : TeacherCopy.exportButton) } icon: { Image(systemName: "arrow.down.doc") }
+                    }
+                    .frame(minHeight: 44)
+                }
+                .disabled(exporting)
+            }
+            if let exportError { Text(exportError).foregroundStyle(TeacherTheme.urgent) }
+            Text(TeacherCopy.exportHint).font(.footnote).foregroundStyle(.secondary)
+            Button(role: .destructive) {
+                deleteTyped = ""
+                deleteError = nil
+                confirmDelete = true
+            } label: {
+                HStack {
+                    if deletingClass { ProgressView() }
+                    Label { Text(deletingClass ? TeacherCopy.deleting : TeacherCopy.deleteClassButton) } icon: { Image(systemName: "trash.fill") }
+                }
+                .frame(minHeight: 44)
+            }
+            .disabled(deletingClass)
+            if let deleteError { Text(deleteError).foregroundStyle(TeacherTheme.urgent) }
+        } footer: {
+            Text(TeacherCopy.deleteClassHint)
+        }
+    }
+
+    /// Downloads the ZIP to a temporary file for the share sheet. The file
+    /// is removed when this screen goes away.
+    private func exportClass(_ cls: TeacherClass) async {
+        guard !exporting else { return }
+        exporting = true
+        exportError = nil
+        defer { exporting = false }
+        guard let token = await auth.validAccessToken() else { return }
+        do {
+            let data = try await APIClient.shared.teacherExport(classId: classId, bearerToken: token)
+            exportURL = try TeacherExportFile.write(data, name: cls.name ?? "class")
+        } catch {
+            exportError = TeacherCopy.error(error)
+        }
+    }
+
+    private func deleteClass() async {
+        guard let name = cls?.name, TeacherRosterRules.namesMatch(deleteTyped, name) else {
+            deleteError = TeacherCopy.error("confirm_mismatch")
+            return
+        }
+        guard !deletingClass else { return }
+        deletingClass = true
+        defer { deletingClass = false }
+        guard let token = await auth.validAccessToken() else { return }
+        do {
+            try await APIClient.shared.teacherDeleteClass(classId: classId, confirmName: deleteTyped, bearerToken: token)
+            onDeleted()
+        } catch {
+            deleteError = TeacherCopy.error(error)
+        }
     }
 
     /// One weekday: on/off, and when on, its start and end. Stacked so it
@@ -405,6 +521,7 @@ struct TeacherClassSettingsView: View {
         cls = c
         name = c.name ?? ""
         signInOpen = c.sign_in_open ?? true
+        checkinsOn = c.checkins_enabled ?? true
         locale = c.locale == "it" ? "it" : "en"
         timezone = c.timezone ?? TimeZone.current.identifier
         hours = SchoolDayHours.rows(from: c.school_hours)
@@ -468,6 +585,24 @@ struct TeacherClassSettingsView: View {
         }
     }
 
+    /// Optimistic like the sign-in switch, rolled back if the server says no.
+    private func setCheckins(_ value: Bool) async {
+        guard !savingCheckins else { return }
+        let previous = checkinsOn
+        checkinsOn = value
+        checkinsError = nil
+        savingCheckins = true
+        defer { savingCheckins = false }
+        do {
+            var p = APIClient.ClassPatch(id: classId)
+            p.checkins_enabled = value
+            if let c = try await patch(p) { cls = c; checkinsOn = c.checkins_enabled ?? value }
+        } catch {
+            checkinsOn = previous
+            checkinsError = TeacherCopy.error(error)
+        }
+    }
+
     private func setLocale(_ value: String) async {
         guard !savingToggle else { return }
         let previous = locale
@@ -506,5 +641,25 @@ struct TeacherClassSettingsView: View {
         } catch {
             hoursStatus = .failed(TeacherCopy.error(error))
         }
+    }
+}
+
+
+/// The data-export ZIP on disk, only for as long as the share sheet needs
+/// it: complete file protection, a per-export folder, removed after.
+enum TeacherExportFile {
+    static func write(_ data: Data, name: String) throws -> URL {
+        let safe = name.components(separatedBy: CharacterSet(charactersIn: "/\\:*?\"<>|")).joined()
+            .trimmingCharacters(in: .whitespaces)
+        let date = ISO8601DateFormatter.string(from: Date(), timeZone: .current, formatOptions: [.withFullDate])
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent("export-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        let url = dir.appendingPathComponent("\(safe.isEmpty ? "class" : safe)-\(date).zip")
+        try data.write(to: url, options: [.atomic, .completeFileProtection])
+        return url
+    }
+
+    static func remove(_ url: URL) {
+        try? FileManager.default.removeItem(at: url.deletingLastPathComponent())
     }
 }

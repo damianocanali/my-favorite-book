@@ -118,6 +118,8 @@ struct TeacherClass: Decodable, Identifiable, Hashable, Sendable {
     /// "en" | "it"
     let locale: String?
     let sign_in_open: Bool?
+    /// The class's check-ins switch (review §7.28); nil from an older server = on.
+    let checkins_enabled: Bool?
     /// IANA zone the school hours are read in.
     let timezone: String?
     /// ISO weekday ("1" = Monday … "7" = Sunday) -> ["HH:MM", "HH:MM"].
@@ -176,6 +178,12 @@ struct TeacherAddStudentsResponse: Decodable, Sendable {
     let skipped: [Skipped]?
 }
 
+/// A permanent delete (student or class) went through.
+struct TeacherDeletedResponse: Decodable, Sendable {
+    let deleted: Bool?
+    let id: String?
+}
+
 struct TeacherStudentActionResponse: Decodable, Sendable {
     let student: TeacherRosterStudent?
     /// reset_secret only.
@@ -187,6 +195,19 @@ struct TeacherStudentActionResponse: Decodable, Sendable {
 /// cut to 24 UTF-16 units (JS `.length`), drop blanks and case-insensitive
 /// repeats (first spelling wins).
 enum TeacherRosterRules {
+    /// The typed-name check for a permanent delete — same rule as the
+    /// server's lib/school/confirmName.js (case, spacing and Unicode
+    /// composition ignored; empty never matches). The server re-checks.
+    static func namesMatch(_ typed: String, _ expected: String) -> Bool {
+        func norm(_ s: String) -> String {
+            s.precomposedStringWithCanonicalMapping
+                .split(whereSeparator: \.isWhitespace).joined(separator: " ")
+                .lowercased()
+        }
+        let e = norm(expected)
+        return !e.isEmpty && norm(typed) == e
+    }
+
     static let studentNameMax = 24
     static let classNameMax = 60
     static let maxStudents = 35

@@ -38,6 +38,9 @@ struct TeacherRosterView: View {
     @State private var renameText = ""
     @State private var removeTarget: TeacherRosterStudent?
     @State private var resetTarget: TeacherRosterStudent?
+    /// Permanent delete: the teacher retypes the child's name in the alert.
+    @State private var deleteTarget: TeacherRosterStudent?
+    @State private var deleteTyped = ""
     @State private var showingCards = false
 
     private var license: LicenseBadgeState? { cls.map { LicenseBadgeState($0.license) } }
@@ -110,6 +113,20 @@ struct TeacherRosterView: View {
         ) { s in
             Button { Task { await resetPictures(s) } } label: { Text(TeacherCopy.newPictures) }
             Button(role: .cancel) {} label: { Text(TeacherCopy.cancel) }
+        }
+        // An alert with a text field, never a confirmationDialog (iPad).
+        .alert(
+            Text(TeacherCopy.deleteStudentTitle(deleteTarget?.display_name ?? "")),
+            isPresented: Binding(get: { deleteTarget != nil }, set: { if !$0 { deleteTarget = nil } }), presenting: deleteTarget
+        ) { s in
+            TextField(text: $deleteTyped) { Text(TeacherCopy.deleteStudentPrompt(s.display_name)) }
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+            Button(role: .destructive) { Task { await deleteStudent(s, typed: deleteTyped) } } label: { Text(TeacherCopy.deleteForever) }
+                .disabled(!TeacherRosterRules.namesMatch(deleteTyped, s.display_name))
+            Button(role: .cancel) {} label: { Text(TeacherCopy.cancel) }
+        } message: { s in
+            Text(TeacherCopy.deleteStudentBody(s.display_name))
         }
         .sheet(isPresented: $addingMany) {
             TeacherAddStudentsSheet { names in
@@ -282,6 +299,10 @@ struct TeacherRosterView: View {
                     Label { Text(TeacherCopy.restore) } icon: { Image(systemName: "arrow.uturn.backward") }
                 }
             }
+            Divider()
+            Button(role: .destructive) { deleteTyped = ""; deleteTarget = s } label: {
+                Label { Text(TeacherCopy.deleteNow) } icon: { Image(systemName: "trash.fill") }
+            }
         } label: {
             Image(systemName: "ellipsis.circle")
                 .font(.title2)
@@ -364,6 +385,25 @@ struct TeacherRosterView: View {
                 await load()
             }
             if action == "sign_out" { show(TeacherCopy.signedOut(s.display_name), error: false) }
+        } catch {
+            show(TeacherCopy.error(error), error: true)
+        }
+    }
+
+    private func deleteStudent(_ s: TeacherRosterStudent, typed: String) async {
+        guard TeacherRosterRules.namesMatch(typed, s.display_name) else {
+            show(TeacherCopy.error("confirm_mismatch"), error: true)
+            return
+        }
+        busyId = s.id
+        banner = nil
+        defer { busyId = nil }
+        guard let token = await auth.validAccessToken() else { return }
+        do {
+            try await APIClient.shared.teacherDeleteStudent(
+                classId: classId, studentId: s.id, confirmName: typed, bearerToken: token)
+            students?.removeAll { $0.id == s.id }
+            show(TeacherCopy.studentDeleted(s.display_name), error: false)
         } catch {
             show(TeacherCopy.error(error), error: true)
         }
