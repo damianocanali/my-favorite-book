@@ -181,3 +181,59 @@ describe('iOS string catalog covers every key in code (extraction is off)', () =
     expect([...new Set(copied)], `Italian is the English copied over (translate, or allowlist in SAME_IN_ITALIAN):\n${[...new Set(copied)].join('\n')}`).toEqual([])
   })
 })
+
+// Stage 4, App Store 3.1.3: the iPad teacher area shows plan STATUS and
+// seats, never a price. Every string a teacher screen uses (English and
+// Italian catalog values, plurals included) and every literal in those
+// files is checked for a currency sign or the word "price".
+describe('no prices in the iOS teacher area (App Store 3.1.3)', () => {
+  const { uses } = keyUses()
+  const TEACHER_FILE = /(Views\/Teacher\/|Models\/TeacherModels\.swift|Stores\/TeacherStore\.swift)/
+  const PRICEY = /[$€£]|\bprice|\bprezz|\bpricing\b|\bcost[is]?\b|\bcosto\b/i
+  const strip = (s) => s.replace(new RegExp(FORMAT, 'g'), '')
+  const values = (entry) => {
+    const out = []
+    for (const lang of ['en', 'it']) {
+      const loc = entry?.localizations?.[lang]
+      if (loc?.stringUnit?.value) out.push(loc.stringUnit.value)
+      const m = JSON.stringify(loc?.variations ?? {}).matchAll(/"value":"([^"]*)"/g)
+      for (const [, v] of m) out.push(v)
+    }
+    return out
+  }
+
+  it('scans the teacher files', () => {
+    expect(uses.filter((u) => TEACHER_FILE.test(u.file)).length).toBeGreaterThan(150)
+  })
+
+  it('no catalog value used by a teacher screen mentions a price or a currency', () => {
+    const bad = []
+    for (const u of uses.filter((x) => TEACHER_FILE.test(x.file))) {
+      const key = catalogKeyFor(u.parts)
+      if (!key) continue
+      for (const v of [enValue(key, catalog[key]), ...values(catalog[key])]) {
+        if (PRICEY.test(strip(v))) bad.push(`${u.file}:${u.line} ${key} → "${v}"`)
+      }
+    }
+    expect([...new Set(bad)]).toEqual([])
+  })
+
+  it('no string literal in the teacher files carries a currency amount', () => {
+    const bad = []
+    for (const file of swiftFiles(ROOT).filter((f) => TEACHER_FILE.test(f))) {
+      const src = readFileSync(file, 'utf8')
+      for (const [lit] of src.matchAll(/"(?:[^"\\\n]|\\.)*"/g)) {
+        const text = lit.replace(/\\\([^)]*\)/g, '')
+        if (/[$€£]\s?\d|\d\s?[$€£]|\bprice|\bprezz/i.test(text)) bad.push(`${file}: ${lit}`)
+      }
+    }
+    expect(bad).toEqual([])
+  })
+
+  it('the plan card says where to manage the plan as plain text, never a link', () => {
+    const src = readFileSync(`${ROOT}/Views/Teacher/TeacherComponents.swift`, 'utf8')
+    const card = src.slice(src.indexOf('struct TeacherPlanCard'), src.indexOf('struct TeacherVerificationCard'))
+    expect(card).toMatch(/Text\(verbatim: String\(appLocalized: TeacherCopy\.planManageOnWeb\)\)/)
+    expect(card).not.toMatch(/\bLink\(|openURL|URL\(string/)
+  })
+})

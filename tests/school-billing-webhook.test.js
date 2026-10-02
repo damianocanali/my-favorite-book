@@ -398,3 +398,11 @@ describe('the print key is the license term', () => {
     expect(src).not.toMatch(/starts_at:\s*now/)
   })
 })
+
+describe('a class leaving a school plan', () => {
+  it('buying a class on its own after its plan block ended detaches it from the plan', async () => {
+    Object.assign(license(), { school_plan_id: 'plan-old', status: 'lapsed', stripe_subscription_id: 'sub_plan_old', stripe_period_start: '2025-09-01T00:00:00.000Z', starts_at: '2025-09-01T00:00:00.000Z' })
+    await buyClass()
+    expect(license()).toMatchObject({ school_plan_id: null, stripe_subscription_id: SUB, status: 'active', starts_at: isoS(P1[0]), billing_method: 'card' })
+  })
+})

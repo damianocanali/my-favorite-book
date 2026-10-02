@@ -957,10 +957,15 @@ actor APIClient {
     }
 
     func teacherClasses(bearerToken: String) async throws -> [TeacherClass] {
+        try await teacherClassesWithStatus(bearerToken: bearerToken).classes
+    }
+
+    /// The class list plus whether this teacher is verified (Stage 4).
+    func teacherClassesWithStatus(bearerToken: String) async throws -> (classes: [TeacherClass], verified: Bool) {
         let res: TeacherClassesResponse = try await teacherCall(
             method: "GET", path: "/api/school/classes", query: [:],
             body: Optional<EmptyBody>.none, bearerToken: bearerToken)
-        return res.classes ?? []
+        return (res.classes ?? [], res.verification?.verified ?? true)
     }
 
     private struct CreateClassBody: Encodable {

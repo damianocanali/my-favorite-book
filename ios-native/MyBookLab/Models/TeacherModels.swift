@@ -44,6 +44,12 @@ struct TeacherLicense: Decodable, Hashable, Sendable {
     let expires_at: String?
     let image_allowance: Int?
     let images_used: Int?
+    // Stage 4: seats and plan state for the iPad's plan card. Never a price
+    // (App Store 3.1.3); nil from an older server.
+    var seats: Int? = nil
+    var pending_seats: Int? = nil
+    var cancel_at_period_end: Bool? = nil
+    var school_plan_id: String? = nil
 }
 
 struct TeacherCheckin: Decodable, Hashable, Sendable {
@@ -127,7 +133,13 @@ struct TeacherClass: Decodable, Identifiable, Hashable, Sendable {
 }
 
 struct TeacherClassesResponse: Decodable, Sendable {
+    struct Verification: Decodable, Sendable {
+        let verified: Bool?
+    }
     let classes: [TeacherClass]?
+    /// Stage 4: an unverified teacher can look around but can't create
+    /// classes or add students. nil from an older server = verified.
+    let verification: Verification?
 }
 
 struct TeacherClassResponse: Decodable, Sendable {
@@ -600,6 +612,11 @@ enum LicenseBadgeState: Equatable {
             self = .comped
         case "grace":
             self = .active
+        case "pending_payment":
+            // An invoice-billed school plan whose invoice is open: usable
+            // until its due date (lib/school/license.js). Shown as active —
+            // the iPad never talks about payment.
+            self = (expires.map { $0 > now } ?? false) ? .active : .expired
         case "active":
             self = (expires.map { $0 > now } ?? false) ? .active : .expired
         default:
