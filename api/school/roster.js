@@ -26,7 +26,7 @@ export async function openClassByCode(rawCode) {
   // "Resting", never "unpaid": children must not be told about money.
   if (!isLicenseUsable(firstOf(c.class_licenses))) return { status: 423, code: 'class_resting' }
   if (!c.sign_in_open) return { status: 423, code: 'sign_in_closed' }
-  if (c.sign_in_paused_until && new Date(c.sign_in_paused_until) > new Date()) return { status: 423, code: 'class_paused' }
+  if (c.sign_in_paused_until && new Date(c.sign_in_paused_until) > new Date()) return { status: 423, code: 'class_paused', pausedClassId: c.id }
   return { classroom: { id: c.id, name: c.name, locale: c.locale } }
 }
 
