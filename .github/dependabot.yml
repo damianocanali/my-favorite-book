@@ -1,0 +1,19 @@
+# Dependency update PRs (privacy review §7 item 25).
+# Swift packages: Dependabot's "swift" ecosystem only reads Package.swift
+# manifests; the iPad app declares its packages in ios-native/project.yml
+# (XcodeGen) / the .xcodeproj, which Dependabot can't parse — so those are
+# reviewed by hand monthly (Supabase, RevenueCat, Stripe, GoogleSignIn).
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly

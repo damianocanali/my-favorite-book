@@ -1,0 +1,46 @@
+# CI for My Book Lab (privacy review §7 item 25).
+# Runs the vitest suite (incl. tests/rls-baseline.test.js: every table has
+# RLS) and a production web build on every PR and every push to main.
+# npm audit is report-only for now (continue-on-error) — make it blocking
+# once the current findings are triaged.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      # Dummy values: tests mock every network call, but some modules read
+      # these at import time. Never real secrets.
+      SUPABASE_URL: https://ci-project.supabase.co
+      VITE_SUPABASE_URL: https://ci-project.supabase.co
+      SUPABASE_ANON_KEY: ci-anon
+      VITE_SUPABASE_ANON_KEY: ci-anon
+      SUPABASE_SERVICE_ROLE_KEY: ci-service
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install (lockfile must match package.json)
+        run: npm ci
+      - name: Unit tests
+        run: npx vitest run
+      - name: Web build
+        run: npx vite build
+      - name: npm audit (production deps, high+) — non-blocking for now
+        run: npm audit --omit=dev --audit-level=high
+        continue-on-error: true
