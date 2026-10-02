@@ -68,13 +68,6 @@ export function validatePrompt(prompt, req) {
 }
 
 /**
- * Moderate free-text before it reaches the image/story model, using OpenAI's
- * (free) moderation endpoint. Returns an error Response to BLOCK, or null to
- * allow. If OPENAI_API_KEY is unset we log loudly and allow (so a missing env
- * var is visible rather than silently disabling protection); on a transient
- * provider error we fail-open and log, to avoid blocking legitimate kids.
- */
-/**
  * Atomically bump and check the caller's per-day image-generation count.
  * Returns a 429 Response when the daily limit is exceeded, else null. Fails
  * open (allows) if the service env is missing — the auth + hourly limiter are
@@ -110,14 +103,31 @@ export async function enforceDailyCap(userId, req, limit = DAILY_IMAGE_LIMIT) {
   }
 }
 
-export async function moderatePrompt(text, req) {
+/// The "try again" answer when moderation can't run for a caller that must
+/// fail CLOSED (students). The apps map the code to their own "try again"
+/// copy (src/lib/aiErrors.js, iPad APIError.friendly).
+export function moderationUnavailable(req) {
+  return aiError(503, "We couldn't check that just now. Please try again in a moment.", req, 'moderation_unavailable')
+}
+
+/**
+ * Moderate free-text before it reaches the image/story model, using OpenAI's
+ * (free) moderation endpoint. Returns an error Response to BLOCK, or null to
+ * allow.
+ *
+ * When moderation can't run (key unset, timeout, provider error):
+ *  - default (adults): log loudly and allow — a missing env var is visible
+ *    rather than silently blocking every family.
+ *  - `failClosed: true` (student accounts, review §7 item 10): refuse with a
+ *    503 `moderation_unavailable` so unscreened text never reaches a model
+ *    on a child's school account.
+ */
+export async function moderatePrompt(text, req, { failClosed = false } = {}) {
   const key = process.env.OPENAI_API_KEY
   if (!key) {
     console.warn('[moderation] OPENAI_API_KEY is unset — prompt moderation is DISABLED')
-    return null
+    return failClosed ? moderationUnavailable(req) : null
   }
-  // Bounded like every other upstream call; a timeout fails open (below),
-  // same as any other transient moderation error.
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), MODERATION_TIMEOUT_MS)
   try {
@@ -129,17 +139,21 @@ export async function moderatePrompt(text, req) {
     })
     if (!res.ok) {
       console.error('[moderation] OpenAI moderation request failed:', res.status)
-      return null
+      return failClosed ? moderationUnavailable(req) : null
     }
     const data = await res.json().catch(() => null)
-    if (data?.results?.[0]?.flagged) {
+    if (!Array.isArray(data?.results)) {
+      console.error('[moderation] unreadable moderation response')
+      return failClosed ? moderationUnavailable(req) : null
+    }
+    if (data.results[0]?.flagged) {
       console.warn('[moderation] prompt flagged and rejected')
       return aiError(400, "Let's keep our story kind and friendly — try different words!", req, 'unkind')
     }
     return null
   } catch (e) {
     console.error('[moderation] error:', e?.name === 'AbortError' ? 'timeout' : e?.message)
-    return null
+    return failClosed ? moderationUnavailable(req) : null
   } finally {
     clearTimeout(timer)
   }

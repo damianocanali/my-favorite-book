@@ -2,6 +2,7 @@ import { checkRateLimit, handleCors, withCors } from './_rateLimit.js'
 import { logUsage, estimateAnthropicCostCents } from './_usage.js'
 import { requireUser, moderatePrompt } from './_aiGuard.js'
 import { classifyAttestation, hourlyLimitFor } from './_appAttest.js'
+import { isStudent } from './_school.js'
 
 export const config = { runtime: 'edge' }
 
@@ -247,6 +248,9 @@ export default async function handler(req) {
     // RENDERING in, which is the thing the child sees. Accept-Language is a
     // fallback for older clients that don't send the field yet — without it
     // they would silently keep getting English after this ships.
+    // Students' text is never sent unscreened (review §7 item 10).
+    const modOpts = { failClosed: isStudent(auth) }
+
     const locale =
       payload?.locale ??
       req.headers.get('accept-language')?.split(',')[0] ??
@@ -254,7 +258,7 @@ export default async function handler(req) {
 
     // Native app sends a free-form chat message; web app sends an intent.
     if (typeof payload?.message === 'string' && payload.message.trim()) {
-      const modErr = await moderatePrompt(payload.message, req)
+      const modErr = await moderatePrompt(payload.message, req, modOpts)
       if (modErr) return modErr
       return await handleChat(payload, apiKey, locale, req)
     }
@@ -271,7 +275,7 @@ export default async function handler(req) {
 
     // Moderate the child's own writing on the page before it informs the model.
     if (page.text && String(page.text).trim()) {
-      const modErr = await moderatePrompt(String(page.text), req)
+      const modErr = await moderatePrompt(String(page.text), req, modOpts)
       if (modErr) return modErr
     }
 

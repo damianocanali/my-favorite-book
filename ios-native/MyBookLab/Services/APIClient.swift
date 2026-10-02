@@ -86,7 +86,7 @@ enum APIError: Error, LocalizedError {
             return AppText("errors.ai.daily_limit", defaultValue: "You've reached today's creation limit — come back tomorrow!")
         case "rate_limited":
             return AppText("errors.ai.rate_limited", defaultValue: "Too many tries just now. Please try again a bit later.")
-        case "scene_unavailable":
+        case "scene_unavailable", "moderation_unavailable":
             return AppText("errors.ai.try_again", defaultValue: "We couldn't do that just now. Please try again in a moment.")
         case "timeout":
             return AppText("errors.ai.timeout", defaultValue: "That took too long. Please try again.")

@@ -106,8 +106,10 @@ export default async function handler(req) {
     // Moderate the child's RAW text before anything paid sees it.
     // Chunked (overlapping) so the whole text is read — moderatePrompt
     // truncates at 8000 — and in parallel so a long page isn't slower.
+    // Students fail CLOSED when moderation can't run (review §7 item 10).
+    const modOpts = { failClosed: isStudent(auth) }
     const rawText = structured ? rawTextForModeration(input) : payload.prompt
-    const modErrs = await Promise.all(moderationChunks(rawText).map((chunk) => moderatePrompt(chunk, req)))
+    const modErrs = await Promise.all(moderationChunks(rawText).map((chunk) => moderatePrompt(chunk, req, modOpts)))
     const modErr = modErrs.find(Boolean)
     if (modErr) return modErr
 
@@ -146,7 +148,7 @@ export default async function handler(req) {
       if (finalErr) return finalErr
       // And the FINAL prompt, in case the rewrite produced something the
       // raw text didn't (legacy prompts ARE their raw text: moderated above).
-      const modErr = await moderatePrompt(prompt, req)
+      const modErr = await moderatePrompt(prompt, req, modOpts)
       if (modErr) return modErr
     }
 
