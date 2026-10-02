@@ -3,6 +3,7 @@
 import { verifyJwt } from './_auth.js'
 import { withCors } from './_rateLimit.js'
 import { STUDENT_DAILY_IMAGES } from '../lib/school/license.js'
+import { verificationState, writeVerification } from '../lib/school/teacherVerification.js'
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 export const isUuid = (s) => typeof s === 'string' && UUID_RE.test(s)
@@ -113,6 +114,32 @@ export async function requireTeacher(req) {
     return fail(req, 401, 'mfa_required', 'Enter your 2-step sign-in code')
   }
   return { ok: true, auth }
+}
+
+/// Verification state for a teacher's verified JWT. A confirmed
+/// school-domain email is recorded here the first time it is seen (best
+/// effort: the domain check is deterministic, so a failed write only means
+/// it is re-checked next time).
+export async function teacherVerification(auth) {
+  const state = verificationState(auth)
+  if (state.verified || !state.domainEligible) return state
+  const at = new Date().toISOString()
+  const written = await writeVerification(sb, auth.userId, 'domain', at).catch(() => false)
+  if (!written) console.error('[school] could not record domain verification')
+  return { verified: true, by: 'domain', at }
+}
+
+/// requireTeacher + verified (Stage 4). Gates creating classes, starting
+/// trials, adding students and buying. Everything else (seeing the teacher
+/// area, existing classes) only needs requireTeacher.
+export async function requireVerifiedTeacher(req) {
+  const t = await requireTeacher(req)
+  if (!t.ok) return t
+  const v = await teacherVerification(t.auth)
+  if (!v.verified) {
+    return fail(req, 403, 'teacher_unverified', "We're confirming you're a teacher — usually within a day")
+  }
+  return { ok: true, auth: t.auth, verification: v }
 }
 
 export async function requireClassOwner(req, classroomId) {

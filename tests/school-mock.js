@@ -6,7 +6,7 @@
 import { vi } from 'vitest'
 
 export const URL_ = 'https://example.supabase.co'
-export const TEACHER = { id: 'teacher-1', app_metadata: {} }
+export const TEACHER = { id: 'teacher-1', app_metadata: { teacher_verified_at: '2026-09-01T00:00:00Z', teacher_verified_by: 'grandfathered' } }
 export const STUDENT_USER = { id: 'kid-auth-1', app_metadata: { role: 'student', student_id: '6f1c1b1e-0000-4000-8000-0000000000a1' } }
 
 export const CLASS_ID = '6f1c1b1e-0000-4000-8000-000000000001'

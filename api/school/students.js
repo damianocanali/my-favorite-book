@@ -1,7 +1,7 @@
 export const config = { runtime: 'edge' }
 
 import { handleCors, checkRateLimit } from '../_rateLimit.js'
-import { requireClassOwner, sb, json, isUuid } from '../_school.js'
+import { requireClassOwner, sb, json, isUuid, teacherVerification } from '../_school.js'
 import { generatePictureSecret, hashPictureSecret, syntheticStudentEmail, randomPassword } from '../../lib/school/crypto.js'
 import { AVATAR_EMOJI } from '../../lib/school/pictures.js'
 import { isLicenseUsable, MAX_SEATS } from '../../lib/school/license.js'
@@ -45,10 +45,14 @@ const cleanName = (n) => String(n ?? '').trim().replace(/\s+/g, ' ').slice(0, 24
 // non-2xx response throws, which the handler's top-level try/catch turns
 // into a 503 upstream instead of silently treating the class as empty.
 async function loadLicense(classroomId) {
-  const res = await sb(`/rest/v1/class_licenses?classroom_id=eq.${classroomId}&select=status,expires_at,seats`)
+  const res = await sb(`/rest/v1/class_licenses?classroom_id=eq.${classroomId}&select=status,expires_at,seats,pending_seats`)
   if (!res.ok) throw new Error(`license lookup failed: ${res.status}`)
   const rows = await res.json()
-  return rows?.[0] ?? null
+  const lic = rows?.[0] ?? null
+  // A seat reduction waiting for the renewal (Stage 4) also caps new
+  // students now, so the class never has more children than its next term.
+  if (lic && Number.isInteger(lic.pending_seats)) lic.seats = Math.min(lic.seats, lic.pending_seats)
+  return lic
 }
 
 async function activeStudents(classroomId) {
@@ -188,6 +192,10 @@ export default async function handler(req) {
     const classroomId = o.classroom.id
 
     if (req.method === 'POST') {
+      // Adding students: verified teachers only (Stage 4).
+      if (!(await teacherVerification(o.auth)).verified) {
+        return json(req, 403, { error: "We're confirming you're a teacher — usually within a day", code: 'teacher_unverified' })
+      }
       const license = await loadLicense(classroomId)
       if (!isLicenseUsable(license)) return json(req, 403, { error: 'This class needs an active license', code: 'license_required' })
       const input = Array.isArray(body.students) ? body.students.slice(0, MAX_SEATS) : []
@@ -321,6 +329,9 @@ export default async function handler(req) {
           return reply(res)
         }
         case 'restore': {
+          if (!(await teacherVerification(o.auth)).verified) {
+            return json(req, 403, { error: "We're confirming you're a teacher — usually within a day", code: 'teacher_unverified' })
+          }
           const license = await loadLicense(classroomId)
           const used = (await activeStudents(classroomId)).length
           if (!license || used + 1 > license.seats) return json(req, 409, { error: 'Not enough seats in this class', code: 'seats_full' })
