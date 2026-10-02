@@ -83,7 +83,7 @@ describe('DELETE /api/school/classes', () => {
     headers: { authorization: 'Bearer jwt', 'content-type': 'application/json' },
     body: JSON.stringify({ confirm_name }),
   })
-  const kids = { method: 'GET', match: `class_students?classroom_id=eq.${CLASS_ID}&select=auth_user_id`, reply: { body: [{ auth_user_id: 'k1' }, { auth_user_id: 'k2' }, { auth_user_id: 'k3' }] } }
+  const kids = { method: 'GET', match: `class_students?classroom_id=eq.${CLASS_ID}&select=id,auth_user_id`, reply: { body: [{ id: 's-1', auth_user_id: 'k1' }, { id: 's-2', auth_user_id: 'k2' }, { id: 's-3', auth_user_id: 'k3' }] } }
 
   it('refuses a wrong typed name', async () => {
     const log = mockSupabase({ user: TEACHER, routes: [ownerRoute, kids, logRoute] })
@@ -106,7 +106,20 @@ describe('DELETE /api/school/classes', () => {
       expect(i).toBeGreaterThan(open)
       expect(i).toBeLessThan(classDel)
     }
-    expect(log.find((l) => l.method === 'PATCH' && l.url.includes('deletion_log?id=eq.9')).body.status).toBe('done')
+    expect(log.filter((l) => l.method === 'PATCH' && l.url.includes('deletion_log?id=eq.9')).at(-1).body.status).toBe('done')
+    // One evidence row per child, no names.
+    const perChild = log.filter((l) => l.method === 'POST' && l.url.includes('deletion_log') && l.body.action === 'purge_class_student')
+    expect(perChild.map((l) => l.body.target_id).sort()).toEqual(['s-1', 's-2', 's-3'])
+    expect(perChild.every((l) => l.body.actor_kind === 'teacher' && l.body.actor_user_id === TEACHER.id)).toBe(true)
+  })
+
+  it('checks the rate limit before the typed name', async () => {
+    const src = (await import('node:fs')).readFileSync('api/school/classes.js', 'utf8')
+    const del = src.slice(src.indexOf("req.method === 'DELETE'"))
+    expect(del.indexOf('checkRateLimit')).toBeLessThan(del.indexOf('namesMatch'))
+    const st = (await import('node:fs')).readFileSync('api/school/students.js', 'utf8')
+    const dn = st.slice(st.indexOf("case 'delete_now'"))
+    expect(dn.indexOf('checkRateLimit')).toBeLessThan(dn.indexOf('namesMatch'))
   })
 
   it('keeps the class (retryable) when a student purge fails', async () => {
@@ -118,7 +131,8 @@ describe('DELETE /api/school/classes', () => {
     expect(res.status).toBe(502)
     expect((await res.json()).code).toBe('delete_incomplete')
     expect(log.some((l) => l.method === 'DELETE' && l.url.includes('/rest/v1/classrooms?id=eq.'))).toBe(false)
-    expect(log.find((l) => l.method === 'PATCH' && l.url.includes('deletion_log?id=eq.9')).body.status).toBe('failed')
+    // 'partial': the retention cron finishes it overnight.
+    expect(log.filter((l) => l.method === 'PATCH' && l.url.includes('deletion_log?id=eq.9')).at(-1).body.status).toBe('partial')
   })
 
   it("someone else's class is a 404 and nothing is deleted", async () => {

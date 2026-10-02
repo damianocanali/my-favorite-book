@@ -19724,13 +19724,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Some of the class couldn't be deleted yet. Try again to finish."
+            "value": "Part of the class is still being deleted. It will finish overnight, or try again now."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Una parte della classe non è ancora stata eliminata. Riprova per completare."
+            "value": "Una parte della classe è ancora in eliminazione. Verrà completata durante la notte, oppure riprova ora."
           }
         }
       }

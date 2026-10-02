@@ -341,11 +341,11 @@ export default async function handler(req) {
           // removal gets from the retention cron, without the wait. The
           // teacher must type the child's name; the evidence row is written
           // first and the purge never runs without it.
-          if (!namesMatch(body.confirm_name, student.display_name)) {
-            return json(req, 400, { error: 'Type the name to confirm', code: 'confirm_mismatch' })
-          }
           if (!checkRateLimit(`school-delete:${o.auth.userId}`, 40).allowed) {
             return json(req, 429, { error: 'Too many requests', code: 'rate_limited' })
+          }
+          if (!namesMatch(body.confirm_name, student.display_name)) {
+            return json(req, 400, { error: 'Type the name to confirm', code: 'confirm_mismatch' })
           }
           const env = sbEnvForPurge()
           const logId = await startDeletionLog(sb, {

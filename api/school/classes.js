@@ -149,19 +149,25 @@ export default async function handler(req) {
       // Permanent, immediate deletion of a class and everything in it
       // (review §7.3, spec "Teacher deletes the class"): every student's
       // account is purged, then the class (lib/deleteUser.js
-      // purgeClassroom). The teacher must type the class name; the
-      // deletion_log evidence row is written first and nothing is deleted
-      // without it. A failure part-way leaves the class (with whoever is
-      // left) in place, so trying again finishes the job.
+      // purgeClassroom), each child with their own deletion_log row. The
+      // teacher must type the class name; the class's evidence row is
+      // written first and nothing is deleted without it.
+      //
+      // Edge time budget: if the purge stops part-way (a failure, or a very
+      // slow run), the row is marked 'partial' and api/cron/retention.js
+      // finishes the job overnight — the teacher is told so
+      // (delete_incomplete), and trying again also finishes it.
       const id = new URL(req.url).searchParams.get('id')
       const o = await requireClassOwner(req, id)
       if (!o.ok) return o.response
+      // Rate limit before the name check, so the check itself can't be
+      // used to probe class names.
+      if (!checkRateLimit(`school-class-delete:${o.auth.userId}`, 10).allowed) {
+        return json(req, 429, { error: 'Too many requests', code: 'rate_limited' })
+      }
       const body = await req.json().catch(() => ({}))
       if (!namesMatch(body.confirm_name, o.classroom.name)) {
         return json(req, 400, { error: 'Type the class name to confirm', code: 'confirm_mismatch' })
-      }
-      if (!checkRateLimit(`school-class-delete:${o.auth.userId}`, 10).allowed) {
-        return json(req, 429, { error: 'Too many requests', code: 'rate_limited' })
       }
       const logId = await startDeletionLog(sb, {
         actorUserId: o.auth.userId, actorKind: 'teacher', action: 'delete_class',
@@ -171,9 +177,10 @@ export default async function handler(req) {
       const result = await purgeClassroom(o.classroom, {
         supabaseUrl: process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL,
         serviceKey: process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY,
+        deletionLog: { actorKind: 'teacher', actorUserId: o.auth.userId },
       })
-      await finishDeletionLog(sb, logId, result.ok)
-      if (!result.ok) return json(req, 502, { error: 'Could not delete the whole class, try again', code: 'delete_incomplete' })
+      await finishDeletionLog(sb, logId, result.ok ? true : 'partial')
+      if (!result.ok) return json(req, 502, { error: 'Part of the class is still being deleted; it will finish overnight', code: 'delete_incomplete' })
       return json(req, 200, { deleted: true, id: o.classroom.id })
     }
 

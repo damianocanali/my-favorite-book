@@ -194,7 +194,7 @@
       "cannot_return": "This assignment is closed or past its due date, so it can't be sent back.",
       "template_locked": "The worksheet can only change while the assignment is a draft.",
       "confirm_mismatch": "The name you typed doesn't match. Nothing was deleted.",
-      "delete_incomplete": "Some of the class couldn't be deleted yet. Try again to finish.",
+      "delete_incomplete": "Part of the class is still being deleted. It will finish overnight, or try again now.",
       "checkins_off": "Check-ins are off for this class."
     },
     "class_page": {

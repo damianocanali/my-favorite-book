@@ -453,7 +453,7 @@ enum TeacherCopy {
         case "template_locked": AppText("school.teacher.errors.template_locked", defaultValue: "The worksheet can only change while the assignment is a draft.")
         case "confirm_mismatch": AppText("school.teacher.errors.confirm_mismatch", defaultValue: "The name you typed doesn't match. Nothing was deleted.")
         case "checkins_off": AppText("school.teacher.errors.checkins_off", defaultValue: "Check-ins are off for this class.")
-        case "delete_incomplete": AppText("school.teacher.errors.delete_incomplete", defaultValue: "Some of the class couldn't be deleted yet. Try again to finish.")
+        case "delete_incomplete": AppText("school.teacher.errors.delete_incomplete", defaultValue: "Part of the class is still being deleted. It will finish overnight, or try again now.")
         case APIClient.sessionExpiredCode: APIError.sessionExpiredText
         default: AppText("school.teacher.errors.generic", defaultValue: "Something went wrong. Try again.")
         }
