@@ -455,9 +455,11 @@ actor APIClient {
     // MARK: - Gallery (public — no auth required)
 
     /// Fetches the recent + featured Gallery books from /api/publish-book?recent=true.
-    func fetchGallery() async throws -> [PublishedBookSummary] {
+    /// Signed in, the server leaves out authors this reader blocked and
+    /// marks their own books (is_owner).
+    func fetchGallery(bearerToken: String? = nil) async throws -> [PublishedBookSummary] {
         let url = makeURL(path: "/api/publish-book", query: ["recent": "true"])
-        return try await rawGet(url: url)
+        return try await rawGet(url: url, bearerToken: bearerToken)
     }
 
     /// Reports a published book so it can be reviewed and, once enough
@@ -475,10 +477,10 @@ actor APIClient {
 
     /// Hides everything by a given author for this user.
     @discardableResult
-    func blockAuthor(userId: String, bearerToken: String) async throws -> ReportBookResponse {
+    func blockAuthor(authorRef: String, bearerToken: String) async throws -> ReportBookResponse {
         try await request(
             method: "POST", path: "/api/report-book",
-            body: BlockAuthorRequest(action: "block", userId: userId),
+            body: BlockAuthorRequest(action: "block", authorRef: authorRef),
             bearerToken: bearerToken
         )
     }

@@ -166,7 +166,7 @@ struct GalleryView: View {
         loading = true
         defer { loading = false }
         do {
-            books = try await APIClient.shared.fetchGallery()
+            books = try await APIClient.shared.fetchGallery(bearerToken: await AuthStore.shared.validAccessToken())
             error = nil
         } catch is CancellationError {
             // ignore — view went away

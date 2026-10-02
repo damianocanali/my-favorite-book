@@ -5,6 +5,44 @@ import { verifyJwt } from './_auth.js'
 import { moderatePrompt } from './_aiGuard.js'
 import { rejectStudent } from './_school.js'
 import { capCustomBookText, publicBookText } from '../lib/bookLimits.js'
+import { sealAuthorRef } from '../lib/authorRef.js'
+
+// Columns a public read may return. user_id is read (for is_owner, the
+// author handle and the caller's blocks) but never sent (review §7.8).
+const PUBLIC_COLS = 'slug,title,author_name,author_age,cover_emoji,cover_color,reaction_counts,published_at,featured'
+
+/// One public row: no user_id. `is_owner` for the signed-in author;
+/// `author_ref` (and, for app builds before 2.0.1 that read the old field,
+/// `user_id` holding the same opaque handle) lets a reader block the author
+/// without ever seeing their account id.
+async function publicRow(row, callerId) {
+  const { user_id: authorId, ...rest } = row
+  const ref = await sealAuthorRef(authorId)
+  return { ...rest, is_owner: !!callerId && authorId === callerId, author_ref: ref, user_id: ref }
+}
+
+/// The signed-in caller, if any. A public read never fails over auth.
+async function optionalCaller(req) {
+  if (!req.headers.get('authorization')) return null
+  try {
+    const auth = await verifyJwt(req)
+    return auth.ok ? auth.userId : null
+  } catch {
+    return null
+  }
+}
+
+async function blockedBy(callerId, supabaseUrl, headers) {
+  if (!callerId) return new Set()
+  try {
+    const res = await fetch(`${supabaseUrl}/rest/v1/blocked_authors?user_id=eq.${encodeURIComponent(callerId)}&select=blocked_user_id`, { headers })
+    if (!res.ok) return new Set()
+    const rows = await res.json()
+    return new Set((Array.isArray(rows) ? rows : []).map((r) => r.blocked_user_id))
+  } catch {
+    return new Set()
+  }
+}
 
 function supabaseHeaders(serviceKey) {
   return {
@@ -37,36 +75,35 @@ export default async function handler(req) {
     const slug = url.searchParams.get('slug')
     const featured = url.searchParams.get('featured')
 
+    const callerId = await optionalCaller(req)
+
     if (slug) {
       const res = await fetch(
-        `${supabaseUrl}/rest/v1/published_books?slug=eq.${encodeURIComponent(slug)}&hidden=is.false&select=*`,
+        `${supabaseUrl}/rest/v1/published_books?slug=eq.${encodeURIComponent(slug)}&hidden=is.false&select=${PUBLIC_COLS},book_data,user_id`,
         { headers }
       )
       const rows = await res.json()
       if (!rows?.length) return json(404, { error: 'Book not found' })
-      // Return user_id so the client can determine ownership
-      return json(200, rows[0])
+      return json(200, await publicRow(rows[0], callerId))
     }
 
-    // Fetch featured books
-    if (featured !== null) {
-      const res = await fetch(
-        `${supabaseUrl}/rest/v1/published_books?featured=eq.true&hidden=is.false&order=featured_at.desc&limit=20&select=slug,title,author_name,author_age,cover_emoji,cover_color,reaction_counts,published_at`,
-        { headers }
-      )
+    // Featured and recent lists. A signed-in reader's blocked authors are
+    // left out (report-book.js "block").
+    const list = async (query) => {
+      const res = await fetch(`${supabaseUrl}/rest/v1/published_books?${query}&select=${PUBLIC_COLS},user_id`, { headers })
       const rows = await res.json()
-      return json(200, rows || [])
+      const blocked = await blockedBy(callerId, supabaseUrl, headers)
+      const visible = (Array.isArray(rows) ? rows : []).filter((r) => !blocked.has(r.user_id))
+      return Promise.all(visible.map((r) => publicRow(r, callerId)))
     }
 
-    // Fetch recent books (all published, newest first)
+    if (featured !== null) {
+      return json(200, await list('featured=eq.true&hidden=is.false&order=featured_at.desc&limit=20'))
+    }
+
     const recent = url.searchParams.get('recent')
     if (recent !== null) {
-      const res = await fetch(
-        `${supabaseUrl}/rest/v1/published_books?hidden=is.false&order=published_at.desc&limit=30&select=slug,user_id,title,author_name,author_age,cover_emoji,cover_color,reaction_counts,published_at,featured`,
-        { headers }
-      )
-      const rows = await res.json()
-      return json(200, rows || [])
+      return json(200, await list('hidden=is.false&order=published_at.desc&limit=30'))
     }
 
     return json(400, { error: 'slug, featured, or recent param required' })
