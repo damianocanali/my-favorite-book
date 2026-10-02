@@ -28,7 +28,7 @@ import { MIN_SCHOOL_SEATS, MAX_SCHOOL_SEATS, MAX_CLASS_SEATS, seatAddQuote } fro
 
 export const deps = { stripe: defaultStripe }
 
-const PLAN_COLS = 'id,owner_user_id,school_name,status,billing_method,seats,pending_seats,price_tier,starts_at,expires_at,cancel_at_period_end,decline_reason,stripe_customer_id,stripe_subscription_id,created_at'
+const PLAN_COLS = 'id,owner_user_id,school_name,status,billing_method,seats,pending_seats,price_tier,starts_at,expires_at,cancel_at_period_end,decline_reason,stripe_customer_id,stripe_subscription_id,last_seat_add_invoice,created_at'
 const CODE_RE = /^[A-Z0-9]{4,12}$/
 
 async function ownPlan(userId, planId) {
@@ -225,7 +225,18 @@ export default async function handler(req) {
             method: 'POST', headers: { Prefer: 'return=minimal' },
             body: JSON.stringify({ invoice_id: charged.invoiceId, plan_id: plan.id, seats_from: plan.seats, seats_to: body.seats, due_at: charged.dueDate }),
           })
-          if (!ins.ok && ins.status !== 409) {
+          if (ins.status === 409) {
+            // The same invoice already recorded = a replay of this request.
+            // Otherwise another tab's add holds the one pending slot: this
+            // invoice must not stay live and untracked (review R3).
+            const mine = await sb(`/rest/v1/school_seat_add_invoices?invoice_id=eq.${encodeURIComponent(charged.invoiceId)}&select=invoice_id`)
+            const [row] = mine.ok ? await mine.json() : []
+            if (!row) {
+              const v = await deps.stripe(`invoices/${encodeURIComponent(charged.invoiceId)}/void`, { method: 'POST', idempotencyKey: `seat-add-void-${charged.invoiceId}` })
+              if (!v.ok) await sendOwnerAlert({ subject: 'Duplicate seat-add invoice not voided', lines: [`School plan ${plan.id}: invoice ${charged.invoiceId} was sent while another seat add was pending, and could not be voided. Void it in Stripe.`] })
+              return json(req, 409, { error: 'An invoice for extra seats is still waiting to be paid', code: 'seat_add_pending' })
+            }
+          } else if (!ins.ok) {
             await sendOwnerAlert({ subject: 'Seat-add invoice not tracked', lines: [`School plan ${plan.id}: invoice ${charged.invoiceId} (${plan.seats} → ${body.seats}) was sent but could not be recorded. Grant the seats by hand when it is paid, or void it.`] })
             return json(req, 502, { error: 'Could not change seats', code: 'upstream' })
           }
@@ -235,7 +246,7 @@ export default async function handler(req) {
         // from (review N2), then Stripe.
         const cas = await sb(`/rest/v1/school_plans?id=eq.${plan.id}&seats=eq.${plan.seats}`, {
           method: 'PATCH', headers: { Prefer: 'return=representation' },
-          body: JSON.stringify({ seats: body.seats, pending_seats: null, updated_at: new Date().toISOString() }),
+          body: JSON.stringify({ seats: body.seats, pending_seats: null, last_seat_add_invoice: charged.invoiceId, updated_at: new Date().toISOString() }),
         })
         if (!cas.ok) {
           await sendOwnerAlert({ subject: 'Plan seats paid but not recorded', lines: [`School plan ${plan.id}: seats ${plan.seats} → ${body.seats} (invoice ${charged.invoiceId}); the row update failed.`] })
@@ -244,10 +255,13 @@ export default async function handler(req) {
         const [after] = await cas.json().catch(() => [])
         if (!after) {
           const now = await ownPlan(userId, plan.id)
-          if (now?.seats !== body.seats) {
+          // Replay of THIS request only when the row holds its invoice (R1).
+          if (now?.last_seat_add_invoice !== charged.invoiceId) {
             const refunded = await refundInvoice(deps.stripe, charged.invoiceId, `seat-add-refund-${charged.invoiceId}`)
             await sendOwnerAlert({ subject: 'Seat add refunded (seats changed meanwhile)', lines: [`School plan ${plan.id}: ${plan.seats} → ${body.seats} charged on invoice ${charged.invoiceId}, but the seats had changed. Refunded: ${refunded ? 'yes' : 'NO — refund it in Stripe'}.`] })
-            return json(req, 409, { error: 'The seats changed meanwhile. Nothing was charged; take another look.', code: 'seats_changed' })
+            return refunded
+              ? json(req, 409, { error: 'The seats changed meanwhile. Nothing was charged; take another look.', code: 'seats_changed' })
+              : json(req, 409, { error: "The seats changed meanwhile. We're refunding this charge; contact support if it doesn't appear.", code: 'seats_changed_refunding' })
           }
         }
         const q = await setStripe(body.seats)

@@ -230,7 +230,8 @@
       "reason_required": "A reason is required.",
       "seats_changed": "The seats changed while you were saving, so nothing was charged. Take another look and try again.",
       "renewal_failed": "The renewal payment didn't go through. Pay it first (Manage payment), then add seats.",
-      "seat_add_pending": "An invoice for extra seats is still waiting to be paid. You can add more once it's paid."
+      "seat_add_pending": "An invoice for extra seats is still waiting to be paid. You can add more once it's paid.",
+      "seats_changed_refunding": "The seats changed while you were saving. We're refunding this charge; contact support if it doesn't appear in a few days."
     },
     "class_page": {
       "back": "Back to your classes",

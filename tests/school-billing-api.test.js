@@ -299,6 +299,62 @@ describe('/api/school/billing — plan & billing for a class', () => {
     expect(stripeCalls.some((c) => c.path === 'refunds')).toBe(false)
   })
 
+  it('R1: two tabs (different request ids) both asking 30 → 32: one charge kept, the other refunded', async () => {
+    let lic = { ...cardLicense, seats: 30 }
+    routes.push(
+      ownerRoute,
+      { method: 'GET', match: '/rest/v1/class_licenses?classroom_id=eq.', reply: () => ({ body: [lic] }) },
+      students(18),
+      { method: 'PATCH', match: '/rest/v1/class_licenses?id=eq.lic-1', reply: (c) => {
+        if (!c.u.includes(`seats=eq.${lic.seats}`)) return { body: [] }
+        lic = { ...lic, ...c.body }
+        return { body: [lic] }
+      } },
+    )
+    payable()
+    // Each request (key prefix) gets its own invoice; both are charged.
+    const charged = []
+    const perRequest = async (path, opts = {}) => {
+      const tab = opts.idempotencyKey?.match(/-(6f1c1b1e-[0-9a-f-]+)-/)?.[1]
+      const inv = tab ? `in_${tab.slice(-2)}` : null
+      if (path === 'invoices' && opts.method === 'POST') return { ok: true, data: { id: inv } }
+      if (/^invoices\/in_..\/pay$/.test(path)) { charged.push(path); return { ok: true, data: { status: 'paid' } } }
+      if (/^invoices\/in_..$/.test(path)) return { ok: true, data: { id: path.split('/')[1], status: 'paid', payment_intent: `pi_${path.slice(-2)}` } }
+      if (/^invoices\/in_..\/finalize$/.test(path)) return { ok: true, data: {} }
+      return mockStripe(path, opts)
+    }
+    const mod = await import('../api/school/billing.js')
+    mod.deps.stripe = perRequest
+    const A = '6f1c1b1e-0000-4000-8000-0000000000a1'
+    const B = '6f1c1b1e-0000-4000-8000-0000000000b2'
+    // Both tabs read 30 seats before either writes.
+    const r1 = mod.default(call('billing', { body: { classId: CLASS_ID, action: 'seats', seats: 32, request_id: A } }))
+    const r2 = mod.default(call('billing', { body: { classId: CLASS_ID, action: 'seats', seats: 32, request_id: B } }))
+    const [a, b] = await Promise.all([r1, r2])
+    expect([a.status, b.status].sort()).toEqual([200, 409])
+    expect(charged).toHaveLength(2)
+    const refunds = stripeCalls.filter((c) => c.path === 'refunds')
+    expect(refunds).toHaveLength(1)
+    expect(lic.seats).toBe(32)
+    // The refund is for the invoice that did NOT land on the row.
+    expect(refunds[0].params.payment_intent).not.toBe(`pi_${lic.last_seat_add_invoice.slice(-2)}`)
+  })
+
+  it('the 409 says "we\'re refunding" when the refund did not go through', async () => {
+    routes.push(
+      ownerRoute,
+      { method: 'GET', match: '/rest/v1/class_licenses?classroom_id=eq.', reply: (() => { let n = 0; return () => ({ body: [n++ === 0 ? cardLicense : { ...cardLicense, seats: 27 }] }) })() },
+      students(18),
+      { method: 'PATCH', match: '/rest/v1/class_licenses?id=eq.lic-1', reply: { body: [] } },
+    )
+    payable()
+    stripeReplies['GET invoices/in_add'] = { ok: true, data: { id: 'in_add', status: 'paid', charge: 'ch_old' } }
+    stripeReplies['POST refunds'] = { ok: false, status: 500, data: {} }
+    const handler = await load('billing')
+    const res = await handler(call('billing', { body: { classId: CLASS_ID, action: 'seats', seats: 30, request_id: RID } }))
+    expect((await res.json()).code).toBe('seats_changed_refunding')
+  })
+
   it('N2: seats changed by another request meanwhile → this charge is refunded, 409 seats_changed', async () => {
     routes.push(
       ownerRoute,

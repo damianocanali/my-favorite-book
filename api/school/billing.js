@@ -26,7 +26,7 @@ export const deps = { stripe: defaultStripe }
 
 const LICENSE_COLS =
   'id,owner_user_id,status,origin,seats,pending_seats,expires_at,starts_at,billing_method,cancel_at_period_end,' +
-  'school_plan_id,image_allowance,images_used,stripe_customer_id,stripe_subscription_id,price_tier,updated_at'
+  'school_plan_id,image_allowance,images_used,stripe_customer_id,stripe_subscription_id,price_tier,last_seat_add_invoice,updated_at'
 
 async function loadLicense(classroomId) {
   const res = await sb(`/rest/v1/class_licenses?classroom_id=eq.${classroomId}&select=${LICENSE_COLS}`)
@@ -217,7 +217,7 @@ export default async function handler(req) {
         // review N2), then Stripe: the webhook then sees quantity == seats.
         const cas = await sb(`/rest/v1/class_licenses?id=eq.${license.id}&seats=eq.${license.seats}`, {
           method: 'PATCH', headers: { Prefer: 'return=representation' },
-          body: JSON.stringify({ seats: body.seats, image_allowance: imageAllowanceFor(body.seats), pending_seats: null, updated_at: new Date().toISOString() }),
+          body: JSON.stringify({ seats: body.seats, image_allowance: imageAllowanceFor(body.seats), pending_seats: null, last_seat_add_invoice: charged.invoiceId, updated_at: new Date().toISOString() }),
         })
         if (!cas.ok) {
           await sendOwnerAlert({ subject: 'Seats paid but not recorded', lines: [`Class license ${license.id}: seats ${license.seats} → ${body.seats} were paid (invoice ${charged.invoiceId}) but the row update failed.`] })
@@ -226,12 +226,15 @@ export default async function handler(req) {
         let [after] = await cas.json().catch(() => [])
         if (!after) {
           const now = await loadLicense(o.classroom.id)
-          // The same request replayed (double click): already applied.
-          if (now?.seats !== body.seats) {
-            // Another change won in between: give this charge back.
+          // A replay of THIS request (same invoice) already applied it.
+          // Anything else — another tab's change, even to the same count —
+          // won the race: give this charge back (review R1).
+          if (now?.last_seat_add_invoice !== charged.invoiceId) {
             const refunded = await refundInvoice(deps.stripe, charged.invoiceId, `seat-add-refund-${charged.invoiceId}`)
             await sendOwnerAlert({ subject: 'Seat add refunded (seats changed meanwhile)', lines: [`Class license ${license.id}: ${license.seats} → ${body.seats} charged on invoice ${charged.invoiceId}, but the seats had changed. Refunded: ${refunded ? 'yes' : 'NO — refund it in Stripe'}.`] })
-            return json(req, 409, { error: 'The seats changed meanwhile. Nothing was charged; take another look.', code: 'seats_changed' })
+            return refunded
+              ? json(req, 409, { error: 'The seats changed meanwhile. Nothing was charged; take another look.', code: 'seats_changed' })
+              : json(req, 409, { error: "The seats changed meanwhile. We're refunding this charge; contact support if it doesn't appear.", code: 'seats_changed_refunding' })
           }
           after = now
         }

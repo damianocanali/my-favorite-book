@@ -201,6 +201,45 @@ describe('I3/I6: school plan seats', () => {
     expect(log.find((l) => l.u.includes('school_seat_add_invoices') && l.method === 'POST').body).toMatchObject({ invoice_id: 'in_x', plan_id: PLAN_ID, seats_from: 300, seats_to: 320 })
   })
 
+  it('R3: a second tab\'s invoice that loses the one-pending slot is voided, 409 (not a replay)', async () => {
+    routes.push(
+      { method: 'GET', match: '/rest/v1/school_plans?id=eq.', reply: ok([plan]) },
+      { method: 'GET', match: '/rest/v1/class_licenses?school_plan_id=eq.', reply: ok([]) },
+      { method: 'GET', match: '/rest/v1/school_seat_add_invoices?plan_id', reply: ok([]) }, // both tabs passed the check
+      { method: 'POST', match: '/rest/v1/school_seat_add_invoices', reply: ok({ code: '23505' }, 409) },
+      { method: 'GET', match: '/rest/v1/school_seat_add_invoices?invoice_id=eq.in_y', reply: ok([]) },
+    )
+    stripeReplies['GET subscriptions/sub_p'] = { ok: true, data: { customer: 'cus_admin', collection_method: 'send_invoice', items: { data: [{ id: 'si_p', quantity: 300 }] } } }
+    stripeReplies['POST invoices'] = { ok: true, data: { id: 'in_y' } }
+    stripeReplies['POST invoiceitems'] = { ok: true, data: { id: 'ii' } }
+    stripeReplies['POST invoices/in_y/finalize'] = { ok: true, data: {} }
+    stripeReplies['POST invoices/in_y/send'] = { ok: true, data: {} }
+    const handler = await load()
+    const res = await handler(call('school/plan', { body: { action: 'seats', planId: PLAN_ID, seats: 330, request_id: REQ_ID } }))
+    expect(res.status).toBe(409)
+    expect((await res.json()).code).toBe('seat_add_pending')
+    expect(stripeCalls.some((c) => c.path === 'invoices/in_y/void' && c.method === 'POST')).toBe(true)
+  })
+
+  it('R3: …while a replay of the SAME request (its invoice already recorded) is still 202', async () => {
+    routes.push(
+      { method: 'GET', match: '/rest/v1/school_plans?id=eq.', reply: ok([plan]) },
+      { method: 'GET', match: '/rest/v1/class_licenses?school_plan_id=eq.', reply: ok([]) },
+      { method: 'GET', match: '/rest/v1/school_seat_add_invoices?plan_id', reply: ok([]) },
+      { method: 'POST', match: '/rest/v1/school_seat_add_invoices', reply: ok({ code: '23505' }, 409) },
+      { method: 'GET', match: '/rest/v1/school_seat_add_invoices?invoice_id=eq.in_y', reply: ok([{ invoice_id: 'in_y' }]) },
+    )
+    stripeReplies['GET subscriptions/sub_p'] = { ok: true, data: { customer: 'cus_admin', collection_method: 'send_invoice', items: { data: [{ id: 'si_p', quantity: 300 }] } } }
+    stripeReplies['POST invoices'] = { ok: true, data: { id: 'in_y' } }
+    stripeReplies['POST invoiceitems'] = { ok: true, data: { id: 'ii' } }
+    stripeReplies['POST invoices/in_y/finalize'] = { ok: true, data: {} }
+    stripeReplies['POST invoices/in_y/send'] = { ok: true, data: {} }
+    const handler = await load()
+    const res = await handler(call('school/plan', { body: { action: 'seats', planId: PLAN_ID, seats: 330, request_id: REQ_ID } }))
+    expect(res.status).toBe(202)
+    expect(stripeCalls.some((c) => c.path === 'invoices/in_y/void')).toBe(false)
+  })
+
   it('N3: a second add while one invoice is unpaid is refused; N8: no adds during grace', async () => {
     routes.push(
       { method: 'GET', match: '/rest/v1/school_plans?id=eq.', reply: ok([plan]) },

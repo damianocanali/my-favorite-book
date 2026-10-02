@@ -578,6 +578,50 @@ describe('round 2 review fixes', () => {
       expect(db.t('school_seat_add_invoices')[0].status).toBe('void')
     })
 
+    it('R2: an uncollectible add PAID later is granted when the seats are unchanged', async () => {
+      await run(addInvoice('invoice.marked_uncollectible'))
+      expect(db.t('school_seat_add_invoices')[0].status).toBe('void')
+      await run(addInvoice('invoice.paid'))
+      expect(db.t('school_plans').find((p) => p.id === 'plan-n3')).toMatchObject({ seats: 320, last_seat_add_invoice: 'in_add' })
+      expect(db.t('school_seat_add_invoices')[0].status).toBe('paid')
+    })
+
+    it('R2: …and refunded (never kept silently) when the seats moved on', async () => {
+      await run(addInvoice('invoice.voided'))
+      db.t('school_plans').find((p) => p.id === 'plan-n3').seats = 310
+      const withInvoice = vi.fn(async (path, opts = {}) => (path === 'invoices/in_add'
+        ? { ok: true, status: 200, data: { id: 'in_add', payment_intent: 'pi_add' } }
+        : stripe(path, opts)))
+      await handleSchoolStripeEvent(addInvoice('invoice.paid'), { sb: db.sb, stripe: withInvoice })
+      expect(withInvoice).toHaveBeenCalledWith('refunds', expect.objectContaining({ params: { payment_intent: 'pi_add', reason: 'duplicate' } }))
+      expect(db.t('school_plans').find((p) => p.id === 'plan-n3').seats).toBe(310)
+      expect(db.t('school_seat_add_invoices')[0].status).toBe('refunded')
+    })
+
+    it('R4: grant done but the record write failed → the retry recognises its own grant and only finishes the rest', async () => {
+      let failClose = true
+      const flaky = async (path, init = {}) => {
+        if (failClose && init.method === 'PATCH' && path.includes('school_seat_add_invoices') && init.body?.includes('"paid"')) {
+          failClose = false
+          return new Response('{}', { status: 500 })
+        }
+        return db.sb(path, init)
+      }
+      const paid = addInvoice('invoice.paid')
+      expect((await handleSchoolStripeEvent(paid, { sb: flaky, stripe })).status).toBe(500)
+      expect(db.t('school_plans').find((p) => p.id === 'plan-n3').seats).toBe(320) // granted
+      stripe.mockClear()
+      expect((await handleSchoolStripeEvent(paid, { sb: flaky, stripe })).status).toBe(200)
+      expect(stripe).not.toHaveBeenCalledWith('refunds', expect.anything())
+      expect(stripe).toHaveBeenCalledWith('subscriptions/sub_n3', expect.objectContaining({ method: 'POST', params: { items: [{ id: 'si_n3', quantity: 320 }], proration_behavior: 'none' } }))
+      expect(db.t('school_seat_add_invoices')[0]).toMatchObject({ status: 'paid' })
+      expect(db.t('school_seat_add_invoices')[0].quantity_raised_at).toBeTruthy()
+    })
+
+    it('R5: the overdue alert runs even in the retention dry run', () => {
+      expect(readFileSync('api/cron/retention.js', 'utf8')).toMatch(/alertOverdueSeatAdds\(sb, \{ now, dryRun: false \}\)/)
+    })
+
     it('a consumer invoice.voided is not a school event', async () => {
       expect(await run(ev('invoice.voided', { id: 'in_c', metadata: {} }))).toEqual({ handled: false })
     })

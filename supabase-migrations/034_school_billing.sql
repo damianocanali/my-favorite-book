@@ -112,6 +112,9 @@ create table if not exists public.school_plans (
   -- out-of-range quantity, a second subscription…): the owner looks.
   needs_review boolean not null default false,
   review_reason text check (review_reason is null or char_length(review_reason) <= 500),
+  -- The Stripe invoice whose seat add was applied last (review R1/R4): a
+  -- reload after a lost race is a replay only when it is THIS request's.
+  last_seat_add_invoice text,
   status_changed_at timestamptz not null default now(),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
@@ -146,7 +149,8 @@ alter table public.class_licenses
   add column if not exists stripe_event_at timestamptz,
   add column if not exists cancel_at_period_end boolean not null default false,
   add column if not exists needs_review boolean not null default false,
-  add column if not exists review_reason text check (review_reason is null or char_length(review_reason) <= 500);
+  add column if not exists review_reason text check (review_reason is null or char_length(review_reason) <= 500),
+  add column if not exists last_seat_add_invoice text;
 -- A subscription pays for ONE class license (blocks carry no subscription
 -- id, see the header), so deleting a plan (school_plan_id → NULL on its
 -- blocks) can never collide here.
@@ -203,8 +207,12 @@ create table if not exists public.school_seat_add_invoices (
   plan_id uuid not null references public.school_plans(id) on delete cascade,
   seats_from int not null check (seats_from >= 1),
   seats_to int not null check (seats_to > seats_from),
-  status text not null default 'pending' check (status in ('pending','paid','void')),
+  -- refunded: paid after it was voided/uncollectible, when the seats could
+  -- no longer be granted (review R2).
+  status text not null default 'pending' check (status in ('pending','paid','void','refunded')),
   due_at timestamptz,
+  -- Stripe's quantity raised to seats_to (retry-safe grant, review R4).
+  quantity_raised_at timestamptz,
   overdue_alerted_at timestamptz,
   created_at timestamptz not null default now(),
   decided_at timestamptz

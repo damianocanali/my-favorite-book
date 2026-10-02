@@ -229,7 +229,8 @@ export async function GET(req) {
   // No-op unless FOUNDING_LOCKED_FOR_LIFE is false (lib/school/pricing.js).
   result.founding = await job('founding', () => repriceFounding(sb, schoolStripe, { now, dryRun }))
   // Seat-add invoices of invoice plans past their due date → owner (review N3).
-  result.seat_adds = await job('seat_adds', () => alertOverdueSeatAdds(sb, { now, dryRun }))
+  // Alerts only (no data change), so NOT gated by the retention dry run (R5).
+  result.seat_adds = await job('seat_adds', () => alertOverdueSeatAdds(sb, { now, dryRun: false }))
   result.licenses = await job('licenses', () => runLicenseLifecycle(sb, ctx, { now, dryRun }))
   result.teacher_deletes = await job('teacher_deletes', () => resumeTeacherDeletes(sb, ctx, now, dryRun))
   result.legacy_submissions = await job('legacy_submissions', () => legacySubmissions(sb, now, dryRun))
