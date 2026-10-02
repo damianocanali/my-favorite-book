@@ -4,7 +4,18 @@
 // AuthStore.isStudent (app_metadata, server-set), so a family account never
 // makes any of these requests.
 import Foundation
+import Observation
 import os
+
+/// Class settings a class account's app follows, refreshed with every
+/// assignments read. Unknown = on: the server refuses a check-in for a
+/// class that turned them off either way.
+@MainActor
+@Observable
+final class StudentClassSettings {
+    static let shared = StudentClassSettings()
+    var checkinsEnabled = true
+}
 
 @MainActor
 enum SchoolAssignments {
@@ -22,7 +33,9 @@ enum SchoolAssignments {
     static func list() async -> [StudentAssignment]? {
         guard let token = await bearer() else { return nil }
         do {
-            return try await APIClient.shared.studentAssignments(bearerToken: token)
+            let page = try await APIClient.shared.studentAssignmentsPage(bearerToken: token)
+            StudentClassSettings.shared.checkinsEnabled = page.checkinsEnabled
+            return page.assignments
         } catch {
             log.warning("assignments list failed: \(String(describing: error), privacy: .public)")
             return nil

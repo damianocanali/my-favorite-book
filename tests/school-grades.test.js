@@ -365,7 +365,9 @@ describe('grades on the existing reads', () => {
     const load2 = (await import('../api/school/assignments.js')).default
     const body = await (await load2(req('assignments'))).json()
     expect(body.assignments[0].my_submission).toMatchObject({ level: 'growing', grade_unseen: true, returned: true })
-    expect(Object.keys(body)).toEqual(['assignments'])
+    // `class` carries only the settings the child's app follows (§7.28).
+    expect(Object.keys(body)).toEqual(['class', 'assignments'])
+    expect(body.class).toEqual({ checkins_enabled: true })
     expect(Object.keys(body.assignments[0])).not.toContain('counts')
   })
 })

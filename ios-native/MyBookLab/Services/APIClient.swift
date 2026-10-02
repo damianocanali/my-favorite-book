@@ -764,14 +764,24 @@ actor APIClient {
         let answers: [String: String]
     }
     private struct SchoolFeedbackSeenBody: Encodable { let id: String }
-    private struct StudentAssignmentsResponse: Decodable { let assignments: [StudentAssignment]? }
+    private struct StudentAssignmentsResponse: Decodable {
+        struct ClassSettings: Decodable { let checkins_enabled: Bool? }
+        let assignments: [StudentAssignment]?
+        let `class`: ClassSettings?
+    }
 
     func studentAssignments(bearerToken: String) async throws -> [StudentAssignment] {
+        try await studentAssignmentsPage(bearerToken: bearerToken).assignments
+    }
+
+    /// The list plus the class settings the child's app follows (today: the
+    /// check-ins switch, review §7.28; absent from an older server = on).
+    func studentAssignmentsPage(bearerToken: String) async throws -> (assignments: [StudentAssignment], checkinsEnabled: Bool) {
         let res: StudentAssignmentsResponse = try await schoolStudent(
             method: "GET", path: "/api/school/assignments", query: [:],
             body: Optional<EmptyBody>.none, bearerToken: bearerToken
         )
-        return res.assignments ?? []
+        return (res.assignments ?? [], res.class?.checkins_enabled ?? true)
     }
 
     func submitAssignment(assignmentId: String, bookId: String, bearerToken: String) async throws -> SubmitResult {
@@ -971,6 +981,7 @@ actor APIClient {
         let id: String
         var name: String?
         var sign_in_open: Bool?
+        var checkins_enabled: Bool?
         var timezone: String?
         var school_hours: [String: [String]]?
         var locale: String?
