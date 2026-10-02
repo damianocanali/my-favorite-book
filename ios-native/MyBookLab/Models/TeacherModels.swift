@@ -611,7 +611,9 @@ enum LicenseBadgeState: Equatable {
         case "comped":
             self = .comped
         case "grace":
-            self = .active
+            // Grace ends at expires_at (paid term end + 14 days), like the
+            // server (lib/school/license.js, review I9).
+            self = (expires.map { $0 > now } ?? false) ? .active : .expired
         case "pending_payment":
             // An invoice-billed school plan whose invoice is open: usable
             // until its due date (lib/school/license.js). Shown as active —

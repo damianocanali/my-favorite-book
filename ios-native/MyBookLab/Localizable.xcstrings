@@ -20426,6 +20426,24 @@
           }
         }
       }
+    },
+    "school.teacher.errors.over_seats_native": {
+      "comment": "Stage 4 iPad (no prices, App Store 3.1.3).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This class has more children than seats. No one can be added until it has enough seats."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questa classe ha più nomi che posti. Non si possono aggiungere altri nomi finché i posti non bastano."
+          }
+        }
+      }
     }
   },
   "version": "1.0"

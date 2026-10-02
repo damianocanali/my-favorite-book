@@ -454,6 +454,7 @@ enum TeacherCopy {
         case "class_not_found": AppText("school.teacher.errors.class_not_found", defaultValue: "We can't find that class.")
         case "license_required": licenseEnded
         case "teacher_unverified": verifyBody
+        case "over_seats": AppText("school.teacher.errors.over_seats_native", defaultValue: "This class has more children than seats. No one can be added until it has enough seats.")
         case "trial_used_up": classReadyNoLicense
         case "name_required": AppText("school.teacher.errors.name_required", defaultValue: "Enter a class name.")
         case "bad_timezone": AppText("school.teacher.errors.bad_timezone", defaultValue: "That time zone isn't recognized.")
