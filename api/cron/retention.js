@@ -7,6 +7,7 @@
 //   sign_in_attempts    student_sign_in_attempts older than 30 days
 //   removed_students    students removed 30+ days ago → full account purge
 //                       (purgeUser), with a deletion_log row each
+//   grace               Stage 4: grace past its end → lapsed (status only)
 //   licenses            lapse → warnings → class purge (lib/school/lifecycle.js)
 //   teacher_deletes     resumes a teacher's class or child delete that
 //                       stopped part-way (deletion_log 'partial', or
@@ -27,7 +28,7 @@
 export const config = { runtime: 'nodejs', maxDuration: 300 }
 
 import { purgeUser, purgeClassroom } from '../../lib/deleteUser.js'
-import { runLicenseLifecycle } from '../../lib/school/lifecycle.js'
+import { runLicenseLifecycle, endExpiredGrace } from '../../lib/school/lifecycle.js'
 import { legacySunset, legacySunsetPassed } from '../../lib/school/legacy.js'
 import { purgeOldOrderPdfs } from '../../lib/print/orderRetention.js'
 import { retryVendorDeletions } from '../../lib/vendorDeletion.js'
@@ -219,6 +220,7 @@ export async function GET(req) {
   result.sign_in_attempts = await job('sign_in_attempts', () =>
     ageJob(sb, `/rest/v1/student_sign_in_attempts?created_at=lt.${iso(now, ATTEMPT_RETENTION_DAYS)}`, dryRun))
   result.removed_students = await job('removed_students', () => purgeRemovedStudents(sb, ctx, now, dryRun))
+  result.grace = await job('grace', () => endExpiredGrace(sb, { now, dryRun }))
   result.licenses = await job('licenses', () => runLicenseLifecycle(sb, ctx, { now, dryRun }))
   result.teacher_deletes = await job('teacher_deletes', () => resumeTeacherDeletes(sb, ctx, now, dryRun))
   result.legacy_submissions = await job('legacy_submissions', () => legacySubmissions(sb, now, dryRun))
