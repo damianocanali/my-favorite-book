@@ -170,7 +170,7 @@ export const IMAGE_MODERATION_TIMEOUT_MS = 4000
 
 /// The image type from the base64 bytes themselves (magic numbers), so the
 /// data URL sent to moderation never lies about it: JPEG "/9j/", PNG
-/// "iVBOR", WebP "UklGR". Unknown → PNG (what we ask Together for).
+/// "iVBOR", WebP "UklGR". Unknown → PNG (the historical default).
 export function sniffImageMime(b64) {
   const s = String(b64 ?? '')
   if (s.startsWith('/9j/')) return 'image/jpeg'

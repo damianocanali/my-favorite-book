@@ -30,9 +30,8 @@ describe('checkImage labels the data URL from the bytes', () => {
   })
 })
 
-describe('Together is asked for PNG wherever we call it', () => {
+describe('no output_format is sent to Together (byte sniffing labels the type)', () => {
   it.each(['api/generate-image.js', 'api/generate-avatar.js', 'api/school/student-avatar.js'])('%s', (f) => {
-    const src = readFileSync(f, 'utf8')
-    expect(src.match(/output_format: 'png'/g)?.length).toBe(src.match(/response_format: 'b64_json'/g)?.length)
+    expect(readFileSync(f, 'utf8')).not.toContain('output_format')
   })
 })

@@ -185,9 +185,6 @@ export default async function handler(req) {
           steps: 12,
           n: 1,
           response_format: 'b64_json',
-          // PNG explicitly: output moderation and Storage both label it image/png
-          // (api/_aiGuard.js sniffs the bytes anyway).
-          output_format: 'png',
         }
       : {
           model,
@@ -200,9 +197,6 @@ export default async function handler(req) {
           steps: 28,
           n: 1,
           response_format: 'b64_json',
-          // PNG explicitly: output moderation and Storage both label it image/png
-          // (api/_aiGuard.js sniffs the bytes anyway).
-          output_format: 'png',
         }
 
     // 28 steps takes a while, but a hung upstream must not hold the

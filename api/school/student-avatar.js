@@ -111,9 +111,6 @@ export default async function handler(req) {
         // and produced under-cooked avatars.
         width: 512, height: 512, steps: 28, n: 1,
         response_format: 'b64_json',
-        // PNG explicitly: output moderation and Storage both label it image/png
-        // (api/_aiGuard.js sniffs the bytes anyway).
-        output_format: 'png',
       }),
     })
     if (!response.ok) {
