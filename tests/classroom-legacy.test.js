@@ -4,7 +4,7 @@
 // makes classroom-submit aware of the new auth-carrying submitters, without
 // breaking the anonymous path these endpoints were built for.
 
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import fs from 'node:fs'
 import { fileURLToPath } from 'node:url'
 
@@ -154,5 +154,42 @@ describe('api/classroom-submit.js', () => {
     expect((await res.json()).code).toBe('use_hand_in')
     // A rejected student submit must never reach the submissions table.
     expect(log.some((l) => l.method === 'POST' && l.url.includes('/rest/v1/submissions'))).toBe(false)
+  })
+})
+
+describe('api/classroom-submit.js sunset (review §7.22)', () => {
+  const call = (token) => new Request('https://app.test/api/classroom-submit', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', ...(token ? { authorization: `Bearer ${token}` } : {}) },
+    body: JSON.stringify({ code: 'ABC234', book: { title: 'B', pages: [] } }),
+  })
+  const routes = [
+    { method: 'GET', match: '/rest/v1/classrooms', reply: { body: [{ code: 'ABC234' }] } },
+    { method: 'POST', match: '/rest/v1/submissions', reply: { status: 201, body: [{ id: 'sub-1' }] } },
+  ]
+  afterEach(() => { delete process.env.LEGACY_SUBMIT_SUNSET })
+
+  it('refuses an anonymous submit after the sunset, without writing', async () => {
+    process.env.LEGACY_SUBMIT_SUNSET = '2020-01-01T00:00:00Z'
+    const log = mockSupabase({ authStatus: 401, user: {}, routes })
+    const { default: handler } = await import('../api/classroom-submit.js')
+    const res = await handler(call())
+    expect(res.status).toBe(410)
+    expect((await res.json()).code).toBe('sign_in_required')
+    expect(log.some((l) => l.method === 'POST' && l.url.includes('/rest/v1/submissions'))).toBe(false)
+  })
+
+  it('still accepts a signed-in parent after the sunset', async () => {
+    process.env.LEGACY_SUBMIT_SUNSET = '2020-01-01T00:00:00Z'
+    mockSupabase({ user: TEACHER, routes })
+    const { default: handler } = await import('../api/classroom-submit.js')
+    expect((await handler(call('jwt'))).status).toBe(201)
+  })
+
+  it('accepts an anonymous submit before the sunset', async () => {
+    process.env.LEGACY_SUBMIT_SUNSET = '2999-01-01T00:00:00Z'
+    mockSupabase({ authStatus: 401, user: {}, routes })
+    const { default: handler } = await import('../api/classroom-submit.js')
+    expect((await handler(call())).status).toBe(201)
   })
 })

@@ -108,6 +108,7 @@
     "submit": "Consegna il libro",
     "submitting": "Invio in corso…",
     "submit_failed": "Non è stato possibile consegnare il libro",
+    "sign_in_required": "Accedi per inviare il libro alla tua classe.",
     "success_title": "Libro consegnato!",
     "success_body": "Ora l'insegnante può leggere <title>\"{{title}}\"</title> nella galleria della classe."
   }

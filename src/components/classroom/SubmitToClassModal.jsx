@@ -29,6 +29,7 @@ export default function SubmitToClassModal({ book, onClose }) {
         body: JSON.stringify({ code: trimmed, book }),
       })
       const data = await res.json()
+      if (res.status === 410 && data.code === 'sign_in_required') throw new Error(t('gallery:submit_to_class.sign_in_required'))
       if (!res.ok) throw new Error(data.error || t('gallery:submit_to_class.submit_failed'))
       setSuccess(true)
       celebrateBig()
