@@ -15,6 +15,7 @@ import AssignmentReview from '../components/school/AssignmentReview'
 import ClassDeviceCard from '../components/school/ClassDeviceCard'
 import WritingYearSection from '../components/school/WritingYearSection'
 import ClassDataSection from '../components/school/ClassDataSection'
+import PlanBillingSection from '../components/school/PlanBillingSection'
 import { schoolFetch } from '../lib/schoolApi'
 import { teacherErrorText } from '../components/school/teacherErrors'
 import { MAX_SEATS } from '../../lib/school/license.js'
@@ -334,6 +335,8 @@ export default function TeacherClassPage() {
         timezone={classItem.timezone}
         onSave={patchClass}
       />
+
+      <PlanBillingSection classId={classItem.id} onChanged={load} />
 
       <AddStudents classId={classItem.id} license={classItem.license} onCreated={handleStudentsCreated} />
 

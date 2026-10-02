@@ -87,5 +87,44 @@
     "cta_bookshelf": "La mia libreria",
     "redirecting_one": "Ti portiamo lì tra {{count}}s…",
     "redirecting_other": "Ti portiamo lì tra {{count}}s…"
+  },
+  "schools": {
+    "title": "My Book Lab per le scuole",
+    "subtitle": "In classe si scrive, si illustra e si chiude l'anno con un libro stampato per ciascuno.",
+    "per_student": "per posto all'anno",
+    "class": {
+      "name": "Classe",
+      "detail": "Da {{min}} a {{max}} posti, uno per ogni persona della classe. Pagamento con carta."
+    },
+    "founding": {
+      "name": "Prezzo fondatori",
+      "detail": "Per le classi acquistate per l'anno scolastico 2026–27, fino al {{date}}."
+    },
+    "school": {
+      "name": "Piano scuola",
+      "detail": "Da {{min}} posti, su più classi. Una sola fattura; pagamento con carta o fattura."
+    },
+    "included": {
+      "heading": "Ogni posto include",
+      "book": "Un libro stampato in brossura “Il mio anno di scrittura” per ogni posto, ogni anno, spedito a scuola in un'unica scatola",
+      "pdf": "Il PDF gratuito del libro per tutta la classe",
+      "pictures": "{{count}} immagini AI per posto all'anno",
+      "features": "Tutte le funzioni: compiti, schede, valutazioni con consigli, check-in e accesso con le immagini"
+    },
+    "trial": "Provalo gratis per 30 giorni con una classe, senza carta. Le prove non includono il libro stampato.",
+    "cta": "Inizia la prova gratuita",
+    "faq": {
+      "heading": "Domande",
+      "ndpa_q": "Firmate un accordo sulla privacy dei dati?",
+      "ndpa_a": "Sì. Usiamo il National Data Privacy Agreement (NDPA) dello Student Data Privacy Consortium. La dirigenza o il distretto lo firma con noi, e altri distretti dello stesso stato possono adottarlo. Non chiediamo mai l'email di chi è in classe, e quei dati non servono mai ad addestrare l'AI.",
+      "invoice_q": "La scuola può pagare con fattura?",
+      "invoice_a": "Sì, con il piano scuola. Inviamo una fattura da pagare entro 30 giorni e le classi possono usare subito il piano mentre è aperta. I libri stampati si ordinano dopo il pagamento.",
+      "trial_q": "Cosa succede quando finisce la prova gratuita?",
+      "trial_a": "La classe va in pausa: non si cancella nulla. Puoi acquistare i posti quando vuoi e riprendere da dove avevi lasciato.",
+      "renew_q": "Il piano si rinnova?",
+      "renew_a": "Sì, ogni anno. Puoi aggiungere posti quando vuoi (paghi la differenza per il resto dell'anno), ridurli per l'anno successivo o annullare prima del rinnovo.",
+      "ipad_q": "Posso acquistare dall'iPad?",
+      "ipad_a": "I piani si acquistano qui sul sito. L'app per iPad mostra il piano e i posti."
+    }
   }
 }

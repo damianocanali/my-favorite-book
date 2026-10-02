@@ -36,6 +36,7 @@ import { useAuthStore } from '../stores/useAuthStore'
 import { apiFetchAuthed } from '../lib/api'
 import ClassPrintRequests from '../components/admin/ClassPrintRequests'
 import AdminAccessLog from '../components/admin/AdminAccessLog'
+import TeacherVerifications from '../components/admin/TeacherVerifications'
 
 const OWNER_ID = import.meta.env.VITE_OWNER_USER_ID
 
@@ -260,6 +261,7 @@ export default function AdminPage() {
           </>
         )}
 
+        <TeacherVerifications />
         <ClassPrintRequests />
         <AdminAccessLog />
       </div>

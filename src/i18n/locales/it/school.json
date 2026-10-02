@@ -141,7 +141,7 @@
       "name_placeholder": "es. Classe 3ª della maestra Rossi",
       "submit": "Crea classe",
       "submitting": "Creazione…",
-      "trial_used_up": "Hai usato le tue 3 prove gratuite. L'acquisto di una licenza per la classe sarà presto disponibile."
+      "trial_used_up": "Hai usato le tue 3 prove gratuite. Apri la classe e acquista i posti in Piano e pagamenti."
     },
     "list": {
       "empty": "Ancora nessuna classe — creane una qui sopra per iniziare."
@@ -161,7 +161,8 @@
       "comped": "Offerta",
       "expired": "Licenza scaduta",
       "none": "Nessuna licenza",
-      "coming_soon": "L'acquisto di una licenza per la classe sarà presto disponibile."
+      "coming_soon": "Apri Piano e pagamenti per acquistare i posti.",
+      "pending_payment": "Fattura aperta"
     },
     "errors": {
       "name_required": "Inserisci il nome della classe.",
@@ -169,7 +170,7 @@
       "bad_hours": "Controlla l'orario scolastico — ogni ora di fine deve essere dopo l'ora di inizio.",
       "rate_limited": "Troppe richieste — aspetta un momento e riprova.",
       "class_not_found": "Non troviamo questa classe.",
-      "license_required": "Questa classe ha bisogno di una licenza attiva. L'acquisto di una licenza per la classe sarà presto disponibile.",
+      "license_required": "Questa classe ha bisogno di un piano attivo. Acquista i posti in Piano e pagamenti qui sotto.",
       "seats_full": "Questa classe è al completo — nessun posto disponibile.",
       "duplicate_name": "già in questa classe",
       "duplicate_name_full": "Un altro alunno ha già questo nome.",
@@ -198,7 +199,31 @@
       "mfa_required": "Inserisci il codice dell'accesso in 2 passaggi per continuare.",
       "confirm_mismatch": "Il nome scritto non corrisponde. Non è stato eliminato nulla.",
       "delete_incomplete": "L'eliminazione si è interrotta a metà. Verrà completata durante la notte, oppure riprova ora.",
-      "checkins_off": "I check-in sono disattivati per questa classe."
+      "checkins_off": "I check-in sono disattivati per questa classe.",
+      "teacher_unverified": "Stiamo verificando che insegni; di solito ci vuole meno di un giorno.",
+      "below_minimum": "È sotto il numero minimo di posti.",
+      "above_maximum": "È sopra il numero massimo di posti.",
+      "below_enrolled": "Sono meno posti delle persone già iscritte alla classe.",
+      "bad_seats": "Scegli un numero intero di posti.",
+      "already_licensed": "Questa classe ha già un piano.",
+      "dpa_required": "Conferma l'accordo sulla privacy dei dati.",
+      "school_name_required": "Inserisci il nome della scuola.",
+      "plan_exists": "Hai già un piano scuola: cambia i suoi posti.",
+      "plan_full": "Non ci sono abbastanza posti liberi nel piano scuola.",
+      "plan_not_active": "Il piano scuola non è attivo.",
+      "plan_not_found": "Non troviamo quel piano scuola.",
+      "class_has_license": "Questa classe ha già un suo piano.",
+      "managed_by_school_plan": "I posti di questa classe vengono dal piano scuola.",
+      "no_paid_plan": "Questa classe non ha ancora un piano a pagamento.",
+      "payment_failed": "Il pagamento non è andato a buon fine. Non è cambiato nulla.",
+      "not_payer": "Solo chi paga può gestire i pagamenti.",
+      "no_customer": "Non c'è ancora un account di pagamento.",
+      "offer_not_found": "Non troviamo quell'offerta.",
+      "offer_pending": "Quella classe ha già un'offerta in attesa.",
+      "own_class": "È una tua classe: assegnale i posti direttamente.",
+      "bad_code": "Inserisci il codice della classe.",
+      "bad_billing": "Scegli carta o fattura.",
+      "no_email": "Il tuo account ha bisogno di un indirizzo email."
     },
     "class_page": {
       "back": "Torna alle tue classi",
@@ -246,7 +271,7 @@
       "success_other": "Aggiunti {{count}} alunni.",
       "skipped_heading": "Non aggiunti",
       "skipped_line": "{{name}} — {{reason}}",
-      "license_blocked": "Questa classe ha bisogno di una licenza attiva prima di poter aggiungere alunni. L'acquisto di una licenza per la classe sarà presto disponibile."
+      "license_blocked": "Questa classe ha bisogno di un piano attivo prima di poter aggiungere nomi. Acquista i posti in Piano e pagamenti qui sopra."
     },
     "roster": {
       "heading": "Alunni",
@@ -417,6 +442,130 @@
         "hint_off": "Disattivati: il pulsante del check-in non compare e non viene raccolto nulla."
       },
       "delete_pending": "L'eliminazione è in corso e verrà completata a breve."
+    },
+    "verify": {
+      "title": "Stiamo verificando che insegni",
+      "body": "Di solito ci vuole meno di un giorno. Nel frattempo puoi dare un'occhiata, ma non puoi creare classi, iniziare una prova gratuita, aggiungere nomi alle classi o acquistare posti.",
+      "school_email_hint": "Se ti registri con l'email della scuola (per esempio una che finisce in .edu o .k12.ca.us) la verifica è immediata.",
+      "unconfirmed_hint": "Prima conferma il tuo indirizzo email: cerca il nostro link nella posta in arrivo.",
+      "school_name": "Nome della scuola (facoltativo)",
+      "request": "Chiedi la verifica",
+      "requested": "Richiesta inviata. Di solito verifichiamo entro un giorno: ricontrolla qui.",
+      "declined": "Non abbiamo potuto verificare che insegni: {{reason}}",
+      "request_again": "Chiedi di nuovo",
+      "error": "Non è stato possibile inviare la richiesta. Riprova."
+    },
+    "billing": {
+      "heading": "Piano e pagamenti",
+      "loading": "Caricamento del piano…",
+      "status": {
+        "trial": "Prova gratuita",
+        "pending_payment": "Fattura inviata, in attesa di pagamento",
+        "active": "Attivo",
+        "grace": "Problema di pagamento: per ora la classe continua a funzionare",
+        "lapsed": "Terminato",
+        "canceled": "Annullato",
+        "comped": "Offerta",
+        "none": "Ancora nessun piano"
+      },
+      "seats_used": "{{used}} posti usati su {{total}}",
+      "pending_seats": "Scende a {{count}} posti al rinnovo",
+      "renews": "Si rinnova il {{date}}",
+      "ends": "Termina il {{date}}",
+      "trial_ends": "La prova termina il {{date}}",
+      "due": "Fattura da pagare entro il {{date}}",
+      "cancel_at_end": "Non si rinnoverà: termina il {{date}}",
+      "school_plan": "Posti dal piano scuola di {{school}}",
+      "pictures": "{{used}} immagini usate su {{total}} quest'anno",
+      "grace_note": "Aggiorna il metodo di pagamento per far continuare la classe.",
+      "buy": {
+        "heading": "Acquista posti per questa classe",
+        "seats": "Posti",
+        "seats_hint": "Tra {{min}} e {{max}}, uno per ogni persona della classe. Ogni posto include il libro stampato “Il mio anno di scrittura” e 300 immagini all'anno.",
+        "price_line": "{{price}} per posto all'anno",
+        "founding": "Prezzo fondatori, per acquisti fino al {{date}}",
+        "total": "{{total}} all'anno",
+        "school_name": "Nome della scuola",
+        "ndpa": "La dirigenza o il distretto firmerà con My Book Lab il National Data Privacy Agreement (NDPA) dello Student Data Privacy Consortium.",
+        "ndpa_link": "Cos'è l'NDPA",
+        "pay": "Continua al pagamento",
+        "school_plan_hint": "Ti servono {{min}} posti o più?",
+        "school_plan_link": "Vedi il piano scuola"
+      },
+      "seats": {
+        "heading": "Cambia i posti",
+        "save": "Salva",
+        "more_now": "I posti in più si aggiungono subito e paghi la differenza per il resto dell'anno.",
+        "fewer_later": "La riduzione dei posti vale dal rinnovo, e mai sotto il numero di persone iscritte alla classe.",
+        "done_increase": "Posti aggiunti.",
+        "done_decrease": "Fatto: al rinnovo la classe scende a {{count}} posti.",
+        "done_cancel": "La riduzione dei posti è annullata."
+      },
+      "manage": "Gestisci il pagamento",
+      "invoices": {
+        "heading": "Fatture",
+        "none": "Ancora nessuna fattura.",
+        "view": "Apri",
+        "status": {
+          "paid": "Pagata",
+          "open": "Da pagare",
+          "draft": "Bozza",
+          "void": "Annullata",
+          "uncollectible": "Non riscossa"
+        }
+      },
+      "offers": {
+        "heading": "Posti offerti dalla tua scuola",
+        "line": "{{school}} offre {{count}} posti per questa classe.",
+        "accept": "Accetta",
+        "decline": "Rifiuta"
+      },
+      "success": "Grazie! Il pagamento è andato a buon fine; il piano compare qui tra poco.",
+      "canceled_checkout": "Pagamento annullato. Non è stato addebitato nulla."
+    },
+    "school_plan": {
+      "title": "Piano scuola",
+      "subtitle": "Un solo piano e una sola fattura per tante classi.",
+      "link": "Piano scuola",
+      "loading": "Caricamento…",
+      "buy": {
+        "heading": "Acquista il piano scuola",
+        "seats": "Posti per tutte le classi",
+        "seats_hint": "Almeno {{min}} posti.",
+        "billing": "Come preferisci pagare?",
+        "card": "Carta",
+        "invoice": "Fattura (pagamento entro 30 giorni)",
+        "invoice_note": "Con la fattura le classi possono usare subito il piano mentre la fattura è aperta (30 giorni). La stampa parte dopo il pagamento.",
+        "pay": "Continua al pagamento",
+        "send_invoice": "Invia la fattura"
+      },
+      "invoice_sent": "Fattura inviata alla tua email. Le classi possono già usare il piano.",
+      "seats_given": "{{used}} posti assegnati alle classi su {{total}}",
+      "assign": {
+        "heading": "Assegna posti alle tue classi",
+        "class": "Classe",
+        "seats": "Posti",
+        "button": "Assegna posti",
+        "done": "Posti assegnati."
+      },
+      "offer": {
+        "heading": "Assegna posti a un'altra classe della scuola",
+        "hint": "Chiedi il codice della classe a chi la gestisce. Non cambia nulla finché non accetta nella sezione Piano e pagamenti della classe.",
+        "code": "Codice della classe",
+        "seats": "Posti",
+        "button": "Invia l'offerta",
+        "sent": "Offerta inviata.",
+        "pending": "In attesa di accettazione: {{count}} posti",
+        "withdraw": "Ritira"
+      },
+      "blocks": {
+        "heading": "Classi in questo piano",
+        "colleague": "Un'altra classe della scuola",
+        "seats": "{{count}} posti",
+        "none": "Ancora nessuna classe."
+      },
+      "change_seats": "Cambia i posti del piano",
+      "change_hint": "I posti in più si aggiungono subito; la riduzione vale dal rinnovo e mai sotto i posti già assegnati."
     }
   },
   "student": {

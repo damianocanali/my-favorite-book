@@ -29,6 +29,10 @@ export default function LicenseBadge({ license, now = new Date(), className = ''
         key = 'trial_ended'
         tone = 'warn'
       }
+    } else if (license.status === 'pending_payment' && isLicenseUsable(license, now)) {
+      // An invoice-billed school plan whose invoice is still open (Stage 4).
+      key = 'pending_payment'
+      tone = 'ok'
     } else if (license.status === 'comped') {
       key = 'comped'
       tone = 'ok'

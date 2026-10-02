@@ -141,7 +141,7 @@
       "name_placeholder": "e.g. Mrs. Rivera's 3rd Grade",
       "submit": "Create class",
       "submitting": "Creating…",
-      "trial_used_up": "You've used your 3 free trials. Buying a class license is coming soon."
+      "trial_used_up": "You've used your 3 free trials. Open the class and buy seats in Plan & billing."
     },
     "list": {
       "empty": "No classes yet — create one above to get started."
@@ -161,7 +161,8 @@
       "comped": "Comped",
       "expired": "License expired",
       "none": "No license yet",
-      "coming_soon": "Buying a class license is coming soon."
+      "coming_soon": "Open Plan & billing to buy seats.",
+      "pending_payment": "Invoice open"
     },
     "errors": {
       "name_required": "Enter a class name.",
@@ -169,7 +170,7 @@
       "bad_hours": "Check the school hours — each end time must be after its start time.",
       "rate_limited": "Too many requests — wait a moment and try again.",
       "class_not_found": "We can't find that class.",
-      "license_required": "This class needs an active license. Buying a class license is coming soon.",
+      "license_required": "This class needs an active plan. Buy seats in Plan & billing below.",
       "seats_full": "This class is full — no seats left.",
       "duplicate_name": "already in this class",
       "duplicate_name_full": "Another student already has that name.",
@@ -198,7 +199,31 @@
       "mfa_required": "Enter your 2-step sign-in code to continue.",
       "confirm_mismatch": "The name you typed doesn't match. Nothing was deleted.",
       "delete_incomplete": "The deletion stopped part-way. It will finish overnight, or try again now.",
-      "checkins_off": "Check-ins are off for this class."
+      "checkins_off": "Check-ins are off for this class.",
+      "teacher_unverified": "We're confirming you're a teacher; this usually takes less than a day.",
+      "below_minimum": "That's below the minimum number of students.",
+      "above_maximum": "That's above the maximum number of students.",
+      "below_enrolled": "That's fewer seats than the students already in the class.",
+      "bad_seats": "Choose a whole number of seats.",
+      "already_licensed": "This class already has a plan.",
+      "dpa_required": "Please confirm the data privacy agreement.",
+      "school_name_required": "Enter the school name.",
+      "plan_exists": "You already have a school plan: change its seats instead.",
+      "plan_full": "There aren't enough seats left in the school plan.",
+      "plan_not_active": "The school plan isn't active.",
+      "plan_not_found": "We can't find that school plan.",
+      "class_has_license": "This class already has its own plan.",
+      "managed_by_school_plan": "This class's seats come from the school plan.",
+      "no_paid_plan": "This class has no paid plan yet.",
+      "payment_failed": "The payment didn't go through. Nothing changed.",
+      "not_payer": "Only the person who pays can manage the billing.",
+      "no_customer": "There's no billing account yet.",
+      "offer_not_found": "We can't find that offer.",
+      "offer_pending": "That class already has an offer waiting.",
+      "own_class": "That's your own class: give it seats directly.",
+      "bad_code": "Enter the class code.",
+      "bad_billing": "Choose card or invoice.",
+      "no_email": "Your account needs an email address."
     },
     "class_page": {
       "back": "Back to your classes",
@@ -246,7 +271,7 @@
       "success_other": "Added {{count}} students.",
       "skipped_heading": "Not added",
       "skipped_line": "{{name}} — {{reason}}",
-      "license_blocked": "This class needs an active license before you can add students. Buying a class license is coming soon."
+      "license_blocked": "This class needs an active plan before you can add students. Buy seats in Plan & billing above."
     },
     "roster": {
       "heading": "Students",
@@ -417,6 +442,130 @@
         "hint_off": "Off: children don't see the check-in button and nothing is collected."
       },
       "delete_pending": "The deletion is in progress and will finish shortly."
+    },
+    "verify": {
+      "title": "We're confirming you're a teacher",
+      "body": "This usually takes less than a day. Until then you can look around, but you can't create classes, start a free trial, add students or buy seats.",
+      "school_email_hint": "Signing up with your school email (for example one ending in .edu or .k12.ca.us) confirms you straight away.",
+      "unconfirmed_hint": "First confirm your email address: look for our link in your inbox.",
+      "school_name": "School name (optional)",
+      "request": "Ask to be confirmed",
+      "requested": "Request sent. We usually confirm within a day; check back here.",
+      "declined": "We couldn't confirm you as a teacher: {{reason}}",
+      "request_again": "Ask again",
+      "error": "Couldn't send the request. Try again."
+    },
+    "billing": {
+      "heading": "Plan & billing",
+      "loading": "Loading the plan…",
+      "status": {
+        "trial": "Free trial",
+        "pending_payment": "Invoice sent, waiting for payment",
+        "active": "Active",
+        "grace": "Payment problem: the class keeps working for now",
+        "lapsed": "Ended",
+        "canceled": "Canceled",
+        "comped": "Comped",
+        "none": "No plan yet"
+      },
+      "seats_used": "{{used}} of {{total}} seats used",
+      "pending_seats": "Going down to {{count}} seats at renewal",
+      "renews": "Renews on {{date}}",
+      "ends": "Ends on {{date}}",
+      "trial_ends": "Trial ends on {{date}}",
+      "due": "Invoice due by {{date}}",
+      "cancel_at_end": "Won't renew: it ends on {{date}}",
+      "school_plan": "Seats from the school plan of {{school}}",
+      "pictures": "{{used}} of {{total}} pictures used this year",
+      "grace_note": "Update the payment method to keep the class going.",
+      "buy": {
+        "heading": "Buy seats for this class",
+        "seats": "Students",
+        "seats_hint": "Between {{min}} and {{max}}. Every seat includes the printed “My Writing Year” book and 300 pictures a year.",
+        "price_line": "{{price}} per student per year",
+        "founding": "Founding price, for purchases until {{date}}",
+        "total": "{{total}} a year",
+        "school_name": "School name",
+        "ndpa": "Our principal or district will sign the Student Data Privacy Consortium National Data Privacy Agreement (NDPA) with My Book Lab.",
+        "ndpa_link": "About the NDPA",
+        "pay": "Continue to payment",
+        "school_plan_hint": "Buying for {{min}} students or more?",
+        "school_plan_link": "See the school plan"
+      },
+      "seats": {
+        "heading": "Change seats",
+        "save": "Save",
+        "more_now": "Extra seats are added now and you pay the difference for the rest of the year.",
+        "fewer_later": "Fewer seats take effect at renewal, and never fewer than the students in the class.",
+        "done_increase": "Seats added.",
+        "done_decrease": "Done: the class goes down to {{count}} seats at renewal.",
+        "done_cancel": "The seat reduction is canceled."
+      },
+      "manage": "Manage payment",
+      "invoices": {
+        "heading": "Invoices",
+        "none": "No invoices yet.",
+        "view": "View",
+        "status": {
+          "paid": "Paid",
+          "open": "Open",
+          "draft": "Draft",
+          "void": "Void",
+          "uncollectible": "Not collected"
+        }
+      },
+      "offers": {
+        "heading": "Seats offered by your school",
+        "line": "{{school}} offers {{count}} seats for this class.",
+        "accept": "Accept",
+        "decline": "Decline"
+      },
+      "success": "Thank you! The payment went through; the plan shows here in a moment.",
+      "canceled_checkout": "Payment canceled. Nothing was charged."
+    },
+    "school_plan": {
+      "title": "School plan",
+      "subtitle": "One plan and one invoice for many classes.",
+      "link": "School plan",
+      "loading": "Loading…",
+      "buy": {
+        "heading": "Buy the school plan",
+        "seats": "Students across all classes",
+        "seats_hint": "At least {{min}} students.",
+        "billing": "How would you like to pay?",
+        "card": "Card",
+        "invoice": "Invoice (pay within 30 days)",
+        "invoice_note": "With an invoice, your classes can use the plan straight away while the invoice is open (30 days). Printing starts once it's paid.",
+        "pay": "Continue to payment",
+        "send_invoice": "Send the invoice"
+      },
+      "invoice_sent": "Invoice sent to your email. Your classes can use the plan now.",
+      "seats_given": "{{used}} of {{total}} seats given to classes",
+      "assign": {
+        "heading": "Give seats to your classes",
+        "class": "Class",
+        "seats": "Seats",
+        "button": "Give seats",
+        "done": "Seats given."
+      },
+      "offer": {
+        "heading": "Give seats to a colleague's class",
+        "hint": "Ask your colleague for their class code. Nothing changes until they accept in their class's Plan & billing.",
+        "code": "Class code",
+        "seats": "Seats",
+        "button": "Send offer",
+        "sent": "Offer sent.",
+        "pending": "Waiting for a colleague to accept: {{count}} seats",
+        "withdraw": "Withdraw"
+      },
+      "blocks": {
+        "heading": "Classes on this plan",
+        "colleague": "A colleague's class",
+        "seats": "{{count}} seats",
+        "none": "No classes yet."
+      },
+      "change_seats": "Change the plan's seats",
+      "change_hint": "More seats are added now; fewer take effect at renewal and never below the seats given to classes."
     }
   },
   "student": {

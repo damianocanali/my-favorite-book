@@ -13,6 +13,8 @@ import ClassSignInPage from './pages/ClassSignInPage'
 import LoginPage from './pages/LoginPage'
 import SignupPage from './pages/SignupPage'
 import PricingPage from './pages/PricingPage'
+import SchoolsPricingPage from './pages/SchoolsPricingPage'
+import TeacherSchoolPlanPage from './pages/TeacherSchoolPlanPage'
 import SuccessPage from './pages/SuccessPage'
 import AvatarPage from './pages/AvatarPage'
 import PrivacyPage from './pages/PrivacyPage'
@@ -135,6 +137,8 @@ export default function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/pricing" element={<ConsumerOnlyRoute><PricingPage /></ConsumerOnlyRoute>} />
+        {/* Schools pricing (Stage 4): public, web only — never linked from iOS. */}
+        <Route path="/schools" element={<SchoolsPricingPage />} />
         <Route path="/success" element={<SuccessPage />} />
         <Route path="/avatar" element={<ConsumerOnlyRoute><AvatarPage /></ConsumerOnlyRoute>} />
         <Route path="/privacy" element={<PrivacyPage />} />
@@ -185,6 +189,16 @@ export default function App() {
             <ProtectedRoute>
               <ConsumerOnlyRoute>
                 <TeacherDashboardPage />
+              </ConsumerOnlyRoute>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/teacher/school"
+          element={
+            <ProtectedRoute>
+              <ConsumerOnlyRoute>
+                <TeacherSchoolPlanPage />
               </ConsumerOnlyRoute>
             </ProtectedRoute>
           }

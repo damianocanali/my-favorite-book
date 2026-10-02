@@ -87,5 +87,44 @@
     "cta_bookshelf": "My Bookshelf",
     "redirecting_one": "Redirecting in {{count}}s…",
     "redirecting_other": "Redirecting in {{count}}s…"
+  },
+  "schools": {
+    "title": "My Book Lab for schools",
+    "subtitle": "Every child writes, illustrates and finishes the year with a printed book of their own.",
+    "per_student": "per student per year",
+    "class": {
+      "name": "Class",
+      "detail": "From {{min}} to {{max}} students. Pay by card."
+    },
+    "founding": {
+      "name": "Founding price",
+      "detail": "For classes bought for the 2026–27 school year, until {{date}}."
+    },
+    "school": {
+      "name": "School plan",
+      "detail": "From {{min}} students across many classes. One invoice; pay by card or invoice."
+    },
+    "included": {
+      "heading": "Every seat includes",
+      "book": "A printed softcover “My Writing Year” book for every child, every year, shipped to the school in one box",
+      "pdf": "A free PDF of the book for every child",
+      "pictures": "{{count}} AI pictures per student per year",
+      "features": "Every feature: assignments, worksheets, grading with tips, check-ins and picture sign-in"
+    },
+    "trial": "Try it free for 30 days with a class: no card needed. Trials don't include the printed book.",
+    "cta": "Start a free trial",
+    "faq": {
+      "heading": "Questions",
+      "ndpa_q": "Do you sign a data privacy agreement?",
+      "ndpa_a": "Yes. We use the Student Data Privacy Consortium's National Data Privacy Agreement (NDPA). Your principal or district signs it with us, and other districts in the same state can adopt it. We never ask for children's email addresses, and children's data is never used to train AI.",
+      "invoice_q": "Can the school pay by invoice?",
+      "invoice_a": "Yes, with the school plan. We email an invoice payable within 30 days, and your classes can use the plan straight away while it's open. The printed books are ordered once it's paid.",
+      "trial_q": "What happens when the free trial ends?",
+      "trial_a": "The class rests: nothing is deleted. Buy seats any time to carry on where you left off.",
+      "renew_q": "Does the plan renew?",
+      "renew_a": "Yes, every year. You can add seats at any time (you pay the difference for the rest of the year), reduce them for the next year, or cancel before the renewal.",
+      "ipad_q": "Can I buy on the iPad?",
+      "ipad_a": "Plans are bought here on the website. The iPad app shows your plan and seats."
+    }
   }
 }
