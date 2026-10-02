@@ -52,6 +52,36 @@ describe('generate-avatar text-to-image prompt (pinned)', () => {
   })
 })
 
+describe('generate-avatar output moderation (review §7 item 11)', () => {
+  it('a flagged avatar is never stored: 400 image_flagged', async () => {
+    process.env.OPENAI_API_KEY = 'openai'
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const seen = []
+    globalThis.fetch = vi.fn(async (url, init = {}) => {
+      const u = String(url)
+      seen.push(u)
+      if (u.endsWith('/auth/v1/user')) return new Response(JSON.stringify(USER))
+      if (u.includes('together.xyz')) return new Response(JSON.stringify({ data: [{ b64_json: 'AAAA' }] }))
+      if (u.includes('moderations')) {
+        const input = JSON.parse(init.body).input
+        return new Response(JSON.stringify({ results: [{ flagged: Array.isArray(input) }] }))
+      }
+      return new Response('[]')
+    })
+    const { default: handler } = await import('../api/generate-avatar.js')
+    const res = await handler(new Request('https://app.test/api/generate-avatar', {
+      method: 'POST',
+      headers: { authorization: 'Bearer jwt', 'content-type': 'application/json' },
+      body: JSON.stringify({ features: FIXED_FEATURES, artStyle: 'cartoon' }),
+    }))
+    expect(res.status).toBe(400)
+    expect((await res.json()).code).toBe('image_flagged')
+    expect(seen.some((u) => u.includes('/storage/v1/object/'))).toBe(false)
+    warn.mockRestore()
+    delete process.env.OPENAI_API_KEY
+  })
+})
+
 describe('lib/avatarPrompt.js', () => {
   it('buildAvatarPrompt matches the pinned prompt exactly', async () => {
     const { buildAvatarPrompt } = await import('../lib/avatarPrompt.js')

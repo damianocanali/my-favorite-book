@@ -25,6 +25,7 @@
     "generic": "Qualcosa è andato storto. Riprova.",
     "try_again": "Non ci siamo riusciti proprio ora. Riprova tra un momento.",
     "timeout": "Ci è voluto troppo tempo. Riprova.",
-    "class_image_limit": "Per oggi le immagini sono finite: chiedi all'insegnante."
+    "class_image_limit": "Per oggi le immagini sono finite: chiedi all'insegnante.",
+    "image_flagged": "Questa immagine non è venuta bene. Riprova con parole diverse."
   }
 }

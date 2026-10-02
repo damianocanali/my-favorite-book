@@ -1,6 +1,6 @@
 import { checkRateLimit, handleCors, withCors } from './_rateLimit.js'
 import { logUsage, estimateTogetherImageCostCents, estimateAnthropicCostCents } from './_usage.js'
-import { requireUser, validatePrompt, validateSourceImage, moderatePrompt, enforceDailyCap } from './_aiGuard.js'
+import { requireUser, validatePrompt, validateSourceImage, moderatePrompt, moderateImage, enforceDailyCap, IMAGE_MODERATION_TIMEOUT_MS } from './_aiGuard.js'
 import { classifyAttestation, dailyCapFor, hourlyLimitFor } from './_appAttest.js'
 import { storeIllustration } from './_imageStore.js'
 import { isStudent, rejectStudent, enforceStudentImageCap } from './_school.js'
@@ -14,6 +14,12 @@ const IMAGE_GEN_LIMIT = 20 // requests per hour per IP
 // responding within 25 s). Together gets whatever is left, but at least 5 s.
 const REQUEST_DEADLINE_MS = 23_000
 const MIN_TOGETHER_MS = 5_000
+// The finished picture is screened before it is stored (review §7 item 11).
+// That check runs AFTER Together, so its time is held back from Together's
+// share of the deadline; it gets whatever is left, at least 1 s, at most
+// IMAGE_MODERATION_TIMEOUT_MS.
+const IMAGE_MODERATION_RESERVE_MS = 3_000
+const MIN_IMAGE_MODERATION_MS = 1_000
 
 export default async function handler(req) {
   const corsResponse = handleCors(req)
@@ -194,7 +200,7 @@ export default async function handler(req) {
     // 28 steps takes a while, but a hung upstream must not hold the
     // function open until the platform kills it.
     const controller = new AbortController()
-    const togetherMs = Math.max(MIN_TOGETHER_MS, startedAt + REQUEST_DEADLINE_MS - Date.now())
+    const togetherMs = Math.max(MIN_TOGETHER_MS, startedAt + REQUEST_DEADLINE_MS - IMAGE_MODERATION_RESERVE_MS - Date.now())
     const timer = setTimeout(() => controller.abort(), togetherMs)
     let response
     try {
@@ -220,7 +226,7 @@ export default async function handler(req) {
 
     if (!response.ok) {
       const detail = await response.text().catch(() => '')
-      console.error('[generate-image] Together error', response.status, detail.slice(0, 500))
+      console.error('[generate-image] Together error', response.status, detail.slice(0, 200))
       return new Response(
         JSON.stringify({ error: 'Image generation failed. Please try again.' }),
         { status: 502, headers: withCors({ 'Content-Type': 'application/json' }, req) }
@@ -243,6 +249,16 @@ export default async function handler(req) {
       images: 1,
       cost_cents: estimateTogetherImageCostCents({ model, images: 1 }),
     })
+
+    // Screen the finished picture before it is stored or shown. Flagged →
+    // never stored (400 image_flagged). Moderation down → students fail
+    // closed, adults fail open (logged).
+    const imageModMs = Math.min(
+      IMAGE_MODERATION_TIMEOUT_MS,
+      Math.max(MIN_IMAGE_MODERATION_MS, startedAt + REQUEST_DEADLINE_MS - Date.now())
+    )
+    const outputErr = await moderateImage(b64, req, { failClosed: isStudent(auth), timeoutMs: imageModMs })
+    if (outputErr) return outputErr
 
     // Park the art in Storage and hand back a URL. Books sync with a URL
     // intact, so the print pipeline can actually fetch the image — a

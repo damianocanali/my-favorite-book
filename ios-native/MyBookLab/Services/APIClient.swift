@@ -90,6 +90,8 @@ enum APIError: Error, LocalizedError {
             return AppText("errors.ai.try_again", defaultValue: "We couldn't do that just now. Please try again in a moment.")
         case "timeout":
             return AppText("errors.ai.timeout", defaultValue: "That took too long. Please try again.")
+        case "image_flagged":
+            return AppText("errors.ai.image_flagged", defaultValue: "That picture didn't turn out right. Try again with different words.")
         case "unkind":
             return AppText("errors.ai.unkind", defaultValue: "Let's keep our story kind and friendly — try different words!")
         default:

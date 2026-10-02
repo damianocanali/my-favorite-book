@@ -345,6 +345,9 @@ describe('POST /api/generate-image', () => {
   }
   const page = { kind: 'page', pageText: TRUMP_PAGE, characters: [FOX], setting: { promptEn: 'Enchanted Forest' }, locale: 'en' }
   const of = (needle) => calls.filter((c) => c.u.includes(needle))
+  // Text moderation only (the finished picture is screened too, with an array input).
+  const textMods = () => of('moderations').filter((c) => typeof c.body.input === 'string')
+  const imageMods = () => of('moderations').filter((c) => Array.isArray(c.body.input))
 
   it('writes the scene server-side and sends FLUX.2-dev a prose-free prompt at 28 steps', async () => {
     const res = await post(page)
@@ -361,7 +364,7 @@ describe('POST /api/generate-image', () => {
 
   it('moderates the raw text AND the final prompt', async () => {
     await post(page)
-    const mods = of('moderations').map((c) => c.body.input)
+    const mods = textMods().map((c) => c.body.input)
     expect(mods).toHaveLength(2)
     expect(mods[0]).toContain(TRUMP_PAGE)
     expect(mods[1]).toMatch(/^A smiling president/)
@@ -441,7 +444,7 @@ describe('POST /api/generate-image', () => {
     const chars = Array.from({ length: 6 }, (_, i) => ({ name: `N${i}`.padEnd(120, 'n'), promptEn: 'p'.repeat(200), description: 'd'.repeat(200) }))
     const res = await post({ ...page, pageText: long, characters: chars, hint: 'h'.repeat(400), title: 't'.repeat(200) })
     expect(res.status).toBe(200)
-    const mods = of('moderations').map((c) => c.body.input)
+    const mods = textMods().map((c) => c.body.input)
     expect(mods.length).toBe(3) // two raw chunks + the final prompt
     expect(mods[0].length + mods[1].length).toBeGreaterThan(7500)
     expect(mods.every((m) => m.length <= 8000)).toBe(true)
@@ -515,6 +518,77 @@ describe('POST /api/generate-image', () => {
     expect(flux.body.prompt).not.toContain('Trump')
   })
 
+  // ── Output-image moderation (review §7 item 11) ──
+  const withImageVerdict = (reply) => {
+    const base = globalThis.fetch
+    globalThis.fetch = vi.fn(async (url, init) => {
+      const u = String(url)
+      if (u.includes('moderations') && Array.isArray(JSON.parse(init.body).input)) {
+        calls.push({ u, body: JSON.parse(init.body) })
+        return reply()
+      }
+      if (u.includes('school_bump_image')) { calls.push({ u, body: null }); return new Response('true') }
+      return base(url, init)
+    })
+  }
+
+  it('screens the finished picture as an image input before storing it', async () => {
+    const { storeIllustration } = await import('../api/_imageStore.js')
+    storeIllustration.mockClear()
+    const res = await post(page)
+    expect(res.status).toBe(200)
+    const [img] = imageMods()
+    expect(img.body.model).toBe('omni-moderation-latest')
+    expect(img.body.input[0]).toEqual({ type: 'image_url', image_url: { url: 'data:image/png;base64,AAAA' } })
+    expect(storeIllustration).toHaveBeenCalledTimes(1)
+  })
+
+  it('a flagged picture is never stored: 400 image_flagged', async () => {
+    const { storeIllustration } = await import('../api/_imageStore.js')
+    storeIllustration.mockClear()
+    withImageVerdict(() => new Response(JSON.stringify({ results: [{ flagged: true }] })))
+    const res = await post(page)
+    expect(res.status).toBe(400)
+    expect((await res.json()).code).toBe('image_flagged')
+    expect(storeIllustration).not.toHaveBeenCalled()
+  })
+
+  it('image moderation down: an adult still gets the picture (fail open)', async () => {
+    withImageVerdict(() => new Response('down', { status: 500 }))
+    const res = await post(page)
+    expect(res.status).toBe(200)
+  })
+
+  it('image moderation down: a student gets 503 and nothing is stored (fail closed)', async () => {
+    const { storeIllustration } = await import('../api/_imageStore.js')
+    const { verifyJwt } = await import('../api/_auth.js')
+    storeIllustration.mockClear()
+    verifyJwt.mockResolvedValueOnce({ ok: true, userId: 'u1', appMetadata: { role: 'student', student_id: 's1' } })
+    withImageVerdict(() => new Response('down', { status: 500 }))
+    const res = await post(page)
+    expect(res.status).toBe(503)
+    expect((await res.json()).code).toBe('moderation_unavailable')
+    expect(storeIllustration).not.toHaveBeenCalled()
+  })
+
+  it('holds back time for the image check: Together is cut off at ~20 s, not 23 s', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+    try {
+      const base = globalThis.fetch
+      globalThis.fetch = vi.fn((url, init) => {
+        if (String(url).includes('api.together.xyz')) {
+          return new Promise((_r, rej) => init.signal.addEventListener('abort', () => rej(Object.assign(new Error('aborted'), { name: 'AbortError' }))))
+        }
+        return base(url, init)
+      })
+      const p = post({ prompt: 'A fox. no text' })
+      await vi.advanceTimersByTimeAsync(20_001)
+      expect((await p).status).toBe(504)
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
   const SB = process.env.SUPABASE_URL
   const own = () => `${SB}/storage/v1/object/public/book-illustrations/u1/page-abc123.png`
 
@@ -556,7 +630,8 @@ describe('POST /api/generate-image', () => {
     const [flux] = of('api.together.xyz')
     expect(flux.body.prompt).toBe('A fox in a forest. no text')
     expect(flux.body.steps).toBe(28)
-    expect(of('moderations')).toHaveLength(1)
+    expect(textMods()).toHaveLength(1)
+    expect(imageMods()).toHaveLength(1)
   })
 })
 

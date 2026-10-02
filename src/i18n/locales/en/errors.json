@@ -25,6 +25,7 @@
     "generic": "Something went wrong. Please try again.",
     "try_again": "We couldn't do that just now. Please try again in a moment.",
     "timeout": "That took too long. Please try again.",
-    "class_image_limit": "That's all the pictures for today — ask your teacher."
+    "class_image_limit": "That's all the pictures for today — ask your teacher.",
+    "image_flagged": "That picture didn't turn out right. Try again with different words."
   }
 }

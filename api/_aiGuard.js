@@ -158,3 +158,69 @@ export async function moderatePrompt(text, req, { failClosed = false } = {}) {
     clearTimeout(timer)
   }
 }
+
+// ── Output-image moderation (review §7 item 11) ─────────────────────────────
+//
+// Every generated picture is screened with OpenAI omni-moderation (image
+// input, same OPENAI_API_KEY as prompt moderation) BEFORE it is stored or
+// returned. A flagged picture is never stored. When the check can't run,
+// students fail CLOSED and adults fail open (logged), like moderatePrompt.
+
+export const IMAGE_MODERATION_TIMEOUT_MS = 4000
+
+/// Screens a base64 PNG. Returns 'ok', 'flagged' or 'unavailable' (no key,
+/// timeout, provider error, unreadable answer). Never throws.
+export async function checkImage(b64, { timeoutMs = IMAGE_MODERATION_TIMEOUT_MS, mime = 'image/png' } = {}) {
+  const key = process.env.OPENAI_API_KEY
+  if (!key) {
+    console.warn('[moderation] OPENAI_API_KEY is unset — image moderation is DISABLED')
+    return 'unavailable'
+  }
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), Math.max(1, timeoutMs))
+  try {
+    const res = await fetch('https://api.openai.com/v1/moderations', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` },
+      body: JSON.stringify({
+        model: 'omni-moderation-latest',
+        input: [{ type: 'image_url', image_url: { url: `data:${mime};base64,${b64}` } }],
+      }),
+      signal: controller.signal,
+    })
+    if (!res.ok) {
+      console.error('[moderation] image moderation request failed:', res.status)
+      return 'unavailable'
+    }
+    const data = await res.json().catch(() => null)
+    if (!Array.isArray(data?.results)) {
+      console.error('[moderation] unreadable image moderation response')
+      return 'unavailable'
+    }
+    if (data.results.some((r) => r?.flagged)) {
+      console.warn('[moderation] generated image flagged — not stored')
+      return 'flagged'
+    }
+    return 'ok'
+  } catch (e) {
+    console.error('[moderation] image error:', e?.name === 'AbortError' ? 'timeout' : e?.message)
+    return 'unavailable'
+  } finally {
+    clearTimeout(timer)
+  }
+}
+
+export const IMAGE_FLAGGED_MESSAGE = "That picture didn't turn out right. Try again with different words."
+
+/// Screens a generated picture and returns the Response to send instead of
+/// it (400 image_flagged, or 503 moderation_unavailable when failing
+/// closed), or null to go ahead and store/return it.
+export async function moderateImage(b64, req, { failClosed = false, timeoutMs } = {}) {
+  const verdict = await checkImage(b64, { timeoutMs })
+  if (verdict === 'flagged') return aiError(400, IMAGE_FLAGGED_MESSAGE, req, 'image_flagged')
+  if (verdict === 'unavailable') {
+    if (failClosed) return moderationUnavailable(req)
+    console.warn('[moderation] image moderation unavailable — allowing (adult account)')
+  }
+  return null
+}

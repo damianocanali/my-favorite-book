@@ -192,7 +192,9 @@
       "class_archived": "Questa classe è archiviata. Ripristinala per fare modifiche.",
       "version_changed": "Ha consegnato una nuova versione. Guardala prima di valutare.",
       "cannot_return": "Questo compito è chiuso o scaduto, quindi non si può rimandare.",
-      "template_locked": "La scheda si può cambiare solo finché il compito è una bozza."
+      "template_locked": "La scheda si può cambiare solo finché il compito è una bozza.",
+      "image_flagged": "Questa immagine non è venuta bene. Prova con altre scelte.",
+      "moderation_unavailable": "Non siamo riusciti a controllare l'immagine proprio ora. Riprova tra un momento."
     },
     "class_page": {
       "back": "Torna alle tue classi",

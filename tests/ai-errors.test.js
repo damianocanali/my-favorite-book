@@ -11,6 +11,7 @@ describe('friendlyAiError', () => {
     expect(friendlyAiError(withCode('rate_limited'), t)).toBe('errors:ai.rate_limited')
     expect(friendlyAiError(withCode('scene_unavailable'), t)).toBe('errors:ai.try_again')
     expect(friendlyAiError(withCode('moderation_unavailable'), t)).toBe('errors:ai.try_again')
+    expect(friendlyAiError(withCode('image_flagged'), t)).toBe('errors:ai.image_flagged')
     expect(friendlyAiError(withCode('timeout', 'Prompt is too long'), t)).toBe('errors:ai.timeout')
   })
 

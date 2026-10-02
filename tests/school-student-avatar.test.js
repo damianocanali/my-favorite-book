@@ -13,6 +13,7 @@ beforeEach(() => {
   process.env.SUPABASE_ANON_KEY = 'anon'
   process.env.SUPABASE_SERVICE_ROLE_KEY = 'service'
   process.env.TOGETHER_API_KEY = 'test-together-key'
+  process.env.OPENAI_API_KEY = 'test-openai-key'
 })
 
 // Copied from tests/school-students.test.js / tests/school-student-books.test.js.
@@ -34,6 +35,9 @@ function mockSupabase({ user, routes }) {
         return new Response(JSON.stringify(next.body ?? []), { status: next.status ?? 200 })
       }
     }
+    // Output-image moderation (review §7 item 11): clean unless a route
+    // above overrides it.
+    if (u.includes('api.openai.com/v1/moderations')) return new Response(JSON.stringify({ results: [{ flagged: false }] }))
     return new Response('[]')
   })
   return log
@@ -246,6 +250,43 @@ describe('POST /api/school/student-avatar — happy path', () => {
     expect(body.saved).toBe(false)
     expect(log.some((l) => l.method === 'POST' && l.url.includes('/rest/v1/user_inventory'))).toBe(false)
     errSpy.mockRestore()
+  })
+
+  it('screens the finished avatar; a flagged one is never stored (400 image_flagged)', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const log = mockSupabase({
+      user: TEACHER,
+      routes: [
+        classroomRoute, studentRoute([studentRow()]), allowanceRoute(true), togetherRoute('BASE64DATA'),
+        { method: 'POST', match: 'api.openai.com/v1/moderations', reply: { body: { results: [{ flagged: true }] } } },
+      ],
+    })
+    const { default: handler } = await import('../api/school/student-avatar.js')
+    const res = await handler(postReq({ classId: CLASS_ID, studentId: STUDENT_ID, features: FEATURES, artStyle: 'cartoon' }))
+    expect(res.status).toBe(400)
+    expect((await res.json()).code).toBe('image_flagged')
+    const mod = log.find((l) => l.url.includes('moderations'))
+    expect(mod.body.input[0].image_url.url).toBe('data:image/png;base64,BASE64DATA')
+    expect(log.some((l) => l.url.includes('/storage/v1/object/'))).toBe(false)
+    expect(log.some((l) => l.url.includes('/rest/v1/user_inventory'))).toBe(false)
+    warn.mockRestore()
+  })
+
+  it('image moderation down: fails CLOSED (the avatar is for a child) — 503, nothing stored', async () => {
+    const err = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const log = mockSupabase({
+      user: TEACHER,
+      routes: [
+        classroomRoute, studentRoute([studentRow()]), allowanceRoute(true), togetherRoute('BASE64DATA'),
+        { method: 'POST', match: 'api.openai.com/v1/moderations', reply: { status: 500, body: {} } },
+      ],
+    })
+    const { default: handler } = await import('../api/school/student-avatar.js')
+    const res = await handler(postReq({ classId: CLASS_ID, studentId: STUDENT_ID, features: FEATURES, artStyle: 'cartoon' }))
+    expect(res.status).toBe(503)
+    expect((await res.json()).code).toBe('moderation_unavailable')
+    expect(log.some((l) => l.url.includes('/storage/v1/object/'))).toBe(false)
+    err.mockRestore()
   })
 
   it('rate limits POST at 60/hour per teacher', async () => {

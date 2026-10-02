@@ -13,6 +13,8 @@ const BY_CODE = {
   scene_unavailable: 'errors:ai.try_again',
   // Moderation couldn't run and a student request fails closed.
   moderation_unavailable: 'errors:ai.try_again',
+  // The finished picture failed output moderation and was not kept.
+  image_flagged: 'errors:ai.image_flagged',
   timeout: 'errors:ai.timeout',
   unkind: 'errors:ai.unkind',
   prompt_too_long: 'errors:ai.too_long',

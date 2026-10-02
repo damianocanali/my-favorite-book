@@ -2,6 +2,24 @@
   "sourceLanguage": "en",
   "strings": {
     "": {},
+    "errors.ai.image_flagged": {
+      "comment": "A generated picture failed safety screening and was not kept (api/_aiGuard.js moderateImage).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That picture didn't turn out right. Try again with different words."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questa immagine non è venuta bene. Riprova con parole diverse."
+          }
+        }
+      }
+    },
     "“%@”": {
       "localizations": {
         "it": {

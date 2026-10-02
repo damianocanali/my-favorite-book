@@ -192,7 +192,9 @@
       "class_archived": "This class is archived. Restore it to make changes.",
       "version_changed": "They handed in a new version. Have a look at it first.",
       "cannot_return": "This assignment is closed or past its due date, so it can't be sent back.",
-      "template_locked": "The worksheet can only change while the assignment is a draft."
+      "template_locked": "The worksheet can only change while the assignment is a draft.",
+      "image_flagged": "That picture didn't turn out right. Try different choices.",
+      "moderation_unavailable": "We couldn't check that picture just now. Try again in a moment."
     },
     "class_page": {
       "back": "Back to your classes",
