@@ -45,13 +45,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pictures are drawn by Together AI. It receives a short description of the scene that we write, not your child's own words."
+            "value": "Together AI draws the pictures from that written scene description. If you use a photo avatar, the photo you choose is also sent to Together AI to turn it into a cartoon; we don't keep the photo."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Le immagini sono disegnate da Together AI, che riceve una breve descrizione della scena scritta da noi, non le parole di chi scrive la storia."
+            "value": "Together AI disegna le immagini a partire da quella descrizione della scena. Se usi un avatar da foto, anche la foto che scegli viene inviata a Together AI per trasformarla in un cartone animato; non conserviamo la foto."
           }
         }
       }
@@ -81,13 +81,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "OpenAI's safety filter checks the words and every finished picture, to keep things kind and safe."
+            "value": "OpenAI checks the words and every finished picture for safety."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Il filtro di sicurezza di OpenAI controlla le parole e ogni immagine finita, perché tutto resti gentile e sicuro."
+            "value": "OpenAI controlla la sicurezza delle parole e di ogni immagine finita."
           }
         }
       }
@@ -99,13 +99,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Story Buddy ideas come from Anthropic (Claude). It receives the story text and the book's title, characters and place — never your child's name or exact age."
+            "value": "Anthropic (Claude) reads the story text your child writes, to give Story Buddy help and to describe each picture to draw."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Le idee di Story Buddy arrivano da Anthropic (Claude), che riceve il testo della storia e il titolo, i personaggi e il luogo del libro, mai il nome o l'età esatta di chi scrive."
+            "value": "Anthropic (Claude) legge il testo scritto da chi crea la storia, per l'aiuto di Story Buddy e per descrivere ogni immagine da disegnare."
           }
         }
       }

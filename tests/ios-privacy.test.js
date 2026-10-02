@@ -45,8 +45,14 @@ describe('first-use AI disclosure for family accounts (5.1.2(i))', () => {
     expect(keys.length).toBe(8)
     for (const k of keys) expect(cat[k].localizations.it.stringUnit.value, k).toBeTruthy()
   })
-  it('never names the child in what it promises the AI receives', () => {
+  it('says accurately what each service receives (review fix I3)', () => {
+    const cat = JSON.parse(read('MyBookLab/Localizable.xcstrings')).strings
+    const en = (k) => cat[`ai_disclosure.${k}`].localizations.en.stringUnit.value
+    expect(en('story_buddy')).toMatch(/Anthropic[\s\S]*story text your child writes[\s\S]*Story Buddy[\s\S]*describe each picture/)
+    expect(en('pictures')).toMatch(/Together AI[\s\S]*scene description[\s\S]*photo avatar[\s\S]*photo/)
+    expect(en('safety')).toMatch(/OpenAI checks the words and every finished picture/)
+    // The source's defaults match the catalog's English.
     const view = read('MyBookLab/Views/AIDisclosureView.swift')
-    expect(view).toContain("never your child's name or exact age")
+    for (const k of ['story_buddy', 'pictures', 'safety']) expect(view).toContain(en(k).replace(/\\/g, ''))
   })
 })

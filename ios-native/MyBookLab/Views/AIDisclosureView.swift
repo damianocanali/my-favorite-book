@@ -5,11 +5,13 @@
 // (student) accounts never see it: the school's agreement covers them.
 //
 // What it says must stay true of the server code:
-//   - Story Buddy → Anthropic (api/story-buddy.js): the page text, the
-//     book's title/characters/setting; never the child's name or exact age.
-//   - Pictures → Together AI / FLUX (api/generate-image.js): a short scene
-//     description written server-side, not the child's own words.
-//   - OpenAI moderation screens text and finished pictures (api/_aiGuard.js).
+//   - Anthropic (Claude) reads the story text the child writes: Story Buddy
+//     (api/story-buddy.js) AND the scene writer that describes each picture
+//     (lib/imageScene.js writeScene, called by api/generate-image.js).
+//   - Together AI draws from that written scene description
+//     (api/generate-image.js), and receives the photo only when a parent
+//     uses the photo avatar (api/generate-avatar.js; the photo isn't kept).
+//   - OpenAI moderation checks text and finished pictures (api/_aiGuard.js).
 import SwiftUI
 
 enum AIDisclosure {
@@ -42,11 +44,11 @@ struct AIDisclosureView: View {
                         .foregroundStyle(.white.opacity(0.85))
 
                     point("text.bubble.fill",
-                          AppText("ai_disclosure.story_buddy", defaultValue: "Story Buddy ideas come from Anthropic (Claude). It receives the story text and the book's title, characters and place — never your child's name or exact age."))
+                          AppText("ai_disclosure.story_buddy", defaultValue: "Anthropic (Claude) reads the story text your child writes, to give Story Buddy help and to describe each picture to draw."))
                     point("paintbrush.pointed.fill",
-                          AppText("ai_disclosure.pictures", defaultValue: "Pictures are drawn by Together AI. It receives a short description of the scene that we write, not your child's own words."))
+                          AppText("ai_disclosure.pictures", defaultValue: "Together AI draws the pictures from that written scene description. If you use a photo avatar, the photo you choose is also sent to Together AI to turn it into a cartoon; we don't keep the photo."))
                     point("checkmark.shield.fill",
-                          AppText("ai_disclosure.safety", defaultValue: "OpenAI's safety filter checks the words and every finished picture, to keep things kind and safe."))
+                          AppText("ai_disclosure.safety", defaultValue: "OpenAI checks the words and every finished picture for safety."))
                     point("hand.raised.fill",
                           AppText("ai_disclosure.use", defaultValue: "These services get only what each request needs. The Privacy Policy says how long each one keeps it."))
 
