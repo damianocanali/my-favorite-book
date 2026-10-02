@@ -2,7 +2,7 @@
 -- Schema baseline for My Book Lab (privacy review §7 item 24).
 --
 -- Part 1: tables created in the Supabase dashboard, RECONSTRUCTED from code.
--- Part 2: supabase-migrations/*.sql in apply order (001_published_books.sql … 031_admin_access_log.sql).
+-- Part 2: supabase-migrations/*.sql in apply order (001_published_books.sql … 032_admin_access_log.sql).
 --
 -- TO BE REPLACED by a real `supabase db dump --schema-only` (owner action).
 -- tests/rls-baseline.test.js fails if any table created here lacks
@@ -2527,7 +2527,7 @@ grant execute on function public.school_wy_reorder(uuid, uuid, uuid[]) to servic
 grant execute on function public.school_create_class_print(uuid, uuid, text, jsonb, jsonb, int) to service_role;
 
 
--- ════════ supabase-migrations/031_admin_access_log.sql ════════
+-- ════════ supabase-migrations/032_admin_access_log.sql ════════
 -- Hardening sprint B: owner/admin access log (privacy review §4.11, §7 item 16).
 --
 -- Every use of an OWNER_USER_ID-gated endpoint (api/admin/*) writes one row:

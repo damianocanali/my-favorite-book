@@ -57,7 +57,7 @@ function reply(req, status, body) {
 }
 
 // The owner gate is shared with every admin endpoint (api/_adminLog.js), so
-// each action can be written to admin_access_log (migration 031).
+// each action can be written to admin_access_log (migration 032).
 async function requireOwner(req) {
   if (!sbEnv()) return { ok: false, response: reply(req, 503, { error: 'Not configured' }) }
   return ownerAuth(req)

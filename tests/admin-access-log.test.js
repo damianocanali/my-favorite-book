@@ -40,8 +40,8 @@ afterEach(() => { process.env = { ...origEnv }; vi.restoreAllMocks() })
 const auth = (who = 'owner') => ({ authorization: `Bearer ${who}` })
 const logRows = () => log.filter((l) => l.method === 'POST' && l.u.includes('/rest/v1/admin_access_log')).map((l) => l.body)
 
-describe('migration 031', () => {
-  const sql = readFileSync(new URL('../supabase-migrations/031_admin_access_log.sql', import.meta.url), 'utf8')
+describe('migration 032', () => {
+  const sql = readFileSync(new URL('../supabase-migrations/032_admin_access_log.sql', import.meta.url), 'utf8')
   it('creates the table with RLS on, no policies, client grants revoked, no FK on actor', () => {
     expect(sql).toMatch(/create table if not exists public\.admin_access_log/)
     expect(sql).toMatch(/alter table public\.admin_access_log enable row level security/)

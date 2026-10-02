@@ -21,7 +21,7 @@
 //        BATCH students ordered by id after `after`; repeat with
 //        `after: next_after` until done.
 //
-// Every call is written to admin_access_log (migration 031). The POST's row
+// Every call is written to admin_access_log (migration 032). The POST's row
 // is written BEFORE anything changes and is REQUIRED: no log, no reset.
 export const config = { runtime: 'nodejs', maxDuration: 300 }
 
