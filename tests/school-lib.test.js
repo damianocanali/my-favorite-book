@@ -123,8 +123,9 @@ describe('licenses', () => {
       expect(isLicenseUsable({ status, expires_at: past }, now)).toBe(false)
     }
   })
-  it('grace is usable even though expires_at has passed', () => {
-    expect(isLicenseUsable({ status: 'grace', expires_at: past }, now)).toBe(true)
+  it('grace is usable until its end (expires_at = paid term end + 14 days), never after — review I9', () => {
+    expect(isLicenseUsable({ status: 'grace', expires_at: future }, now)).toBe(true)
+    expect(isLicenseUsable({ status: 'grace', expires_at: past }, now)).toBe(false)
   })
   it('lapsed, canceled and missing are not usable', () => {
     for (const status of ['lapsed', 'canceled']) {

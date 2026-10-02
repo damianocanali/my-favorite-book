@@ -3,18 +3,7 @@ export const config = { runtime: 'edge' }
 import { checkRateLimit, getClientIp, handleCors, withCors } from './_rateLimit.js'
 import { verifyJwt } from './_auth.js'
 import { rejectStudent } from './_school.js'
-import { generateClassCode, CODE_RE } from '../lib/school/crypto.js'
-
-// Class codes are unique; a clash is rare (a 6-char code over 32 symbols is
-// ~1B combinations) but possible, so a 409 from the insert retries with a
-// fresh code instead of failing the request outright.
-async function withFreshCode(write) {
-  for (let i = 0; i < 5; i++) {
-    const res = await write(generateClassCode())
-    if (res.status !== 409) return res
-  }
-  return new Response(JSON.stringify({ message: 'code collision' }), { status: 409 })
-}
+import { CODE_RE } from '../lib/school/crypto.js'
 
 // The service-role key, never the anon one. The anon key ships in the web
 // bundle, and the classrooms/submissions tables had policies letting it read
@@ -41,35 +30,16 @@ export default async function handler(req) {
   const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY
   if (!supabaseUrl || !supabaseKey) return json(503, { error: 'Classroom feature not configured' })
 
-  // ── POST /api/classroom — create a new classroom (teacher, signed in) ──
+  // ── POST /api/classroom — RETIRED (Stage 4 review I8) ──
+  // Legacy code-only classes were created here by any signed-in account,
+  // with no teacher verification. New classes are made through
+  // /api/school/classes (verified teachers only, with a free trial).
   if (req.method === 'POST') {
-    const auth = await verifyJwt(req)
-    if (!auth.ok) return auth.response
-    // Students never own classes — this is the teacher-only creation path.
-    const rejected = rejectStudent(auth, req)
-    if (rejected) return rejected
-
-    const { allowed } = checkRateLimit(`classroom-create:${auth.userId}`, 10)
-    if (!allowed) return json(429, { error: 'Too many requests. Try again in an hour.' })
-
-    const { name } = await req.json().catch(() => ({}))
-    if (!name?.trim()) return json(400, { error: 'Class name is required' })
-
-    const res = await withFreshCode((code) =>
-      fetch(`${supabaseUrl}/rest/v1/classrooms`, {
-        method: 'POST',
-        headers: { ...supabaseHeaders(), Prefer: 'return=representation' },
-        body: JSON.stringify({ code, name: name.trim().slice(0, 60), owner_user_id: auth.userId }),
-      })
-    )
-
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}))
-      return json(500, { error: err.message || 'Failed to create classroom' })
-    }
-
-    const [classroom] = await res.json()
-    return json(201, { code: classroom.code, name: classroom.name })
+    return json(410, {
+      error: 'Creating classes here has moved. Use the teacher area (/teacher/classes).',
+      code: 'gone',
+      use: '/api/school/classes',
+    })
   }
 
   // ── GET /api/classroom?code=XXXX — fetch classroom + submissions ──
@@ -96,6 +66,9 @@ export default async function handler(req) {
     const auth = await verifyJwt(req)
 
     if (!auth.ok) return auth.response
+    // Class accounts never own a legacy class.
+    const rejected = rejectStudent(auth, req)
+    if (rejected) return rejected
 
 
     const code = encodeURIComponent(rawCode)

@@ -57,8 +57,8 @@ const run = async (auth = 'Bearer cron-secret') =>
 describe('license lifecycle: nextStep', () => {
   const lic = (over) => ({ status: 'trial', expires_at: daysAgo(10), updated_at: daysAgo(1), status_changed_at: daysAgo(200), ...over })
 
-  it('grace and comped are never lapsed; live licenses are not', () => {
-    expect(lapseDate(lic({ status: 'grace' }))).toBe(null)
+  it('comped is never lapsed; live licenses are not; grace lapses at its end (Stage 4 review I9)', () => {
+    expect(lapseDate(lic({ status: 'grace' })).toISOString()).toBe(daysAgo(10))
     expect(lapseDate(lic({ status: 'comped', expires_at: daysAgo(400) }))).toBe(null)
     expect(nextStep(lic({ status: 'comped', expires_at: daysAgo(400) }), NOW)).toBe(null)
     expect(nextStep(lic({ expires_at: new Date(NOW.getTime() + DAY).toISOString() }), NOW)).toBe(null)
@@ -160,7 +160,7 @@ describe('api/cron/retention', () => {
     expect(alert.body.text).not.toMatch(/kid-1|@/)
   })
 
-  const EXPIRING_Q = 'status=in.(trial,active,pending_payment)'
+  const EXPIRING_Q = 'status=in.(trial,active,pending_payment,grace)'
   const ENDED_Q = 'status=in.(lapsed,canceled)'
   const lic = (over) => ({
     id: 'L1', owner_user_id: 'teacher-1', classroom_id: 'c1', status: 'trial', expires_at: daysAgo(61), updated_at: daysAgo(61),
@@ -301,7 +301,7 @@ describe('api/cron/retention DRY RUN (default)', () => {
     mock([
       { method: 'GET', match: '/rest/v1/class_checkins?', reply: { headers: { 'content-range': '0-0/12' }, body: [{ id: 1 }] } },
       { method: 'GET', match: '/rest/v1/class_students?status=eq.removed', reply: { body: [{ id: 's1', classroom_id: 'c1', auth_user_id: 'kid-1' }] } },
-      { method: 'GET', match: 'status=in.(trial,active,pending_payment)', reply: { body: [{
+      { method: 'GET', match: 'status=in.(trial,active,pending_payment,grace)', reply: { body: [{
         id: 'L1', owner_user_id: 'teacher-1', classroom_id: 'c1', status: 'trial', expires_at: daysAgo(61),
         classrooms: { id: 'c1', code: 'ABC234', name: 'Room 5', locale: 'en' },
       }] } },

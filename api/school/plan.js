@@ -20,13 +20,14 @@ import { handleCors, checkRateLimit } from '../_rateLimit.js'
 import { requireTeacher, requireVerifiedTeacher, sb, json, isUuid } from '../_school.js'
 import { checkoutBaseUrl } from '../_origin.js'
 import { stripe as defaultStripe } from '../../lib/school/stripe.js'
-import { listInvoices, portalUrl, subscriptionItem, changeQuantity } from '../../lib/school/billingApi.js'
+import { listInvoices, portalUrl, subscriptionItem, setQuantity, chargeSeatAdd } from '../../lib/school/billingApi.js'
+import { sendOwnerAlert } from '../../lib/notify/ownerAlert.js'
 import { planSeatChange } from '../../lib/school/billingState.js'
-import { MIN_SCHOOL_SEATS, MAX_SCHOOL_SEATS, MAX_CLASS_SEATS } from '../../lib/school/pricing.js'
+import { MIN_SCHOOL_SEATS, MAX_SCHOOL_SEATS, MAX_CLASS_SEATS, seatAddQuote } from '../../lib/school/pricing.js'
 
 export const deps = { stripe: defaultStripe }
 
-const PLAN_COLS = 'id,owner_user_id,school_name,status,billing_method,seats,pending_seats,starts_at,expires_at,cancel_at_period_end,stripe_customer_id,stripe_subscription_id,created_at'
+const PLAN_COLS = 'id,owner_user_id,school_name,status,billing_method,seats,pending_seats,price_tier,starts_at,expires_at,cancel_at_period_end,decline_reason,stripe_customer_id,stripe_subscription_id,created_at'
 const CODE_RE = /^[A-Z0-9]{4,12}$/
 
 async function ownPlan(userId, planId) {
@@ -134,6 +135,10 @@ export default async function handler(req) {
     }
 
     if (body.action === 'offer') {
+      // Offers reach other teachers by class code: kept slow (review M10).
+      if (!checkRateLimit(`school-plan-offer:${userId}`, 20).allowed) {
+        return json(req, 429, { error: 'Too many requests', code: 'rate_limited' })
+      }
       const code = String(body.code ?? '').trim().toUpperCase()
       if (!CODE_RE.test(code)) return json(req, 400, { error: 'Enter the class code', code: 'bad_code' })
       if (!Number.isInteger(body.seats) || body.seats < 1 || body.seats > MAX_CLASS_SEATS) return json(req, 400, { error: 'Choose between 1 and 35 seats', code: 'bad_seats' })
@@ -168,18 +173,56 @@ export default async function handler(req) {
       const change = planSeatChange({ current: plan.seats, pending: plan.pending_seats, requested: body.seats, inUse: used, min: MIN_SCHOOL_SEATS, max: MAX_SCHOOL_SEATS })
       if (!change.ok) return json(req, 400, { error: 'That seat count is not possible', code: change.code, ...(change.min != null ? { min: change.min } : {}) })
       if (change.mode === 'none') return json(req, 200, { ok: true, mode: 'none' })
+      // Review I6: no seat increases while the plan's invoice is unpaid.
+      if (change.mode === 'increase' && plan.status === 'pending_payment') {
+        return json(req, 409, { error: 'Seats can be added once the invoice is paid', code: 'plan_unpaid' })
+      }
       const item = await subscriptionItem(deps.stripe, plan.stripe_subscription_id)
       if (!item) return json(req, 502, { error: 'Could not change seats', code: 'upstream' })
-      const target = change.mode === 'cancel_decrease' ? plan.seats : body.seats
-      const r = await changeQuantity(deps.stripe, plan.stripe_subscription_id, item, target, change.mode === 'increase' ? 'increase' : 'decrease')
-      if (!r.ok) return json(req, 502, { error: 'Could not change seats', code: 'upstream' })
-      let patch
+      const requestId = isUuid(body.request_id) ? body.request_id : crypto.randomUUID()
+      const setStripe = (q) => setQuantity(deps.stripe, plan.stripe_subscription_id, item.itemId, q, `plan-seats-${plan.id}-${q}-${requestId}`)
+
       if (change.mode === 'increase') {
-        if (r.pending || r.quantity !== target) return json(req, 402, { error: 'The card was declined; seats are unchanged', code: 'payment_failed' })
-        patch = { seats: target, pending_seats: null }
-      } else patch = { pending_seats: change.mode === 'decrease' ? target : null }
-      const upd = await sb(`/rest/v1/school_plans?id=eq.${plan.id}`, { method: 'PATCH', body: JSON.stringify({ ...patch, updated_at: new Date().toISOString() }) })
-      if (!upd.ok) return json(req, 502, { error: 'Seats changed; refresh in a minute', code: 'upstream' })
+        // Full yearly price per added seat, from the PAID seats (review I2/I5).
+        const added = body.seats - plan.seats
+        const quote = seatAddQuote(plan.price_tier ?? 'school', added)
+        if (!quote) return json(req, 503, { error: 'Payments not configured', code: 'not_configured' })
+        const charged = await chargeSeatAdd(deps.stripe, {
+          customer: item.customer ?? plan.stripe_customer_id,
+          paymentMethod: item.paymentMethod,
+          collectionMethod: item.collectionMethod,
+          quote,
+          description: `${added} more seat${added === 1 ? '' : 's'} for the current school year`,
+          metadata: { type: 'school_plan_seats', plan_id: plan.id, seats_from: String(plan.seats), seats_to: String(body.seats) },
+          key: `plan-seat-add-${plan.id}-${plan.seats}-${body.seats}-${requestId}`,
+        })
+        if (!charged.ok) {
+          return charged.code === 'payment_failed'
+            ? json(req, 402, { error: 'The card was declined; seats are unchanged', code: 'payment_failed' })
+            : json(req, 502, { error: 'Could not change seats', code: 'upstream' })
+        }
+        const upd = await sb(`/rest/v1/school_plans?id=eq.${plan.id}`, { method: 'PATCH', body: JSON.stringify({ seats: body.seats, pending_seats: null, updated_at: new Date().toISOString() }) })
+        if (!upd.ok) {
+          await sendOwnerAlert({ subject: 'Plan seats paid but not recorded', lines: [`School plan ${plan.id}: seats ${plan.seats} → ${body.seats} (invoice ${charged.invoiceId}); the row update failed.`] })
+          return json(req, 502, { error: 'Seats paid; refresh in a minute', code: 'upstream' })
+        }
+        const q = await setStripe(body.seats)
+        if (!q.ok) await sendOwnerAlert({ subject: 'Stripe quantity not raised', lines: [`School plan ${plan.id} paid for ${body.seats} seats (invoice ${charged.invoiceId}); set the subscription quantity to ${body.seats} (no proration).`] })
+        return json(req, 200, { ok: true, mode: 'increase', invoiced: !charged.paid })
+      }
+
+      // A reduction (or undoing one), checked against the seats given out
+      // UNDER the plan-row lock (review I3), then Stripe without proration.
+      const target = change.mode === 'decrease' ? body.seats : plan.seats
+      const rpc = await sb('/rest/v1/rpc/school_plan_reserve_decrease', { method: 'POST', body: JSON.stringify({ p_plan_id: plan.id, p_seats: target }) })
+      if (!rpc.ok) return json(req, 503, { error: 'Service unavailable, try again', code: 'upstream' })
+      const out = await rpc.json()
+      if (out?.error) return json(req, 400, { error: 'That seat count is not possible', code: out.error, ...(out.used != null ? { min: out.used } : {}) })
+      const q = await setStripe(target)
+      if (!q.ok) {
+        await sb('/rest/v1/rpc/school_plan_reserve_decrease', { method: 'POST', body: JSON.stringify({ p_plan_id: plan.id, p_seats: plan.pending_seats ?? plan.seats }) })
+        return json(req, 502, { error: 'Could not change seats', code: 'upstream' })
+      }
       return json(req, 200, { ok: true, mode: change.mode })
     }
 

@@ -28,8 +28,11 @@ const origEnv = { ...process.env }
 
 let db
 let stripeSubs
-const stripe = vi.fn(async (path) => {
+const stripe = vi.fn(async (path, opts = {}) => {
+  const method = opts.method ?? 'GET'
+  if (path === 'refunds' && method === 'POST') return { ok: true, status: 200, data: { id: 're_1' } }
   const id = path.split('/')[1]
+  if (method === 'DELETE') return stripeSubs[id] ? { ok: true, status: 200, data: { id, status: 'canceled' } } : { ok: false, status: 404, data: {} }
   return stripeSubs[id] ? { ok: true, status: 200, data: stripeSubs[id] } : { ok: false, status: 404, data: {} }
 })
 
@@ -55,9 +58,10 @@ const run = (event) => handleSchoolStripeEvent(event, { sb: db.sb, stripe })
 
 /// Mirrors school_create_class_print (024): a paid (active/grace/comped),
 /// unexpired license; one live request per (license_id, term_start).
-function requestPrint(classroomId = CLASS) {
+function requestPrint(classroomId = CLASS, children = 10) {
   const lic = db.t('class_licenses').find((l) => l.classroom_id === classroomId)
   if (!canPrintClass(lic)) return 'license_not_printable'
+  if (children > lic.seats) return 'too_many_children'
   const reqs = db.t('class_print_requests')
   if (reqs.some((r) => r.license_id === lic.id && r.term_start === lic.starts_at && r.status !== 'canceled')) return 'already_requested'
   reqs.push({ license_id: lic.id, term_start: lic.starts_at, status: 'requested' })
@@ -78,7 +82,7 @@ beforeEach(() => {
       id: 'lic-1', owner_user_id: TEACHER, classroom_id: CLASS, origin: 'trial', status: 'trial', seats: 35,
       image_allowance: 300, images_used: 120, starts_at: '2026-09-20T00:00:00.000Z', expires_at: '2026-10-20T00:00:00.000Z',
       stripe_period_start: null, stripe_subscription_id: null, stripe_customer_id: null, stripe_event_at: null,
-      pending_seats: null, cancel_at_period_end: false, school_plan_id: null, billing_method: null, updated_at: 'v0',
+      pending_seats: null, cancel_at_period_end: false, school_plan_id: null, billing_method: null, needs_review: false, review_reason: null, updated_at: 'v0',
     }],
     class_print_requests: [],
   })
@@ -223,13 +227,16 @@ describe('renewals and the term rule', () => {
 
   it('seat changes and cancel-at-period-end never move starts_at', async () => {
     const start = license().starts_at
+    // Seats added through the app: our row first (paid in full), then Stripe.
+    Object.assign(license(), { seats: 30, image_allowance: 9000 })
     await run(ev('customer.subscription.updated', subscription({ quantity: 30 }), 1_800_000_000))
-    expect(license()).toMatchObject({ seats: 30, image_allowance: 9000, starts_at: start })
+    expect(license()).toMatchObject({ seats: 30, image_allowance: 9000, starts_at: start, needs_review: false })
     await run(ev('customer.subscription.updated', subscription({ quantity: 20, cape: true }), 1_800_000_100))
     expect(license()).toMatchObject({ seats: 30, pending_seats: 20, cancel_at_period_end: true, starts_at: start })
     // An older update arriving late is ignored.
     await run(ev('customer.subscription.updated', subscription({ quantity: 35 }), 1_800_000_050))
     expect(license().seats).toBe(30)
+    expect(license().needs_review).toBe(false)
     // The reduction lands with the renewal.
     await run(ev('invoice.paid', invoice({ period: P2, quantity: 20 })))
     expect(license()).toMatchObject({ seats: 20, pending_seats: null, image_allowance: 6000 })
@@ -300,7 +307,7 @@ describe('school plan', () => {
       id: 'plan-1', owner_user_id: TEACHER, school_name: 'Lincoln District', status: 'pending_payment', billing_method: 'invoice',
       seats: 200, pending_seats: null, price_tier: 'school', starts_at: '2026-10-02T00:00:00.000Z', expires_at: '2026-11-01T00:00:00.000Z',
       stripe_customer_id: 'cus_1', stripe_subscription_id: PLAN_SUB, stripe_price_id: 'price_p', stripe_period_start: null,
-      stripe_event_at: null, cancel_at_period_end: false, updated_at: 'p0',
+      stripe_event_at: null, cancel_at_period_end: false, needs_review: false, updated_at: 'p0',
     })
     Object.assign(license(), { school_plan_id: 'plan-1', status: 'pending_payment', seats: 25, image_allowance: 7500, images_used: 40, starts_at: '2026-10-02T00:00:00.000Z', expires_at: '2026-11-01T00:00:00.000Z' })
   })
@@ -404,5 +411,114 @@ describe('a class leaving a school plan', () => {
     Object.assign(license(), { school_plan_id: 'plan-old', status: 'lapsed', stripe_subscription_id: 'sub_plan_old', stripe_period_start: '2025-09-01T00:00:00.000Z', starts_at: '2025-09-01T00:00:00.000Z' })
     await buyClass()
     expect(license()).toMatchObject({ school_plan_id: null, stripe_subscription_id: SUB, status: 'active', starts_at: isoS(P1[0]), billing_method: 'card' })
+  })
+})
+
+describe('round 1 review fixes', () => {
+  describe('I10: the ledger survives a crash mid-apply', () => {
+    it('a claim never marked processed is taken over after 5 minutes; a fresh one answers 500 (retry later)', async () => {
+      const event = ev('checkout.session.completed', checkout())
+      // A delivery that claimed the event and was killed before applying it.
+      db.t('stripe_school_events').push({ event_id: event.id, type: event.type, received_at: new Date(Date.now() - 60_000).toISOString(), processed_at: null })
+      expect(await run(event)).toEqual({ handled: true, status: 500, busy: true })
+      expect(license().status).toBe('trial')
+      // Six minutes on, Stripe's retry takes the claim over and applies it.
+      db.t('stripe_school_events')[0].received_at = new Date(Date.now() - 6 * 60_000).toISOString()
+      expect(await run(event)).toEqual({ handled: true, status: 200 })
+      expect(license().status).toBe('active')
+      expect(db.t('stripe_school_events')[0].processed_at).toBeTruthy()
+      // Now processed: a further delivery is a no-op.
+      expect(await run(event)).toEqual({ handled: true, status: 200, duplicate: true })
+    })
+  })
+
+  describe('I11: a second subscription for one class is canceled and refunded', () => {
+    it('the newer subscription is canceled now, its payment refunded, the license untouched and flagged', async () => {
+      await buyClass()
+      const before = { ...license() }
+      stripeSubs.sub_dup = { ...subscription({ id: 'sub_dup' }), latest_invoice: { id: 'in_dup', payment_intent: 'pi_dup' } }
+      await run(ev('checkout.session.completed', checkout(classMd, 'sub_dup')))
+      expect(stripe).toHaveBeenCalledWith('subscriptions/sub_dup', expect.objectContaining({ method: 'DELETE' }))
+      expect(stripe).toHaveBeenCalledWith('refunds', expect.objectContaining({ method: 'POST', params: { payment_intent: 'pi_dup', reason: 'duplicate' } }))
+      expect(license()).toMatchObject({ stripe_subscription_id: SUB, starts_at: before.starts_at, seats: before.seats, needs_review: true })
+      expect(license().review_reason).toContain('sub_dup')
+    })
+
+    it('reads the 2025 invoice payments shape for the refund', async () => {
+      await buyClass()
+      stripeSubs.sub_dup2 = { ...subscription({ id: 'sub_dup2' }), latest_invoice: { id: 'in_2', payments: { data: [{ payment: { payment_intent: 'pi_new' } }] } } }
+      await run(ev('checkout.session.completed', checkout(classMd, 'sub_dup2')))
+      expect(stripe).toHaveBeenCalledWith('refunds', expect.objectContaining({ params: { payment_intent: 'pi_new', reason: 'duplicate' } }))
+    })
+  })
+
+  describe('I12: out-of-range quantities are not mirrored', () => {
+    it('a portal increase above the paid seats is flagged, seats unchanged', async () => {
+      await buyClass()
+      await run(ev('customer.subscription.updated', subscription({ quantity: 40 }), 1_800_000_000))
+      expect(license()).toMatchObject({ seats: 22, needs_review: true })
+    })
+    it('a reduction below the children enrolled is flagged, not made pending', async () => {
+      await buyClass()
+      for (let i = 0; i < 18; i++) db.t('class_students').push({ id: `kid-${i}`, classroom_id: CLASS, status: 'active' })
+      await run(ev('customer.subscription.updated', subscription({ quantity: 15 }), 1_800_000_000))
+      expect(license()).toMatchObject({ seats: 22, pending_seats: null, needs_review: true })
+    })
+  })
+
+  describe('I4: the print never exceeds paid seats', () => {
+    it('more children than seats must be left out first', async () => {
+      await buyClass() // 22 seats
+      expect(requestPrint(CLASS, 30)).toBe('too_many_children')
+      expect(requestPrint(CLASS, 22)).toBe('ok')
+    })
+    it('the SQL print RPC enforces it under the lock, and grace ends at expires_at (I9)', () => {
+      const sql = readFileSync('supabase-migrations/034_school_billing.sql', 'utf8')
+      const fn = sql.slice(sql.indexOf('create or replace function public.school_create_class_print'))
+      expect(fn).toMatch(/select id, status, starts_at, expires_at, seats into lic from class_licenses where classroom_id = p_classroom_id for share/)
+      expect(fn).toMatch(/if n > lic\.seats then raise exception 'too_many_children'/)
+      expect(fn).toMatch(/lic\.status not in \('active','grace','comped'\) or lic\.expires_at <= now\(\)/)
+      const bump = sql.slice(sql.indexOf('create or replace function public.school_bump_image'), sql.indexOf('create or replace function public.school_create_class_print'))
+      expect(bump).toMatch(/if lic\.expires_at <= now\(\) then return false/)
+      expect(bump).not.toMatch(/status <> 'grace'/)
+    })
+  })
+})
+
+describe('C1/I6: school-plan blocks', () => {
+  const planMd = { type: 'school_plan', plan_id: 'plan-9', owner_user_id: 'admin-1', school_name: 'Lincoln District' }
+  const plan = () => db.t('school_plans').find((p) => p.id === 'plan-9')
+  const block = () => db.t('class_licenses').find((l) => l.school_plan_id === 'plan-9')
+  beforeEach(() => {
+    // An owner-approved invoice plan; its subscription id is not on the row yet.
+    db.t('school_plans').push({
+      id: 'plan-9', owner_user_id: 'admin-1', school_name: 'Lincoln District', status: 'pending_payment', billing_method: 'invoice',
+      seats: 200, pending_seats: null, price_tier: 'school', starts_at: '2026-10-02T00:00:00.000Z', expires_at: '2026-11-01T00:00:00.000Z',
+      stripe_customer_id: 'cus_admin', stripe_subscription_id: null, stripe_period_start: null, stripe_event_at: null,
+      cancel_at_period_end: false, needs_review: false, updated_at: 'p0',
+    })
+    // A colleague's class holds a block (as school_plan_assign writes it: no Stripe ids).
+    Object.assign(license(), { owner_user_id: 'colleague-1', school_plan_id: 'plan-9', status: 'pending_payment', seats: 25, image_allowance: 1250, images_used: 3, starts_at: '2026-10-02T00:00:00.000Z', expires_at: '2026-11-01T00:00:00.000Z' })
+  })
+
+  it('the paid invoice finds the plan by plan_id, links it, and blocks get 300/seat but never the Stripe ids', async () => {
+    await run(ev('invoice.paid', invoice({ sub: 'sub_inv', period: P1, quantity: 200, reason: 'subscription_create', metadata: planMd, collection: 'send_invoice' })))
+    expect(plan()).toMatchObject({ status: 'active', stripe_subscription_id: 'sub_inv', starts_at: isoS(P1[0]) })
+    expect(block()).toMatchObject({ status: 'active', image_allowance: 7500, images_used: 0, starts_at: isoS(P1[0]), stripe_customer_id: null, stripe_subscription_id: null })
+    expect(db.t('school_plans')).toHaveLength(1)
+  })
+
+  it('while unpaid, blocks hold 50 pictures per seat', async () => {
+    db.t('school_plans')[0].stripe_subscription_id = 'sub_inv'
+    Object.assign(license(), { image_allowance: 7500 })
+    await run(ev('invoice.finalized', invoice({ sub: 'sub_inv', period: P1, quantity: 200, reason: 'subscription_create', metadata: planMd, collection: 'send_invoice', due: P1[0] + 30 * 86400 })))
+    expect(block().image_allowance).toBe(1250)
+  })
+
+  it('a second card plan for the same admin is canceled and refunded', async () => {
+    stripeSubs.sub_card2 = { ...subscription({ id: 'sub_card2', quantity: 180, price: 'price_p', metadata: { type: 'school_plan', owner_user_id: 'admin-1', school_name: 'X' } }), latest_invoice: { payment_intent: 'pi_c2' } }
+    await run(ev('checkout.session.completed', checkout({ type: 'school_plan', owner_user_id: 'admin-1', school_name: 'X' }, 'sub_card2')))
+    expect(db.t('school_plans')).toHaveLength(1)
+    expect(stripe).toHaveBeenCalledWith('subscriptions/sub_card2', expect.objectContaining({ method: 'DELETE' }))
   })
 })

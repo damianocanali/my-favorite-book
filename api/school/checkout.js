@@ -4,11 +4,14 @@
 // POST { kind: 'class', classId, seats, school_name, dpa_accept: true }
 //   → Stripe Checkout (subscription, yearly, quantity = seats). The founding
 //     price is applied automatically while eligible. → { url }
-// POST { kind: 'school', seats, school_name, dpa_accept: true, billing: 'card'|'invoice', request_id? }
+// POST { kind: 'school', seats, school_name, dpa_accept: true, billing: 'card'|'invoice' }
 //   card    → Stripe Checkout for the school plan → { url }
-//   invoice → a Stripe subscription with collection_method=send_invoice,
-//             days_until_due=30; the plan is usable now as pending_payment
-//             until the invoice's due date. → { plan }
+//   invoice → a plan request (status pending_approval) for the OWNER to
+//             approve (review I6; api/admin/school-plans.js). Nothing is
+//             usable and nothing is sent to Stripe until then; the owner is
+//             alerted. Approval creates the send_invoice subscription (net
+//             30) and makes the plan usable as pending_payment. → { plan }
+//   One open unpaid plan per teacher (also a unique index, migration 034).
 //
 // The amount is never taken from the client: the Price comes from env via
 // lib/school/pricing.js and the seat count is validated here; the webhook
@@ -19,12 +22,10 @@ import { handleCors, checkRateLimit } from '../_rateLimit.js'
 import { requireVerifiedTeacher, sb, json, isUuid } from '../_school.js'
 import { checkoutBaseUrl } from '../_origin.js'
 import { quoteClass, quoteSchool, priceIdFor } from '../../lib/school/pricing.js'
-import { stripe as defaultStripe, readSubscription } from '../../lib/school/stripe.js'
-import { ensureCustomer, purchaseBasics } from '../../lib/school/billingApi.js'
-import { PLAN_SELECT } from '../../lib/school/billingWebhook.js'
+import { stripe as defaultStripe } from '../../lib/school/stripe.js'
+import { ensureCustomer, purchaseBasics, expireOpenSessions } from '../../lib/school/billingApi.js'
+import { sendOwnerAlert } from '../../lib/notify/ownerAlert.js'
 
-const INVOICE_DAYS = 30
-const DAY = 86400000
 // A class that already has a paid or comped license can't be bought again
 // (change seats instead). Trial / lapsed / canceled / none can.
 const BUYABLE = ['trial', 'lapsed', 'canceled']
@@ -55,6 +56,10 @@ async function buyClass(req, auth, body, basics) {
 
   const customer = await ensureCustomer(sb, deps.stripe, { userId: auth.userId, email: auth.email, schoolName: basics.schoolName })
   if (!customer.ok) return json(req, 502, { error: 'Could not start checkout', code: 'upstream' })
+  // Two tabs can't pay for one class twice (review I11): any other open
+  // session for this class is expired first; the webhook cancels and
+  // refunds a duplicate that still gets through.
+  await expireOpenSessions(deps.stripe, customer.id, (md) => md.type === 'class_license' && md.classroom_id === row.id)
   const metadata = { type: 'class_license', owner_user_id: auth.userId, classroom_id: row.id, school_name: basics.schoolName, ...basics.dpa }
   const origin = checkoutBaseUrl(req)
   const back = `${origin}/teacher/class/${row.id}`
@@ -80,78 +85,60 @@ async function buySchool(req, auth, body, basics) {
   if (!quote.ok) return json(req, 400, { error: 'A school plan starts at 150 students', code: quote.code })
   const billing = body.billing === 'invoice' ? 'invoice' : body.billing === 'card' ? 'card' : null
   if (!billing) return json(req, 400, { error: 'Choose card or invoice', code: 'bad_billing' })
-  const price = priceIdFor('school')
+  const price = priceIdFor(quote.tier)
   if (!price) return json(req, 503, { error: 'Payments not configured', code: 'not_configured' })
 
-  // One live plan per school admin: change its seats instead of buying a second.
-  const live = await sb(`/rest/v1/school_plans?owner_user_id=eq.${encodeURIComponent(auth.userId)}&status=in.(pending_payment,active,grace)&select=id`)
+  // One live or unpaid plan per school admin: change its seats instead.
+  const live = await sb(`/rest/v1/school_plans?owner_user_id=eq.${encodeURIComponent(auth.userId)}&status=in.(pending_approval,pending_payment,active,grace)&select=id`)
   if (!live.ok) return json(req, 503, { error: 'Service unavailable, try again', code: 'upstream' })
   if ((await live.json()).length) return json(req, 409, { error: 'You already have a school plan', code: 'plan_exists' })
 
+  if (billing === 'invoice') {
+    // Review I6: the owner approves invoice plans before anything is usable.
+    const now = new Date().toISOString()
+    const ins = await sb('/rest/v1/school_plans', {
+      method: 'POST',
+      headers: { Prefer: 'return=representation' },
+      body: JSON.stringify({
+        owner_user_id: auth.userId, school_name: basics.schoolName, status: 'pending_approval', billing_method: 'invoice',
+        seats: body.seats, price_tier: quote.tier, expires_at: now,
+        dpa_version: basics.dpa.dpa_version, dpa_accepted_at: basics.dpa.dpa_accepted_at, dpa_accepted_by: auth.userId,
+      }),
+    })
+    if (ins.status === 409) return json(req, 409, { error: 'You already have a school plan', code: 'plan_exists' })
+    if (!ins.ok) return json(req, 502, { error: 'Could not send the request', code: 'upstream' })
+    const [plan] = await ins.json()
+    await sendOwnerAlert({
+      subject: 'School plan (invoice) waiting for approval',
+      lines: [
+        'A verified teacher asked for an invoice-billed school plan.',
+        `Plan: ${plan.id}`, `Seats: ${plan.seats}`, `School: ${basics.schoolName}`, `User id: ${auth.userId}`,
+        '', 'Approve or decline in the admin page: /admin (School plans waiting).',
+      ],
+      idempotencyKey: `school-plan-request-${plan.id}`,
+    })
+    return json(req, 201, { plan: { id: plan.id, status: plan.status, seats: plan.seats, school_name: plan.school_name } })
+  }
+
   const customer = await ensureCustomer(sb, deps.stripe, { userId: auth.userId, email: auth.email, schoolName: basics.schoolName })
   if (!customer.ok) return json(req, 502, { error: 'Could not start checkout', code: 'upstream' })
+  await expireOpenSessions(deps.stripe, customer.id, (md) => md.type === 'school_plan')
   const metadata = { type: 'school_plan', owner_user_id: auth.userId, school_name: basics.schoolName, ...basics.dpa }
-
-  if (billing === 'card') {
-    const origin = checkoutBaseUrl(req)
-    const r = await deps.stripe('checkout/sessions', {
-      method: 'POST',
-      params: {
-        mode: 'subscription',
-        customer: customer.id,
-        line_items: [{ price, quantity: body.seats }],
-        metadata,
-        subscription_data: { metadata },
-        success_url: `${origin}/teacher/school?billing=success`,
-        cancel_url: `${origin}/teacher/school?billing=canceled`,
-      },
-    })
-    if (!r.ok || !r.data?.url) return json(req, 502, { error: 'Could not start checkout', code: 'upstream' })
-    return json(req, 200, { url: r.data.url })
-  }
-
-  // Invoice billing. request_id makes a double-click (or a retry after a
-  // timeout) create ONE subscription (Stripe idempotency key).
-  const requestId = isUuid(body.request_id) ? body.request_id : crypto.randomUUID()
-  const r = await deps.stripe('subscriptions', {
+  const origin = checkoutBaseUrl(req)
+  const r = await deps.stripe('checkout/sessions', {
     method: 'POST',
-    idempotencyKey: `school-plan-${auth.userId}-${requestId}`,
     params: {
+      mode: 'subscription',
       customer: customer.id,
-      items: [{ price, quantity: body.seats }],
-      collection_method: 'send_invoice',
-      days_until_due: INVOICE_DAYS,
+      line_items: [{ price, quantity: body.seats }],
       metadata,
+      subscription_data: { metadata },
+      success_url: `${origin}/teacher/school?billing=success`,
+      cancel_url: `${origin}/teacher/school?billing=canceled`,
     },
   })
-  if (!r.ok || !r.data?.id) return json(req, 502, { error: 'Could not create the invoice', code: 'upstream' })
-  const sub = readSubscription(r.data)
-  const now = Date.now()
-  const ins = await sb('/rest/v1/school_plans', {
-    method: 'POST',
-    headers: { Prefer: 'return=representation' },
-    body: JSON.stringify({
-      owner_user_id: auth.userId, school_name: basics.schoolName, status: 'pending_payment', billing_method: 'invoice',
-      seats: sub.quantity ?? body.seats, price_tier: 'school',
-      // Usable while the invoice is open (net 30). Not printable until paid.
-      starts_at: new Date(now).toISOString(), expires_at: new Date(now + INVOICE_DAYS * DAY).toISOString(),
-      stripe_customer_id: customer.id, stripe_subscription_id: sub.id, stripe_price_id: price,
-      dpa_version: basics.dpa.dpa_version, dpa_accepted_at: basics.dpa.dpa_accepted_at, dpa_accepted_by: auth.userId,
-    }),
-  })
-  if (ins.status === 409) {
-    // The same request replayed: the plan already exists.
-    const again = await sb(`/rest/v1/school_plans?stripe_subscription_id=eq.${encodeURIComponent(sub.id)}&select=${PLAN_SELECT}`)
-    const [plan] = again.ok ? await again.json() : []
-    return json(req, 200, { plan: plan ?? null })
-  }
-  if (!ins.ok) {
-    // Don't leave an invoice the school would pay for nothing.
-    await deps.stripe(`subscriptions/${encodeURIComponent(sub.id)}`, { method: 'DELETE' })
-    return json(req, 502, { error: 'Could not create the plan', code: 'upstream' })
-  }
-  const [plan] = await ins.json()
-  return json(req, 201, { plan })
+  if (!r.ok || !r.data?.url) return json(req, 502, { error: 'Could not start checkout', code: 'upstream' })
+  return json(req, 200, { url: r.data.url })
 }
 
 export default async function handler(req) {

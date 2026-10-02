@@ -217,6 +217,12 @@ export default async function handler(req) {
         usedEmoji.add(emoji)
         todo.push({ name, emoji })
       }
+      // Review I4: a class can hold more children than paid seats (enrolled
+      // during the trial, then fewer seats bought). It keeps working, but
+      // no child is added until seats ≥ children.
+      if (existing.length > license.seats) {
+        return json(req, 409, { error: 'This class has more children than paid seats. Add seats first.', code: 'over_seats', seats: license.seats, used: existing.length })
+      }
       if (existing.length + todo.length > license.seats) {
         return json(req, 409, { error: 'Not enough seats in this class', code: 'seats_full', seats: license.seats, used: existing.length })
       }
@@ -334,6 +340,7 @@ export default async function handler(req) {
           }
           const license = await loadLicense(classroomId)
           const used = (await activeStudents(classroomId)).length
+          if (license && used > license.seats) return json(req, 409, { error: 'This class has more children than paid seats. Add seats first.', code: 'over_seats', seats: license.seats, used })
           if (!license || used + 1 > license.seats) return json(req, 409, { error: 'Not enough seats in this class', code: 'seats_full' })
           const res = await patchRow({ status: 'active', removed_at: null })
           if (!res.ok) return json(req, 502, { error: 'Could not update student', code: 'upstream' })

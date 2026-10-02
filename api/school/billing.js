@@ -16,15 +16,16 @@ import { handleCors, checkRateLimit } from '../_rateLimit.js'
 import { requireClassOwner, requireTeacher, teacherVerification, sb, json, isUuid } from '../_school.js'
 import { checkoutBaseUrl } from '../_origin.js'
 import { stripe as defaultStripe } from '../../lib/school/stripe.js'
-import { listInvoices, portalUrl, subscriptionItem, changeQuantity } from '../../lib/school/billingApi.js'
+import { listInvoices, portalUrl, subscriptionItem, setQuantity, chargeSeatAdd } from '../../lib/school/billingApi.js'
+import { sendOwnerAlert } from '../../lib/notify/ownerAlert.js'
 import { planSeatChange } from '../../lib/school/billingState.js'
-import { MIN_CLASS_SEATS, MAX_CLASS_SEATS, imageAllowanceFor } from '../../lib/school/pricing.js'
+import { MIN_CLASS_SEATS, MAX_CLASS_SEATS, imageAllowanceFor, seatAddQuote } from '../../lib/school/pricing.js'
 
 export const deps = { stripe: defaultStripe }
 
 const LICENSE_COLS =
   'id,owner_user_id,status,origin,seats,pending_seats,expires_at,starts_at,billing_method,cancel_at_period_end,' +
-  'school_plan_id,image_allowance,images_used,stripe_customer_id,stripe_subscription_id,updated_at'
+  'school_plan_id,image_allowance,images_used,stripe_customer_id,stripe_subscription_id,price_tier,updated_at'
 
 async function loadLicense(classroomId) {
   const res = await sb(`/rest/v1/class_licenses?classroom_id=eq.${classroomId}&select=${LICENSE_COLS}`)
@@ -58,6 +59,9 @@ function licenseView(l) {
     status: l.status, origin: l.origin, seats: l.seats, pending_seats: l.pending_seats ?? null,
     expires_at: l.expires_at, billing_method: l.billing_method ?? null, cancel_at_period_end: !!l.cancel_at_period_end,
     image_allowance: l.image_allowance, images_used: l.images_used, school_plan: !!l.school_plan_id,
+    // The tier NAME (the web looks the amount up in lib/school/pricing.js;
+    // the iPad never shows it).
+    tier: l.price_tier ?? null,
   }
 }
 
@@ -70,6 +74,9 @@ async function offersFor(classroomId) {
 async function handleOffer(req, body) {
   const t = await requireTeacher(req)
   if (!t.ok) return t.response
+  if (!checkRateLimit(`school-offer-answer:${t.auth.userId}`, 30).allowed) {
+    return json(req, 429, { error: 'Too many requests', code: 'rate_limited' })
+  }
   if (!isUuid(body.offerId)) return json(req, 400, { error: 'Invalid offer', code: 'bad_request' })
   if (!(await teacherVerification(t.auth)).verified) {
     return json(req, 403, { error: "We're confirming you're a teacher — usually within a day", code: 'teacher_unverified' })
@@ -114,9 +121,14 @@ export default async function handler(req) {
         if (!invoices) return json(req, 502, { error: 'Could not load invoices', code: 'upstream' })
         return json(req, 200, { invoices })
       }
+      const students = await enrolled(o.classroom.id)
       return json(req, 200, {
         license: licenseView(license),
-        students: await enrolled(o.classroom.id),
+        students,
+        // Review I4: more children than paid seats (e.g. enrolled during the
+        // trial, then fewer seats bought). Adding children is blocked until
+        // seats ≥ enrolled; the class print takes at most `seats` books.
+        over_seats: !!license && Number.isInteger(license.seats) && students > license.seats,
         plan: plan ? { school_name: plan.school_name, status: plan.status, mine: plan.owner_user_id === o.auth.userId } : null,
         offers: await offersFor(o.classroom.id),
         can_manage_billing: isPayer && !!pay.customer,
@@ -159,24 +171,62 @@ export default async function handler(req) {
       if (change.mode === 'none') return json(req, 200, { license: licenseView(license) })
       const item = await subscriptionItem(deps.stripe, license.stripe_subscription_id)
       if (!item) return json(req, 502, { error: 'Could not change seats', code: 'upstream' })
-      const target = change.mode === 'cancel_decrease' ? license.seats : body.seats
-      const r = await changeQuantity(deps.stripe, license.stripe_subscription_id, item, target, change.mode === 'increase' ? 'increase' : 'decrease')
-      if (!r.ok) return json(req, 502, { error: 'Could not change seats', code: r.status === 402 ? 'payment_failed' : 'upstream' })
-      // Mirror what STRIPE now has (never the request): the webhook sends
-      // the same, and is a no-op then.
-      let patch = null
+      const requestId = isUuid(body.request_id) ? body.request_id : crypto.randomUUID()
+      const setStripe = (q) => setQuantity(deps.stripe, license.stripe_subscription_id, item.itemId, q, `seats-${license.id}-${q}-${requestId}`)
+      const patchRow = async (patch) => {
+        const upd = await sb(`/rest/v1/class_licenses?id=eq.${license.id}`, {
+          method: 'PATCH', headers: { Prefer: 'return=representation' },
+          body: JSON.stringify({ ...patch, updated_at: new Date().toISOString() }),
+        })
+        if (!upd.ok) return null
+        const [after] = await upd.json()
+        return after ?? { ...license, ...patch }
+      }
+
       if (change.mode === 'increase') {
-        if (r.pending || r.quantity !== target) return json(req, 402, { error: 'The card was declined; seats are unchanged', code: 'payment_failed' })
-        patch = { seats: target, image_allowance: imageAllowanceFor(target), pending_seats: null }
-      } else if (change.mode === 'decrease') patch = { pending_seats: target }
-      else patch = { pending_seats: null }
-      const upd = await sb(`/rest/v1/class_licenses?id=eq.${license.id}`, {
-        method: 'PATCH', headers: { Prefer: 'return=representation' },
-        body: JSON.stringify({ ...patch, updated_at: new Date().toISOString() }),
-      })
-      if (!upd.ok) return json(req, 502, { error: 'Seats changed; refresh in a minute', code: 'upstream' })
-      const [after] = await upd.json()
-      return json(req, 200, { license: licenseView(after ?? { ...license, ...patch }), mode: change.mode })
+        // Added seats cost the FULL yearly per-seat price for this term
+        // (review I5), measured from the PAID seats — never from a pending
+        // reduction's lower Stripe quantity (review I2).
+        const added = body.seats - license.seats
+        const quote = seatAddQuote(license.price_tier ?? 'standard', added)
+        if (!quote) return json(req, 503, { error: 'Payments not configured', code: 'not_configured' })
+        const charged = await chargeSeatAdd(deps.stripe, {
+          customer: item.customer ?? license.stripe_customer_id,
+          paymentMethod: item.paymentMethod,
+          collectionMethod: item.collectionMethod,
+          quote,
+          description: `${added} more seat${added === 1 ? '' : 's'} for the current school year`,
+          metadata: { type: 'class_license_seats', license_id: license.id, classroom_id: o.classroom.id, seats_from: String(license.seats), seats_to: String(body.seats) },
+          key: `seat-add-${license.id}-${license.seats}-${body.seats}-${requestId}`,
+        })
+        if (!charged.ok) {
+          return charged.code === 'payment_failed'
+            ? json(req, 402, { error: 'The card was declined; seats are unchanged', code: 'payment_failed' })
+            : json(req, 502, { error: 'Could not change seats', code: 'upstream' })
+        }
+        // Our row first, then Stripe: the webhook then sees quantity ==
+        // seats and changes nothing.
+        const after = await patchRow({ seats: body.seats, image_allowance: imageAllowanceFor(body.seats), pending_seats: null })
+        if (!after) {
+          await sendOwnerAlert({ subject: 'Seats paid but not recorded', lines: [`Class license ${license.id}: seats ${license.seats} → ${body.seats} were paid (invoice ${charged.invoiceId}) but the row update failed.`] })
+          return json(req, 502, { error: 'Seats paid; refresh in a minute', code: 'upstream' })
+        }
+        const q = await setStripe(body.seats)
+        if (!q.ok) await sendOwnerAlert({ subject: 'Stripe quantity not raised', lines: [`Class license ${license.id} paid for ${body.seats} seats (invoice ${charged.invoiceId}); set the subscription quantity to ${body.seats} (no proration).`] })
+        return json(req, 200, { license: licenseView(after), mode: 'increase' })
+      }
+
+      // A reduction (or undoing one): our row first, then Stripe, no
+      // proration — nothing is refunded; the renewal bills the new count.
+      const pending = change.mode === 'decrease' ? body.seats : null
+      const after = await patchRow({ pending_seats: pending })
+      if (!after) return json(req, 502, { error: 'Could not change seats', code: 'upstream' })
+      const q = await setStripe(pending ?? license.seats)
+      if (!q.ok) {
+        await patchRow({ pending_seats: license.pending_seats ?? null })
+        return json(req, 502, { error: 'Could not change seats', code: 'upstream' })
+      }
+      return json(req, 200, { license: licenseView(after), mode: change.mode })
     }
 
     return json(req, 400, { error: 'Unknown action', code: 'bad_request' })

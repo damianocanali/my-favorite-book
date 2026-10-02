@@ -13,15 +13,30 @@ export const config = { runtime: 'edge' }
 import { handleCors, withCors } from '../_rateLimit.js'
 import { sb, isUuid } from '../_school.js'
 import { ownerAuth, logAdminAccess, reasonFrom } from '../_adminLog.js'
-import { writeVerification } from '../../lib/school/teacherVerification.js'
+import { writeVerification, verificationDecisionEmail } from '../../lib/school/teacherVerification.js'
+import { sendEmail } from '../../lib/notify/email.js'
 
 const STATUSES = ['pending', 'approved', 'declined']
-const SELECT = 'id,user_id,email_domain,school_name,status,created_at,decided_at,decline_reason'
+const SELECT = 'id,user_id,email_domain,school_name,locale,status,created_at,decided_at,decline_reason'
 
 function reply(req, status, body) {
   return new Response(JSON.stringify(body), {
     status, headers: withCors({ 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }, req),
   })
+}
+
+async function notifyTeacher(row, decision, reason) {
+  try {
+    const u = await sb(`/auth/v1/admin/users/${encodeURIComponent(row.user_id)}`)
+    const user = u.ok ? await u.json().catch(() => null) : null
+    if (!user?.email) return false
+    const mail = verificationDecisionEmail(decision, row.locale, decision === 'decline' ? reason : null)
+    const r = await sendEmail({ to: user.email, ...mail, idempotencyKey: `teacher-verify-decision-${row.id}` })
+    return !!r?.ok
+  } catch (e) {
+    console.error('[admin/teacher-verifications] teacher email failed', e?.message)
+    return false
+  }
 }
 
 export default async function handler(req) {
@@ -82,7 +97,9 @@ export default async function handler(req) {
         }),
       })
       if (!patch.ok) return reply(req, 502, { error: 'Could not update the request', code: 'upstream' })
-      return reply(req, 200, { ok: true, id: row.id, status: decision === 'approve' ? 'approved' : 'declined' })
+      // Tell the teacher (best effort; the decision stands either way).
+      const emailed = await notifyTeacher(row, decision, reason)
+      return reply(req, 200, { ok: true, id: row.id, status: decision === 'approve' ? 'approved' : 'declined', emailed })
     }
 
     return reply(req, 405, { error: 'Method not allowed' })

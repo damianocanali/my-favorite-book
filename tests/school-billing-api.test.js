@@ -94,7 +94,7 @@ describe('POST /api/school/checkout — class', () => {
     const cust = stripeCalls.find((c) => c.path === 'customers')
     // Data minimisation: the buyer's email, the school name, our id. Nothing else.
     expect(cust.params).toEqual({ email: 'pat@lincoln.edu', name: 'Lincoln Elementary', metadata: { owner_user_id: 'teacher-1', kind: 'school' } })
-    const s = stripeCalls.find((c) => c.path === 'checkout/sessions').params
+    const s = stripeCalls.find((c) => c.path === 'checkout/sessions' && c.method === 'POST').params
     expect(s.mode).toBe('subscription')
     expect(s.line_items).toEqual([{ price: 'price_f', quantity: 22 }]) // the client's price is ignored
     expect(s.metadata).toMatchObject({ type: 'class_license', owner_user_id: 'teacher-1', classroom_id: CLASS_ID, school_name: 'Lincoln Elementary', dpa_version: 'SDPC-NDPA-2.1' })
@@ -111,7 +111,7 @@ describe('POST /api/school/checkout — class', () => {
     const handler = await load('checkout')
     await handler(call('checkout', { body: buyClass() }))
     vi.useRealTimers()
-    expect(stripeCalls.find((c) => c.path === 'checkout/sessions').params.line_items[0].price).toBe('price_s')
+    expect(stripeCalls.find((c) => c.path === 'checkout/sessions' && c.method === 'POST').params.line_items[0].price).toBe('price_s')
   })
 
   it.each([
@@ -159,31 +159,46 @@ describe('POST /api/school/checkout — school plan', () => {
     expect((await res.json()).code).toBe('below_minimum')
   })
 
-  it('invoice: a send_invoice subscription (net 30) and a pending_payment plan usable until the due date', async () => {
+  it('invoice: only a request for the OWNER to approve — nothing sent to Stripe, nothing usable, owner alerted (review I6)', async () => {
+    process.env.OWNER_ALERT_EMAIL = 'owner@mybooklab.app'
+    process.env.RESEND_API_KEY = 're_x'
+    process.env.EMAIL_FROM = 'x@y'
     routes.push({ method: 'POST', match: '/rest/v1/school_plans', reply: (c) => ({ status: 201, body: [{ id: PLAN_ID, ...c.body }] }) })
-    stripeReplies['POST customers'] = { ok: true, data: { id: 'cus_s' } }
-    stripeReplies['POST subscriptions'] = { ok: true, data: { id: 'sub_p', customer: 'cus_s', items: { data: [{ quantity: 200, price: { id: 'price_p' } }] } } }
+    const fetchSpy = globalThis.fetch
+    globalThis.fetch = vi.fn(async (url, init) => (String(url).includes('api.resend.com') ? new Response('{}') : fetchSpy(url, init)))
     const handler = await load('checkout')
-    const res = await handler(call('checkout', { body: buySchool({ request_id: '6f1c1b1e-0000-4000-8000-0000000000aa' }) }))
+    const res = await handler(call('checkout', { body: buySchool() }))
     expect(res.status).toBe(201)
-    const sub = stripeCalls.find((c) => c.path === 'subscriptions')
-    expect(sub.params).toMatchObject({ customer: 'cus_s', items: [{ price: 'price_p', quantity: 200 }], collection_method: 'send_invoice', days_until_due: 30 })
-    expect(sub.idempotencyKey).toBe('school-plan-teacher-1-6f1c1b1e-0000-4000-8000-0000000000aa')
+    expect((await res.json()).plan).toMatchObject({ status: 'pending_approval', seats: 200 })
+    expect(stripeCalls).toHaveLength(0)
     const ins = log.find((l) => l.method === 'POST' && l.u.includes('/rest/v1/school_plans')).body
-    expect(ins).toMatchObject({ status: 'pending_payment', billing_method: 'invoice', seats: 200, stripe_subscription_id: 'sub_p', dpa_version: 'SDPC-NDPA-2.1', dpa_accepted_by: 'teacher-1' })
-    const days = (Date.parse(ins.expires_at) - Date.parse(ins.starts_at)) / 86400000
-    expect(days).toBe(30)
+    expect(ins).toMatchObject({ status: 'pending_approval', billing_method: 'invoice', seats: 200, dpa_version: 'SDPC-NDPA-2.1', dpa_accepted_by: 'teacher-1' })
+    expect(ins.stripe_subscription_id).toBeUndefined()
+    expect(globalThis.fetch.mock.calls.some(([u]) => String(u).includes('api.resend.com'))).toBe(true)
   })
 
-  it('card: Checkout at the school price', async () => {
+  it('card: Checkout at the school founding price in 2026–27, the school price after', async () => {
     stripeReplies['POST customers'] = { ok: true, data: { id: 'cus_s' } }
     stripeReplies['POST checkout/sessions'] = { ok: true, data: { url: 'https://checkout.stripe.com/x' } }
     const handler = await load('checkout')
     const res = await handler(call('checkout', { body: buySchool({ billing: 'card', seats: 180 }) }))
     expect(res.status).toBe(200)
-    const s = stripeCalls.find((c) => c.path === 'checkout/sessions').params
-    expect(s.line_items).toEqual([{ price: 'price_p', quantity: 180 }])
+    const s = stripeCalls.find((c) => c.path === 'checkout/sessions' && c.method === 'POST').params
+    expect(s.line_items).toEqual([{ price: 'price_f', quantity: 180 }])
     expect(s.metadata.type).toBe('school_plan')
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date('2027-09-01T00:00:00Z'))
+    stripeCalls.length = 0
+    await handler(call('checkout', { body: buySchool({ billing: 'card', seats: 180 }) }))
+    vi.useRealTimers()
+    expect(stripeCalls.find((c) => c.path === 'checkout/sessions' && c.method === 'POST').params.line_items[0].price).toBe('price_p')
+  })
+
+  it('an open unpaid or waiting plan blocks a second one', async () => {
+    routes.push({ method: 'GET', match: '/rest/v1/school_plans?owner_user_id', reply: (c) => ({ body: c.u.includes('pending_approval') ? [{ id: PLAN_ID }] : [] }) })
+    const handler = await load('checkout')
+    const res = await handler(call('checkout', { body: buySchool() }))
+    expect(res.status).toBe(409)
   })
 
   it('one live plan per school admin', async () => {
@@ -194,7 +209,7 @@ describe('POST /api/school/checkout — school plan', () => {
   })
 })
 
-const cardLicense = { id: 'lic-1', owner_user_id: 'teacher-1', status: 'active', seats: 25, pending_seats: null, expires_at: '2027-09-01T00:00:00Z', billing_method: 'card', school_plan_id: null, image_allowance: 7500, images_used: 10, stripe_customer_id: 'cus_1', stripe_subscription_id: 'sub_1', updated_at: 'v' }
+const cardLicense = { id: 'lic-1', owner_user_id: 'teacher-1', status: 'active', seats: 25, price_tier: 'founding', pending_seats: null, expires_at: '2027-09-01T00:00:00Z', billing_method: 'card', school_plan_id: null, image_allowance: 7500, images_used: 10, stripe_customer_id: 'cus_1', stripe_subscription_id: 'sub_1', updated_at: 'v' }
 const ownerRoute = { method: 'GET', match: '/rest/v1/classrooms?id=eq.', reply: { body: [{ id: CLASS_ID, name: 'Room 5' }] } }
 const licenseRoute = (lic) => ({ method: 'GET', match: '/rest/v1/class_licenses?classroom_id=eq.', reply: { body: lic ? [lic] : [] } })
 
@@ -208,27 +223,64 @@ describe('/api/school/billing — plan & billing for a class', () => {
     expect(JSON.stringify(out)).not.toMatch(/price|cents|amount|\$/i)
   })
 
-  it('more seats: prorated now via Stripe, then mirrored (300 pictures each)', async () => {
-    routes.push(ownerRoute, licenseRoute(cardLicense), students(18), { method: 'PATCH', match: '/rest/v1/class_licenses?id=eq.lic-1', reply: (c) => ({ body: [{ ...cardLicense, ...c.body }] }) })
-    stripeReplies['GET subscriptions/sub_1'] = { ok: true, data: { collection_method: 'charge_automatically', items: { data: [{ id: 'si_1', quantity: 25 }] } } }
+  const payable = () => {
+    stripeReplies['GET subscriptions/sub_1'] = { ok: true, data: { customer: 'cus_1', default_payment_method: 'pm_1', collection_method: 'charge_automatically', items: { data: [{ id: 'si_1', quantity: 25 }] } } }
+    stripeReplies['POST invoiceitems'] = { ok: true, data: { id: 'ii_1' } }
+    stripeReplies['POST invoices'] = { ok: true, data: { id: 'in_add' } }
+    stripeReplies['POST invoices/in_add/finalize'] = { ok: true, data: { id: 'in_add' } }
+    stripeReplies['POST invoices/in_add/pay'] = { ok: true, data: { id: 'in_add', status: 'paid' } }
     stripeReplies['POST subscriptions/sub_1'] = { ok: true, data: { items: { data: [{ quantity: 30 }] } } }
+  }
+
+  it('more seats: the FULL yearly price per added seat is paid first, then our row, then Stripe (no proration) — review I5', async () => {
+    routes.push(ownerRoute, licenseRoute(cardLicense), students(18), { method: 'PATCH', match: '/rest/v1/class_licenses?id=eq.lic-1', reply: (c) => ({ body: [{ ...cardLicense, ...c.body }] }) })
+    payable()
     const handler = await load('billing')
     const res = await handler(call('billing', { body: { classId: CLASS_ID, action: 'seats', seats: 30 } }))
     expect(res.status).toBe(200)
-    const upd = stripeCalls.find((c) => c.method === 'POST' && c.path === 'subscriptions/sub_1').params
-    expect(upd).toEqual({ items: [{ id: 'si_1', quantity: 30 }], proration_behavior: 'always_invoice', payment_behavior: 'pending_if_incomplete' })
+    const item = stripeCalls.find((c) => c.path === 'invoiceitems').params
+    expect(item).toMatchObject({ customer: 'cus_1', amount: 5 * 1500, currency: 'usd' })
+    expect(stripeCalls.find((c) => c.path === 'invoices').params).toMatchObject({ customer: 'cus_1', collection_method: 'charge_automatically', default_payment_method: 'pm_1', pending_invoice_items_behavior: 'include' })
+    const qty = stripeCalls.find((c) => c.method === 'POST' && c.path === 'subscriptions/sub_1').params
+    expect(qty).toEqual({ items: [{ id: 'si_1', quantity: 30 }], proration_behavior: 'none' })
     const patch = log.find((l) => l.method === 'PATCH').body
     expect(patch).toMatchObject({ seats: 30, image_allowance: 9000, pending_seats: null })
+    // Order: paid → our row → Stripe quantity.
+    const iPay = stripeCalls.findIndex((c) => c.path === 'invoices/in_add/pay')
+    const iQty = stripeCalls.findIndex((c) => c.method === 'POST' && c.path === 'subscriptions/sub_1')
+    expect(iPay).toBeLessThan(iQty)
   })
 
-  it('a declined proration leaves the seats alone', async () => {
+  it('I2: 30 seats with a pending reduction to 20, then 32 requested → charges 2 seats, not 12', async () => {
+    const lic = { ...cardLicense, seats: 30, pending_seats: 20 }
+    routes.push(ownerRoute, licenseRoute(lic), students(18), { method: 'PATCH', match: '/rest/v1/class_licenses?id=eq.lic-1', reply: (c) => ({ body: [{ ...lic, ...c.body }] }) })
+    payable()
+    stripeReplies['GET subscriptions/sub_1'].data.items.data[0].quantity = 20 // Stripe already holds the reduction
+    const handler = await load('billing')
+    const res = await handler(call('billing', { body: { classId: CLASS_ID, action: 'seats', seats: 32 } }))
+    expect(res.status).toBe(200)
+    expect(stripeCalls.find((c) => c.path === 'invoiceitems').params.amount).toBe(2 * 1500)
+    expect(log.find((l) => l.method === 'PATCH').body).toMatchObject({ seats: 32, pending_seats: null })
+    expect(stripeCalls.find((c) => c.method === 'POST' && c.path === 'subscriptions/sub_1').params).toEqual({ items: [{ id: 'si_1', quantity: 32 }], proration_behavior: 'none' })
+  })
+
+  it('a declined card voids the invoice and leaves the seats alone', async () => {
     routes.push(ownerRoute, licenseRoute(cardLicense), students(18))
-    stripeReplies['GET subscriptions/sub_1'] = { ok: true, data: { items: { data: [{ id: 'si_1', quantity: 25 }] } } }
-    stripeReplies['POST subscriptions/sub_1'] = { ok: true, data: { pending_update: { subscription_items: [] }, items: { data: [{ quantity: 25 }] } } }
+    payable()
+    stripeReplies['POST invoices/in_add/pay'] = { ok: false, status: 402, data: {} }
     const handler = await load('billing')
     const res = await handler(call('billing', { body: { classId: CLASS_ID, action: 'seats', seats: 30 } }))
     expect(res.status).toBe(402)
+    expect(stripeCalls.some((c) => c.path === 'invoices/in_add/void')).toBe(true)
     expect(log.some((l) => l.method === 'PATCH')).toBe(false)
+    expect(stripeCalls.some((c) => c.method === 'POST' && c.path === 'subscriptions/sub_1')).toBe(false)
+  })
+
+  it('GET reports more children than seats (I4)', async () => {
+    routes.push(ownerRoute, licenseRoute({ ...cardLicense, seats: 10 }), students(14))
+    const handler = await load('billing')
+    const out = await (await handler(call('billing', { method: 'GET', query: `?classId=${CLASS_ID}` }))).json()
+    expect(out.over_seats).toBe(true)
   })
 
   it('fewer seats wait for the renewal (no refund), and never go below enrolled', async () => {
@@ -240,7 +292,8 @@ describe('/api/school/billing — plan & billing for a class', () => {
     expect(await res.json()).toMatchObject({ code: 'below_enrolled', min: 18 })
     res = await handler(call('billing', { body: { classId: CLASS_ID, action: 'seats', seats: 20 } }))
     expect(res.status).toBe(200)
-    expect(stripeCalls.find((c) => c.method === 'POST').params.proration_behavior).toBe('none')
+    expect(stripeCalls.find((c) => c.method === 'POST' && c.path === 'subscriptions/sub_1').params.proration_behavior).toBe('none')
+    expect(stripeCalls.some((c) => c.path === 'invoiceitems')).toBe(false)
     const patch = log.find((l) => l.method === 'PATCH').body
     expect(patch.pending_seats).toBe(20)
     expect(patch.seats).toBeUndefined()
@@ -341,10 +394,16 @@ describe('migration 034: seat-block RPC', () => {
   const fn = sql.slice(sql.indexOf('create or replace function public.school_plan_assign'), sql.indexOf('revoke all on function public.school_plan_assign'))
   it('locks the plan, never oversells, never below enrolled, never steals a live license', () => {
     expect(fn).toMatch(/from school_plans where id = p_plan_id for update/)
-    expect(fn).toMatch(/used \+ p_seats > pl\.seats/)
+    expect(fn).toMatch(/cap := least\(pl\.seats, coalesce\(pl\.pending_seats, pl\.seats\)\)/)
+    expect(fn).toMatch(/used \+ p_seats > cap/)
+    // C1/I1: a block never carries the plan's Stripe Customer or Subscription.
+    expect(fn).not.toMatch(/pl\.stripe_customer_id|pl\.stripe_subscription_id|pl\.stripe_price_id/)
+    expect(fn).toMatch(/stripe_subscription_id = null/)
+    // I6: 50 pictures per seat while the plan is unpaid.
+    expect(fn).toMatch(/per_seat := case when pl\.status = 'pending_payment' then 50 else 300 end/)
     expect(fn).toMatch(/enrolled > p_seats/)
     expect(fn).toMatch(/lic\.status not in \('trial','lapsed','canceled'\)/)
-    expect(fn).toMatch(/image_allowance = 300 \* p_seats/)
+    expect(fn).toMatch(/image_allowance = per_seat \* p_seats/)
     expect(fn).toMatch(/has_lic := found/) // captured before the SELECT INTO that resets FOUND
   })
   it('is service-role only; pictures still count pending_payment as usable', () => {

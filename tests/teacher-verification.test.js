@@ -16,8 +16,6 @@ describe('school email domains', () => {
     'a.b@mail.harvard.edu',
     'ms.rossi@lausd.k12.ca.us',
     'x@school.district.k12.mn.us',
-    'head@greenfield.sch.uk',
-    'guru@sman1.sch.id',
     'T@LINCOLN.EDU',
   ])('accepts %s', (email) => {
     expect(isSchoolEmail(email, [])).toBe(true)
@@ -34,6 +32,9 @@ describe('school email domains', () => {
     'a@sch.uk', // bare second level
     'a@school.sch.attacker.com',
     'a@school.sch.com',
+    // Review I7: no *.sch.<cc> pattern at all (sch.io etc. are buyable).
+    'head@greenfield.sch.uk',
+    'anyone@x.sch.io',
     'a@gmail.com',
     'a@school.edu.',
     'a@',
@@ -47,6 +48,7 @@ describe('school email domains', () => {
 
   it('SCHOOL_EMAIL_DOMAINS matches whole labels from the right, never a lookalike', () => {
     const list = allowlistFromEnv(' @district.org, .scuola.it, bad domain, ')
+    expect(isSchoolDomain('greenfield.sch.uk', allowlistFromEnv('sch.uk'))).toBe(true)
     expect(list).toEqual(['district.org', 'scuola.it'])
     expect(isSchoolDomain('district.org', list)).toBe(true)
     expect(isSchoolDomain('mail.district.org', list)).toBe(true)
@@ -75,7 +77,8 @@ describe('verificationState', () => {
     expect(verificationState({ userId: OWNER, appMetadata: {} }, { ownerId: OWNER }).verified).toBe(true)
     expect(verificationState({ userId: 'u', email: 't@lincoln.edu', emailConfirmed: true, appMetadata: {} }, { allowlist: [] }))
       .toEqual({ verified: false, domainEligible: true })
-    // Unconfirmed: the domain proves nothing yet.
+    // Unconfirmed: the domain proves nothing yet. (A confirmed PHONE sets
+    // confirmed_at, not email_confirmed_at — review M1.)
     expect(verificationState({ userId: 'u', email: 't@lincoln.edu', emailConfirmed: false, appMetadata: {} }, { allowlist: [] }))
       .toEqual({ verified: false, domainEligible: false })
     // user_metadata is user-editable and never counts.
@@ -167,8 +170,8 @@ describe('gating: unverified teachers', () => {
     expect(Object.keys(put.body.app_metadata).sort()).toEqual(['teacher_verified_at', 'teacher_verified_by'])
   })
 
-  it('an UNCONFIRMED school-domain email is not enough', async () => {
-    user = { ...user, email: 'pat@lincoln.edu', email_confirmed_at: null }
+  it('an UNCONFIRMED school-domain email is not enough (a confirmed phone does not count)', async () => {
+    user = { ...user, email: 'pat@lincoln.edu', email_confirmed_at: null, confirmed_at: '2026-09-01T00:00:00Z', phone_confirmed_at: '2026-09-01T00:00:00Z' }
     const { default: handler } = await import('../api/school/classes.js')
     const res = await handler(call('school/classes', { method: 'POST', body: { name: 'Room 5' } }))
     expect(res.status).toBe(403)
@@ -192,7 +195,7 @@ describe('POST /api/school/verification', () => {
     expect(out.verified).toBe(false)
     expect(out.request.status).toBe('pending')
     const ins = log.find((l) => l.method === 'POST' && l.u.includes('teacher_verification_requests'))
-    expect(ins.body).toEqual({ user_id: 'teacher-9', email_domain: 'gmail.com', school_name: 'Lincoln Elementary' })
+    expect(ins.body).toEqual({ user_id: 'teacher-9', email_domain: 'gmail.com', school_name: 'Lincoln Elementary', locale: 'en' })
     const mail = log.find((l) => l.u.includes('api.resend.com'))
     expect(mail.body.to).toEqual(['owner@mybooklab.app'])
     expect(mail.body.text).toContain('gmail.com')
@@ -282,12 +285,12 @@ describe('migration 034: verification table + grandfathering', () => {
     }
     expect(sql).not.toMatch(/create policy/i)
   })
-  it('grandfathers every current class/license owner, never students, without overwriting', () => {
+  it('grandfathers license owners and owners of classes with class accounts (see school-billing-review I8), never students, without overwriting', () => {
     expect(sql).toMatch(/update auth\.users u/)
     expect(sql).toMatch(/'teacher_verified_by', 'grandfathered'/)
     expect(sql).toMatch(/coalesce\(u\.raw_app_meta_data->>'role', ''\) <> 'student'/)
     expect(sql).toMatch(/coalesce\(u\.raw_app_meta_data->>'teacher_verified_at', ''\) = ''/)
-    expect(sql).toMatch(/public\.classrooms c where c\.owner_user_id = u\.id/)
+    expect(sql).toMatch(/public\.classrooms c\s+where c\.owner_user_id = u\.id/)
     expect(sql).toMatch(/public\.class_licenses l where l\.owner_user_id = u\.id/)
   })
   it('stores only the email DOMAIN on a request', () => {

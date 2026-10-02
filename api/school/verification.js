@@ -67,7 +67,7 @@ export default async function handler(req) {
       const ins = await sb('/rest/v1/teacher_verification_requests', {
         method: 'POST',
         headers: { Prefer: 'return=representation' },
-        body: JSON.stringify({ user_id: t.auth.userId, email_domain: domain, school_name: schoolName }),
+        body: JSON.stringify({ user_id: t.auth.userId, email_domain: domain, school_name: schoolName, locale: body.locale === 'it' ? 'it' : 'en' }),
       })
       // 409: a parallel request won the one-pending slot — same answer.
       if (ins.status === 409) return json(req, 200, view(t.auth, v, await latestRequest(t.auth.userId)))

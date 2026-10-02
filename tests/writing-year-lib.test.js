@@ -35,7 +35,9 @@ describe('canPrintClass (R1)', () => {
   it('paid or comped only — never a trial, never lapsed', () => {
     expect(canPrintClass({ status: 'active', expires_at: future })).toBe(true)
     expect(canPrintClass({ status: 'comped', expires_at: future })).toBe(true)
-    expect(canPrintClass({ status: 'grace', expires_at: past })).toBe(true)
+    expect(canPrintClass({ status: 'grace', expires_at: future })).toBe(true)
+    // Stage 4 review I9: grace ends at expires_at (paid term end + 14 days).
+    expect(canPrintClass({ status: 'grace', expires_at: past })).toBe(false)
     expect(canPrintClass({ status: 'trial', expires_at: future })).toBe(false)
     expect(canPrintClass({ status: 'active', expires_at: past })).toBe(false)
     expect(canPrintClass({ status: 'lapsed', expires_at: future })).toBe(false)

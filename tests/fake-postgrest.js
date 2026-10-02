@@ -11,8 +11,9 @@ const UNIQUE = {
 }
 
 const DEFAULTS = {
-  class_licenses: () => ({ seats: 35, image_allowance: 300, images_used: 0, starts_at: new Date().toISOString(), pending_seats: null, school_plan_id: null, stripe_subscription_id: null, stripe_customer_id: null, stripe_price_id: null, stripe_period_start: null, stripe_event_at: null, cancel_at_period_end: false, billing_method: null, price_tier: null, school_name: null, dpa_version: null }),
-  school_plans: () => ({ pending_seats: null, starts_at: new Date().toISOString(), stripe_period_start: null, stripe_event_at: null, cancel_at_period_end: false, dpa_version: null }),
+  class_licenses: () => ({ seats: 35, image_allowance: 300, images_used: 0, starts_at: new Date().toISOString(), pending_seats: null, school_plan_id: null, stripe_subscription_id: null, stripe_customer_id: null, stripe_price_id: null, stripe_period_start: null, stripe_event_at: null, cancel_at_period_end: false, billing_method: null, price_tier: null, school_name: null, dpa_version: null, needs_review: false, review_reason: null }),
+  school_plans: () => ({ pending_seats: null, starts_at: new Date().toISOString(), stripe_period_start: null, stripe_event_at: null, cancel_at_period_end: false, dpa_version: null, needs_review: false, review_reason: null }),
+  stripe_school_events: () => ({ processed_at: null }),
 }
 
 function matches(row, key, raw) {

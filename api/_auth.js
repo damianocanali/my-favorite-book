@@ -55,7 +55,8 @@ export async function verifyJwt(req) {
     ok: true, userId: user.id, email: user.email, jwt,
     // Teacher verification (lib/school/teacherVerification.js) needs a
     // CONFIRMED address: an unconfirmed one proves nothing about the domain.
-    emailConfirmed: !!(user.email_confirmed_at || user.confirmed_at),
+    // Not `confirmed_at`: GoTrue also sets that for a confirmed PHONE.
+    emailConfirmed: !!user.email_confirmed_at,
     appMetadata: user.app_metadata ?? {}, userMetadata: user.user_metadata ?? {},
     aal: jwtClaim(jwt, 'aal') ?? 'aal1', mfaEnrolled,
   }

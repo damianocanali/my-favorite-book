@@ -6,7 +6,8 @@ import {
   planSeatChange, mirrorFromPlan, GRACE_DAYS,
 } from '../lib/school/billingState.js'
 import {
-  quoteClass, quoteSchool, isFoundingEligible, classTier, priceIdFor, tierForPriceId,
+  quoteClass, quoteSchool, isFoundingEligible, classTier, priceIdFor, tierForPriceId, seatAddQuote,
+  FOUNDING_LOCKED_FOR_LIFE, SCHOOL_PLAN_FOUNDING_PRICE_CENTS,
   imageAllowanceFor, SEAT_PRICE_CENTS, MIN_CLASS_SEATS, MAX_CLASS_SEATS, MIN_SCHOOL_SEATS, FOUNDING_ENDS_AT,
 } from '../lib/school/pricing.js'
 
@@ -42,9 +43,26 @@ describe('pricing', () => {
     expect(classTier(new Date('2027-07-31T20:00:00Z'))).toBe('founding')
     expect(quoteClass(25, new Date('2026-10-02'))).toMatchObject({ tier: 'founding', unit_cents: 1500, total_cents: 37500 })
   })
-  it('school plan: $17, at least 150 seats', () => {
+  it('school plan: $17, at least 150 seats; $15 in the founding window (SCHOOL_PLAN_FOUNDING_PRICE_CENTS)', () => {
     expect(quoteSchool(149).code).toBe('below_minimum')
-    expect(quoteSchool(150)).toMatchObject({ ok: true, tier: 'school', unit_cents: 1700, total_cents: 255000 })
+    expect(quoteSchool(150, new Date('2027-09-01'))).toMatchObject({ ok: true, tier: 'school', unit_cents: 1700, total_cents: 255000 })
+    expect(quoteSchool(150, new Date('2026-10-02'))).toMatchObject({ ok: true, tier: 'school_founding', unit_cents: 1500, total_cents: 225000 })
+  })
+  it('owner decisions are one-line constants with the agreed defaults', () => {
+    expect(FOUNDING_LOCKED_FOR_LIFE).toBe(true)
+    expect(SCHOOL_PLAN_FOUNDING_PRICE_CENTS).toBe(1500)
+    // The school founding tier reuses the founding Price when the amounts match.
+    expect(priceIdFor('school_founding', { STRIPE_PRICE_SEAT_FOUNDING: 'price_f' })).toBe('price_f')
+    expect(tierForPriceId('price_f', { STRIPE_PRICE_SEAT_FOUNDING: 'price_f' }, 'plan')).toBe('school_founding')
+    expect(tierForPriceId('price_f', { STRIPE_PRICE_SEAT_FOUNDING: 'price_f' }, 'license')).toBe('founding')
+  })
+  it('seats added mid-term cost the FULL yearly price at the record\'s tier (review I5)', () => {
+    expect(seatAddQuote('founding', 2)).toEqual({ unit_cents: 1500, added: 2, total_cents: 3000, currency: 'usd' })
+    expect(seatAddQuote('standard', 5).total_cents).toBe(9500)
+    expect(seatAddQuote('school', 10).total_cents).toBe(17000)
+    expect(seatAddQuote('school_founding', 10).total_cents).toBe(15000)
+    expect(seatAddQuote('standard', 0)).toBe(null)
+    expect(seatAddQuote('nope', 3)).toBe(null)
   })
   it('Stripe Price ids come from env, both ways; an unknown price is never guessed', () => {
     const env = { STRIPE_PRICE_SEAT: 'price_s', STRIPE_PRICE_SEAT_FOUNDING: 'price_f', STRIPE_PRICE_SCHOOL_SEAT: 'price_p' }
@@ -90,7 +108,7 @@ describe('onInvoicePaid — the term rule', () => {
     const plan = onInvoicePaid({ status: 'pending_payment', seats: 200, stripe_period_start: null, expires_at: iso(Y1) }, { periodStart: Y1, periodEnd: Y2, quantity: 200, billingReason: 'subscription_create' }, 'plan')
     expect(plan).toEqual({ status: 'active', starts_at: iso(Y1), stripe_period_start: iso(Y1), expires_at: iso(Y2), pending_seats: null, seats: 200 })
   })
-  it('a class quantity above 35 is clamped to the table limit', () => {
+  it('a class quantity above 35 is clamped to the table limit (and flagged)', () => {
     expect(onInvoicePaid({ ...paidLicense, stripe_period_start: null }, { periodStart: Y2, periodEnd: Y3, quantity: 50, billingReason: 'subscription_create' }).seats).toBe(35)
   })
 })
@@ -116,8 +134,24 @@ describe('grace', () => {
 
 describe('subscription updates (seats, cancel) — never the term', () => {
   const created = Y1 / 1000 + 100
-  it('more seats apply now with 300 pictures each', () => {
-    expect(onSubscriptionUpdated(paidLicense, { quantity: 30 }, created)).toMatchObject({ seats: 30, image_allowance: 9000, pending_seats: null })
+  it('a quantity raised outside the app is flagged for the owner, never mirrored (review I5/I12)', () => {
+    const p = onSubscriptionUpdated(paidLicense, { quantity: 30 }, created)
+    expect(p).toMatchObject({ needs_review: true })
+    expect(p.seats).toBeUndefined()
+    expect(p.image_allowance).toBeUndefined()
+  })
+  it('a reduction out of range or below the students enrolled is flagged, not mirrored (review I12)', () => {
+    expect(onSubscriptionUpdated(paidLicense, { quantity: 8 }, created)).toMatchObject({ needs_review: true })
+    expect(onSubscriptionUpdated(paidLicense, { quantity: 15 }, created, 'license', { floor: 18 })).toMatchObject({ needs_review: true })
+    expect(onSubscriptionUpdated(paidLicense, { quantity: 15 }, created, 'license', { floor: 18 }).pending_seats).toBeUndefined()
+    expect(onSubscriptionUpdated({ ...paidLicense, seats: 200 }, { quantity: 140 }, created, 'plan')).toMatchObject({ needs_review: true })
+  })
+  it('a paid term with an out-of-range quantity never grants more than was paid, and is flagged', () => {
+    const p = onInvoicePaid({ ...paidLicense, stripe_period_start: null }, { periodStart: Y2, periodEnd: Y3, quantity: 5, billingReason: 'subscription_create' })
+    expect(p).toMatchObject({ seats: 5, image_allowance: 1500, needs_review: true })
+    const big = onInvoicePaid({ ...paidLicense, stripe_period_start: null }, { periodStart: Y2, periodEnd: Y3, quantity: 50, billingReason: 'subscription_create' })
+    expect(big).toMatchObject({ seats: 35, needs_review: true })
+    expect(onInvoicePaid({ ...paidLicense, stripe_period_start: null }, { periodStart: Y2, periodEnd: Y3, quantity: 20, billingReason: 'subscription_create' }).needs_review).toBeUndefined()
   })
   it('fewer seats wait for the renewal', () => {
     const p = onSubscriptionUpdated(paidLicense, { quantity: 20 }, created)
