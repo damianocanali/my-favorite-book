@@ -5,11 +5,16 @@
 // Owner prerequisite: TOTP must be enabled under Supabase Dashboard →
 // Authentication → Multi-Factor (it is on by default for new projects).
 
-/// The account's verified TOTP factor, or null.
-export async function verifiedTotp(sb) {
+/// Every verified TOTP factor (a teacher may add a backup authenticator).
+export async function verifiedTotps(sb) {
   const { data, error } = await sb.auth.mfa.listFactors()
   if (error) throw error
-  return (data?.totp ?? []).find((f) => f.status === 'verified') ?? null
+  return (data?.totp ?? []).filter((f) => f.status === 'verified')
+}
+
+/// The account's first verified TOTP factor, or null.
+export async function verifiedTotp(sb) {
+  return (await verifiedTotps(sb))[0] ?? null
 }
 
 /// True when this session signed in with a password only but the account
@@ -48,15 +53,38 @@ export async function verifyCode(sb, factorId, raw) {
   if (error) throw Object.assign(new Error(error.message), { code: 'wrong_code' })
 }
 
+/// Tries a code against each verified factor (main phone, backup), so
+/// whichever authenticator is at hand works. Raises the session to aal2.
+export async function verifyAnyCode(sb, factors, raw) {
+  const code = cleanCode(raw)
+  if (!code) throw Object.assign(new Error('bad_code'), { code: 'bad_code' })
+  for (const f of factors) {
+    const { error } = await sb.auth.mfa.challengeAndVerify({ factorId: f.id, code })
+    if (!error) return f
+  }
+  throw Object.assign(new Error('wrong_code'), { code: 'wrong_code' })
+}
+
 /// Abandons a setup that was never verified.
 export async function cancelEnroll(sb, factorId) {
   await sb.auth.mfa.unenroll({ factorId }).catch(() => {})
 }
 
-/// Turning it off needs a current code (Supabase requires an aal2 session
-/// to remove a verified factor), so a stolen password alone can't.
-export async function disable(sb, factorId, raw) {
-  await verifyCode(sb, factorId, raw)
-  const { error } = await sb.auth.mfa.unenroll({ factorId })
-  if (error) throw error
+/// Turning it off needs a current code from any of the authenticators
+/// (Supabase requires an aal2 session to remove a verified factor), so a
+/// stolen password alone can't. Removes every authenticator.
+export async function disable(sb, factors, raw) {
+  const list = Array.isArray(factors) ? factors : [{ id: factors }]
+  await verifyAnyCode(sb, list, raw)
+  for (const f of list) {
+    const { error } = await sb.auth.mfa.unenroll({ factorId: f.id })
+    if (error) throw error
+  }
+}
+
+/// Where a teacher who lost their phone asks for a reset (build-time
+/// SUPPORT_EMAIL, else PRINT_OPS_EMAIL — see vite.config.js).
+export function supportEmail() {
+  // eslint-disable-next-line no-undef
+  return typeof __SUPPORT_EMAIL__ === 'string' && __SUPPORT_EMAIL__ ? __SUPPORT_EMAIL__ : 'support@mybooklab.app'
 }

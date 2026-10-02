@@ -1,6 +1,7 @@
 // Review §7 item 15: optional TOTP "2-step sign-in" for teachers on web.
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { cleanCode, needsSecondStep, verifiedTotp, startEnroll, verifyCode, disable } from '../src/lib/mfa.js'
+import { cleanCode, needsSecondStep, verifiedTotp, verifiedTotps, startEnroll, verifyCode, verifyAnyCode, disable, supportEmail } from '../src/lib/mfa.js'
+import { readFileSync } from 'node:fs'
 import { jwtClaim } from '../api/_auth.js'
 
 function fakeSb({ factors = [], aal = { currentLevel: 'aal1', nextLevel: 'aal1' }, verifyError = null } = {}) {
@@ -52,6 +53,33 @@ describe('lib/mfa', () => {
     const ok = fakeSb()
     await disable(ok, 'f', '123456')
     expect(ok.calls.map((c) => c[0])).toEqual(['verify', 'unenroll'])
+  })
+})
+
+describe('recovery (review fix I2)', () => {
+  it('a code from the BACKUP authenticator also passes', async () => {
+    const sb = fakeSb()
+    sb.auth.mfa.challengeAndVerify.mockImplementation(async ({ factorId }) => ({ error: factorId === 'backup' ? null : { message: 'x' } }))
+    const f = await verifyAnyCode(sb, [{ id: 'main' }, { id: 'backup' }], '123456')
+    expect(f.id).toBe('backup')
+    await expect(verifyAnyCode(fakeSb({ verifyError: { message: 'x' } }), [{ id: 'a' }], '123456')).rejects.toMatchObject({ code: 'wrong_code' })
+  })
+  it('lists every verified factor', async () => {
+    const sb = fakeSb({ factors: [{ id: 'a', factor_type: 'totp', status: 'verified' }, { id: 'b', factor_type: 'totp', status: 'verified' }] })
+    expect((await verifiedTotps(sb)).map((f) => f.id)).toEqual(['a', 'b'])
+  })
+  it('turning off removes every authenticator after one valid code', async () => {
+    const sb = fakeSb()
+    await disable(sb, [{ id: 'a' }, { id: 'b' }], '123456')
+    expect(sb.calls.filter((c) => c[0] === 'unenroll').map((c) => c[1].factorId)).toEqual(['a', 'b'])
+  })
+  it('the gate shows a support address (build-time SUPPORT_EMAIL, else PRINT_OPS_EMAIL)', () => {
+    expect(supportEmail()).toMatch(/@/)
+    expect(readFileSync('src/components/auth/TwoStepGate.jsx', 'utf8')).toContain('two_step.lost_phone')
+    expect(readFileSync('vite.config.js', 'utf8')).toMatch(/SUPPORT_EMAIL \|\| process\.env\.PRINT_OPS_EMAIL/)
+  })
+  it('the owner reset runbook exists', () => {
+    expect(readFileSync('docs/runbooks/teacher-2fa-reset.md', 'utf8')).toMatch(/Authentication[\s\S]*factor/i)
   })
 })
 

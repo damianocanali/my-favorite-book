@@ -142,6 +142,12 @@
       "wrong_code": "Il codice non funziona. Controlla l'ora del dispositivo e prova il codice più recente.",
       "load": "Non siamo riusciti a caricare le impostazioni di accesso.",
       "generic": "Qualcosa è andato storto. Riprova."
-    }
+    },
+    "add_backup": "Aggiungi un'app di autenticazione di riserva",
+    "backup_hint": "Consiglio: aggiungi una seconda app di autenticazione (un altro telefono o un gestore di password), così perdere un dispositivo non ti blocca fuori.",
+    "devices_one": "{{count}} app di autenticazione configurata.",
+    "devices_other": "{{count}} app di autenticazione configurate.",
+    "done_backup": "App di riserva aggiunta. Funziona il codice di entrambe.",
+    "lost_phone": "Hai perso il telefono? Scrivici e lo reimposteremo:"
   }
 }

@@ -2,14 +2,14 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ShieldCheck } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
-import { verifiedTotp, startEnroll, verifyCode, cancelEnroll, disable } from '../../lib/mfa'
+import { verifiedTotps, startEnroll, verifyCode, cancelEnroll, disable } from '../../lib/mfa'
 
 // Account page, teachers: optional "2-step sign-in" with an authenticator
 // app (TOTP, Supabase Auth MFA). Teachers see a class's check-ins and
 // writing, so a stolen password alone shouldn't be enough.
 export default function TwoStepSettings() {
   const { t } = useTranslation()
-  const [factor, setFactor] = useState(undefined) // undefined = loading, null = off
+  const [factors, setFactors] = useState(undefined) // undefined = loading, [] = off
   const [setup, setSetup] = useState(null) // { factorId, qr, secret }
   const [disabling, setDisabling] = useState(false)
   const [code, setCode] = useState('')
@@ -18,7 +18,7 @@ export default function TwoStepSettings() {
   const [done, setDone] = useState(null) // 'on' | 'off'
 
   async function refresh() {
-    try { setFactor(await verifiedTotp(supabase)) } catch { setFactor(null); setError('load') }
+    try { setFactors(await verifiedTotps(supabase)) } catch { setFactors([]); setError('load') }
   }
   useEffect(() => { if (supabase) refresh() }, [])
 
@@ -35,10 +35,11 @@ export default function TwoStepSettings() {
     setError(null); setBusy(true)
     try {
       if (setup) {
+        const adding = factors.length > 0
         await verifyCode(supabase, setup.factorId, code)
-        setSetup(null); setDone('on')
-      } else if (disabling && factor) {
-        await disable(supabase, factor.id, code)
+        setSetup(null); setDone(adding ? 'backup' : 'on')
+      } else if (disabling && factors.length) {
+        await disable(supabase, factors, code)
         setDisabling(false); setDone('off')
       }
       setCode('')
@@ -82,8 +83,9 @@ export default function TwoStepSettings() {
         <ShieldCheck size={18} /> {t('account:two_step.title')}
       </h3>
       <p className="text-galaxy-text-muted font-body text-sm">{t('account:two_step.body')}</p>
+      <p className="text-galaxy-text-muted font-body text-xs">{t('account:two_step.backup_hint')}</p>
 
-      {factor === undefined ? null : setup ? (
+      {factors === undefined ? null : setup ? (
         <div className="space-y-3">
           <p className="text-galaxy-text font-body text-sm">{t('account:two_step.scan')}</p>
           <img src={setup.qr} alt={t('account:two_step.qr_alt')} className="w-44 h-44 bg-white rounded-xl p-2" />
@@ -93,18 +95,26 @@ export default function TwoStepSettings() {
           <p className="text-galaxy-text font-body text-sm">{t('account:two_step.enter_code')}</p>
           {codeForm}
         </div>
-      ) : factor ? (
+      ) : factors.length ? (
         <div className="space-y-3">
           <p className="text-emerald-300 font-body text-sm">{t('account:two_step.status_on')}</p>
+          <p className="text-galaxy-text-muted font-body text-sm">
+            {t('account:two_step.devices', { count: factors.length })}
+          </p>
           {disabling ? (
             <>
               <p className="text-galaxy-text font-body text-sm">{t('account:two_step.disable_prompt')}</p>
               {codeForm}
             </>
           ) : (
-            <button type="button" onClick={() => { setDone(null); setDisabling(true) }} className="px-4 py-2 rounded-xl border border-galaxy-text-muted/30 text-galaxy-text-muted hover:text-galaxy-text font-body text-sm">
-              {t('account:two_step.turn_off')}
-            </button>
+            <div className="flex flex-wrap gap-2">
+              <button type="button" onClick={begin} disabled={busy} className="px-4 py-2 rounded-xl bg-galaxy-primary/80 text-white font-body text-sm disabled:opacity-50">
+                {t('account:two_step.add_backup')}
+              </button>
+              <button type="button" onClick={() => { setDone(null); setDisabling(true) }} className="px-4 py-2 rounded-xl border border-galaxy-text-muted/30 text-galaxy-text-muted hover:text-galaxy-text font-body text-sm">
+                {t('account:two_step.turn_off')}
+              </button>
+            </div>
           )}
         </div>
       ) : (

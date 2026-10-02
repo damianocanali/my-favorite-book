@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { ShieldCheck } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useAuthStore } from '../../stores/useAuthStore'
-import { needsSecondStep, verifiedTotp, verifyCode } from '../../lib/mfa'
+import { needsSecondStep, verifiedTotps, verifyAnyCode, supportEmail } from '../../lib/mfa'
 
 // When an account has 2-step sign-in on, a password (or Google/Apple)
 // sign-in only reaches the first level. This covers the whole app until the
@@ -14,31 +14,31 @@ export default function TwoStepGate() {
   const { t } = useTranslation()
   const user = useAuthStore((s) => s.user)
   const signOut = useAuthStore((s) => s.signOut)
-  const [factorId, setFactorId] = useState(null)
+  const [factors, setFactors] = useState(null)
   const [code, setCode] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
 
   useEffect(() => {
     let live = true
-    setFactorId(null)
+    setFactors(null)
     if (!supabase || !user) return undefined
     ;(async () => {
       if (!(await needsSecondStep(supabase))) return
-      const f = await verifiedTotp(supabase).catch(() => null)
-      if (live && f) setFactorId(f.id)
+      const fs = await verifiedTotps(supabase).catch(() => [])
+      if (live && fs.length) setFactors(fs)
     })()
     return () => { live = false }
   }, [user])
 
-  if (!factorId) return null
+  if (!factors) return null
 
   async function submit(e) {
     e.preventDefault()
     setBusy(true); setError(null)
     try {
-      await verifyCode(supabase, factorId, code)
-      setFactorId(null); setCode('')
+      await verifyAnyCode(supabase, factors, code)
+      setFactors(null); setCode('')
     } catch (err) {
       setError(err?.code === 'bad_code' ? 'bad_code' : 'wrong_code')
     }
@@ -68,6 +68,10 @@ export default function TwoStepGate() {
         <button type="submit" disabled={busy} className="w-full px-4 py-2.5 rounded-xl bg-galaxy-primary text-white font-body disabled:opacity-50">
           {t('account:two_step.confirm')}
         </button>
+        <p className="text-galaxy-text-muted font-body text-xs">
+          {t('account:two_step.lost_phone', { email: supportEmail() })}{' '}
+          <a href={`mailto:${supportEmail()}`} className="underline">{supportEmail()}</a>
+        </p>
         <button type="button" onClick={() => signOut()} className="w-full text-galaxy-text-muted hover:text-galaxy-text font-body text-sm">
           {t('account:two_step.gate_sign_out')}
         </button>

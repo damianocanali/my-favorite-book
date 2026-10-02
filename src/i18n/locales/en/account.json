@@ -142,6 +142,12 @@
       "wrong_code": "That code didn't work. Check the time on your device and try the newest code.",
       "load": "We couldn't load your sign-in settings.",
       "generic": "Something went wrong. Try again."
-    }
+    },
+    "add_backup": "Add a backup authenticator",
+    "backup_hint": "Tip: add a second authenticator (another phone or a password manager) so losing one device doesn't lock you out.",
+    "devices_one": "{{count}} authenticator set up.",
+    "devices_other": "{{count}} authenticators set up.",
+    "done_backup": "Backup authenticator added. Either one's code works.",
+    "lost_phone": "Lost your phone? Email us and we'll reset it:"
   }
 }
