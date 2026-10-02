@@ -42,7 +42,8 @@ export default async function handler(req) {
     if (missingTable) {
       return json(200, { balance: 0, warning: 'user_coins table not found — run migration 004' })
     }
-    console.error('[coins] supabase error', res.status, body)
+    // Status only: the body can carry row data (SECURITY_AUDIT #6).
+    console.error('[coins] supabase error', res.status)
     return json(500, { error: 'Failed to load balance' })
   }
 

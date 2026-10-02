@@ -5,6 +5,7 @@ import { classifyAttestation, dailyCapFor, hourlyLimitFor } from './_appAttest.j
 import { storeIllustration } from './_imageStore.js'
 import { isStudent, rejectStudent, enforceStudentImageCap } from './_school.js'
 import { validateScenePayload, rawTextForModeration, moderationChunks, writeScene, buildFluxPrompt, SCENE_MODEL } from '../lib/imageScene.js'
+import { safeDetail } from './_logSafe.js'
 
 export const config = { runtime: 'edge' }
 
@@ -226,7 +227,7 @@ export default async function handler(req) {
 
     if (!response.ok) {
       const detail = await response.text().catch(() => '')
-      console.error('[generate-image] Together error', response.status, detail.slice(0, 200))
+      console.error('[generate-image] Together error', response.status, safeDetail(detail))
       return new Response(
         JSON.stringify({ error: 'Image generation failed. Please try again.' }),
         { status: 502, headers: withCors({ 'Content-Type': 'application/json' }, req) }

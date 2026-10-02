@@ -8,6 +8,7 @@ import { storeIllustration } from './_imageStore.js'
 import { rejectStudent } from './_school.js'
 import { priceOf } from '../lib/catalog.js'
 import { ART_STYLE_PROMPTS, buildAvatarPrompt } from '../lib/avatarPrompt.js'
+import { safeDetail } from './_logSafe.js'
 
 const TOGETHER_API_URL = 'https://api.together.xyz/v1/images/generations'
 const AVATAR_LIMIT = 10 // per hour per IP
@@ -145,7 +146,7 @@ export default async function handler(req) {
 
     if (!response.ok) {
       const detail = await response.text().catch(() => '')
-      console.error('[generate-avatar] Together error', response.status, detail.slice(0, 200))
+      console.error('[generate-avatar] Together error', response.status, safeDetail(detail))
       return new Response(
         JSON.stringify({ error: 'Avatar generation failed. Please try again.' }),
         { status: 502, headers: withCors({ 'Content-Type': 'application/json' }, req) }

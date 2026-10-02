@@ -3,6 +3,7 @@ import { logUsage, estimateAnthropicCostCents } from './_usage.js'
 import { requireUser, moderatePrompt } from './_aiGuard.js'
 import { classifyAttestation, hourlyLimitFor } from './_appAttest.js'
 import { isStudent } from './_school.js'
+import { safeDetail } from './_logSafe.js'
 
 export const config = { runtime: 'edge' }
 
@@ -166,7 +167,7 @@ async function handleChat(payload, apiKey, locale, req) {
 
   if (!response.ok) {
     const detail = await response.text().catch(() => '')
-    console.error('[story-buddy] chat Anthropic error', response.status, detail.slice(0, 200))
+    console.error('[story-buddy] chat Anthropic error', response.status, safeDetail(detail))
     return new Response(
       JSON.stringify({ error: 'Story Buddy is unavailable right now. Please try again.' }),
       { status: 502, headers: withCors({ 'Content-Type': 'application/json' }, req) }
@@ -296,7 +297,7 @@ export default async function handler(req) {
 
     if (!response.ok) {
       const detail = await response.text().catch(() => '')
-      console.error('[story-buddy] Anthropic error', response.status, detail.slice(0, 200))
+      console.error('[story-buddy] Anthropic error', response.status, safeDetail(detail))
       return new Response(
         JSON.stringify({ error: 'Story Buddy is unavailable right now. Please try again.' }),
         { status: 502, headers: withCors({ 'Content-Type': 'application/json' }, req) }

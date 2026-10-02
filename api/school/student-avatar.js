@@ -17,6 +17,7 @@ import { buildAvatarPrompt, isValidFeatures, isValidArtStyle } from '../../lib/a
 import { storeIllustration, isFetchableImage } from '../_imageStore.js'
 import { logUsage, estimateTogetherImageCostCents } from '../_usage.js'
 import { checkImage } from '../_aiGuard.js'
+import { safeDetail } from '../_logSafe.js'
 
 const TOGETHER_API_URL = 'https://api.together.xyz/v1/images/generations'
 // Same serverless text-to-image model generate-avatar.js uses for its
@@ -114,7 +115,7 @@ export default async function handler(req) {
     })
     if (!response.ok) {
       const detail = await response.text().catch(() => '')
-      console.error('[school/student-avatar] Together error', response.status, detail.slice(0, 200))
+      console.error('[school/student-avatar] Together error', response.status, safeDetail(detail))
       return json(req, 502, { error: 'Avatar generation failed. Please try again.', code: 'upstream' })
     }
 
