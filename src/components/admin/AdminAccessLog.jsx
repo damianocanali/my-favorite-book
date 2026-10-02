@@ -1,4 +1,4 @@
-// Owner-only: the admin access log (migration 030, api/admin/access-log.js)
+// Owner-only: the admin access log (migration 031, api/admin/access-log.js)
 // and the bulk picture reset for pepper rotation (api/admin/picture-reset.js).
 // English only, like the rest of AdminPage (see the note there).
 import { useCallback, useEffect, useState } from 'react'

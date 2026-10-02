@@ -1,4 +1,4 @@
-// Owner-only viewer for admin_access_log (migration 030, review §7 item 16).
+// Owner-only viewer for admin_access_log (migration 031, review §7 item 16).
 // GET /api/admin/access-log?limit=50&before=<id>  → { rows, next_before }
 // Reading the log is itself logged, so the record shows who reviewed it.
 export const config = { runtime: 'edge' }

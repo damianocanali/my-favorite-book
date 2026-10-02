@@ -3,10 +3,10 @@
 // ownerAuth: the single OWNER_USER_ID check every admin endpoint uses, so the
 // caller's id is in hand for the log row.
 //
-// logAdminAccess: one admin_access_log row (migration 030) per admin action —
+// logAdminAccess: one admin_access_log row (migration 031) per admin action —
 // who, what, which record, why. Rows carry ids and counts only, never a
 // child's name or text. Read-only actions log best-effort (a missing table
-// before migration 030 is applied must not lock the owner out of print QA;
+// before migration 031 is applied must not lock the owner out of print QA;
 // the failure is console.error'd). Destructive actions pass `required: true`
 // and must not proceed when the row can't be written.
 import { withCors } from './_rateLimit.js'
