@@ -10,6 +10,8 @@ describe('friendlyAiError', () => {
     expect(friendlyAiError(withCode('class_image_limit'), t)).toBe('errors:ai.class_image_limit')
     expect(friendlyAiError(withCode('rate_limited'), t)).toBe('errors:ai.rate_limited')
     expect(friendlyAiError(withCode('scene_unavailable'), t)).toBe('errors:ai.try_again')
+    expect(friendlyAiError(withCode('moderation_unavailable'), t)).toBe('errors:ai.try_again')
+    expect(friendlyAiError(withCode('image_flagged'), t)).toBe('errors:ai.image_flagged')
     expect(friendlyAiError(withCode('timeout', 'Prompt is too long'), t)).toBe('errors:ai.timeout')
   })
 
@@ -45,5 +47,15 @@ describe('friendlyAiError', () => {
   it('falls back to a generic translated line, never the raw message', () => {
     expect(friendlyAiError(new Error('API error: 500'), t)).toBe('errors:ai.generic')
     expect(friendlyAiError(undefined, t)).toBe('errors:ai.generic')
+  })
+})
+
+describe('web avatar errors use the server code, never raw text (review minor)', () => {
+  it('AvatarPage throws aiResponseError and shows friendlyAiError', async () => {
+    const { readFileSync } = await import('node:fs')
+    const src = readFileSync('src/pages/AvatarPage.jsx', 'utf8')
+    expect(src.match(/throw await aiResponseError\(res/g)).toHaveLength(2)
+    expect(src).not.toMatch(/setError\(msg\)/)
+    expect(src).not.toMatch(/new Error\(data\.error/)
   })
 })

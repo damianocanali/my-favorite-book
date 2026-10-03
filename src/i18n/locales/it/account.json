@@ -115,5 +115,39 @@
       "generate_failed": "Non è stato possibile creare l'avatar",
       "cartoonify_failed": "Non è stato possibile trasformare la foto"
     }
+  },
+  "two_step": {
+    "title": "Accesso in 2 passaggi",
+    "body": "Aggiungi un codice da un'app di autenticazione (come Google Authenticator o 1Password) quando accedi, così una password rubata da sola non basta per aprire le tue classi.",
+    "status_off": "L'accesso in 2 passaggi è disattivato.",
+    "status_on": "L'accesso in 2 passaggi è attivo.",
+    "turn_on": "Attiva l'accesso in 2 passaggi",
+    "turn_off": "Disattiva",
+    "scan": "Inquadra questo codice con l'app di autenticazione.",
+    "qr_alt": "Codice QR per l'app di autenticazione",
+    "manual": "Non riesci a inquadrarlo? Inserisci questa chiave:",
+    "enter_code": "Poi scrivi il codice di 6 cifre mostrato dall'app.",
+    "disable_prompt": "Per disattivarlo, scrivi un codice di 6 cifre attuale dall'app.",
+    "code_label": "Codice di 6 cifre",
+    "code_placeholder": "123 456",
+    "confirm": "Conferma",
+    "cancel": "Annulla",
+    "done_on": "L'accesso in 2 passaggi è attivo. A ogni accesso ti verrà chiesto un codice.",
+    "done_off": "L'accesso in 2 passaggi è disattivato.",
+    "gate_title": "Inserisci il codice",
+    "gate_body": "Questo account usa l'accesso in 2 passaggi. Scrivi il codice di 6 cifre dall'app di autenticazione.",
+    "gate_sign_out": "Esci",
+    "errors": {
+      "bad_code": "I codici hanno 6 cifre.",
+      "wrong_code": "Il codice non funziona. Controlla l'ora del dispositivo e prova il codice più recente.",
+      "load": "Non siamo riusciti a caricare le impostazioni di accesso.",
+      "generic": "Qualcosa è andato storto. Riprova."
+    },
+    "add_backup": "Aggiungi un'app di autenticazione di riserva",
+    "backup_hint": "Consiglio: aggiungi una seconda app di autenticazione (un altro telefono o un gestore di password), così perdere un dispositivo non ti blocca fuori.",
+    "devices_one": "{{count}} app di autenticazione configurata.",
+    "devices_other": "{{count}} app di autenticazione configurate.",
+    "done_backup": "App di riserva aggiunta. Funziona il codice di entrambe.",
+    "lost_phone": "Hai perso il telefono? Scrivici e lo reimposteremo:"
   }
 }

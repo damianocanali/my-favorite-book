@@ -388,6 +388,42 @@ enum TeacherCopy {
         AppText("school.notifications.test.sent", defaultValue: "Test alert sent to \(count) devices. It should arrive in a few seconds.")
     }
 
+    // MARK: Data and privacy (permanent deletes; web: ClassDataSection, RosterTable)
+    static var deleteNow: LocalizedStringResource { AppText("school.teacher.roster.menu.delete_now", defaultValue: "Delete permanently…") }
+    static func deleteStudentTitle(_ name: String) -> LocalizedStringResource {
+        AppText("school.teacher.roster.delete_dialog.heading", defaultValue: "Delete \(name) permanently?")
+    }
+    static func deleteStudentBody(_ name: String) -> LocalizedStringResource {
+        AppText("school.teacher.roster.delete_dialog.body", defaultValue: "This deletes \(name)'s class account and everything in it right now: books, pictures, hand-ins, feedback, Writing Year pages and check-ins. It can't be undone, and we can't get it back. To keep a copy, export the class data first.")
+    }
+    static func deleteStudentPrompt(_ name: String) -> LocalizedStringResource {
+        AppText("school.teacher.roster.delete_dialog.prompt", defaultValue: "Type \(name) to confirm")
+    }
+    static var deleteForever: LocalizedStringResource { AppText("school.teacher.roster.delete_dialog.confirm", defaultValue: "Delete forever") }
+    static func studentDeleted(_ name: String) -> LocalizedStringResource {
+        AppText("school.teacher.roster.deleted_banner", defaultValue: "\(name) was deleted.")
+    }
+    static var dataHeading: LocalizedStringResource { AppText("school.teacher.data.heading", defaultValue: "Data and privacy") }
+    static var deleteClassButton: LocalizedStringResource { AppText("school.teacher.data.delete_class.button", defaultValue: "Delete this class…") }
+    static var deleteClassHint: LocalizedStringResource { AppText("school.teacher.data.delete_class.hint", defaultValue: "Deletes the class and every child's class account in it, permanently.") }
+    static func deleteClassTitle(_ name: String) -> LocalizedStringResource {
+        AppText("school.teacher.data.delete_class.heading", defaultValue: "Delete “\(name)” permanently?")
+    }
+    static var deleteClassBody: LocalizedStringResource { AppText("school.teacher.data.delete_class.body", defaultValue: "This deletes the class and every child's class account in it right now, with all their books, pictures, hand-ins, feedback, Writing Year pages and check-ins. It can't be undone, and we can't get it back. To keep a copy, export the class data first.") }
+    static func deleteClassPrompt(_ name: String) -> LocalizedStringResource {
+        AppText("school.teacher.data.delete_class.prompt", defaultValue: "Type the class name (\(name)) to confirm")
+    }
+    static var deleteClassConfirm: LocalizedStringResource { AppText("school.teacher.data.delete_class.confirm", defaultValue: "Delete class forever") }
+    static var checkinsLabel: LocalizedStringResource { AppText("school.teacher.data.checkins.label", defaultValue: "Children can share check-ins with you") }
+    static var checkinsHintOn: LocalizedStringResource { AppText("school.teacher.data.checkins.hint_on", defaultValue: "A child's check-in (how they feel, what they need) reaches you. Check-ins are deleted after 30 days.") }
+    static var checkinsHintOff: LocalizedStringResource { AppText("school.teacher.data.checkins.hint_off", defaultValue: "Off: children don't see the check-in button and nothing is collected.") }
+    static var exportButton: LocalizedStringResource { AppText("school.teacher.data.export.button", defaultValue: "Export class data") }
+    static var exportWorking: LocalizedStringResource { AppText("school.teacher.data.export.working", defaultValue: "Preparing…") }
+    static var exportShare: LocalizedStringResource { AppText("school.teacher.data.export.share", defaultValue: "Save or share the export") }
+    static var exportHint: LocalizedStringResource { AppText("school.teacher.data.export.hint", defaultValue: "Download a ZIP with every child's books, hand-ins, feedback, grades, recent check-ins and Writing Year (JSON, spreadsheets and a page to open in a browser).") }
+    static var deletePending: LocalizedStringResource { AppText("school.teacher.data.delete_pending", defaultValue: "The deletion is in progress and will finish shortly.") }
+    static var deleting: LocalizedStringResource { AppText("school.teacher.data.deleting", defaultValue: "Deleting…") }
+
     // MARK: Errors (web: teacherErrors.teacherErrorText, standalone variants)
     static func error(_ code: String?) -> LocalizedStringResource {
         switch code {
@@ -416,6 +452,9 @@ enum TeacherCopy {
         case "version_changed": AppText("school.teacher.errors.version_changed", defaultValue: "They handed in a new version. Have a look at it first.")
         case "cannot_return": AppText("school.teacher.errors.cannot_return", defaultValue: "This assignment is closed or past its due date, so it can't be sent back.")
         case "template_locked": AppText("school.teacher.errors.template_locked", defaultValue: "The worksheet can only change while the assignment is a draft.")
+        case "confirm_mismatch": AppText("school.teacher.errors.confirm_mismatch", defaultValue: "The name you typed doesn't match. Nothing was deleted.")
+        case "checkins_off": AppText("school.teacher.errors.checkins_off", defaultValue: "Check-ins are off for this class.")
+        case "delete_incomplete": AppText("school.teacher.errors.delete_incomplete", defaultValue: "The deletion stopped part-way. It will finish overnight, or try again now.")
         case APIClient.sessionExpiredCode: APIError.sessionExpiredText
         default: AppText("school.teacher.errors.generic", defaultValue: "Something went wrong. Try again.")
         }

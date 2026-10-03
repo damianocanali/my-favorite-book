@@ -2,12 +2,13 @@ export const config = { runtime: 'edge' }
 
 import { checkRateLimit, handleCors, withCors } from './_rateLimit.js'
 import { logUsage, estimateTogetherImageCostCents } from './_usage.js'
-import { requireUser, validateSourceImage, moderatePrompt, enforceDailyCap } from './_aiGuard.js'
+import { requireUser, validateSourceImage, moderatePrompt, moderateImage, enforceDailyCap } from './_aiGuard.js'
 import { classifyAttestation, dailyCapFor, hourlyLimitFor } from './_appAttest.js'
 import { storeIllustration } from './_imageStore.js'
 import { rejectStudent } from './_school.js'
 import { priceOf } from '../lib/catalog.js'
 import { ART_STYLE_PROMPTS, buildAvatarPrompt } from '../lib/avatarPrompt.js'
+import { safeDetail } from './_logSafe.js'
 
 const TOGETHER_API_URL = 'https://api.together.xyz/v1/images/generations'
 const AVATAR_LIMIT = 10 // per hour per IP
@@ -145,7 +146,7 @@ export default async function handler(req) {
 
     if (!response.ok) {
       const detail = await response.text().catch(() => '')
-      console.error('[generate-avatar] Together error', response.status, detail.slice(0, 500))
+      console.error('[generate-avatar] Together error', response.status, safeDetail(detail))
       return new Response(
         JSON.stringify({ error: 'Avatar generation failed. Please try again.' }),
         { status: 502, headers: withCors({ 'Content-Type': 'application/json' }, req) }
@@ -167,6 +168,12 @@ export default async function handler(req) {
       images: 1,
       cost_cents: estimateTogetherImageCostCents({ model, images: 1 }),
     })
+
+    // Screen the finished avatar before it is stored (review §7 item 11).
+    // Students never reach here (rejectStudent above), so an outage fails
+    // open (logged) like the other adult paths.
+    const outputErr = await moderateImage(b64, req)
+    if (outputErr) return outputErr
 
     // Same treatment as book art: park it in Storage and return a URL, so
     // the avatar can follow the account across devices instead of living

@@ -108,6 +108,7 @@
     "submit": "Submit Book",
     "submitting": "Submitting…",
     "submit_failed": "Could not submit book",
+    "sign_in_required": "Sign in to send your book to your class.",
     "success_title": "Book Submitted!",
     "success_body": "Your teacher can now read <title>\"{{title}}\"</title> in the class gallery."
   }

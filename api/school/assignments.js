@@ -92,6 +92,9 @@ async function studentList(req, student, classroom) {
   const subByAssignment = new Map(subs.map((s) => [s.assignment_id, s]))
   const now = Date.now()
   return json(req, 200, {
+    // Class settings the child's app follows: the check-in entry is hidden
+    // when the teacher turned check-ins off (review §7.28).
+    class: { checkins_enabled: classroom?.checkins_enabled !== false },
     assignments: rows.map((r) => {
       const s = subByAssignment.get(r.id)
       return {

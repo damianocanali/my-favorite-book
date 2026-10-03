@@ -1,6 +1,8 @@
 import { useTranslation } from 'react-i18next'
 import { useCheckInStore } from '../../stores/useCheckInStore'
 import Mascot from './Mascot'
+import { useIsStudent } from '../../hooks/useIsStudent'
+import { useClassBadgeStore } from '../../stores/useClassBadgeStore'
 
 // Always available, never rate-limited. This is the one that matters for a
 // child who is actually struggling — the automatic prompt waits for a
@@ -9,6 +11,10 @@ import Mascot from './Mascot'
 export default function CheckInButton({ className = '' }) {
   const { t } = useTranslation()
   const open = useCheckInStore((s) => s.open)
+  const isStudent = useIsStudent()
+  const checkinsEnabled = useClassBadgeStore((s) => s.checkinsEnabled)
+  // A class whose teacher turned check-ins off (review §7.28): no entry.
+  if (isStudent && !checkinsEnabled) return null
 
   return (
     <button

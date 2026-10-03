@@ -1,6 +1,6 @@
 export const config = { runtime: 'edge' }
 
-import { handleCors, checkRateLimit, getClientIp } from '../_rateLimit.js'
+import { handleCors, checkRateLimit, hashedClientIp } from '../_rateLimit.js'
 import { sb, sbEnv, json } from '../_school.js'
 import { CODE_RE } from '../../lib/school/crypto.js'
 import { isLicenseUsable } from '../../lib/school/license.js'
@@ -26,18 +26,18 @@ export async function openClassByCode(rawCode) {
   // "Resting", never "unpaid": children must not be told about money.
   if (!isLicenseUsable(firstOf(c.class_licenses))) return { status: 423, code: 'class_resting' }
   if (!c.sign_in_open) return { status: 423, code: 'sign_in_closed' }
-  if (c.sign_in_paused_until && new Date(c.sign_in_paused_until) > new Date()) return { status: 423, code: 'class_paused' }
+  if (c.sign_in_paused_until && new Date(c.sign_in_paused_until) > new Date()) return { status: 423, code: 'class_paused', pausedClassId: c.id }
   return { classroom: { id: c.id, name: c.name, locale: c.locale } }
 }
 
-export default async function handler(req) {
+export default async function handler(req, ctx) {
   const cors = handleCors(req)
   if (cors) return cors
 
   try {
     if (req.method !== 'GET') return json(req, 405, { error: 'Method not allowed', code: 'method_not_allowed' })
     if (!sbEnv()) return json(req, 503, { error: 'Schools feature not configured', code: 'not_configured' })
-    if (!checkRateLimit(`school-roster:${getClientIp(req)}`, 60).allowed) {
+    if (!checkRateLimit(`school-roster:${await hashedClientIp(req)}`, 60, ctx).allowed) {
       return json(req, 429, { error: 'Too many requests', code: 'too_many' })
     }
     const found = await openClassByCode(new URL(req.url).searchParams.get('code'))

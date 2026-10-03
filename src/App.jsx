@@ -34,6 +34,7 @@ import NotFoundPage from './pages/NotFoundPage'
 import StoryBlanksPage from './pages/StoryBlanksPage'
 import StoryBuilderPage from './pages/StoryBuilderPage'
 import ProtectedRoute from './components/auth/ProtectedRoute'
+import TwoStepGate from './components/auth/TwoStepGate'
 import ConsumerOnlyRoute from './components/auth/ConsumerOnlyRoute'
 import BadgePopup from './components/ui/BadgePopup'
 import WelcomeBackMoment from './components/ui/WelcomeBackMoment'
@@ -121,6 +122,7 @@ export default function App() {
       <WelcomeBackMoment />
       <MilestoneHost />
       <CheckInHost />
+      <TwoStepGate />
       <Routes>
         <Route path="/" element={<HomeRoute />} />
         <Route path="/create" element={<CreatePage />} />

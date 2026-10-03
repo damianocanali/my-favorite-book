@@ -12,21 +12,10 @@ export const config = { runtime: 'edge' }
 // same-origin and would not need them, but the Capacitor webview is not —
 // resolveAllowedOrigin() special-cases capacitor:// for exactly that.
 import { handleCors, withCors } from '../_rateLimit.js'
+import { ownerAuth, logAdminAccess, reasonFrom } from '../_adminLog.js'
 
 const SUPABASE = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
-const ANON_KEY = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY
-const OWNER_USER_ID = process.env.OWNER_USER_ID
-
-async function authUser(token) {
-  // Verify the session with the anon key (the public verification path),
-  // not the service-role key.
-  const r = await fetch(`${SUPABASE}/auth/v1/user`, {
-    headers: { apikey: ANON_KEY, Authorization: `Bearer ${token}` },
-  })
-  if (!r.ok) return null
-  return await r.json()
-}
 
 // Takes req so error responses carry the same origin-aware CORS headers as
 // success ones; otherwise a browser sees an opaque CORS failure instead of
@@ -82,15 +71,13 @@ export default async function handler(req) {
   if (preflight) return preflight
 
   if (req.method !== 'GET') return bad(req, 405, 'Method not allowed')
-  if (!OWNER_USER_ID) return bad(req, 503, 'OWNER_USER_ID not configured')
-
-  const tok = (req.headers.get('authorization') || '').replace(/^Bearer /, '')
-  if (!tok) return bad(req, 401, 'Missing token')
-  const user = await authUser(tok)
-  if (!user?.id) return bad(req, 401, 'Invalid token')
-  if (user.id !== OWNER_USER_ID) return bad(req, 403, 'Forbidden')
+  const owner = await ownerAuth(req)
+  if (!owner.ok) return owner.response
 
   const { days, start } = rangeFromHeader(req)
+  // Aggregates only (no user ids leave usage_log here), logged anyway so the
+  // access log is complete for every admin endpoint.
+  await logAdminAccess({ actor: owner.ownerId, action: 'usage.view', targetTable: 'usage_log', reason: reasonFrom(req), detail: { days } })
 
   try {
     const rows = await aggregate(start)

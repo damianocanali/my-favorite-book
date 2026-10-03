@@ -2,6 +2,7 @@ export const config = { runtime: 'edge' }
 
 import { purgeUser, GRACE_DAYS } from '../../lib/deleteUser.js'
 import { purgeOldClassPrintPdfs } from '../../lib/school/printRetention.js'
+import { sendOwnerAlert, summaryLines } from '../../lib/notify/ownerAlert.js'
 
 const CRON_SECRET = process.env.CRON_SECRET
 const NOTIFICATION_RETENTION_DAYS = 90
@@ -24,6 +25,7 @@ export default async function handler(req) {
   const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
   const stripeSecretKey = process.env.STRIPE_SECRET_KEY
+  const revenueCatKey = process.env.REVENUECAT_SECRET_API_KEY
   if (!supabaseUrl || !serviceKey) {
     return new Response(JSON.stringify({ error: 'Not configured' }), {
       status: 503, headers: { 'Content-Type': 'application/json' },
@@ -48,7 +50,7 @@ export default async function handler(req) {
   let failed = 0
   for (const row of list) {
     try {
-      const { ok } = await purgeUser(row.user_id, { supabaseUrl, serviceKey, stripeSecretKey })
+      const { ok } = await purgeUser(row.user_id, { supabaseUrl, serviceKey, stripeSecretKey, revenueCatKey })
       if (ok) purged++
       else failed++
     } catch (e) {
@@ -81,7 +83,16 @@ export default async function handler(req) {
     console.error('[purge-deletions] print PDF retention error:', e?.message)
   }
 
-  return new Response(JSON.stringify({ considered: list.length, purged, failed, notifications_pruned: notificationsPruned, print_pdfs: printPdfs }), {
+  const result = { considered: list.length, purged, failed, notifications_pruned: notificationsPruned, print_pdfs: printPdfs }
+  // Review §7.26: a failure here used to reach only console.error.
+  if (failed > 0 || !notificationsPruned || printPdfs.failed > 0) {
+    await sendOwnerAlert({
+      subject: `Account purge: ${failed} failed`,
+      lines: ['The nightly purge (api/cron/purge-deletions.js) did not finish cleanly.', '', ...summaryLines(result)],
+      idempotencyKey: `purge-alert-${new Date().toISOString().slice(0, 10)}`,
+    })
+  }
+  return new Response(JSON.stringify(result), {
     status: 200, headers: { 'Content-Type': 'application/json' },
   })
 }

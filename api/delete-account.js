@@ -62,7 +62,7 @@ export default async function handler(req) {
       body: JSON.stringify({ user_id: userId }),
     })
     if (!res.ok) {
-      console.error('[delete-account] schedule failed', res.status, await res.text().catch(() => ''))
+      console.error('[delete-account] schedule failed', res.status)
       return json(500, { error: 'Could not schedule deletion' }, req)
     }
     let rows = await res.json().catch(() => [])

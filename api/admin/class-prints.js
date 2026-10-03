@@ -31,6 +31,7 @@
 export const config = { runtime: 'nodejs', maxDuration: 300 }
 
 import { handleCors, withCors } from '../_rateLimit.js'
+import { ownerAuth, logAdminAccess, reasonFrom } from '../_adminLog.js'
 import { sb, sbEnv, isUuid } from '../_school.js'
 import { LuluClient } from '../../lib/print/lulu.js'
 import { renderHtmlToPdf } from '../../lib/print/pdf-render.js'
@@ -55,19 +56,11 @@ function reply(req, status, body) {
   })
 }
 
+// The owner gate is shared with every admin endpoint (api/_adminLog.js), so
+// each action can be written to admin_access_log (migration 032).
 async function requireOwner(req) {
-  const owner = process.env.OWNER_USER_ID
-  if (!owner || !sbEnv()) return reply(req, 503, { error: 'Not configured' })
-  const tok = (req.headers.get('authorization') || '').replace(/^Bearer /, '')
-  if (!tok) return reply(req, 401, { error: 'Missing token' })
-  const url = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL
-  const anon = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY
-  const r = await fetch(`${url}/auth/v1/user`, { headers: { apikey: anon, Authorization: `Bearer ${tok}` } })
-  if (!r.ok) return reply(req, 401, { error: 'Invalid token' })
-  const user = await r.json().catch(() => null)
-  if (!user?.id) return reply(req, 401, { error: 'Invalid token' })
-  if (user.id !== owner) return reply(req, 403, { error: 'Forbidden' })
-  return null
+  if (!sbEnv()) return { ok: false, response: reply(req, 503, { error: 'Not configured' }) }
+  return ownerAuth(req)
 }
 
 async function read(path, what) {
@@ -427,8 +420,8 @@ async function mark(req, r, status) {
 export async function GET(req) {
   const cors = handleCors(req)
   if (cors) return cors
-  const denied = await requireOwner(req)
-  if (denied) return denied
+  const owner = await requireOwner(req)
+  if (!owner.ok) return owner.response
   try {
     const id = new URL(req.url).searchParams.get('id')
     if (id !== null) {
@@ -436,6 +429,12 @@ export async function GET(req) {
       const r = await getRequest(id)
       if (!r) return reply(req, 404, { error: 'Not found' })
       const children = await getChildren(id)
+      // Opening a request hands out signed links to every child's PDF:
+      // access to student records, so it is logged.
+      await logAdminAccess({
+        actor: owner.ownerId, action: 'class_prints.view', targetTable: 'class_print_requests', targetId: id,
+        reason: reasonFrom(req), detail: { classroom_id: r.classroom_id, children: children.length },
+      })
       const out = []
       for (const c of children) {
         const rendered = isRendered(c)
@@ -452,6 +451,7 @@ export async function GET(req) {
       `/rest/v1/class_print_requests?select=id,status,school_year,school_name,children_count,excluded_count,created_at,submitted_at,submit_claimed_at,lulu_print_job_id,error,classrooms(name)&order=created_at.desc&limit=200`,
       'class_print_requests'
     )
+    await logAdminAccess({ actor: owner.ownerId, action: 'class_prints.list', targetTable: 'class_print_requests', reason: reasonFrom(req), detail: { count: rows?.length ?? 0 } })
     return reply(req, 200, { requests: rows })
   } catch (e) {
     console.error('[admin/class-prints] GET failed', e?.message)
@@ -462,13 +462,20 @@ export async function GET(req) {
 export async function POST(req) {
   const cors = handleCors(req)
   if (cors) return cors
-  const denied = await requireOwner(req)
-  if (denied) return denied
+  const owner = await requireOwner(req)
+  if (!owner.ok) return owner.response
   try {
     const body = (await req.json().catch(() => null)) ?? {}
     if (!isUuid(body.id)) return reply(req, 400, { error: 'Invalid id' })
     const r = await getRequest(body.id)
     if (!r) return reply(req, 404, { error: 'Not found' })
+    const detail = { classroom_id: r.classroom_id }
+    if (isUuid(body.childId)) detail.child_id = body.childId
+    if (typeof body.status === 'string') detail.status = body.status.slice(0, 40)
+    await logAdminAccess({
+      actor: owner.ownerId, action: `class_prints.${String(body.action ?? 'unknown').slice(0, 40)}`,
+      targetTable: 'class_print_requests', targetId: body.id, reason: reasonFrom(req, body), detail,
+    })
     switch (body.action) {
       case 'shipping_options': return await shippingOptions(req, r)
       case 'approve': return await approve(req, r, body)

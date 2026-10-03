@@ -1,10 +1,32 @@
 export const config = { runtime: 'edge' }
 
-import { handleCors, checkRateLimit, getClientIp } from '../_rateLimit.js'
+import { handleCors, checkRateLimit, hashedClientIp } from '../_rateLimit.js'
 import { sb, sbEnv, json, isUuid } from '../_school.js'
 import { openClassByCode } from './roster.js'
-import { hashPictureSecret, hashIp, isValidPictureSecret, timingSafeEqualHex, randomPassword } from '../../lib/school/crypto.js'
+import { hashPictureSecret, isValidPictureSecret, timingSafeEqualHex, randomPassword } from '../../lib/school/crypto.js'
 import { mintStudentSession } from '../../lib/school/session.js'
+import { sendOwnerAlert } from '../../lib/notify/ownerAlert.js'
+
+// Review §7.26: tell the owner when the attack throttle pauses a class's
+// sign-in (school_begin_attempt: 60+ wrong guesses in 10 minutes). Once per
+// class per hour: this instance remembers what it sent, and the Resend
+// idempotency key folds duplicates from other instances. Class id only.
+const pauseAlerted = new Map()
+async function alertClassPaused(classroomId) {
+  const hour = new Date().toISOString().slice(0, 13)
+  if (pauseAlerted.get(classroomId) === hour) return
+  pauseAlerted.set(classroomId, hour)
+  if (pauseAlerted.size > 500) pauseAlerted.clear()
+  await sendOwnerAlert({
+    subject: 'Class sign-in paused by the attack throttle',
+    lines: [
+      'Picture sign-in for one class was paused for 10 minutes after more than 60 wrong guesses in 10 minutes.',
+      `Class id: ${classroomId}`,
+      `Hour (UTC): ${hour}`,
+    ],
+    idempotencyKey: `class-paused-${classroomId}-${hour}`,
+  })
+}
 
 // school_begin_attempt's `state` field, for every outcome other than 'ok'.
 const BEGIN_STATE_REPLY = {
@@ -23,7 +45,7 @@ const AFTER_REPLY = {
   locked: [423, 'locked'],
 }
 
-export default async function handler(req) {
+export default async function handler(req, ctx) {
   const cors = handleCors(req)
   if (cors) return cors
 
@@ -36,7 +58,10 @@ export default async function handler(req) {
 
     // Defense in depth on top of the per-student/per-IP throttle inside
     // school_begin_attempt: a generous cap that only bites a genuine flood.
-    if (!checkRateLimit(`school-sign-in:${getClientIp(req)}`, 600).allowed) {
+    // The IP is only ever used as an HMAC with IP_HASH_KEY (falls back to
+    // the pepper until that is set): rate-limit keys and attempt rows alike.
+    const ipHash = await hashedClientIp(req)
+    if (!checkRateLimit(`school-sign-in:${ipHash}`, 600, ctx).allowed) {
       return json(req, 429, { error: 'Too many requests', code: 'too_many' })
     }
 
@@ -46,7 +71,10 @@ export default async function handler(req) {
     }
 
     const found = await openClassByCode(body.code)
-    if (!found.classroom) return json(req, found.status, { error: 'Class not available', code: found.code })
+    if (!found.classroom) {
+      if (found.code === 'class_paused' && found.pausedClassId) await alertClassPaused(found.pausedClassId)
+      return json(req, found.status, { error: 'Class not available', code: found.code })
+    }
     const classroomId = found.classroom.id
 
     // Fails closed: a non-2xx/thrown lookup must not read as "no such
@@ -61,7 +89,6 @@ export default async function handler(req) {
     const student = rows?.[0]
     if (!student) return json(req, 404, { error: 'Student not found', code: 'student_not_found' })
 
-    const ipHash = await hashIp(pepper, getClientIp(req))
     // Fails closed: a non-2xx RPC response throws instead of being read as
     // an unmatched state, which would otherwise let a DB error bypass the
     // lockout check entirely.
@@ -84,6 +111,7 @@ export default async function handler(req) {
     if (begin?.state !== 'ok') {
       const mapped = BEGIN_STATE_REPLY[begin?.state]
       if (mapped) {
+        if (begin.state === 'class_paused') await alertClassPaused(classroomId)
         const [status, code] = mapped
         return json(req, status, { error: 'Sign-in not available right now', code })
       }

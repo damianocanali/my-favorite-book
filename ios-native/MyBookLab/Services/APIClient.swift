@@ -86,10 +86,12 @@ enum APIError: Error, LocalizedError {
             return AppText("errors.ai.daily_limit", defaultValue: "You've reached today's creation limit — come back tomorrow!")
         case "rate_limited":
             return AppText("errors.ai.rate_limited", defaultValue: "Too many tries just now. Please try again a bit later.")
-        case "scene_unavailable":
+        case "scene_unavailable", "moderation_unavailable":
             return AppText("errors.ai.try_again", defaultValue: "We couldn't do that just now. Please try again in a moment.")
         case "timeout":
             return AppText("errors.ai.timeout", defaultValue: "That took too long. Please try again.")
+        case "image_flagged":
+            return AppText("errors.ai.image_flagged", defaultValue: "That picture didn't turn out right. Try again with different words.")
         case "unkind":
             return AppText("errors.ai.unkind", defaultValue: "Let's keep our story kind and friendly — try different words!")
         default:
@@ -455,9 +457,11 @@ actor APIClient {
     // MARK: - Gallery (public — no auth required)
 
     /// Fetches the recent + featured Gallery books from /api/publish-book?recent=true.
-    func fetchGallery() async throws -> [PublishedBookSummary] {
+    /// Signed in, the server leaves out authors this reader blocked and
+    /// marks their own books (is_owner).
+    func fetchGallery(bearerToken: String? = nil) async throws -> [PublishedBookSummary] {
         let url = makeURL(path: "/api/publish-book", query: ["recent": "true"])
-        return try await rawGet(url: url)
+        return try await rawGet(url: url, bearerToken: bearerToken)
     }
 
     /// Reports a published book so it can be reviewed and, once enough
@@ -475,10 +479,10 @@ actor APIClient {
 
     /// Hides everything by a given author for this user.
     @discardableResult
-    func blockAuthor(userId: String, bearerToken: String) async throws -> ReportBookResponse {
+    func blockAuthor(authorRef: String, bearerToken: String) async throws -> ReportBookResponse {
         try await request(
             method: "POST", path: "/api/report-book",
-            body: BlockAuthorRequest(action: "block", userId: userId),
+            body: BlockAuthorRequest(action: "block", authorRef: authorRef),
             bearerToken: bearerToken
         )
     }
@@ -762,14 +766,24 @@ actor APIClient {
         let answers: [String: String]
     }
     private struct SchoolFeedbackSeenBody: Encodable { let id: String }
-    private struct StudentAssignmentsResponse: Decodable { let assignments: [StudentAssignment]? }
+    private struct StudentAssignmentsResponse: Decodable {
+        struct ClassSettings: Decodable { let checkins_enabled: Bool? }
+        let assignments: [StudentAssignment]?
+        let `class`: ClassSettings?
+    }
 
     func studentAssignments(bearerToken: String) async throws -> [StudentAssignment] {
+        try await studentAssignmentsPage(bearerToken: bearerToken).assignments
+    }
+
+    /// The list plus the class settings the child's app follows (today: the
+    /// check-ins switch, review §7.28; absent from an older server = on).
+    func studentAssignmentsPage(bearerToken: String) async throws -> (assignments: [StudentAssignment], checkinsEnabled: Bool) {
         let res: StudentAssignmentsResponse = try await schoolStudent(
             method: "GET", path: "/api/school/assignments", query: [:],
             body: Optional<EmptyBody>.none, bearerToken: bearerToken
         )
-        return res.assignments ?? []
+        return (res.assignments ?? [], res.class?.checkins_enabled ?? true)
     }
 
     func submitAssignment(assignmentId: String, bookId: String, bearerToken: String) async throws -> SubmitResult {
@@ -969,6 +983,7 @@ actor APIClient {
         let id: String
         var name: String?
         var sign_in_open: Bool?
+        var checkins_enabled: Bool?
         var timezone: String?
         var school_hours: [String: [String]]?
         var locale: String?
@@ -1013,6 +1028,38 @@ actor APIClient {
         try await teacherCall(method: "PATCH", path: "/api/school/students", query: [:],
                               body: StudentActionBody(classId: classId, id: studentId, action: action, name: name),
                               bearerToken: bearerToken)
+    }
+
+    private struct DeleteStudentBody: Encodable {
+        let classId: String
+        let id: String
+        let action = "delete_now"
+        let confirm_name: String
+    }
+
+    /// PATCH /api/school/students action delete_now: permanent, immediate
+    /// deletion of one child's class account and everything in it. The
+    /// server re-checks the typed name (confirm_mismatch) and writes the
+    /// deletion_log evidence row before purging.
+    @discardableResult
+    func teacherDeleteStudent(classId: String, studentId: String, confirmName: String,
+                              bearerToken: String) async throws -> TeacherDeletedResponse {
+        try await teacherCall(
+            method: "PATCH", path: "/api/school/students", query: [:],
+            body: DeleteStudentBody(classId: classId, id: studentId, confirm_name: confirmName),
+            bearerToken: bearerToken)
+    }
+
+    private struct DeleteClassBody: Encodable { let confirm_name: String }
+
+    /// DELETE /api/school/classes?id=: permanent, immediate deletion of the
+    /// class and every child's class account in it. delete_incomplete means
+    /// some of it is gone and trying again finishes the job.
+    @discardableResult
+    func teacherDeleteClass(classId: String, confirmName: String, bearerToken: String) async throws -> TeacherDeletedResponse {
+        try await teacherCall(
+            method: "DELETE", path: "/api/school/classes", query: ["id": classId],
+            body: DeleteClassBody(confirm_name: confirmName), bearerToken: bearerToken)
     }
 
     func teacherStudentBooks(classId: String, studentId: String, bearerToken: String) async throws -> [TeacherStudentBook] {
@@ -1275,10 +1322,11 @@ actor APIClient {
         /// See StoryBuddyRequest.locale.
         var locale: String = AppLanguage.apiLocale
 
+        /// Data minimisation: no author name and no exact age — an age
+        /// band is all Story Buddy needs (mirrors api/story-buddy.js).
         struct SlimBook: Encodable {
             let title: String
-            let authorName: String
-            let authorAge: Int?
+            let ageBand: String?
             let characters: [SlimCharacter]
             let setting: SlimSetting?
             let pages: [SlimPage]
@@ -1300,8 +1348,7 @@ actor APIClient {
             intent: intent,
             book: .init(
                 title: book.title,
-                authorName: book.authorName,
-                authorAge: book.authorAge,
+                ageBand: Self.ageBand(book.authorAge),
                 // The names the child sees, in their language — never the
                 // stored English catalogue names.
                 characters: book.characters.map { .init(name: $0.displayName) },
@@ -1315,6 +1362,14 @@ actor APIClient {
             body: body, bearerToken: bearerToken
         )
         return Self.parseIdeaList(res.content.first?.text ?? "")
+    }
+
+    /// "6-8" / "9-10" / "11-12" — the only age signal Story Buddy gets.
+    static func ageBand(_ age: Int?) -> String? {
+        guard let age else { return nil }
+        if age <= 8 { return "6-8" }
+        if age <= 10 { return "9-10" }
+        return "11-12"
     }
 
     /// Splits Claude's numbered list into clean lines (mirrors the web app).
@@ -1426,6 +1481,21 @@ extension APIClient {
     func writingYearCancelPrint(classId: String, requestId: String, bearerToken: String) async throws {
         let _: Ignored = try await wyTeacher(
             WYAction(classId: classId, action: "cancel_print", requestId: requestId), bearerToken: bearerToken)
+    }
+
+    /// The teacher's data export (api/school/export.js): a ZIP of the class,
+    /// or of one child when `studentId` is given, as raw bytes.
+    func teacherExport(classId: String, studentId: String? = nil, bearerToken: String) async throws -> Data {
+        var query = ["classId": classId]
+        if let studentId { query["studentId"] = studentId }
+        let url = makeURL(path: "/api/school/export", query: query)
+        var req = URLRequest(url: url, timeoutInterval: 90)
+        req.setValue("Bearer \(bearerToken)", forHTTPHeaderField: "Authorization")
+        let (data, response) = try await URLSession.shared.data(for: req)
+        guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
+            throw TeacherError(code: (try? decoder.decode(SchoolErrorBody.self, from: data))?.code)
+        }
+        return data
     }
 
     /// The child's free PDF (api/school/writing-year-pdf.js), as raw bytes.

@@ -64,6 +64,7 @@ export default function MyAssignments() {
       loaded.current = true
       setError(null)
       const list = res.data.assignments ?? []
+      useClassBadgeStore.getState().setClassSettings(res.data.class)
       setAssignments(list)
       // Worksheet drafts never outlive an open assignment.
       pruneWorksheetDrafts(useAuthStore.getState().user?.id ?? null, list)

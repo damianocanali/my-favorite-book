@@ -73,6 +73,24 @@ export async function bumpStudentImage(studentId, req) {
   }
 }
 
+/// Gives back one picture a student was metered for but never received
+/// (output moderation down → refused, review fix I4; migration 033).
+/// Best-effort: a failure is logged, the refusal stands either way.
+export async function refundStudentImage(studentId) {
+  if (!studentId) return false
+  try {
+    const res = await sb('/rest/v1/rpc/school_refund_image', {
+      method: 'POST',
+      body: JSON.stringify({ p_student_id: studentId }),
+    })
+    if (!res.ok) console.error('[school] refund image failed', res.status)
+    return res.ok
+  } catch (e) {
+    console.error('[school] refund image error', e?.message)
+    return false
+  }
+}
+
 // Students draw AI images from their class's allowance (owner decision D5),
 // not the consumer daily cap. Fails CLOSED: an unmetered class is a bill.
 export async function enforceStudentImageCap(auth, req) {
@@ -87,6 +105,13 @@ export async function requireTeacher(req) {
   const auth = await verifyJwt(req)
   if (!auth.ok) return { ok: false, response: auth.response }
   if (isStudent(auth)) return fail(req, 403, 'student_forbidden', 'Not available for class accounts')
+  // 2-step sign-in (review §7 item 15): a teacher who turned it on must
+  // present an aal2 session to reach class data. Off until the owner sets
+  // TEACHER_MFA_ENFORCE=on — the iPad app has no code step yet, so turning
+  // this on would lock an enrolled teacher out of the iPad teacher views.
+  if (process.env.TEACHER_MFA_ENFORCE === 'on' && auth.mfaEnrolled && auth.aal !== 'aal2') {
+    return fail(req, 401, 'mfa_required', 'Enter your 2-step sign-in code')
+  }
   return { ok: true, auth }
 }
 
@@ -117,7 +142,7 @@ export async function requireStudent(req) {
   try {
     const res = await sb(
       `/rest/v1/class_students?auth_user_id=eq.${encodeURIComponent(auth.userId)}&status=eq.active` +
-        `&select=id,classroom_id,display_name,classrooms(id,name,timezone,school_hours,owner_user_id,archived_at,locale)`
+        `&select=id,classroom_id,display_name,classrooms(id,name,timezone,school_hours,owner_user_id,archived_at,locale,checkins_enabled)`
     )
     if (!res.ok) return fail(req, 503, 'upstream', 'Service unavailable, try again')
     const rows = await res.json().catch(() => [])

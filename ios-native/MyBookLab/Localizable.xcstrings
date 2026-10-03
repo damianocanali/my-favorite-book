@@ -2,6 +2,168 @@
   "sourceLanguage": "en",
   "strings": {
     "": {},
+    "ai_disclosure.continue": {
+      "comment": "First-use AI disclosure for family accounts (App Store 5.1.2(i)), AIDisclosureView.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I understand, continue"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ho capito, continua"
+          }
+        }
+      }
+    },
+    "ai_disclosure.intro": {
+      "comment": "First-use AI disclosure for family accounts (App Store 5.1.2(i)), AIDisclosureView.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "For grown-ups: My Book Lab uses outside AI services for Story Buddy and pictures. Here is what they receive."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Per gli adulti: My Book Lab usa servizi di IA esterni per Story Buddy e per le immagini. Ecco cosa ricevono."
+          }
+        }
+      }
+    },
+    "ai_disclosure.pictures": {
+      "comment": "First-use AI disclosure for family accounts (App Store 5.1.2(i)), AIDisclosureView.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Together AI draws the pictures from that written scene description. If you use a photo avatar, the photo you choose is also sent to Together AI to turn it into a cartoon; we don't keep the photo."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Together AI disegna le immagini a partire da quella descrizione della scena. Se usi un avatar da foto, anche la foto che scegli viene inviata a Together AI per trasformarla in un cartone animato; non conserviamo la foto."
+          }
+        }
+      }
+    },
+    "ai_disclosure.privacy_link": {
+      "comment": "First-use AI disclosure for family accounts (App Store 5.1.2(i)), AIDisclosureView.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read the Privacy Policy"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leggi l'Informativa sulla privacy"
+          }
+        }
+      }
+    },
+    "ai_disclosure.safety": {
+      "comment": "First-use AI disclosure for family accounts (App Store 5.1.2(i)), AIDisclosureView.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OpenAI checks the words and every finished picture for safety."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OpenAI controlla la sicurezza delle parole e di ogni immagine finita."
+          }
+        }
+      }
+    },
+    "ai_disclosure.story_buddy": {
+      "comment": "First-use AI disclosure for family accounts (App Store 5.1.2(i)), AIDisclosureView.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anthropic (Claude) reads the story text your child writes, to give Story Buddy help and to describe each picture to draw."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anthropic (Claude) legge il testo scritto da chi crea la storia, per l'aiuto di Story Buddy e per descrivere ogni immagine da disegnare."
+          }
+        }
+      }
+    },
+    "ai_disclosure.title": {
+      "comment": "First-use AI disclosure for family accounts (App Store 5.1.2(i)), AIDisclosureView.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "How the AI helpers work"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Come funzionano gli assistenti IA"
+          }
+        }
+      }
+    },
+    "ai_disclosure.use": {
+      "comment": "First-use AI disclosure for family accounts (App Store 5.1.2(i)), AIDisclosureView.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "These services get only what each request needs. The Privacy Policy says how long each one keeps it."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questi servizi ricevono solo ciò che serve per ogni richiesta. L'Informativa sulla privacy indica per quanto tempo ciascuno lo conserva."
+          }
+        }
+      }
+    },
+    "errors.ai.image_flagged": {
+      "comment": "A generated picture failed safety screening and was not kept (api/_aiGuard.js moderateImage).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That picture didn't turn out right. Try again with different words."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questa immagine non è venuta bene. Riprova con parole diverse."
+          }
+        }
+      }
+    },
     "“%@”": {
       "localizations": {
         "it": {
@@ -19699,6 +19861,406 @@
           "stringUnit": {
             "state": "translated",
             "value": "Un testo non entra in una pagina. Accorcia quel lavoro e riprova."
+          }
+        }
+      }
+    },
+    "school.teacher.errors.confirm_mismatch": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The name you typed doesn't match. Nothing was deleted."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il nome scritto non corrisponde. Non è stato eliminato nulla."
+          }
+        }
+      }
+    },
+    "school.teacher.errors.delete_incomplete": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The deletion stopped part-way. It will finish overnight, or try again now."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L'eliminazione si è interrotta a metà. Verrà completata durante la notte, oppure riprova ora."
+          }
+        }
+      }
+    },
+    "school.teacher.roster.menu.delete_now": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete permanently…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elimina definitivamente…"
+          }
+        }
+      }
+    },
+    "school.teacher.roster.delete_dialog.heading": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete %@ permanently?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eliminare definitivamente %@?"
+          }
+        }
+      }
+    },
+    "school.teacher.roster.delete_dialog.body": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This deletes %@'s class account and everything in it right now: books, pictures, hand-ins, feedback, Writing Year pages and check-ins. It can't be undone, and we can't get it back. To keep a copy, export the class data first."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elimina subito l'account di classe di %@ e tutto il suo contenuto: libri, immagini, consegne, commenti, pagine del Mio anno di scrittura e check-in. L'operazione non si può annullare e non potremo recuperare nulla. Per tenerne una copia, esporta prima i dati della classe."
+          }
+        }
+      }
+    },
+    "school.teacher.roster.delete_dialog.prompt": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Type %@ to confirm"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scrivi %@ per confermare"
+          }
+        }
+      }
+    },
+    "school.teacher.roster.delete_dialog.confirm": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete forever"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elimina per sempre"
+          }
+        }
+      }
+    },
+    "school.teacher.roster.deleted_banner": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ was deleted."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L'account di %@ è stato eliminato."
+          }
+        }
+      }
+    },
+    "school.teacher.data.heading": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Data and privacy"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dati e privacy"
+          }
+        }
+      }
+    },
+    "school.teacher.data.delete_class.button": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete this class…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elimina questa classe…"
+          }
+        }
+      }
+    },
+    "school.teacher.data.delete_class.hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deletes the class and every child's class account in it, permanently."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elimina in modo definitivo la classe e tutti gli account di classe al suo interno."
+          }
+        }
+      }
+    },
+    "school.teacher.data.delete_class.heading": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete “%@” permanently?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eliminare definitivamente “%@”?"
+          }
+        }
+      }
+    },
+    "school.teacher.data.delete_class.body": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This deletes the class and every child's class account in it right now, with all their books, pictures, hand-ins, feedback, Writing Year pages and check-ins. It can't be undone, and we can't get it back. To keep a copy, export the class data first."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elimina subito la classe e tutti gli account di classe al suo interno, con libri, immagini, consegne, commenti, pagine del Mio anno di scrittura e check-in. L'operazione non si può annullare e non potremo recuperare nulla. Per tenerne una copia, esporta prima i dati della classe."
+          }
+        }
+      }
+    },
+    "school.teacher.data.delete_class.prompt": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Type the class name (%@) to confirm"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scrivi il nome della classe (%@) per confermare"
+          }
+        }
+      }
+    },
+    "school.teacher.data.delete_class.confirm": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete class forever"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elimina la classe per sempre"
+          }
+        }
+      }
+    },
+    "school.teacher.data.deleting": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deleting…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eliminazione…"
+          }
+        }
+      }
+    },
+    "school.teacher.data.export.button": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Export class data"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esporta i dati della classe"
+          }
+        }
+      }
+    },
+    "school.teacher.data.export.working": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparing…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparazione…"
+          }
+        }
+      }
+    },
+    "school.teacher.data.export.share": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save or share the export"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salva o condividi l'esportazione"
+          }
+        }
+      }
+    },
+    "school.teacher.data.export.hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Download a ZIP with every child's books, hand-ins, feedback, grades, recent check-ins and Writing Year (JSON, spreadsheets and a page to open in a browser)."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scarica uno ZIP con libri, consegne, commenti, valutazioni, check-in recenti e Mio anno di scrittura di ogni account della classe (JSON, fogli di calcolo e una pagina da aprire nel browser)."
+          }
+        }
+      }
+    },
+    "school.teacher.data.checkins.label": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Children can share check-ins with you"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bambine e bambini possono condividere i check-in con te"
+          }
+        }
+      }
+    },
+    "school.teacher.data.checkins.hint_on": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A child's check-in (how they feel, what they need) reaches you. Check-ins are deleted after 30 days."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il check-in di ogni account (come si sente, di cosa ha bisogno) arriva a te. I check-in vengono eliminati dopo 30 giorni."
+          }
+        }
+      }
+    },
+    "school.teacher.data.checkins.hint_off": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Off: children don't see the check-in button and nothing is collected."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disattivati: il pulsante del check-in non compare e non viene raccolto nulla."
+          }
+        }
+      }
+    },
+    "school.teacher.errors.checkins_off": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check-ins are off for this class."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I check-in sono disattivati per questa classe."
+          }
+        }
+      }
+    },
+    "school.teacher.data.delete_pending": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The deletion is in progress and will finish shortly."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L'eliminazione è in corso e verrà completata a breve."
           }
         }
       }

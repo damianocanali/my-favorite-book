@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'motion/react'
 import { useTranslation, Trans } from 'react-i18next'
 import { BookOpen, Star, Loader2, Sparkles, Trash2 } from 'lucide-react'
-import { apiFetch, apiFetchAuthed } from '../lib/api'
+import { apiFetchAuthed } from '../lib/api'
 import { useAuthStore } from '../stores/useAuthStore'
 import { playTrack } from '../services/audioService'
 
@@ -43,7 +43,8 @@ function BookCard({ book, index, currentUserId, onRemoved }) {
   const { t } = useTranslation()
   const [confirmRemove, setConfirmRemove] = useState(false)
   const [removing, setRemoving] = useState(false)
-  const isOwner = currentUserId && book.user_id === currentUserId
+  // The server decides (is_owner); the author's account id is never sent.
+  const isOwner = !!currentUserId && book.is_owner === true
 
   const handleRemove = async (e) => {
     e.preventDefault()
@@ -215,7 +216,7 @@ export default function GalleryPage() {
   useEffect(() => {
     async function fetchBooks() {
       try {
-        const res = await apiFetch('/api/publish-book?recent=true')
+        const res = await apiFetchAuthed('/api/publish-book?recent=true')
         // A 200 carrying anything other than a list — an error body, a
         // proxy's HTML — used to land in `books` and then blow up on the
         // .filter calls below, taking the whole gallery down.

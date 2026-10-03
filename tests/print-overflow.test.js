@@ -27,13 +27,15 @@ describe('findOverflowingPages', () => {
   })
 })
 
-const browser = vi.hoisted(() => ({ measures: [], pdf: vi.fn(async () => Buffer.from('%PDF')), evaluate: vi.fn() }))
+const browser = vi.hoisted(() => ({ measures: [], pdf: vi.fn(async () => Buffer.from('%PDF')), evaluate: vi.fn(), intercept: vi.fn(), handlers: {} }))
 vi.mock('@sparticuz/chromium', () => ({ default: { args: [], headless: true, executablePath: async () => '/x' } }))
 vi.mock('puppeteer-core', () => ({
   default: {
     launch: async () => ({
       isConnected: () => true,
       newPage: async () => ({
+        setRequestInterception: async (on) => browser.intercept(on),
+        on: (ev, fn) => { browser.handlers[ev] = fn },
         setContent: async () => {},
         emulateMediaType: async () => {},
         evaluate: async (fn, sel) => { browser.evaluate(fn, sel); return browser.measures },
@@ -63,5 +65,40 @@ describe('renderHtmlToPdf({checkOverflow})', () => {
     browser.evaluate.mockClear()
     await renderHtmlToPdf({ html: '<x>' })
     expect(browser.evaluate).not.toHaveBeenCalled()
+  })
+})
+
+describe('renderer request allowlist (review §7 item 19)', () => {
+  it('intercepts requests: Supabase storage, our origin and data: pass; anything else is aborted', async () => {
+    process.env.SUPABASE_URL = 'https://proj.supabase.co'
+    process.env.PUBLIC_BASE_URL = 'https://mybooklab.app'
+    const { renderHtmlToPdf } = await import('../lib/print/pdf-render.js')
+    browser.measures = []
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    await renderHtmlToPdf({ html: '<x>' })
+    expect(browser.intercept).toHaveBeenCalledWith(true)
+    const fire = (url) => {
+      const r = { url: () => url, continue: vi.fn(), abort: vi.fn() }
+      browser.handlers.request(r)
+      return r.continue.mock.calls.length ? 'continue' : r.abort.mock.calls.length ? 'abort' : 'none'
+    }
+    expect(fire('https://proj.supabase.co/storage/v1/object/public/book-illustrations/u/p.png')).toBe('continue')
+    expect(fire('https://proj.supabase.co/storage/v1/object/sign/print-pdfs/x?token=t')).toBe('continue')
+    expect(fire('https://mybooklab.app/sample-book/1.png')).toBe('continue')
+    expect(fire('data:image/png;base64,AA')).toBe('continue')
+    expect(fire('http://169.254.169.254/latest/meta-data')).toBe('abort')
+    expect(fire('https://fonts.googleapis.com/css2?family=X')).toBe('abort')
+    expect(fire('http://proj.supabase.co/storage/x')).toBe('abort')
+    expect(fire('file:///etc/passwd')).toBe('abort')
+    expect(warn.mock.calls.flat().join(' ')).not.toContain('meta-data')
+    warn.mockRestore()
+  })
+
+  it('PRINT_ALLOWED_ORIGINS extends the list', async () => {
+    const { isAllowedPrintRequest, printOrigins } = await import('../lib/print/pdf-render.js')
+    const o = printOrigins({ SUPABASE_URL: 'https://p.supabase.co', PRINT_ALLOWED_ORIGINS: 'https://img.example.com, junk' })
+    expect(isAllowedPrintRequest('https://img.example.com/a.png', o)).toBe(true)
+    expect(isAllowedPrintRequest('https://evil.example.com/a.png', o)).toBe(false)
+    expect(isAllowedPrintRequest('not a url', o)).toBe(false)
   })
 })

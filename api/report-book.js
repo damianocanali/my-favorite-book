@@ -13,7 +13,8 @@ export const config = { runtime: 'edge' }
 
 import { checkRateLimit, getClientIp, handleCors, withCors } from './_rateLimit.js'
 import { verifyJwt } from './_auth.js'
-import { rejectStudent } from './_school.js'
+import { rejectStudent, isUuid } from './_school.js'
+import { openAuthorRef } from '../lib/authorRef.js'
 
 const REASONS = new Set([
   'inappropriate',
@@ -69,8 +70,23 @@ export default async function handler(req) {
 
   // ── Block an author ───────────────────────────────────────────────
   if (body.action === 'block' || body.action === 'unblock') {
-    const blockedUserId = body.userId
-    if (!blockedUserId) return json(400, { error: 'userId required' })
+    // Who to block: the opaque author handle the gallery hands out
+    // (authorRef, or userId from app builds that still send that field),
+    // or a book's slug. Raw account ids are no longer public (review §7.8);
+    // a raw UUID is still accepted since blocking only filters the
+    // caller's own gallery.
+    let blockedUserId = null
+    const ref = body.authorRef ?? body.userId
+    if (typeof ref === 'string') blockedUserId = isUuid(ref) ? ref : await openAuthorRef(ref)
+    if (!blockedUserId && typeof body.slug === 'string' && body.slug) {
+      const r = await fetch(
+        `${supabaseUrl}/rest/v1/published_books?slug=eq.${encodeURIComponent(body.slug)}&select=user_id`,
+        { headers }
+      )
+      const rows = await r.json().catch(() => [])
+      blockedUserId = rows?.[0]?.user_id ?? null
+    }
+    if (!blockedUserId) return json(400, { error: 'author required' })
     if (blockedUserId === userId) return json(400, { error: "You can't block yourself" })
 
     if (body.action === 'unblock') {
@@ -111,7 +127,7 @@ export default async function handler(req) {
 
   if (!res.ok) {
     // Don't echo the upstream body — it can carry schema details.
-    console.error('[report-book] rpc failed', res.status, (await res.text()).slice(0, 200))
+    console.error('[report-book] rpc failed', res.status)
     return json(500, { error: 'Could not file that report. Please try again.' })
   }
 

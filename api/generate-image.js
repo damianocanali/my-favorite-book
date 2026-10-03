@@ -1,10 +1,11 @@
 import { checkRateLimit, handleCors, withCors } from './_rateLimit.js'
 import { logUsage, estimateTogetherImageCostCents, estimateAnthropicCostCents } from './_usage.js'
-import { requireUser, validatePrompt, validateSourceImage, moderatePrompt, enforceDailyCap } from './_aiGuard.js'
+import { requireUser, validatePrompt, validateSourceImage, moderatePrompt, moderateImage, enforceDailyCap, IMAGE_MODERATION_TIMEOUT_MS } from './_aiGuard.js'
 import { classifyAttestation, dailyCapFor, hourlyLimitFor } from './_appAttest.js'
 import { storeIllustration } from './_imageStore.js'
-import { isStudent, rejectStudent, enforceStudentImageCap } from './_school.js'
+import { isStudent, rejectStudent, enforceStudentImageCap, refundStudentImage } from './_school.js'
 import { validateScenePayload, rawTextForModeration, moderationChunks, writeScene, buildFluxPrompt, SCENE_MODEL } from '../lib/imageScene.js'
+import { safeDetail } from './_logSafe.js'
 
 export const config = { runtime: 'edge' }
 
@@ -14,6 +15,13 @@ const IMAGE_GEN_LIMIT = 20 // requests per hour per IP
 // responding within 25 s). Together gets whatever is left, but at least 5 s.
 const REQUEST_DEADLINE_MS = 23_000
 const MIN_TOGETHER_MS = 5_000
+// The finished picture is screened before it is stored (review §7 item 11).
+// That check runs AFTER Together, so its time is held back from Together's
+// share of the deadline; it gets whatever is left, at least 1 s, at most
+// IMAGE_MODERATION_TIMEOUT_MS.
+const IMAGE_MODERATION_RESERVE_MS = 3_000
+// The check always gets at least the reserve, even if Together ran long.
+const MIN_IMAGE_MODERATION_MS = IMAGE_MODERATION_RESERVE_MS
 
 export default async function handler(req) {
   const corsResponse = handleCors(req)
@@ -106,8 +114,10 @@ export default async function handler(req) {
     // Moderate the child's RAW text before anything paid sees it.
     // Chunked (overlapping) so the whole text is read — moderatePrompt
     // truncates at 8000 — and in parallel so a long page isn't slower.
+    // Students fail CLOSED when moderation can't run (review §7 item 10).
+    const modOpts = { failClosed: isStudent(auth) }
     const rawText = structured ? rawTextForModeration(input) : payload.prompt
-    const modErrs = await Promise.all(moderationChunks(rawText).map((chunk) => moderatePrompt(chunk, req)))
+    const modErrs = await Promise.all(moderationChunks(rawText).map((chunk) => moderatePrompt(chunk, req, modOpts)))
     const modErr = modErrs.find(Boolean)
     if (modErr) return modErr
 
@@ -146,7 +156,7 @@ export default async function handler(req) {
       if (finalErr) return finalErr
       // And the FINAL prompt, in case the rewrite produced something the
       // raw text didn't (legacy prompts ARE their raw text: moderated above).
-      const modErr = await moderatePrompt(prompt, req)
+      const modErr = await moderatePrompt(prompt, req, modOpts)
       if (modErr) return modErr
     }
 
@@ -192,7 +202,7 @@ export default async function handler(req) {
     // 28 steps takes a while, but a hung upstream must not hold the
     // function open until the platform kills it.
     const controller = new AbortController()
-    const togetherMs = Math.max(MIN_TOGETHER_MS, startedAt + REQUEST_DEADLINE_MS - Date.now())
+    const togetherMs = Math.max(MIN_TOGETHER_MS, startedAt + REQUEST_DEADLINE_MS - IMAGE_MODERATION_RESERVE_MS - Date.now())
     const timer = setTimeout(() => controller.abort(), togetherMs)
     let response
     try {
@@ -218,7 +228,7 @@ export default async function handler(req) {
 
     if (!response.ok) {
       const detail = await response.text().catch(() => '')
-      console.error('[generate-image] Together error', response.status, detail.slice(0, 500))
+      console.error('[generate-image] Together error', response.status, safeDetail(detail))
       return new Response(
         JSON.stringify({ error: 'Image generation failed. Please try again.' }),
         { status: 502, headers: withCors({ 'Content-Type': 'application/json' }, req) }
@@ -241,6 +251,22 @@ export default async function handler(req) {
       images: 1,
       cost_cents: estimateTogetherImageCostCents({ model, images: 1 }),
     })
+
+    // Screen the finished picture before it is stored or shown. Flagged →
+    // never stored (400 image_flagged). Moderation down → students fail
+    // closed, adults fail open (logged).
+    const imageModMs = Math.min(
+      IMAGE_MODERATION_TIMEOUT_MS,
+      Math.max(MIN_IMAGE_MODERATION_MS, startedAt + REQUEST_DEADLINE_MS - Date.now())
+    )
+    const outputErr = await moderateImage(b64, req, { failClosed: isStudent(auth), timeoutMs: imageModMs })
+    if (outputErr) {
+      // Refused because moderation was DOWN (fail closed, students only):
+      // the class allowance must not pay for a picture the child never got.
+      // A flagged picture (400) stays charged — it was a real generation.
+      if (outputErr.status === 503 && isStudent(auth)) await refundStudentImage(auth.appMetadata?.student_id)
+      return outputErr
+    }
 
     // Park the art in Storage and hand back a URL. Books sync with a URL
     // intact, so the print pipeline can actually fetch the image — a

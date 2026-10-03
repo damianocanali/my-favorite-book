@@ -14,6 +14,7 @@ import LanguageSwitcher from '../components/ui/LanguageSwitcher'
 import { useRewardsStore, BADGE_DEFINITIONS } from '../stores/useRewardsStore'
 import FeelingConstellation from '../components/ui/FeelingConstellation'
 import NotificationSettings from '../components/school/NotificationSettings'
+import TwoStepSettings from '../components/auth/TwoStepSettings'
 import { formatDate, formatNumber } from '../i18n/formats'
 
 // Mirrors GRACE_DAYS in lib/deleteUser.js. Duplicated rather than imported:
@@ -340,6 +341,7 @@ export default function AccountPage() {
                   </button>
                   <div className="basis-full">
                     <NotificationSettings />
+                    <TwoStepSettings />
                   </div>
                 </div>
               ) : (

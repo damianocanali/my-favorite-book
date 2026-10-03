@@ -12,10 +12,12 @@ export const config = { runtime: 'edge' }
 //     server-side from classId+studentId), never the teacher's, so the
 //     avatar follows the child's account exactly like a self-made one would.
 import { handleCors, checkRateLimit } from '../_rateLimit.js'
-import { requireClassOwner, sb, json, isUuid, bumpStudentImage } from '../_school.js'
+import { requireClassOwner, sb, json, isUuid, bumpStudentImage, refundStudentImage } from '../_school.js'
 import { buildAvatarPrompt, isValidFeatures, isValidArtStyle } from '../../lib/avatarPrompt.js'
 import { storeIllustration, isFetchableImage } from '../_imageStore.js'
 import { logUsage, estimateTogetherImageCostCents } from '../_usage.js'
+import { checkImage } from '../_aiGuard.js'
+import { safeDetail } from '../_logSafe.js'
 
 const TOGETHER_API_URL = 'https://api.together.xyz/v1/images/generations'
 // Same serverless text-to-image model generate-avatar.js uses for its
@@ -113,7 +115,7 @@ export default async function handler(req) {
     })
     if (!response.ok) {
       const detail = await response.text().catch(() => '')
-      console.error('[school/student-avatar] Together error', response.status, detail.slice(0, 500))
+      console.error('[school/student-avatar] Together error', response.status, safeDetail(detail))
       return json(req, 502, { error: 'Avatar generation failed. Please try again.', code: 'upstream' })
     }
 
@@ -128,6 +130,19 @@ export default async function handler(req) {
       images: 1,
       cost_cents: estimateTogetherImageCostCents({ model: MODEL, images: 1 }),
     })
+
+    // Screen the finished avatar before it is stored (review §7 item 11).
+    // It lands on a CHILD's account, so an outage fails closed even though
+    // the caller is the teacher.
+    const verdict = await checkImage(b64)
+    if (verdict === 'flagged') {
+      return json(req, 400, { error: "That picture didn't turn out right. Try different choices.", code: 'image_flagged' })
+    }
+    if (verdict === 'unavailable') {
+      // Fail closed, but give the student's picture back (review fix I4).
+      await refundStudentImage(studentId)
+      return json(req, 503, { error: 'Try again in a moment', code: 'moderation_unavailable' })
+    }
 
     // Stored under the STUDENT's own auth id, never the teacher's — the
     // avatar belongs to the child's account and must follow it the same

@@ -19,6 +19,8 @@
  * handles it.
  */
 
+import { hashIp, ipHashKey, hashWithIpKey } from '../lib/school/crypto.js'
+
 const store = new Map() // key -> { count, windowStart }
 
 const WINDOW_MS = 60 * 60 * 1000 // 1 hour
@@ -65,7 +67,20 @@ async function redisIncrAndExpire(key) {
  * the in-memory counter as a fast local cache, so a burst that arrives
  * before Redis ACKs still gets caught on the same instance.
  */
-export function checkRateLimit(key, limit) {
+// Keys sent to Upstash (a third party) are HMAC'd with IP_HASH_KEY, so no
+// raw IP or user id ever leaves for Redis (review §4.4 / §7 item 12). The
+// in-memory map keeps the readable key; it never leaves the instance.
+async function redisKeyFor(key) {
+  const h = await hashWithIpKey(key).catch(() => null)
+  return h ? `rl:h:${h}` : `rl:${key}`
+}
+
+/**
+ * @param {object} [ctx] - the Edge handler's context. When it has waitUntil,
+ *   the background Upstash write is registered with it so the platform
+ *   doesn't drop it once the response is sent.
+ */
+export function checkRateLimit(key, limit, ctx) {
   const now = Date.now()
   const entry = store.get(key)
 
@@ -82,11 +97,12 @@ export function checkRateLimit(key, limit) {
     // Reconcile with the shared counter in the background. If the global
     // count is higher than our local one, promote it so subsequent requests
     // on this instance see reality.
-    redisIncrAndExpire(`rl:${key}`).then((globalCount) => {
+    const sync = redisKeyFor(key).then(redisIncrAndExpire).then((globalCount) => {
       if (globalCount && globalCount > (store.get(key)?.count ?? 0)) {
         store.set(key, { count: globalCount, windowStart: now })
       }
-    })
+    }).catch(() => {})
+    if (typeof ctx?.waitUntil === 'function') ctx.waitUntil(sync)
   }
 
   if (count > limit) return { allowed: false, remaining: 0 }
@@ -104,6 +120,15 @@ export function getClientIp(req) {
   const xff = get('x-forwarded-for') || ''
   const parts = xff.split(',').map((s) => s.trim()).filter(Boolean)
   return parts.length ? parts[parts.length - 1] : 'unknown'
+}
+
+/// The client IP as an HMAC (IP_HASH_KEY), for rate-limit keys and stored
+/// rows — never the raw address. With no key configured at all it falls
+/// back to the raw IP (ipHashKey warns).
+export async function hashedClientIp(req) {
+  const ip = getClientIp(req)
+  const key = ipHashKey()
+  return key ? hashIp(key, ip) : ip
 }
 
 // Per-request CORS state. Edge handlers are short-lived and single-threaded,

@@ -46,5 +46,28 @@ export async function verifyJwt(req) {
 
   // app_metadata is writable only with the service role, which makes it the
   // one place a role can be trusted (user_metadata is user-editable).
-  return { ok: true, userId: user.id, email: user.email, jwt, appMetadata: user.app_metadata ?? {}, userMetadata: user.user_metadata ?? {} }
+  //
+  // aal / mfaEnrolled (2-step sign-in, review §7 item 15): GoTrue has just
+  // accepted this token, so its `aal` claim can be read without re-checking
+  // the signature. mfaEnrolled = the account has a VERIFIED factor.
+  const mfaEnrolled = Array.isArray(user.factors) && user.factors.some((f) => f?.status === 'verified')
+  return {
+    ok: true, userId: user.id, email: user.email, jwt,
+    appMetadata: user.app_metadata ?? {}, userMetadata: user.user_metadata ?? {},
+    aal: jwtClaim(jwt, 'aal') ?? 'aal1', mfaEnrolled,
+  }
+}
+
+/// One claim from a JWT's payload (no signature check: callers only use it
+/// on a token GoTrue has already validated). Null when unreadable.
+export function jwtClaim(jwt, name) {
+  try {
+    const part = String(jwt).split('.')[1]
+    if (!part) return null
+    const b64 = part.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(part.length / 4) * 4, '=')
+    const payload = JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(b64), (c) => c.charCodeAt(0))))
+    return payload?.[name] ?? null
+  } catch {
+    return null
+  }
 }

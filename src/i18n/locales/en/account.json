@@ -115,5 +115,39 @@
       "generate_failed": "Failed to generate avatar",
       "cartoonify_failed": "Failed to cartoonify photo"
     }
+  },
+  "two_step": {
+    "title": "2-step sign-in",
+    "body": "Add a code from an authenticator app (like Google Authenticator or 1Password) when you sign in, so a stolen password alone can't open your classes.",
+    "status_off": "2-step sign-in is off.",
+    "status_on": "2-step sign-in is on.",
+    "turn_on": "Turn on 2-step sign-in",
+    "turn_off": "Turn off",
+    "scan": "Scan this code with your authenticator app.",
+    "qr_alt": "QR code for your authenticator app",
+    "manual": "Can't scan it? Enter this key instead:",
+    "enter_code": "Then type the 6-digit code the app shows.",
+    "disable_prompt": "To turn it off, type a current 6-digit code from your app.",
+    "code_label": "6-digit code",
+    "code_placeholder": "123 456",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "done_on": "2-step sign-in is on. You'll be asked for a code each time you sign in.",
+    "done_off": "2-step sign-in is off.",
+    "gate_title": "Enter your code",
+    "gate_body": "This account uses 2-step sign-in. Type the 6-digit code from your authenticator app.",
+    "gate_sign_out": "Sign out instead",
+    "errors": {
+      "bad_code": "Codes are 6 digits.",
+      "wrong_code": "That code didn't work. Check the time on your device and try the newest code.",
+      "load": "We couldn't load your sign-in settings.",
+      "generic": "Something went wrong. Try again."
+    },
+    "add_backup": "Add a backup authenticator",
+    "backup_hint": "Tip: add a second authenticator (another phone or a password manager) so losing one device doesn't lock you out.",
+    "devices_one": "{{count}} authenticator set up.",
+    "devices_other": "{{count}} authenticators set up.",
+    "done_backup": "Backup authenticator added. Either one's code works.",
+    "lost_phone": "Lost your phone? Email us and we'll reset it:"
   }
 }

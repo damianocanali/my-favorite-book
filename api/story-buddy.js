@@ -2,6 +2,8 @@ import { checkRateLimit, handleCors, withCors } from './_rateLimit.js'
 import { logUsage, estimateAnthropicCostCents } from './_usage.js'
 import { requireUser, moderatePrompt } from './_aiGuard.js'
 import { classifyAttestation, hourlyLimitFor } from './_appAttest.js'
+import { isStudent } from './_school.js'
+import { safeDetail } from './_logSafe.js'
 
 export const config = { runtime: 'edge' }
 
@@ -74,9 +76,23 @@ function languageRule(locale) {
   return `- Reply in ${name}. The child's app is in ${name}, so all suggestions, questions and story text must be in ${name} — never English. If the child is clearly writing their story in a different language, use that language instead.`
 }
 
-function buildSystemPrompt(book, locale) {
-  const age = Number.isFinite(book?.authorAge) ? Math.max(4, Math.min(18, book.authorAge)) : 8
-  const authorName = sanitize(book?.authorName || 'the author')
+/// Data minimisation: Story Buddy never needs to know WHO the child is. The
+/// author's name is never sent to Anthropic ("the young author" instead) and
+/// the exact age is reduced to a band — enough to pitch the vocabulary.
+/// Clients send `ageBand` now; older clients still send `authorAge`, which is
+/// banded here and otherwise dropped. Exported for tests.
+export const AGE_BANDS = ['6-8', '9-10', '11-12']
+export function ageBandFor(book) {
+  if (AGE_BANDS.includes(book?.ageBand)) return book.ageBand
+  const age = Number(book?.authorAge)
+  if (!Number.isFinite(age)) return '6-8'
+  if (age <= 8) return '6-8'
+  if (age <= 10) return '9-10'
+  return '11-12'
+}
+
+export function buildSystemPrompt(book, locale) {
+  const band = ageBandFor(book)
   const title = sanitize(book?.title || 'Untitled')
   const chars = book?.characters?.map((c) => sanitize(c?.name)).filter(Boolean).join(', ') || 'no characters yet'
   const setting = sanitize(book?.setting?.name || 'unknown place')
@@ -87,15 +103,15 @@ function buildSystemPrompt(book, locale) {
     .map((p) => `Page ${p.pageNumber}: ${sanitize(p.text)}`)
     .join('\n')
 
-  const ageRules = age <= 7
+  const ageRules = band === '6-8'
     ? '- Use simple words and short sentences\n- Keep things fun, silly, and easy to understand'
     : '- Use creative vocabulary but keep it accessible\n- Encourage descriptive writing and imagination'
 
-  return `You are Story Buddy, a friendly creative writing assistant for kids. You help children aged ${age} write their own stories.
+  return `You are Story Buddy, a friendly creative writing assistant for kids. You help children aged ${band} write their own stories.
 
 THE KID'S BOOK:
 - Title: "${title}"
-- Author: ${authorName} (age ${age})
+- Author: the young author (age ${band})
 - Characters: ${chars}
 - Setting: ${setting}
 - Time Period: ${time}
@@ -104,7 +120,7 @@ STORY SO FAR:
 ${existingPages || '(The story has not started yet)'}
 
 IMPORTANT RULES:
-- Write at a level appropriate for a ${age}-year-old
+- Write at a level appropriate for a child aged ${band}
 ${ageRules}
 - Always incorporate the kid's chosen characters, setting, and time period
 - Keep content positive, safe, and kid-friendly
@@ -151,7 +167,7 @@ async function handleChat(payload, apiKey, locale, req) {
 
   if (!response.ok) {
     const detail = await response.text().catch(() => '')
-    console.error('[story-buddy] chat Anthropic error', response.status, detail.slice(0, 500))
+    console.error('[story-buddy] chat Anthropic error', response.status, safeDetail(detail))
     return new Response(
       JSON.stringify({ error: 'Story Buddy is unavailable right now. Please try again.' }),
       { status: 502, headers: withCors({ 'Content-Type': 'application/json' }, req) }
@@ -233,6 +249,9 @@ export default async function handler(req) {
     // RENDERING in, which is the thing the child sees. Accept-Language is a
     // fallback for older clients that don't send the field yet — without it
     // they would silently keep getting English after this ships.
+    // Students' text is never sent unscreened (review §7 item 10).
+    const modOpts = { failClosed: isStudent(auth) }
+
     const locale =
       payload?.locale ??
       req.headers.get('accept-language')?.split(',')[0] ??
@@ -240,7 +259,11 @@ export default async function handler(req) {
 
     // Native app sends a free-form chat message; web app sends an intent.
     if (typeof payload?.message === 'string' && payload.message.trim()) {
-      const modErr = await moderatePrompt(payload.message, req)
+      // The page text sent as `context` goes into the system prompt, so it
+      // is screened too (same fail-closed rule for students).
+      const texts = [payload.message]
+      if (typeof payload.context === 'string' && payload.context.trim()) texts.push(payload.context)
+      const modErr = (await Promise.all(texts.map((t) => moderatePrompt(t, req, modOpts)))).find(Boolean)
       if (modErr) return modErr
       return await handleChat(payload, apiKey, locale, req)
     }
@@ -257,7 +280,7 @@ export default async function handler(req) {
 
     // Moderate the child's own writing on the page before it informs the model.
     if (page.text && String(page.text).trim()) {
-      const modErr = await moderatePrompt(String(page.text), req)
+      const modErr = await moderatePrompt(String(page.text), req, modOpts)
       if (modErr) return modErr
     }
 
@@ -278,7 +301,7 @@ export default async function handler(req) {
 
     if (!response.ok) {
       const detail = await response.text().catch(() => '')
-      console.error('[story-buddy] Anthropic error', response.status, detail.slice(0, 500))
+      console.error('[story-buddy] Anthropic error', response.status, safeDetail(detail))
       return new Response(
         JSON.stringify({ error: 'Story Buddy is unavailable right now. Please try again.' }),
         { status: 502, headers: withCors({ 'Content-Type': 'application/json' }, req) }

@@ -432,6 +432,13 @@ final class AuthStore: NSObject {
     /// after the fact and can coalesce an A → nil → B switch into A → B,
     /// and the draft and inventory were never cleared at all.
     ///
+    /// Deliberately KEPT across a class account's sign-out (owner ruling):
+    /// worksheet drafts (WorksheetDrafts) and "seen" assignment markers
+    /// (AssignmentSeen). Both are keyed by the child's user id, pruned on
+    /// every assignments load, and unreadable by anyone else — so autosave
+    /// survives a shared class iPad changing hands. Device-level settings
+    /// (class device, language, music, App Attest key) also stay.
+    ///
     /// Deliberately NOT cleared: on-device illustrations (IllustrationStore).
     /// The cloud copy of a book holds only "[saved-locally]" markers, so
     /// deleting them would destroy the owner's pictures for good; they are

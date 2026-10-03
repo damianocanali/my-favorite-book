@@ -346,3 +346,23 @@ describe('GET /api/school/help', () => {
     errSpy.mockRestore()
   })
 })
+
+describe('check-ins switch (review §7.28)', () => {
+  it('refuses a check-in when the class turned them off, storing nothing', async () => {
+    const row = studentRow()
+    row.classrooms = { ...row.classrooms, checkins_enabled: false }
+    const log = mockSupabase({ user: STUDENT_USER, routes: [studentsRoute(row)] })
+    const { default: handler } = await import('../api/school/checkin.js')
+    const res = await handler(checkinCall({ feeling: 'happy' }))
+    expect(res.status).toBe(403)
+    expect((await res.json()).code).toBe('checkins_off')
+    expect(log.some((l) => l.method === 'POST' && l.url.includes('/rest/v1/class_checkins'))).toBe(false)
+  })
+
+  it('reads the switch with the student lookup', async () => {
+    const log = mockSupabase({ user: STUDENT_USER, routes: [studentsRoute(), { method: 'POST', match: '/rest/v1/class_checkins', reply: { status: 201, body: {} } }] })
+    const { default: handler } = await import('../api/school/checkin.js')
+    expect((await handler(checkinCall({ feeling: 'happy' }))).status).toBe(201)
+    expect(log.find((l) => l.url.includes('/rest/v1/class_students')).url).toContain('checkins_enabled')
+  })
+})
