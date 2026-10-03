@@ -60,28 +60,13 @@ describe('api/classroom.js', () => {
     })
   }
 
-  it('retries the class code on a 409 from the classrooms insert and succeeds on the second try', async () => {
-    const log = mockSupabase({
-      user: TEACHER,
-      routes: [
-        {
-          method: 'POST', match: '/rest/v1/classrooms',
-          reply: () => {
-            const attempts = log.filter((l) => l.method === 'POST' && l.url.includes('/rest/v1/classrooms')).length
-            return attempts === 1
-              ? { status: 409, body: { message: 'duplicate code' } }
-              : { status: 201, body: [{ code: 'NEWCOD', name: 'Room 5' }] }
-          },
-        },
-      ],
-    })
+  it('POST is retired (410, pointer to the new flow) and creates nothing — Stage 4 review I8', async () => {
+    const log = mockSupabase({ user: TEACHER, routes: [] })
     const { default: handler } = await import('../api/classroom.js')
     const res = await handler(classroomCall('POST', { name: 'Room 5' }))
-    expect(res.status).toBe(201)
-
-    const inserts = log.filter((l) => l.method === 'POST' && l.url.includes('/rest/v1/classrooms'))
-    expect(inserts).toHaveLength(2)
-    expect(inserts[0].body.code).not.toBe(inserts[1].body.code)
+    expect(res.status).toBe(410)
+    expect(await res.json()).toMatchObject({ code: 'gone', use: '/api/school/classes' })
+    expect(log.some((l) => l.method === 'POST' && l.url.includes('/rest/v1/classrooms'))).toBe(false)
   })
 })
 

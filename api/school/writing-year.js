@@ -52,6 +52,7 @@ const RPC_ERRORS = {
   already_requested: [409, 'The class books for this year have already been asked for', 'already_requested'],
   children_changed: [409, 'The class changed. Refresh and try again.', 'children_changed'],
   no_children: [409, 'No child has a piece in their Writing Year yet', 'no_children'],
+  too_many_children: [409, 'More books than paid seats: leave some children out of this print', 'too_many_children'],
 }
 
 async function rpc(req, name, args, failMessage) {
@@ -88,7 +89,7 @@ const booksMissing = (r, now = Date.now()) =>
   r.status === 'requested' && !r.books_frozen_at && now - new Date(r.created_at).getTime() > BOOKS_GRACE_MS
 
 async function classLicense(classroomId) {
-  const rows = await read(`/rest/v1/class_licenses?classroom_id=eq.${classroomId}&select=id,status,starts_at,expires_at`, 'class_licenses')
+  const rows = await read(`/rest/v1/class_licenses?classroom_id=eq.${classroomId}&select=id,status,starts_at,expires_at,seats`, 'class_licenses')
   return rows?.[0] ?? null
 }
 
@@ -282,7 +283,16 @@ async function teacherPrintSummary(req, o) {
     school_year: schoolYear(),
     included: named(included),
     excluded: named(excluded),
+    // Stage 4 review I4: one printed book per PAID seat. With more children
+    // than seats the teacher leaves some out (left_out) before sending.
+    seats: license?.seats ?? null,
   })
+}
+
+/// Children the teacher chose to leave out of this print (ids of active
+/// children; anything else is ignored).
+function leftOut(body) {
+  return new Set((Array.isArray(body.left_out) ? body.left_out : []).filter(isUuid).slice(0, 200))
 }
 
 async function teacherPrint(req, o, body) {
@@ -296,8 +306,15 @@ async function teacherPrint(req, o, body) {
   // R3, fast path (the partial unique index on the license term is the real guard).
   if (await liveRequestFor(license)) return json(req, 409, { error: RPC_ERRORS.already_requested[1], code: 'already_requested' })
 
-  const { included, excluded } = await classBooks(o)
+  const books = await classBooks(o)
+  const skip = leftOut(body)
+  const included = books.included.filter(({ student }) => !skip.has(student.id))
+  const excluded = [...books.excluded, ...books.included.filter(({ student }) => skip.has(student.id))]
   if (!included.length) return json(req, 409, { error: RPC_ERRORS.no_children[1], code: 'no_children' })
+  // I4, fast path (school_create_class_print re-checks under the lock).
+  if (Number.isInteger(license.seats) && included.length > license.seats) {
+    return json(req, 409, { error: RPC_ERRORS.too_many_children[1], code: 'too_many_children', seats: license.seats, count: included.length })
+  }
   // Each child's book is one row, capped at 2 MB (migration 024): name the
   // children whose book is too big before anything is written.
   const tooBig = included.filter(({ book }) => new TextEncoder().encode(JSON.stringify(book)).length > MAX_BOOK_BYTES)

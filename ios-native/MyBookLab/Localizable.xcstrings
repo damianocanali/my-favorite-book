@@ -20264,6 +20264,186 @@
           }
         }
       }
+    },
+    "school.teacher.plan.heading": {
+      "comment": "Stage 4 iPad plan/verification (no prices, App Store 3.1.3).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plan"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Piano"
+          }
+        }
+      }
+    },
+    "school.teacher.plan.seats": {
+      "comment": "Stage 4 iPad plan/verification (no prices, App Store 3.1.3).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld of %lld seats used"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld posti usati su %lld"
+          }
+        }
+      }
+    },
+    "school.teacher.plan.pending_seats": {
+      "comment": "Stage 4 iPad plan/verification (no prices, App Store 3.1.3).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Going down to %lld seats at renewal"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scende a %lld posti al rinnovo"
+          }
+        }
+      }
+    },
+    "school.teacher.plan.renews": {
+      "comment": "Stage 4 iPad plan/verification (no prices, App Store 3.1.3).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Renews on %@"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Si rinnova il %@"
+          }
+        }
+      }
+    },
+    "school.teacher.plan.ends": {
+      "comment": "Stage 4 iPad plan/verification (no prices, App Store 3.1.3).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ends on %@"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Termina il %@"
+          }
+        }
+      }
+    },
+    "school.teacher.plan.school": {
+      "comment": "Stage 4 iPad plan/verification (no prices, App Store 3.1.3).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seats from your school's plan"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Posti dal piano della scuola"
+          }
+        }
+      }
+    },
+    "school.teacher.plan.manage_on_web": {
+      "comment": "Stage 4 iPad plan/verification (no prices, App Store 3.1.3).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manage your plan on mybooklab.app"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gestisci il piano su mybooklab.app"
+          }
+        }
+      }
+    },
+    "school.teacher.verify.title": {
+      "comment": "Stage 4 iPad plan/verification (no prices, App Store 3.1.3).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "We're confirming you're a teacher"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stiamo verificando che insegni"
+          }
+        }
+      }
+    },
+    "school.teacher.verify.body_native": {
+      "comment": "Stage 4 iPad plan/verification (no prices, App Store 3.1.3).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This usually takes less than a day. Until then you can look around, but you can't create classes or add students."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Di solito ci vuole meno di un giorno. Nel frattempo puoi dare un'occhiata, ma non puoi creare classi né aggiungere nomi alle classi."
+          }
+        }
+      }
+    },
+    "school.teacher.errors.over_seats_native": {
+      "comment": "Stage 4 iPad (no prices, App Store 3.1.3).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This class has more children than seats. No one can be added until it has enough seats."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questa classe ha più nomi che posti. Non si possono aggiungere altri nomi finché i posti non bastano."
+          }
+        }
+      }
     }
   },
   "version": "1.0"

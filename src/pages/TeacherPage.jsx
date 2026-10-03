@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'motion/react'
 import { GraduationCap, Plus, Copy, Check, LogOut, ChevronRight } from 'lucide-react'
 import SparkleButton from '../components/ui/SparkleButton'
 import LicenseBadge from '../components/school/LicenseBadge'
+import TeacherVerificationNotice from '../components/school/TeacherVerificationNotice'
 import { schoolFetch } from '../lib/schoolApi'
 import { teacherErrorText } from '../components/school/teacherErrors'
 import { useAuthStore, selectIsTeacher } from '../stores/useAuthStore'
@@ -43,6 +44,9 @@ export default function TeacherPage() {
   const [createError, setCreateError] = useState(null)
   const [trialUsedUpNotice, setTrialUsedUpNotice] = useState(false)
   const [copiedCode, setCopiedCode] = useState(null)
+  // Stage 4: unverified teachers see the "we're confirming" notice instead
+  // of the create form (the server refuses the create anyway).
+  const [verified, setVerified] = useState(true)
 
   useEffect(() => {
     async function load() {
@@ -52,6 +56,7 @@ export default function TeacherPage() {
       if (res.ok) {
         const list = res.data?.classes ?? []
         setClasses(list)
+        if (res.data?.verification) setVerified(!!res.data.verification.verified)
         // An existing class owner who reached /teacher directly (typed
         // the URL, or followed the "For teachers" link before this task)
         // never had `role: 'teacher'` or `classroom: true` set — mark them
@@ -166,7 +171,16 @@ export default function TeacherPage() {
         </motion.div>
       )}
 
+      {!verified && <TeacherVerificationNotice onVerified={() => setVerified(true)} />}
+
+      <p className="text-right mb-3">
+        <Link to="/teacher/school" className="text-galaxy-secondary font-body text-sm hover:underline">
+          {t('school:teacher.school_plan.link')}
+        </Link>
+      </p>
+
       {/* Create class form */}
+      {verified && (
       <motion.div
         className="glass rounded-2xl p-6 border border-galaxy-secondary/20 mb-8"
         initial={{ opacity: 0, y: 20 }}
@@ -205,6 +219,7 @@ export default function TeacherPage() {
           )}
         </AnimatePresence>
       </motion.div>
+      )}
 
       {loading && (
         <p className="text-center text-galaxy-text-muted font-body text-sm">{t('school:teacher.loading')}</p>

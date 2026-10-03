@@ -3,7 +3,7 @@ import { PICTURE_IDS } from '../lib/school/pictures.js'
 import { hashPictureSecret } from '../lib/school/crypto.js'
 
 const URL_ = 'https://example.supabase.co'
-const TEACHER = { id: 'teacher-1', app_metadata: {} }
+const TEACHER = { id: 'teacher-1', app_metadata: { teacher_verified_at: '2026-09-01T00:00:00Z', teacher_verified_by: 'grandfathered' } }
 const CLASS_ID = '6f1c1b1e-0000-4000-8000-000000000001'
 const STUDENT_ID = '6f1c1b1e-0000-4000-8000-000000000002'
 const PEPPER = 'test-pepper-value'

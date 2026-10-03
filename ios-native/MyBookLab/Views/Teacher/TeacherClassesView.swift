@@ -22,6 +22,8 @@ struct TeacherClassesView: View {
 
     @State private var path: [TeacherClassesDest] = []
     @State private var classes: [TeacherClass]?
+    /// Stage 4: false until the server says this teacher is verified.
+    @State private var verified = true
     @State private var error: String??
     @State private var creating = false
     /// Set when a class was just created; opened once the sheet has fully
@@ -39,11 +41,13 @@ struct TeacherClassesView: View {
             .toolbarBackground(.hidden, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) { TeacherBellButton() }
-                ToolbarItem(placement: .topBarLeading) {
-                    Button { creating = true } label: {
-                        Label { Text(TeacherCopy.createClass) } icon: { Image(systemName: "plus") }
+                if verified {
+                    ToolbarItem(placement: .topBarLeading) {
+                        Button { creating = true } label: {
+                            Label { Text(TeacherCopy.createClass) } icon: { Image(systemName: "plus") }
+                        }
+                        .tint(.cyan)
                     }
-                    .tint(.cyan)
                 }
             }
             .navigationDestination(for: TeacherClassesDest.self) { dest in
@@ -89,6 +93,7 @@ struct TeacherClassesView: View {
         } else if let classes {
             ScrollView {
                 VStack(spacing: 12) {
+                    if !verified { TeacherVerificationCard() }
                     if classes.isEmpty {
                         Text(TeacherCopy.classesEmpty)
                             .foregroundStyle(.white.opacity(0.75))
@@ -101,17 +106,19 @@ struct TeacherClassesView: View {
                         }
                         .buttonStyle(.plain)
                     }
-                    Button {
-                        creating = true
-                    } label: {
-                        Label { Text(TeacherCopy.createClass) } icon: { Image(systemName: "plus.circle.fill") }
-                            .font(.headline)
-                            .frame(maxWidth: .infinity, minHeight: 52)
-                            .background(Color.purple.opacity(0.55), in: RoundedRectangle(cornerRadius: 16))
-                            .foregroundStyle(.white)
+                    if verified {
+                        Button {
+                            creating = true
+                        } label: {
+                            Label { Text(TeacherCopy.createClass) } icon: { Image(systemName: "plus.circle.fill") }
+                                .font(.headline)
+                                .frame(maxWidth: .infinity, minHeight: 52)
+                                .background(Color.purple.opacity(0.55), in: RoundedRectangle(cornerRadius: 16))
+                                .foregroundStyle(.white)
+                        }
+                        .buttonStyle(.plain)
+                        .padding(.top, 8)
                     }
-                    .buttonStyle(.plain)
-                    .padding(.top, 8)
                 }
                 .padding()
                 .contentColumn(maxWidth: ContentWidth.reading)
@@ -147,7 +154,9 @@ struct TeacherClassesView: View {
     private func load() async {
         guard let token = await auth.validAccessToken() else { return }
         do {
-            classes = try await APIClient.shared.teacherClasses(bearerToken: token)
+            let res = try await APIClient.shared.teacherClassesWithStatus(bearerToken: token)
+            classes = res.classes
+            verified = res.verified
             error = nil
         } catch {
             if classes == nil { self.error = .some((error as? APIClient.TeacherError)?.code) }
@@ -209,6 +218,9 @@ struct TeacherClassDetailView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
                     header
+                    if let summary {
+                        TeacherPlanCard(license: summary.license, studentCount: summary.student_count ?? 0)
+                    }
                     if teacher.pendingCards[classId] != nil {
                         PendingCardsBanner { showingCards = true }
                     }

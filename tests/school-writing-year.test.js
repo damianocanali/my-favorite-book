@@ -239,6 +239,31 @@ describe('teacher: class print (R1–R3)', () => {
     }
   })
 
+  it('Stage 4 I4: never more books than paid seats — fast path, the RPC under the lock, and left_out', async () => {
+    // The SQL refusal (school_create_class_print, migration 034) maps to too_many_children.
+    let log = mockSupabase({ user: TEACHER, routes: printRoutes('active', [rpcRoute('school_create_class_print', raised('too_many_children'))]) })
+    let res = await (await load())(post({ classId: CLASS_ID, action: 'print', address: ADDRESS }))
+    expect(res.status).toBe(409)
+    expect((await res.json()).code).toBe('too_many_children')
+    // The teacher leaves Ann out: she is excluded, so nobody is left to print.
+    log = mockSupabase({ user: TEACHER, routes: printRoutes('active', [createOk]) })
+    res = await (await load())(post({ classId: CLASS_ID, action: 'print', address: ADDRESS, left_out: [STUDENT_ID] }))
+    expect((await res.json()).code).toBe('no_children')
+    expect(calls(log, '/rpc/').length).toBe(0)
+    // The summary carries the paid seats so the teacher can choose.
+    mockSupabase({ user: TEACHER, routes: [ownerRoute, { method: 'GET', match: '/rest/v1/class_licenses?', reply: { body: [{ id: LICENSE_ID, status: 'active', starts_at: TERM_START, expires_at: FUTURE, seats: 12 }] } }, studentsRoute, piecesRoute, { method: 'GET', match: '/rest/v1/writing_year_meta?', reply: { body: [] } }, { method: 'GET', match: '/rest/v1/user_inventory?', reply: { body: [] } }] })
+    res = await (await load())(post({ classId: CLASS_ID, action: 'print_summary' }))
+    expect((await res.json()).seats).toBe(12)
+  })
+
+  it('Stage 4 I4: as many children as seats goes through to the RPC', async () => {
+    const log = mockSupabase({ user: TEACHER, routes: [ownerRoute, { method: 'GET', match: '/rest/v1/class_licenses?', reply: { body: [{ id: LICENSE_ID, status: 'active', starts_at: TERM_START, expires_at: FUTURE, seats: 1 }] } }, ...printRoutes('active').slice(2)] })
+    // Ann is the only child with pieces: 1 child for 1 seat.
+    const res = await (await load())(post({ classId: CLASS_ID, action: 'print', address: ADDRESS }))
+    expect(res.status).not.toBe(409)
+    expect(calls(log, '/rpc/school_create_class_print').length).toBe(1)
+  })
+
   it('validates the address before anything else is written', async () => {
     const log = mockSupabase({ user: TEACHER, routes: printRoutes('active') })
     const res = await (await load())(post({ classId: CLASS_ID, action: 'print', address: { ...ADDRESS, postal_code: '' } }))

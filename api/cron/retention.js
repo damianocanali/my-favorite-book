@@ -7,6 +7,9 @@
 //   sign_in_attempts    student_sign_in_attempts older than 30 days
 //   removed_students    students removed 30+ days ago → full account purge
 //                       (purgeUser), with a deletion_log row each
+//   grace               Stage 4: grace past its end → lapsed (status only)
+//   founding            Stage 4: only if FOUNDING_LOCKED_FOR_LIFE = false
+//   seat_adds           Stage 4: overdue seat-add invoices → owner alert
 //   licenses            lapse → warnings → class purge (lib/school/lifecycle.js)
 //   teacher_deletes     resumes a teacher's class or child delete that
 //                       stopped part-way (deletion_log 'partial', or
@@ -27,7 +30,10 @@
 export const config = { runtime: 'nodejs', maxDuration: 300 }
 
 import { purgeUser, purgeClassroom } from '../../lib/deleteUser.js'
-import { runLicenseLifecycle } from '../../lib/school/lifecycle.js'
+import { runLicenseLifecycle, endExpiredGrace } from '../../lib/school/lifecycle.js'
+import { repriceFounding } from '../../lib/school/foundingReprice.js'
+import { alertOverdueSeatAdds } from '../../lib/school/seatAdds.js'
+import { stripe as schoolStripe } from '../../lib/school/stripe.js'
 import { legacySunset, legacySunsetPassed } from '../../lib/school/legacy.js'
 import { purgeOldOrderPdfs } from '../../lib/print/orderRetention.js'
 import { retryVendorDeletions } from '../../lib/vendorDeletion.js'
@@ -219,6 +225,12 @@ export async function GET(req) {
   result.sign_in_attempts = await job('sign_in_attempts', () =>
     ageJob(sb, `/rest/v1/student_sign_in_attempts?created_at=lt.${iso(now, ATTEMPT_RETENTION_DAYS)}`, dryRun))
   result.removed_students = await job('removed_students', () => purgeRemovedStudents(sb, ctx, now, dryRun))
+  result.grace = await job('grace', () => endExpiredGrace(sb, { now, dryRun }))
+  // No-op unless FOUNDING_LOCKED_FOR_LIFE is false (lib/school/pricing.js).
+  result.founding = await job('founding', () => repriceFounding(sb, schoolStripe, { now, dryRun }))
+  // Seat-add invoices of invoice plans past their due date → owner (review N3).
+  // Alerts only (no data change), so NOT gated by the retention dry run (R5).
+  result.seat_adds = await job('seat_adds', () => alertOverdueSeatAdds(sb, { now, dryRun: false }))
   result.licenses = await job('licenses', () => runLicenseLifecycle(sb, ctx, { now, dryRun }))
   result.teacher_deletes = await job('teacher_deletes', () => resumeTeacherDeletes(sb, ctx, now, dryRun))
   result.legacy_submissions = await job('legacy_submissions', () => legacySubmissions(sb, now, dryRun))

@@ -513,3 +513,65 @@ struct TeacherBellRow: View {
         return parts.joined(separator: ". ")
     }
 }
+
+// MARK: - Plan status (Stage 4)
+
+/// The class's plan: status, seats used of total, renewal or end date.
+/// Status and seats ONLY — never a price, a purchase button or a link
+/// (App Store 3.1.3). "Manage your plan on mybooklab.app" is plain text.
+struct TeacherPlanCard: View {
+    let license: TeacherLicense?
+    let studentCount: Int
+
+    private var dateText: String? {
+        guard let date = TeacherDates.parse(license?.expires_at) else { return nil }
+        return date.formatted(.dateTime.day().month(.wide).year().locale(AppLanguage.locale))
+    }
+
+    var body: some View {
+        TeacherCard {
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Text(TeacherCopy.planHeading).font(.headline).foregroundStyle(.white)
+                    Spacer()
+                    LicenseBadge(license: license)
+                }
+                if let license {
+                    if let seats = license.seats, license.status != "trial" {
+                        Text(TeacherCopy.planSeats(used: studentCount, total: seats))
+                    }
+                    if let pending = license.pending_seats {
+                        Text(TeacherCopy.planPendingSeats(pending))
+                    }
+                    if let dateText, ["active", "grace", "pending_payment"].contains(license.status ?? "") {
+                        Text(license.cancel_at_period_end == true ? TeacherCopy.planEnds(dateText) : TeacherCopy.planRenews(dateText))
+                    }
+                    if license.school_plan_id != nil {
+                        Text(TeacherCopy.planSchool)
+                    }
+                }
+                // Text(verbatim:) so the domain is never turned into a link.
+                Text(verbatim: String(appLocalized: TeacherCopy.planManageOnWeb))
+                    .foregroundStyle(TeacherTheme.secondaryText)
+            }
+            .font(.subheadline)
+            .foregroundStyle(.white.opacity(0.85))
+        }
+    }
+}
+
+/// "We're confirming you're a teacher" (Stage 4) on the class list.
+struct TeacherVerificationCard: View {
+    var body: some View {
+        TeacherCard(tint: .yellow) {
+            Label {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(TeacherCopy.verifyTitle).font(.headline).foregroundStyle(.white)
+                    Text(TeacherCopy.verifyBody).font(.subheadline).foregroundStyle(.white.opacity(0.85))
+                }
+            } icon: {
+                Image(systemName: "checkmark.shield.fill").foregroundStyle(.yellow)
+            }
+        }
+    }
+}

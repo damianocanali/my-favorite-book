@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 
 const URL_ = 'https://example.supabase.co'
-const TEACHER = { id: 'teacher-1', app_metadata: {} }
+const TEACHER = { id: 'teacher-1', app_metadata: { teacher_verified_at: '2026-09-01T00:00:00Z', teacher_verified_by: 'grandfathered' } }
 const STUDENT = { id: 'student-1', app_metadata: { role: 'student' } }
 const CLASS_ID = '6f1c1b1e-0000-4000-8000-000000000001'
 

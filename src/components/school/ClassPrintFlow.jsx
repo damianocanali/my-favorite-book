@@ -24,6 +24,9 @@ export default function ClassPrintFlow({ classId, canPrint, request, schoolYear,
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
   const [badField, setBadField] = useState(null)
+  // Stage 4 review I4: one book per paid seat. With more children than
+  // seats, the teacher unticks children until the count fits.
+  const [leftOut, setLeftOut] = useState(() => new Set())
 
   const set = (f) => (e) => { setAddress((a) => ({ ...a, [f]: e.target.value })); setBadField(null) }
   const complete = REQUIRED_ADDRESS.every((f) => address[f].trim())
@@ -35,18 +38,22 @@ export default function ClassPrintFlow({ classId, canPrint, request, schoolYear,
     setBusy(false)
     if (!res.ok) return setError(wyErrorText(t, res.code))
     setSummary(res.data)
+    setLeftOut(new Set())
     setStep('summary')
   }
 
   async function send() {
     setBusy(true)
     setError(null)
-    const res = await schoolFetch('/api/school/writing-year', { method: 'POST', body: JSON.stringify({ classId, action: 'print', address }) })
+    const res = await schoolFetch('/api/school/writing-year', { method: 'POST', body: JSON.stringify({ classId, action: 'print', address, left_out: [...leftOut] }) })
     setBusy(false)
     if (!res.ok) {
       if (res.code === 'bad_address') { setBadField(res.data?.field ?? null); setStep('address') }
       if (res.code === 'print_book_too_big' && res.data?.names?.length) {
         return setError(t('school:writing_year.errors.print_book_too_big', { names: res.data.names.join(', ') }))
+      }
+      if (res.code === 'too_many_children') {
+        return setError(t('school:writing_year.errors.too_many_children', { seats: res.data?.seats, count: res.data?.count }))
       }
       return setError(wyErrorText(t, res.code))
     }
@@ -166,10 +173,37 @@ export default function ClassPrintFlow({ classId, canPrint, request, schoolYear,
   }
 
   // summary
+  const printing = summary.included.filter((c) => !leftOut.has(c.student_id)).length
+  const seatsCap = Number.isInteger(summary.seats) ? summary.seats : null
+  const overSeats = seatsCap != null && summary.included.length > seatsCap
+  const fits = seatsCap == null || printing <= seatsCap
+  function toggle(id) {
+    setLeftOut((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
   return (
     <div className="space-y-3">
       <h3 className="font-heading text-sm font-bold text-galaxy-text">{t('school:writing_year.teacher.summary_heading')}</h3>
-      <p className="text-sm font-body text-galaxy-text">{t('school:writing_year.teacher.summary_included', { count: summary.included.length })}</p>
+      <p className="text-sm font-body text-galaxy-text">{t('school:writing_year.teacher.summary_included', { count: printing })}</p>
+      {overSeats && (
+        <div className="space-y-2">
+          <p className="text-sm font-body text-amber-200">{t('school:writing_year.teacher.over_seats', { seats: summary.seats, count: printing })}</p>
+          <ul className="grid grid-cols-2 gap-1">
+            {summary.included.map((c) => (
+              <li key={c.student_id}>
+                <label className="flex items-center gap-2 text-sm font-body text-galaxy-text">
+                  <input type="checkbox" checked={!leftOut.has(c.student_id)} onChange={() => toggle(c.student_id)} />
+                  {c.display_name}
+                </label>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       {summary.excluded.length > 0 && (
         <p className="text-sm font-body text-amber-200">
           {t('school:writing_year.teacher.summary_excluded', { names: summary.excluded.map((c) => c.display_name).join(', ') })}
@@ -182,7 +216,7 @@ export default function ClassPrintFlow({ classId, canPrint, request, schoolYear,
         <button type="button" onClick={() => setStep('address')} className="px-4 py-2 rounded-xl text-sm font-body font-semibold text-galaxy-text-muted border border-galaxy-text-muted/20">
           {t('school:writing_year.teacher.back')}
         </button>
-        <button type="button" disabled={busy || !summary.included.length} onClick={send} className="px-4 py-2 rounded-xl font-body font-bold text-sm text-white btn-fill-primary disabled:opacity-50">
+        <button type="button" disabled={busy || !printing || !fits} onClick={send} className="px-4 py-2 rounded-xl font-body font-bold text-sm text-white btn-fill-primary disabled:opacity-50">
           {busy ? t('school:writing_year.teacher.sending') : t('school:writing_year.teacher.print_submit')}
         </button>
       </div>

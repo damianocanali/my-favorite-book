@@ -57,8 +57,8 @@ const run = async (auth = 'Bearer cron-secret') =>
 describe('license lifecycle: nextStep', () => {
   const lic = (over) => ({ status: 'trial', expires_at: daysAgo(10), updated_at: daysAgo(1), status_changed_at: daysAgo(200), ...over })
 
-  it('grace and comped are never lapsed; live licenses are not', () => {
-    expect(lapseDate(lic({ status: 'grace' }))).toBe(null)
+  it('comped is never lapsed; live licenses are not; grace lapses at its end (Stage 4 review I9)', () => {
+    expect(lapseDate(lic({ status: 'grace' })).toISOString()).toBe(daysAgo(10))
     expect(lapseDate(lic({ status: 'comped', expires_at: daysAgo(400) }))).toBe(null)
     expect(nextStep(lic({ status: 'comped', expires_at: daysAgo(400) }), NOW)).toBe(null)
     expect(nextStep(lic({ expires_at: new Date(NOW.getTime() + DAY).toISOString() }), NOW)).toBe(null)
@@ -160,7 +160,7 @@ describe('api/cron/retention', () => {
     expect(alert.body.text).not.toMatch(/kid-1|@/)
   })
 
-  const EXPIRING_Q = 'status=in.(trial,active,pending_payment)'
+  const EXPIRING_Q = 'status=in.(trial,active,pending_payment,grace)'
   const ENDED_Q = 'status=in.(lapsed,canceled)'
   const lic = (over) => ({
     id: 'L1', owner_user_id: 'teacher-1', classroom_id: 'c1', status: 'trial', expires_at: daysAgo(61), updated_at: daysAgo(61),
@@ -200,7 +200,7 @@ describe('api/cron/retention', () => {
     mock([{ method: 'GET', match: EXPIRING_Q, reply: { body: [lic()] } }])
     const out = await (await run()).json()
     expect(out.licenses).toMatchObject({ warned30: 0, unsendable: ['c1'] })
-    expect(log.some((l) => l.method === 'PATCH' && l.u.includes('class_licenses'))).toBe(false)
+    expect(log.some((l) => l.method === 'PATCH' && l.u.includes('class_licenses') && !l.u.includes('status=eq.grace'))).toBe(false)
   })
 
   it('fails closed when the teacher has no address, and tells the owner which class', async () => {
@@ -211,7 +211,7 @@ describe('api/cron/retention', () => {
     ])
     const out = await (await run()).json()
     expect(out.licenses.unsendable).toEqual(['c1'])
-    expect(log.some((l) => l.method === 'PATCH' && l.u.includes('class_licenses'))).toBe(false)
+    expect(log.some((l) => l.method === 'PATCH' && l.u.includes('class_licenses') && !l.u.includes('status=eq.grace'))).toBe(false)
     const alert = log.find((l) => l.u.includes('api.resend.com'))
     expect(alert.body.to).toEqual(['owner@example.com'])
     expect(alert.body.text).toContain('class ids: c1')
@@ -301,7 +301,7 @@ describe('api/cron/retention DRY RUN (default)', () => {
     mock([
       { method: 'GET', match: '/rest/v1/class_checkins?', reply: { headers: { 'content-range': '0-0/12' }, body: [{ id: 1 }] } },
       { method: 'GET', match: '/rest/v1/class_students?status=eq.removed', reply: { body: [{ id: 's1', classroom_id: 'c1', auth_user_id: 'kid-1' }] } },
-      { method: 'GET', match: 'status=in.(trial,active,pending_payment)', reply: { body: [{
+      { method: 'GET', match: 'status=in.(trial,active,pending_payment,grace)', reply: { body: [{
         id: 'L1', owner_user_id: 'teacher-1', classroom_id: 'c1', status: 'trial', expires_at: daysAgo(61),
         classrooms: { id: 'c1', code: 'ABC234', name: 'Room 5', locale: 'en' },
       }] } },
@@ -403,5 +403,27 @@ describe('round 2: half-deleted lapse purges, dry-run paging (N3, N4)', () => {
     const out = await (await run()).json()
     expect(out.removed_students.would_purge).toBe(1003)
     expect(log.filter((l) => l.u.includes('class_students?status=eq.removed')).map((l) => l.u.match(/offset=(\d+)/)[1])).toEqual(['0', '1000'])
+  })
+})
+
+describe('Stage 4: grace backstop (lib/school/lifecycle.js endExpiredGrace)', () => {
+  it('flips only expired grace to lapsed, plans and licenses; dry run only counts', async () => {
+    const { endExpiredGrace } = await import('../lib/school/lifecycle.js')
+    const calls = []
+    const sb = async (path, init = {}) => {
+      calls.push({ path, method: init.method || 'GET', body: init.body ? JSON.parse(init.body) : undefined })
+      return new Response(JSON.stringify([{ id: 'a' }, { id: 'b' }]))
+    }
+    const now = new Date('2027-10-01T00:00:00Z')
+    expect(await endExpiredGrace(sb, { now, dryRun: true })).toEqual({ licenses: 2, plans: 2, failed: 0 })
+    expect(calls.every((c) => c.method === 'GET')).toBe(true)
+    calls.length = 0
+    await endExpiredGrace(sb, { now, dryRun: false })
+    expect(calls.map((c) => c.method)).toEqual(['PATCH', 'PATCH'])
+    for (const c of calls) {
+      expect(c.path).toContain('status=eq.grace&expires_at=lt.2027-10-01T00%3A00%3A00.000Z')
+      expect(Object.keys(c.body).sort()).toEqual(['status', 'updated_at'])
+      expect(c.body.status).toBe('lapsed')
+    }
   })
 })

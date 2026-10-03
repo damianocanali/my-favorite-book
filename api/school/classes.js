@@ -1,7 +1,7 @@
 export const config = { runtime: 'edge' }
 
 import { handleCors, checkRateLimit } from '../_rateLimit.js'
-import { requireTeacher, requireClassOwner, sb, json } from '../_school.js'
+import { requireTeacher, requireVerifiedTeacher, requireClassOwner, sb, json, teacherVerification } from '../_school.js'
 import { generateClassCode } from '../../lib/school/crypto.js'
 import { DEFAULT_SCHOOL_HOURS, validateSchoolHours } from '../../lib/school/hours.js'
 import { TRIAL_DAYS, TRIAL_IMAGES, MAX_SEATS, MAX_TRIALS_PER_TEACHER } from '../../lib/school/license.js'
@@ -11,7 +11,7 @@ import { namesMatch } from '../../lib/school/confirmName.js'
 
 const SELECT =
   'id,code,name,locale,sign_in_open,checkins_enabled,timezone,school_hours,created_at,' +
-  'class_licenses(id,status,origin,expires_at,seats,image_allowance,images_used),class_students(count)'
+  'class_licenses(id,status,origin,expires_at,seats,image_allowance,images_used,pending_seats,cancel_at_period_end,school_plan_id,billing_method),class_students(count)'
 
 // class_licenses.classroom_id is UNIQUE, so PostgREST treats the embed as
 // one-to-one and returns an object, not an array. Accept both shapes.
@@ -62,11 +62,14 @@ export default async function handler(req) {
       )
       if (!r.ok) return json(req, 502, { error: 'Could not load classes', code: 'upstream' })
       const rows = await r.json().catch(() => [])
-      return json(req, 200, { classes: rows.map(summarize) })
+      const v = await teacherVerification(t.auth)
+      // The iPad and web show "We're confirming you're a teacher" from this.
+      return json(req, 200, { classes: rows.map(summarize), verification: { verified: !!v.verified } })
     }
 
     if (req.method === 'POST') {
-      const t = await requireTeacher(req)
+      // Creating a class starts a trial: verified teachers only (Stage 4).
+      const t = await requireVerifiedTeacher(req)
       if (!t.ok) return t.response
       if (!checkRateLimit(`school-classes:${t.auth.userId}`, 60).allowed) {
         return json(req, 429, { error: 'Too many requests', code: 'rate_limited' })

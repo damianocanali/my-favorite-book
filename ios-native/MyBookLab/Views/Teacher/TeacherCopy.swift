@@ -424,12 +424,37 @@ enum TeacherCopy {
     static var deletePending: LocalizedStringResource { AppText("school.teacher.data.delete_pending", defaultValue: "The deletion is in progress and will finish shortly.") }
     static var deleting: LocalizedStringResource { AppText("school.teacher.data.deleting", defaultValue: "Deleting…") }
 
+    // MARK: Plan (Stage 4) — status and seats only. No price, no purchase,
+    // no link: buying happens on the website (App Store 3.1.3).
+    static var planHeading: LocalizedStringResource { AppText("school.teacher.plan.heading", defaultValue: "Plan") }
+    static func planSeats(used: Int, total: Int) -> LocalizedStringResource {
+        AppText("school.teacher.plan.seats", defaultValue: "\(used) of \(total) seats used")
+    }
+    static func planPendingSeats(_ n: Int) -> LocalizedStringResource {
+        AppText("school.teacher.plan.pending_seats", defaultValue: "Going down to \(n) seats at renewal")
+    }
+    static func planRenews(_ date: String) -> LocalizedStringResource {
+        AppText("school.teacher.plan.renews", defaultValue: "Renews on \(date)")
+    }
+    static func planEnds(_ date: String) -> LocalizedStringResource {
+        AppText("school.teacher.plan.ends", defaultValue: "Ends on \(date)")
+    }
+    static var planSchool: LocalizedStringResource { AppText("school.teacher.plan.school", defaultValue: "Seats from your school's plan") }
+    /// Plain text on purpose: not a link (3.1.3).
+    static var planManageOnWeb: LocalizedStringResource { AppText("school.teacher.plan.manage_on_web", defaultValue: "Manage your plan on mybooklab.app") }
+
+    // MARK: Verification (Stage 4)
+    static var verifyTitle: LocalizedStringResource { AppText("school.teacher.verify.title", defaultValue: "We're confirming you're a teacher") }
+    static var verifyBody: LocalizedStringResource { AppText("school.teacher.verify.body_native", defaultValue: "This usually takes less than a day. Until then you can look around, but you can't create classes or add students.") }
+
     // MARK: Errors (web: teacherErrors.teacherErrorText, standalone variants)
     static func error(_ code: String?) -> LocalizedStringResource {
         switch code {
         case "rate_limited": AppText("school.teacher.errors.rate_limited", defaultValue: "Too many requests — wait a moment and try again.")
         case "class_not_found": AppText("school.teacher.errors.class_not_found", defaultValue: "We can't find that class.")
         case "license_required": licenseEnded
+        case "teacher_unverified": verifyBody
+        case "over_seats": AppText("school.teacher.errors.over_seats_native", defaultValue: "This class has more children than seats. No one can be added until it has enough seats.")
         case "trial_used_up": classReadyNoLicense
         case "name_required": AppText("school.teacher.errors.name_required", defaultValue: "Enter a class name.")
         case "bad_timezone": AppText("school.teacher.errors.bad_timezone", defaultValue: "That time zone isn't recognized.")
