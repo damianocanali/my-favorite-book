@@ -43,7 +43,7 @@
     "fflate": "^0.8.3",
     "i18next": "^26.4.2",
     "lucide-react": "^0.577.0",
-    "motion": "^12.38.0",
+    "motion": "^13.4.6",
     "nanoid": "^5.1.7",
     "node-app-attest": "^1.0.1",
     "puppeteer-core": "^24.42.0",
