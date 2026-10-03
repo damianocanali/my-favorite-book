@@ -23,7 +23,7 @@
     "@capacitor/app": "^7.1.2",
     "@capacitor/browser": "^7.0.5",
     "@capacitor/camera": "^8.2.0",
-    "@capacitor/core": "^7.6.2",
+    "@capacitor/core": "^8.5.2",
     "@capacitor/haptics": "^7.0.5",
     "@capacitor/ios": "^7.6.2",
     "@capacitor/keyboard": "^7.0.6",
