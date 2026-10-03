@@ -46,7 +46,7 @@
     "motion": "^12.38.0",
     "nanoid": "^5.1.7",
     "node-app-attest": "^1.0.1",
-    "puppeteer-core": "^24.42.0",
+    "puppeteer-core": "^25.12.0",
     "qrcode": "^1.5.4",
     "qrcode-generator": "^2.0.4",
     "react": "^19.2.4",
