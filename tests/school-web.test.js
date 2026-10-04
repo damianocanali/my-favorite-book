@@ -46,7 +46,6 @@ import { useBookshelfStore } from '../src/stores/useBookshelfStore'
 import { usePrintOrderStore } from '../src/stores/usePrintOrderStore'
 import { useCheckInStore } from '../src/stores/useCheckInStore'
 import { fetchRoster } from '../src/lib/schoolApi.js'
-import { isPreviewingKids, enterKidsPreview } from '../src/lib/viewMode.js'
 import enSchool from '../src/i18n/locales/en/school.json'
 import itSchool from '../src/i18n/locales/it/school.json'
 
@@ -231,37 +230,6 @@ describe('onAuthStateChange listener — shared-device cleanup', () => {
     expect(useBookshelfStore.getState().books).toEqual([])
     expect(useBookshelfStore.getState().deletedBookIds).toEqual([])
     expect(usePrintOrderStore.getState().shipping.email).toBe('')
-  })
-
-  // Fix round 2: a teacher who followed "Preview the kids' app" and then
-  // this device changes identity — another tab signs out, the session
-  // expires, or (as here) a child signs in — must not hand the next
-  // person a stale "you're previewing the kids' app" banner.
-  it('also ends a "previewing the kids app" detour on the full local reset', async () => {
-    stubNetwork()
-    useAuthStore.setState({ user: null })
-    await useAuthStore.getState().initialize()
-    const onAuthChange = supabase.auth.onAuthStateChange.mock.calls.at(-1)[0]
-
-    onAuthChange('SIGNED_IN', { user: { id: 'teacher-A' } })
-    enterKidsPreview()
-    expect(isPreviewingKids()).toBe(true)
-
-    onAuthChange('SIGNED_IN', { user: { id: 'student-B' } })
-
-    expect(isPreviewingKids()).toBe(false)
-  })
-})
-
-describe('signOut()', () => {
-  it('ends a "previewing the kids app" detour', async () => {
-    useAuthStore.setState({ user: { id: 'teacher-A' } })
-    enterKidsPreview()
-    expect(isPreviewingKids()).toBe(true)
-
-    await useAuthStore.getState().signOut()
-
-    expect(isPreviewingKids()).toBe(false)
   })
 })
 

@@ -1,8 +1,9 @@
 // Pure helpers behind teacher/family switching (Task D2): see
 // src/lib/viewMode.js's own header comment for why these are DOM-free.
 import { describe, it, expect, beforeEach } from 'vitest'
+import * as viewMode from '../src/lib/viewMode.js'
 import {
-  getViewMode, setViewMode, isPreviewingKids, enterKidsPreview, exitKidsPreview, computeTeacherMode,
+  getViewMode, setViewMode, computeTeacherMode,
 } from '../src/lib/viewMode.js'
 
 beforeEach(() => {
@@ -65,32 +66,18 @@ describe('setViewMode', () => {
   })
 })
 
-describe('isPreviewingKids / enterKidsPreview / exitKidsPreview', () => {
-  it('is false when nothing is stored', () => {
-    expect(isPreviewingKids()).toBe(false)
+// Owner feedback round 5: the "Preview the kids' app" detour is gone from
+// the teacher area entirely — no sessionStorage flag, no helpers.
+describe('kids-app preview (removed)', () => {
+  it('no longer exports the preview helpers', () => {
+    expect(viewMode.isPreviewingKids).toBeUndefined()
+    expect(viewMode.enterKidsPreview).toBeUndefined()
+    expect(viewMode.exitKidsPreview).toBeUndefined()
   })
 
-  it('is true once entered, and false again once exited', () => {
-    enterKidsPreview()
-    expect(isPreviewingKids()).toBe(true)
-    exitKidsPreview()
-    expect(isPreviewingKids()).toBe(false)
-  })
-
-  it('never throws when sessionStorage is blocked', () => {
-    const real = globalThis.sessionStorage
-    globalThis.sessionStorage = {
-      getItem() { throw new Error('blocked') },
-      setItem() { throw new Error('blocked') },
-      removeItem() { throw new Error('blocked') },
-    }
-    try {
-      expect(() => enterKidsPreview()).not.toThrow()
-      expect(isPreviewingKids()).toBe(false)
-      expect(() => exitKidsPreview()).not.toThrow()
-    } finally {
-      globalThis.sessionStorage = real
-    }
+  it('a stale preview flag left in sessionStorage no longer hides the teacher area', () => {
+    sessionStorage.setItem('mybooklab-preview-kids', '1')
+    expect(computeTeacherMode({ isTeacher: true, viewMode: 'teacher', isStudent: false })).toBe(true)
   })
 })
 
@@ -116,14 +103,6 @@ describe('computeTeacherMode', () => {
   })
 
   it('defaults loading to false when the caller omits it', () => {
-    expect(computeTeacherMode({ isTeacher: true, viewMode: 'teacher', isStudent: false })).toBe(true)
-  })
-
-  it('is false while previewing the kids app, even for an otherwise-qualifying teacher', () => {
-    expect(computeTeacherMode({ isTeacher: true, viewMode: 'teacher', isStudent: false, previewingKids: true })).toBe(false)
-  })
-
-  it('defaults previewingKids to false when the caller omits it', () => {
     expect(computeTeacherMode({ isTeacher: true, viewMode: 'teacher', isStudent: false })).toBe(true)
   })
 })

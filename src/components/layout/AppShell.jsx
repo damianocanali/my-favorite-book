@@ -5,7 +5,6 @@ import { LogOut, GraduationCap, Sparkles, Volume2, VolumeX, ArrowLeft, LayoutDas
 import { useAuthStore, selectDisplayName, selectIsTeacher } from '../../stores/useAuthStore'
 import { useIsStudent } from '../../hooks/useIsStudent'
 import { useTeacherMode } from '../../hooks/useTeacherMode'
-import { isPreviewingKids, exitKidsPreview } from '../../lib/viewMode'
 import { toggleMute, isMuted } from '../../services/audioService'
 import PlayMenu from './PlayMenu'
 import AvatarDisplay from '../avatar/AvatarDisplay'
@@ -38,7 +37,6 @@ export default function AppShell({ children }) {
   const isTeacher = useAuthStore(selectIsTeacher)
   const isStudent = useIsStudent()
   const teacherMode = useTeacherMode()
-  const previewingKids = isPreviewingKids()
 
   const [muted, setMuted] = useState(isMuted())
 
@@ -48,16 +46,6 @@ export default function AppShell({ children }) {
   }
 
   const handleToggleMute = () => setMuted(toggleMute())
-
-  // "Preview the kids' app" (TeacherDashboardPage) sets the sessionStorage
-  // flag this reads and lands on /bookshelf; this is the way back —
-  // clearing it and returning to the dashboard is the only thing this
-  // button does, so the very next render already has the teacher chrome
-  // back (computeTeacherMode reads previewingKids fresh every render).
-  const handleExitPreview = () => {
-    exitKidsPreview()
-    navigate('/teacher')
-  }
 
   const headerLink = (active) =>
     `flex items-center gap-2 px-3 py-2 rounded-full transition-colors ${
@@ -127,8 +115,8 @@ export default function AppShell({ children }) {
   // Task D2: a teacher who hasn't switched to family view (useTeacherMode)
   // gets a nav built around their three destinations — Dashboard, Classes,
   // Account — with none of the consumer surfaces (Create/Bookshelf/Gallery/
-  // Play/Pricing) linked. Those routes still work if navigated to directly
-  // (a teacher previewing the kids' app via the dashboard's link), so this
+  // Play/Pricing) linked. Those routes still work if navigated to directly,
+  // so this
   // is a chrome decision, not a route guard — same division of labour as
   // ConsumerOnlyRoute for students. A teacher who switches to family view
   // (Account page) falls through to the unchanged consumer layout below.
@@ -322,23 +310,6 @@ export default function AppShell({ children }) {
           )}
         </div>
       </header>
-
-      {/* A teacher who followed "Preview the kids' app" from the dashboard
-          gets the ordinary consumer chrome above (computeTeacherMode reads
-          this same flag and reports false), but needs an obvious way back —
-          without this they'd have to know to type /teacher again. */}
-      {previewingKids && (
-        <div className="sticky top-0 z-30 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 border-b border-galaxy-secondary/30 bg-galaxy-secondary/15 px-3 py-2 text-center backdrop-blur-sm">
-          <span className="font-body text-sm text-galaxy-text">{t('nav:preview_kids.banner')}</span>
-          <button
-            type="button"
-            onClick={handleExitPreview}
-            className="font-body text-sm font-semibold text-galaxy-secondary hover:underline"
-          >
-            {t('nav:preview_kids.back_to_dashboard')}
-          </button>
-        </div>
-      )}
 
       {/* pb clears the fixed tab bar (56px bar + label) plus the home indicator */}
       <main id="main-content" className="relative z-10 pb-[calc(72px+var(--sab,0px))]">{children}</main>

@@ -6,7 +6,6 @@ import { useAvatarStore } from './useAvatarStore'
 import { useRewardsStore } from './useRewardsStore'
 import { useCheckInStore } from './useCheckInStore'
 import { usePrintOrderStore } from './usePrintOrderStore'
-import { exitKidsPreview } from '../lib/viewMode'
 import { clearClassDeviceSkip } from '../lib/classDevice'
 import { Capacitor } from '@capacitor/core'
 
@@ -44,13 +43,6 @@ function clearLocalUserData() {
   // the app keeps in localStorage, and this is a shared/family device by
   // assumption, so it must not outlive the person who entered it.
   usePrintOrderStore.getState().reset()
-  // Task D2 fix round: "Preview the kids' app" is a teacher-only detour
-  // (AppShell's sticky banner). Without this, signing out of a teacher
-  // account mid-preview — or a child sign-in on the same shared device
-  // right after — would leave the NEXT person's session carrying that
-  // flag, showing them a "you're previewing the kids' app" banner over
-  // their own, completely unrelated session.
-  exitKidsPreview()
 }
 
 export const useAuthStore = create((set, get) => ({

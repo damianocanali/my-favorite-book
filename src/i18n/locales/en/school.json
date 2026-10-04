@@ -70,7 +70,6 @@
     "dashboard": {
       "title": "Dashboard",
       "loading": "Loading your dashboard…",
-      "preview_link": "Preview the kids' app",
       "worksheets_link": "Free printable worksheets",
       "class_switcher": {
         "aria_label": "Choose a class"

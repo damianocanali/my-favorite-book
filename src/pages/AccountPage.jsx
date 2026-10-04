@@ -6,7 +6,7 @@ import { Trash2, LogOut, AlertTriangle, Loader2, Sparkles, CreditCard, ExternalL
 import { useAuthStore, selectDisplayName, selectIsTeacher } from '../stores/useAuthStore'
 import { useSubscription } from '../hooks/useSubscription'
 import { useIsStudent } from '../hooks/useIsStudent'
-import { getViewMode, setViewMode, exitKidsPreview } from '../lib/viewMode'
+import { getViewMode, setViewMode } from '../lib/viewMode'
 import { apiFetchAuthed } from '../lib/api'
 import { IS_NATIVE } from '../services/purchaseService'
 import AvatarDisplay from '../components/avatar/AvatarDisplay'
@@ -44,10 +44,7 @@ export default function AccountPage() {
   const displayName = useAuthStore(selectDisplayName)
   const isTeacher = useAuthStore(selectIsTeacher)
   // The real persisted preference, not useTeacherMode()'s derived boolean:
-  // that also folds in `loading` and "previewing the kids' app", so a
-  // teacher who followed the dashboard's preview link and then wandered
-  // to /account mid-preview would see this button mislabeled "Switch to
-  // teacher view" — as if they'd chosen family view — when they hadn't.
+  // that also folds in `loading`, which would briefly mislabel this button.
   const viewMode = getViewMode()
 
   const { planKey, isPaid, loading: subLoading } = useSubscription()
@@ -73,21 +70,9 @@ export default function AccountPage() {
   const handleToggleViewMode = () => {
     if (viewMode === 'family') {
       setViewMode('teacher')
-      // Also ends any stale "previewing the kids' app" detour (fix round
-      // 2) — without this, choosing "teacher view" from family view could
-      // still land on /teacher with last visit's preview banner logic
-      // primed to reappear the next time teacherMode happens to flip off.
-      exitKidsPreview()
       navigate('/teacher')
     } else {
       setViewMode('family')
-      // Fix round 3: AppShell's banner is keyed on isPreviewingKids()
-      // alone, not on viewMode — it doesn't know "family view" and
-      // "previewing the kids' app mid-teacher-session" apart. Without
-      // this, a teacher who was mid-preview and then deliberately chose
-      // family view here would see the "back to dashboard" banner sitting
-      // on top of their own genuine family view.
-      exitKidsPreview()
       navigate('/')
     }
   }
