@@ -140,7 +140,7 @@
       "name_placeholder": "e.g. Mrs. Rivera's 3rd Grade",
       "submit": "Create class",
       "submitting": "Creating…",
-      "trial_used_up": "You've used your 3 free trials. Open the class and buy seats in Plan & billing."
+      "trial_used_up": "You've used your 3 free trials. Ask your school about a plan for more classes."
     },
     "list": {
       "empty": "No classes yet — create one above to get started.",
@@ -161,7 +161,7 @@
       "comped": "Comped",
       "expired": "License expired",
       "none": "No license yet",
-      "coming_soon": "Open Plan & billing to buy seats.",
+      "coming_soon": "Ask your school about renewing.",
       "pending_payment": "Invoice open"
     },
     "errors": {
@@ -170,7 +170,7 @@
       "bad_hours": "Check the school hours — each end time must be after its start time.",
       "rate_limited": "Too many requests — wait a moment and try again.",
       "class_not_found": "We can't find that class.",
-      "license_required": "This class needs an active plan. Buy seats in Plan & billing below.",
+      "license_required": "This class needs an active plan. Ask your school about renewing.",
       "seats_full": "This class is full — no seats left.",
       "duplicate_name": "already in this class",
       "duplicate_name_full": "Another student already has that name.",
@@ -224,7 +224,7 @@
       "bad_code": "Enter the class code.",
       "bad_billing": "Choose card or invoice.",
       "no_email": "Your account needs an email address.",
-      "over_seats": "This class has more children than paid seats. Add seats in Plan & billing before adding anyone.",
+      "over_seats": "This class has more children than seats. Ask your school for more seats before adding anyone.",
       "too_many_children": "More books than paid seats: leave some children out of this print.",
       "plan_unpaid": "Seats can be added once the invoice is paid.",
       "reason_required": "A reason is required.",
@@ -279,7 +279,7 @@
       "success_other": "Added {{count}} students.",
       "skipped_heading": "Not added",
       "skipped_line": "{{name}} — {{reason}}",
-      "license_blocked": "This class needs an active plan before you can add students. Buy seats in Plan & billing above."
+      "license_blocked": "This class needs an active plan before you can add students. Ask your school about renewing."
     },
     "roster": {
       "heading": "Students",
@@ -453,7 +453,7 @@
     },
     "verify": {
       "title": "We're confirming you're a teacher",
-      "body": "This usually takes less than a day. Until then you can look around, but you can't create classes, start a free trial, add students or buy seats.",
+      "body": "This usually takes less than a day. Until then you can look around, but you can't create classes, start a free trial or add students.",
       "school_email_hint": "Signing up with your school email (for example one ending in .edu or .k12.ca.us) confirms you straight away.",
       "unconfirmed_hint": "First confirm your email address: look for our link in your inbox.",
       "school_name": "School name (optional)",
@@ -561,7 +561,7 @@
       },
       "offer": {
         "heading": "Give seats to a colleague's class",
-        "hint": "Ask your colleague for their class code. Nothing changes until they accept in their class's Plan & billing.",
+        "hint": "Ask your colleague for their class code. Nothing changes until they accept on their class page.",
         "code": "Class code",
         "seats": "Seats",
         "button": "Send offer",
@@ -582,6 +582,13 @@
       "unpaid_note": "Until the invoice is paid: 50 pictures per seat, no class printing, and no extra seats.",
       "seat_add_pending": "Going up to {{count}} seats once the invoice is paid (due {{date}}).",
       "seat_add_sent": "Invoice sent for the extra seats. They're added as soon as it's paid."
+    },
+    "plan_status": {
+      "heading": "Plan",
+      "trial_one": "Free trial — {{count}} day left",
+      "trial_other": "Free trial — {{count}} days left",
+      "active_until": "Active until {{date}}",
+      "ask_school": "Ask your school about renewing."
     }
   },
   "student": {
@@ -1029,7 +1036,7 @@
       "downloading": "Preparing the PDF…",
       "print_heading": "Print the class books",
       "print_intro": "One softcover per child, sent to your school in one box.",
-      "print_needs_license": "Printing is included with a paid license.",
+      "print_needs_license": "Printing is included with your school's plan.",
       "print_start": "Print the class books",
       "address_heading": "Where should we send the books?",
       "field": {
@@ -1071,7 +1078,7 @@
       },
       "failed_hint": "Something went wrong with the printer. We'll be in touch.",
       "books_missing": "We couldn't prepare the books for this request. Cancel it and try again.",
-      "over_seats": "This class has {{seats}} paid seats, so up to {{seats}} books print. Untick children until {{seats}} or fewer are left ({{count}} now), or add seats in Plan & billing first."
+      "over_seats": "This class has {{seats}} seats, so up to {{seats}} books print. Untick children until {{seats}} or fewer are left ({{count}} now), or ask your school for more seats first."
     },
     "preview": {
       "heading": "{{name}}'s book",

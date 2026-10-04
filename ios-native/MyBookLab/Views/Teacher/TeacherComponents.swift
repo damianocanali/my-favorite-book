@@ -518,7 +518,8 @@ struct TeacherBellRow: View {
 
 /// The class's plan: status, seats used of total, renewal or end date.
 /// Status and seats ONLY — never a price, a purchase button or a link
-/// (App Store 3.1.3). "Manage your plan on mybooklab.app" is plain text.
+/// (App Store 3.1.3). Plans are arranged with the school (owner feedback
+/// round 5), so the card points there, not at the website.
 struct TeacherPlanCard: View {
     let license: TeacherLicense?
     let studentCount: Int
@@ -550,8 +551,7 @@ struct TeacherPlanCard: View {
                         Text(TeacherCopy.planSchool)
                     }
                 }
-                // Text(verbatim:) so the domain is never turned into a link.
-                Text(verbatim: String(appLocalized: TeacherCopy.planManageOnWeb))
+                Text(TeacherCopy.planAskSchool)
                     .foregroundStyle(TeacherTheme.secondaryText)
             }
             .font(.subheadline)

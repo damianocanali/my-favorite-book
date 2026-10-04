@@ -1,5 +1,7 @@
 // School plan administration (Stage 4) — the school admin is the verified
-// teacher who bought the plan. Web only.
+// teacher who bought the plan. Web only. Every call needs a school billing
+// admin (owner feedback round 5, lib/school/billingAdmin.js): anyone else
+// gets 403 billing_admin_required.
 //
 // GET                         → { plans: [{ ...plan, used, blocks: [{ classroom_id, class_name, seats, mine }], offers }] }
 // GET  ?planId=&invoices=1    → { invoices }
@@ -17,7 +19,7 @@
 export const config = { runtime: 'edge' }
 
 import { handleCors, checkRateLimit } from '../_rateLimit.js'
-import { requireTeacher, requireVerifiedTeacher, sb, json, isUuid } from '../_school.js'
+import { requireTeacher, requireBillingAdmin, billingAdminFailure, sb, json, isUuid } from '../_school.js'
 import { checkoutBaseUrl } from '../_origin.js'
 import { stripe as defaultStripe } from '../../lib/school/stripe.js'
 import { listInvoices, portalUrl, subscriptionItem, setQuantity, chargeSeatAdd } from '../../lib/school/billingApi.js'
@@ -77,6 +79,8 @@ export default async function handler(req) {
     if (req.method === 'GET') {
       const t = await requireTeacher(req)
       if (!t.ok) return t.response
+      const denied = billingAdminFailure(req, t.auth)
+      if (denied) return denied
       const params = new URL(req.url).searchParams
       if (params.get('invoices') === '1') {
         const plan = await ownPlan(t.auth.userId, params.get('planId'))
@@ -99,7 +103,7 @@ export default async function handler(req) {
     }
 
     if (req.method !== 'POST') return json(req, 405, { error: 'Method not allowed', code: 'method_not_allowed' })
-    const t = await requireVerifiedTeacher(req)
+    const t = await requireBillingAdmin(req)
     if (!t.ok) return t.response
     if (!checkRateLimit(`school-plan:${t.auth.userId}`, 60).allowed) {
       return json(req, 429, { error: 'Too many requests', code: 'rate_limited' })

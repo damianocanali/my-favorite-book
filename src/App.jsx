@@ -38,6 +38,7 @@ import StoryBuilderPage from './pages/StoryBuilderPage'
 import ProtectedRoute from './components/auth/ProtectedRoute'
 import TwoStepGate from './components/auth/TwoStepGate'
 import ConsumerOnlyRoute from './components/auth/ConsumerOnlyRoute'
+import BillingAdminRoute from './components/auth/BillingAdminRoute'
 import BadgePopup from './components/ui/BadgePopup'
 import WelcomeBackMoment from './components/ui/WelcomeBackMoment'
 import MilestoneHost from './components/ui/MilestoneHost'
@@ -198,7 +199,9 @@ export default function App() {
           element={
             <ProtectedRoute>
               <ConsumerOnlyRoute>
-                <TeacherSchoolPlanPage />
+                <BillingAdminRoute>
+                  <TeacherSchoolPlanPage />
+                </BillingAdminRoute>
               </ConsumerOnlyRoute>
             </ProtectedRoute>
           }

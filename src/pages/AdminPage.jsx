@@ -37,6 +37,7 @@ import { apiFetchAuthed } from '../lib/api'
 import ClassPrintRequests from '../components/admin/ClassPrintRequests'
 import AdminAccessLog from '../components/admin/AdminAccessLog'
 import TeacherVerifications from '../components/admin/TeacherVerifications'
+import BillingAdmins from '../components/admin/BillingAdmins'
 import SchoolPlanApprovals from '../components/admin/SchoolPlanApprovals'
 
 const OWNER_ID = import.meta.env.VITE_OWNER_USER_ID
@@ -263,6 +264,7 @@ export default function AdminPage() {
         )}
 
         <TeacherVerifications />
+        <BillingAdmins />
         <SchoolPlanApprovals />
         <ClassPrintRequests />
         <AdminAccessLog />

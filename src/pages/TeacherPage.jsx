@@ -11,6 +11,7 @@ import { teacherErrorText } from '../components/school/teacherErrors'
 import { useAuthStore, selectIsTeacher } from '../stores/useAuthStore'
 import { MAX_SEATS } from '../../lib/school/license.js'
 import { assignIntent, classHref } from '../components/school/assignIntent.js'
+import { useIsBillingAdmin } from '../hooks/useIsBillingAdmin'
 
 // Task 12 replaces the localStorage-only class list this page used to
 // keep (before /api/school/classes existed) with the real API. Any class
@@ -37,6 +38,8 @@ export default function TeacherPage() {
   // "Assign a worksheet" from the library lands here to pick a class.
   const [searchParams] = useSearchParams()
   const intent = assignIntent(searchParams)
+  // The school plan page is for school billing admins only (round 5).
+  const billingAdmin = useIsBillingAdmin()
 
   const [classes, setClasses] = useState([])
   const [loading, setLoading] = useState(true)
@@ -177,11 +180,13 @@ export default function TeacherPage() {
 
       {!verified && <TeacherVerificationNotice onVerified={() => setVerified(true)} />}
 
-      <p className="text-right mb-3">
-        <Link to="/teacher/school" className="text-galaxy-secondary font-body text-sm hover:underline">
-          {t('school:teacher.school_plan.link')}
-        </Link>
-      </p>
+      {billingAdmin && (
+        <p className="text-right mb-3">
+          <Link to="/teacher/school" className="text-galaxy-secondary font-body text-sm hover:underline">
+            {t('school:teacher.school_plan.link')}
+          </Link>
+        </p>
+      )}
 
       {/* Create class form */}
       {verified && (

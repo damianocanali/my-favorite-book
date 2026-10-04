@@ -437,7 +437,7 @@ enum TeacherCopy {
     static var deleting: LocalizedStringResource { AppText("school.teacher.data.deleting", defaultValue: "Deleting…") }
 
     // MARK: Plan (Stage 4) — status and seats only. No price, no purchase,
-    // no link: buying happens on the website (App Store 3.1.3).
+    // no link (App Store 3.1.3); plans are arranged with the school.
     static var planHeading: LocalizedStringResource { AppText("school.teacher.plan.heading", defaultValue: "Plan") }
     static func planSeats(used: Int, total: Int) -> LocalizedStringResource {
         AppText("school.teacher.plan.seats", defaultValue: "\(used) of \(total) seats used")
@@ -452,8 +452,9 @@ enum TeacherCopy {
         AppText("school.teacher.plan.ends", defaultValue: "Ends on \(date)")
     }
     static var planSchool: LocalizedStringResource { AppText("school.teacher.plan.school", defaultValue: "Seats from your school's plan") }
-    /// Plain text on purpose: not a link (3.1.3).
-    static var planManageOnWeb: LocalizedStringResource { AppText("school.teacher.plan.manage_on_web", defaultValue: "Manage your plan on mybooklab.app") }
+    /// Plans are arranged with the school, not by each teacher (owner
+    /// feedback round 5): no link, no website, no price.
+    static var planAskSchool: LocalizedStringResource { AppText("school.teacher.plan.ask_school", defaultValue: "Questions about your plan? Ask your school.") }
 
     // MARK: Verification (Stage 4)
     static var verifyTitle: LocalizedStringResource { AppText("school.teacher.verify.title", defaultValue: "We're confirming you're a teacher") }
