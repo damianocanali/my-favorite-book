@@ -7,6 +7,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { MoreVertical, Lock, HelpCircle, Trash2, BookOpen } from 'lucide-react'
 import { teacherErrorText } from './teacherErrors'
+import { isBillingAdminNow } from '../../hooks/useIsBillingAdmin'
 import TypedConfirmDialog from './TypedConfirmDialog'
 import { downloadSchoolExport } from '../../lib/schoolExport'
 import { relativeTime } from './relativeTime'
@@ -92,7 +93,7 @@ function RenameDialog({ student, onCancel, onConfirm }) {
             ))}
           </div>
         </div>
-        {error && <p className="text-red-400 text-sm font-body">{teacherErrorText(t, error)}</p>}
+        {error && <p className="text-red-400 text-sm font-body">{teacherErrorText(t, error, { billingAdmin: isBillingAdminNow() })}</p>}
         <div className="flex justify-end gap-2 pt-2">
           <button
             type="button"
@@ -244,7 +245,7 @@ export default function RosterTable({ classId, students, onAction, onOpenBooks, 
                   : t('school:teacher.roster.last_sign_in_never')}
               </p>
               {rowError?.id === s.id && (
-                <p className="text-red-400 text-xs font-body mt-0.5">{teacherErrorText(t, rowError.code)}</p>
+                <p className="text-red-400 text-xs font-body mt-0.5">{teacherErrorText(t, rowError.code, { billingAdmin: isBillingAdminNow() })}</p>
               )}
             </div>
             <div className="flex items-center gap-2 shrink-0">

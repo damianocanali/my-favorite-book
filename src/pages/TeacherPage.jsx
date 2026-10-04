@@ -12,6 +12,7 @@ import { useAuthStore, selectIsTeacher } from '../stores/useAuthStore'
 import { MAX_SEATS } from '../../lib/school/license.js'
 import { assignIntent, classHref } from '../components/school/assignIntent.js'
 import { useIsBillingAdmin } from '../hooks/useIsBillingAdmin'
+import { forBillingRole } from '../components/school/billingCopy'
 
 // Task 12 replaces the localStorage-only class list this page used to
 // keep (before /api/school/classes existed) with the real API. Any class
@@ -223,7 +224,7 @@ export default function TeacherPage() {
           )}
           {trialUsedUpNotice && (
             <motion.p className="text-amber-300 text-sm font-body mt-2" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-              {t('school:teacher.create.trial_used_up')}
+              {t(forBillingRole('school:teacher.create.trial_used_up', billingAdmin))}
             </motion.p>
           )}
         </AnimatePresence>

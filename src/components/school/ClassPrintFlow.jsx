@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next'
 import { Printer, Check, ExternalLink } from 'lucide-react'
 import { Capacitor } from '@capacitor/core'
 import { schoolFetch } from '../../lib/schoolApi'
+import { useIsBillingAdmin } from '../../hooks/useIsBillingAdmin'
+import { forBillingRole } from './billingCopy'
 import { ADDRESS_FIELD_NAMES, REQUIRED_ADDRESS, STATUS_STEPS, emptyAddress, statusStep, wyErrorText } from './writingYearUi'
 
 // "Print the class books" (spec §3, controller rulings R1–R3): the school
@@ -18,6 +20,7 @@ const inNativeShell = Capacitor.isNativePlatform()
 
 export default function ClassPrintFlow({ classId, canPrint, request, schoolYear, locale, onRequested }) {
   const { t } = useTranslation()
+  const billingAdmin = useIsBillingAdmin()
   const [step, setStep] = useState('idle') // idle | address | summary
   const [address, setAddress] = useState(() => emptyAddress(locale === 'it' ? 'IT' : 'US'))
   const [summary, setSummary] = useState(null)
@@ -121,7 +124,7 @@ export default function ClassPrintFlow({ classId, canPrint, request, schoolYear,
       <div className="space-y-1">
         <h3 className="font-heading text-sm font-bold text-galaxy-text">{t('school:writing_year.teacher.print_heading')}</h3>
         <p className="text-sm font-body text-galaxy-text-muted">
-          {inNativeShell ? t('school:writing_year.errors.print_not_available') : t('school:writing_year.teacher.print_needs_license')}
+          {inNativeShell ? t('school:writing_year.errors.print_not_available') : t(forBillingRole('school:writing_year.teacher.print_needs_license', billingAdmin))}
         </p>
       </div>
     )
@@ -191,7 +194,7 @@ export default function ClassPrintFlow({ classId, canPrint, request, schoolYear,
       <p className="text-sm font-body text-galaxy-text">{t('school:writing_year.teacher.summary_included', { count: printing })}</p>
       {overSeats && (
         <div className="space-y-2">
-          <p className="text-sm font-body text-amber-200">{t('school:writing_year.teacher.over_seats', { seats: summary.seats, count: printing })}</p>
+          <p className="text-sm font-body text-amber-200">{t(forBillingRole('school:writing_year.teacher.over_seats', billingAdmin), { seats: summary.seats, count: printing })}</p>
           <ul className="grid grid-cols-2 gap-1">
             {summary.included.map((c) => (
               <li key={c.student_id}>

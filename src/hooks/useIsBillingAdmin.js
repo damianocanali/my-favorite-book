@@ -15,3 +15,8 @@ export function useIsBillingAdmin() {
   const user = useAuthStore((s) => s.user)
   return isBillingAdmin(billingWho(user), import.meta.env.VITE_OWNER_USER_ID)
 }
+
+/** Same answer outside a hook (a sub-component's render, an event). */
+export function isBillingAdminNow() {
+  return isBillingAdmin(billingWho(useAuthStore.getState().user), import.meta.env.VITE_OWNER_USER_ID)
+}

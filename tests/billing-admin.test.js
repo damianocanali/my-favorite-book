@@ -149,3 +149,59 @@ describe('/api/admin/billing-admins', () => {
     expect(await res.json()).toEqual({ flags: { [T1]: true } })
   })
 })
+
+// Follow-up: billing admins and the owner, who see the full Plan & billing
+// section, get the wording that points there — never "ask your school".
+describe('role-aware copy', async () => {
+  const { errorKeyFor } = await import('../src/components/school/teacherErrors.js')
+  const { forBillingRole } = await import('../src/components/school/billingCopy.js')
+  const KEYS = [
+    ['teacher', 'create', 'trial_used_up'], ['teacher', 'license', 'coming_soon'], ['teacher', 'errors', 'license_required'],
+    ['teacher', 'errors', 'over_seats'], ['teacher', 'add_students', 'license_blocked'],
+    ['writing_year', 'teacher', 'over_seats'], ['writing_year', 'teacher', 'print_needs_license'],
+  ]
+  const get = (o, p) => p.reduce((x, k) => x?.[k], o)
+
+  it('every neutral line has a billing-admin twin in EN and IT, and only the twin mentions Plan & billing', () => {
+    for (const lang of ['en', 'it']) {
+      const school = JSON.parse(readFileSync(`src/i18n/locales/${lang}/school.json`, 'utf8'))
+      for (const p of KEYS) {
+        const neutral = get(school, p)
+        const admin = get(school, [...p.slice(0, -1), `${p.at(-1)}_billing_admin`])
+        expect(admin, `${lang} ${p.join('.')}_billing_admin`).toBeTruthy()
+        expect(neutral).not.toMatch(/Plan & billing|Piano e pagamenti/)
+        if (p.at(-1) !== 'print_needs_license') expect(admin).toMatch(/Plan & billing|Piano e pagamenti/)
+        expect(admin).not.toMatch(/ask your school|chiedi alla tua scuola/i)
+      }
+    }
+  })
+
+  it('error codes pick the twin for a billing admin only', () => {
+    expect(errorKeyFor('license_required', { billingAdmin: true })).toBe('license_required_billing_admin')
+    expect(errorKeyFor('over_seats', { billingAdmin: true })).toBe('over_seats_billing_admin')
+    expect(errorKeyFor('license_required')).toBe('license_required')
+    expect(errorKeyFor('class_archived', { billingAdmin: true })).toBe('class_archived')
+    expect(forBillingRole('school:x', true)).toBe('school:x_billing_admin')
+    expect(forBillingRole('school:x', false)).toBe('school:x')
+  })
+
+  it('every place that shows one of these lines goes through the role switch', () => {
+    const uses = {
+      'src/components/school/LicenseBadge.jsx': 'school:teacher.license.coming_soon',
+      'src/components/school/AddStudents.jsx': 'school:teacher.add_students.license_blocked',
+      'src/components/school/ClassPrintFlow.jsx': 'school:writing_year.teacher.print_needs_license',
+      'src/pages/TeacherPage.jsx': 'school:teacher.create.trial_used_up',
+    }
+    for (const [file, key] of Object.entries(uses)) {
+      const src = readFileSync(file, 'utf8')
+      expect(src, file).toContain(`forBillingRole('${key}', billingAdmin)`)
+      expect(src, file).not.toContain(`t('${key}'`)
+    }
+    expect(readFileSync('src/components/school/ClassPrintFlow.jsx', 'utf8')).toContain("forBillingRole('school:writing_year.teacher.over_seats', billingAdmin)")
+    for (const file of ['src/components/school/AddStudents.jsx', 'src/pages/TeacherClassPage.jsx', 'src/components/school/RosterTable.jsx']) {
+      const src = readFileSync(file, 'utf8')
+      const calls = src.match(/teacherErrorText\([^)]*\)/g) ?? []
+      for (const c of calls) expect(c, file).toMatch(/billingAdmin/)
+    }
+  })
+})
