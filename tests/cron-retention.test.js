@@ -95,6 +95,27 @@ describe('license lifecycle: nextStep', () => {
     expect(it_.text).toContain('definitivamente')
     expect(LAPSE_PURGE_DAYS).toBe(90)
   })
+  // Owner feedback round 5: a teacher who can't renew is told to ask their
+  // school; the payer gets their own copy.
+  it('a teacher without billing access is told to ask their school, by the date', () => {
+    const purgeOn = new Date('2026-11-03T00:00:00Z')
+    const en = warningEmail({ days: 30, className: 'Room 5', purgeOn, locale: 'en', audience: 'teacher' })
+    expect(en.text).toContain('ask your school to renew it before 2026-11-03')
+    expect(en.text).not.toMatch(/renew the license/)
+    const it_ = warningEmail({ days: 30, className: 'Room 5', purgeOn, locale: 'it', audience: 'teacher' })
+    expect(it_.text).toContain('chiedi alla tua scuola di rinnovarla entro il 2026-11-03')
+  })
+  it('the renewer and payer versions say renew; the payer one has no class-data instructions', () => {
+    const purgeOn = new Date('2026-11-03T00:00:00Z')
+    const r = warningEmail({ days: 7, className: 'Room 5', purgeOn, locale: 'en' })
+    expect(r.text).toContain('renew the license before then')
+    expect(r.text).not.toMatch(/ask your school/)
+    for (const locale of ['en', 'it']) {
+      const p = warningEmail({ days: 7, className: 'Room 5', purgeOn, locale, audience: 'payer' })
+      expect(p.text).toMatch(/school plan pays|piano della tua scuola/)
+      expect(p.text).not.toMatch(/Export|Esporta/)
+    }
+  })
 })
 
 describe('api/cron/retention', () => {
@@ -193,6 +214,50 @@ describe('api/cron/retention', () => {
     expect(mail.body.subject).toContain('30 days')
     const stamp = log.find((l) => l.method === 'PATCH' && l.u.includes('class_licenses?id=eq.L1'))
     expect(Object.keys(stamp.body)).toEqual(['purge_warning_30_at'])
+  })
+
+  it('a trial class teacher (no billing access, nobody paying) gets "ask your school"', async () => {
+    mock([
+      { method: 'GET', match: EXPIRING_Q, reply: { body: [lic()] } },
+      { method: 'GET', match: '/auth/v1/admin/users/teacher-1', reply: { body: { id: 'teacher-1', email: 'teach@example.com', app_metadata: {} } } },
+      { method: 'POST', match: 'api.resend.com', reply: { body: { id: 'em_1' } } },
+    ])
+    await run()
+    const mails = log.filter((l) => l.u.includes('api.resend.com'))
+    expect(mails).toHaveLength(1)
+    expect(mails[0].body.text).toContain('ask your school to renew it before')
+  })
+
+  it('a billing-admin teacher, or one paying for their own license, gets "renew the license"', async () => {
+    for (const [over, md] of [[{}, { billing_admin: true }], [{ stripe_customer_id: 'cus_1' }, {}]]) {
+      mock([
+        { method: 'GET', match: EXPIRING_Q, reply: { body: [lic(over)] } },
+        { method: 'GET', match: '/auth/v1/admin/users/teacher-1', reply: { body: { id: 'teacher-1', email: 'teach@example.com', app_metadata: md } } },
+        { method: 'POST', match: 'api.resend.com', reply: { body: { id: 'em_1' } } },
+      ])
+      await run()
+      const mails = log.filter((l) => l.u.includes('api.resend.com'))
+      expect(mails).toHaveLength(1)
+      expect(mails[0].body.text).toContain('renew the license before then')
+    }
+  })
+
+  it("a seat block: the teacher is told to ask their school, and the school plan's owner gets the payer copy", async () => {
+    mock([
+      { method: 'GET', match: EXPIRING_Q, reply: { body: [lic({ school_plan_id: 'P1' })] } },
+      { method: 'GET', match: '/rest/v1/school_plans?id=eq.P1', reply: { body: [{ owner_user_id: 'admin-1' }] } },
+      { method: 'GET', match: '/auth/v1/admin/users/teacher-1', reply: { body: { id: 'teacher-1', email: 'teach@example.com', app_metadata: {} } } },
+      { method: 'GET', match: '/auth/v1/admin/users/admin-1', reply: { body: { id: 'admin-1', email: 'principal@example.com', app_metadata: { billing_admin: true } } } },
+      { method: 'POST', match: 'api.resend.com', reply: { body: { id: 'em_1' } } },
+    ])
+    const out = await (await run()).json()
+    expect(out.licenses).toMatchObject({ warned30: 1, failed: 0 })
+    const mails = log.filter((l) => l.u.includes('api.resend.com'))
+    const teacher = mails.find((m) => m.body.to[0] === 'teach@example.com')
+    const payer = mails.find((m) => m.body.to[0] === 'principal@example.com')
+    expect(teacher.body.text).toContain('ask your school to renew it before')
+    expect(payer.body.text).toContain('which your school plan pays for')
+    expect(payer.body.text).not.toMatch(/Export class data|kid|@example/)
   })
 
   it('fails closed without an email provider: no stamp, no purge, owner alerted with class ids', async () => {
