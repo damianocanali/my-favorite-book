@@ -145,7 +145,8 @@
     },
     "list": {
       "empty": "No classes yet — create one above to get started.",
-      "assign_worksheet_hint": "Pick the class to assign a worksheet to."
+      "assign_worksheet_hint": "Pick the class to assign a worksheet to.",
+      "assign_worksheet_no_classes": "Create a class first (above), then assign a worksheet to it."
     },
     "card": {
       "code_label": "Code",

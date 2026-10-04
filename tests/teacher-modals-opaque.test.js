@@ -14,15 +14,34 @@ const TRANSLUCENT = /(^|\s)(glass(-[a-z]+)?|ios-card|backdrop-blur(-\w+)?|bg-whi
 
 const files = [
   ...readdirSync('src/components/school').filter((f) => f.endsWith('.jsx')).map((f) => join('src/components/school', f)),
+  ...readdirSync('src/pages').filter((f) => /^Teacher.*\.jsx$/.test(f)).map((f) => join('src/pages', f)),
   'src/components/worksheets/CustomizePanel.jsx',
 ]
 
-// Every static className string (plain quotes or a template literal).
-function classNames(src) {
+// Every className: a plain string, or an expression (template literal,
+// ternary, …) — for an expression, every string literal in it, joined, so
+// a translucent class on EITHER branch of a ternary is caught too.
+export function classNames(src) {
   const out = []
-  const re = /className=(?:"([^"]*)"|\{`([^`]*)`\})/g
+  const re = /className=/g
   let m
-  while ((m = re.exec(src))) out.push({ value: m[1] ?? m[2], index: m.index })
+  while ((m = re.exec(src))) {
+    const start = m.index + m[0].length
+    if (src[start] === '"') {
+      const end = src.indexOf('"', start + 1)
+      out.push({ value: src.slice(start + 1, end), index: m.index })
+    } else if (src[start] === '{') {
+      let depth = 0
+      let i = start
+      for (; i < src.length; i++) {
+        if (src[i] === '{') depth++
+        else if (src[i] === '}' && --depth === 0) break
+      }
+      const expr = src.slice(start + 1, i)
+      const parts = [...expr.matchAll(/'([^']*)'|"([^"]*)"|`([^`]*)`/g)].map((x) => (x[1] ?? x[2] ?? x[3]).replace(/\$\{[^}]*\}/g, ' '))
+      out.push({ value: parts.join(' '), index: m.index })
+    }
+  }
   return out
 }
 
@@ -71,6 +90,12 @@ describe('teacher-area modals are opaque', () => {
     expect(panel.value).not.toMatch(TRANSLUCENT)
     expect(panel.value).toMatch(/(^|\s)bg-galaxy-bg-light(\s|$)/)
     expect(src).toMatch(/data-testid="bell-backdrop"[\s\S]{0,120}className="fixed inset-0 z-40 bg-black\/\d+"/)
+  })
+
+  it('reads both branches of a ternary className', () => {
+    const [n] = classNames("<div className={open ? 'fixed inset-0 z-[70] bg-black/60' : 'glass rounded-2xl'} />")
+    expect(n.value).toMatch(/fixed inset-0/)
+    expect(n.value).toMatch(TRANSLUCENT)
   })
 
   it('the roster row menu popover is opaque', () => {

@@ -40,3 +40,15 @@ describe('teacher Worksheets tab', () => {
     expect(getTabs({ isStudent: true }).some((x) => x.to === '/worksheets')).toBe(false)
   })
 })
+
+describe('class list with ?assign=worksheet and no classes', () => {
+  it('says to create a class first (EN/IT)', async () => {
+    const { readFileSync } = await import('node:fs')
+    const page = readFileSync('src/pages/TeacherPage.jsx', 'utf8')
+    expect(page).toMatch(/intent \? 'school:teacher\.list\.assign_worksheet_no_classes' : 'school:teacher\.list\.empty'/)
+    for (const lang of ['en', 'it']) {
+      const s = JSON.parse(readFileSync(`src/i18n/locales/${lang}/school.json`, 'utf8'))
+      expect(s.teacher.list.assign_worksheet_no_classes).toBeTruthy()
+    }
+  })
+})

@@ -48,8 +48,14 @@ describe('neutralPlanStatus', () => {
 describe('teacher UI never offers a purchase to a non-billing-admin', () => {
   const section = readFileSync('src/components/school/PlanBillingSection.jsx', 'utf8')
   const status = section.slice(section.indexOf('function PlanStatus('), section.indexOf('export default function PlanBillingSection'))
-  it('the neutral PlanStatus shows no price, no buy, no portal, no school plan link', () => {
-    expect(status).not.toMatch(/formatMoney|quote|buy|portal|invoices|\/teacher\/school|\/pricing|\/schools/)
+  it('the neutral PlanStatus shows no price, no buy, no seat change, no school plan link', () => {
+    expect(status).not.toMatch(/formatMoney|quote|buy|action: 'seats'|\/teacher\/school|\/pricing|\/schools/)
+  })
+  it("the payer's portal + invoices show only when the server says can_manage_billing, with nothing to buy", () => {
+    expect(status).toMatch(/\{data\.can_manage_billing && <PayerTools /)
+    const payer = section.slice(section.indexOf('function PayerTools('), section.indexOf('function PlanStatus('))
+    expect(payer).not.toMatch(/quote|buy|seats|\/teacher\/school|\/pricing|\/schools/)
+    expect(section).toMatch(/if \(res\.data\?\.can_manage_billing\) \{/)
   })
   it('PlanBillingSection shows the full section only when the server says billing_admin', () => {
     expect(section).toMatch(/if \(!data\.billing_admin\) \{\s*return <PlanStatus/)
@@ -65,6 +71,16 @@ describe('teacher UI never offers a purchase to a non-billing-admin', () => {
       const lines = [t.create.trial_used_up, t.license.coming_soon, t.errors.license_required, t.errors.over_seats,
         t.add_students.license_blocked, t.verify.body, school.writing_year.teacher.over_seats, school.writing_year.teacher.print_needs_license]
       for (const line of lines) expect(line).not.toMatch(/Plan & billing|Piano e pagamenti|buy|acquist|paid|pagamento/i)
+    }
+  })
+})
+
+describe('teacher verification email', () => {
+  it('no longer invites the teacher to buy seats (EN/IT)', async () => {
+    const { verificationDecisionEmail } = await import('../lib/school/teacherVerification.js')
+    for (const locale of ['en', 'it']) {
+      const m = verificationDecisionEmail('approve', locale)
+      expect(m.text).not.toMatch(/buy|acquist|seats|posti/i)
     }
   })
 })

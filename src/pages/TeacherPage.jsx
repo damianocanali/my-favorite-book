@@ -242,7 +242,9 @@ export default function TeacherPage() {
       {!loading && !error && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}>
           {classes.length === 0 ? (
-            <p className="text-center text-galaxy-text-muted font-body text-sm mt-4">{t('school:teacher.list.empty')}</p>
+            <p className={`text-center font-body text-sm mt-4 ${intent ? 'text-galaxy-secondary font-semibold' : 'text-galaxy-text-muted'}`}>
+              {t(intent ? 'school:teacher.list.assign_worksheet_no_classes' : 'school:teacher.list.empty')}
+            </p>
           ) : (
             <div className="space-y-3">
               {intent && (

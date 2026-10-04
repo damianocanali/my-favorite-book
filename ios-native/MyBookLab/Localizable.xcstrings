@@ -20464,19 +20464,19 @@
       }
     },
     "school.teacher.worksheet_library.intro": {
-      "comment": "Teacher Worksheets tab intro.",
+      "comment": "Teacher Worksheets tab intro (no count: the template list may grow).",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nine worksheets your class can fill in on their own device, or that you can print blank for paper."
+            "value": "Worksheets your class can fill in on their own device, or that you can print blank for paper."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nove schede che la classe può compilare sul proprio dispositivo, oppure che puoi stampare vuote su carta."
+            "value": "Schede che la classe può compilare sul proprio dispositivo, oppure che puoi stampare vuote su carta."
           }
         }
       }
@@ -20548,7 +20548,7 @@
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Crea prima una classe, nella scheda Classi."
+            "value": "Crea prima una classe, nella sezione Classi."
           }
         }
       }

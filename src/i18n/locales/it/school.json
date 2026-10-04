@@ -145,7 +145,8 @@
     },
     "list": {
       "empty": "Ancora nessuna classe — creane una qui sopra per iniziare.",
-      "assign_worksheet_hint": "Scegli la classe a cui assegnare una scheda."
+      "assign_worksheet_hint": "Scegli la classe a cui assegnare una scheda.",
+      "assign_worksheet_no_classes": "Crea prima una classe (qui sopra), poi assegnale una scheda."
     },
     "card": {
       "code_label": "Codice",

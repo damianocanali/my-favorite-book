@@ -19,7 +19,7 @@ enum TeacherCopy {
     // MARK: Worksheets tab (owner feedback round 5)
 
     static var worksheetsTitle: LocalizedStringResource { AppText("school.teacher.worksheet_library.title", defaultValue: "Worksheets") }
-    static var worksheetsIntro: LocalizedStringResource { AppText("school.teacher.worksheet_library.intro", defaultValue: "Nine worksheets your class can fill in on their own device, or that you can print blank for paper.") }
+    static var worksheetsIntro: LocalizedStringResource { AppText("school.teacher.worksheet_library.intro", defaultValue: "Worksheets your class can fill in on their own device, or that you can print blank for paper.") }
     static var worksheetsPreview: LocalizedStringResource { AppText("school.teacher.worksheet_library.preview", defaultValue: "Preview") }
     static var worksheetsAssign: LocalizedStringResource { AppText("school.teacher.worksheet_library.assign", defaultValue: "Assign to a class") }
     static var worksheetsPickClass: LocalizedStringResource { AppText("school.teacher.worksheet_library.pick_class", defaultValue: "Choose a class") }
