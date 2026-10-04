@@ -25,8 +25,8 @@ export default function TypedConfirmDialog({ heading, body, prompt, expected, co
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4" role="dialog" aria-modal="true" aria-labelledby="typed-confirm-heading">
-      <div className="w-full max-w-sm glass rounded-2xl p-6 border border-red-500/30 space-y-4">
+    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/60 px-4" role="dialog" aria-modal="true" aria-labelledby="typed-confirm-heading">
+      <div className="w-full max-w-sm bg-galaxy-bg-light rounded-2xl p-6 border border-red-500/30 space-y-4">
         <div className="flex items-start gap-3">
           <AlertTriangle size={22} className="text-red-400 shrink-0 mt-0.5" aria-hidden="true" />
           <h3 id="typed-confirm-heading" className="font-heading text-lg font-bold text-galaxy-text">{heading}</h3>

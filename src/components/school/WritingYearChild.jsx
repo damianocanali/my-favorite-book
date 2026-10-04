@@ -131,7 +131,7 @@ export default function WritingYearChild({ classId, student, onClose, onChanged 
         role="dialog"
         aria-modal="true"
         aria-label={t('school:writing_year.teacher.child_heading', { name: student.display_name })}
-        className="w-full max-w-2xl max-h-[90vh] overflow-y-auto glass rounded-2xl p-6 border border-galaxy-text-muted/10 focus:outline-none space-y-5"
+        className="w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-galaxy-bg-light rounded-2xl p-6 border border-galaxy-text-muted/10 focus:outline-none space-y-5"
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
       >

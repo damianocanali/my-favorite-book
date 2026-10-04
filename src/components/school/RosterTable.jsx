@@ -52,8 +52,8 @@ function RenameDialog({ student, onCancel, onConfirm }) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
-      <div className="w-full max-w-sm glass rounded-2xl p-6 border border-galaxy-text-muted/10 space-y-4">
+    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/60 px-4" role="dialog" aria-modal="true">
+      <div className="w-full max-w-sm bg-galaxy-bg-light rounded-2xl p-6 border border-galaxy-text-muted/10 space-y-4">
         <h3 className="font-heading text-lg font-bold text-galaxy-text">{t('school:teacher.roster.rename_dialog.heading')}</h3>
         <div className="space-y-1">
           <label htmlFor="rename-student-name" className="text-galaxy-text-muted text-sm font-body font-semibold">
@@ -150,7 +150,7 @@ function RowMenu({ student, open, onToggle, onAction }) {
       >
         <MoreVertical size={18} />
       </button>
-      <div className="absolute right-0 top-full mt-1 z-10 w-48 glass rounded-xl border border-galaxy-text-muted/15 p-1.5 shadow-xl">
+      <div className="absolute right-0 top-full mt-1 z-30 w-48 bg-galaxy-bg-light rounded-xl border border-galaxy-text-muted/15 p-1.5 shadow-xl">
         {student.status === 'active' ? (
           <>
             {item(t('school:teacher.roster.menu.new_pictures'), 'reset_secret')}

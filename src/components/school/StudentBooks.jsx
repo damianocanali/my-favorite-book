@@ -99,7 +99,7 @@ export default function StudentBooks({ classId, student, onClose }) {
         role="dialog"
         aria-modal="true"
         aria-label={openBook ? openBook.title : heading}
-        className={`w-full ${openBook ? 'max-w-4xl' : 'max-w-lg'} max-h-[90vh] overflow-y-auto glass rounded-2xl p-6 border border-galaxy-text-muted/10 focus:outline-none`}
+        className={`w-full ${openBook ? 'max-w-4xl' : 'max-w-lg'} max-h-[90vh] overflow-y-auto bg-galaxy-bg-light rounded-2xl p-6 border border-galaxy-text-muted/10 focus:outline-none`}
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
       >

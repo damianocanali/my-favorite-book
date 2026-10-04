@@ -127,7 +127,7 @@ export default function NudgeSheet({ classId, students, assignments = [], single
         aria-modal="true"
         aria-label={heading}
         onKeyDown={onKeyDown}
-        className="w-full max-w-xl max-h-[90vh] overflow-y-auto glass rounded-2xl p-6 border border-galaxy-text-muted/10 focus:outline-none space-y-5"
+        className="w-full max-w-xl max-h-[90vh] overflow-y-auto bg-galaxy-bg-light rounded-2xl p-6 border border-galaxy-text-muted/10 focus:outline-none space-y-5"
         initial={{ opacity: 0, scale: 0.97 }}
         animate={{ opacity: 1, scale: 1 }}
       >

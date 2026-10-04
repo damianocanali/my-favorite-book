@@ -116,8 +116,7 @@ export default function AppShell({ children }) {
   // gets a nav built around their three destinations — Dashboard, Classes,
   // Account — with none of the consumer surfaces (Create/Bookshelf/Gallery/
   // Play/Pricing) linked. Those routes still work if navigated to directly,
-  // so this
-  // is a chrome decision, not a route guard — same division of labour as
+  // so this is a chrome decision, not a route guard — same division of labour as
   // ConsumerOnlyRoute for students. A teacher who switches to family view
   // (Account page) falls through to the unchanged consumer layout below.
   if (teacherMode) {
@@ -128,7 +127,13 @@ export default function AppShell({ children }) {
         {/* Teacher area: the still backdrop (no twinkle, no sparkles). */}
         <CosmicBackground calm />
 
-        <header className="relative z-20 flex items-center justify-between gap-2 px-3 sm:px-6 py-3">
+        {/* Stacking (owner feedback round 5): the header sits above the tab
+            bar (z-40) so the bell's dimmed backdrop covers the whole page;
+            <main> deliberately makes NO stacking context (no z-index), so a
+            modal's own z-[70]+ competes at the root and lands above both
+            the header and the tab bar instead of being trapped beneath
+            them. */}
+        <header className="relative z-50 flex items-center justify-between gap-2 px-3 sm:px-6 py-3">
           <Link
             to="/teacher"
             className="flex items-center gap-2 text-white transition-opacity hover:opacity-80"
@@ -201,11 +206,11 @@ export default function AppShell({ children }) {
           </div>
         </header>
 
-        <main id="main-content" className="relative z-10 pb-[calc(72px+var(--sab,0px))]">{children}</main>
+        <main id="main-content" className="relative pb-[calc(72px+var(--sab,0px))]">{children}</main>
 
-        {/* Reconfigured (not hidden) — same three destinations as the
-            header, so a teacher who prefers thumb reach on a phone doesn't
-            lose Dashboard/Classes/Account. */}
+        {/* Reconfigured (not hidden) — the header's destinations plus
+            Worksheets, so a teacher who prefers thumb reach on a phone
+            doesn't lose them. */}
         <TabBar teacherMode />
       </div>
     )
