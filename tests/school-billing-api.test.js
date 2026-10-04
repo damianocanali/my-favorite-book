@@ -567,16 +567,54 @@ describe('billing admins only (owner feedback round 5)', () => {
     expect(res.status).not.toBe(403)
   })
 
-  it('class billing: status for everyone (billing_admin false, nothing to manage); portal, seats and invoices refused', async () => {
+  it('class billing, not the payer: status only; portal and invoices are not theirs, seats refused', async () => {
     user = TEACHER
-    routes.push(ownerRoute, licenseRoute(cardLicense), students(18))
+    const someoneElses = { ...cardLicense, owner_user_id: 'other-teacher' }
+    routes.push(ownerRoute, licenseRoute(someoneElses), students(18))
     const handler = await load('billing')
     const get = await (await handler(call('billing', { method: 'GET', query: `?classId=${CLASS_ID}` }))).json()
     expect(get).toMatchObject({ billing_admin: false, can_manage_billing: false, license: { status: 'active', seats: 25 } })
-    await denied(await handler(call('billing', { method: 'GET', query: `?classId=${CLASS_ID}&invoices=1` })))
-    await denied(await handler(call('billing', { body: { classId: CLASS_ID, action: 'portal' } })))
+    expect(await (await handler(call('billing', { method: 'GET', query: `?classId=${CLASS_ID}&invoices=1` }))).json()).toEqual({ invoices: [] })
+    const portal = await handler(call('billing', { body: { classId: CLASS_ID, action: 'portal' } }))
+    expect(portal.status).toBe(403)
+    expect((await portal.json()).code).toBe('not_payer')
     await denied(await handler(call('billing', { body: { classId: CLASS_ID, action: 'seats', seats: 30, request_id: RID } })))
     expect(stripeCalls).toEqual([])
+  })
+
+  it('the PAYER without the flag can always reach the portal and invoices (e.g. a failing card), but not seat changes', async () => {
+    user = TEACHER
+    routes.push(ownerRoute, licenseRoute(cardLicense), students(18))
+    stripeReplies['POST billing_portal/sessions'] = { ok: true, data: { url: 'https://billing.stripe.test/p' } }
+    stripeReplies['GET invoices'] = { ok: true, data: { data: [] } }
+    const handler = await load('billing')
+    const get = await (await handler(call('billing', { method: 'GET', query: `?classId=${CLASS_ID}` }))).json()
+    expect(get).toMatchObject({ billing_admin: false, can_manage_billing: true })
+    const inv = await handler(call('billing', { method: 'GET', query: `?classId=${CLASS_ID}&invoices=1` }))
+    expect(inv.status).toBe(200)
+    const portal = await handler(call('billing', { body: { classId: CLASS_ID, action: 'portal' } }))
+    expect(portal.status).toBe(200)
+    await denied(await handler(call('billing', { body: { classId: CLASS_ID, action: 'seats', seats: 30, request_id: RID } })))
+    expect(stripeCalls.some((c) => c.path.startsWith('subscriptions') || c.path.startsWith('invoiceitems'))).toBe(false)
+  })
+
+  it('a school plan owner without the flag can open its portal and invoices, nothing else', async () => {
+    user = TEACHER
+    routes.push({ method: 'GET', match: '/rest/v1/school_plans?id=eq.', reply: { body: [{ id: PLAN_ID, owner_user_id: 'teacher-1', stripe_customer_id: 'cus_p', stripe_subscription_id: 'sub_p', status: 'active', seats: 150 }] } })
+    stripeReplies['POST billing_portal/sessions'] = { ok: true, data: { url: 'https://billing.stripe.test/p' } }
+    stripeReplies['GET invoices'] = { ok: true, data: { data: [] } }
+    const handler = await load('plan')
+    expect((await handler(call('plan', { method: 'GET', query: `?planId=${PLAN_ID}&invoices=1` }))).status).toBe(200)
+    expect((await handler(call('plan', { body: { action: 'portal', planId: PLAN_ID } }))).status).toBe(200)
+    await denied(await handler(call('plan', { body: { action: 'seats', planId: PLAN_ID, seats: 200, request_id: RID } })))
+    await denied(await handler(call('plan', { method: 'GET' })))
+  })
+
+  it("someone else's plan: no portal for a teacher without the flag", async () => {
+    user = TEACHER
+    const handler = await load('plan')
+    const res = await handler(call('plan', { body: { action: 'portal', planId: PLAN_ID } }))
+    expect(res.status).toBe(404)
   })
 
   it('a flagged billing admin gets billing_admin true', async () => {
@@ -597,11 +635,12 @@ describe('billing admins only (owner feedback round 5)', () => {
     expect(res.status).toBe(200)
   })
 
-  it('the school plan page API refuses a teacher without the flag (GET and POST)', async () => {
+  it('the school plan page API refuses a teacher without the flag (list, assign, offer)', async () => {
     user = TEACHER
     const handler = await load('plan')
     await denied(await handler(call('plan', { method: 'GET' })))
-    await denied(await handler(call('plan', { body: { action: 'portal', planId: PLAN_ID } })))
+    await denied(await handler(call('plan', { body: { action: 'assign', planId: PLAN_ID, classId: CLASS_ID, seats: 10 } })))
+    await denied(await handler(call('plan', { body: { action: 'offer', planId: PLAN_ID, code: 'ABCD', seats: 10 } })))
     expect(log.some((l) => l.u.includes('/rest/v1/school_plans'))).toBe(false)
   })
 })

@@ -44,7 +44,38 @@ function StatusLine({ license, t }) {
   )
 }
 
-function PlanStatus({ data, error, busy, onAnswerOffer, t }) {
+// The payer's own tools (owner feedback round 5 follow-up): whoever
+// actually pays for this class — billing admin or not — can open the
+// Stripe portal (e.g. to fix a failing card) and see its invoices. Shown
+// only when the server says can_manage_billing (the payer, with a Stripe
+// customer). No buy form, no seat changes here.
+function PayerTools({ busy, invoices, onPortal, t }) {
+  const secondary = 'inline-flex items-center gap-1.5 px-3 py-2 rounded-xl font-body text-sm text-galaxy-text border border-galaxy-text-muted/20 hover:border-galaxy-text-muted/40 transition-colors disabled:opacity-50'
+  return (
+    <div className="space-y-3 border-t border-galaxy-text-muted/10 pt-4">
+      <button className={secondary} disabled={!!busy} onClick={onPortal}>
+        <ExternalLink size={14} /> {t('school:teacher.billing.manage')}
+      </button>
+      <div className="space-y-2">
+        <h3 className="font-heading font-semibold text-galaxy-text flex items-center gap-2"><Receipt size={16} /> {t('school:teacher.billing.invoices.heading')}</h3>
+        {invoices && invoices.length === 0 && <p className="text-sm font-body text-galaxy-text-muted">{t('school:teacher.billing.invoices.none')}</p>}
+        {invoices?.map((i) => (
+          <div key={i.id} className="flex flex-wrap items-center gap-3 text-sm font-body text-galaxy-text">
+            <span>{formatDate(i.created)}</span>
+            <span>{i.number}</span>
+            <span>{formatMoneyCents(i.status === 'paid' ? i.amount_paid : i.amount_due, (i.currency || 'usd').toUpperCase())}</span>
+            <span className="text-galaxy-text-muted">{t(`school:teacher.billing.invoices.status.${i.status}`, { defaultValue: i.status })}</span>
+            {i.hosted_invoice_url && (
+              <a href={i.hosted_invoice_url} target="_blank" rel="noreferrer" className="underline">{t('school:teacher.billing.invoices.view')}</a>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function PlanStatus({ data, error, busy, invoices, onPortal, onAnswerOffer, t }) {
   const license = data?.license ?? null
   const status = neutralPlanStatus(license)
   const line = status.key === 'trial'
@@ -77,6 +108,7 @@ function PlanStatus({ data, error, busy, onAnswerOffer, t }) {
           ))}
         </div>
       )}
+      {data.can_manage_billing && <PayerTools busy={busy} invoices={invoices} onPortal={onPortal} t={t} />}
     </section>
   )
 }
@@ -109,7 +141,7 @@ export default function PlanBillingSection({ classId, onChanged }) {
     setError(null)
     setData(res.data)
     if (res.data?.students > 20) setSeats(Math.min(MAX_CLASS_SEATS, res.data.students))
-    if (res.data?.billing_admin && res.data?.can_manage_billing) {
+    if (res.data?.can_manage_billing) {
       const inv = await schoolFetch(`/api/school/billing?classId=${encodeURIComponent(classId)}&invoices=1`)
       if (inv.ok) setInvoices(inv.data?.invoices ?? [])
     }
@@ -186,7 +218,7 @@ export default function PlanBillingSection({ classId, onChanged }) {
       : null
   }
   if (!data.billing_admin) {
-    return <PlanStatus data={data} error={error} busy={busy} onAnswerOffer={answerOffer} t={t} />
+    return <PlanStatus data={data} error={error} busy={busy} invoices={invoices} onPortal={portal} onAnswerOffer={answerOffer} t={t} />
   }
 
   return (
@@ -291,28 +323,7 @@ export default function PlanBillingSection({ classId, onChanged }) {
             </div>
           )}
 
-          {data.can_manage_billing && (
-            <div className="space-y-3 border-t border-galaxy-text-muted/10 pt-4">
-              <button className={secondary} disabled={!!busy} onClick={portal}>
-                <ExternalLink size={14} /> {t('school:teacher.billing.manage')}
-              </button>
-              <div className="space-y-2">
-                <h3 className="font-heading font-semibold text-galaxy-text flex items-center gap-2"><Receipt size={16} /> {t('school:teacher.billing.invoices.heading')}</h3>
-                {invoices && invoices.length === 0 && <p className="text-sm font-body text-galaxy-text-muted">{t('school:teacher.billing.invoices.none')}</p>}
-                {invoices?.map((i) => (
-                  <div key={i.id} className="flex flex-wrap items-center gap-3 text-sm font-body text-galaxy-text">
-                    <span>{formatDate(i.created)}</span>
-                    <span>{i.number}</span>
-                    <span>{formatMoneyCents(i.status === 'paid' ? i.amount_paid : i.amount_due, (i.currency || 'usd').toUpperCase())}</span>
-                    <span className="text-galaxy-text-muted">{t(`school:teacher.billing.invoices.status.${i.status}`, { defaultValue: i.status })}</span>
-                    {i.hosted_invoice_url && (
-                      <a href={i.hosted_invoice_url} target="_blank" rel="noreferrer" className="underline">{t('school:teacher.billing.invoices.view')}</a>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+          {data.can_manage_billing && <PayerTools busy={busy} invoices={invoices} onPortal={portal} t={t} />}
         </>
       )}
     </section>

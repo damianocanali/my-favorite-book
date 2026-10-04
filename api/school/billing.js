@@ -11,12 +11,15 @@
 // POST { action: 'offer_accept'|'offer_decline', offerId } → a school
 //      admin's seat block offered to this teacher's class.
 //
-// Owner feedback round 5: invoices, the portal and seat changes need a
-// school billing admin (lib/school/billingAdmin.js) — 403
-// billing_admin_required otherwise. The status GET and answering a seat
-// offer (no money moves for the teacher) stay open to the class owner;
-// `billing_admin` tells the web whether to show Plan & billing or only the
-// neutral status line.
+// Owner feedback round 5: seat changes need a school billing admin
+// (lib/school/billingAdmin.js) — 403 billing_admin_required otherwise.
+// Whoever actually PAYS for this class (the Stripe customer of their own
+// card license, or the owner of the school plan behind a seat block) can
+// always reach the portal and invoices for it — e.g. to fix a failing
+// card — flag or not. The status GET and answering a seat offer (no money
+// moves for the teacher) stay open to the class owner; `billing_admin`
+// tells the web whether to show Plan & billing or only the neutral status
+// line (plus the payer's portal/invoices).
 export const config = { runtime: 'edge' }
 
 import { handleCors, checkRateLimit } from '../_rateLimit.js'
@@ -126,8 +129,6 @@ export default async function handler(req) {
       const isPayer = !!pay && pay.userId === o.auth.userId
       const billingAdmin = isBillingAdmin(o.auth, process.env.OWNER_USER_ID)
       if (params.get('invoices') === '1') {
-        const denied = billingAdminFailure(req, o.auth)
-        if (denied) return denied
         if (!isPayer || !pay.customer) return json(req, 200, { invoices: [] })
         const invoices = await listInvoices(deps.stripe, pay.customer, pay.subscription)
         if (!invoices) return json(req, 502, { error: 'Could not load invoices', code: 'upstream' })
@@ -143,7 +144,7 @@ export default async function handler(req) {
         over_seats: !!license && Number.isInteger(license.seats) && students > license.seats,
         plan: plan ? { school_name: plan.school_name, status: plan.status, mine: plan.owner_user_id === o.auth.userId } : null,
         offers: await offersFor(o.classroom.id),
-        can_manage_billing: billingAdmin && isPayer && !!pay.customer,
+        can_manage_billing: isPayer && !!pay.customer,
         billing_admin: billingAdmin,
       })
     }
@@ -154,8 +155,6 @@ export default async function handler(req) {
 
     const o = await requireClassOwner(req, body.classId)
     if (!o.ok) return o.response
-    const denied = billingAdminFailure(req, o.auth)
-    if (denied) return denied
     if (!checkRateLimit(`school-billing:${o.auth.userId}`, 30).allowed) {
       return json(req, 429, { error: 'Too many requests', code: 'rate_limited' })
     }
@@ -171,6 +170,8 @@ export default async function handler(req) {
     }
 
     if (body.action === 'seats') {
+      const denied = billingAdminFailure(req, o.auth)
+      if (denied) return denied
       if (!(await teacherVerification(o.auth)).verified) {
         return json(req, 403, { error: "We're confirming you're a teacher — usually within a day", code: 'teacher_unverified' })
       }
