@@ -22,6 +22,7 @@
     "account": "Account",
     "dashboard": "Dashboard",
     "classes": "Classes",
+    "worksheets": "Worksheets",
     "class": "Class",
     "class_badge_one": "{{count}} new assignment",
     "class_badge_other": "{{count}} new assignments"

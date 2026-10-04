@@ -123,5 +123,9 @@
   "actions": {
     "print": "Print",
     "customize": "Customize"
+  },
+  "teacher": {
+    "assign_link": "Assign a worksheet to a class",
+    "assign_hint": "Your students fill it in on their device and hand it in to you."
   }
 }

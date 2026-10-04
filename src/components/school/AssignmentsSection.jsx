@@ -31,7 +31,7 @@ function StatusChip({ status }) {
 // Clicking a row (not a button inside it) opens the Review drawer, owned by
 // the caller (TeacherClassPage) since it also needs to be reachable from a
 // dashboard link — see that page's `?review=` query param handling.
-export default function AssignmentsSection({ classId, className, locale, onOpenReview }) {
+export default function AssignmentsSection({ classId, className, locale, onOpenReview, startAssign = null, onStartAssignConsumed }) {
   const { t } = useTranslation()
   const [assignments, setAssignments] = useState(null)
   const [error, setError] = useState(null)
@@ -51,6 +51,17 @@ export default function AssignmentsSection({ classId, className, locale, onOpenR
   useEffect(() => {
     load()
   }, [load])
+
+  // Deep link from the worksheets library: open "New assignment" already
+  // on "A worksheet", once.
+  const [initialKind, setInitialKind] = useState(null)
+  useEffect(() => {
+    if (!startAssign) return
+    setInitialKind(startAssign)
+    setFormTarget('new')
+    onStartAssignConsumed?.()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [startAssign])
 
   function upsert(updated) {
     setAssignments((prev) => {
@@ -127,7 +138,7 @@ export default function AssignmentsSection({ classId, className, locale, onOpenR
         </button>
         <button
           type="button"
-          onClick={() => setFormTarget('new')}
+          onClick={() => { setInitialKind(null); setFormTarget('new') }}
           className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-body font-bold text-white btn-fill-primary transition-colors"
         >
           <Plus size={16} /> {t('school:teacher.assignments.new')}
@@ -269,6 +280,7 @@ export default function AssignmentsSection({ classId, className, locale, onOpenR
         <AssignmentForm
           classId={classId}
           assignment={formTarget === 'new' ? null : formTarget}
+          initialKind={formTarget === 'new' ? initialKind : null}
           onClose={() => setFormTarget(null)}
           onSaved={(saved) => {
             // A freshly-created assignment's POST response has no `counts`

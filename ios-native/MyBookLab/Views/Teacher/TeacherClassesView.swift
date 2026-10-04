@@ -502,6 +502,8 @@ struct TeacherClassDetailView: View {
 struct TeacherAssignmentForm: View {
     let classId: String
     let existing: TeacherAssignment?
+    /// From the Worksheets tab: a new assignment already on this worksheet.
+    var presetTemplateId: String? = nil
     let onSaved: (TeacherAssignment, _ wasNew: Bool) -> Void
 
     @Environment(AuthStore.self) private var auth
@@ -620,6 +622,11 @@ struct TeacherAssignmentForm: View {
                     }
                     if let d = TeacherDates.parse(existing.due_at) { hasDue = true; due = d }
                     allowLate = existing.allow_late ?? true
+                } else if let id = presetTemplateId, WorksheetTemplates.find(id) != nil {
+                    kind = "worksheet"
+                    worksheet = WorksheetDefinition(templateId: id, prompts: TeacherWorksheetPicker.defaultPrompts(id), word: nil)
+                    title = TeacherStickers.truncated(String(appLocalized: WorksheetCopy.title(id)), max: TeacherStickers.titleMax)
+                    prompt = TeacherStickers.truncated(String(appLocalized: WorksheetCopy.description(id)), max: TeacherStickers.promptMax)
                 }
             }
         }

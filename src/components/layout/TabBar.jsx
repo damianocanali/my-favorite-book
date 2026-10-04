@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Library, Star, PlusCircle, Package, UserCircle, LayoutDashboard, Users, GraduationCap } from 'lucide-react'
+import { Library, Star, PlusCircle, Package, UserCircle, LayoutDashboard, Users, GraduationCap, ClipboardList } from 'lucide-react'
 import { useAuthStore } from '../../stores/useAuthStore'
 import { useClassBadgeStore } from '../../stores/useClassBadgeStore'
 import { useIsStudent } from '../../hooks/useIsStudent'
@@ -30,7 +30,9 @@ const TABS = [
   { to: '/account', labelKey: 'nav:tabs.account', Icon: UserCircle },
 ]
 
-// Teacher mode's three destinations (Task D2 — see AppShell). `match`
+// Teacher mode's destinations (Task D2 — see AppShell; Worksheets added in
+// owner feedback round 5: the printable library, which also links to
+// "Assign a worksheet"). `match`
 // overrides the generic startsWith check below: '/teacher' is a *prefix* of
 // both '/teacher/classes' and '/teacher/class/:id', so the generic rule
 // would light up Dashboard on every teacher route instead of just its own.
@@ -42,6 +44,7 @@ const TEACHER_TABS = [
     Icon: Users,
     match: (p) => p === '/teacher/classes' || p.startsWith('/teacher/class/'),
   },
+  { to: '/worksheets', labelKey: 'nav:tabs.worksheets', Icon: ClipboardList, match: (p) => p === '/worksheets' },
   { to: '/account', labelKey: 'nav:tabs.account', Icon: UserCircle, match: (p) => p === '/account' },
 ]
 

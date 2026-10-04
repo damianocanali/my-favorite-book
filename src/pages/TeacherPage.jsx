@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { motion, AnimatePresence } from 'motion/react'
 import { GraduationCap, Plus, Copy, Check, LogOut, ChevronRight } from 'lucide-react'
@@ -10,6 +10,7 @@ import { schoolFetch } from '../lib/schoolApi'
 import { teacherErrorText } from '../components/school/teacherErrors'
 import { useAuthStore, selectIsTeacher } from '../stores/useAuthStore'
 import { MAX_SEATS } from '../../lib/school/license.js'
+import { assignIntent, classHref } from '../components/school/assignIntent.js'
 
 // Task 12 replaces the localStorage-only class list this page used to
 // keep (before /api/school/classes existed) with the real API. Any class
@@ -33,6 +34,9 @@ export default function TeacherPage() {
   const signOut = useAuthStore((s) => s.signOut)
   const isTeacher = useAuthStore(selectIsTeacher)
   const markClassroomOwner = useAuthStore((s) => s.markClassroomOwner)
+  // "Assign a worksheet" from the library lands here to pick a class.
+  const [searchParams] = useSearchParams()
+  const intent = assignIntent(searchParams)
 
   const [classes, setClasses] = useState([])
   const [loading, setLoading] = useState(true)
@@ -235,6 +239,11 @@ export default function TeacherPage() {
             <p className="text-center text-galaxy-text-muted font-body text-sm mt-4">{t('school:teacher.list.empty')}</p>
           ) : (
             <div className="space-y-3">
+              {intent && (
+                <p className="text-center text-galaxy-secondary font-body text-sm font-semibold">
+                  {t('school:teacher.list.assign_worksheet_hint')}
+                </p>
+              )}
               {classes.map((cls) => (
                 <div
                   key={cls.id}
@@ -262,7 +271,7 @@ export default function TeacherPage() {
                     </div>
                   </div>
                   <Link
-                    to={`/teacher/class/${cls.id}`}
+                    to={classHref(cls.id, intent)}
                     className="flex items-center gap-1 px-3 py-2 rounded-xl font-body font-semibold text-sm text-galaxy-secondary border border-galaxy-secondary/40 hover:bg-galaxy-secondary/10 transition-colors shrink-0"
                   >
                     {t('school:teacher.card.open')} <ChevronRight size={14} />

@@ -1,5 +1,6 @@
-// The teacher's app: Dashboard · Classes · Account, in place of the family
-// tabs. MainTabView switches to this in teacher mode (TeacherStore); on
+// The teacher's app: Dashboard · Classes · Worksheets · Account, in place
+// of the family tabs. Four tabs fit an iPhone's compact bar too (a More
+// menu only appears past five). MainTabView switches to this in teacher mode (TeacherStore); on
 // iPad the tab bar reads as the top tabs / sidebar, on iPhone as the usual
 // bottom bar — same TabView, same appearance the family tabs set up.
 //
@@ -24,6 +25,10 @@ struct TeacherTabView: View {
             TeacherClassesView()
                 .tabItem { Label { Text(TeacherCopy.tabClasses) } icon: { Image(systemName: "graduationcap.fill") } }
                 .tag(TeacherTab.classes)
+
+            TeacherWorksheetLibraryView()
+                .tabItem { Label { Text(TeacherCopy.tabWorksheets) } icon: { Image(systemName: "doc.text.fill") } }
+                .tag(TeacherTab.worksheets)
 
             AccountView()
                 .tabItem { Label { Text(TeacherCopy.tabAccount) } icon: { Image(systemName: "person.crop.circle.fill") } }

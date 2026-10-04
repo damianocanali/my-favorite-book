@@ -143,7 +143,8 @@
       "trial_used_up": "You've used your 3 free trials. Open the class and buy seats in Plan & billing."
     },
     "list": {
-      "empty": "No classes yet — create one above to get started."
+      "empty": "No classes yet — create one above to get started.",
+      "assign_worksheet_hint": "Pick the class to assign a worksheet to."
     },
     "card": {
       "code_label": "Code",

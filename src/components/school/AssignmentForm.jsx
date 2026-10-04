@@ -24,12 +24,12 @@ const PROMPT_MAX = 1000
 // "A book" or "A worksheet"; a worksheet then picks a template and edits
 // its prompts (WorksheetPicker). What an assignment is never changes after
 // it is created, and the template only while it is still a draft.
-export default function AssignmentForm({ classId, assignment, onClose, onSaved }) {
+export default function AssignmentForm({ classId, assignment, initialKind = null, onClose, onSaved }) {
   const { t } = useTranslation()
   const panelRef = useRef(null)
   const isEdit = !!assignment
 
-  const [kind, setKind] = useState(assignment ? (assignment.kind === 'worksheet' ? 'worksheet' : 'book') : null)
+  const [kind, setKind] = useState(assignment ? (assignment.kind === 'worksheet' ? 'worksheet' : 'book') : (initialKind === 'worksheet' ? 'worksheet' : null))
   const [worksheet, setWorksheet] = useState(() => (assignment?.worksheet
     ? { templateId: assignment.worksheet.templateId, prompts: { ...assignment.worksheet.prompts }, word: assignment.worksheet.word ?? '' }
     : { templateId: null, prompts: {}, word: '' }))

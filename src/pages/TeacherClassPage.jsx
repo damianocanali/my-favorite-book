@@ -11,6 +11,7 @@ import SignInCards from '../components/school/SignInCards'
 import StudentBooks from '../components/school/StudentBooks'
 import StudentAvatarEditor from '../components/school/StudentAvatarEditor'
 import AssignmentsSection from '../components/school/AssignmentsSection'
+import { assignIntent } from '../components/school/assignIntent.js'
 import AssignmentReview from '../components/school/AssignmentReview'
 import ClassDeviceCard from '../components/school/ClassDeviceCard'
 import WritingYearSection from '../components/school/WritingYearSection'
@@ -345,6 +346,15 @@ export default function TeacherClassPage() {
         className={classItem.name}
         locale={i18n.language}
         onOpenReview={(assignmentId) => setReviewAssignmentId(assignmentId)}
+        // "Assign a worksheet" from the library (?assign=worksheet) opens
+        // the New assignment form on "A worksheet"; the param is dropped
+        // once consumed so a refresh doesn't reopen it.
+        startAssign={assignIntent(searchParams)}
+        onStartAssignConsumed={() => {
+          const next = new URLSearchParams(searchParams)
+          next.delete('assign')
+          setSearchParams(next, { replace: true })
+        }}
       />
 
       <WritingYearSection classId={classItem.id} locale={classItem.locale ?? i18n.language} />

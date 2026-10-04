@@ -10,7 +10,7 @@ import Foundation
 import Observation
 
 enum TeacherTab: Hashable, Sendable {
-    case dashboard, classes, account
+    case dashboard, classes, worksheets, account
 }
 
 @Observable

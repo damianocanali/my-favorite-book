@@ -20444,6 +20444,168 @@
           }
         }
       }
+    },
+    "school.teacher.tabs.worksheets": {
+      "comment": "Teacher tab bar (TeacherTabView).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Worksheets"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schede"
+          }
+        }
+      }
+    },
+    "school.teacher.worksheet_library.title": {
+      "comment": "Teacher Worksheets tab title.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Worksheets"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schede"
+          }
+        }
+      }
+    },
+    "school.teacher.worksheet_library.intro": {
+      "comment": "Teacher Worksheets tab intro.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nine worksheets your class can fill in on their own device, or that you can print blank for paper."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nove schede che la classe può compilare sul proprio dispositivo, oppure che puoi stampare vuote su carta."
+          }
+        }
+      }
+    },
+    "school.teacher.worksheet_library.preview": {
+      "comment": "Heading above a worksheet's blank preview.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preview"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anteprima"
+          }
+        }
+      }
+    },
+    "school.teacher.worksheet_library.assign": {
+      "comment": "Worksheet detail button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Assign to a class"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Assegna a una classe"
+          }
+        }
+      }
+    },
+    "school.teacher.worksheet_library.pick_class": {
+      "comment": "Class picker title when assigning a worksheet.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a class"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scegli una classe"
+          }
+        }
+      }
+    },
+    "school.teacher.worksheet_library.no_classes": {
+      "comment": "Class picker, no classes yet.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Create a class first, in Classes."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Crea prima una classe, nella scheda Classi."
+          }
+        }
+      }
+    },
+    "school.teacher.worksheet_library.saved": {
+      "comment": "After assigning a worksheet; %@ is the class name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved in %@."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salvato in %@."
+          }
+        }
+      }
+    },
+    "school.teacher.worksheet_library.open_class": {
+      "comment": "Button after assigning a worksheet.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open class"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apri la classe"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

@@ -14,6 +14,18 @@ enum TeacherCopy {
     static var tabDashboard: LocalizedStringResource { AppText("school.teacher.tabs.dashboard", defaultValue: "Dashboard") }
     static var tabClasses: LocalizedStringResource { AppText("school.teacher.tabs.classes", defaultValue: "Classes") }
     static var tabAccount: LocalizedStringResource { AppText("school.teacher.tabs.account", defaultValue: "Account") }
+    static var tabWorksheets: LocalizedStringResource { AppText("school.teacher.tabs.worksheets", defaultValue: "Worksheets") }
+
+    // MARK: Worksheets tab (owner feedback round 5)
+
+    static var worksheetsTitle: LocalizedStringResource { AppText("school.teacher.worksheet_library.title", defaultValue: "Worksheets") }
+    static var worksheetsIntro: LocalizedStringResource { AppText("school.teacher.worksheet_library.intro", defaultValue: "Nine worksheets your class can fill in on their own device, or that you can print blank for paper.") }
+    static var worksheetsPreview: LocalizedStringResource { AppText("school.teacher.worksheet_library.preview", defaultValue: "Preview") }
+    static var worksheetsAssign: LocalizedStringResource { AppText("school.teacher.worksheet_library.assign", defaultValue: "Assign to a class") }
+    static var worksheetsPickClass: LocalizedStringResource { AppText("school.teacher.worksheet_library.pick_class", defaultValue: "Choose a class") }
+    static var worksheetsNoClasses: LocalizedStringResource { AppText("school.teacher.worksheet_library.no_classes", defaultValue: "Create a class first, in Classes.") }
+    static func worksheetsSaved(_ className: String) -> LocalizedStringResource { AppText("school.teacher.worksheet_library.saved", defaultValue: "Saved in \(className).") }
+    static var worksheetsOpenClass: LocalizedStringResource { AppText("school.teacher.worksheet_library.open_class", defaultValue: "Open class") }
     static var switchToFamily: LocalizedStringResource { AppText("school.teacher.view.switch_to_family", defaultValue: "Switch to family view") }
     static var switchToTeacher: LocalizedStringResource { AppText("school.teacher.view.switch_to_teacher", defaultValue: "Switch to teacher view") }
     static var retry: LocalizedStringResource { AppText("school.teacher.retry", defaultValue: "Try again") }
