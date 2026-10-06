@@ -18,7 +18,7 @@ export default function EmptyShelf() {
         animate={{ y: [0, -10, 0] }}
         transition={{ duration: 3, repeat: Infinity }}
       >
-        <img src="/logo.png" alt="My Book Lab" className="w-full h-full rounded-2xl opacity-60" />
+        <img src="/logo-mark.png" alt="My Book Lab" className="w-full h-full rounded-2xl opacity-60" />
       </motion.div>
       <h3 className="font-heading text-2xl font-bold text-galaxy-text mb-2">
         {t('gallery:empty_shelf.title')}

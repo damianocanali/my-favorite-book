@@ -373,7 +373,7 @@ lifts off the shelf and opens.
 
 ALSO IN THIS RELEASE
 - On iPad in landscape, a finished book opens as a genuine two-page spread
-- Unlockable app icons: Rocket, Rainbow, and Night Owl for a seven-day streak
+- Unlockable app icons: Rocket, Rainbow, Dinosaur, Ocean and Dragon, a premium Storybook set (Tree Library, Book Rocket, Dragon Lab, Crystal Castle, Two Worlds), and Night Owl for a seven-day streak
 - Siri and Shortcuts: "Start a story in My Book Lab"
 - Your books are searchable from the Home Screen with Spotlight
 - Ambient music for each part of the app, with a single on/off switch in Account
@@ -1100,7 +1100,7 @@ CPP-3 then exists for a narrower, real audience: the homeschool parent, the co-o
 Separately from CPPs, use **PPO** to A/B test the *default* page, which is the one search traffic lands on. Up to three treatments against the original, split by traffic percentage, measured on conversion.
 
 - **Test 1 (run first, ~4 weeks):** screenshot 1 only. Original = the page editor with text + illustration. Treatment A = the cream-paper `BookDetailView` page. Treatment B = the bookshelf spines. This answers the highest-value open question in this whole document — whether search traffic converts better on *proof of authorship* or on *proof of artefact*. My prior is authorship for Instagram traffic and artefact for cold search, and PPO is how you find out rather than guess.
-- **Test 2:** app icon. The Classic open-book-and-star against the Rocket variant. Icon is the single highest-leverage element in a search-results list.
+- **Test 2:** app icon. The Classic Sky Harbor icon against a Storybook variant (e.g. Book Rocket). Icon is the single highest-leverage element in a search-results list.
 - Do not run PPO and a major metadata change in the same window; you won't be able to attribute the result.
 
 ### 6.4 Launch sequence

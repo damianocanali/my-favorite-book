@@ -2,7 +2,7 @@
 
 > **Verification note.** Everything below is written against code I read in this session. Where a claim could not be verified in code, it is marked `[UNVERIFIED — confirm before publishing]`. Three infrastructure facts discovered during this pass change the plan and are flagged inline:
 > 1. **No email service is installed anywhere** — `grep` for `resend|sendgrid|postmark|nodemailer` across `api/`, `src/`, `lib/` returns nothing. The email sequence in §4 is a *spec for a system that does not exist yet*, not copy you can schedule tomorrow.
-> 2. **The site is a client-rendered SPA with no per-route metadata.** `vercel.json` rewrites `/((?!api/).*)` → `/index.html`, and all OG/Twitter tags are static in `index.html`. Every shared `/view/:slug` link currently previews as the generic "My Book Lab" card with `/icon-1024.png`. This is the single biggest constraint on §7.
+> 2. **The site is a client-rendered SPA with no per-route metadata.** `vercel.json` rewrites `/((?!api/).*)` → `/index.html`, and all OG/Twitter tags are static in `index.html`. Every shared `/view/:slug` link currently previews as the generic "My Book Lab" card with `/og-image.png` (the Sky Harbor logo on a 1200×630 card). This is the single biggest constraint on §7.
 > 3. **The live App Store URL exists in the repo**: `https://apps.apple.com/us/app/my-book-lab/id6761641708` (`src/components/book/BackMatterPages.jsx:13`). It appears in the *printed book* and **nowhere on the website**. Confirm the listing is live before using it publicly.
 
 ---

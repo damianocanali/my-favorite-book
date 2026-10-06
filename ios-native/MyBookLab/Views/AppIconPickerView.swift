@@ -13,6 +13,9 @@ struct AppIconOption: Identifiable {
     let swatch: [Color]      // preview gradient (mirrors the asset art)
     let price: Int           // coins; 0 = free
     let requiredBadge: String?  // unlocks free when this badge is earned
+    /// Part of the premium illustrated "Storybook" set, listed under its own
+    /// heading. Its price lives in lib/catalog.js like every other icon.
+    var storybook: Bool = false
 }
 
 struct AppIconPickerView: View {
@@ -68,6 +71,34 @@ struct AppIconPickerView: View {
                       emoji: "🌙",
                       swatch: [Color(red: 0.04, green: 0.03, blue: 0.16), .indigo],
                       price: 0, requiredBadge: "streak_7"),
+        // The premium Storybook set — illustrated scenes, so the preview
+        // imageset beside each one is what the cell shows (emoji/swatch are
+        // only the fallback if that image ever went missing).
+        AppIconOption(id: "icon_tree_library", assetName: "AppIconTreeLibrary",
+                      label: AppText("app_icon.tree_library.label", defaultValue: "Tree Library"),
+                      emoji: "🌳",
+                      swatch: [.green, Color(red: 0.45, green: 0.30, blue: 0.15)],
+                      price: 150, requiredBadge: nil, storybook: true),
+        AppIconOption(id: "icon_book_rocket", assetName: "AppIconBookRocket",
+                      label: AppText("app_icon.book_rocket.label", defaultValue: "Book Rocket"),
+                      emoji: "🚀",
+                      swatch: [Color(red: 0.06, green: 0.10, blue: 0.30), .orange],
+                      price: 150, requiredBadge: nil, storybook: true),
+        AppIconOption(id: "icon_dragon_lab", assetName: "AppIconDragonLab",
+                      label: AppText("app_icon.dragon_lab.label", defaultValue: "Dragon Lab"),
+                      emoji: "🐲",
+                      swatch: [.teal, .purple],
+                      price: 150, requiredBadge: nil, storybook: true),
+        AppIconOption(id: "icon_crystal_castle", assetName: "AppIconCrystalCastle",
+                      label: AppText("app_icon.crystal_castle.label", defaultValue: "Crystal Castle"),
+                      emoji: "🏰",
+                      swatch: [.cyan, .pink],
+                      price: 150, requiredBadge: nil, storybook: true),
+        AppIconOption(id: "icon_two_worlds", assetName: "AppIconTwoWorlds",
+                      label: AppText("app_icon.two_worlds.label", defaultValue: "Two Worlds"),
+                      emoji: "🌗",
+                      swatch: [.indigo, .yellow],
+                      price: 150, requiredBadge: nil, storybook: true),
     ]
 
     var body: some View {
@@ -89,12 +120,19 @@ struct AppIconPickerView: View {
                             .foregroundStyle(.red.opacity(0.9))
                     }
 
-                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 150), spacing: 12)], spacing: 12) {
-                        ForEach(visibleOptions) { option in
-                            iconCell(option)
-                        }
+                    iconGrid(visibleOptions.filter { !$0.storybook })
+
+                    let storybook = visibleOptions.filter(\.storybook)
+                    if !storybook.isEmpty {
+                        Text(AppText("app_icon.section.storybook", defaultValue: "Storybook"))
+                            .font(.system(.title3, design: .rounded).bold())
+                            .foregroundStyle(.white)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.horizontal)
+                            .padding(.top, 8)
+                            .accessibilityAddTraits(.isHeader)
+                        iconGrid(storybook)
                     }
-                    .padding(.horizontal)
                 }
                 .padding(.vertical)
                 .contentColumn(maxWidth: ContentWidth.form)
@@ -109,6 +147,15 @@ struct AppIconPickerView: View {
     /// cost nothing (the badge-earned one included — no money involved).
     private var visibleOptions: [AppIconOption] {
         auth.isStudent ? options.filter { $0.price == 0 } : options
+    }
+
+    private func iconGrid(_ items: [AppIconOption]) -> some View {
+        LazyVGrid(columns: [GridItem(.adaptive(minimum: 150), spacing: 12)], spacing: 12) {
+            ForEach(items) { option in
+                iconCell(option)
+            }
+        }
+        .padding(.horizontal)
     }
 
     private func errorText(_ message: Message) -> Text {

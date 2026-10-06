@@ -166,7 +166,7 @@ export default function LoginPage() {
               </button>
             )}
             <div className="text-center mb-8">
-              <img src="/logo.png" alt="My Book Lab" className="w-16 h-16 mx-auto mb-4 rounded-xl" />
+              <img src="/logo-mark.png" alt="My Book Lab" className="w-16 h-16 mx-auto mb-4 rounded-xl" />
               <h1 className="font-heading text-2xl font-bold text-galaxy-text">{t('auth:chooser.heading')}</h1>
             </div>
 
@@ -199,7 +199,7 @@ export default function LoginPage() {
           <>
             {/* Header */}
             <div className="text-center mb-8">
-              <img src="/logo.png" alt="My Book Lab" className="w-16 h-16 mx-auto mb-4 rounded-xl" />
+              <img src="/logo-mark.png" alt="My Book Lab" className="w-16 h-16 mx-auto mb-4 rounded-xl" />
               <h1 className="font-heading text-2xl font-bold text-galaxy-text">
                 {who === 'teacher' ? t('auth:chooser.teacher.form_title') : t('auth:sign_in.title')}
               </h1>

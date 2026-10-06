@@ -30,7 +30,7 @@ const iosStyles = () => {
 const iosIcons = () => {
   const src = readFileSync('ios-native/MyBookLab/Views/AppIconPickerView.swift', 'utf8')
   return Object.fromEntries(
-    [...src.matchAll(/AppIconOption\(id: "(icon_[a-z]+)",[\s\S]*?price: (\d+),/g)]
+    [...src.matchAll(/AppIconOption\(id: "(icon_[a-z_]+)",[\s\S]*?price: (\d+),/g)]
       .filter(([, , p]) => Number(p) > 0)
       .map(([, id, p]) => [id, Number(p)])
   )
@@ -41,7 +41,7 @@ describe('store prices match what the server charges', () => {
     // A regex that stops matching would make every assertion below vacuous.
     expect(Object.keys(webStyles()).length).toBeGreaterThanOrEqual(8)
     expect(Object.keys(iosStyles()).length).toBeGreaterThanOrEqual(8)
-    expect(Object.keys(iosIcons()).length).toBeGreaterThanOrEqual(5)
+    expect(Object.keys(iosIcons()).length).toBeGreaterThanOrEqual(10)
   })
 
   it('web art styles', () => {
@@ -54,6 +54,16 @@ describe('store prices match what the server charges', () => {
 
   it('iOS app icons', () => {
     expect(iosIcons()).toEqual(CATALOG.item)
+  })
+
+  it('the Storybook icon set is the premium tier', () => {
+    // Multi-word ids (icon_tree_library) — the iosIcons() regex must keep
+    // matching underscores, or these would silently drop out of the check above.
+    for (const id of ['icon_tree_library', 'icon_book_rocket', 'icon_dragon_lab',
+                      'icon_crystal_castle', 'icon_two_worlds']) {
+      expect(iosIcons()[id]).toBe(150)
+      expect(priceOf('item', id)).toBe(150)
+    }
   })
 
   it('priceOf refuses anything not for sale', () => {

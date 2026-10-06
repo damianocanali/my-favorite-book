@@ -111,7 +111,7 @@ export default function LandingPage() {
             aria-hidden="true"
           />
           <img
-            src="/logo.png"
+            src="/logo-mark.png"
             alt="My Book Lab"
             className="h-full w-full rounded-logo shadow-glow-logo animate-logo-pulse motion-reduce:animate-none"
           />
