@@ -57,7 +57,7 @@ export default function ResetPasswordPage() {
         transition={{ duration: 0.4 }}
       >
         <div className="text-center mb-8">
-          <img src="/logo.png" alt="My Book Lab" className="w-16 h-16 mx-auto mb-4 rounded-xl" />
+          <img src="/logo-mark.png" alt="My Book Lab" className="w-16 h-16 mx-auto mb-4 rounded-xl" />
           <h1 className="font-heading text-2xl font-bold text-galaxy-text">{t('auth:reset_password.title')}</h1>
           <p className="text-galaxy-text-muted font-body text-sm mt-1">
             {t('auth:reset_password.subtitle')}
