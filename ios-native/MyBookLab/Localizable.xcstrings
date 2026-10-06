@@ -5855,6 +5855,102 @@
         }
       }
     },
+    "app_icon.tree_library.label": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tree Library"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La biblioteca sull'albero"
+          }
+        }
+      }
+    },
+    "app_icon.book_rocket.label": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Book Rocket"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il razzo-libro"
+          }
+        }
+      }
+    },
+    "app_icon.dragon_lab.label": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dragon Lab"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il laboratorio del drago"
+          }
+        }
+      }
+    },
+    "app_icon.crystal_castle.label": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Crystal Castle"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il castello di cristallo"
+          }
+        }
+      }
+    },
+    "app_icon.two_worlds.label": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Two Worlds"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Due mondi"
+          }
+        }
+      }
+    },
+    "app_icon.section.storybook": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Storybook"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fiabe illustrate"
+          }
+        }
+      }
+    },
     "Your feelings constellation": {
       "localizations": {
         "it": {
