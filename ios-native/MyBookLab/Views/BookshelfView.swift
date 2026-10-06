@@ -139,7 +139,7 @@ struct BookshelfView: View {
         ScrollView {
             VStack(spacing: 24) {
                 VStack(spacing: 10) {
-                    Image("AppLogo")
+                    Image("AppLogoMark")
                         .resizable().aspectRatio(contentMode: .fit)
                         .frame(width: 72, height: 72)
                         .clipShape(RoundedRectangle(cornerRadius: 18))

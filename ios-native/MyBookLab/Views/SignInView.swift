@@ -116,7 +116,7 @@ private struct WelcomeDoorsView: View {
 
     private var content: some View {
             VStack(spacing: regular ? 20 : 16) {
-                Image("AppLogo")
+                Image("AppLogoMark")
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .frame(width: regular ? 88 : 72, height: regular ? 88 : 72)
@@ -379,7 +379,7 @@ struct AccountSignInForm: View {
 
     private var form: some View {
         VStack(spacing: 18) {
-            Image("AppLogo")
+            Image("AppLogoMark")
                 .resizable()
                 .aspectRatio(contentMode: .fit)
                 .frame(width: 72, height: 72)

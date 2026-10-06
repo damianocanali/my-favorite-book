@@ -87,7 +87,7 @@ struct HeroLanding: View {
                 .scaleEffect(logoPulse ? 1.05 : 0.95)
                 .blur(radius: 8)
 
-            Image("AppLogo")
+            Image("AppLogoMark")
                 .resizable()
                 .aspectRatio(contentMode: .fit)
                 .frame(width: m.logo, height: m.logo)

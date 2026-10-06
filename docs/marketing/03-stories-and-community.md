@@ -165,7 +165,7 @@ Seven buckets. All covers share one system so the row reads as a single object: 
 
 | # | Name | Cover art direction | What lives here |
 |---|---|---|---|
-| 1 | **Start Here** | Open-book-and-star app icon at 420px inside a `#BF5AF2` 55% radial halo. The brand's primary symbol, used once. | The 60-second what-is-it, the free-tier explanation, the platform answer (iPhone/iPad/web, no Android). |
+| 1 | **Start Here** | Sky Harbor app icon at 420px inside a `#BF5AF2` 55% radial halo. The brand's primary symbol, used once. | The 60-second what-is-it, the free-tier explanation, the platform answer (iPhone/iPad/web, no Android). |
 | 2 | **What It Won't Do** | A greyed-out capsule CTA — the primary gradient desaturated to 20% — with a thin `#C4BBD6` slash across it. Deliberately the dullest cover in the row. | Sequence 3 and Sequence 6 frame 5. The "Help me think" no-insert clip lives here permanently. This is your most-visited highlight; put it second. |
 | 3 | **Real Pages** | The `#FAF7ED` paper card, rotated −2°, floating on the gradient with its black-40% shadow. The only warm cover in the row. | Finished pages, story excerpts, Paper Quote posts. Zero UI. |
 | 4 | **For Teachers** | A six-character class code set in SF Rounded Heavy on a glass card at 8%, cyan `#64D2FF` glow behind it. Cyan is used *only* here so educators can find it instantly. | Sequence 4 in full, the limitations grid, the mybooklab.app/teacher link. |

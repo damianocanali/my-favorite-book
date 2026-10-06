@@ -4,22 +4,22 @@
 #   scripts/brand/apply-logo.sh <logo-with-title.png> <icon-square.png>
 #
 #   logo-with-title  the full illustrated logo with the "My Book Lab" lettering
-#                    (hero / sign-in / landing art). Square works best: the web
-#                    <AppLogo> and the iOS "AppLogo" image are drawn in square
-#                    frames, so a non-square logo is letterboxed (iOS, .fit) or
-#                    squashed (web <img width=height>).
+#                    (public/logo.png and the social card). Square works best.
 #   icon-square      the square app icon, at least 1024x1024, art edge to edge
 #                    (iOS rounds the corners itself — do not pre-round it).
 #
 # Regenerates every derived size with sips, from the matching source:
-#   - web logo (public/logo.png) and iOS AppLogo   <- logo-with-title
+#   - web logo (public/logo.png)                  <- logo-with-title
 #   - web icons, og:image, favicons, iOS AppIcon + its "Classic" picker
 #     preview, legacy Capacitor iOS/Android launcher icons <- icon-square
 #   - 16/32/48 px favicons <- a CROP of icon-square around the subject: a
 #     detailed scene is mush at 16 px, so the small sizes zoom in instead of
-#     shrinking the whole picture. logo-mark.png (web <AppLogo>) gets a
-#     gentler crop of its own.
-#   - public/og-image.png, 1200x630 social card <- the logo centred on SOCIAL_BG
+#     shrinking the whole picture. The untitled marks — web logo-mark.png
+#     (<AppLogo>) and iOS AppLogoMark, used next to a drawn "My Book Lab"
+#     wordmark — get a gentler crop of their own.
+#   - public/og-image.png, 1200x630 social card <- the logo centred over a
+#     blurred, darkened cover-fill of the icon scene (needs python3 + PIL;
+#     without it, falls back to a flat SOCIAL_BG surround)
 #
 # App-store icons must be opaque: anything going into an .appiconset or an
 # Android launcher is flattened (alpha dropped) and checked afterwards.
@@ -30,7 +30,7 @@
 #                        paper boat of the Sky Harbor icon.
 #       MARK_CROP=0.85 MARK_CX=0.5 MARK_CY=0.52   same, for logo-mark.png
 #       SOCIAL_SRC=<png>  higher-res logo for the social card (default: logo arg)
-#       SOCIAL_BG=0d1033  hex background of the social card
+#       SOCIAL_BG=0d1033  hex fallback background of the social card (no PIL)
 #       ANDROID_BG=0d1033 hex pad colour for the adaptive-icon foreground
 #                          (keep in step with res/values/ic_launcher_background.xml)
 #       DRY_RUN=1        print what would be written, write nothing
@@ -127,14 +127,38 @@ emit_fit() {  # emit_fit <source> <max> <dest> — keeps aspect ratio
 # Was a 2000 px / 7 MB PNG loaded on every page; 1024 covers the largest use
 # (landing hero) at 3x.
 emit_fit "$LOGO" 1024 public/logo.png
-emit_fit "$LOGO" 1024 ios-native/MyBookLab/Assets.xcassets/AppLogo.imageset/logo.png
 
-# Social card (og:image / twitter:image): logo 600 px tall, centred on a
-# 1200x630 SOCIAL_BG canvas.
-WRITTEN+=("public/og-image.png (1200x630 on #$SOCIAL_BG)")
-if [[ $DRY_RUN != 1 ]]; then
-  sips -Z 600 -s format png "$SOCIAL_SRC" --out "$TMP/social.png" >/dev/null
-  sips -p 630 1200 --padColor "$SOCIAL_BG" "$TMP/social.png" --out public/og-image.png >/dev/null
+# Social card (og:image / twitter:image), 1200x630: the icon scene scaled to
+# cover, heavily blurred and darkened, with the titled logo (rounded, soft
+# shadow) centred on top — no hard square edge against a flat colour.
+if python3 -c 'import PIL' 2>/dev/null; then
+  WRITTEN+=("public/og-image.png (1200x630, blurred scene fill)")
+  [[ $DRY_RUN == 1 ]] || python3 - "$ICON_OPAQUE" "$SOCIAL_SRC" public/og-image.png <<'PY'
+import sys
+from PIL import Image, ImageDraw, ImageEnhance, ImageFilter
+W, H, LOGO, RADIUS = 1200, 630, 560, 36
+scene = Image.open(sys.argv[1]).convert('RGB')
+k = max(W / scene.width, H / scene.height)
+scene = scene.resize((round(scene.width * k), round(scene.height * k)), Image.LANCZOS)
+l, t = (scene.width - W) // 2, (scene.height - H) // 2
+bg = scene.crop((l, t, l + W, t + H)).filter(ImageFilter.GaussianBlur(36))
+bg = ImageEnhance.Brightness(bg).enhance(0.6).convert('RGBA')   # ~40% darker
+logo = Image.open(sys.argv[2]).convert('RGB').resize((LOGO, LOGO), Image.LANCZOS)
+mask = Image.new('L', (LOGO, LOGO), 0)
+ImageDraw.Draw(mask).rounded_rectangle((0, 0, LOGO - 1, LOGO - 1), RADIUS, fill=255)
+x, y = (W - LOGO) // 2, (H - LOGO) // 2
+shadow = Image.new('RGBA', (W, H), (0, 0, 0, 0))
+shadow.paste((0, 0, 0, 150), (x, y + 10), mask)
+bg = Image.alpha_composite(bg, shadow.filter(ImageFilter.GaussianBlur(18)))
+bg.paste(logo, (x, y), mask)
+bg.convert('RGB').save(sys.argv[3], optimize=True)
+PY
+else
+  WRITTEN+=("public/og-image.png (1200x630 on #$SOCIAL_BG — PIL missing, flat fallback)")
+  if [[ $DRY_RUN != 1 ]]; then
+    sips -Z 600 -s format png "$SOCIAL_SRC" --out "$TMP/social.png" >/dev/null
+    sips -p 630 1200 --padColor "$SOCIAL_BG" "$TMP/social.png" --out public/og-image.png >/dev/null
+  fi
 fi
 
 # ── Square icon: web ───────────────────────────────────────────────────────
@@ -150,6 +174,7 @@ emit "$ICON_CROP"   16   public/favicon-16.png
 # ── Square icon: native iOS (the shipping app) ──────────────────────────────
 emit "$ICON_OPAQUE" 1024 ios-native/MyBookLab/Assets.xcassets/AppIcon.appiconset/icon-1024.png
 emit "$ICON_OPAQUE" 216  ios-native/MyBookLab/Assets.xcassets/AppIconPreview.imageset/preview.png  # "Classic" in the icon picker
+emit "$ICON_MARK"   512  ios-native/MyBookLab/Assets.xcassets/AppLogoMark.imageset/logo-mark.png  # @3x slot; hero/sign-in, beside the drawn wordmark
 
 # ── Square icon: legacy Capacitor shells (still tracked, still Canva art) ───
 emit "$ICON_OPAQUE" 1024 ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png
