@@ -1,6 +1,6 @@
 // "Plan & billing" for one class (Stage 4).
 //
-// GET  ?classId=            → { license, students, plan, offers, can_manage_billing }
+// GET  ?classId=            → { license, students, plan, offers, can_manage_billing, billing_admin }
 //      Status, seats used/total, renew date. NO prices: the web shows them
 //      from lib/school/pricing.js, the iPad shows none (App Store 3.1.3).
 // GET  ?classId=&invoices=1 → { invoices } (the payer only)
@@ -10,10 +10,21 @@
 //      below the students enrolled. Verified teachers only.
 // POST { action: 'offer_accept'|'offer_decline', offerId } → a school
 //      admin's seat block offered to this teacher's class.
+//
+// Owner feedback round 5: seat changes need a school billing admin
+// (lib/school/billingAdmin.js) — 403 billing_admin_required otherwise.
+// Whoever actually PAYS for this class (the Stripe customer of their own
+// card license, or the owner of the school plan behind a seat block) can
+// always reach the portal and invoices for it — e.g. to fix a failing
+// card — flag or not. The status GET and answering a seat offer (no money
+// moves for the teacher) stay open to the class owner; `billing_admin`
+// tells the web whether to show Plan & billing or only the neutral status
+// line (plus the payer's portal/invoices).
 export const config = { runtime: 'edge' }
 
 import { handleCors, checkRateLimit } from '../_rateLimit.js'
-import { requireClassOwner, requireTeacher, teacherVerification, sb, json, isUuid } from '../_school.js'
+import { requireClassOwner, requireTeacher, teacherVerification, billingAdminFailure, sb, json, isUuid } from '../_school.js'
+import { isBillingAdmin } from '../../lib/school/billingAdmin.js'
 import { checkoutBaseUrl } from '../_origin.js'
 import { stripe as defaultStripe } from '../../lib/school/stripe.js'
 import { listInvoices, portalUrl, subscriptionItem, setQuantity, chargeSeatAdd } from '../../lib/school/billingApi.js'
@@ -116,6 +127,7 @@ export default async function handler(req) {
       const plan = await loadPlan(license?.school_plan_id)
       const pay = payer(license, plan)
       const isPayer = !!pay && pay.userId === o.auth.userId
+      const billingAdmin = isBillingAdmin(o.auth, process.env.OWNER_USER_ID)
       if (params.get('invoices') === '1') {
         if (!isPayer || !pay.customer) return json(req, 200, { invoices: [] })
         const invoices = await listInvoices(deps.stripe, pay.customer, pay.subscription)
@@ -133,6 +145,7 @@ export default async function handler(req) {
         plan: plan ? { school_name: plan.school_name, status: plan.status, mine: plan.owner_user_id === o.auth.userId } : null,
         offers: await offersFor(o.classroom.id),
         can_manage_billing: isPayer && !!pay.customer,
+        billing_admin: billingAdmin,
       })
     }
 
@@ -157,6 +170,8 @@ export default async function handler(req) {
     }
 
     if (body.action === 'seats') {
+      const denied = billingAdminFailure(req, o.auth)
+      if (denied) return denied
       if (!(await teacherVerification(o.auth)).verified) {
         return json(req, 403, { error: "We're confirming you're a teacher — usually within a day", code: 'teacher_unverified' })
       }

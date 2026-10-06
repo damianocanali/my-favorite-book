@@ -152,10 +152,20 @@ export default function NotificationBell() {
       </button>
 
       {open && (
+        // Dimmed backdrop behind the opaque panel (owner feedback round 5):
+        // the panel used to be translucent `.glass` straight over the page.
+        <div
+          aria-hidden="true"
+          data-testid="bell-backdrop"
+          onClick={() => setOpen(false)}
+          className="fixed inset-0 z-40 bg-black/50"
+        />
+      )}
+      {open && (
         <div
           role="dialog"
           aria-label={t('school:notifications.title')}
-          className="glass absolute right-0 top-full z-50 mt-2 w-80 max-w-[calc(100vw-2rem)] rounded-2xl border border-white/10 bg-galaxy-bg/95 shadow-xl"
+          className="absolute right-0 top-full z-50 mt-2 w-80 max-w-[calc(100vw-2rem)] rounded-2xl border border-white/10 bg-galaxy-bg-light shadow-xl shadow-black/50"
         >
           <div className="flex items-center justify-between gap-2 border-b border-white/10 px-4 py-3">
             <h2 className="font-heading text-sm font-bold text-galaxy-text">{t('school:notifications.title')}</h2>

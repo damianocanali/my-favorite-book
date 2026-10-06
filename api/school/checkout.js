@@ -1,5 +1,7 @@
 // Buying seats (Stage 4). Web only — the iOS app never calls this and shows
-// no price (App Store 3.1.3). Verified teachers only.
+// no price (App Store 3.1.3). Verified school billing admins only (the
+// owner, or app_metadata.billing_admin — lib/school/billingAdmin.js);
+// anyone else gets 403 billing_admin_required.
 //
 // POST { kind: 'class', classId, seats, school_name, dpa_accept: true }
 //   → Stripe Checkout (subscription, yearly, quantity = seats). The founding
@@ -19,7 +21,7 @@
 export const config = { runtime: 'edge' }
 
 import { handleCors, checkRateLimit } from '../_rateLimit.js'
-import { requireVerifiedTeacher, sb, json, isUuid } from '../_school.js'
+import { requireBillingAdmin, sb, json, isUuid } from '../_school.js'
 import { checkoutBaseUrl } from '../_origin.js'
 import { quoteClass, quoteSchool, priceIdFor } from '../../lib/school/pricing.js'
 import { stripe as defaultStripe } from '../../lib/school/stripe.js'
@@ -146,7 +148,7 @@ export default async function handler(req) {
   if (cors) return cors
   if (req.method !== 'POST') return json(req, 405, { error: 'Method not allowed', code: 'method_not_allowed' })
   try {
-    const t = await requireVerifiedTeacher(req)
+    const t = await requireBillingAdmin(req)
     if (!t.ok) return t.response
     if (!checkRateLimit(`school-checkout:${t.auth.userId}`, 20).allowed) {
       return json(req, 429, { error: 'Too many requests', code: 'rate_limited' })

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { motion, AnimatePresence } from 'motion/react'
 import { GraduationCap, Plus, Copy, Check, LogOut, ChevronRight } from 'lucide-react'
@@ -10,6 +10,9 @@ import { schoolFetch } from '../lib/schoolApi'
 import { teacherErrorText } from '../components/school/teacherErrors'
 import { useAuthStore, selectIsTeacher } from '../stores/useAuthStore'
 import { MAX_SEATS } from '../../lib/school/license.js'
+import { assignIntent, classHref } from '../components/school/assignIntent.js'
+import { useIsBillingAdmin } from '../hooks/useIsBillingAdmin'
+import { forBillingRole } from '../components/school/billingCopy'
 
 // Task 12 replaces the localStorage-only class list this page used to
 // keep (before /api/school/classes existed) with the real API. Any class
@@ -33,6 +36,11 @@ export default function TeacherPage() {
   const signOut = useAuthStore((s) => s.signOut)
   const isTeacher = useAuthStore(selectIsTeacher)
   const markClassroomOwner = useAuthStore((s) => s.markClassroomOwner)
+  // "Assign a worksheet" from the library lands here to pick a class.
+  const [searchParams] = useSearchParams()
+  const intent = assignIntent(searchParams)
+  // The school plan page is for school billing admins only (round 5).
+  const billingAdmin = useIsBillingAdmin()
 
   const [classes, setClasses] = useState([])
   const [loading, setLoading] = useState(true)
@@ -173,11 +181,13 @@ export default function TeacherPage() {
 
       {!verified && <TeacherVerificationNotice onVerified={() => setVerified(true)} />}
 
-      <p className="text-right mb-3">
-        <Link to="/teacher/school" className="text-galaxy-secondary font-body text-sm hover:underline">
-          {t('school:teacher.school_plan.link')}
-        </Link>
-      </p>
+      {billingAdmin && (
+        <p className="text-right mb-3">
+          <Link to="/teacher/school" className="text-galaxy-secondary font-body text-sm hover:underline">
+            {t('school:teacher.school_plan.link')}
+          </Link>
+        </p>
+      )}
 
       {/* Create class form */}
       {verified && (
@@ -214,7 +224,7 @@ export default function TeacherPage() {
           )}
           {trialUsedUpNotice && (
             <motion.p className="text-amber-300 text-sm font-body mt-2" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-              {t('school:teacher.create.trial_used_up')}
+              {t(forBillingRole('school:teacher.create.trial_used_up', billingAdmin))}
             </motion.p>
           )}
         </AnimatePresence>
@@ -232,9 +242,16 @@ export default function TeacherPage() {
       {!loading && !error && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}>
           {classes.length === 0 ? (
-            <p className="text-center text-galaxy-text-muted font-body text-sm mt-4">{t('school:teacher.list.empty')}</p>
+            <p className={`text-center font-body text-sm mt-4 ${intent ? 'text-galaxy-secondary font-semibold' : 'text-galaxy-text-muted'}`}>
+              {t(intent ? 'school:teacher.list.assign_worksheet_no_classes' : 'school:teacher.list.empty')}
+            </p>
           ) : (
             <div className="space-y-3">
+              {intent && (
+                <p className="text-center text-galaxy-secondary font-body text-sm font-semibold">
+                  {t('school:teacher.list.assign_worksheet_hint')}
+                </p>
+              )}
               {classes.map((cls) => (
                 <div
                   key={cls.id}
@@ -262,7 +279,7 @@ export default function TeacherPage() {
                     </div>
                   </div>
                   <Link
-                    to={`/teacher/class/${cls.id}`}
+                    to={classHref(cls.id, intent)}
                     className="flex items-center gap-1 px-3 py-2 rounded-xl font-body font-semibold text-sm text-galaxy-secondary border border-galaxy-secondary/40 hover:bg-galaxy-secondary/10 transition-colors shrink-0"
                   >
                     {t('school:teacher.card.open')} <ChevronRight size={14} />

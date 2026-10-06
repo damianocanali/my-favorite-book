@@ -26,7 +26,7 @@ describe('getTabs', () => {
 
   it('teacher mode is unaffected by isStudent', () => {
     const tabs = getTabs({ teacherMode: true, isStudent: true })
-    expect(tabs.map((tab) => tab.to)).toEqual(['/teacher', '/teacher/classes', '/account'])
+    expect(tabs.map((tab) => tab.to)).toEqual(['/teacher', '/teacher/classes', '/worksheets', '/account'])
   })
 })
 

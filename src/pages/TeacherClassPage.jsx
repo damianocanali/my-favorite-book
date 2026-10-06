@@ -11,6 +11,7 @@ import SignInCards from '../components/school/SignInCards'
 import StudentBooks from '../components/school/StudentBooks'
 import StudentAvatarEditor from '../components/school/StudentAvatarEditor'
 import AssignmentsSection from '../components/school/AssignmentsSection'
+import { assignIntent } from '../components/school/assignIntent.js'
 import AssignmentReview from '../components/school/AssignmentReview'
 import ClassDeviceCard from '../components/school/ClassDeviceCard'
 import WritingYearSection from '../components/school/WritingYearSection'
@@ -18,12 +19,14 @@ import ClassDataSection from '../components/school/ClassDataSection'
 import PlanBillingSection from '../components/school/PlanBillingSection'
 import { schoolFetch } from '../lib/schoolApi'
 import { teacherErrorText } from '../components/school/teacherErrors'
+import { useIsBillingAdmin } from '../hooks/useIsBillingAdmin'
 import { MAX_SEATS } from '../../lib/school/license.js'
 
 export default function TeacherClassPage() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { t, i18n } = useTranslation()
+  const billingAdmin = useIsBillingAdmin()
   // Deep link from the dashboard's assignment column (StudentsTable ->
   // `/teacher/class/:id?review=<assignmentId>`) opens the Review drawer
   // straight away; opening a row in AssignmentsSection does the same
@@ -111,12 +114,12 @@ export default function TeacherClassPage() {
   async function handleRotateCode() {
     if (!window.confirm(t('school:teacher.class_page.new_code_confirm'))) return
     const res = await patchClass({ rotate_code: true })
-    if (!res.ok) setBanner(teacherErrorText(t, res.code || 'generic'))
+    if (!res.ok) setBanner(teacherErrorText(t, res.code || 'generic', { billingAdmin }))
   }
 
   async function handleToggleSignIn() {
     const res = await patchClass({ sign_in_open: !classItem.sign_in_open })
-    if (!res.ok) setBanner(teacherErrorText(t, res.code || 'generic'))
+    if (!res.ok) setBanner(teacherErrorText(t, res.code || 'generic', { billingAdmin }))
   }
 
   async function handleSaveClassName() {
@@ -124,7 +127,7 @@ export default function TeacherClassPage() {
     if (!name) { setRenamingClass(false); setNameDraft(classItem.name); return }
     const res = await patchClass({ name })
     if (res.ok) setRenamingClass(false)
-    else setBanner(teacherErrorText(t, res.code || 'generic'))
+    else setBanner(teacherErrorText(t, res.code || 'generic', { billingAdmin }))
   }
 
   async function handleStudentAction(studentId, action, extra) {
@@ -191,7 +194,7 @@ export default function TeacherClassPage() {
   if (loadError) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4 px-4 text-center">
-        <p className="text-red-400 font-body text-lg">{teacherErrorText(t, loadError)}</p>
+        <p className="text-red-400 font-body text-lg">{teacherErrorText(t, loadError, { billingAdmin })}</p>
         <button
           onClick={load}
           className="px-4 py-2.5 rounded-xl font-body font-bold text-white btn-fill-primary transition-colors"
@@ -345,6 +348,15 @@ export default function TeacherClassPage() {
         className={classItem.name}
         locale={i18n.language}
         onOpenReview={(assignmentId) => setReviewAssignmentId(assignmentId)}
+        // "Assign a worksheet" from the library (?assign=worksheet) opens
+        // the New assignment form on "A worksheet"; the param is dropped
+        // once consumed so a refresh doesn't reopen it.
+        startAssign={assignIntent(searchParams)}
+        onStartAssignConsumed={() => {
+          const next = new URLSearchParams(searchParams)
+          next.delete('assign')
+          setSearchParams(next, { replace: true })
+        }}
       />
 
       <WritingYearSection classId={classItem.id} locale={classItem.locale ?? i18n.language} />
@@ -361,7 +373,7 @@ export default function TeacherClassPage() {
         <h2 className="font-heading text-lg font-bold text-galaxy-text">{t('school:teacher.roster.heading')}</h2>
         {studentsError ? (
           <div className="glass rounded-2xl p-6 border border-red-500/20 flex flex-col items-center gap-3 text-center">
-            <p className="text-red-400 text-sm font-body">{teacherErrorText(t, studentsError)}</p>
+            <p className="text-red-400 text-sm font-body">{teacherErrorText(t, studentsError, { billingAdmin })}</p>
             <button
               onClick={load}
               className="px-4 py-2 rounded-xl font-body font-bold text-sm text-white btn-fill-primary transition-colors"

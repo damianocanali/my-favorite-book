@@ -10,10 +10,13 @@ import { UserPlus } from 'lucide-react'
 import { parseRosterText } from './rosterText'
 import { schoolFetch } from '../../lib/schoolApi'
 import { teacherErrorText } from './teacherErrors'
+import { useIsBillingAdmin } from '../../hooks/useIsBillingAdmin'
+import { forBillingRole } from './billingCopy'
 import { isLicenseUsable } from '../../../lib/school/license.js'
 
 export default function AddStudents({ classId, license, onCreated }) {
   const { t } = useTranslation()
+  const billingAdmin = useIsBillingAdmin()
   const [text, setText] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState(null)
@@ -49,7 +52,7 @@ export default function AddStudents({ classId, license, onCreated }) {
         <h2 className="font-heading text-lg font-bold text-galaxy-text flex items-center gap-2">
           <UserPlus size={18} className="text-galaxy-secondary" /> {t('school:teacher.add_students.heading')}
         </h2>
-        <p className="text-amber-300 text-sm font-body">{t('school:teacher.add_students.license_blocked')}</p>
+        <p className="text-amber-300 text-sm font-body">{t(forBillingRole('school:teacher.add_students.license_blocked', billingAdmin))}</p>
       </div>
     )
   }
@@ -68,7 +71,7 @@ export default function AddStudents({ classId, license, onCreated }) {
         className="w-full px-4 py-3 glass border border-white/15 rounded-xl text-galaxy-text placeholder:text-galaxy-text-muted/40 focus:border-galaxy-primary focus:outline-none font-body resize-y"
       />
 
-      {error && <p className="text-red-400 text-sm font-body">{teacherErrorText(t, error)}</p>}
+      {error && <p className="text-red-400 text-sm font-body">{teacherErrorText(t, error, { billingAdmin })}</p>}
 
       <button
         type="button"
@@ -96,7 +99,7 @@ export default function AddStudents({ classId, license, onCreated }) {
                   <li key={`${s.name}-${i}`} className="text-galaxy-text-muted text-sm font-body">
                     {t('school:teacher.add_students.skipped_line', {
                       name: s.name,
-                      reason: teacherErrorText(t, s.code, { standalone: false }),
+                      reason: teacherErrorText(t, s.code, { standalone: false, billingAdmin }),
                     })}
                   </li>
                 ))}

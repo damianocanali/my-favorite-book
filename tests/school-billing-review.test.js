@@ -42,7 +42,7 @@ beforeEach(() => {
   routes = []
   stripeCalls = []
   stripeReplies = {}
-  user = { id: ADMIN, email: 'admin@lincoln.edu', email_confirmed_at: 'x', app_metadata: { teacher_verified_at: 'x', teacher_verified_by: 'domain' } }
+  user = { id: ADMIN, email: 'admin@lincoln.edu', email_confirmed_at: 'x', app_metadata: { teacher_verified_at: 'x', teacher_verified_by: 'domain', billing_admin: true } }
   globalThis.fetch = vi.fn(async (url, init = {}) => {
     const u = String(url)
     const method = init.method || 'GET'
@@ -96,7 +96,7 @@ describe('C1/I1: a colleague with a seat block never reaches the school admin\'s
   })
 
   it('the colleague buying a class of their own gets their OWN Customer, never the admin\'s', async () => {
-    user = { id: COLLEAGUE, email: 'lee@lincoln.edu', email_confirmed_at: 'x', app_metadata: { teacher_verified_at: 'x' } }
+    user = { id: COLLEAGUE, email: 'lee@lincoln.edu', email_confirmed_at: 'x', app_metadata: { teacher_verified_at: 'x', billing_admin: true } }
     routes.push(
       { method: 'GET', match: '/rest/v1/classrooms?id=eq.', reply: ok([{ id: CLASS_ID, archived_at: null, class_licenses: null }]) },
       { method: 'GET', match: '/rest/v1/class_licenses?owner_user_id', reply: leakyLicenses },

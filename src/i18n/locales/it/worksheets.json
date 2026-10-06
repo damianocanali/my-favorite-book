@@ -123,5 +123,9 @@
   "actions": {
     "print": "Stampa",
     "customize": "Personalizza"
+  },
+  "teacher": {
+    "assign_link": "Assegna una scheda a una classe",
+    "assign_hint": "Gli alunni la compilano sul proprio dispositivo e te la consegnano."
   }
 }

@@ -5,9 +5,9 @@
 // auth/consumer-only route guard.
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Printer, SlidersHorizontal } from 'lucide-react'
+import { Printer, SlidersHorizontal, ClipboardList } from 'lucide-react'
 import i18next, { loadLocale } from '../i18n/index.js'
 import WorksheetSheet from '../components/worksheets/sheets.jsx'
 import WorksheetThumbnail from '../components/worksheets/WorksheetThumbnail'
@@ -15,6 +15,8 @@ import CustomizePanel from '../components/worksheets/CustomizePanel'
 import { WORKSHEET_TEMPLATES, GRADE_BANDS, getWorksheetTemplate } from '../lib/worksheets/templates.js'
 import { parseWorksheetParams } from '../lib/worksheets/params.js'
 import { parseNameList } from '../lib/worksheets/names.js'
+import { useTeacherMode } from '../hooks/useTeacherMode'
+import { ASSIGN_WORKSHEET_HREF } from '../components/school/assignIntent.js'
 import { enterWorksheetsPrintMode, exitWorksheetsPrintMode } from '../components/school/printMode.js'
 
 const DEFAULT_VALUES = { prompt: '', className: '', teacherName: '', sheetLocale: 'en', namesRaw: '' }
@@ -22,6 +24,9 @@ const DEFAULT_VALUES = { prompt: '', className: '', teacherName: '', sheetLocale
 export default function WorksheetsPage() {
   const { t, i18n } = useTranslation(['worksheets', 'checkin', 'games'])
   const [searchParams] = useSearchParams()
+  // A signed-in teacher reaches this page from their own Worksheets tab;
+  // they also get the way into assigning one (the public visitor doesn't).
+  const teacherMode = useTeacherMode()
 
   // Cross-namespace wrappers so sheets.jsx (and its thumbnails) can take a
   // single `t`/`tCheckin`/`tGames` prop each already scoped to the right
@@ -126,6 +131,17 @@ export default function WorksheetsPage() {
       <div className="text-center max-w-2xl mx-auto mb-8">
         <h1 className="font-heading text-3xl font-bold text-galaxy-text mb-2">{t('page.title')}</h1>
         <p className="text-galaxy-text-muted font-body">{t('page.intro')}</p>
+        {teacherMode && (
+          <div className="mt-5 flex flex-col items-center gap-1.5">
+            <Link
+              to={ASSIGN_WORKSHEET_HREF}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-body font-bold text-white btn-fill-primary transition-colors"
+            >
+              <ClipboardList size={16} aria-hidden="true" /> {t('teacher.assign_link')}
+            </Link>
+            <p className="text-xs text-galaxy-text-muted font-body">{t('teacher.assign_hint')}</p>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">

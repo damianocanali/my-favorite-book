@@ -2,12 +2,11 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { motion } from 'motion/react'
-import { GraduationCap, BookOpenCheck, ChevronRight, Printer } from 'lucide-react'
+import { GraduationCap, ChevronRight, Printer } from 'lucide-react'
 import { schoolFetch } from '../lib/schoolApi'
 import { teacherErrorText } from '../components/school/teacherErrors'
 import { sortHelp, filterRecentlySeen, SEEN_SUPPRESS_MS } from '../lib/dashboardHelp'
 import { getRememberedClassId, setRememberedClassId, pickClassId } from '../lib/dashboardClass'
-import { enterKidsPreview } from '../lib/viewMode'
 import NeedsYouNow from '../components/school/NeedsYouNow'
 import ClassGlance from '../components/school/ClassGlance'
 import StudentsTable from '../components/school/StudentsTable'
@@ -225,14 +224,6 @@ export default function TeacherDashboardPage() {
               ))}
             </select>
           )}
-          <Link
-            to="/bookshelf"
-            onClick={enterKidsPreview}
-            className="flex items-center gap-1.5 font-body text-sm font-semibold text-galaxy-secondary hover:underline"
-          >
-            <BookOpenCheck size={16} />
-            {t('school:teacher.dashboard.preview_link')}
-          </Link>
           {/* Task WS: a small, low-key entry point to the free public
               worksheets library (brief §4) — not a headline action, so it
               gets the muted treatment rather than sharing the primary

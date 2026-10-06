@@ -5,9 +5,12 @@
 import { useTranslation } from 'react-i18next'
 import { trialDaysLeft } from './rosterText'
 import { isLicenseUsable } from '../../../lib/school/license.js'
+import { useIsBillingAdmin } from '../../hooks/useIsBillingAdmin'
+import { forBillingRole } from './billingCopy'
 
 export default function LicenseBadge({ license, now = new Date(), className = '' }) {
   const { t } = useTranslation()
+  const billingAdmin = useIsBillingAdmin()
 
   // key/count decide the copy; tone decides the color. A trial with days
   // left and an active/comped license all read as "good news" (ok); a
@@ -53,7 +56,7 @@ export default function LicenseBadge({ license, now = new Date(), className = ''
   // buy their way past this yet — surface that as a hover title rather
   // than more badge text, since the badge itself must never carry a price
   // or checkout link.
-  const title = tone === 'warn' ? t('school:teacher.license.coming_soon') : undefined
+  const title = tone === 'warn' ? t(forBillingRole('school:teacher.license.coming_soon', billingAdmin)) : undefined
 
   const toneClasses = {
     ok: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30',

@@ -22,10 +22,10 @@ describe('Stage 4 web', () => {
     expect(page).toMatch(/id=\{k === 'ndpa' \? 'ndpa' : undefined\}/)
   })
 
-  it('routes: public /schools, protected /teacher/school', () => {
+  it('routes: public /schools, protected + billing-admin-only /teacher/school', () => {
     const app = read('src/App.jsx')
     expect(app).toMatch(/<Route path="\/schools" element=\{<SchoolsPricingPage \/>\} \/>/)
-    expect(app).toMatch(/path="\/teacher\/school"[\s\S]{0,120}<ProtectedRoute>[\s\S]{0,80}<TeacherSchoolPlanPage \/>/)
+    expect(app).toMatch(/path="\/teacher\/school"[\s\S]{0,120}<ProtectedRoute>[\s\S]{0,120}<BillingAdminRoute>\s*<TeacherSchoolPlanPage \/>/)
   })
 
   it('the class page shows Plan & billing; the admin page has the verification queue', () => {

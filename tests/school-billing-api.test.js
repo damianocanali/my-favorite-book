@@ -8,8 +8,11 @@ const CLASS_ID = '6f1c1b1e-0000-4000-8000-000000000001'
 const PLAN_ID = '6f1c1b1e-0000-4000-8000-0000000000f1'
 const RID = '6f1c1b1e-0000-4000-8000-0000000000ab'
 const OFFER_ID = '6f1c1b1e-0000-4000-8000-0000000000f2'
-const VERIFIED = { id: 'teacher-1', email: 'pat@lincoln.edu', email_confirmed_at: 'x', app_metadata: { teacher_verified_at: '2026-09-01T00:00:00Z', teacher_verified_by: 'domain' } }
-const UNVERIFIED = { id: 'teacher-1', email: 'pat@gmail.com', email_confirmed_at: 'x', app_metadata: {} }
+// Owner feedback round 5: purchases need a school billing admin
+// (lib/school/billingAdmin.js); TEACHER is the same teacher without the flag.
+const VERIFIED = { id: 'teacher-1', email: 'pat@lincoln.edu', email_confirmed_at: 'x', app_metadata: { teacher_verified_at: '2026-09-01T00:00:00Z', teacher_verified_by: 'domain', billing_admin: true } }
+const TEACHER = { ...VERIFIED, app_metadata: { teacher_verified_at: '2026-09-01T00:00:00Z', teacher_verified_by: 'domain' } }
+const UNVERIFIED = { id: 'teacher-1', email: 'pat@gmail.com', email_confirmed_at: 'x', app_metadata: { billing_admin: true } }
 const origEnv = { ...process.env }
 
 let log
@@ -536,5 +539,108 @@ describe('migration 034: seat-block RPC', () => {
   it('is service-role only; pictures still count pending_payment as usable', () => {
     expect(sql).toMatch(/revoke all on function public\.school_plan_assign\(uuid, uuid, int, uuid\) from public, anon, authenticated/)
     expect(sql).toMatch(/lic\.status not in \('trial','pending_payment','active','grace','comped'\)/)
+  })
+})
+
+// Owner feedback round 5: pricing is negotiated with principals. An
+// ordinary teacher sees status only; buying, seat changes, the portal,
+// invoices and the school plan need the owner or app_metadata.billing_admin.
+describe('billing admins only (owner feedback round 5)', () => {
+  const denied = async (res) => {
+    expect(res.status).toBe(403)
+    expect((await res.json()).code).toBe('billing_admin_required')
+  }
+
+  it('a teacher without the flag cannot buy seats for a class or a school plan', async () => {
+    user = TEACHER
+    const handler = await load('checkout')
+    await denied(await handler(call('checkout', { body: buyClass() })))
+    await denied(await handler(call('checkout', { body: { kind: 'school', seats: 150, school_name: 'Lincoln', dpa_accept: true, billing: 'card' } })))
+    expect(stripeCalls).toEqual([])
+  })
+
+  it('the owner can, without the flag', async () => {
+    process.env.OWNER_USER_ID = 'teacher-1'
+    user = TEACHER
+    const handler = await load('checkout')
+    const res = await handler(call('checkout', { body: buyClass() }))
+    expect(res.status).not.toBe(403)
+  })
+
+  it('class billing, not the payer: status only; portal and invoices are not theirs, seats refused', async () => {
+    user = TEACHER
+    const someoneElses = { ...cardLicense, owner_user_id: 'other-teacher' }
+    routes.push(ownerRoute, licenseRoute(someoneElses), students(18))
+    const handler = await load('billing')
+    const get = await (await handler(call('billing', { method: 'GET', query: `?classId=${CLASS_ID}` }))).json()
+    expect(get).toMatchObject({ billing_admin: false, can_manage_billing: false, license: { status: 'active', seats: 25 } })
+    expect(await (await handler(call('billing', { method: 'GET', query: `?classId=${CLASS_ID}&invoices=1` }))).json()).toEqual({ invoices: [] })
+    const portal = await handler(call('billing', { body: { classId: CLASS_ID, action: 'portal' } }))
+    expect(portal.status).toBe(403)
+    expect((await portal.json()).code).toBe('not_payer')
+    await denied(await handler(call('billing', { body: { classId: CLASS_ID, action: 'seats', seats: 30, request_id: RID } })))
+    expect(stripeCalls).toEqual([])
+  })
+
+  it('the PAYER without the flag can always reach the portal and invoices (e.g. a failing card), but not seat changes', async () => {
+    user = TEACHER
+    routes.push(ownerRoute, licenseRoute(cardLicense), students(18))
+    stripeReplies['POST billing_portal/sessions'] = { ok: true, data: { url: 'https://billing.stripe.test/p' } }
+    stripeReplies['GET invoices'] = { ok: true, data: { data: [] } }
+    const handler = await load('billing')
+    const get = await (await handler(call('billing', { method: 'GET', query: `?classId=${CLASS_ID}` }))).json()
+    expect(get).toMatchObject({ billing_admin: false, can_manage_billing: true })
+    const inv = await handler(call('billing', { method: 'GET', query: `?classId=${CLASS_ID}&invoices=1` }))
+    expect(inv.status).toBe(200)
+    const portal = await handler(call('billing', { body: { classId: CLASS_ID, action: 'portal' } }))
+    expect(portal.status).toBe(200)
+    await denied(await handler(call('billing', { body: { classId: CLASS_ID, action: 'seats', seats: 30, request_id: RID } })))
+    expect(stripeCalls.some((c) => c.path.startsWith('subscriptions') || c.path.startsWith('invoiceitems'))).toBe(false)
+  })
+
+  it('a school plan owner without the flag can open its portal and invoices, nothing else', async () => {
+    user = TEACHER
+    routes.push({ method: 'GET', match: '/rest/v1/school_plans?id=eq.', reply: { body: [{ id: PLAN_ID, owner_user_id: 'teacher-1', stripe_customer_id: 'cus_p', stripe_subscription_id: 'sub_p', status: 'active', seats: 150 }] } })
+    stripeReplies['POST billing_portal/sessions'] = { ok: true, data: { url: 'https://billing.stripe.test/p' } }
+    stripeReplies['GET invoices'] = { ok: true, data: { data: [] } }
+    const handler = await load('plan')
+    expect((await handler(call('plan', { method: 'GET', query: `?planId=${PLAN_ID}&invoices=1` }))).status).toBe(200)
+    expect((await handler(call('plan', { body: { action: 'portal', planId: PLAN_ID } }))).status).toBe(200)
+    await denied(await handler(call('plan', { body: { action: 'seats', planId: PLAN_ID, seats: 200, request_id: RID } })))
+    await denied(await handler(call('plan', { method: 'GET' })))
+  })
+
+  it("someone else's plan: no portal for a teacher without the flag", async () => {
+    user = TEACHER
+    const handler = await load('plan')
+    const res = await handler(call('plan', { body: { action: 'portal', planId: PLAN_ID } }))
+    expect(res.status).toBe(404)
+  })
+
+  it('a flagged billing admin gets billing_admin true', async () => {
+    routes.push(ownerRoute, licenseRoute(cardLicense), students(18))
+    const handler = await load('billing')
+    const get = await (await handler(call('billing', { method: 'GET', query: `?classId=${CLASS_ID}` }))).json()
+    expect(get).toMatchObject({ billing_admin: true, can_manage_billing: true })
+  })
+
+  it('a teacher without the flag can still accept seats their school offered (no money moves)', async () => {
+    user = TEACHER
+    routes.push(
+      { method: 'GET', match: '/rest/v1/school_seat_offers?id=eq.', reply: { body: [{ id: OFFER_ID, plan_id: PLAN_ID, classroom_id: CLASS_ID, seats: 24, classrooms: { owner_user_id: 'teacher-1' } }] } },
+      { method: 'POST', match: '/rest/v1/rpc/school_plan_assign', reply: { body: { ok: true, license_id: 'lic-9' } } },
+    )
+    const handler = await load('billing')
+    const res = await handler(call('billing', { body: { action: 'offer_accept', offerId: OFFER_ID } }))
+    expect(res.status).toBe(200)
+  })
+
+  it('the school plan page API refuses a teacher without the flag (list, assign, offer)', async () => {
+    user = TEACHER
+    const handler = await load('plan')
+    await denied(await handler(call('plan', { method: 'GET' })))
+    await denied(await handler(call('plan', { body: { action: 'assign', planId: PLAN_ID, classId: CLASS_ID, seats: 10 } })))
+    await denied(await handler(call('plan', { body: { action: 'offer', planId: PLAN_ID, code: 'ABCD', seats: 10 } })))
+    expect(log.some((l) => l.u.includes('/rest/v1/school_plans'))).toBe(false)
   })
 })

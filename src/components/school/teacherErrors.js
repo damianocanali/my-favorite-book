@@ -21,7 +21,13 @@ const FRAGMENT_CODES = new Set(['duplicate_name', 'create_failed'])
 // version_changed / cannot_return: api/school/grades.js.
 export const KNOWN_CODES = ['class_archived', 'version_changed', 'cannot_return']
 
-export function errorKeyFor(code, { standalone = true } = {}) {
+// Owner feedback round 5: these codes tell an ordinary teacher to ask their
+// school; a billing admin (or the owner), who has Plan & billing right on
+// the class page, gets the `_billing_admin` sentence that points there.
+const BILLING_ROLE_CODES = new Set(['license_required', 'over_seats'])
+
+export function errorKeyFor(code, { standalone = true, billingAdmin = false } = {}) {
+  if (billingAdmin && BILLING_ROLE_CODES.has(code)) return `${code}_billing_admin`
   if (standalone && FRAGMENT_CODES.has(code)) return `${code}_full`
   return code
 }

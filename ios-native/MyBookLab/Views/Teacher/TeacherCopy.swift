@@ -14,6 +14,18 @@ enum TeacherCopy {
     static var tabDashboard: LocalizedStringResource { AppText("school.teacher.tabs.dashboard", defaultValue: "Dashboard") }
     static var tabClasses: LocalizedStringResource { AppText("school.teacher.tabs.classes", defaultValue: "Classes") }
     static var tabAccount: LocalizedStringResource { AppText("school.teacher.tabs.account", defaultValue: "Account") }
+    static var tabWorksheets: LocalizedStringResource { AppText("school.teacher.tabs.worksheets", defaultValue: "Worksheets") }
+
+    // MARK: Worksheets tab (owner feedback round 5)
+
+    static var worksheetsTitle: LocalizedStringResource { AppText("school.teacher.worksheet_library.title", defaultValue: "Worksheets") }
+    static var worksheetsIntro: LocalizedStringResource { AppText("school.teacher.worksheet_library.intro", defaultValue: "Worksheets your class can fill in on their own device, or that you can print blank for paper.") }
+    static var worksheetsPreview: LocalizedStringResource { AppText("school.teacher.worksheet_library.preview", defaultValue: "Preview") }
+    static var worksheetsAssign: LocalizedStringResource { AppText("school.teacher.worksheet_library.assign", defaultValue: "Assign to a class") }
+    static var worksheetsPickClass: LocalizedStringResource { AppText("school.teacher.worksheet_library.pick_class", defaultValue: "Choose a class") }
+    static var worksheetsNoClasses: LocalizedStringResource { AppText("school.teacher.worksheet_library.no_classes", defaultValue: "Create a class first, in Classes.") }
+    static func worksheetsSaved(_ className: String) -> LocalizedStringResource { AppText("school.teacher.worksheet_library.saved", defaultValue: "Saved in \(className).") }
+    static var worksheetsOpenClass: LocalizedStringResource { AppText("school.teacher.worksheet_library.open_class", defaultValue: "Open class") }
     static var switchToFamily: LocalizedStringResource { AppText("school.teacher.view.switch_to_family", defaultValue: "Switch to family view") }
     static var switchToTeacher: LocalizedStringResource { AppText("school.teacher.view.switch_to_teacher", defaultValue: "Switch to teacher view") }
     static var retry: LocalizedStringResource { AppText("school.teacher.retry", defaultValue: "Try again") }
@@ -425,7 +437,7 @@ enum TeacherCopy {
     static var deleting: LocalizedStringResource { AppText("school.teacher.data.deleting", defaultValue: "Deleting…") }
 
     // MARK: Plan (Stage 4) — status and seats only. No price, no purchase,
-    // no link: buying happens on the website (App Store 3.1.3).
+    // no link (App Store 3.1.3); plans are arranged with the school.
     static var planHeading: LocalizedStringResource { AppText("school.teacher.plan.heading", defaultValue: "Plan") }
     static func planSeats(used: Int, total: Int) -> LocalizedStringResource {
         AppText("school.teacher.plan.seats", defaultValue: "\(used) of \(total) seats used")
@@ -440,8 +452,9 @@ enum TeacherCopy {
         AppText("school.teacher.plan.ends", defaultValue: "Ends on \(date)")
     }
     static var planSchool: LocalizedStringResource { AppText("school.teacher.plan.school", defaultValue: "Seats from your school's plan") }
-    /// Plain text on purpose: not a link (3.1.3).
-    static var planManageOnWeb: LocalizedStringResource { AppText("school.teacher.plan.manage_on_web", defaultValue: "Manage your plan on mybooklab.app") }
+    /// Plans are arranged with the school, not by each teacher (owner
+    /// feedback round 5): no link, no website, no price.
+    static var planAskSchool: LocalizedStringResource { AppText("school.teacher.plan.ask_school", defaultValue: "Questions about your plan? Ask your school.") }
 
     // MARK: Verification (Stage 4)
     static var verifyTitle: LocalizedStringResource { AppText("school.teacher.verify.title", defaultValue: "We're confirming you're a teacher") }

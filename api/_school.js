@@ -4,6 +4,7 @@ import { verifyJwt } from './_auth.js'
 import { withCors } from './_rateLimit.js'
 import { STUDENT_DAILY_IMAGES } from '../lib/school/license.js'
 import { verificationState, writeVerification } from '../lib/school/teacherVerification.js'
+import { isBillingAdmin, BILLING_ADMIN_REQUIRED } from '../lib/school/billingAdmin.js'
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 export const isUuid = (s) => typeof s === 'string' && UUID_RE.test(s)
@@ -140,6 +141,26 @@ export async function requireVerifiedTeacher(req) {
     return fail(req, 403, 'teacher_unverified', "We're confirming you're a teacher — usually within a day")
   }
   return { ok: true, auth: t.auth, verification: v }
+}
+
+/// requireVerifiedTeacher + a school billing admin (owner feedback round 5):
+/// buying, seat changes, the Stripe portal, invoices and school-plan admin.
+/// Everyone else gets 403 billing_admin_required — plans are arranged with
+/// the school, not by each teacher.
+export async function requireBillingAdmin(req) {
+  const t = await requireVerifiedTeacher(req)
+  if (!t.ok) return t
+  if (!isBillingAdmin(t.auth, process.env.OWNER_USER_ID)) {
+    return fail(req, 403, BILLING_ADMIN_REQUIRED, 'Plans are arranged with your school')
+  }
+  return t
+}
+
+/// For an endpoint that already holds a verified auth (e.g. requireClassOwner).
+export function billingAdminFailure(req, auth) {
+  return isBillingAdmin(auth, process.env.OWNER_USER_ID)
+    ? null
+    : json(req, 403, { error: 'Plans are arranged with your school', code: BILLING_ADMIN_REQUIRED })
 }
 
 export async function requireClassOwner(req, classroomId) {

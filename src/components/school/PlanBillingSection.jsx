@@ -5,12 +5,19 @@
 // Prices are DISPLAYED from lib/school/pricing.js (the server's copy); the
 // server charges the Stripe Price for the same tier, never an amount from
 // here. The iPad shows status and seats only, never a price (App Store 3.1.3).
+//
+// Owner feedback round 5: only school billing admins (the owner, or
+// app_metadata.billing_admin — lib/school/billingAdmin.js; the server says
+// which in `billing_admin`) see any of the above. Every other teacher gets
+// PlanStatus: one neutral line (planStatus.js), seats used, a school
+// plan's name and seat offers to accept — no price, no buy, no portal.
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { CreditCard, ExternalLink, Receipt } from 'lucide-react'
+import { CreditCard, ExternalLink, Receipt, BadgeCheck } from 'lucide-react'
 import { schoolFetch } from '../../lib/schoolApi'
 import { teacherErrorText } from './teacherErrors'
+import { neutralPlanStatus } from './planStatus'
 import { formatDate, formatMoneyCents } from '../../i18n/formats'
 import {
   quoteClass, seatAddQuote, isFoundingEligible, MIN_CLASS_SEATS, MIN_SCHOOL_SEATS, MAX_CLASS_SEATS, FOUNDING_LAST_DAY
@@ -34,6 +41,75 @@ function StatusLine({ license, t }) {
       <p className="font-body font-semibold text-galaxy-text">{t(`school:teacher.billing.status.${license.status}`, { defaultValue: license.status })}</p>
       {when && <p className="text-sm font-body text-galaxy-text-muted">{when}</p>}
     </div>
+  )
+}
+
+// The payer's own tools (owner feedback round 5 follow-up): whoever
+// actually pays for this class — billing admin or not — can open the
+// Stripe portal (e.g. to fix a failing card) and see its invoices. Shown
+// only when the server says can_manage_billing (the payer, with a Stripe
+// customer). No buy form, no seat changes here.
+function PayerTools({ busy, invoices, onPortal, t }) {
+  const secondary = 'inline-flex items-center gap-1.5 px-3 py-2 rounded-xl font-body text-sm text-galaxy-text border border-galaxy-text-muted/20 hover:border-galaxy-text-muted/40 transition-colors disabled:opacity-50'
+  return (
+    <div className="space-y-3 border-t border-galaxy-text-muted/10 pt-4">
+      <button className={secondary} disabled={!!busy} onClick={onPortal}>
+        <ExternalLink size={14} /> {t('school:teacher.billing.manage')}
+      </button>
+      <div className="space-y-2">
+        <h3 className="font-heading font-semibold text-galaxy-text flex items-center gap-2"><Receipt size={16} /> {t('school:teacher.billing.invoices.heading')}</h3>
+        {invoices && invoices.length === 0 && <p className="text-sm font-body text-galaxy-text-muted">{t('school:teacher.billing.invoices.none')}</p>}
+        {invoices?.map((i) => (
+          <div key={i.id} className="flex flex-wrap items-center gap-3 text-sm font-body text-galaxy-text">
+            <span>{formatDate(i.created)}</span>
+            <span>{i.number}</span>
+            <span>{formatMoneyCents(i.status === 'paid' ? i.amount_paid : i.amount_due, (i.currency || 'usd').toUpperCase())}</span>
+            <span className="text-galaxy-text-muted">{t(`school:teacher.billing.invoices.status.${i.status}`, { defaultValue: i.status })}</span>
+            {i.hosted_invoice_url && (
+              <a href={i.hosted_invoice_url} target="_blank" rel="noreferrer" className="underline">{t('school:teacher.billing.invoices.view')}</a>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function PlanStatus({ data, error, busy, invoices, onPortal, onAnswerOffer, t }) {
+  const license = data?.license ?? null
+  const status = neutralPlanStatus(license)
+  const line = status.key === 'trial'
+    ? t('school:teacher.plan_status.trial', { count: status.count })
+    : status.key === 'active_until'
+      ? t('school:teacher.plan_status.active_until', { date: formatDate(status.date, 'long') })
+      : t('school:teacher.plan_status.ask_school')
+  return (
+    <section className="glass rounded-2xl p-6 border border-galaxy-text-muted/10 space-y-3" aria-labelledby="plan-status-heading">
+      <h2 id="plan-status-heading" className="font-heading text-lg font-bold text-galaxy-text flex items-center gap-2">
+        <BadgeCheck size={18} /> {t('school:teacher.plan_status.heading')}
+      </h2>
+      {error && <p role="alert" className="text-sm font-body text-red-400">{teacherErrorText(t, error)}</p>}
+      <p className="font-body font-semibold text-galaxy-text">{line}</p>
+      {license && (
+        <div className="text-sm font-body text-galaxy-text-muted space-y-1">
+          <p>{t('school:teacher.billing.seats_used', { used: data.students, total: license.seats })}</p>
+          {data.plan && <p>{t('school:teacher.billing.school_plan', { school: data.plan.school_name })}</p>}
+        </div>
+      )}
+      {data.offers?.length > 0 && (
+        <div className="space-y-2">
+          <h3 className="font-heading font-semibold text-galaxy-text">{t('school:teacher.billing.offers.heading')}</h3>
+          {data.offers.map((o) => (
+            <div key={o.id} className="flex flex-wrap items-center gap-3">
+              <p className="text-sm font-body text-galaxy-text">{t('school:teacher.billing.offers.line', { school: o.school_name, count: o.seats })}</p>
+              <button className="px-4 py-2 rounded-xl font-body font-bold text-sm text-white btn-fill-primary transition-colors disabled:opacity-50" disabled={!!busy} onClick={() => onAnswerOffer(o.id, true)}>{t('school:teacher.billing.offers.accept')}</button>
+              <button className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl font-body text-sm text-galaxy-text border border-galaxy-text-muted/20 hover:border-galaxy-text-muted/40 transition-colors disabled:opacity-50" disabled={!!busy} onClick={() => onAnswerOffer(o.id, false)}>{t('school:teacher.billing.offers.decline')}</button>
+            </div>
+          ))}
+        </div>
+      )}
+      {data.can_manage_billing && <PayerTools busy={busy} invoices={invoices} onPortal={onPortal} t={t} />}
+    </section>
   )
 }
 
@@ -134,6 +210,16 @@ export default function PlanBillingSection({ classId, onChanged }) {
   const input = 'w-full px-3 py-2 rounded-xl bg-galaxy-bg/60 border border-galaxy-text-muted/20 text-galaxy-text font-body text-sm focus:outline-none focus:border-galaxy-primary'
   const primary = 'px-4 py-2 rounded-xl font-body font-bold text-sm text-white btn-fill-primary transition-colors disabled:opacity-50'
   const secondary = 'inline-flex items-center gap-1.5 px-3 py-2 rounded-xl font-body text-sm text-galaxy-text border border-galaxy-text-muted/20 hover:border-galaxy-text-muted/40 transition-colors disabled:opacity-50'
+
+  // Until the server answers, nothing that could flash a price.
+  if (!data) {
+    return error
+      ? <p role="alert" className="text-sm font-body text-red-400">{teacherErrorText(t, error)}</p>
+      : null
+  }
+  if (!data.billing_admin) {
+    return <PlanStatus data={data} error={error} busy={busy} invoices={invoices} onPortal={portal} onAnswerOffer={answerOffer} t={t} />
+  }
 
   return (
     <section className="glass rounded-2xl p-6 border border-galaxy-text-muted/10 space-y-5" aria-labelledby="plan-billing-heading">
@@ -237,28 +323,7 @@ export default function PlanBillingSection({ classId, onChanged }) {
             </div>
           )}
 
-          {data.can_manage_billing && (
-            <div className="space-y-3 border-t border-galaxy-text-muted/10 pt-4">
-              <button className={secondary} disabled={!!busy} onClick={portal}>
-                <ExternalLink size={14} /> {t('school:teacher.billing.manage')}
-              </button>
-              <div className="space-y-2">
-                <h3 className="font-heading font-semibold text-galaxy-text flex items-center gap-2"><Receipt size={16} /> {t('school:teacher.billing.invoices.heading')}</h3>
-                {invoices && invoices.length === 0 && <p className="text-sm font-body text-galaxy-text-muted">{t('school:teacher.billing.invoices.none')}</p>}
-                {invoices?.map((i) => (
-                  <div key={i.id} className="flex flex-wrap items-center gap-3 text-sm font-body text-galaxy-text">
-                    <span>{formatDate(i.created)}</span>
-                    <span>{i.number}</span>
-                    <span>{formatMoneyCents(i.status === 'paid' ? i.amount_paid : i.amount_due, (i.currency || 'usd').toUpperCase())}</span>
-                    <span className="text-galaxy-text-muted">{t(`school:teacher.billing.invoices.status.${i.status}`, { defaultValue: i.status })}</span>
-                    {i.hosted_invoice_url && (
-                      <a href={i.hosted_invoice_url} target="_blank" rel="noreferrer" className="underline">{t('school:teacher.billing.invoices.view')}</a>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+          {data.can_manage_billing && <PayerTools busy={busy} invoices={invoices} onPortal={portal} t={t} />}
         </>
       )}
     </section>

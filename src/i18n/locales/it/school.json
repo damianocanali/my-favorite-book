@@ -70,7 +70,6 @@
     "dashboard": {
       "title": "Dashboard",
       "loading": "Caricamento della tua dashboard…",
-      "preview_link": "Prova l'app dei bambini",
       "worksheets_link": "Schede stampabili gratuite",
       "class_switcher": {
         "aria_label": "Scegli una classe"
@@ -141,10 +140,13 @@
       "name_placeholder": "es. Classe 3ª della maestra Rossi",
       "submit": "Crea classe",
       "submitting": "Creazione…",
-      "trial_used_up": "Hai usato le tue 3 prove gratuite. Apri la classe e acquista i posti in Piano e pagamenti."
+      "trial_used_up": "Hai usato le tue 3 prove gratuite. Chiedi alla tua scuola un piano per altre classi.",
+      "trial_used_up_billing_admin": "Hai usato le tue 3 prove gratuite. Apri la classe e acquista i posti in Piano e pagamenti."
     },
     "list": {
-      "empty": "Ancora nessuna classe — creane una qui sopra per iniziare."
+      "empty": "Ancora nessuna classe — creane una qui sopra per iniziare.",
+      "assign_worksheet_hint": "Scegli la classe a cui assegnare una scheda.",
+      "assign_worksheet_no_classes": "Crea prima una classe (qui sopra), poi assegnale una scheda."
     },
     "card": {
       "code_label": "Codice",
@@ -161,7 +163,8 @@
       "comped": "Offerta",
       "expired": "Licenza scaduta",
       "none": "Nessuna licenza",
-      "coming_soon": "Apri Piano e pagamenti per acquistare i posti.",
+      "coming_soon": "Chiedi alla tua scuola del rinnovo.",
+      "coming_soon_billing_admin": "Apri Piano e pagamenti per acquistare i posti.",
       "pending_payment": "Fattura aperta"
     },
     "errors": {
@@ -170,7 +173,8 @@
       "bad_hours": "Controlla l'orario scolastico — ogni ora di fine deve essere dopo l'ora di inizio.",
       "rate_limited": "Troppe richieste — aspetta un momento e riprova.",
       "class_not_found": "Non troviamo questa classe.",
-      "license_required": "Questa classe ha bisogno di un piano attivo. Acquista i posti in Piano e pagamenti qui sotto.",
+      "license_required": "Questa classe ha bisogno di un piano attivo. Chiedi alla tua scuola del rinnovo.",
+      "license_required_billing_admin": "Questa classe ha bisogno di un piano attivo. Acquista i posti in Piano e pagamenti qui sotto.",
       "seats_full": "Questa classe è al completo — nessun posto disponibile.",
       "duplicate_name": "già in questa classe",
       "duplicate_name_full": "Un altro alunno ha già questo nome.",
@@ -224,7 +228,8 @@
       "bad_code": "Inserisci il codice della classe.",
       "bad_billing": "Scegli carta o fattura.",
       "no_email": "Il tuo account ha bisogno di un indirizzo email.",
-      "over_seats": "Questa classe ha più nomi che posti pagati. Aggiungi posti in Piano e pagamenti prima di aggiungere altri nomi.",
+      "over_seats": "Questa classe ha più nomi che posti. Chiedi alla tua scuola altri posti prima di aggiungere altri nomi.",
+      "over_seats_billing_admin": "Questa classe ha più nomi che posti pagati. Aggiungi posti in Piano e pagamenti prima di aggiungere altri nomi.",
       "too_many_children": "Più libri che posti pagati: togli alcuni nomi da questa stampa.",
       "plan_unpaid": "Puoi aggiungere posti dopo il pagamento della fattura.",
       "reason_required": "Serve un motivo.",
@@ -279,7 +284,8 @@
       "success_other": "Aggiunti {{count}} alunni.",
       "skipped_heading": "Non aggiunti",
       "skipped_line": "{{name}} — {{reason}}",
-      "license_blocked": "Questa classe ha bisogno di un piano attivo prima di poter aggiungere nomi. Acquista i posti in Piano e pagamenti qui sopra."
+      "license_blocked": "Questa classe ha bisogno di un piano attivo prima di poter aggiungere nomi. Chiedi alla tua scuola del rinnovo.",
+      "license_blocked_billing_admin": "Questa classe ha bisogno di un piano attivo prima di poter aggiungere nomi. Acquista i posti in Piano e pagamenti qui sopra."
     },
     "roster": {
       "heading": "Alunni",
@@ -453,7 +459,7 @@
     },
     "verify": {
       "title": "Stiamo verificando che insegni",
-      "body": "Di solito ci vuole meno di un giorno. Nel frattempo puoi dare un'occhiata, ma non puoi creare classi, iniziare una prova gratuita, aggiungere nomi alle classi o acquistare posti.",
+      "body": "Di solito ci vuole meno di un giorno. Nel frattempo puoi dare un'occhiata, ma non puoi creare classi, iniziare una prova gratuita o aggiungere nomi alle classi.",
       "school_email_hint": "Se ti registri con l'email della scuola (per esempio una che finisce in .edu o .k12.ca.us) la verifica è immediata.",
       "unconfirmed_hint": "Prima conferma il tuo indirizzo email: cerca il nostro link nella posta in arrivo.",
       "school_name": "Nome della scuola (facoltativo)",
@@ -561,7 +567,7 @@
       },
       "offer": {
         "heading": "Assegna posti a un'altra classe della scuola",
-        "hint": "Chiedi il codice della classe a chi la gestisce. Non cambia nulla finché non accetta nella sezione Piano e pagamenti della classe.",
+        "hint": "Chiedi il codice della classe a chi la gestisce. Non cambia nulla finché non accetta nella pagina della classe.",
         "code": "Codice della classe",
         "seats": "Posti",
         "button": "Invia l'offerta",
@@ -582,6 +588,13 @@
       "unpaid_note": "Finché la fattura non è pagata: 50 immagini per posto, niente stampa della classe e nessun posto in più.",
       "seat_add_pending": "Sale a {{count}} posti appena la fattura è pagata (scadenza {{date}}).",
       "seat_add_sent": "Fattura inviata per i posti in più. Si aggiungono appena è pagata."
+    },
+    "plan_status": {
+      "heading": "Piano",
+      "trial_one": "Prova gratuita — {{count}} giorno rimasto",
+      "trial_other": "Prova gratuita — {{count}} giorni rimasti",
+      "active_until": "Attivo fino al {{date}}",
+      "ask_school": "Chiedi alla tua scuola del rinnovo."
     }
   },
   "student": {
@@ -1029,7 +1042,8 @@
       "downloading": "Preparazione del PDF…",
       "print_heading": "Stampa i libri della classe",
       "print_intro": "Una copia in brossura per ogni bambino e bambina, spedita alla scuola in un'unica scatola.",
-      "print_needs_license": "La stampa è inclusa con una licenza a pagamento.",
+      "print_needs_license": "La stampa è inclusa nel piano della tua scuola.",
+      "print_needs_license_billing_admin": "La stampa è inclusa con una licenza a pagamento.",
       "print_start": "Stampa i libri della classe",
       "address_heading": "Dove spediamo i libri?",
       "field": {
@@ -1071,7 +1085,8 @@
       },
       "failed_hint": "Qualcosa non è andato con la tipografia. Ti contatteremo.",
       "books_missing": "Non siamo riusciti a preparare i libri per questa richiesta. Annullala e riprova.",
-      "over_seats": "Questa classe ha {{seats}} posti pagati, quindi si stampano fino a {{seats}} libri. Togli la spunta finché ne restano {{seats}} o meno (ora {{count}}), oppure aggiungi posti in Piano e pagamenti."
+      "over_seats": "Questa classe ha {{seats}} posti, quindi si stampano fino a {{seats}} libri. Togli la spunta finché ne restano {{seats}} o meno (ora {{count}}), oppure chiedi alla tua scuola altri posti.",
+      "over_seats_billing_admin": "Questa classe ha {{seats}} posti pagati, quindi si stampano fino a {{seats}} libri. Togli la spunta finché ne restano {{seats}} o meno (ora {{count}}), oppure aggiungi posti in Piano e pagamenti."
     },
     "preview": {
       "heading": "Il libro di {{name}}",

@@ -1,5 +1,9 @@
 // School plan administration (Stage 4) — the school admin is the verified
-// teacher who bought the plan. Web only.
+// teacher who bought the plan. Web only. Every call needs a school billing
+// admin (owner feedback round 5, lib/school/billingAdmin.js): anyone else
+// gets 403 billing_admin_required — except the portal and invoices, which
+// the plan's own owner (its payer) can always reach for THAT plan, flag or
+// not (ownPlan is the gate there).
 //
 // GET                         → { plans: [{ ...plan, used, blocks: [{ classroom_id, class_name, seats, mine }], offers }] }
 // GET  ?planId=&invoices=1    → { invoices }
@@ -17,7 +21,7 @@
 export const config = { runtime: 'edge' }
 
 import { handleCors, checkRateLimit } from '../_rateLimit.js'
-import { requireTeacher, requireVerifiedTeacher, sb, json, isUuid } from '../_school.js'
+import { requireTeacher, requireVerifiedTeacher, billingAdminFailure, sb, json, isUuid } from '../_school.js'
 import { checkoutBaseUrl } from '../_origin.js'
 import { stripe as defaultStripe } from '../../lib/school/stripe.js'
 import { listInvoices, portalUrl, subscriptionItem, setQuantity, chargeSeatAdd } from '../../lib/school/billingApi.js'
@@ -85,6 +89,8 @@ export default async function handler(req) {
         if (!invoices) return json(req, 502, { error: 'Could not load invoices', code: 'upstream' })
         return json(req, 200, { invoices })
       }
+      const denied = billingAdminFailure(req, t.auth)
+      if (denied) return denied
       const res = await sb(`/rest/v1/school_plans?owner_user_id=eq.${encodeURIComponent(t.auth.userId)}&select=${PLAN_COLS}&order=created_at.desc`)
       if (!res.ok) return json(req, 502, { error: 'Could not load the plan', code: 'upstream' })
       const plans = []
@@ -106,6 +112,12 @@ export default async function handler(req) {
     }
     const body = await req.json().catch(() => ({}))
     const userId = t.auth.userId
+    // The plan's payer may always open its portal (ownPlan below is the
+    // gate); everything else is billing-admin work.
+    if (body.action !== 'portal') {
+      const denied = billingAdminFailure(req, t.auth)
+      if (denied) return denied
+    }
 
     if (body.action === 'cancel_offer') {
       if (!isUuid(body.offerId)) return json(req, 400, { error: 'Invalid offer', code: 'bad_request' })

@@ -95,7 +95,7 @@ export default function StudentDetailDrawer({ classId, student, nudge = null, on
         role="dialog"
         aria-modal="true"
         aria-label={heading}
-        className="w-full max-w-2xl max-h-[90vh] overflow-y-auto glass rounded-2xl p-6 border border-galaxy-text-muted/10 focus:outline-none"
+        className="w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-galaxy-bg-light rounded-2xl p-6 border border-galaxy-text-muted/10 focus:outline-none"
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
       >

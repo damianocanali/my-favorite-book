@@ -230,10 +230,13 @@ describe('no prices in the iOS teacher area (App Store 3.1.3)', () => {
     expect(bad).toEqual([])
   })
 
-  it('the plan card says where to manage the plan as plain text, never a link', () => {
+  // Owner feedback round 5: plans are arranged with the school, so the
+  // card says "ask your school" — no website, no link.
+  it('the plan card points teachers to their school, never a link or the website', () => {
     const src = readFileSync(`${ROOT}/Views/Teacher/TeacherComponents.swift`, 'utf8')
     const card = src.slice(src.indexOf('struct TeacherPlanCard'), src.indexOf('struct TeacherVerificationCard'))
-    expect(card).toMatch(/Text\(verbatim: String\(appLocalized: TeacherCopy\.planManageOnWeb\)\)/)
-    expect(card).not.toMatch(/\bLink\(|openURL|URL\(string/)
+    expect(card).toMatch(/Text\(TeacherCopy\.planAskSchool\)/)
+    expect(card).not.toMatch(/\bLink\(|openURL|URL\(string|planManageOnWeb/)
+    expect(readFileSync(`${ROOT}/Views/Teacher/TeacherCopy.swift`, 'utf8')).not.toMatch(/mybooklab\.app"\)/)
   })
 })
