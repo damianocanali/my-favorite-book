@@ -1,4 +1,11 @@
 # Dependency update PRs (privacy review §7 item 25).
+#
+# Kept deliberately quiet: one grouped PR a month for minor/patch updates and
+# one for GitHub Actions. Major versions (Tailwind, Capacitor, Vitest,
+# Puppeteer, RevenueCat, Stripe, Motion…) are ignored here and upgraded on
+# purpose, one at a time with testing — a major bump can break the build,
+# printing or the native shells.
+#
 # Swift packages: Dependabot's "swift" ecosystem only reads Package.swift
 # manifests; the iPad app declares its packages in ios-native/project.yml
 # (XcodeGen) / the .xcodeproj, which Dependabot can't parse — so those are
@@ -8,12 +15,22 @@ updates:
   - package-ecosystem: npm
     directory: /
     schedule:
-      interval: weekly
-    open-pull-requests-limit: 10
+      interval: monthly
+    open-pull-requests-limit: 2
     groups:
       minor-and-patch:
         update-types: [minor, patch]
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: monthly
+    open-pull-requests-limit: 1
+    groups:
+      actions:
+        patterns: ["*"]
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
