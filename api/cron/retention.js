@@ -18,6 +18,11 @@
 //                       deletion_log row)
 //   order_pdfs          consumer print PDFs (lib/print/orderRetention.js)
 //   vendor_retries      queued Stripe / RevenueCat deletions
+//   atlas_referrals     Atlas referral reports/refunds due a retry, stale
+//                       claims released, expired iOS codes deleted
+//                       (lib/atlas/report.js). The Atlas retries are NOT
+//                       deletions, so they run even on a dry run; only the
+//                       code clean-up is gated by it.
 //
 // DRY RUN: RETENTION_DRY_RUN is "true" unless it is exactly "false". A dry
 // run reads only — it deletes nothing, emails no teacher, stamps nothing —
@@ -39,6 +44,7 @@ import { purgeOldOrderPdfs } from '../../lib/print/orderRetention.js'
 import { retryVendorDeletions } from '../../lib/vendorDeletion.js'
 import { startDeletionLog, finishDeletionLog, studentCounts, countRows } from '../../lib/school/deletionLog.js'
 import { sendOwnerAlert, summaryLines } from '../../lib/notify/ownerAlert.js'
+import { runAtlasCron } from '../../lib/atlas/report.js'
 
 export const CHECKIN_RETENTION_DAYS = 30
 export const ATTEMPT_RETENTION_DAYS = 30
@@ -236,6 +242,7 @@ export async function GET(req) {
   result.legacy_submissions = await job('legacy_submissions', () => legacySubmissions(sb, now, dryRun))
   result.order_pdfs = await job('order_pdfs', () => purgeOldOrderPdfs({ supabaseUrl, serviceKey, now: now.getTime(), dryRun }))
   result.vendor_retries = await job('vendor_retries', () => retryVendorDeletions(sb, ctx, { dryRun }))
+  result.atlas_referrals = await job('atlas_referrals', () => runAtlasCron(sb, { now, dryRun }))
 
   const failed = Object.values(result).reduce((n, r) => n + (r?.failed ?? 0), 0)
   const unsendable = result.licenses?.unsendable ?? []

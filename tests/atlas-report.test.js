@@ -248,3 +248,21 @@ describe('secrets never reach the logs', () => {
     expect(all).not.toContain(t.payload.n) // only a prefix
   })
 })
+
+describe('nightly cron', () => {
+  it('a dry run still retries Atlas reports but deletes no codes', async () => {
+    await referred()
+    await recordFirstPayment({ userId: USER, externalRef: 'sub_1' }, { ...deps(), cfg: { ...cfg, callbacks: false } })
+    db.t('atlas_referral_codes').push({ code: 'ZZZZZZZZ', nonce: 'x', token: 't', expires_at: '2000-01-01T00:00:00.000Z' })
+    const out = await runAtlasCron(db.sb, { cfg, fetchImpl: atlas, dryRun: true })
+    expect(out.reported).toBe(1)
+    expect(db.t('atlas_referral_codes')).toHaveLength(1)
+    await runAtlasCron(db.sb, { cfg, fetchImpl: atlas, dryRun: false })
+    expect(db.t('atlas_referral_codes')).toHaveLength(0)
+  })
+  it('is wired into api/cron/retention.js', async () => {
+    const { readFileSync } = await import('node:fs')
+    const src = readFileSync('api/cron/retention.js', 'utf8')
+    expect(src).toContain("result.atlas_referrals = await job('atlas_referrals', () => runAtlasCron(sb, { now, dryRun }))")
+  })
+})
