@@ -8,6 +8,7 @@ import { useCheckInStore } from './useCheckInStore'
 import { usePrintOrderStore } from './usePrintOrderStore'
 import { clearClassDeviceSkip } from '../lib/classDevice'
 import { Capacitor } from '@capacitor/core'
+import { attachReferralIfPending } from '../lib/atlasReferral'
 
 // getSession() should be near-instant — it reads the stored session and
 // only triggers a background refresh if it's near expiry — but a broken
@@ -84,6 +85,8 @@ export const useAuthStore = create((set, get) => ({
       useAvatarStore.getState().loadInventory()
       useRewardsStore.getState().loadBadges()
       useRewardsStore.getState().loadStreak()
+      // An OAuth return lands here with its session already in place.
+      attachReferralIfPending(user.id)
     }
     supabase.auth.onAuthStateChange((_event, session) => {
       const newUser = session?.user ?? null
@@ -112,6 +115,9 @@ export const useAuthStore = create((set, get) => ({
       set({ user: newUser })
       setBookshelfUserId(newUser?.id ?? null)
       if (newUser) {
+        // Atlas referral captured before sign-in/sign-up: attach it once
+        // (fire-and-forget; a no-op unless a capture happened on this device).
+        if (newId !== previousId) attachReferralIfPending(newUser.id)
         useBookshelfStore.getState().loadCloudBooks(newUser.id)
         useAvatarStore.getState().refreshCoins()
         useAvatarStore.getState().loadInventory()

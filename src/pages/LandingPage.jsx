@@ -10,6 +10,7 @@ import { PRICES, PLAN_CURRENCY, formatPlanPrice, formatMonthlyEquivalent } from 
 import { formatMoneyCents } from '../i18n/formats'
 import SparkleButton from '../components/ui/SparkleButton'
 import { playTrack } from '../services/audioService'
+import AtlasCodeNote from '../components/referral/AtlasCodeNote'
 
 // Deliberately NOT translated. Each letter is animated with its own stagger
 // delay, so the wordmark is an animation timeline as much as a string — and
@@ -89,6 +90,8 @@ export default function LandingPage() {
       <FloatingElement emoji="🌙" className="bottom-[25%] right-[10%]" delay={1.5} />
       <FloatingElement emoji="✨" className="top-[40%] left-[5%]" delay={2} />
       <FloatingElement emoji="🌟" className="top-[35%] right-[5%]" delay={0.8} />
+
+      <AtlasCodeNote className="mt-6" />
 
       {/* Main content */}
       <div className="relative z-10 text-center max-w-2xl mt-16 sm:mt-24">
