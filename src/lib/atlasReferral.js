@@ -76,11 +76,20 @@ export async function attachReferralIfPending(userId, { fetchImpl = apiFetchAuth
   attachedFor.add(userId)
   try {
     const res = await fetchImpl('/api/referral/attach', { method: 'POST', credentials: 'include' })
-    // 5xx: keep the flag so the next sign-in tries again. 401/403 (a class
-    // account on a shared device): keep it for the family's own sign-in.
-    if (res.status === 200 || res.status === 204) {
+    // Clear the flag only on a definitive answer: a real attach result
+    // (200 { attached }) or 204 (no cookie / invalid cookie). Everything
+    // else keeps it for the family's own sign-in on this browser: 5xx, a
+    // class account (403), a teacher account (200 { skipped: 'teacher' }).
+    let done = res.status === 204
+    if (res.status === 200) {
+      const data = await res.json().catch(() => null)
+      done = typeof data?.attached === 'boolean'
+    }
+    if (done) {
       store.del(PENDING_KEY)
       store.del(CODE_KEY)
+    } else {
+      attachedFor.delete(userId) // a later sign-in (another account) may try
     }
   } catch {
     attachedFor.delete(userId)

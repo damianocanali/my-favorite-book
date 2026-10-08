@@ -22,20 +22,23 @@
 -- Stripe / RevenueCat webhooks and the retention cron. Nothing personal is
 -- stored: atlas_uid is Atlas's opaque id, the token carries no PII.
 --
--- Account deletion (lib/deleteUser.js purgeAtlasReferral): rows that were
--- never reported, or whose reversal is settled, are DELETED. A row that was
--- reported to Atlas and not reversed is DETACHED instead (user_id = null,
--- detached_at set) so a refund issued after the account is gone can still
--- be reversed — it keeps only the token Atlas issued, the opaque payment
--- refs and timestamps, nothing personal. user_id is `on delete set null`
--- as a backstop for that path. Codes redeemed by the account cascade.
+-- Account deletion: user_id cascades from auth.users, so ANY auth delete
+-- (purgeUser, or the owner in the dashboard) always succeeds and removes
+-- the account's rows. Before its auth delete, purgeUser
+-- (lib/deleteUser.js purgeAtlasReferral) DETACHES the rows a later refund
+-- may still need — reported and not reversed, or a report in flight — by
+-- setting user_id = null (detached_at = now()); detached rows no longer
+-- reference the user, so the cascade leaves them. They keep the token, the
+-- opaque payment refs and timestamps (pseudonymous ids) and are deleted by
+-- the retention cron 180 days after reported_at / reversed_at.
+-- Codes redeemed by the account cascade.
 --
 -- Write-only here: NOT applied. Apply after 034. Idempotent: safe to re-run.
 
 create table if not exists public.atlas_referrals (
   id                        uuid primary key default gen_random_uuid(),
   -- Null only for a row detached by an account purge (see above).
-  user_id                   uuid unique references auth.users(id) on delete set null,
+  user_id                   uuid unique references auth.users(id) on delete cascade,
   detached_at               timestamptz,
   token                     text not null check (char_length(token) <= 2048),
   nonce                     text not null,
@@ -54,6 +57,10 @@ create table if not exists public.atlas_referrals (
   report_status             text not null default 'pending'
                               check (report_status in ('pending','reporting','reported','failed_final','config_error')),
   report_attempts           int not null default 0,
+  -- An attempt timed out / got a 5xx, or a claim was released after its
+  -- worker died: Atlas MAY have recorded it. A refund then sends /reversed
+  -- anyway (Atlas answers not_billable if it never recorded the report).
+  report_maybe_recorded     boolean not null default false,
   next_attempt_at           timestamptz,
   last_error                text check (char_length(last_error) <= 300),
   reported_at               timestamptz,
@@ -64,10 +71,11 @@ create table if not exists public.atlas_referrals (
   reversed_at               timestamptz,
   created_at                timestamptz not null default now(),
   updated_at                timestamptz not null default now(),
-  constraint atlas_referrals_nonce_key unique (nonce),
-  constraint atlas_referrals_detached_reported check (user_id is not null or reported_at is not null)
+  constraint atlas_referrals_nonce_key unique (nonce)
 );
 
+create index if not exists atlas_referrals_detached_idx
+  on public.atlas_referrals (reported_at) where user_id is null;
 create index if not exists atlas_referrals_payment_ref_idx
   on public.atlas_referrals (payment_ref) where payment_ref is not null;
 

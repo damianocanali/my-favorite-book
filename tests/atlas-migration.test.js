@@ -12,9 +12,10 @@ describe('035_atlas_referrals.sql', () => {
     expect(sql).not.toMatch(/create\s+policy/i)
     expect(sql).not.toMatch(/\bgrant\b/i)
   })
-  it('one row per account; detachable on purge (set null, reported rows only); nonce unique', () => {
-    expect(sql).toMatch(/user_id\s+uuid unique references auth\.users\(id\) on delete set null/)
-    expect(sql).toMatch(/check \(user_id is not null or reported_at is not null\)/)
+  it('one row per account, cascading (any auth delete succeeds); nullable only for detached rows; nonce unique', () => {
+    expect(sql).toMatch(/user_id\s+uuid unique references auth\.users\(id\) on delete cascade/)
+    expect(sql).not.toMatch(/on delete set null/)
+    expect(sql).not.toMatch(/\bcheck \(user_id/i)
     expect(sql).toMatch(/unique \(nonce\)/)
     expect(sql).toMatch(/redeemed_by\s+uuid references auth\.users\(id\) on delete cascade/)
   })

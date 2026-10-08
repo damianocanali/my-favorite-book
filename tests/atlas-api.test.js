@@ -251,13 +251,14 @@ describe('POST /api/referral/redeem-code', () => {
 })
 
 describe('teacher accounts are excluded server-side (M6)', () => {
-  it.each([['role teacher', TEACHER], ['class owner', CLASS_OWNER]])('%s: capture no-op, attach no-op (cookie kept), redeem 403', async (_n, who) => {
+  it.each([['role teacher', TEACHER], ['class owner', CLASS_OWNER]])('%s: capture no-op, attach skipped (cookie kept), redeem 403', async (_n, who) => {
     user = who
     const t = mint()
     const cap = await (await load('capture'))(post('capture', { ref: t.token }, { bearer: 'jwt' }))
     expect(cap.status).toBe(204)
     const att = await (await load('attach'))(post('attach', {}, { bearer: 'jwt', cookie: `mbl_atlas_ref=${t.token}` }))
-    expect(att.status).toBe(204)
+    expect(att.status).toBe(200)
+    expect(await att.json()).toEqual({ skipped: 'teacher' })
     expect(att.headers.get('set-cookie')).toBeNull()
     const red = await (await load('redeem-code'))(post('redeem-code', { code: 'ZZZZ-ZZZZ' }, { bearer: 'jwt' }))
     expect(red.status).toBe(403)

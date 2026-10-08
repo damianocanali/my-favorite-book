@@ -16,7 +16,7 @@ const DEFAULTS = {
   class_licenses: () => ({ seats: 35, image_allowance: 300, images_used: 0, starts_at: new Date().toISOString(), pending_seats: null, school_plan_id: null, stripe_subscription_id: null, stripe_customer_id: null, stripe_price_id: null, stripe_period_start: null, stripe_event_at: null, cancel_at_period_end: false, billing_method: null, price_tier: null, school_name: null, dpa_version: null, needs_review: false, review_reason: null }),
   school_plans: () => ({ pending_seats: null, starts_at: new Date().toISOString(), stripe_period_start: null, stripe_event_at: null, cancel_at_period_end: false, dpa_version: null, needs_review: false, review_reason: null }),
   stripe_school_events: () => ({ processed_at: null }),
-  atlas_referrals: () => ({ external_ref: null, payment_ref: null, paid_at: null, report_status: 'pending', report_attempts: 0, next_attempt_at: null, last_error: null, reported_at: null, reported_status: null, reversal_status: null, reversal_attempts: 0, reversal_next_attempt_at: null, reversed_at: null }),
+  atlas_referrals: () => ({ detached_at: null, report_maybe_recorded: false, external_ref: null, payment_ref: null, paid_at: null, report_status: 'pending', report_attempts: 0, next_attempt_at: null, last_error: null, reported_at: null, reported_status: null, reversal_status: null, reversal_attempts: 0, reversal_next_attempt_at: null, reversed_at: null }),
   atlas_referral_codes: () => ({ redeemed_at: null, redeemed_by: null }),
 }
 

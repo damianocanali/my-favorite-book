@@ -90,3 +90,27 @@ describe('wiring', () => {
     for (const p of ['src/pages/LandingPage.jsx', 'src/pages/SignupPage.jsx']) expect(readFileSync(p, 'utf8')).toContain('<AtlasCodeNote')
   })
 })
+
+describe('pending flag (N5)', () => {
+  const capture = () => captureReferralFromUrl({ win: fakeWindow('https://mybooklab.app/?ref=t.s'), fetchImpl: async () => res(200, { code: 'K7M4-Q2XP' }) })
+  it.each([
+    ['teacher skip', () => res(200, { skipped: 'teacher' })],
+    ['class account', () => res(403, { code: 'student_forbidden' })],
+    ['server error', () => res(503, { code: 'unavailable' })],
+  ])('%s keeps the flag; the family sign-in then attaches', async (_n, first) => {
+    await capture()
+    await attachReferralIfPending('teacher-1', { fetchImpl: async () => first() })
+    expect(readReferralCode()).toBe('K7M4-Q2XP')
+    const f = vi.fn(async () => res(200, { attached: true }))
+    await attachReferralIfPending('family-1', { fetchImpl: f })
+    expect(f).toHaveBeenCalledTimes(1)
+    expect(readReferralCode()).toBeNull()
+  })
+  it('204 (no cookie / invalid) is definitive', async () => {
+    await capture()
+    await attachReferralIfPending('u1', { fetchImpl: async () => res(204) })
+    const f = vi.fn()
+    await attachReferralIfPending('u2', { fetchImpl: f })
+    expect(f).not.toHaveBeenCalled()
+  })
+})
