@@ -20,8 +20,10 @@ import { attachReferral, getReferral, isLocked, findLiveCode, claimCode, release
 export const PER_USER_HOUR = 10
 export const PER_IP_HOUR = 30
 
-const json = (req, status, body) =>
-  new Response(JSON.stringify(body), { status, headers: withCors({ 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }, req) })
+function json(req, status, body) {
+  const headers = withCors({ 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }, req)
+  return new Response(JSON.stringify(body), { status, headers })
+}
 const invalid = (req) => json(req, 400, { error: 'That code did not work.', code: 'invalid_code' })
 
 export default async function handler(req, ctx) {

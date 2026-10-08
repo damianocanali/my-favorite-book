@@ -11,10 +11,11 @@ import { sb, sbEnv, rejectStudent } from '../_school.js'
 import { atlasConfig, verifyAtlasReferral, readCookie, clearCookieHeader } from '../../lib/atlas/referral.js'
 import { attachReferral } from '../../lib/atlas/store.js'
 
-const json = (req, status, body, extra = {}) =>
-  new Response(body === null ? null : JSON.stringify(body), {
-    status, headers: withCors({ ...(body === null ? {} : { 'Content-Type': 'application/json' }), 'Cache-Control': 'no-store', ...extra }, req),
-  })
+function json(req, status, body, extra = {}) {
+  const base = body === null ? { 'Cache-Control': 'no-store' } : { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }
+  const headers = withCors({ ...base, ...extra }, req)
+  return new Response(body === null ? null : JSON.stringify(body), { status, headers })
+}
 
 export default async function handler(req, ctx) {
   const pre = handleCors(req)

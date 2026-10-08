@@ -18,9 +18,13 @@ import { attachReferral, codeForToken } from '../../lib/atlas/store.js'
 
 const CAPTURE_PER_HOUR = 30
 
-const empty = (req) => new Response(null, { status: 204, headers: withCors({}, req) })
-const json = (req, status, body, extra = {}) =>
-  new Response(JSON.stringify(body), { status, headers: withCors({ 'Content-Type': 'application/json', 'Cache-Control': 'no-store', ...extra }, req) })
+function empty(req) {
+  return new Response(null, { status: 204, headers: withCors({ 'Cache-Control': 'no-store' }, req) })
+}
+function json(req, status, body, extra = {}) {
+  const headers = withCors({ 'Content-Type': 'application/json', 'Cache-Control': 'no-store', ...extra }, req)
+  return new Response(JSON.stringify(body), { status, headers })
+}
 
 export default async function handler(req, ctx) {
   const pre = handleCors(req)
