@@ -2,6 +2,240 @@
   "sourceLanguage": "en",
   "strings": {
     "": {},
+    "account.atlas.error_already": {
+      "comment": "Account → Atlas Mind Academy referral code (AtlasCodeCard.swift).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This account already has an Atlas referral."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questo account ha già un invito di Atlas."
+          }
+        }
+      }
+    },
+    "account.atlas.error_generic": {
+      "comment": "Account → Atlas Mind Academy referral code (AtlasCodeCard.swift).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Something went wrong. Please try again later."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Qualcosa è andato storto. Riprova più tardi."
+          }
+        }
+      }
+    },
+    "account.atlas.error_invalid": {
+      "comment": "Account → Atlas Mind Academy referral code (AtlasCodeCard.swift).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That code didn't work. Check it and try again."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il codice non è valido. Controllalo e riprova."
+          }
+        }
+      }
+    },
+    "account.atlas.error_rate_limited": {
+      "comment": "Account → Atlas Mind Academy referral code (AtlasCodeCard.swift).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Too many tries. Please wait a while and try again."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Troppi tentativi. Aspetta un po' e riprova."
+          }
+        }
+      }
+    },
+    "account.atlas.error_title": {
+      "comment": "Account → Atlas Mind Academy referral code (AtlasCodeCard.swift).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That didn't work"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non ha funzionato"
+          }
+        }
+      }
+    },
+    "account.atlas.field_label": {
+      "comment": "Account → Atlas Mind Academy referral code (AtlasCodeCard.swift).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Code from Atlas"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codice da Atlas"
+          }
+        }
+      }
+    },
+    "account.atlas.help": {
+      "comment": "Account → Atlas Mind Academy referral code (AtlasCodeCard.swift).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Type the 8-character code the My Book Lab website showed you after you came from Atlas Mind Academy."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scrivi il codice di 8 caratteri che il sito di My Book Lab ti ha mostrato dopo l'arrivo da Atlas Mind Academy."
+          }
+        }
+      }
+    },
+    "account.atlas.ok": {
+      "comment": "Account → Atlas Mind Academy referral code (AtlasCodeCard.swift).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OK"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ok"
+          }
+        }
+      }
+    },
+    "account.atlas.row_subtitle": {
+      "comment": "Account → Atlas Mind Academy referral code (AtlasCodeCard.swift).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter the code from Atlas Mind Academy"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inserisci il codice di Atlas Mind Academy"
+          }
+        }
+      }
+    },
+    "account.atlas.row_title": {
+      "comment": "Account → Atlas Mind Academy referral code (AtlasCodeCard.swift).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Have a code from Atlas?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hai un codice da Atlas?"
+          }
+        }
+      }
+    },
+    "account.atlas.submit": {
+      "comment": "Account → Atlas Mind Academy referral code (AtlasCodeCard.swift).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use code"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usa il codice"
+          }
+        }
+      }
+    },
+    "account.atlas.success_body": {
+      "comment": "Account → Atlas Mind Academy referral code (AtlasCodeCard.swift).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Thank you! This account is now linked to your Atlas referral."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grazie! Questo account ora è collegato all'invito di Atlas."
+          }
+        }
+      }
+    },
+    "account.atlas.success_title": {
+      "comment": "Account → Atlas Mind Academy referral code (AtlasCodeCard.swift).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Code added"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codice aggiunto"
+          }
+        }
+      }
+    },
     "ai_disclosure.continue": {
       "comment": "First-use AI disclosure for family accounts (App Store 5.1.2(i)), AIDisclosureView.",
       "extractionState": "manual",

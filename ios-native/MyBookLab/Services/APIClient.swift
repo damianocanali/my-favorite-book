@@ -615,6 +615,21 @@ actor APIClient {
         try await request(method: "GET", path: "/api/delete-account", bearerToken: bearerToken)
     }
 
+    // MARK: - Atlas Mind Academy referral code
+
+    private struct RedeemAtlasCodeBody: Encodable { let code: String }
+    private struct RedeemAtlasCodeResult: Decodable { let ok: Bool? }
+
+    /// Claims the code a family saw on the web after arriving from Atlas
+    /// Mind Academy (api/referral/redeem-code.js). Throws APIError.http with
+    /// a body code of invalid_code / already_referred / rate_limited /
+    /// unavailable; the code itself is never logged.
+    func redeemAtlasCode(_ code: String, bearerToken: String) async throws {
+        let _: RedeemAtlasCodeResult = try await request(
+            method: "POST", path: "/api/referral/redeem-code",
+            body: RedeemAtlasCodeBody(code: code), bearerToken: bearerToken)
+    }
+
     // MARK: - Schools (children's class sign-in)
     //
     // Both endpoints are unauthenticated: a child has no session yet. Errors
