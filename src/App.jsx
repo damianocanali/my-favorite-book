@@ -48,6 +48,7 @@ import { useAuthStore } from './stores/useAuthStore'
 import { useTeacherMode } from './hooks/useTeacherMode'
 import { resumeOnGesture } from './services/audioService'
 import { readClassDevice, readClassDeviceSkip, signedOutRedirect, purgeLegacySignInMemory } from './lib/classDevice'
+import { captureReferralFromUrl } from './lib/atlasReferral'
 
 // "/" is the consumer "Create a book" home for everyone except a teacher in
 // teacher mode (Task D2 owner decision): they land on their dashboard
@@ -99,6 +100,10 @@ export default function App() {
 
   // The old implicit "who's signing in" / class-code memory. Once per load.
   useEffect(() => { purgeLegacySignInMemory() }, [])
+
+  // Arrived from Atlas Mind Academy with ?ref=…: capture it in the
+  // background (never blocks rendering, never shows an error).
+  useEffect(() => { captureReferralFromUrl() }, [])
 
   useEffect(() => {
     initCapacitor(navigate)

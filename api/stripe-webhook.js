@@ -9,6 +9,12 @@ export const config = { runtime: 'edge' }
 // personal plan row). School events are idempotent per event id and
 // ordered by Stripe period, not arrival.
 import { handleSchoolStripeEvent } from '../lib/school/billingWebhook.js'
+// Atlas Mind Academy referrals: the first paid family payment and a refund
+// of it are reported to Atlas (lib/atlas/hooks.js). Runs after this
+// handler's own work, never throws, never changes the response.
+import { atlasOnStripeEvent } from '../lib/atlas/hooks.js'
+import { sb as serviceSb } from './_school.js'
+import { stripe as stripeCall } from '../lib/school/stripe.js'
 
 async function verifyStripeSignature(body, signature, secret) {
   const parts = signature.split(',').reduce((acc, part) => {
@@ -78,7 +84,8 @@ async function creditCoins(supabaseUrl, serviceKey, userId, amount, eventId) {
   return res.ok
 }
 
-export default async function handler(req) {
+// ctx: Vercel Edge's { waitUntil } — the Atlas callback runs after the response.
+export default async function handler(req, ctx) {
   if (req.method !== 'POST') {
     return new Response(JSON.stringify({ error: 'Method not allowed' }), {
       status: 405, headers: { 'Content-Type': 'application/json' },
@@ -258,6 +265,8 @@ export default async function handler(req) {
       status: 500, headers: { 'Content-Type': 'application/json' },
     })
   }
+
+  await atlasOnStripeEvent(event, { sb: serviceSb, stripe: stripeCall, ctx })
 
   return new Response(JSON.stringify({ received: true }), {
     status: 200, headers: { 'Content-Type': 'application/json' },

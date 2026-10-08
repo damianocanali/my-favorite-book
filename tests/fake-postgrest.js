@@ -8,12 +8,16 @@ const UNIQUE = {
   stripe_school_events: [['event_id']],
   school_plans: [['stripe_subscription_id']],
   class_licenses: [['classroom_id']],
+  atlas_referrals: [['user_id'], ['nonce']],
+  atlas_referral_codes: [['code'], ['nonce']],
 }
 
 const DEFAULTS = {
   class_licenses: () => ({ seats: 35, image_allowance: 300, images_used: 0, starts_at: new Date().toISOString(), pending_seats: null, school_plan_id: null, stripe_subscription_id: null, stripe_customer_id: null, stripe_price_id: null, stripe_period_start: null, stripe_event_at: null, cancel_at_period_end: false, billing_method: null, price_tier: null, school_name: null, dpa_version: null, needs_review: false, review_reason: null }),
   school_plans: () => ({ pending_seats: null, starts_at: new Date().toISOString(), stripe_period_start: null, stripe_event_at: null, cancel_at_period_end: false, dpa_version: null, needs_review: false, review_reason: null }),
   stripe_school_events: () => ({ processed_at: null }),
+  atlas_referrals: () => ({ detached_at: null, report_maybe_recorded: false, external_ref: null, payment_ref: null, paid_at: null, report_status: 'pending', report_attempts: 0, next_attempt_at: null, last_error: null, reported_at: null, reported_status: null, reversal_status: null, reversal_attempts: 0, reversal_next_attempt_at: null, reversed_at: null }),
+  atlas_referral_codes: () => ({ redeemed_at: null, redeemed_by: null }),
 }
 
 function matches(row, key, raw) {
@@ -23,6 +27,9 @@ function matches(row, key, raw) {
   if (op === 'eq') return cell != null && String(cell) === v
   if (op === 'neq') return cell == null || String(cell) !== v
   if (op === 'is') return v === 'null' ? cell == null : String(cell) === v
+  if (op === 'not') return !matches(row, key, v)
+  if (op === 'gt') return cell != null && String(cell) > v
+  if (op === 'lte') return cell != null && String(cell) <= v
   if (op === 'in') return v.replace(/^\(|\)$/g, '').split(',').includes(String(cell))
   if (op === 'gte') return cell != null && String(cell) >= v
   if (op === 'lt') return cell != null && String(cell) < v
@@ -39,6 +46,12 @@ export function fakeDb(seed = {}) {
     return t(name).filter((row) => {
       for (const [k, v] of params) {
         if (['select', 'order', 'limit', 'offset', 'on_conflict'].includes(k)) continue
+        if (k === 'or') {
+          // or=(col.op.val,col.op.val) — values must not contain commas.
+          const terms = v.replace(/^\(|\)$/g, '').split(',')
+          if (!terms.some((term) => { const i = term.indexOf('.'); return matches(row, term.slice(0, i), term.slice(i + 1)) })) return false
+          continue
+        }
         if (k.includes('.')) continue // embedded filter (e.g. class_students.status): ignore
         if (!matches(row, k, v)) return false
       }

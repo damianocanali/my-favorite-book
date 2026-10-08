@@ -1,5 +1,11 @@
 export const config = { runtime: 'edge' }
 
+// Atlas Mind Academy referrals (lib/atlas/hooks.js): a referred family's
+// first paid purchase and an App Store refund of it are reported to Atlas.
+// Runs after the subscription sync, never throws, never changes the response.
+import { atlasOnRevenueCatEvent } from '../lib/atlas/hooks.js'
+import { sb as serviceSb } from './_school.js'
+
 // Handles RevenueCat webhook events:
 //   - Subscriptions (INITIAL_PURCHASE / RENEWAL / …) sync into the
 //     `subscriptions` table so the plan gate works off a server record.
@@ -67,7 +73,8 @@ function verifySecret(req) {
   return mismatch === 0
 }
 
-export default async function handler(req) {
+// ctx: Vercel Edge's { waitUntil } — the Atlas callback runs after the response.
+export default async function handler(req, ctx) {
   if (req.method !== 'POST') {
     return new Response(JSON.stringify({ error: 'Method not allowed' }), {
       status: 405, headers: { 'Content-Type': 'application/json' },
@@ -170,6 +177,8 @@ export default async function handler(req) {
       status: 500, headers: { 'Content-Type': 'application/json' },
     })
   }
+
+  await atlasOnRevenueCatEvent(event.event, { sb: serviceSb, ctx })
 
   return new Response(JSON.stringify({ received: true }), {
     status: 200, headers: { 'Content-Type': 'application/json' },

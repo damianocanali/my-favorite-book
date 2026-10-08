@@ -6,6 +6,7 @@ import { GraduationCap, Mail, Lock, User, Eye, EyeOff, CheckCircle, BookOpen } f
 import { useAuthStore } from '../stores/useAuthStore'
 import OAuthButtons from '../components/auth/OAuthButtons'
 import { authErrorCode } from '../lib/authErrors'
+import AtlasCodeNote from '../components/referral/AtlasCodeNote'
 
 export default function SignupPage() {
   const { t } = useTranslation()
@@ -139,6 +140,7 @@ export default function SignupPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
       >
+        <AtlasCodeNote className="mb-4" />
         {/* Header */}
         <div className="text-center mb-6">
           <img src="/logo-mark.png" alt="My Book Lab" className="w-16 h-16 mx-auto mb-4 rounded-xl" />
