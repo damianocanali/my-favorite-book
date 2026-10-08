@@ -83,8 +83,9 @@ struct AccountView: View {
                 if !teacherMode { appIconCard }
                 if !auth.isStudent && !teacherMode { rowsCard }
                 // Atlas Mind Academy referral code: family accounts only —
-                // never a class account, never in teacher mode.
-                if !auth.isStudent && !teacherMode { AtlasCodeCard() }
+                // never a class account, never a teacher account (the
+                // server refuses both too).
+                if !auth.isStudent && !auth.isTeacher { AtlasCodeCard() }
                 // A teacher account never hears music (AudioService), so a
                 // music switch would be a control that does nothing.
                 if !auth.isTeacher { musicCard }

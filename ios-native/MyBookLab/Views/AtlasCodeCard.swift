@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// Account → "Have a code from Atlas?" — for signed-in family accounts only
-/// (AccountView hides it for class accounts and in teacher mode). The family
+/// (AccountView hides it for class and teacher accounts). The family
 /// types the 8-character code the website showed them after they arrived
 /// from Atlas Mind Academy; api/referral/redeem-code attaches the referral
 /// to this account. No prices, nothing personal, results in an alert.
@@ -101,7 +101,12 @@ struct AtlasCodeCard: View {
         guard isComplete, !busy else { return }
         busy = true
         defer { busy = false }
-        guard let token = await auth.validAccessToken() else { return }
+        guard let token = await auth.validAccessToken() else {
+            resultTitle = AppText("account.atlas.error_title", defaultValue: "That didn't work")
+            resultMessage = AppText("account.atlas.error_generic", defaultValue: "Something went wrong. Please try again later.")
+            showResult = true
+            return
+        }
         do {
             try await APIClient.shared.redeemAtlasCode(code, bearerToken: token)
             Haptics.celebrate()

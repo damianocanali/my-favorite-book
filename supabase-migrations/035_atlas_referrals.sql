@@ -22,14 +22,21 @@
 -- Stripe / RevenueCat webhooks and the retention cron. Nothing personal is
 -- stored: atlas_uid is Atlas's opaque id, the token carries no PII.
 --
--- Account deletion: both tables cascade from auth.users, so purgeUser's
--- final GoTrue delete (lib/deleteUser.js) removes them.
+-- Account deletion (lib/deleteUser.js purgeAtlasReferral): rows that were
+-- never reported, or whose reversal is settled, are DELETED. A row that was
+-- reported to Atlas and not reversed is DETACHED instead (user_id = null,
+-- detached_at set) so a refund issued after the account is gone can still
+-- be reversed — it keeps only the token Atlas issued, the opaque payment
+-- refs and timestamps, nothing personal. user_id is `on delete set null`
+-- as a backstop for that path. Codes redeemed by the account cascade.
 --
 -- Write-only here: NOT applied. Apply after 034. Idempotent: safe to re-run.
 
 create table if not exists public.atlas_referrals (
   id                        uuid primary key default gen_random_uuid(),
-  user_id                   uuid not null unique references auth.users(id) on delete cascade,
+  -- Null only for a row detached by an account purge (see above).
+  user_id                   uuid unique references auth.users(id) on delete set null,
+  detached_at               timestamptz,
   token                     text not null check (char_length(token) <= 2048),
   nonce                     text not null,
   atlas_uid                 text not null check (char_length(atlas_uid) <= 200),
@@ -57,8 +64,12 @@ create table if not exists public.atlas_referrals (
   reversed_at               timestamptz,
   created_at                timestamptz not null default now(),
   updated_at                timestamptz not null default now(),
-  constraint atlas_referrals_nonce_key unique (nonce)
+  constraint atlas_referrals_nonce_key unique (nonce),
+  constraint atlas_referrals_detached_reported check (user_id is not null or reported_at is not null)
 );
+
+create index if not exists atlas_referrals_payment_ref_idx
+  on public.atlas_referrals (payment_ref) where payment_ref is not null;
 
 create index if not exists atlas_referrals_due_idx
   on public.atlas_referrals (next_attempt_at)

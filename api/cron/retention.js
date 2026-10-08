@@ -205,7 +205,11 @@ async function job(name, fn) {
   }
 }
 
+// Leaves room for the owner summary email inside maxDuration (300 s).
+const ATLAS_LAST_START_MS = 270_000
+
 export async function GET(req) {
+  const startedAt = Date.now()
   const secret = process.env.CRON_SECRET
   const header = req.headers.get('authorization') || ''
   if (!secret || !safeEqual(header, `Bearer ${secret}`)) return reply(401, { error: 'Unauthorized' })
@@ -242,7 +246,11 @@ export async function GET(req) {
   result.legacy_submissions = await job('legacy_submissions', () => legacySubmissions(sb, now, dryRun))
   result.order_pdfs = await job('order_pdfs', () => purgeOldOrderPdfs({ supabaseUrl, serviceKey, now: now.getTime(), dryRun }))
   result.vendor_retries = await job('vendor_retries', () => retryVendorDeletions(sb, ctx, { dryRun }))
-  result.atlas_referrals = await job('atlas_referrals', () => runAtlasCron(sb, { now, dryRun }))
+  // Its own deadline (≤ 60 s, and never past ATLAS_LAST_START_MS into this
+  // run), so a hanging Atlas can't stop the summary email below.
+  result.atlas_referrals = await job('atlas_referrals', () => runAtlasCron(sb, {
+    now, dryRun, deadlineMs: Math.max(0, Math.min(60_000, ATLAS_LAST_START_MS - (Date.now() - startedAt))),
+  }))
 
   const failed = Object.values(result).reduce((n, r) => n + (r?.failed ?? 0), 0)
   const unsendable = result.licenses?.unsendable ?? []

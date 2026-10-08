@@ -4,11 +4,12 @@ export const config = { runtime: 'edge' }
 // Called once by the web app after a sign-in / sign-up. Reads the
 // mbl_atlas_ref cookie set by /api/referral/capture, re-verifies it, attaches
 // it to the caller's account (lib/atlas/store.js attach rule) and clears the
-// cookie. No cookie → 204. Class (student) accounts → 403.
+// cookie. No cookie → 204. Class (student) accounts → 403; teacher
+// accounts → 204 no-op.
 import { handleCors, withCors, checkRateLimit } from '../_rateLimit.js'
 import { verifyJwt } from '../_auth.js'
 import { sb, sbEnv, rejectStudent } from '../_school.js'
-import { atlasConfig, verifyAtlasReferral, readCookie, clearCookieHeader } from '../../lib/atlas/referral.js'
+import { atlasConfig, verifyAtlasReferral, readCookie, clearCookieHeader, isTeacherAccount } from '../../lib/atlas/referral.js'
 import { attachReferral } from '../../lib/atlas/store.js'
 
 function json(req, status, body, extra = {}) {
@@ -26,6 +27,10 @@ export default async function handler(req, ctx) {
   if (!auth.ok) return auth.response
   const blocked = rejectStudent(auth, req)
   if (blocked) return blocked
+
+  // A teacher account: no-op, and the cookie is kept for a family sign-in
+  // on this browser.
+  if (isTeacherAccount(auth)) return json(req, 204, null)
 
   const token = readCookie(req)
   if (!token) return json(req, 204, null)

@@ -36,6 +36,14 @@ describe('captureReferralFromUrl', () => {
     dismissReferralCode()
     expect(readReferralCode()).toBeNull()
   })
+  it('a non-Atlas ref (worksheet QR) is left in the URL and never sent', async () => {
+    const f = vi.fn()
+    const w = fakeWindow('https://mybooklab.app/?ref=worksheet-123&x=1')
+    await captureReferralFromUrl({ win: w, fetchImpl: f })
+    expect(f).not.toHaveBeenCalled()
+    expect(w.history.replaceState).not.toHaveBeenCalled()
+    expect(w.location.href).toBe('https://mybooklab.app/?ref=worksheet-123&x=1')
+  })
   it('no ref → no request', async () => {
     const f = vi.fn()
     await captureReferralFromUrl({ win: fakeWindow('https://mybooklab.app/pricing'), fetchImpl: f })
@@ -44,7 +52,7 @@ describe('captureReferralFromUrl', () => {
   it('invalid (204) or a network error → silent, nothing stored, ref still stripped', async () => {
     for (const f of [vi.fn(async () => res(204)), vi.fn(async () => { throw new TypeError('offline') })]) {
       _resetForTests()
-      const w = fakeWindow('https://mybooklab.app/?ref=junk')
+      const w = fakeWindow('https://mybooklab.app/?ref=junk.junk')
       await expect(captureReferralFromUrl({ win: w, fetchImpl: f })).resolves.toBeUndefined()
       expect(w.location.href).toBe('https://mybooklab.app/')
       expect(readReferralCode()).toBeNull()

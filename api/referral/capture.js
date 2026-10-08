@@ -13,7 +13,7 @@ export const config = { runtime: 'edge' }
 import { handleCors, withCors, checkRateLimit, hashedClientIp } from '../_rateLimit.js'
 import { verifyJwt } from '../_auth.js'
 import { sb, sbEnv, isStudent } from '../_school.js'
-import { atlasConfig, verifyAtlasReferral, setCookieHeader, formatCode, MAX_AGE_S } from '../../lib/atlas/referral.js'
+import { atlasConfig, verifyAtlasReferral, setCookieHeader, formatCode, MAX_AGE_S, isTeacherAccount } from '../../lib/atlas/referral.js'
 import { attachReferral, codeForToken } from '../../lib/atlas/store.js'
 
 const CAPTURE_PER_HOUR = 30
@@ -47,7 +47,8 @@ export default async function handler(req, ctx) {
   if ((req.headers.get('authorization') || '').startsWith('Bearer ')) {
     const auth = await verifyJwt(req)
     if (auth.ok) {
-      if (isStudent(auth)) return empty(req) // referrals are for family accounts
+      // Referrals are for family accounts: class and teacher accounts → no-op.
+      if (isStudent(auth) || isTeacherAccount(auth)) return empty(req)
       try {
         const r = await attachReferral(sb, auth.userId, ref, payload)
         return json(req, 200, { attached: r.attached })

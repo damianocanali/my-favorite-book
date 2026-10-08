@@ -121,8 +121,23 @@ describe('Stripe webhook → Atlas', () => {
     await stripeHook('checkout.session.completed', session())
     stripeObjects['invoice_payments'] = { data: [{ invoice: 'in_1' }] }
     stripeObjects['invoices/in_1'] = invoice()
-    await stripeHook('charge.refunded', { id: 'ch_1', payment_intent: 'pi_1', amount: 999, amount_refunded: 300 })
-    expect(reversed()).toHaveLength(1) // partial refunds are reported too
+    await stripeHook('charge.refunded', { id: 'ch_1', payment_intent: 'pi_1', amount: 999, amount_refunded: 999, refunded: true })
+    expect(reversed()).toHaveLength(1)
+  })
+  it('a PARTIAL refund keeps the fee: nothing sent; topping up to full then reverses once', async () => {
+    await stripeHook('checkout.session.completed', session())
+    stripeObjects['invoices/in_1'] = invoice()
+    await stripeHook('charge.refunded', { id: 'ch_1', invoice: 'in_1', amount: 999, amount_refunded: 300, refunded: false })
+    expect(reversed()).toHaveLength(0)
+    expect(row().reversal_status).toBeNull()
+    await stripeHook('charge.refunded', { id: 'ch_1', invoice: 'in_1', amount: 999, amount_refunded: 999, refunded: true })
+    expect(reversed()).toHaveLength(1)
+  })
+  it('plan-less metadata is not assumed family; school metadata never counts', async () => {
+    await stripeHook('checkout.session.completed', session({ metadata: { user_id: USER } }))
+    await stripeHook('checkout.session.completed', session({ metadata: { user_id: USER, plan: 'family', type: 'class_license' } }))
+    await stripeHook('invoice.paid', invoice({ parent: { type: 'subscription_details', subscription_details: { subscription: 'sub_1', metadata: { user_id: USER } } } }))
+    expect(redeemed()).toHaveLength(0)
   })
   it('a refund of a later invoice does nothing', async () => {
     await stripeHook('checkout.session.completed', session())

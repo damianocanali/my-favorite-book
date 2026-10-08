@@ -8,8 +8,8 @@ const account = readFileSync('ios-native/MyBookLab/Views/AccountView.swift', 'ut
 const api = readFileSync('ios-native/MyBookLab/Services/APIClient.swift', 'utf8')
 
 describe('AtlasCodeCard', () => {
-  it('only for family accounts: never a class account, never in teacher mode', () => {
-    expect(account).toContain('if !auth.isStudent && !teacherMode { AtlasCodeCard() }')
+  it('only for family accounts: never a class account, never a teacher account', () => {
+    expect(account).toContain('if !auth.isStudent && !auth.isTeacher { AtlasCodeCard() }')
   })
   it('calls the redeem endpoint with just the code', () => {
     expect(api).toContain('path: "/api/referral/redeem-code"')

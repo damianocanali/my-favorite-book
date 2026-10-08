@@ -24,6 +24,12 @@ const store = {
   del: (k) => { try { localStorage.removeItem(k) } catch { /* private mode */ } },
 }
 
+// Only a value shaped like an Atlas token (<base64url>.<base64url>) is
+// ours. Other `ref` values — e.g. worksheet QR links (/?ref=worksheet-<id>)
+// — are left alone, in the URL and unsent.
+export const ATLAS_REF_RE = /^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/
+export const isAtlasRef = (v) => typeof v === 'string' && v.length <= 2048 && ATLAS_REF_RE.test(v)
+
 /// Removes `ref` from a URL string, keeping every other param and the hash.
 export function stripRefParam(href) {
   const u = new URL(href)
@@ -39,7 +45,7 @@ export async function captureReferralFromUrl({ win = window, fetchImpl = apiFetc
   let ref
   try {
     ref = new URL(win.location.href).searchParams.get('ref')
-    if (!ref) return
+    if (!isAtlasRef(ref)) return
     const clean = stripRefParam(win.location.href)
     // Keep react-router's history state, so its back/forward bookkeeping holds.
     if (clean != null) win.history.replaceState(win.history.state, '', clean)

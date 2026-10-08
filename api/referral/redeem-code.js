@@ -7,14 +7,15 @@ export const config = { runtime: 'edge' }
 // `invalid_code`, so the endpoint is no oracle.
 //   200 { ok: true }
 //   400 { code: 'invalid_code' }
-//   409 { code: 'already_referred' }   the account already has a referral that was (being) reported
+//   409 { code: 'already_referred' }   the account already has an Atlas referral (reported, or a newer one);
+//                                      the code is released, not consumed
 //   429 { code: 'rate_limited' }       10/hour per account, 30/hour per IP
 //   503 { code: 'unavailable' }
-// Class (student) accounts → 403.
+// Class (student) accounts → 403; teacher accounts → 403 family_only.
 import { handleCors, withCors, checkRateLimit, hashedClientIp } from '../_rateLimit.js'
 import { verifyJwt } from '../_auth.js'
 import { sb, sbEnv, rejectStudent } from '../_school.js'
-import { atlasConfig, verifyAtlasReferral, normalizeCode, noncePrefix } from '../../lib/atlas/referral.js'
+import { atlasConfig, verifyAtlasReferral, normalizeCode, noncePrefix, isTeacherAccount } from '../../lib/atlas/referral.js'
 import { attachReferral, getReferral, isLocked, findLiveCode, claimCode, releaseCode } from '../../lib/atlas/store.js'
 
 export const PER_USER_HOUR = 10
@@ -35,6 +36,8 @@ export default async function handler(req, ctx) {
   if (!auth.ok) return auth.response
   const blocked = rejectStudent(auth, req)
   if (blocked) return blocked
+
+  if (isTeacherAccount(auth)) return json(req, 403, { error: 'Referral codes are for family accounts', code: 'family_only' })
 
   const cfg = atlasConfig()
   if (!cfg.capture || !sbEnv()) return json(req, 503, { code: 'unavailable' })
@@ -62,8 +65,11 @@ export default async function handler(req, ctx) {
     if (!claimed) return invalid(req) // someone else just used it
 
     const r = await attachReferral(sb, auth.userId, row.token, payload)
-    if (r.attached || r.reason === 'older') return json(req, 200, { ok: true })
-    if (r.reason === 'locked') {
+    if (r.attached) return json(req, 200, { ok: true })
+    // locked (reported) or older (the account already holds a newer Atlas
+    // token): the code is NOT attached, so it is given back and the family
+    // is told the truth.
+    if (r.reason === 'locked' || r.reason === 'older') {
       await releaseCode(sb, code, auth.userId)
       return json(req, 409, { code: 'already_referred' })
     }

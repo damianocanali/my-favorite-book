@@ -8,6 +8,8 @@ const SB = 'https://example.supabase.co'
 const FAMILY = { id: '22222222-2222-4222-8222-222222222222', app_metadata: {} }
 const OTHER = { id: '33333333-3333-4333-8333-333333333333', app_metadata: {} }
 const STUDENT = { id: '44444444-4444-4444-8444-444444444444', app_metadata: { role: 'student' } }
+const TEACHER = { id: '66666666-6666-4666-8666-666666666666', app_metadata: {}, user_metadata: { role: 'teacher' } }
+const CLASS_OWNER = { id: '77777777-7777-4777-8777-777777777777', app_metadata: {}, user_metadata: { classroom: true } }
 
 let db, user, logs
 beforeEach(() => {
@@ -245,5 +247,34 @@ describe('POST /api/referral/redeem-code', () => {
     expect((await h(post('redeem-code', { code: 'ZZZZ-ZZZZ' }))).status).toBe(401)
     user = STUDENT
     expect((await h(post('redeem-code', { code: 'ZZZZ-ZZZZ' }, { bearer: 'jwt' }))).status).toBe(403)
+  })
+})
+
+describe('teacher accounts are excluded server-side (M6)', () => {
+  it.each([['role teacher', TEACHER], ['class owner', CLASS_OWNER]])('%s: capture no-op, attach no-op (cookie kept), redeem 403', async (_n, who) => {
+    user = who
+    const t = mint()
+    const cap = await (await load('capture'))(post('capture', { ref: t.token }, { bearer: 'jwt' }))
+    expect(cap.status).toBe(204)
+    const att = await (await load('attach'))(post('attach', {}, { bearer: 'jwt', cookie: `mbl_atlas_ref=${t.token}` }))
+    expect(att.status).toBe(204)
+    expect(att.headers.get('set-cookie')).toBeNull()
+    const red = await (await load('redeem-code'))(post('redeem-code', { code: 'ZZZZ-ZZZZ' }, { bearer: 'jwt' }))
+    expect(red.status).toBe(403)
+    expect((await red.json()).code).toBe('family_only')
+    expect(db.t('atlas_referrals')).toHaveLength(0)
+  })
+})
+
+describe('redeem-code honesty (M7)', () => {
+  it('an account already holding a NEWER token: already_referred, code given back, not consumed', async () => {
+    const now = Math.floor(Date.now() / 1000)
+    const older = mint({ iat: now - 3600 })
+    const code = (await (await (await load('capture'))(post('capture', { ref: older.token }))).json()).code
+    await (await load('capture'))(post('capture', { ref: mint({ iat: now }).token }, { bearer: 'jwt' })) // attaches the newer one
+    const res = await (await load('redeem-code'))(post('redeem-code', { code }, { bearer: 'jwt' }))
+    expect(res.status).toBe(409)
+    expect((await res.json()).code).toBe('already_referred')
+    expect(db.t('atlas_referral_codes').find((c) => c.nonce === older.payload.n)).toMatchObject({ redeemed_at: null, redeemed_by: null })
   })
 })

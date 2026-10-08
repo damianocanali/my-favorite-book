@@ -263,6 +263,102 @@ describe('nightly cron', () => {
   it('is wired into api/cron/retention.js', async () => {
     const { readFileSync } = await import('node:fs')
     const src = readFileSync('api/cron/retention.js', 'utf8')
-    expect(src).toContain("result.atlas_referrals = await job('atlas_referrals', () => runAtlasCron(sb, { now, dryRun }))")
+    expect(src).toContain("result.atlas_referrals = await job('atlas_referrals', () => runAtlasCron(sb, {")
+    expect(src).toMatch(/deadlineMs: Math\.max\(0, Math\.min\(60_000, ATLAS_LAST_START_MS - \(Date\.now\(\) - startedAt\)\)\)/)
+    // …and it runs before the owner summary is sent
+    expect(src.indexOf("job('atlas_referrals'")).toBeLessThan(src.indexOf('await sendOwnerAlert({'))
+  })
+})
+
+describe('review fixes', () => {
+  // I1: 401 → refund → owner runs the reset SQL → the cron must NOT bill Atlas.
+  it('a refund during config_error cancels the report; the reset SQL then excludes it', async () => {
+    atlas.mockImplementation(async () => reply(401, {}))
+    await referred()
+    await (await recordFirstPayment({ userId: USER, externalRef: 'sub_1', paymentRef: 'in_1' }, deps())).deferred
+    expect(row().report_status).toBe('config_error')
+    const r = await recordRefund({ externalRef: 'sub_1', paymentRef: 'in_1' }, deps())
+    expect(r.result).toBe('report_cancelled')
+    expect(row()).toMatchObject({ report_status: 'failed_final', last_error: 'refunded_before_report' })
+    // The owner's reset, exactly as the alert words it:
+    //   update … set report_status='pending', next_attempt_at=null
+    //   where report_status='config_error' and reversal_status is null;
+    for (const x of db.t('atlas_referrals')) if (x.report_status === 'config_error' && x.reversal_status == null) Object.assign(x, { report_status: 'pending', next_attempt_at: null })
+    atlas.mockClear()
+    atlas.mockImplementation(async () => reply(200, { status: 'recorded' }))
+    await runAtlasCron(db.sb, { cfg, fetchImpl: atlas, now: new Date(Date.now() + 86400000) })
+    expect(atlas).not.toHaveBeenCalled()
+  })
+  it('the alert\'s reset SQL excludes refunded rows', async () => {
+    const { readFileSync } = await import('node:fs')
+    expect(readFileSync('lib/atlas/report.js', 'utf8')).toContain("where report_status = 'config_error' and reversal_status is null;")
+  })
+  // M1: a refund that lands while /redeemed is in flight.
+  it('refund mid-flight, report recorded → reversed straight away (no cron wait)', async () => {
+    await referred()
+    await recordFirstPayment({ userId: USER, externalRef: 'sub_1', paymentRef: 'in_1' }, { ...deps(), cfg: { ...cfg, callbacks: false } })
+    atlas.mockImplementation(async (url) => {
+      if (url.endsWith('/redeemed')) {
+        expect((await recordRefund({ externalRef: 'sub_1', paymentRef: 'in_1' }, deps())).result).toBe('marked')
+        return reply(200, { status: 'recorded' })
+      }
+      return reply(200, { status: 'reversed' })
+    })
+    await processReport(USER, deps())
+    expect(atlas.mock.calls.map((c) => c[0])).toEqual(['https://atlas.example/api/referral/redeemed', 'https://atlas.example/api/referral/reversed'])
+    expect(row()).toMatchObject({ report_status: 'reported', reversal_status: 'reversed' })
+  })
+  it('refund mid-flight, report fails (5xx) → never reported later', async () => {
+    await referred()
+    await recordFirstPayment({ userId: USER, externalRef: 'sub_1', paymentRef: 'in_1' }, { ...deps(), cfg: { ...cfg, callbacks: false } })
+    atlas.mockImplementation(async () => {
+      await recordRefund({ externalRef: 'sub_1', paymentRef: 'in_1' }, deps())
+      return reply(503)
+    })
+    await processReport(USER, deps())
+    expect(row()).toMatchObject({ report_status: 'failed_final', last_error: 'refunded_before_report' })
+    atlas.mockClear()
+    await runAtlasCron(db.sb, { cfg, fetchImpl: atlas, now: new Date(Date.now() + 86400000) })
+    expect(atlas).not.toHaveBeenCalled()
+  })
+  // I2: the cron step stops at its own deadline and leaves the rest pending.
+  it('cron honours its deadline and passes the per-call timeout', async () => {
+    for (let i = 0; i < 3; i++) {
+      const t = mint()
+      db.t('atlas_referrals').push({ id: `r${i}`, user_id: `user-${i}`, token: t.token, nonce: t.payload.n, external_ref: `sub_${i}`, payment_ref: null, paid_at: new Date().toISOString(), report_status: 'pending', report_attempts: 0, next_attempt_at: null, reported_at: null, reversal_status: null, updated_at: new Date().toISOString() })
+    }
+    let fake = 0
+    const clock = () => fake
+    const seen = []
+    const slow = vi.fn(async (_u, init) => { seen.push(init.signal); fake += 40_000; return reply(200, { status: 'recorded' }) })
+    const out = await runAtlasCron(db.sb, { cfg, fetchImpl: slow, clock, deadlineMs: 60_000 })
+    expect(slow).toHaveBeenCalledTimes(2) // 0 s, 40 s; at 80 s it stops
+    expect(out).toMatchObject({ reported: 2, deferred: 1 })
+    expect(db.t('atlas_referrals').filter((x) => x.report_status === 'pending')).toHaveLength(1)
+    expect(seen[0]).toBeInstanceOf(AbortSignal)
+  })
+  // M10: a detached (purged-account) row can still be reversed by payment_ref.
+  it('refund after the account was purged reverses the detached row', async () => {
+    await referred()
+    await (await recordFirstPayment({ userId: USER, externalRef: 'sub_1', paymentRef: 'in_1' }, deps())).deferred
+    const { purgeAtlasReferral } = await import('../lib/deleteUser.js')
+    await purgeAtlasReferral(db.sb, USER)
+    expect(row()).toMatchObject({ user_id: null, report_status: 'reported' })
+    expect(row().detached_at).toBeTruthy()
+    atlas.mockClear()
+    atlas.mockImplementation(async () => reply(200, { status: 'reversed' }))
+    await (await recordRefund({ externalRef: null, paymentRef: 'in_1' }, deps())).deferred
+    expect(atlas).toHaveBeenCalledTimes(1)
+    expect(row().reversal_status).toBe('reversed')
+  })
+  it('purge deletes never-reported and settled rows', async () => {
+    const { purgeAtlasReferral } = await import('../lib/deleteUser.js')
+    await referred()
+    await purgeAtlasReferral(db.sb, USER)
+    expect(db.t('atlas_referrals')).toHaveLength(0)
+    await referred()
+    Object.assign(row(), { report_status: 'reported', reported_at: new Date().toISOString(), reversal_status: 'reversed' })
+    await purgeAtlasReferral(db.sb, USER)
+    expect(db.t('atlas_referrals')).toHaveLength(0)
   })
 })
