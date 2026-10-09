@@ -27,7 +27,7 @@
 # Env:  CROP=0.45 CROP_CX=0.5 CROP_CY=0.68
 #                        favicon crop: side as a fraction of the icon, and its
 #                        centre (fractions, 0,0 = top-left). Defaults frame the
-#                        paper boat of the Sky Harbor icon.
+#                        castle of the castle-on-book icon (run with CROP=0.62 CROP_CY=0.48 MARK_CROP=0.80 MARK_CY=0.40).
 #       MARK_CROP=0.85 MARK_CX=0.5 MARK_CY=0.52   same, for logo-mark.png
 #       SOCIAL_SRC=<png>  higher-res logo for the social card (default: logo arg)
 #       SOCIAL_BG=0d1033  hex fallback background of the social card (no PIL)
