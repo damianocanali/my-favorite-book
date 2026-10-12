@@ -17,8 +17,13 @@ function paramsFrom(query) {
 
 describe('parseWorksheetParams', () => {
   it('parses a well-formed teacher-hook link', () => {
-    const out = parseWorksheetParams(paramsFrom('template=story-map&prompt=Write+about+a+dragon&class=Room+12'))
-    expect(out).toEqual({ template: 'story-map', prompt: 'Write about a dragon', className: 'Room 12' })
+    const out = parseWorksheetParams(paramsFrom('template=haiku&prompt=Write+about+a+dragon&class=Room+12'))
+    expect(out).toEqual({ template: 'haiku', prompt: 'Write about a dragon', className: 'Room 12' })
+  })
+
+  it('an old printable id (a printed QR code, a saved link) resolves to the sheet it became', () => {
+    expect(parseWorksheetParams(paramsFrom('template=story-map')).template).toBe('beginning_middle_end')
+    expect(parseWorksheetParams(paramsFrom('template=book-report')).template).toBe('book_report')
   })
 
   it('drops an unknown template id rather than passing it through', () => {

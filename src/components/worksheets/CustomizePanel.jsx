@@ -53,7 +53,7 @@ export default function CustomizePanel({ t, template, values, onChange, onPrint,
       >
         <div className="flex items-center justify-between gap-3">
           <h2 className="font-heading text-lg font-bold text-galaxy-text truncate">
-            {t('customize.heading')} — {t(template.titleKey)}
+            {t('customize.heading')} — {t(`school:worksheet.templates.${template.id}.title`)}
           </h2>
           <button
             type="button"

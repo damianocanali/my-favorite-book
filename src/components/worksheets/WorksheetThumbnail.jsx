@@ -12,7 +12,7 @@ const PX_PER_IN = 96
 const SHEET_WIDTH_PX = 8.5 * PX_PER_IN
 const SHEET_HEIGHT_PX = 11 * PX_PER_IN
 
-export default function WorksheetThumbnail({ templateId, t, tCheckin, tGames, width = 150 }) {
+export default function WorksheetThumbnail({ templateId, t, tSchool, tCheckin, tGames, width = 150 }) {
   const scale = width / SHEET_WIDTH_PX
   const height = SHEET_HEIGHT_PX * scale
 
@@ -30,7 +30,7 @@ export default function WorksheetThumbnail({ templateId, t, tCheckin, tGames, wi
           transformOrigin: 'top left',
         }}
       >
-        <WorksheetSheet templateId={templateId} t={t} tCheckin={tCheckin} tGames={tGames} />
+        <WorksheetSheet templateId={templateId} t={t} tSchool={tSchool} tCheckin={tCheckin} tGames={tGames} />
       </div>
     </div>
   )

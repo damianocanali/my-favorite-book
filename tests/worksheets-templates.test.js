@@ -1,54 +1,27 @@
-// Pure template registry for the free /worksheets library (brief §11 / task
-// WS). Each entry is just data — id, i18n keys, grade band — so the page,
-// the print job and any future surface all read from one source instead of
-// three copies of the same list drifting apart.
+// The printable library reads the ONE worksheet catalogue
+// (lib/school/worksheets.js): every assignable template is printable too,
+// and the old printable kebab ids still resolve, as aliases.
 import { describe, it, expect } from 'vitest'
-import { WORKSHEET_TEMPLATES, GRADE_BANDS, getWorksheetTemplate } from '../src/lib/worksheets/templates.js'
+import { WORKSHEET_TEMPLATES, getWorksheetTemplate, schoolKey } from '../src/lib/worksheets/templates.js'
+import { WORKSHEET_TEMPLATES as LIB } from '../lib/school/worksheets.js'
 
-describe('WORKSHEET_TEMPLATES', () => {
-  it('has exactly the 8 templates the brief lists', () => {
-    expect(WORKSHEET_TEMPLATES).toHaveLength(8)
+describe('the printable library', () => {
+  it('is the assignable catalogue itself: 33 sheets, same objects', () => {
+    expect(WORKSHEET_TEMPLATES).toBe(LIB)
+    expect(WORKSHEET_TEMPLATES).toHaveLength(33)
   })
 
-  it('every id is unique and kebab-case', () => {
-    const ids = WORKSHEET_TEMPLATES.map((t) => t.id)
-    expect(new Set(ids).size).toBe(ids.length)
-    for (const id of ids) expect(id).toMatch(/^[a-z]+(-[a-z]+)*$/)
-  })
-
-  it('every template has a title key, description key, sheet-heading key and a valid grade band', () => {
-    const bands = new Set(Object.values(GRADE_BANDS))
-    for (const t of WORKSHEET_TEMPLATES) {
-      expect(t.titleKey).toMatch(/^worksheets:templates\..+\.title$/)
-      expect(t.descriptionKey).toMatch(/^worksheets:templates\..+\.description$/)
-      // The big friendly title printed on the sheet itself (review round
-      // 1) is deliberately a DIFFERENT key from titleKey — "My Story Map"
-      // on the page vs. "Story map" on the grid card — not the same string
-      // reused in two places.
-      expect(t.sheetTitleKey).toMatch(/^worksheets:sheet\.heading\..+$/)
-      expect(t.sheetTitleKey).not.toBe(t.titleKey)
-      expect(bands.has(t.gradeBand)).toBe(true)
-    }
-  })
-
-  it('includes the specific templates named in the brief', () => {
-    const ids = WORKSHEET_TEMPLATES.map((t) => t.id)
-    expect(ids).toEqual([
-      'story-map',
-      'character-profile',
-      'setting-sketch',
-      'storyboard',
-      'sentence-starters',
-      'book-report',
-      'feelings-checkin',
-      'about-author',
-    ])
+  it('copy keys are role-named in the school namespace', () => {
+    expect(schoolKey('haiku', 'heading')).toBe('school:worksheet.templates.haiku.heading')
+    expect(schoolKey('haiku', 'boxes.line_one')).toBe('school:worksheet.templates.haiku.boxes.line_one')
   })
 })
 
 describe('getWorksheetTemplate', () => {
-  it('returns the matching template for a known id', () => {
-    expect(getWorksheetTemplate('story-map')?.id).toBe('story-map')
+  it('returns a template by id or old printable alias', () => {
+    expect(getWorksheetTemplate('haiku')?.id).toBe('haiku')
+    expect(getWorksheetTemplate('story-map')?.id).toBe('beginning_middle_end')
+    expect(getWorksheetTemplate('about-author')?.id).toBe('about_author')
   })
 
   it('returns null for an unknown or missing id', () => {

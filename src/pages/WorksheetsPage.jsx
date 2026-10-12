@@ -12,7 +12,7 @@ import i18next, { loadLocale } from '../i18n/index.js'
 import WorksheetSheet from '../components/worksheets/sheets.jsx'
 import WorksheetThumbnail from '../components/worksheets/WorksheetThumbnail'
 import CustomizePanel from '../components/worksheets/CustomizePanel'
-import { WORKSHEET_TEMPLATES, GRADE_BANDS, getWorksheetTemplate } from '../lib/worksheets/templates.js'
+import { WORKSHEET_TEMPLATES, getWorksheetTemplate, schoolKey } from '../lib/worksheets/templates.js'
 import { parseWorksheetParams } from '../lib/worksheets/params.js'
 import { parseNameList } from '../lib/worksheets/names.js'
 import { useTeacherMode } from '../hooks/useTeacherMode'
@@ -22,7 +22,7 @@ import { enterWorksheetsPrintMode, exitWorksheetsPrintMode } from '../components
 const DEFAULT_VALUES = { prompt: '', className: '', teacherName: '', sheetLocale: 'en', namesRaw: '' }
 
 export default function WorksheetsPage() {
-  const { t, i18n } = useTranslation(['worksheets', 'checkin', 'games'])
+  const { t, i18n } = useTranslation(['worksheets', 'checkin', 'games', 'school'])
   const [searchParams] = useSearchParams()
   // A signed-in teacher reaches this page from their own Worksheets tab;
   // they also get the way into assigning one (the public visitor doesn't).
@@ -34,6 +34,8 @@ export default function WorksheetsPage() {
   // actual print job, a fixed one (see printJob below).
   const tCheckinSite = (key, opts) => t(`checkin:${key}`, opts)
   const tGamesSite = (key, opts) => t(`games:${key}`, opts)
+  // Keys passed to tSchool already carry their 'school:' namespace.
+  const tSchoolSite = t
 
   const [customTarget, setCustomTarget] = useState(null) // template id, or null when the panel is closed
   const [values, setValues] = useState(DEFAULT_VALUES)
@@ -151,13 +153,13 @@ export default function WorksheetsPage() {
             className="glass rounded-2xl p-4 border border-galaxy-text-muted/10 flex flex-col gap-3"
           >
             <div className="flex justify-center">
-              <WorksheetThumbnail templateId={template.id} t={t} tCheckin={tCheckinSite} tGames={tGamesSite} />
+              <WorksheetThumbnail templateId={template.id} t={t} tSchool={tSchoolSite} tCheckin={tCheckinSite} tGames={tGamesSite} />
             </div>
             <div>
-              <h2 className="font-heading font-bold text-galaxy-text">{t(template.titleKey)}</h2>
-              <p className="text-xs text-galaxy-text-muted font-body mt-0.5">{t(template.descriptionKey)}</p>
+              <h2 className="font-heading font-bold text-galaxy-text">{t(schoolKey(template.id, 'title'))}</h2>
+              <p className="text-xs text-galaxy-text-muted font-body mt-0.5">{t(schoolKey(template.id, 'description'))}</p>
               <span className="inline-block mt-2 px-2 py-0.5 rounded-full text-[10px] font-body font-semibold border border-galaxy-secondary/30 text-galaxy-secondary">
-                {t(`grid.grade_band.${template.gradeBand === GRADE_BANDS.K2 ? 'k2' : 'g35'}`)}
+                {t(`school:worksheet.grades.${template.gradeBand}`)}
               </span>
             </div>
             <div className="flex items-center gap-2 mt-auto pt-1">
@@ -200,6 +202,7 @@ export default function WorksheetsPage() {
               key={i}
               templateId={printJob.templateId}
               t={i18next.getFixedT(printJob.sheetLocale, 'worksheets')}
+              tSchool={i18next.getFixedT(printJob.sheetLocale)}
               tCheckin={i18next.getFixedT(printJob.sheetLocale, 'checkin')}
               tGames={i18next.getFixedT(printJob.sheetLocale, 'games')}
               prompt={printJob.prompt}

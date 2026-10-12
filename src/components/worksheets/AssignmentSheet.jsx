@@ -13,6 +13,8 @@ import WorksheetHeader from './WorksheetHeader'
 import WorksheetFooter from './WorksheetFooter'
 import { enterWorksheetsPrintMode, exitWorksheetsPrintMode } from '../school/printMode.js'
 import { fillLayout, BOX_LINES } from '../school/worksheetUi.js'
+import { GenericSheetBody } from './sheets.jsx'
+import { getTemplate } from '../../../lib/school/worksheets.js'
 
 function Lines({ count }) {
   return (
@@ -37,8 +39,16 @@ export function AssignmentWorksheetSheet({ t, tSheet, title, studentName = '', c
   return (
     <div className={`worksheet-sheet font-body flex flex-col ${filled ? 'worksheet-sheet-flow' : ''}`} data-testid="assignment-sheet">
       <h1 className="text-2xl font-heading font-bold text-center">{title}</h1>
-      <p className="text-xs text-center text-black/70 mb-2">{t(`school:worksheet.templates.${worksheet.templateId}.title`)}</p>
+      <p className="text-xs text-center text-black/70 mb-2">{t(`school:worksheet.templates.${worksheet.templateId}.title`, { defaultValue: '' })}</p>
       <WorksheetHeader t={tSheet} className={className} teacherName="" studentName={studentName} />
+      {/* Blank: the library's one-page layout (drawing boxes and all) with
+          the teacher's prompts as the labels. A template this build doesn't
+          know falls back to the plain list below. */}
+      {!filled && getTemplate(worksheet.templateId) ? (
+        <div className="worksheet-body flex-1 min-h-0 overflow-hidden">
+          <GenericSheetBody templateId={worksheet.templateId} tSchool={t} labels={worksheet.prompts ?? {}} word={worksheet.word || null} />
+        </div>
+      ) : (
       <div className="worksheet-body flex-1 min-h-0 flex flex-col gap-3">
         {layout.map((box) => {
           if (box.type === 'word') {
@@ -77,7 +87,8 @@ export function AssignmentWorksheetSheet({ t, tSheet, title, studentName = '', c
           )
         })}
       </div>
-      <WorksheetFooter t={tSheet} templateId={worksheet.templateId.replace(/_/g, '-')} />
+      )}
+      <WorksheetFooter t={tSheet} templateId={worksheet.templateId} />
     </div>
   )
 }
