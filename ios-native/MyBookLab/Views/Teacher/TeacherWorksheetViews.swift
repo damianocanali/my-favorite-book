@@ -1,6 +1,6 @@
 // Worksheet assignments on the teacher's iPad (spec 2026-10-01 §2): the
-// worksheet half of the new/edit assignment form (template cards, editable
-// prompts), a hand-in's answers in the review, and printing — a PDF drawn
+// worksheet half of the new/edit assignment form (the library's 33 sheets
+// with its search, shelves and grade filter; editable prompts), a hand-in's answers in the review, and printing — a PDF drawn
 // the same way as the sign-in cards (SignInCardsPDF) and sent to AirPrint.
 // Counterparts of the web's WorksheetPicker, WorksheetAnswers and
 // AssignmentSheet.
@@ -17,6 +17,11 @@ struct TeacherWorksheetPicker: View {
     var canChangeTemplate: Bool = true
     /// Fired when a template is picked, so the form can fill an empty title.
     var onPicked: (String) -> Void = { _ in }
+
+    // The library's search and filters (same as the Worksheets tab).
+    @State private var query = ""
+    @State private var category: WorksheetTemplate.Category?
+    @State private var grade: WorksheetTemplate.GradeBand?
 
     var body: some View {
         if let def = worksheet, let template = def.template {
@@ -59,13 +64,38 @@ struct TeacherWorksheetPicker: View {
             }
         } else {
             Section {
-                LazyVGrid(columns: [GridItem(.adaptive(minimum: 150), spacing: 12)], spacing: 12) {
-                    ForEach(WorksheetTemplates.all, id: \.id) { t in
-                        Button { pick(t) } label: { card(t) }
+                HStack(spacing: 8) {
+                    Image(systemName: "magnifyingglass").foregroundStyle(.secondary).accessibilityHidden(true)
+                    TextField(text: $query) { Text(WorksheetCopy.librarySearchPlaceholder) }
+                        .autocorrectionDisabled()
+                        .accessibilityLabel(Text(WorksheetCopy.librarySearchLabel))
+                    if !query.isEmpty {
+                        Button { query = "" } label: { Image(systemName: "xmark.circle.fill").foregroundStyle(.secondary) }
                             .buttonStyle(.plain)
+                            .accessibilityLabel(Text(WorksheetCopy.libraryClearSearch))
                     }
                 }
-                .padding(.vertical, 6)
+                WorksheetLibraryFilters(category: $category, grade: $grade)
+                    .padding(.vertical, 4)
+                let list = WorksheetLibrarySearch.filter(query: query, category: category, grade: grade)
+                if list.isEmpty {
+                    WorksheetLibraryEmpty(query: query, onClearSearch: { query = "" },
+                                          onShowAll: { query = ""; category = nil; grade = nil })
+                } else {
+                    ForEach(WorksheetLibrarySearch.grouped(list)) { shelf in
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text(WorksheetCopy.category(shelf.category)).font(.subheadline.bold())
+                                .accessibilityAddTraits(.isHeader)
+                            LazyVGrid(columns: [GridItem(.adaptive(minimum: 150), spacing: 12)], spacing: 12) {
+                                ForEach(shelf.templates, id: \.id) { t in
+                                    Button { pick(t) } label: { card(t) }
+                                        .buttonStyle(.plain)
+                                }
+                            }
+                        }
+                        .padding(.vertical, 6)
+                    }
+                }
             } header: {
                 Text(WorksheetCopy.teacherChooseTemplate)
             }
@@ -73,28 +103,18 @@ struct TeacherWorksheetPicker: View {
     }
 
     /// A tiny picture of the sheet (one bar per box, sized like the box),
-    /// the name and what it's for.
+    /// the name, what it's for and the grade band, on the teacher card.
     private func card(_ t: WorksheetTemplate) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            VStack(spacing: 3) {
-                ForEach(t.boxes, id: \.id) { b in
-                    RoundedRectangle(cornerRadius: 2)
-                        .stroke(.black.opacity(0.45))
-                        .frame(height: b.size == .small ? 6 : b.size == .medium ? 12 : 20)
-                }
+        TeacherCard {
+            VStack(alignment: .leading, spacing: 8) {
+                WorksheetMiniature(template: t, scale: 0.8)
+                Text(WorksheetCopy.title(t.id)).font(.subheadline.bold()).foregroundStyle(.primary)
+                Text(WorksheetCopy.description(t.id)).font(.caption).foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                Text(WorksheetCopy.grade(t.grade)).font(.caption2.bold()).foregroundStyle(.cyan)
             }
-            .padding(8)
-            .background(.white.opacity(0.92), in: RoundedRectangle(cornerRadius: 6))
-            .accessibilityHidden(true)
-            Text(WorksheetCopy.title(t.id)).font(.subheadline.bold()).foregroundStyle(.primary)
-            Text(WorksheetCopy.description(t.id)).font(.caption).foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
         }
-        .padding(10)
-        .frame(maxWidth: .infinity, alignment: .topLeading)
-        .background(.white.opacity(0.06), in: RoundedRectangle(cornerRadius: 12))
-        .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(.white.opacity(0.15)))
-        .contentShape(RoundedRectangle(cornerRadius: 12))
+        .contentShape(RoundedRectangle(cornerRadius: 18))
     }
 
     private func promptBinding(_ id: String) -> Binding<String> {

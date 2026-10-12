@@ -161,3 +161,46 @@ describe('the iPad flows treat a worksheet as a worksheet', () => {
     expect(fill).toContain('SchoolAssignments.handInWorksheet(\n            assignmentId: assignment.id, answers: WorksheetLayout.answersForSubmit(definition, answers))')
   })
 })
+
+describe('the iPad worksheet library (round 6B)', () => {
+  const library = readFileSync('ios-native/MyBookLab/Views/Teacher/TeacherWorksheetLibraryView.swift', 'utf8')
+  const picker = readFileSync('ios-native/MyBookLab/Views/Teacher/TeacherWorksheetViews.swift', 'utf8')
+
+  it('the Worksheets tab: search, shelves, grade filter, grouped shelves, teacher cards, iPad-only wide grid', () => {
+    expect(library).toContain('.searchable(text: $query, prompt: Text(WorksheetCopy.librarySearchPlaceholder))')
+    expect(library).toContain('WorksheetLibraryFilters(category: $category, grade: $grade)')
+    expect(library).toContain('ForEach(WorksheetLibrarySearch.grouped(list)) { shelf in')
+    expect(library).toContain('WorksheetLibraryEmpty(')
+    expect(library).toContain('TeacherCard {')
+    expect(library).not.toMatch(/\.white\.opacity\(0\.0[68]\), in: RoundedRectangle/)
+    // The iPhone keeps its two-column grid; only regular width widens it.
+    expect(library).toContain('GridItem(.adaptive(minimum: hSize == .regular ? 200 : 150), spacing: 14)')
+  })
+
+  it('search matches the same fields as the web, ignoring case and accents', () => {
+    expect(library).toContain('.folding(options: [.caseInsensitive, .diacriticInsensitive], locale: nil)')
+    for (const f of ['title', 'description', 'heading', 'category', 'keywords']) expect(library).toContain(`WorksheetCopy.${f}(`)
+    expect(library).toContain('words.allSatisfy { hay.contains($0) }')
+    expect(model).toContain('return grade == .all || grade == filter')
+  })
+
+  it('the preview shows the sheet\'s heading, drawing box and every box; Assign and Print from it', () => {
+    expect(library).toContain('WorksheetSheetPreview(definition: definition)')
+    expect(library).toContain('Text(WorksheetCopy.heading(definition.templateId))')
+    expect(library).toContain('if let picture {')
+    expect(library).toContain('TeacherAssignmentForm(classId: c.id, existing: nil, presetTemplateId: templateId)')
+    expect(library).toContain('WorksheetPDF.make(title: title, worksheet: definition,')
+  })
+
+  it('the assignment form\'s picker has the same search and filters, on teacher cards', () => {
+    expect(picker).toContain('WorksheetLibraryFilters(category: $category, grade: $grade)')
+    expect(picker).toContain('WorksheetLibrarySearch.filter(query: query, category: category, grade: grade)')
+    expect(picker).toContain('TeacherCard {')
+  })
+
+  it('a child\'s fill-in handles every template, and one this build doesn\'t know', () => {
+    expect(model).toContain('return def.prompts.keys.sorted().map { .box(id: $0, prompt: def.prompts[$0] ?? "", size: .medium) }')
+    const fill = readFileSync('ios-native/MyBookLab/Views/WorksheetFillView.swift', 'utf8')
+    expect(fill).toContain('WorksheetLayout.items(definition, childWord: answers?["word"])')
+  })
+})
