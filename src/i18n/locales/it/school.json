@@ -864,6 +864,8 @@
       "story_map": {
         "title": "Mappa della storia",
         "description": "Progetta una storia: chi, dove, il problema, che cosa succede e il finale.",
+        "heading": "La mia mappa della storia",
+        "keywords": "progettare, trama, problema, personaggi, ambientazione, eventi, schema",
         "boxes": {
           "characters": "Chi c’è nella tua storia?",
           "setting": "Dove e quando succede?",
@@ -872,9 +874,74 @@
           "ending": "Come finisce?"
         }
       },
+      "beginning_middle_end": {
+        "title": "Inizio, svolgimento, fine",
+        "description": "Tre grandi riquadri per le tre parti di una storia.",
+        "heading": "Inizio, svolgimento e fine",
+        "keywords": "mappa della storia, tre parti, trama, raccontare, disegnare, disegni",
+        "boxes": {
+          "beginning": "Inizio: come comincia la tua storia?",
+          "middle": "Svolgimento: che cosa succede dopo?",
+          "end": "Fine: come si conclude?"
+        }
+      },
+      "sequence": {
+        "title": "Sequenza degli eventi",
+        "description": "Prima, poi, dopo, alla fine.",
+        "heading": "Prima, poi, dopo, alla fine",
+        "keywords": "ordine, sequenza, passaggi, raccontare, fumetto, eventi, disegnare",
+        "boxes": {
+          "first": "Per prima cosa…",
+          "next": "Poi…",
+          "then": "Dopo…",
+          "last": "Alla fine…"
+        }
+      },
+      "storyboard": {
+        "title": "Storia in sei riquadri",
+        "description": "Sei riquadri per disegnare una storia in ordine, con due righe sotto ciascuno.",
+        "heading": "La mia storia a riquadri",
+        "keywords": "storyboard, fumetto, riquadri, vignette, disegni, scene, progettare",
+        "boxes": {
+          "panel_one": "1. Come comincia?",
+          "panel_two": "2. Che cosa succede poi?",
+          "panel_three": "3. E dopo?",
+          "panel_four": "4. Che cosa va storto?",
+          "panel_five": "5. Come si rimedia?",
+          "panel_six": "6. Come finisce?"
+        }
+      },
+      "problem_solution": {
+        "title": "Problema e soluzione",
+        "description": "Un problema, i tentativi che non funzionano e come si risolve.",
+        "heading": "Il problema e la soluzione",
+        "keywords": "problema, risolvere, tentativi, soluzione, trama",
+        "picture": "Disegna come finisce",
+        "boxes": {
+          "problem": "Qual è il problema?",
+          "tries": "Che cosa provano a fare i personaggi? Come va?",
+          "solution": "Come si risolve il problema?"
+        }
+      },
+      "story_mountain": {
+        "title": "La montagna della storia",
+        "description": "Una storia da scalare: inizio, tensione che cresce, momento culminante, discesa, finale.",
+        "heading": "La mia montagna della storia",
+        "keywords": "trama, climax, struttura, momento culminante, progettare",
+        "boxes": {
+          "beginning": "Inizio: chi, dove e quando?",
+          "build_up": "Tensione: che cosa comincia ad andare storto?",
+          "big_moment": "Momento culminante: qual è la parte più emozionante?",
+          "wind_down": "Discesa: che cosa succede dopo?",
+          "ending": "Finale: come si conclude tutto?"
+        }
+      },
       "character_profile": {
         "title": "Scheda del personaggio",
         "description": "Conosci un personaggio prima di scriverne la storia.",
+        "heading": "Il mio personaggio",
+        "keywords": "personaggio, protagonista, descrivere, carattere, disegnare",
+        "picture": "Disegna il personaggio",
         "boxes": {
           "name": "Come si chiama il tuo personaggio?",
           "looks_like": "Che aspetto ha?",
@@ -883,18 +950,24 @@
           "afraid_of": "Di che cosa ha paura?"
         }
       },
-      "beginning_middle_end": {
-        "title": "Inizio, svolgimento, fine",
-        "description": "Tre grandi riquadri per le tre parti di una storia.",
+      "setting_sketch": {
+        "title": "Il luogo della storia",
+        "description": "Disegna il luogo dove succede una storia, poi descrivilo.",
+        "heading": "Dove succede la mia storia",
+        "keywords": "luogo, ambientazione, dove, quando, descrivere, disegnare, sensi",
+        "picture": "Disegna il luogo",
         "boxes": {
-          "beginning": "Inizio: come comincia la tua storia?",
-          "middle": "Svolgimento: che cosa succede dopo?",
-          "end": "Fine: come si conclude?"
+          "place": "Dove succede la tua storia?",
+          "when": "Quando succede?",
+          "looks_like": "Com’è fatto questo luogo?",
+          "sounds_smells": "Quali suoni e quali odori ci sono?"
         }
       },
       "five_senses": {
         "title": "Cinque sensi",
         "description": "Descrivi un luogo con la vista, l’udito, l’olfatto, il tatto e il gusto.",
+        "heading": "I miei cinque sensi",
+        "keywords": "sensi, descrivere, vedere, sentire, odori, toccare, gusto, luogo",
         "boxes": {
           "place": "Quale luogo descrivi?",
           "see": "Che cosa vedi?",
@@ -904,9 +977,152 @@
           "taste": "Quali sapori senti?"
         }
       },
+      "character_change": {
+        "title": "Come cambia un personaggio",
+        "description": "Com’è un personaggio all’inizio, che cosa succede e com’è alla fine.",
+        "heading": "Come cambia il mio personaggio",
+        "keywords": "personaggio, cambiamento, crescita, carattere, inizio, fine",
+        "boxes": {
+          "character": "A quale personaggio pensi?",
+          "at_start": "Com’è all’inizio?",
+          "what_happened": "Che cosa succede e lo fa cambiare?",
+          "at_end": "Com’è alla fine?"
+        }
+      },
+      "sentence_starters": {
+        "title": "Inizi di frase",
+        "description": "Frasi da completare con parole tue.",
+        "heading": "Finisco la mia storia",
+        "keywords": "inizi, frasi, completare, storia, spunti per scrivere",
+        "boxes": {
+          "sentence_one": "C’era una volta…",
+          "sentence_two": "Un giorno…",
+          "sentence_three": "All’improvviso…",
+          "sentence_four": "Alla fine…"
+        }
+      },
+      "describing_words": {
+        "title": "Parole per descrivere",
+        "description": "Scegli una cosa, disegnala e trova cinque parole per descriverla.",
+        "heading": "Le parole per descriverlo",
+        "keywords": "aggettivi, descrivere, parole, lessico, sensi",
+        "picture": "Disegnalo qui",
+        "boxes": {
+          "thing": "Che cosa descrivi?",
+          "word_one": "Che aspetto ha?",
+          "word_two": "Quanto è grande?",
+          "word_three": "Com’è al tatto?",
+          "word_four": "Di che colore è?",
+          "word_five": "Ancora una parola!"
+        }
+      },
+      "word_web": {
+        "title": "Ragnatela di parole",
+        "description": "Una grande idea al centro e sei idee intorno.",
+        "heading": "La mia ragnatela di parole",
+        "keywords": "brainstorming, mappa mentale, idee, ragnatela, lessico",
+        "boxes": {
+          "center": "Qual è la tua grande idea?",
+          "idea_one": "Prima idea",
+          "idea_two": "Seconda idea",
+          "idea_three": "Terza idea",
+          "idea_four": "Quarta idea",
+          "idea_five": "Quinta idea",
+          "idea_six": "Sesta idea"
+        }
+      },
+      "stretch_sentence": {
+        "title": "Allunga la frase",
+        "description": "Chi, che cosa fa, dove, quando e perché: poi una frase lunga.",
+        "heading": "Allungo la mia frase",
+        "keywords": "frase, espandere, grammatica, dettagli, chi che cosa dove quando perché",
+        "boxes": {
+          "who": "Chi?",
+          "did_what": "Che cosa fa?",
+          "where": "Dove?",
+          "when": "Quando?",
+          "why": "Perché?",
+          "my_sentence": "Ora metti tutto insieme in una frase lunga."
+        }
+      },
+      "dialogue": {
+        "title": "Dialogo",
+        "description": "Due personaggi parlano: scrivi la loro conversazione con le virgolette.",
+        "heading": "Chi ha detto che cosa?",
+        "keywords": "dialogo, conversazione, virgolette, discorso diretto, parlare",
+        "boxes": {
+          "character_a": "Chi è il primo personaggio?",
+          "character_b": "Chi è il secondo personaggio?",
+          "conversation": "Scrivi che cosa si dicono. Usa le virgolette."
+        }
+      },
+      "acrostic": {
+        "title": "Acrostico",
+        "description": "Un verso per ogni lettera di una parola.",
+        "heading": "Il mio acrostico",
+        "keywords": "poesia, lettere, nome, acrostico",
+        "boxes": {
+          "word": "Scegli una parola. Ogni lettera inizia un verso.",
+          "lines": "Scrivi una parola o una frase per ogni lettera."
+        }
+      },
+      "haiku": {
+        "title": "Poesia haiku",
+        "description": "Una piccola poesia in tre versi: 5, 7 e 5 sillabe.",
+        "heading": "Il mio haiku",
+        "keywords": "poesia, sillabe, natura, giapponese, breve",
+        "picture": "Disegna il tuo haiku",
+        "boxes": {
+          "line_one": "Verso 1: 5 sillabe",
+          "line_two": "Verso 2: 7 sillabe",
+          "line_three": "Verso 3: 5 sillabe"
+        }
+      },
+      "i_am_poem": {
+        "title": "Poesia “Io sono”",
+        "description": "Una poesia su di te: io sono, mi chiedo, sento, vedo, vorrei.",
+        "heading": "Io sono",
+        "keywords": "poesia, io, identità, chi sono, emozioni",
+        "boxes": {
+          "i_am": "Io sono…",
+          "i_wonder": "Mi chiedo…",
+          "i_hear": "Sento…",
+          "i_see": "Vedo…",
+          "i_want": "Vorrei…",
+          "i_am_again": "Io sono… (ripetilo)"
+        }
+      },
+      "cinquain": {
+        "title": "Poesia in cinque versi",
+        "description": "Una poesia di cinque versi: un nome, due aggettivi, tre azioni, un’emozione, un altro nome.",
+        "heading": "La mia poesia in cinque versi",
+        "keywords": "poesia, cinque versi, cinquain, aggettivi, verbi",
+        "picture": "Disegna la tua poesia",
+        "boxes": {
+          "noun": "Verso 1: un nome (l’argomento)",
+          "two_describing": "Verso 2: due aggettivi",
+          "three_doing": "Verso 3: tre verbi di azione",
+          "feeling_phrase": "Verso 4: una breve frase su un’emozione",
+          "another_name": "Verso 5: un altro nome per l’argomento"
+        }
+      },
+      "opinion": {
+        "title": "Testo d’opinione (OREO)",
+        "description": "Opinione, ragione, esempio, di nuovo l’opinione.",
+        "heading": "La mia opinione",
+        "keywords": "opinione, OREO, argomentare, ragioni, paragrafo",
+        "boxes": {
+          "opinion": "O — Opinione: che cosa ne pensi?",
+          "reason": "R — Ragione: perché lo pensi?",
+          "example": "E — Esempio: fai un esempio.",
+          "conclusion": "O — Opinione: ripetila con altre parole."
+        }
+      },
       "letter": {
         "title": "Lettera a un personaggio",
         "description": "Scrivi una lettera a qualcuno di una storia.",
+        "heading": "La mia lettera",
+        "keywords": "lettera, scrivere a, saluto, posta, personaggio",
         "boxes": {
           "greeting": "A chi scrivi?",
           "opening": "Saluta e racconta perché scrivi.",
@@ -915,37 +1131,140 @@
           "signature": "Firma con il tuo nome."
         }
       },
-      "opinion": {
-        "title": "Testo d’opinione (OREO)",
-        "description": "Opinione, ragione, esempio, di nuovo l’opinione.",
+      "thank_you": {
+        "title": "Biglietto di ringraziamento",
+        "description": "Ringrazia qualcuno e racconta perché.",
+        "heading": "Grazie!",
+        "keywords": "grazie, biglietto, lettera, gratitudine, gentilezza",
+        "picture": "Fai un disegno per questa persona",
         "boxes": {
-          "opinion": "O — Opinione: che cosa ne pensi?",
-          "reason": "R — Ragione: perché lo pensi?",
-          "example": "E — Esempio: fai un esempio.",
-          "conclusion": "O — Opinione: ripetila con altre parole."
+          "to": "Per chi è?",
+          "thank_you_for": "Grazie per…",
+          "because": "Mi ha fatto sentire… perché…",
+          "from": "Da: firma con il tuo nome."
         }
       },
-      "acrostic": {
-        "title": "Acrostico",
-        "description": "Un verso per ogni lettera di una parola.",
+      "persuade": {
+        "title": "Convincimi",
+        "description": "Che cosa dovrebbe succedere, tre ragioni e una chiusura forte.",
+        "heading": "Ti convinco io",
+        "keywords": "persuadere, opinione, ragioni, convincere, argomentare",
         "boxes": {
-          "word": "Scegli una parola. Ogni lettera inizia un verso.",
-          "lines": "Scrivi una parola o una frase per ogni lettera."
+          "should": "Che cosa pensi che dovrebbe succedere?",
+          "reason_one": "La prima ragione è…",
+          "reason_two": "Un’altra ragione è…",
+          "reason_three": "La ragione più forte è…",
+          "so": "Quindi… (ripeti che cosa dovrebbe succedere)"
         }
       },
-      "sequence": {
-        "title": "Sequenza degli eventi",
-        "description": "Prima, poi, dopo, alla fine.",
+      "book_report": {
+        "title": "Scheda del libro",
+        "description": "Titolo, autore, di che cosa parla, la parte che preferisci e le stelline.",
+        "heading": "La mia scheda del libro",
+        "keywords": "libro, recensione, lettura, scheda, stelle, consigliare",
+        "picture": "Disegna una scena del libro",
         "boxes": {
-          "first": "Per prima cosa…",
-          "next": "Poi…",
-          "then": "Dopo…",
-          "last": "Alla fine…"
+          "title": "Come si intitola il libro?",
+          "author": "Chi l’ha scritto?",
+          "about": "Di che cosa parla il libro?",
+          "favorite": "Qual è la parte che preferisci?",
+          "would_recommend": "Lo consiglieresti a qualcuno? Perché?"
+        }
+      },
+      "favorite_part": {
+        "title": "La parte che preferisco",
+        "description": "Disegna e scrivi la parte più bella di un libro.",
+        "heading": "La parte più bella",
+        "keywords": "libro, lettura, preferita, scena, disegnare",
+        "picture": "Disegna la parte che preferisci",
+        "boxes": {
+          "title": "Quale libro hai letto?",
+          "part": "Che cosa succede nella parte che preferisci?",
+          "why": "Perché ti piace?"
+        }
+      },
+      "predict": {
+        "title": "Fai una previsione",
+        "description": "Usa gli indizi per indovinare che cosa succede dopo, poi controlla.",
+        "heading": "Che cosa succederà?",
+        "keywords": "prevedere, indovinare, indizi, lettura, controllare",
+        "boxes": {
+          "title": "Che cosa stai leggendo?",
+          "clues": "Quali indizi noti?",
+          "prediction": "Che cosa pensi che succederà?",
+          "what_happened": "Che cosa è successo davvero? Avevi indovinato?"
+        }
+      },
+      "compare_books": {
+        "title": "Confronta due libri",
+        "description": "Due libri a confronto: che cosa hanno in comune e in che cosa sono diversi.",
+        "heading": "Due libri a confronto",
+        "keywords": "confrontare, libri, uguale, diverso, somiglianze, differenze",
+        "boxes": {
+          "book_one": "Primo libro:",
+          "book_two": "Secondo libro:",
+          "same": "In che cosa si somigliano?",
+          "different": "In che cosa sono diversi?"
+        }
+      },
+      "all_about": {
+        "title": "Tutto su…",
+        "description": "Spiega un argomento a chi legge: tre fatti e un fatto sorprendente.",
+        "heading": "Ti racconto tutto su…",
+        "keywords": "fatti, testo informativo, argomento, ricerca, relazione",
+        "picture": "Disegna l’argomento",
+        "boxes": {
+          "topic": "Qual è il tuo argomento?",
+          "fact_one": "Un fatto è…",
+          "fact_two": "Un altro fatto è…",
+          "fact_three": "Ancora un fatto…",
+          "wow_fact": "Incredibile! Sapevi che…?"
+        }
+      },
+      "how_to": {
+        "title": "Istruzioni passo passo",
+        "description": "Insegna a qualcuno a fare qualcosa, un passo alla volta.",
+        "heading": "Come si fa…",
+        "keywords": "istruzioni, passi, procedura, ricetta, come si fa, sequenza",
+        "boxes": {
+          "what": "Che cosa insegni?",
+          "need": "Che cosa serve?",
+          "step_one": "Passo 1:",
+          "step_two": "Passo 2:",
+          "step_three": "Passo 3:",
+          "step_four": "Passo 4:"
+        }
+      },
+      "about_author": {
+        "title": "Chi ha scritto il libro",
+        "description": "Una pagina su chi ha scritto il libro: tu.",
+        "heading": "Chi ha scritto questo libro",
+        "keywords": "autore, autrice, io, su di me, biografia, ritratto, scrivere",
+        "picture": "Disegna il tuo ritratto",
+        "boxes": {
+          "my_name": "Mi chiamo…",
+          "i_like": "Mi piace…",
+          "i_write_about": "Mi piace scrivere di…",
+          "fun_fact": "Una curiosità su di me…"
+        }
+      },
+      "feelings_checkin": {
+        "title": "Come mi sento",
+        "description": "Come ti senti, perché e che cosa ti aiuterebbe: niente punteggi, solo parole.",
+        "heading": "Come mi sento oggi",
+        "keywords": "emozioni, sentimenti, umore, benessere, stare bene",
+        "picture": "Disegna come ti senti",
+        "boxes": {
+          "feeling": "Come ti senti oggi?",
+          "why": "Perché ti senti così?",
+          "what_helps": "Che cosa ti aiuterebbe?"
         }
       },
       "my_week": {
         "title": "La mia settimana",
         "description": "Una pagina di diario sulla settimana.",
+        "heading": "La mia settimana",
+        "keywords": "diario, settimana, riflessione, weekend, fine settimana",
         "boxes": {
           "best": "La parte più bella della mia settimana è stata…",
           "learned": "Una cosa nuova che ho imparato…",
@@ -953,7 +1272,52 @@
           "felt_good": "Una cosa che mi ha fatto stare bene…",
           "next_week": "La prossima settimana voglio…"
         }
+      },
+      "all_about_me": {
+        "title": "Tutto su di me",
+        "description": "Le tue cose preferite, che cosa ti riesce bene, che cosa stai imparando e un sogno.",
+        "heading": "Ecco chi sono",
+        "keywords": "io, identità, cose preferite, sogni, inizio della scuola",
+        "picture": "Disegnati mentre fai una cosa che ami",
+        "boxes": {
+          "favorites": "Le mie cose preferite sono…",
+          "good_at": "Mi riesce bene…",
+          "learning": "Sto imparando a…",
+          "dream": "Un giorno vorrei…"
+        }
       }
+    },
+    "categories": {
+      "plan": "Progettare una storia",
+      "characters": "Personaggi e luoghi",
+      "words": "Parole e frasi",
+      "poems": "Poesie",
+      "opinions": "Opinioni e lettere",
+      "reading": "Dopo la lettura",
+      "facts": "Fatti e istruzioni",
+      "me": "Io e le emozioni"
+    },
+    "grades": {
+      "k2": "Infanzia–2ª primaria",
+      "g35": "3ª–5ª primaria",
+      "all": "Infanzia–5ª primaria"
+    },
+    "library": {
+      "search_label": "Cerca tra le schede",
+      "search_placeholder": "Cerca: poesia, lettera, emozioni…",
+      "category_label": "Categoria",
+      "all_categories": "Tutte",
+      "grade_label": "Classe",
+      "all_grades": "Tutte le classi",
+      "no_results": "Nessuna scheda corrisponde a “{{query}}”.",
+      "no_results_filters": "Nessuna scheda corrisponde a questi filtri.",
+      "clear_search": "Cancella la ricerca",
+      "show_all": "Mostra tutte le schede",
+      "view": "Guarda",
+      "previous": "Scheda precedente",
+      "next": "Scheda successiva",
+      "close_preview": "Chiudi l’anteprima",
+      "assign": "Assegna alla mia classe"
     },
     "teacher": {
       "kind_label": "Che cosa vuoi assegnare?",

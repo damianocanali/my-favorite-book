@@ -16587,1362 +16587,478 @@
         }
       }
     },
-    "school.worksheet.templates.story_map.title": {
+    "school.worksheet.categories.characters": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Story map"
+            "value": "Characters & places"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mappa della storia"
+            "value": "Personaggi e luoghi"
           }
         }
       }
     },
-    "school.worksheet.templates.character_profile.title": {
+    "school.worksheet.categories.facts": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Character profile"
+            "value": "Facts & how-to"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Scheda del personaggio"
+            "value": "Fatti e istruzioni"
           }
         }
       }
     },
-    "school.worksheet.templates.beginning_middle_end.title": {
+    "school.worksheet.categories.me": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Beginning, middle, end"
+            "value": "About me & feelings"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Inizio, svolgimento, fine"
+            "value": "Io e le emozioni"
           }
         }
       }
     },
-    "school.worksheet.templates.five_senses.title": {
+    "school.worksheet.categories.opinions": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Five senses"
+            "value": "Opinions & letters"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cinque sensi"
+            "value": "Opinioni e lettere"
           }
         }
       }
     },
-    "school.worksheet.templates.letter.title": {
+    "school.worksheet.categories.plan": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Letter to a character"
+            "value": "Plan a story"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Lettera a un personaggio"
+            "value": "Progettare una storia"
           }
         }
       }
     },
-    "school.worksheet.templates.opinion.title": {
+    "school.worksheet.categories.poems": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Opinion paragraph (OREO)"
+            "value": "Poems"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Testo d’opinione (OREO)"
+            "value": "Poesie"
           }
         }
       }
     },
-    "school.worksheet.templates.acrostic.title": {
+    "school.worksheet.categories.reading": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Acrostic poem"
+            "value": "Reading response"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Acrostico"
+            "value": "Dopo la lettura"
           }
         }
       }
     },
-    "school.worksheet.templates.sequence.title": {
+    "school.worksheet.categories.words": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sequence of events"
+            "value": "Words & sentences"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sequenza degli eventi"
+            "value": "Parole e frasi"
           }
         }
       }
     },
-    "school.worksheet.templates.my_week.title": {
+    "school.worksheet.grades.all": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "My week"
+            "value": "Grades K–5"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "La mia settimana"
+            "value": "Infanzia–5ª primaria"
           }
         }
       }
     },
-    "school.worksheet.templates.story_map.description": {
+    "school.worksheet.grades.g35": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Plan a story: who, where, the problem, what happens and the ending."
+            "value": "Grades 3–5"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Progetta una storia: chi, dove, il problema, che cosa succede e il finale."
+            "value": "3ª–5ª primaria"
           }
         }
       }
     },
-    "school.worksheet.templates.character_profile.description": {
+    "school.worksheet.grades.k2": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Get to know a character before writing about them."
+            "value": "Grades K–2"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Conosci un personaggio prima di scriverne la storia."
+            "value": "Infanzia–2ª primaria"
           }
         }
       }
     },
-    "school.worksheet.templates.beginning_middle_end.description": {
+    "school.worksheet.library.all_categories": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Three big boxes for the three parts of a story."
+            "value": "All"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tre grandi riquadri per le tre parti di una storia."
+            "value": "Tutte"
           }
         }
       }
     },
-    "school.worksheet.templates.five_senses.description": {
+    "school.worksheet.library.all_grades": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Describe a place with sight, sound, smell, touch and taste."
+            "value": "All grades"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Descrivi un luogo con la vista, l’udito, l’olfatto, il tatto e il gusto."
+            "value": "Tutte le classi"
           }
         }
       }
     },
-    "school.worksheet.templates.letter.description": {
+    "school.worksheet.library.assign": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Write a letter to someone from a story."
+            "value": "Assign to my class"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Scrivi una lettera a qualcuno di una storia."
+            "value": "Assegna alla mia classe"
           }
         }
       }
     },
-    "school.worksheet.templates.opinion.description": {
+    "school.worksheet.library.category_label": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Opinion, reason, example, opinion again."
+            "value": "Category"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Opinione, ragione, esempio, di nuovo l’opinione."
+            "value": "Categoria"
           }
         }
       }
     },
-    "school.worksheet.templates.acrostic.description": {
+    "school.worksheet.library.clear_search": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "One line for each letter of a word."
+            "value": "Clear search"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Un verso per ogni lettera di una parola."
+            "value": "Cancella la ricerca"
           }
         }
       }
     },
-    "school.worksheet.templates.sequence.description": {
+    "school.worksheet.library.close_preview": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "First, next, then, last."
+            "value": "Close preview"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Prima, poi, dopo, alla fine."
+            "value": "Chiudi l’anteprima"
           }
         }
       }
     },
-    "school.worksheet.templates.my_week.description": {
+    "school.worksheet.library.grade_label": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "A journal page about the week."
+            "value": "Grade"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Una pagina di diario sulla settimana."
+            "value": "Classe"
           }
         }
       }
     },
-    "school.worksheet.templates.story_map.boxes.characters": {
+    "school.worksheet.library.next": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Who is in your story?"
+            "value": "Next worksheet"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Chi c’è nella tua storia?"
+            "value": "Scheda successiva"
           }
         }
       }
     },
-    "school.worksheet.templates.story_map.boxes.setting": {
+    "school.worksheet.library.no_results": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Where and when does it happen?"
+            "value": "No worksheet matches “%@”."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dove e quando succede?"
+            "value": "Nessuna scheda corrisponde a “%@”."
           }
         }
       }
     },
-    "school.worksheet.templates.story_map.boxes.problem": {
+    "school.worksheet.library.no_results_filters": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "What is the problem?"
+            "value": "No worksheet matches these filters."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Qual è il problema?"
+            "value": "Nessuna scheda corrisponde a questi filtri."
           }
         }
       }
     },
-    "school.worksheet.templates.story_map.boxes.events": {
+    "school.worksheet.library.previous": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "What happens? Write the big moments."
+            "value": "Previous worksheet"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Che cosa succede? Scrivi i momenti importanti."
+            "value": "Scheda precedente"
           }
         }
       }
     },
-    "school.worksheet.templates.story_map.boxes.ending": {
+    "school.worksheet.library.search_label": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "How does it end?"
+            "value": "Search worksheets"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Come finisce?"
+            "value": "Cerca tra le schede"
           }
         }
       }
     },
-    "school.worksheet.templates.character_profile.boxes.name": {
+    "school.worksheet.library.search_placeholder": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "What is your character’s name?"
+            "value": "Search: poem, letter, feelings…"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Come si chiama il tuo personaggio?"
+            "value": "Cerca: poesia, lettera, emozioni…"
           }
         }
       }
     },
-    "school.worksheet.templates.character_profile.boxes.looks_like": {
+    "school.worksheet.library.show_all": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "What do they look like?"
+            "value": "Show all worksheets"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Che aspetto ha?"
+            "value": "Mostra tutte le schede"
           }
         }
       }
     },
-    "school.worksheet.templates.character_profile.boxes.likes": {
+    "school.worksheet.library.view": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "What do they like to do?"
+            "value": "View"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Che cosa ama fare?"
+            "value": "Guarda"
           }
         }
       }
     },
-    "school.worksheet.templates.character_profile.boxes.wants": {
+    "school.worksheet.student.box_full": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "What do they want most?"
+            "value": "This box is full."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Che cosa desidera più di tutto?"
+            "value": "Questo riquadro è pieno."
           }
         }
       }
     },
-    "school.worksheet.templates.character_profile.boxes.afraid_of": {
+    "school.worksheet.student.close": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "What are they afraid of?"
+            "value": "Close worksheet"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Di che cosa ha paura?"
-          }
-        }
-      }
-    },
-    "school.worksheet.templates.beginning_middle_end.boxes.beginning": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Beginning: how does your story start?"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Inizio: come comincia la tua storia?"
-          }
-        }
-      }
-    },
-    "school.worksheet.templates.beginning_middle_end.boxes.middle": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Middle: what happens next?"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Svolgimento: che cosa succede dopo?"
-          }
-        }
-      }
-    },
-    "school.worksheet.templates.beginning_middle_end.boxes.end": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "End: how does it finish?"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Fine: come si conclude?"
-          }
-        }
-      }
-    },
-    "school.worksheet.templates.five_senses.boxes.place": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Which place are you describing?"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Quale luogo descrivi?"
-          }
-        }
-      }
-    },
-    "school.worksheet.templates.five_senses.boxes.see": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "What can you see?"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Che cosa vedi?"
-          }
-        }
-      }
-    },
-    "school.worksheet.templates.five_senses.boxes.hear": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "What can you hear?"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Quali suoni senti?"
-          }
-        }
-      }
-    },
-    "school.worksheet.templates.five_senses.boxes.smell": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "What can you smell?"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Quali profumi o odori senti?"
-          }
-        }
-      }
-    },
-    "school.worksheet.templates.five_senses.boxes.touch": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "What can you touch?"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Che cosa puoi toccare?"
-          }
-        }
-      }
-    },
-    "school.worksheet.templates.five_senses.boxes.taste": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "What can you taste?"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Quali sapori senti?"
-          }
-        }
-      }
-    },
-    "school.worksheet.templates.letter.boxes.greeting": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Who are you writing to?"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "A chi scrivi?"
-          }
-        }
-      }
-    },
-    "school.worksheet.templates.letter.boxes.opening": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Say hello and why you are writing."
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Saluta e racconta perché scrivi."
-          }
-        }
-      }
-    },
-    "school.worksheet.templates.letter.boxes.body": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "What do you want to tell or ask?"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Che cosa vuoi raccontare o chiedere?"
-          }
-        }
-      }
-    },
-    "school.worksheet.templates.letter.boxes.closing": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "How do you end your letter?"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Come chiudi la lettera?"
-          }
-        }
-      }
-    },
-    "school.worksheet.templates.letter.boxes.signature": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sign your name."
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Firma con il tuo nome."
-          }
-        }
-      }
-    },
-    "school.worksheet.templates.opinion.boxes.opinion": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "O — Opinion: what do you think?"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "O — Opinione: che cosa ne pensi?"
-          }
-        }
-      }
-    },
-    "school.worksheet.templates.opinion.boxes.reason": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "R — Reason: why do you think so?"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "R — Ragione: perché lo pensi?"
-          }
-        }
-      }
-    },
-    "school.worksheet.templates.opinion.boxes.example": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "E — Example: give an example."
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "E — Esempio: fai un esempio."
-          }
-        }
-      }
-    },
-    "school.worksheet.templates.opinion.boxes.conclusion": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "O — Opinion again: say it one more time."
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "O — Opinione: ripetila con altre parole."
-          }
-        }
-      }
-    },
-    "school.worksheet.templates.acrostic.boxes.word": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Choose a word. Each letter starts a line."
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Scegli una parola. Ogni lettera inizia un verso."
-          }
-        }
-      }
-    },
-    "school.worksheet.templates.acrostic.boxes.lines": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Write a word or a line for each letter."
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Scrivi una parola o una frase per ogni lettera."
-          }
-        }
-      }
-    },
-    "school.worksheet.templates.sequence.boxes.first": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "First…"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Per prima cosa…"
-          }
-        }
-      }
-    },
-    "school.worksheet.templates.sequence.boxes.next": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Next…"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Poi…"
-          }
-        }
-      }
-    },
-    "school.worksheet.templates.sequence.boxes.then": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Then…"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Dopo…"
-          }
-        }
-      }
-    },
-    "school.worksheet.templates.sequence.boxes.last": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Last…"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Alla fine…"
-          }
-        }
-      }
-    },
-    "school.worksheet.templates.my_week.boxes.best": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "The best part of my week was…"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "La parte più bella della mia settimana è stata…"
-          }
-        }
-      }
-    },
-    "school.worksheet.templates.my_week.boxes.learned": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Something new I learned…"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Una cosa nuova che ho imparato…"
-          }
-        }
-      }
-    },
-    "school.worksheet.templates.my_week.boxes.tricky": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Something tricky was…"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Una cosa difficile è stata…"
-          }
-        }
-      }
-    },
-    "school.worksheet.templates.my_week.boxes.felt_good": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Something that made me feel good…"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Una cosa che mi ha fatto stare bene…"
-          }
-        }
-      }
-    },
-    "school.worksheet.templates.my_week.boxes.next_week": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Next week I want to…"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "La prossima settimana voglio…"
-          }
-        }
-      }
-    },
-    "school.worksheet.teacher.kind_label": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "What are you assigning?"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Che cosa vuoi assegnare?"
-          }
-        }
-      }
-    },
-    "school.worksheet.teacher.kind_book": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "A book"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Un libro"
-          }
-        }
-      }
-    },
-    "school.worksheet.teacher.kind_book_hint": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Each child writes a book of their own."
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ognuno scrive un libro tutto suo."
-          }
-        }
-      }
-    },
-    "school.worksheet.teacher.kind_worksheet": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "A worksheet"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Una scheda"
-          }
-        }
-      }
-    },
-    "school.worksheet.teacher.kind_worksheet_hint": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Boxes to fill in, from a template."
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Riquadri da completare, da un modello."
-          }
-        }
-      }
-    },
-    "school.worksheet.teacher.choose_template": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Choose a worksheet"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Scegli una scheda"
-          }
-        }
-      }
-    },
-    "school.worksheet.teacher.change_template": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Change worksheet"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Cambia scheda"
-          }
-        }
-      }
-    },
-    "school.worksheet.teacher.instructions_label": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Instructions for the class"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Istruzioni per la classe"
-          }
-        }
-      }
-    },
-    "school.worksheet.teacher.prompts_heading": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "The prompt in each box"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "La domanda in ogni riquadro"
-          }
-        }
-      }
-    },
-    "school.worksheet.teacher.prompts_hint": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Edit any prompt to fit your class."
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Modifica le domande come preferisci."
-          }
-        }
-      }
-    },
-    "school.worksheet.teacher.reset_prompts": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Reset prompts"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ripristina le domande"
-          }
-        }
-      }
-    },
-    "school.worksheet.teacher.box_label": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Box %lld"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Riquadro %lld"
-          }
-        }
-      }
-    },
-    "school.worksheet.teacher.acrostic_word_label": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Word for the acrostic (optional)"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Parola dell’acrostico (facoltativa)"
-          }
-        }
-      }
-    },
-    "school.worksheet.teacher.acrostic_word_hint": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Leave it empty and each child chooses a word."
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Se la lasci vuota, la parola la sceglie chi scrive."
-          }
-        }
-      }
-    },
-    "school.worksheet.teacher.acrostic_word_invalid": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Use 2–12 letters, no spaces."
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Usa da 2 a 12 lettere, senza spazi."
-          }
-        }
-      }
-    },
-    "school.worksheet.teacher.prompt_required": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Every box needs a prompt."
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ogni riquadro ha bisogno di una domanda."
-          }
-        }
-      }
-    },
-    "school.worksheet.teacher.template_required": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Choose a worksheet."
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Scegli una scheda."
-          }
-        }
-      }
-    },
-    "school.worksheet.teacher.chip": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Worksheet"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Scheda"
-          }
-        }
-      }
-    },
-    "school.worksheet.teacher.print_blank": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Print blank"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Stampa vuota"
-          }
-        }
-      }
-    },
-    "school.worksheet.teacher.print_filled": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Print"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Stampa"
-          }
-        }
-      }
-    },
-    "school.worksheet.teacher.answers_heading": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Answers"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Risposte"
-          }
-        }
-      }
-    },
-    "school.worksheet.teacher.no_answer": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "(empty)"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "(vuoto)"
-          }
-        }
-      }
-    },
-    "school.worksheet.student.start": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Start worksheet"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Inizia la scheda"
+            "value": "Chiudi la scheda"
           }
         }
       }
@@ -17964,19 +17080,19 @@
         }
       }
     },
-    "school.worksheet.student.open": {
+    "school.worksheet.student.dictate": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Open my worksheet"
+            "value": "Say it instead of typing"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Apri la mia scheda"
+            "value": "Dillo a voce invece di scrivere"
           }
         }
       }
@@ -18015,19 +17131,19 @@
         }
       }
     },
-    "school.worksheet.student.saved_here": {
+    "school.worksheet.student.line_for": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Saved on this device"
+            "value": "Line for %@"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Salvato su questo dispositivo"
+            "value": "Verso per %@"
           }
         }
       }
@@ -18049,108 +17165,6 @@
         }
       }
     },
-    "school.worksheet.student.dictate": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Say it instead of typing"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Dillo a voce invece di scrivere"
-          }
-        }
-      }
-    },
-    "school.worksheet.student.stop_dictate": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Stop listening"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Smetti di ascoltare"
-          }
-        }
-      }
-    },
-    "school.worksheet.student.word_label": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "My word"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "La mia parola"
-          }
-        }
-      }
-    },
-    "school.worksheet.student.word_placeholder": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Type your word"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Scrivi la tua parola"
-          }
-        }
-      }
-    },
-    "school.worksheet.student.line_for": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Line for %@"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Verso per %@"
-          }
-        }
-      }
-    },
-    "school.worksheet.student.close": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Close worksheet"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Chiudi la scheda"
-          }
-        }
-      }
-    },
     "school.worksheet.student.make_pages": {
       "extractionState": "manual",
       "localizations": {
@@ -18164,6 +17178,40 @@
           "stringUnit": {
             "state": "translated",
             "value": "Trasforma in pagine del libro"
+          }
+        }
+      }
+    },
+    "school.worksheet.student.make_pages_append": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add to one of my books"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aggiungi a un mio libro"
+          }
+        }
+      }
+    },
+    "school.worksheet.student.make_pages_full": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This book is full."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questo libro è pieno."
           }
         }
       }
@@ -18219,36 +17267,5476 @@
         }
       }
     },
-    "school.worksheet.student.make_pages_append": {
+    "school.worksheet.student.open": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Add to one of my books"
+            "value": "Open my worksheet"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Aggiungi a un mio libro"
+            "value": "Apri la mia scheda"
           }
         }
       }
     },
-    "school.worksheet.student.make_pages_full": {
+    "school.worksheet.student.saved_here": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This book is full."
+            "value": "Saved on this device"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Questo libro è pieno."
+            "value": "Salvato su questo dispositivo"
+          }
+        }
+      }
+    },
+    "school.worksheet.student.start": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start worksheet"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inizia la scheda"
+          }
+        }
+      }
+    },
+    "school.worksheet.student.stop_dictate": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop listening"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Smetti di ascoltare"
+          }
+        }
+      }
+    },
+    "school.worksheet.student.word_label": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My word"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La mia parola"
+          }
+        }
+      }
+    },
+    "school.worksheet.student.word_placeholder": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Type your word"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scrivi la tua parola"
+          }
+        }
+      }
+    },
+    "school.worksheet.teacher.acrostic_word_hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leave it empty and each child chooses a word."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se la lasci vuota, la parola la sceglie chi scrive."
+          }
+        }
+      }
+    },
+    "school.worksheet.teacher.acrostic_word_invalid": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use 2–12 letters, no spaces."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usa da 2 a 12 lettere, senza spazi."
+          }
+        }
+      }
+    },
+    "school.worksheet.teacher.acrostic_word_label": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Word for the acrostic (optional)"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Parola dell’acrostico (facoltativa)"
+          }
+        }
+      }
+    },
+    "school.worksheet.teacher.acrostic_word_locked": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Locked after publishing: children may already be writing to this word."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bloccata dopo la pubblicazione: la classe potrebbe già scrivere su questa parola."
+          }
+        }
+      }
+    },
+    "school.worksheet.teacher.answers_heading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Answers"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Risposte"
+          }
+        }
+      }
+    },
+    "school.worksheet.teacher.box_label": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Box %lld"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Riquadro %lld"
+          }
+        }
+      }
+    },
+    "school.worksheet.teacher.change_template": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Change worksheet"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cambia scheda"
+          }
+        }
+      }
+    },
+    "school.worksheet.teacher.chip": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Worksheet"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scheda"
+          }
+        }
+      }
+    },
+    "school.worksheet.teacher.choose_template": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a worksheet"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scegli una scheda"
+          }
+        }
+      }
+    },
+    "school.worksheet.teacher.instructions_label": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instructions for the class"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Istruzioni per la classe"
+          }
+        }
+      }
+    },
+    "school.worksheet.teacher.kind_book": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A book"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un libro"
+          }
+        }
+      }
+    },
+    "school.worksheet.teacher.kind_book_hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Each child writes a book of their own."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ognuno scrive un libro tutto suo."
+          }
+        }
+      }
+    },
+    "school.worksheet.teacher.kind_label": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What are you assigning?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Che cosa vuoi assegnare?"
+          }
+        }
+      }
+    },
+    "school.worksheet.teacher.kind_worksheet": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A worksheet"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Una scheda"
+          }
+        }
+      }
+    },
+    "school.worksheet.teacher.kind_worksheet_hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Boxes to fill in, from a template."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Riquadri da completare, da un modello."
+          }
+        }
+      }
+    },
+    "school.worksheet.teacher.no_answer": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "(empty)"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "(vuoto)"
+          }
+        }
+      }
+    },
+    "school.worksheet.teacher.print_blank": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Print blank"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stampa vuota"
+          }
+        }
+      }
+    },
+    "school.worksheet.teacher.print_filled": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Print"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stampa"
+          }
+        }
+      }
+    },
+    "school.worksheet.teacher.prompt_required": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Every box needs a prompt."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ogni riquadro ha bisogno di una domanda."
+          }
+        }
+      }
+    },
+    "school.worksheet.teacher.prompts_heading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The prompt in each box"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La domanda in ogni riquadro"
+          }
+        }
+      }
+    },
+    "school.worksheet.teacher.prompts_hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit any prompt to fit your class."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modifica le domande come preferisci."
+          }
+        }
+      }
+    },
+    "school.worksheet.teacher.reset_prompts": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reset prompts"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ripristina le domande"
+          }
+        }
+      }
+    },
+    "school.worksheet.teacher.template_required": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a worksheet."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scegli una scheda."
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.about_author.boxes.fun_fact": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A fun fact about me…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Una curiosità su di me…"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.about_author.boxes.i_like": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I like…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mi piace…"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.about_author.boxes.i_write_about": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I like to write about…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mi piace scrivere di…"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.about_author.boxes.my_name": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My name is…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mi chiamo…"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.about_author.description": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A page about the person who wrote the book: you."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Una pagina su chi ha scritto il libro: tu."
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.about_author.heading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All About the Author"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chi ha scritto questo libro"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.about_author.keywords": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "author, me, about me, biography, portrait, writer"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "autore, autrice, io, su di me, biografia, ritratto, scrivere"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.about_author.picture": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Draw yourself"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disegna il tuo ritratto"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.about_author.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "About the author"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chi ha scritto il libro"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.acrostic.boxes.lines": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Write a word or a line for each letter."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scrivi una parola o una frase per ogni lettera."
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.acrostic.boxes.word": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a word. Each letter starts a line."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scegli una parola. Ogni lettera inizia un verso."
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.acrostic.description": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "One line for each letter of a word."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un verso per ogni lettera di una parola."
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.acrostic.heading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My Acrostic Poem"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il mio acrostico"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.acrostic.keywords": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "poem, poetry, letters, name, acrostic"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "poesia, lettere, nome, acrostico"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.acrostic.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Acrostic poem"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Acrostico"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.all_about.boxes.fact_one": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "One fact is…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un fatto è…"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.all_about.boxes.fact_three": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "One more fact…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ancora un fatto…"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.all_about.boxes.fact_two": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Another fact is…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un altro fatto è…"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.all_about.boxes.topic": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What is your topic?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Qual è il tuo argomento?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.all_about.boxes.wow_fact": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wow! Did you know…?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Incredibile! Sapevi che…?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.all_about.description": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Teach the reader about a topic: three facts and a wow fact."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spiega un argomento a chi legge: tre fatti e un fatto sorprendente."
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.all_about.heading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All About…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ti racconto tutto su…"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.all_about.keywords": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "facts, nonfiction, informational, topic, research, report"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "fatti, testo informativo, argomento, ricerca, relazione"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.all_about.picture": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Draw your topic"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disegna l’argomento"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.all_about.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All about…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tutto su…"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.all_about_me.boxes.dream": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "One day I want to…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un giorno vorrei…"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.all_about_me.boxes.favorites": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My favorite things are…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le mie cose preferite sono…"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.all_about_me.boxes.good_at": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I am good at…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mi riesce bene…"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.all_about_me.boxes.learning": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I am learning to…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sto imparando a…"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.all_about_me.description": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Favorite things, what you’re good at, what you’re learning, and a dream."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le tue cose preferite, che cosa ti riesce bene, che cosa stai imparando e un sogno."
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.all_about_me.heading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All About Me"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ecco chi sono"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.all_about_me.keywords": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "me, myself, identity, favorites, dreams, back to school"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "io, identità, cose preferite, sogni, inizio della scuola"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.all_about_me.picture": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Draw yourself doing something you love"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disegnati mentre fai una cosa che ami"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.all_about_me.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All about me"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tutto su di me"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.beginning_middle_end.boxes.beginning": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beginning: how does your story start?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inizio: come comincia la tua storia?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.beginning_middle_end.boxes.end": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "End: how does it finish?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fine: come si conclude?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.beginning_middle_end.boxes.middle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Middle: what happens next?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Svolgimento: che cosa succede dopo?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.beginning_middle_end.description": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Three big boxes for the three parts of a story."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tre grandi riquadri per le tre parti di una storia."
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.beginning_middle_end.heading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beginning, Middle and End"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inizio, svolgimento e fine"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.beginning_middle_end.keywords": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "story map, three parts, plot, retell, draw, pictures"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "mappa della storia, tre parti, trama, raccontare, disegnare, disegni"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.beginning_middle_end.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beginning, middle, end"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inizio, svolgimento, fine"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.book_report.boxes.about": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What is the book about?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Di che cosa parla il libro?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.book_report.boxes.author": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Who wrote it?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chi l’ha scritto?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.book_report.boxes.favorite": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What was your favorite part?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Qual è la parte che preferisci?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.book_report.boxes.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What is the book called?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Come si intitola il libro?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.book_report.boxes.would_recommend": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Would you tell someone to read it? Why?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lo consiglieresti a qualcuno? Perché?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.book_report.description": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Title, author, what it’s about, your favorite part, and a star rating."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Titolo, autore, di che cosa parla, la parte che preferisci e le stelline."
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.book_report.heading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My Book Report"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La mia scheda del libro"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.book_report.keywords": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "book, review, reading, report, stars, recommend"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "libro, recensione, lettura, scheda, stelle, consigliare"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.book_report.picture": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Draw a scene from the book"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disegna una scena del libro"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.book_report.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Book report"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scheda del libro"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.character_change.boxes.at_end": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What are they like at the end?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Com’è alla fine?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.character_change.boxes.at_start": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What are they like at the start?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Com’è all’inizio?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.character_change.boxes.character": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Which character are you thinking about?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A quale personaggio pensi?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.character_change.boxes.what_happened": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What happens that changes them?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Che cosa succede e lo fa cambiare?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.character_change.description": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What a character is like at the start, what happens, and what they are like at the end."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Com’è un personaggio all’inizio, che cosa succede e com’è alla fine."
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.character_change.heading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "How My Character Changes"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Come cambia il mio personaggio"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.character_change.keywords": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "character, change, growth, traits, beginning, end"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "personaggio, cambiamento, crescita, carattere, inizio, fine"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.character_change.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "How a character changes"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Come cambia un personaggio"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.character_profile.boxes.afraid_of": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What are they afraid of?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Di che cosa ha paura?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.character_profile.boxes.likes": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What do they like to do?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Che cosa ama fare?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.character_profile.boxes.looks_like": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What do they look like?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Che aspetto ha?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.character_profile.boxes.name": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What is your character’s name?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Come si chiama il tuo personaggio?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.character_profile.boxes.wants": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What do they want most?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Che cosa desidera più di tutto?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.character_profile.description": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Get to know a character before writing about them."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conosci un personaggio prima di scriverne la storia."
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.character_profile.heading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My Character"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il mio personaggio"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.character_profile.keywords": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "character, hero, describe, traits, personality, draw"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "personaggio, protagonista, descrivere, carattere, disegnare"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.character_profile.picture": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Draw your character"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disegna il personaggio"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.character_profile.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Character profile"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scheda del personaggio"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.cinquain.boxes.another_name": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Line 5: another word for your topic"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verso 5: un altro nome per l’argomento"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.cinquain.boxes.feeling_phrase": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Line 4: a short phrase about a feeling"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verso 4: una breve frase su un’emozione"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.cinquain.boxes.noun": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Line 1: one noun (your topic)"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verso 1: un nome (l’argomento)"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.cinquain.boxes.three_doing": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Line 3: three action words"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verso 3: tre verbi di azione"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.cinquain.boxes.two_describing": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Line 2: two describing words"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verso 2: due aggettivi"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.cinquain.description": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A five-line poem: a noun, two describing words, three action words, a feeling, another name."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Una poesia di cinque versi: un nome, due aggettivi, tre azioni, un’emozione, un altro nome."
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.cinquain.heading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My Cinquain"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La mia poesia in cinque versi"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.cinquain.keywords": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "poem, poetry, five lines, adjectives, verbs"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "poesia, cinque versi, cinquain, aggettivi, verbi"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.cinquain.picture": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Draw your poem"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disegna la tua poesia"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.cinquain.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cinquain"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Poesia in cinque versi"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.compare_books.boxes.book_one": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "First book:"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Primo libro:"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.compare_books.boxes.book_two": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Second book:"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Secondo libro:"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.compare_books.boxes.different": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "How are they different?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In che cosa sono diversi?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.compare_books.boxes.same": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "How are they the same?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In che cosa si somigliano?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.compare_books.description": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Two books side by side: what’s the same and what’s different."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Due libri a confronto: che cosa hanno in comune e in che cosa sono diversi."
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.compare_books.heading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Two Books, Side by Side"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Due libri a confronto"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.compare_books.keywords": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "compare, contrast, books, same, different, venn"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "confrontare, libri, uguale, diverso, somiglianze, differenze"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.compare_books.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compare two books"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confronta due libri"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.describing_words.boxes.thing": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What are you describing?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Che cosa descrivi?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.describing_words.boxes.word_five": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "One more word!"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ancora una parola!"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.describing_words.boxes.word_four": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What color is it?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Di che colore è?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.describing_words.boxes.word_one": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "How does it look?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Che aspetto ha?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.describing_words.boxes.word_three": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "How does it feel?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Com’è al tatto?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.describing_words.boxes.word_two": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "How big is it?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quanto è grande?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.describing_words.description": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pick a thing, draw it, and find five words that describe it."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scegli una cosa, disegnala e trova cinque parole per descriverla."
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.describing_words.heading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Words That Describe"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le parole per descriverlo"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.describing_words.keywords": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "adjectives, describe, words, vocabulary, senses"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "aggettivi, descrivere, parole, lessico, sensi"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.describing_words.picture": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Draw it"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disegnalo qui"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.describing_words.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Describing words"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Parole per descrivere"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.dialogue.boxes.character_a": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Who is the first character?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chi è il primo personaggio?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.dialogue.boxes.character_b": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Who is the second character?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chi è il secondo personaggio?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.dialogue.boxes.conversation": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Write what they say to each other. Use quotation marks."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scrivi che cosa si dicono. Usa le virgolette."
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.dialogue.description": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Two characters talk: write their conversation with quotation marks."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Due personaggi parlano: scrivi la loro conversazione con le virgolette."
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.dialogue.heading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Who Said What?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chi ha detto che cosa?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.dialogue.keywords": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "dialogue, conversation, quotation marks, talking, speech"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "dialogo, conversazione, virgolette, discorso diretto, parlare"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.dialogue.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dialogue"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dialogo"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.favorite_part.boxes.part": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What happens in your favorite part?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Che cosa succede nella parte che preferisci?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.favorite_part.boxes.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What book did you read?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quale libro hai letto?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.favorite_part.boxes.why": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Why do you like it?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Perché ti piace?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.favorite_part.description": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Draw and write about the best part of a book."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disegna e scrivi la parte più bella di un libro."
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.favorite_part.heading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My Favorite Part"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La parte più bella"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.favorite_part.keywords": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "book, reading, favorite, scene, draw, response"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "libro, lettura, preferita, scena, disegnare"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.favorite_part.picture": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Draw your favorite part"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disegna la parte che preferisci"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.favorite_part.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My favorite part"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La parte che preferisco"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.feelings_checkin.boxes.feeling": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "How do you feel today?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Come ti senti oggi?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.feelings_checkin.boxes.what_helps": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What would help you?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Che cosa ti aiuterebbe?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.feelings_checkin.boxes.why": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Why do you feel this way?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Perché ti senti così?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.feelings_checkin.description": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "How you feel, why, and what would help — no scores, just words."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Come ti senti, perché e che cosa ti aiuterebbe: niente punteggi, solo parole."
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.feelings_checkin.heading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "How I Feel Today"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Come mi sento oggi"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.feelings_checkin.keywords": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "feelings, emotions, check-in, mood, wellbeing, SEL"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "emozioni, sentimenti, umore, benessere, stare bene"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.feelings_checkin.picture": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Draw how you feel"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disegna come ti senti"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.feelings_checkin.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Feelings check-in"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Come mi sento"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.five_senses.boxes.hear": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What can you hear?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quali suoni senti?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.five_senses.boxes.place": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Which place are you describing?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quale luogo descrivi?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.five_senses.boxes.see": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What can you see?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Che cosa vedi?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.five_senses.boxes.smell": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What can you smell?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quali profumi o odori senti?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.five_senses.boxes.taste": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What can you taste?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quali sapori senti?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.five_senses.boxes.touch": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What can you touch?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Che cosa puoi toccare?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.five_senses.description": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Describe a place with sight, sound, smell, touch and taste."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Descrivi un luogo con la vista, l’udito, l’olfatto, il tatto e il gusto."
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.five_senses.heading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My Five Senses"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I miei cinque sensi"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.five_senses.keywords": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "senses, describe, see, hear, smell, touch, taste, place"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "sensi, descrivere, vedere, sentire, odori, toccare, gusto, luogo"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.five_senses.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Five senses"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cinque sensi"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.haiku.boxes.line_one": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Line 1: 5 syllables"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verso 1: 5 sillabe"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.haiku.boxes.line_three": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Line 3: 5 syllables"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verso 3: 5 sillabe"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.haiku.boxes.line_two": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Line 2: 7 syllables"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verso 2: 7 sillabe"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.haiku.description": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A tiny poem in three lines: 5, 7 and 5 syllables."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Una piccola poesia in tre versi: 5, 7 e 5 sillabe."
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.haiku.heading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My Haiku"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il mio haiku"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.haiku.keywords": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "poem, poetry, syllables, nature, japanese, short"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "poesia, sillabe, natura, giapponese, breve"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.haiku.picture": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Draw your haiku"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disegna il tuo haiku"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.haiku.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Haiku"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Poesia haiku"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.how_to.boxes.need": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What do you need?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Che cosa serve?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.how_to.boxes.step_four": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Step 4:"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Passo 4:"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.how_to.boxes.step_one": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Step 1:"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Passo 1:"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.how_to.boxes.step_three": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Step 3:"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Passo 3:"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.how_to.boxes.step_two": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Step 2:"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Passo 2:"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.how_to.boxes.what": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What are you teaching?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Che cosa insegni?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.how_to.description": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Teach someone to do something, step by step."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Insegna a qualcuno a fare qualcosa, un passo alla volta."
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.how_to.heading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "How To…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Come si fa…"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.how_to.keywords": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "instructions, steps, procedure, recipe, how to, sequence"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "istruzioni, passi, procedura, ricetta, come si fa, sequenza"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.how_to.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "How-to"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Istruzioni passo passo"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.i_am_poem.boxes.i_am": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I am…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Io sono…"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.i_am_poem.boxes.i_am_again": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I am… (say it again)"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Io sono… (ripetilo)"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.i_am_poem.boxes.i_hear": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I hear…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sento…"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.i_am_poem.boxes.i_see": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I see…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vedo…"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.i_am_poem.boxes.i_want": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I want…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vorrei…"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.i_am_poem.boxes.i_wonder": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I wonder…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mi chiedo…"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.i_am_poem.description": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A poem about you: I am, I wonder, I hear, I see, I want."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Una poesia su di te: io sono, mi chiedo, sento, vedo, vorrei."
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.i_am_poem.heading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I Am"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Io sono"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.i_am_poem.keywords": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "poem, poetry, me, identity, self, feelings"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "poesia, io, identità, chi sono, emozioni"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.i_am_poem.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "“I am” poem"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Poesia “Io sono”"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.letter.boxes.body": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What do you want to tell or ask?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Che cosa vuoi raccontare o chiedere?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.letter.boxes.closing": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "How do you end your letter?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Come chiudi la lettera?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.letter.boxes.greeting": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Who are you writing to?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A chi scrivi?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.letter.boxes.opening": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Say hello and why you are writing."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saluta e racconta perché scrivi."
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.letter.boxes.signature": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign your name."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Firma con il tuo nome."
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.letter.description": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Write a letter to someone from a story."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scrivi una lettera a qualcuno di una storia."
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.letter.heading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My Letter"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La mia lettera"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.letter.keywords": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "letter, write to, greeting, mail, character"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "lettera, scrivere a, saluto, posta, personaggio"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.letter.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Letter to a character"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lettera a un personaggio"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.my_week.boxes.best": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The best part of my week was…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La parte più bella della mia settimana è stata…"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.my_week.boxes.felt_good": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Something that made me feel good…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Una cosa che mi ha fatto stare bene…"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.my_week.boxes.learned": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Something new I learned…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Una cosa nuova che ho imparato…"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.my_week.boxes.next_week": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Next week I want to…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La prossima settimana voglio…"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.my_week.boxes.tricky": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Something tricky was…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Una cosa difficile è stata…"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.my_week.description": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A journal page about the week."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Una pagina di diario sulla settimana."
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.my_week.heading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My Week"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La mia settimana"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.my_week.keywords": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "journal, week, reflection, diary, weekend"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "diario, settimana, riflessione, weekend, fine settimana"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.my_week.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My week"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La mia settimana"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.opinion.boxes.conclusion": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O — Opinion again: say it one more time."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O — Opinione: ripetila con altre parole."
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.opinion.boxes.example": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "E — Example: give an example."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "E — Esempio: fai un esempio."
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.opinion.boxes.opinion": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O — Opinion: what do you think?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O — Opinione: che cosa ne pensi?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.opinion.boxes.reason": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "R — Reason: why do you think so?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "R — Ragione: perché lo pensi?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.opinion.description": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opinion, reason, example, opinion again."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opinione, ragione, esempio, di nuovo l’opinione."
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.opinion.heading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My Opinion"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La mia opinione"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.opinion.keywords": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "opinion, OREO, persuasive, reasons, argue, paragraph"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "opinione, OREO, argomentare, ragioni, paragrafo"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.opinion.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opinion paragraph (OREO)"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Testo d’opinione (OREO)"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.persuade.boxes.reason_one": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My first reason is…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La prima ragione è…"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.persuade.boxes.reason_three": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My best reason is…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La ragione più forte è…"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.persuade.boxes.reason_two": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Another reason is…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un’altra ragione è…"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.persuade.boxes.should": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What do you think should happen?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Che cosa pensi che dovrebbe succedere?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.persuade.boxes.so": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "So… (say again what should happen)"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quindi… (ripeti che cosa dovrebbe succedere)"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.persuade.description": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What should happen, three reasons, and a strong finish."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Che cosa dovrebbe succedere, tre ragioni e una chiusura forte."
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.persuade.heading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Let Me Convince You"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ti convinco io"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.persuade.keywords": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "persuasive, opinion, reasons, convince, argue, should"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "persuadere, opinione, ragioni, convincere, argomentare"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.persuade.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Persuade me"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Convincimi"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.predict.boxes.clues": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What clues do you notice?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quali indizi noti?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.predict.boxes.prediction": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What do you think will happen?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Che cosa pensi che succederà?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.predict.boxes.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What are you reading?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Che cosa stai leggendo?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.predict.boxes.what_happened": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What really happened? Were you right?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Che cosa è successo davvero? Avevi indovinato?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.predict.description": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use clues to guess what happens next, then check."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usa gli indizi per indovinare che cosa succede dopo, poi controlla."
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.predict.heading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What Will Happen?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Che cosa succederà?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.predict.keywords": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "predict, guess, clues, reading, check, next"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "prevedere, indovinare, indizi, lettura, controllare"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.predict.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Make a prediction"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fai una previsione"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.problem_solution.boxes.problem": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What is the problem?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Qual è il problema?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.problem_solution.boxes.solution": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "How is the problem solved?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Come si risolve il problema?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.problem_solution.boxes.tries": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What do the characters try? What happens?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Che cosa provano a fare i personaggi? Come va?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.problem_solution.description": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A problem, the tries that don’t work, and how it gets solved."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un problema, i tentativi che non funzionano e come si risolve."
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.problem_solution.heading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Problem and Solution"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il problema e la soluzione"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.problem_solution.keywords": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "problem, solve, fix, try, solution, plot"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "problema, risolvere, tentativi, soluzione, trama"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.problem_solution.picture": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Draw how it ends"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disegna come finisce"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.problem_solution.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Problem and solution"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Problema e soluzione"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.sentence_starters.boxes.sentence_four": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In the end…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alla fine…"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.sentence_starters.boxes.sentence_one": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Once upon a time…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "C’era una volta…"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.sentence_starters.boxes.sentence_three": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suddenly…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All’improvviso…"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.sentence_starters.boxes.sentence_two": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "One day…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un giorno…"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.sentence_starters.description": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starter phrases to finish in your own words."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Frasi da completare con parole tue."
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.sentence_starters.heading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finish My Story"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finisco la mia storia"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.sentence_starters.keywords": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "starters, sentences, finish, beginnings, story, writing prompts"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "inizi, frasi, completare, storia, spunti per scrivere"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.sentence_starters.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sentence starters"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inizi di frase"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.sequence.boxes.first": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "First…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Per prima cosa…"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.sequence.boxes.last": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alla fine…"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.sequence.boxes.next": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Next…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Poi…"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.sequence.boxes.then": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Then…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dopo…"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.sequence.description": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "First, next, then, last."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prima, poi, dopo, alla fine."
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.sequence.heading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "First, Next, Then, Last"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prima, poi, dopo, alla fine"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.sequence.keywords": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "order, steps, sequence, retell, comic, events, draw"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ordine, sequenza, passaggi, raccontare, fumetto, eventi, disegnare"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.sequence.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sequence of events"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sequenza degli eventi"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.setting_sketch.boxes.looks_like": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What does it look like?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Com’è fatto questo luogo?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.setting_sketch.boxes.place": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Where does your story happen?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dove succede la tua storia?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.setting_sketch.boxes.sounds_smells": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What can you hear and smell there?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quali suoni e quali odori ci sono?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.setting_sketch.boxes.when": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "When does it happen?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quando succede?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.setting_sketch.description": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Draw the place where a story happens, then describe it."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disegna il luogo dove succede una storia, poi descrivilo."
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.setting_sketch.heading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My Story’s Setting"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dove succede la mia storia"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.setting_sketch.keywords": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "place, setting, where, when, describe, draw, senses"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "luogo, ambientazione, dove, quando, descrivere, disegnare, sensi"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.setting_sketch.picture": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Draw the place"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disegna il luogo"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.setting_sketch.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Setting sketch"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il luogo della storia"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.story_map.boxes.characters": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Who is in your story?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chi c’è nella tua storia?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.story_map.boxes.ending": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "How does it end?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Come finisce?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.story_map.boxes.events": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What happens? Write the big moments."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Che cosa succede? Scrivi i momenti importanti."
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.story_map.boxes.problem": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What is the problem?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Qual è il problema?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.story_map.boxes.setting": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Where and when does it happen?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dove e quando succede?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.story_map.description": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plan a story: who, where, the problem, what happens and the ending."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Progetta una storia: chi, dove, il problema, che cosa succede e il finale."
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.story_map.heading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My Story Map"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La mia mappa della storia"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.story_map.keywords": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "plan, plot, problem, characters, setting, events, outline"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "progettare, trama, problema, personaggi, ambientazione, eventi, schema"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.story_map.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Story map"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mappa della storia"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.story_mountain.boxes.beginning": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beginning: who, where and when?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inizio: chi, dove e quando?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.story_mountain.boxes.big_moment": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Big moment: what is the most exciting part?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Momento culminante: qual è la parte più emozionante?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.story_mountain.boxes.build_up": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Build-up: what starts to go wrong?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tensione: che cosa comincia ad andare storto?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.story_mountain.boxes.ending": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ending: how does it all finish?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finale: come si conclude tutto?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.story_mountain.boxes.wind_down": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wind-down: what happens after that?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Discesa: che cosa succede dopo?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.story_mountain.description": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Climb a story: beginning, build-up, big moment, wind-down, ending."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Una storia da scalare: inizio, tensione che cresce, momento culminante, discesa, finale."
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.story_mountain.heading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My Story Mountain"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La mia montagna della storia"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.story_mountain.keywords": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "plot, climax, structure, rising action, arc, plan"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "trama, climax, struttura, momento culminante, progettare"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.story_mountain.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Story mountain"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La montagna della storia"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.storyboard.boxes.panel_five": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "5. How is it fixed?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "5. Come si rimedia?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.storyboard.boxes.panel_four": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "4. What goes wrong?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "4. Che cosa va storto?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.storyboard.boxes.panel_one": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1. How does it start?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1. Come comincia?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.storyboard.boxes.panel_six": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "6. How does it end?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "6. Come finisce?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.storyboard.boxes.panel_three": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "3. And then?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "3. E dopo?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.storyboard.boxes.panel_two": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "2. What happens next?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "2. Che cosa succede poi?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.storyboard.description": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Six panels to sketch a story in order, with two lines under each."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sei riquadri per disegnare una storia in ordine, con due righe sotto ciascuno."
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.storyboard.heading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My Storyboard"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La mia storia a riquadri"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.storyboard.keywords": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "comic, panels, pictures, plan, scenes, draw"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "storyboard, fumetto, riquadri, vignette, disegni, scene, progettare"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.storyboard.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Storyboard"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Storia in sei riquadri"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.stretch_sentence.boxes.did_what": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Did what?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Che cosa fa?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.stretch_sentence.boxes.my_sentence": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Now put it all together in one long sentence."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ora metti tutto insieme in una frase lunga."
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.stretch_sentence.boxes.when": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "When?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quando?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.stretch_sentence.boxes.where": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Where?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dove?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.stretch_sentence.boxes.who": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Who?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chi?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.stretch_sentence.boxes.why": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Why?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Perché?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.stretch_sentence.description": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Who, did what, where, when and why — then one big sentence."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chi, che cosa fa, dove, quando e perché: poi una frase lunga."
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.stretch_sentence.heading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stretch My Sentence"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allungo la mia frase"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.stretch_sentence.keywords": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "sentence, expand, grammar, details, who what where when why"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "frase, espandere, grammatica, dettagli, chi che cosa dove quando perché"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.stretch_sentence.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stretch a sentence"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allunga la frase"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.thank_you.boxes.because": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "It made me feel… because…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mi ha fatto sentire… perché…"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.thank_you.boxes.from": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "From: sign your name."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Da: firma con il tuo nome."
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.thank_you.boxes.thank_you_for": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Thank you for…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grazie per…"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.thank_you.boxes.to": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Who is it for?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Per chi è?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.thank_you.description": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Say thank you to someone, and why."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ringrazia qualcuno e racconta perché."
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.thank_you.heading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Thank You!"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grazie!"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.thank_you.keywords": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "thanks, card, letter, gratitude, kindness"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "grazie, biglietto, lettera, gratitudine, gentilezza"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.thank_you.picture": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Draw a picture for them"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fai un disegno per questa persona"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.thank_you.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Thank-you note"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Biglietto di ringraziamento"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.word_web.boxes.center": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What is your big idea?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Qual è la tua grande idea?"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.word_web.boxes.idea_five": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fifth idea"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quinta idea"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.word_web.boxes.idea_four": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fourth idea"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quarta idea"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.word_web.boxes.idea_one": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "First idea"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prima idea"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.word_web.boxes.idea_six": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sixth idea"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sesta idea"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.word_web.boxes.idea_three": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Third idea"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Terza idea"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.word_web.boxes.idea_two": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Second idea"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seconda idea"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.word_web.description": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A big idea in the middle and six ideas around it."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Una grande idea al centro e sei idee intorno."
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.word_web.heading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My Word Web"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La mia ragnatela di parole"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.word_web.keywords": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "brainstorm, mind map, ideas, web, cluster, vocabulary"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "brainstorming, mappa mentale, idee, ragnatela, lessico"
+          }
+        }
+      }
+    },
+    "school.worksheet.templates.word_web.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Word web"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ragnatela di parole"
           }
         }
       }
@@ -18368,40 +22856,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "La scheda si può cambiare solo finché il compito è una bozza."
-          }
-        }
-      }
-    },
-    "school.worksheet.student.box_full": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "This box is full."
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Questo riquadro è pieno."
-          }
-        }
-      }
-    },
-    "school.worksheet.teacher.acrostic_word_locked": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Locked after publishing: children may already be writing to this word."
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bloccata dopo la pubblicazione: la classe potrebbe già scrivere su questa parola."
           }
         }
       }

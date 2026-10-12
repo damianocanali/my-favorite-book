@@ -10,6 +10,7 @@ import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'node:fs'
 import {
   WORKSHEET_TEMPLATES, PROMPT_TEXT_MAX, ANSWER_MAX, ACROSTIC_WORD_MAX, PAGE_TEXT_MAX, BOOK_PAGES_MAX,
+  WORKSHEET_CATEGORIES, GRADE_BANDS,
 } from '../lib/school/worksheets.js'
 
 const model = readFileSync('ios-native/MyBookLab/Models/Worksheets.swift', 'utf8')
@@ -22,15 +23,20 @@ const unescape = (s) => s.replace(/\\"/g, '"').replace(/\\\\/g, '\\')
 
 describe('Worksheets.swift ↔ lib', () => {
   it('the same templates, boxes, sizes, page mapping and join, in order', () => {
-    const swift = [...model.matchAll(/WorksheetTemplate\(id: "([a-z_]+)", boxes: \[(.*?)\],\s*pages: \[(.*?)\], join: \.([a-z]+)\)/gs)]
-      .map(([, id, boxes, pages, join]) => ({
+    const swift = [...model.matchAll(/WorksheetTemplate\(id: "([a-z_]+)", category: \.([a-z]+), grade: \.([a-z0-9]+),\s*boxes: \[(.*?)\],\s*pages: \[(.*?)\], join: \.([a-z]+)\)/gs)]
+      .map(([, id, category, gradeBand, boxes, pages, join]) => ({
         id,
+        category,
+        gradeBand,
         boxes: [...boxes.matchAll(/\.init\("([a-z_]+)", \.([a-z]+)(, perLetter: true)?\)/g)]
           .map((m) => ({ id: m[1], size: m[2], ...(m[3] ? { perLetter: true } : {}) })),
         pages: [...pages.matchAll(/\[([^\]]*)\]/g)].map((m) => [...m[1].matchAll(/"([a-z_]+)"/g)].map((x) => x[1])),
         join,
       }))
-    expect(swift).toEqual(WORKSHEET_TEMPLATES.map((t) => ({ id: t.id, boxes: t.boxes, pages: t.pages, join: t.join })))
+    expect(swift).toEqual(WORKSHEET_TEMPLATES.map((t) => ({ id: t.id, category: t.category, gradeBand: t.gradeBand, boxes: t.boxes, pages: t.pages, join: t.join })))
+    // The shelves and grade bands, in lib's order.
+    expect(model).toContain(`case ${WORKSHEET_CATEGORIES.join(', ')}\n`)
+    expect(model).toContain(`enum GradeBand: String, CaseIterable, Sendable { case ${GRADE_BANDS.join(', ')} }`)
   })
 
   it('the same limits', () => {
@@ -47,10 +53,11 @@ describe('Worksheets.swift ↔ lib', () => {
 })
 
 describe('WorksheetCopy ↔ web ↔ catalog', () => {
-  it('a title, a description and a default prompt for every template and box', () => {
+  it('a title, a description, a heading, keywords, a picture label and a default prompt for every template and box', () => {
     for (const t of WORKSHEET_TEMPLATES) {
-      expect(copy).toContain(`case "${t.id}": AppText("school.worksheet.templates.${t.id}.title"`)
-      expect(copy).toContain(`case "${t.id}": AppText("school.worksheet.templates.${t.id}.description"`)
+      for (const field of ['title', 'description', 'heading', 'keywords', ...(t.print?.picture ? ['picture'] : [])]) {
+        expect(copy, `${t.id}.${field}`).toContain(`case "${t.id}": AppText("school.worksheet.templates.${t.id}.${field}"`)
+      }
       for (const b of t.boxes) {
         expect(copy).toContain(`case ("${t.id}", "${b.id}"): AppText("school.worksheet.templates.${t.id}.boxes.${b.id}"`)
       }
@@ -58,7 +65,7 @@ describe('WorksheetCopy ↔ web ↔ catalog', () => {
   })
 
   it('every key it uses is in the catalog: EN = code default = web EN, IT = web IT', () => {
-    const uses = [...copy.matchAll(/AppText\("(school\.worksheet\.[a-z_.]+)", defaultValue: "((?:[^"\\]|\\.)*)"\)/g)]
+    const uses = [...copy.matchAll(/AppText\("(school\.worksheet\.[a-z0-9_.]+)", defaultValue: "((?:[^"\\]|\\.)*)"\)/g)]
     expect(uses.length).toBeGreaterThan(60)
     for (const [, key, def] of uses) {
       const entry = catalog[key]

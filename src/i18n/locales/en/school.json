@@ -864,6 +864,8 @@
       "story_map": {
         "title": "Story map",
         "description": "Plan a story: who, where, the problem, what happens and the ending.",
+        "heading": "My Story Map",
+        "keywords": "plan, plot, problem, characters, setting, events, outline",
         "boxes": {
           "characters": "Who is in your story?",
           "setting": "Where and when does it happen?",
@@ -872,9 +874,74 @@
           "ending": "How does it end?"
         }
       },
+      "beginning_middle_end": {
+        "title": "Beginning, middle, end",
+        "description": "Three big boxes for the three parts of a story.",
+        "heading": "Beginning, Middle and End",
+        "keywords": "story map, three parts, plot, retell, draw, pictures",
+        "boxes": {
+          "beginning": "Beginning: how does your story start?",
+          "middle": "Middle: what happens next?",
+          "end": "End: how does it finish?"
+        }
+      },
+      "sequence": {
+        "title": "Sequence of events",
+        "description": "First, next, then, last.",
+        "heading": "First, Next, Then, Last",
+        "keywords": "order, steps, sequence, retell, comic, events, draw",
+        "boxes": {
+          "first": "First…",
+          "next": "Next…",
+          "then": "Then…",
+          "last": "Last…"
+        }
+      },
+      "storyboard": {
+        "title": "Storyboard",
+        "description": "Six panels to sketch a story in order, with two lines under each.",
+        "heading": "My Storyboard",
+        "keywords": "comic, panels, pictures, plan, scenes, draw",
+        "boxes": {
+          "panel_one": "1. How does it start?",
+          "panel_two": "2. What happens next?",
+          "panel_three": "3. And then?",
+          "panel_four": "4. What goes wrong?",
+          "panel_five": "5. How is it fixed?",
+          "panel_six": "6. How does it end?"
+        }
+      },
+      "problem_solution": {
+        "title": "Problem and solution",
+        "description": "A problem, the tries that don’t work, and how it gets solved.",
+        "heading": "Problem and Solution",
+        "keywords": "problem, solve, fix, try, solution, plot",
+        "picture": "Draw how it ends",
+        "boxes": {
+          "problem": "What is the problem?",
+          "tries": "What do the characters try? What happens?",
+          "solution": "How is the problem solved?"
+        }
+      },
+      "story_mountain": {
+        "title": "Story mountain",
+        "description": "Climb a story: beginning, build-up, big moment, wind-down, ending.",
+        "heading": "My Story Mountain",
+        "keywords": "plot, climax, structure, rising action, arc, plan",
+        "boxes": {
+          "beginning": "Beginning: who, where and when?",
+          "build_up": "Build-up: what starts to go wrong?",
+          "big_moment": "Big moment: what is the most exciting part?",
+          "wind_down": "Wind-down: what happens after that?",
+          "ending": "Ending: how does it all finish?"
+        }
+      },
       "character_profile": {
         "title": "Character profile",
         "description": "Get to know a character before writing about them.",
+        "heading": "My Character",
+        "keywords": "character, hero, describe, traits, personality, draw",
+        "picture": "Draw your character",
         "boxes": {
           "name": "What is your character’s name?",
           "looks_like": "What do they look like?",
@@ -883,18 +950,24 @@
           "afraid_of": "What are they afraid of?"
         }
       },
-      "beginning_middle_end": {
-        "title": "Beginning, middle, end",
-        "description": "Three big boxes for the three parts of a story.",
+      "setting_sketch": {
+        "title": "Setting sketch",
+        "description": "Draw the place where a story happens, then describe it.",
+        "heading": "My Story’s Setting",
+        "keywords": "place, setting, where, when, describe, draw, senses",
+        "picture": "Draw the place",
         "boxes": {
-          "beginning": "Beginning: how does your story start?",
-          "middle": "Middle: what happens next?",
-          "end": "End: how does it finish?"
+          "place": "Where does your story happen?",
+          "when": "When does it happen?",
+          "looks_like": "What does it look like?",
+          "sounds_smells": "What can you hear and smell there?"
         }
       },
       "five_senses": {
         "title": "Five senses",
         "description": "Describe a place with sight, sound, smell, touch and taste.",
+        "heading": "My Five Senses",
+        "keywords": "senses, describe, see, hear, smell, touch, taste, place",
         "boxes": {
           "place": "Which place are you describing?",
           "see": "What can you see?",
@@ -904,9 +977,152 @@
           "taste": "What can you taste?"
         }
       },
+      "character_change": {
+        "title": "How a character changes",
+        "description": "What a character is like at the start, what happens, and what they are like at the end.",
+        "heading": "How My Character Changes",
+        "keywords": "character, change, growth, traits, beginning, end",
+        "boxes": {
+          "character": "Which character are you thinking about?",
+          "at_start": "What are they like at the start?",
+          "what_happened": "What happens that changes them?",
+          "at_end": "What are they like at the end?"
+        }
+      },
+      "sentence_starters": {
+        "title": "Sentence starters",
+        "description": "Starter phrases to finish in your own words.",
+        "heading": "Finish My Story",
+        "keywords": "starters, sentences, finish, beginnings, story, writing prompts",
+        "boxes": {
+          "sentence_one": "Once upon a time…",
+          "sentence_two": "One day…",
+          "sentence_three": "Suddenly…",
+          "sentence_four": "In the end…"
+        }
+      },
+      "describing_words": {
+        "title": "Describing words",
+        "description": "Pick a thing, draw it, and find five words that describe it.",
+        "heading": "Words That Describe",
+        "keywords": "adjectives, describe, words, vocabulary, senses",
+        "picture": "Draw it",
+        "boxes": {
+          "thing": "What are you describing?",
+          "word_one": "How does it look?",
+          "word_two": "How big is it?",
+          "word_three": "How does it feel?",
+          "word_four": "What color is it?",
+          "word_five": "One more word!"
+        }
+      },
+      "word_web": {
+        "title": "Word web",
+        "description": "A big idea in the middle and six ideas around it.",
+        "heading": "My Word Web",
+        "keywords": "brainstorm, mind map, ideas, web, cluster, vocabulary",
+        "boxes": {
+          "center": "What is your big idea?",
+          "idea_one": "First idea",
+          "idea_two": "Second idea",
+          "idea_three": "Third idea",
+          "idea_four": "Fourth idea",
+          "idea_five": "Fifth idea",
+          "idea_six": "Sixth idea"
+        }
+      },
+      "stretch_sentence": {
+        "title": "Stretch a sentence",
+        "description": "Who, did what, where, when and why — then one big sentence.",
+        "heading": "Stretch My Sentence",
+        "keywords": "sentence, expand, grammar, details, who what where when why",
+        "boxes": {
+          "who": "Who?",
+          "did_what": "Did what?",
+          "where": "Where?",
+          "when": "When?",
+          "why": "Why?",
+          "my_sentence": "Now put it all together in one long sentence."
+        }
+      },
+      "dialogue": {
+        "title": "Dialogue",
+        "description": "Two characters talk: write their conversation with quotation marks.",
+        "heading": "Who Said What?",
+        "keywords": "dialogue, conversation, quotation marks, talking, speech",
+        "boxes": {
+          "character_a": "Who is the first character?",
+          "character_b": "Who is the second character?",
+          "conversation": "Write what they say to each other. Use quotation marks."
+        }
+      },
+      "acrostic": {
+        "title": "Acrostic poem",
+        "description": "One line for each letter of a word.",
+        "heading": "My Acrostic Poem",
+        "keywords": "poem, poetry, letters, name, acrostic",
+        "boxes": {
+          "word": "Choose a word. Each letter starts a line.",
+          "lines": "Write a word or a line for each letter."
+        }
+      },
+      "haiku": {
+        "title": "Haiku",
+        "description": "A tiny poem in three lines: 5, 7 and 5 syllables.",
+        "heading": "My Haiku",
+        "keywords": "poem, poetry, syllables, nature, japanese, short",
+        "picture": "Draw your haiku",
+        "boxes": {
+          "line_one": "Line 1: 5 syllables",
+          "line_two": "Line 2: 7 syllables",
+          "line_three": "Line 3: 5 syllables"
+        }
+      },
+      "i_am_poem": {
+        "title": "“I am” poem",
+        "description": "A poem about you: I am, I wonder, I hear, I see, I want.",
+        "heading": "I Am",
+        "keywords": "poem, poetry, me, identity, self, feelings",
+        "boxes": {
+          "i_am": "I am…",
+          "i_wonder": "I wonder…",
+          "i_hear": "I hear…",
+          "i_see": "I see…",
+          "i_want": "I want…",
+          "i_am_again": "I am… (say it again)"
+        }
+      },
+      "cinquain": {
+        "title": "Cinquain",
+        "description": "A five-line poem: a noun, two describing words, three action words, a feeling, another name.",
+        "heading": "My Cinquain",
+        "keywords": "poem, poetry, five lines, adjectives, verbs",
+        "picture": "Draw your poem",
+        "boxes": {
+          "noun": "Line 1: one noun (your topic)",
+          "two_describing": "Line 2: two describing words",
+          "three_doing": "Line 3: three action words",
+          "feeling_phrase": "Line 4: a short phrase about a feeling",
+          "another_name": "Line 5: another word for your topic"
+        }
+      },
+      "opinion": {
+        "title": "Opinion paragraph (OREO)",
+        "description": "Opinion, reason, example, opinion again.",
+        "heading": "My Opinion",
+        "keywords": "opinion, OREO, persuasive, reasons, argue, paragraph",
+        "boxes": {
+          "opinion": "O — Opinion: what do you think?",
+          "reason": "R — Reason: why do you think so?",
+          "example": "E — Example: give an example.",
+          "conclusion": "O — Opinion again: say it one more time."
+        }
+      },
       "letter": {
         "title": "Letter to a character",
         "description": "Write a letter to someone from a story.",
+        "heading": "My Letter",
+        "keywords": "letter, write to, greeting, mail, character",
         "boxes": {
           "greeting": "Who are you writing to?",
           "opening": "Say hello and why you are writing.",
@@ -915,37 +1131,140 @@
           "signature": "Sign your name."
         }
       },
-      "opinion": {
-        "title": "Opinion paragraph (OREO)",
-        "description": "Opinion, reason, example, opinion again.",
+      "thank_you": {
+        "title": "Thank-you note",
+        "description": "Say thank you to someone, and why.",
+        "heading": "Thank You!",
+        "keywords": "thanks, card, letter, gratitude, kindness",
+        "picture": "Draw a picture for them",
         "boxes": {
-          "opinion": "O — Opinion: what do you think?",
-          "reason": "R — Reason: why do you think so?",
-          "example": "E — Example: give an example.",
-          "conclusion": "O — Opinion again: say it one more time."
+          "to": "Who is it for?",
+          "thank_you_for": "Thank you for…",
+          "because": "It made me feel… because…",
+          "from": "From: sign your name."
         }
       },
-      "acrostic": {
-        "title": "Acrostic poem",
-        "description": "One line for each letter of a word.",
+      "persuade": {
+        "title": "Persuade me",
+        "description": "What should happen, three reasons, and a strong finish.",
+        "heading": "Let Me Convince You",
+        "keywords": "persuasive, opinion, reasons, convince, argue, should",
         "boxes": {
-          "word": "Choose a word. Each letter starts a line.",
-          "lines": "Write a word or a line for each letter."
+          "should": "What do you think should happen?",
+          "reason_one": "My first reason is…",
+          "reason_two": "Another reason is…",
+          "reason_three": "My best reason is…",
+          "so": "So… (say again what should happen)"
         }
       },
-      "sequence": {
-        "title": "Sequence of events",
-        "description": "First, next, then, last.",
+      "book_report": {
+        "title": "Book report",
+        "description": "Title, author, what it’s about, your favorite part, and a star rating.",
+        "heading": "My Book Report",
+        "keywords": "book, review, reading, report, stars, recommend",
+        "picture": "Draw a scene from the book",
         "boxes": {
-          "first": "First…",
-          "next": "Next…",
-          "then": "Then…",
-          "last": "Last…"
+          "title": "What is the book called?",
+          "author": "Who wrote it?",
+          "about": "What is the book about?",
+          "favorite": "What was your favorite part?",
+          "would_recommend": "Would you tell someone to read it? Why?"
+        }
+      },
+      "favorite_part": {
+        "title": "My favorite part",
+        "description": "Draw and write about the best part of a book.",
+        "heading": "My Favorite Part",
+        "keywords": "book, reading, favorite, scene, draw, response",
+        "picture": "Draw your favorite part",
+        "boxes": {
+          "title": "What book did you read?",
+          "part": "What happens in your favorite part?",
+          "why": "Why do you like it?"
+        }
+      },
+      "predict": {
+        "title": "Make a prediction",
+        "description": "Use clues to guess what happens next, then check.",
+        "heading": "What Will Happen?",
+        "keywords": "predict, guess, clues, reading, check, next",
+        "boxes": {
+          "title": "What are you reading?",
+          "clues": "What clues do you notice?",
+          "prediction": "What do you think will happen?",
+          "what_happened": "What really happened? Were you right?"
+        }
+      },
+      "compare_books": {
+        "title": "Compare two books",
+        "description": "Two books side by side: what’s the same and what’s different.",
+        "heading": "Two Books, Side by Side",
+        "keywords": "compare, contrast, books, same, different, venn",
+        "boxes": {
+          "book_one": "First book:",
+          "book_two": "Second book:",
+          "same": "How are they the same?",
+          "different": "How are they different?"
+        }
+      },
+      "all_about": {
+        "title": "All about…",
+        "description": "Teach the reader about a topic: three facts and a wow fact.",
+        "heading": "All About…",
+        "keywords": "facts, nonfiction, informational, topic, research, report",
+        "picture": "Draw your topic",
+        "boxes": {
+          "topic": "What is your topic?",
+          "fact_one": "One fact is…",
+          "fact_two": "Another fact is…",
+          "fact_three": "One more fact…",
+          "wow_fact": "Wow! Did you know…?"
+        }
+      },
+      "how_to": {
+        "title": "How-to",
+        "description": "Teach someone to do something, step by step.",
+        "heading": "How To…",
+        "keywords": "instructions, steps, procedure, recipe, how to, sequence",
+        "boxes": {
+          "what": "What are you teaching?",
+          "need": "What do you need?",
+          "step_one": "Step 1:",
+          "step_two": "Step 2:",
+          "step_three": "Step 3:",
+          "step_four": "Step 4:"
+        }
+      },
+      "about_author": {
+        "title": "About the author",
+        "description": "A page about the person who wrote the book: you.",
+        "heading": "All About the Author",
+        "keywords": "author, me, about me, biography, portrait, writer",
+        "picture": "Draw yourself",
+        "boxes": {
+          "my_name": "My name is…",
+          "i_like": "I like…",
+          "i_write_about": "I like to write about…",
+          "fun_fact": "A fun fact about me…"
+        }
+      },
+      "feelings_checkin": {
+        "title": "Feelings check-in",
+        "description": "How you feel, why, and what would help — no scores, just words.",
+        "heading": "How I Feel Today",
+        "keywords": "feelings, emotions, check-in, mood, wellbeing, SEL",
+        "picture": "Draw how you feel",
+        "boxes": {
+          "feeling": "How do you feel today?",
+          "why": "Why do you feel this way?",
+          "what_helps": "What would help you?"
         }
       },
       "my_week": {
         "title": "My week",
         "description": "A journal page about the week.",
+        "heading": "My Week",
+        "keywords": "journal, week, reflection, diary, weekend",
         "boxes": {
           "best": "The best part of my week was…",
           "learned": "Something new I learned…",
@@ -953,7 +1272,52 @@
           "felt_good": "Something that made me feel good…",
           "next_week": "Next week I want to…"
         }
+      },
+      "all_about_me": {
+        "title": "All about me",
+        "description": "Favorite things, what you’re good at, what you’re learning, and a dream.",
+        "heading": "All About Me",
+        "keywords": "me, myself, identity, favorites, dreams, back to school",
+        "picture": "Draw yourself doing something you love",
+        "boxes": {
+          "favorites": "My favorite things are…",
+          "good_at": "I am good at…",
+          "learning": "I am learning to…",
+          "dream": "One day I want to…"
+        }
       }
+    },
+    "categories": {
+      "plan": "Plan a story",
+      "characters": "Characters & places",
+      "words": "Words & sentences",
+      "poems": "Poems",
+      "opinions": "Opinions & letters",
+      "reading": "Reading response",
+      "facts": "Facts & how-to",
+      "me": "About me & feelings"
+    },
+    "grades": {
+      "k2": "Grades K–2",
+      "g35": "Grades 3–5",
+      "all": "Grades K–5"
+    },
+    "library": {
+      "search_label": "Search worksheets",
+      "search_placeholder": "Search: poem, letter, feelings…",
+      "category_label": "Category",
+      "all_categories": "All",
+      "grade_label": "Grade",
+      "all_grades": "All grades",
+      "no_results": "No worksheet matches “{{query}}”.",
+      "no_results_filters": "No worksheet matches these filters.",
+      "clear_search": "Clear search",
+      "show_all": "Show all worksheets",
+      "view": "View",
+      "previous": "Previous worksheet",
+      "next": "Next worksheet",
+      "close_preview": "Close preview",
+      "assign": "Assign to my class"
     },
     "teacher": {
       "kind_label": "What are you assigning?",
