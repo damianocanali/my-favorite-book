@@ -36,7 +36,7 @@ function BookCard({ submission, onClick }) {
             count: book?.pages?.length ?? 0,
           })}
         </p>
-        <p className="text-galaxy-text-muted text-xs font-body mt-0.5 opacity-60">
+        <p className="text-galaxy-text-muted text-xs font-body mt-0.5">
           {formatDate(submission.submitted_at, 'short')}
         </p>
       </div>

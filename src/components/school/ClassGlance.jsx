@@ -10,7 +10,7 @@ function StatCard({ value, label, sub }) {
     <div className="glass rounded-2xl border border-galaxy-text-muted/10 p-4">
       <p className="font-heading text-2xl font-bold text-galaxy-text">{value}</p>
       <p className="mt-0.5 font-body text-xs text-galaxy-text-muted">{label}</p>
-      {sub && <p className="mt-1 font-body text-[11px] text-galaxy-text-muted/70">{sub}</p>}
+      {sub && <p className="mt-1 font-body text-[11px] text-galaxy-text-muted">{sub}</p>}
     </div>
   )
 }

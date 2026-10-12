@@ -121,7 +121,7 @@ export default function AppShell({ children }) {
   // (Account page) falls through to the unchanged consumer layout below.
   if (teacherMode) {
     return (
-      <div className="min-h-screen relative">
+      <div className="teacher-ui min-h-screen relative">
         <a href="#main-content" className="skip-to-content">{t('nav:a11y.skip_to_content')}</a>
 
         {/* Teacher area: the still backdrop (no twinkle, no sparkles). */}

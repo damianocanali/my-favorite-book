@@ -52,6 +52,50 @@ body {
   padding: 16px;
 }
 
+/* ── Teacher area: opaque, higher-contrast surfaces ───────────────────
+   Scoped to the `teacher-ui` root (AppShell teacherMode) so the kids/family
+   look and the student area keep the translucent iOS-parity glass.
+   Surfaces are solid; ratios (WCAG) against #2A2147: white 14.9:1, muted
+   #DAD3E8 10.3:1, placeholder #B9B0CF 7.2:1, input border #8A80AA 4.1:1. */
+.teacher-ui .glass,
+.teacher-ui .glass-recessed,
+.teacher-ui .glass-raised,
+.teacher-ui .ios-card {
+  background-color: #2A2147;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+.teacher-ui .glass-recessed { background-color: #221A3C; }
+.teacher-ui .glass-raised { background-color: #352A5C; }
+/* Hairline dividers / card edges: visible, not interactive. */
+.teacher-ui [class*="border-galaxy-text-muted/10"],
+.teacher-ui [class*="border-galaxy-text-muted/15"],
+.teacher-ui [class*="border-galaxy-text-muted/20"],
+.teacher-ui [class*="border-white/10"],
+.teacher-ui [class*="border-white/15"] {
+  border-color: rgba(255, 255, 255, 0.22);
+}
+/* Stronger edges (buttons, chips, controls): 3:1+ against the surface. */
+.teacher-ui [class*="border-galaxy-text-muted/25"],
+.teacher-ui [class*="border-galaxy-text-muted/30"],
+.teacher-ui [class*="border-galaxy-text-muted/40"],
+.teacher-ui [class*="border-galaxy-text-muted/50"],
+.teacher-ui [class*="border-galaxy-text-muted/60"],
+.teacher-ui [class*="border-white/30"],
+.teacher-ui input:not([type="checkbox"]):not([type="radio"]),
+.teacher-ui select,
+.teacher-ui textarea {
+  border-color: #8A80AA;
+}
+.teacher-ui .text-galaxy-text-muted,
+.teacher-ui [class*="text-galaxy-text-muted/"],
+.teacher-ui [class*="text-white/"] {
+  color: #DAD3E8;
+}
+.teacher-ui ::placeholder {
+  color: #B9B0CF;
+  opacity: 1;
+}
+
 /* Solid action buttons. iOS fills these with the SparkleButton gradient
    and a hairline white border (RoundedRectangle(cornerRadius: 12), so
    pair with rounded-xl — only SparkleButton itself is a capsule). */
