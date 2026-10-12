@@ -78,7 +78,7 @@ body {
 .teacher-ui :where([class~="border-galaxy-text-muted/25"], [class~="border-galaxy-text-muted/30"], [class~="border-galaxy-text-muted/40"], [class~="border-galaxy-text-muted/50"], [class~="border-galaxy-text-muted/60"], [class~="border-white/30"]) {
   border-color: #8A80AA;
 }
-.teacher-ui :where(input:not([type="checkbox"]):not([type="radio"]), select, textarea):where(:not([class*="border-red"]):not([class*="border-amber"])) {
+.teacher-ui :where(input:not([type="checkbox"]):not([type="radio"]), select, textarea):where(:not([class^="border-red"]):not([class*=" border-red"]):not([class^="border-amber"]):not([class*=" border-amber"])) {
   border-color: #8A80AA;
 }
 /* Low-alpha text tokens (exact class tokens only, so hover:/disabled:/
@@ -94,6 +94,11 @@ body {
 .teacher-ui :where([class~="text-white/70"]) {
   color: #DAD3E8;
 }
+/* Inactive tab / header icon buttons: keep clearly dimmer than the active
+   white (#A79FC2 is 6.3:1 on #0D0A29, 4.9:1 on #2A2147). */
+.teacher-ui :where(nav, header) :where([class~="text-white/55"], [class~="text-white/60"]) {
+  color: #A79FC2;
+}
 .teacher-ui :where([class~="text-galaxy-text-muted/30"]) {
   color: #9A91B8; /* decorative / disabled-looking: 5:1 on #2A2147 */
 }
@@ -103,7 +108,7 @@ body {
 }
 /* Fields drop their default outline (focus:outline-none): give every
    interactive teacher control a visible keyboard focus ring. */
-.teacher-ui :where(input, select, textarea, button, a, [tabindex]):focus-visible {
+.teacher-ui :where(input, select, textarea, button, a, [tabindex]:not([tabindex="-1"])):focus-visible {
   outline: 2px solid #64D2FF;
   outline-offset: 2px;
 }

@@ -238,7 +238,8 @@ describe('teacher-ui contrast CSS does not override interactive states', () => {
       expect(rest.replace(/\/\*[\s\S]*?\*\//g, '').trim()).toBe('.teacher-ui')
     }
     expect(teacher).toContain(':where(:not([class*="border-"]))')
-    expect(teacher).toContain(':not([class*="border-red"])')
+    expect(teacher).toContain(':not([class^="border-red"])')
+    expect(teacher).not.toContain('[class*="border-red"]')
   })
   it('text overrides match exact tokens, not hover:/disabled:/placeholder: variants', () => {
     expect(teacher).not.toMatch(/\[class\*="text-/)
@@ -246,5 +247,21 @@ describe('teacher-ui contrast CSS does not override interactive states', () => {
   })
   it('keeps a visible focus ring', () => {
     expect(teacher).toMatch(/:focus-visible\s*\{[^}]*outline:\s*2px solid/)
+  })
+})
+
+describe('student-facing components never carry teacher-ui', () => {
+  it('PreviewPage and MyAssignments direct imports are free of the teacher-ui scope', async () => {
+    const { dirname, resolve } = await import('node:path')
+    const { existsSync } = await import('node:fs')
+    for (const entry of ['src/pages/PreviewPage.jsx', 'src/components/school/MyAssignments.jsx']) {
+      const src = readFileSync(entry, 'utf8')
+      expect(src, entry).not.toContain('teacher-ui')
+      for (const m of src.matchAll(/from '(\.[^']+)'/g)) {
+        const base = resolve(dirname(entry), m[1])
+        const file = ['', '.jsx', '.js'].map((e) => base + e).find((f) => existsSync(f) && /\.jsx?$/.test(f))
+        if (file) expect(readFileSync(file, 'utf8'), file).not.toContain('teacher-ui')
+      }
+    }
   })
 })
