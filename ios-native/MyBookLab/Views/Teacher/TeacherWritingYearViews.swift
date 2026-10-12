@@ -121,7 +121,7 @@ struct TeacherWritingYearView: View {
     @ViewBuilder
     private func childrenGrid(_ o: WYOverview) -> some View {
         if o.children.isEmpty {
-            TeacherCard { Text(WritingYearCopy.noChildren).foregroundStyle(.white.opacity(0.75)).frame(maxWidth: .infinity) }
+            TeacherCard { Text(WritingYearCopy.noChildren).foregroundStyle(TeacherTheme.secondaryText).frame(maxWidth: .infinity) }
         } else {
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 200), spacing: 10)], spacing: 10) {
                 ForEach(o.children) { c in
@@ -256,7 +256,7 @@ struct TeacherWritingYearChildView: View {
         TeacherCard {
             VStack(alignment: .leading, spacing: 10) {
                 if approved.isEmpty {
-                    Text(WritingYearCopy.emptyChild).foregroundStyle(.white.opacity(0.75))
+                    Text(WritingYearCopy.emptyChild).foregroundStyle(TeacherTheme.secondaryText)
                 }
                 ForEach(Array(approved.enumerated()), id: \.element.id) { idx, i in
                     HStack(spacing: 8) {
@@ -282,7 +282,7 @@ struct TeacherWritingYearChildView: View {
             Image(systemName: symbol).font(.body.weight(.semibold)).frame(width: 44, height: 44)
         }
         .buttonStyle(.plain)
-        .foregroundStyle(.white.opacity(disabled ? 0.25 : 0.85))
+        .foregroundStyle(.white.opacity(disabled ? 0.5 : 0.85))
         .disabled(disabled)
         .accessibilityLabel(Text(label))
     }
@@ -299,7 +299,8 @@ struct TeacherWritingYearChildView: View {
                     .frame(minHeight: 110)
                     .scrollContentBackground(.hidden)
                     .padding(6)
-                    .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 10))
+                    .background(TeacherTheme.cardFill, in: RoundedRectangle(cornerRadius: 10))
+                    .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(TeacherTheme.inputStroke))
                     .foregroundStyle(.white)
                     .onChange(of: note) { _, v in if v.count > WritingYearRules.noteMax { note = String(v.prefix(WritingYearRules.noteMax)) } }
                 Text(verbatim: "\(note.count)/\(WritingYearRules.noteMax)").font(.caption).foregroundStyle(TeacherTheme.secondaryText)
@@ -550,7 +551,7 @@ struct TeacherClassPrintView: View {
                             Image(systemName: i < at ? "checkmark.circle.fill" : (i == at ? "circle.inset.filled" : "circle"))
                                 .foregroundStyle(i <= at ? .cyan : .white.opacity(0.35))
                                 .accessibilityHidden(true)
-                            Text(WritingYearCopy.status(s)).foregroundStyle(i <= at ? .white : .white.opacity(0.55))
+                            Text(WritingYearCopy.status(s)).foregroundStyle(i <= at ? .white : TeacherTheme.secondaryText)
                         }
                         .accessibilityElement(children: .combine)
                         .accessibilityAddTraits(i == at ? [.isSelected] : [])

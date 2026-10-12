@@ -33,7 +33,7 @@ struct PushAlertsCard: View {
                     .tint(.cyan)
                 }
                 .font(.subheadline)
-                .foregroundStyle(.white.opacity(0.75))
+                .foregroundStyle(TeacherTheme.secondaryText)
             case .notDetermined, .unknown:
                 VStack(alignment: .leading, spacing: 8) {
                     Button {
@@ -52,7 +52,7 @@ struct PushAlertsCard: View {
                     .disabled(push.busy)
                     Text(TeacherCopy.pushHint)
                         .font(.caption)
-                        .foregroundStyle(.white.opacity(0.65))
+                        .foregroundStyle(TeacherTheme.secondaryText)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
@@ -101,7 +101,7 @@ struct TeacherNotificationSettingsCard: View {
             }
             if let settings {
                 VStack(alignment: .leading, spacing: 6) {
-                    Text(TeacherCopy.settingsSummary).font(.caption).foregroundStyle(.white.opacity(0.65))
+                    Text(TeacherCopy.settingsSummary).font(.caption).foregroundStyle(TeacherTheme.secondaryText)
                     Picker(selection: Binding(
                         get: { settings.summary },
                         set: { value in Task { await save(.init(summary: value)) } }
@@ -115,7 +115,7 @@ struct TeacherNotificationSettingsCard: View {
                     .pickerStyle(.segmented)
                 }
                 VStack(alignment: .leading, spacing: 6) {
-                    Text(TeacherCopy.settingsUrgent).font(.caption).foregroundStyle(.white.opacity(0.65))
+                    Text(TeacherCopy.settingsUrgent).font(.caption).foregroundStyle(TeacherTheme.secondaryText)
                     Toggle(isOn: Binding(
                         get: { settings.push_urgent },
                         set: { value in Task { await save(.init(push_urgent: value)) } }
@@ -135,14 +135,15 @@ struct TeacherNotificationSettingsCard: View {
                 case nil: EmptyView()
                 }
                 testAlert
-                Text(TeacherCopy.needsDisclaimer).font(.caption).foregroundStyle(.white.opacity(0.72))
+                Text(TeacherCopy.needsDisclaimer).font(.caption).foregroundStyle(TeacherTheme.secondaryText)
             } else if !loadError {
                 ProgressView().tint(.white)
             }
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 18))
+        .background(TeacherTheme.cardFill, in: RoundedRectangle(cornerRadius: 18))
+        .overlay(RoundedRectangle(cornerRadius: 18).strokeBorder(TeacherTheme.cardStroke))
         .task { await load() }
     }
 

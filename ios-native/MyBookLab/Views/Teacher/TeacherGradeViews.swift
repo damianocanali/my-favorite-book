@@ -159,7 +159,7 @@ struct TeacherGradePanel: View {
                 .frame(minWidth: minWidth, maxWidth: .infinity, minHeight: 76)
                 .background(GradeLevelStyle.tint(id).opacity(on ? 0.35 : 0.08), in: RoundedRectangle(cornerRadius: 14))
                 .overlay(RoundedRectangle(cornerRadius: 14)
-                    .strokeBorder(on ? GradeLevelStyle.tint(id) : .white.opacity(0.18), lineWidth: on ? 2 : 1))
+                    .strokeBorder(on ? GradeLevelStyle.tint(id) : TeacherTheme.inputStroke, lineWidth: on ? 2 : 1))
             }
             .buttonStyle(.plain)
             .accessibilityAddTraits(on ? [.isSelected] : [])
@@ -177,14 +177,15 @@ struct TeacherGradePanel: View {
                     tipText(tip).font(.subheadline).foregroundStyle(.white)
                         .frame(maxWidth: .infinity, alignment: .leading)
                     Button { tips.removeAll { $0 == tip } } label: {
-                        Image(systemName: "xmark.circle.fill").foregroundStyle(.white.opacity(0.6))
+                        Image(systemName: "xmark.circle.fill").foregroundStyle(TeacherTheme.secondaryText)
                             .frame(width: 32, height: 32)
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel(Text(GradingCopy.removeTip))
                 }
                 .padding(8)
-                .background(.white.opacity(0.06), in: RoundedRectangle(cornerRadius: 10))
+                .background(TeacherTheme.cardFill, in: RoundedRectangle(cornerRadius: 10))
+                .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(TeacherTheme.cardStroke))
             }
         }
     }
@@ -205,7 +206,7 @@ struct TeacherGradePanel: View {
                             } label: {
                                 HStack(alignment: .top, spacing: 8) {
                                     Image(systemName: chosen ? "checkmark.circle.fill" : "plus.circle")
-                                        .foregroundStyle(chosen ? .cyan : .white.opacity(0.6))
+                                        .foregroundStyle(chosen ? .cyan : TeacherTheme.secondaryText)
                                         .accessibilityHidden(true)
                                     Text(GradingCopy.tip(key) ?? GradingCopy.skill(skill.id))
                                         .font(.subheadline).foregroundStyle(.white)
@@ -223,7 +224,7 @@ struct TeacherGradePanel: View {
                 } label: {
                     Text(GradingCopy.skill(skill.id)).font(.subheadline.weight(.semibold)).foregroundStyle(.white)
                 }
-                .tint(.white.opacity(0.7))
+                .tint(TeacherTheme.secondaryText)
             }
         }
     }
@@ -237,7 +238,8 @@ struct TeacherGradePanel: View {
                     .submitLabel(.done)
                     .onSubmit(addCustom)
                     .padding(10)
-                    .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
+                    .background(TeacherTheme.cardFill, in: RoundedRectangle(cornerRadius: 12))
+                    .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(TeacherTheme.inputStroke))
                     .foregroundStyle(.white)
                     .onChange(of: custom) { _, v in
                         let oneLine = GradingRules.singleLine(v)
@@ -245,7 +247,7 @@ struct TeacherGradePanel: View {
                         if cut != v { custom = cut }
                     }
                 Text(verbatim: "\(custom.utf16.count)/\(GradingRules.tipTextMax)")
-                    .font(.caption2).foregroundStyle(.white.opacity(0.5))
+                    .font(.caption2).foregroundStyle(TeacherTheme.secondaryText)
             }
             Button(action: addCustom) {
                 Text(GradingCopy.customAdd)
@@ -340,7 +342,7 @@ struct TeacherLevelsOverTime: View {
                 TeacherErrorBlock(message: TeacherCopy.error(loadError)) { Task { await load() } }
             } else if let grades {
                 if grades.isEmpty {
-                    Text(GradingCopy.noGrades).foregroundStyle(.white.opacity(0.7)).padding(.vertical, 24)
+                    Text(GradingCopy.noGrades).foregroundStyle(TeacherTheme.secondaryText).padding(.vertical, 24)
                 } else {
                     VStack(spacing: 0) {
                         ForEach(Array(grades.enumerated()), id: \.element.id) { i, g in

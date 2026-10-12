@@ -136,7 +136,7 @@ struct TeacherDashboardView: View {
                 .foregroundStyle(.white)
             Text(TeacherCopy.emptyBody)
                 .font(.subheadline)
-                .foregroundStyle(.white.opacity(0.75))
+                .foregroundStyle(TeacherTheme.secondaryText)
                 .multilineTextAlignment(.center)
             SparkleButton(action: { creatingClass = true }) {
                 Text(TeacherCopy.emptyCta)
@@ -178,11 +178,11 @@ struct TeacherDashboardView: View {
                 TeacherSectionHeading(text: TeacherCopy.needsHeading)
                 Text(TeacherCopy.needsDisclaimer)
                     .font(.caption)
-                    .foregroundStyle(.white.opacity(0.65))
+                    .foregroundStyle(TeacherTheme.secondaryText)
                 if help.isEmpty {
                     Text(TeacherCopy.needsEmpty)
                         .font(.subheadline)
-                        .foregroundStyle(.white.opacity(0.7))
+                        .foregroundStyle(TeacherTheme.secondaryText)
                 } else {
                     let grownup = help.filter(\.isGrownup)
                     let book = help.filter { !$0.isGrownup }
@@ -202,7 +202,7 @@ struct TeacherDashboardView: View {
             Text(title)
                 .font(.caption.weight(.bold))
                 .textCase(.uppercase)
-                .foregroundStyle(urgent ? Color(red: 1, green: 0.45, blue: 0.45) : .white.opacity(0.6))
+                .foregroundStyle(urgent ? Color(red: 1, green: 0.45, blue: 0.45) : TeacherTheme.secondaryText)
             ForEach(rows) { item in helpRow(item, urgent: urgent) }
         }
     }
@@ -222,7 +222,7 @@ struct TeacherDashboardView: View {
             }
             VStack(alignment: .leading, spacing: 2) {
                 Text(verbatim: name).font(.headline).foregroundStyle(.white)
-                Text(verbatim: detail).font(.caption).foregroundStyle(.white.opacity(0.65))
+                Text(verbatim: detail).font(.caption).foregroundStyle(TeacherTheme.secondaryText)
             }
             Spacer(minLength: 8)
             Button {
@@ -239,10 +239,10 @@ struct TeacherDashboardView: View {
         }
         .padding(12)
         .background(
-            urgent ? Color.red.opacity(0.18) : Color.white.opacity(0.06),
+            urgent ? Color(red: 0.30, green: 0.12, blue: 0.20) : TeacherTheme.cardFill,
             in: RoundedRectangle(cornerRadius: 14)
         )
-        .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(urgent ? Color.red.opacity(0.45) : .clear))
+        .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(urgent ? Color.red.opacity(0.45) : TeacherTheme.cardStroke))
     }
 
     // MARK: - Selected class
@@ -335,7 +335,7 @@ struct TeacherDashboardView: View {
             }
             if data.students.isEmpty {
                 Text(TeacherCopy.studentsEmpty)
-                    .font(.subheadline).foregroundStyle(.white.opacity(0.7))
+                    .font(.subheadline).foregroundStyle(TeacherTheme.secondaryText)
                     .frame(maxWidth: .infinity).padding(.vertical, 24)
             } else {
                 // Equal flexible columns and one fixed card height, so a
@@ -378,7 +378,7 @@ struct TeacherDashboardView: View {
                             }
                         }
                         .lineLimit(1)
-                        .font(.caption).foregroundStyle(.white.opacity(0.65))
+                        .font(.caption).foregroundStyle(TeacherTheme.secondaryText)
                     }
                     Spacer(minLength: 4)
                     if let latest {
@@ -400,7 +400,7 @@ struct TeacherDashboardView: View {
                         // Always a second line (blank when never edited) so
                         // every card keeps the same layout.
                         if let when = TeacherDates.relative(s.last_book_edited_at) {
-                            Text(TeacherCopy.lastEdited(when)).opacity(0.7)
+                            Text(TeacherCopy.lastEdited(when))
                         } else {
                             Text(verbatim: " ").accessibilityHidden(true)
                         }
@@ -409,7 +409,7 @@ struct TeacherDashboardView: View {
                     Text(TeacherCopy.picturesToday(s.images_today ?? 0))
                 }
                 .font(.caption)
-                .foregroundStyle(.white.opacity(0.75))
+                .foregroundStyle(TeacherTheme.secondaryText)
                 .lineLimit(1)
                 checkinIcons(s.checkins_7d ?? [])
                     .fixedSize(horizontal: true, vertical: false)
@@ -427,7 +427,7 @@ struct TeacherDashboardView: View {
     private func checkinIcons(_ checkins: [TeacherCheckin]) -> some View {
         Group {
             if checkins.isEmpty {
-                Text(TeacherCopy.noCheckins).font(.caption).foregroundStyle(.white.opacity(0.5))
+                Text(TeacherCopy.noCheckins).font(.caption).foregroundStyle(TeacherTheme.secondaryText)
             } else {
                 HStack(spacing: 4) {
                     ForEach(Array(checkins.enumerated()), id: \.offset) { _, c in
@@ -545,7 +545,7 @@ private struct GlancePill<Value: View>: View {
                 if let sub { Text(sub) } else { Text(verbatim: " ") }
             }
             .font(.caption2)
-            .foregroundStyle(.white.opacity(0.75))
+            .foregroundStyle(TeacherTheme.secondaryText)
             .lineLimit(1, reservesSpace: true)
             .minimumScaleFactor(0.8)
             .accessibilityHidden(sub == nil)

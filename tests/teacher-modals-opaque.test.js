@@ -85,10 +85,12 @@ describe('teacher-area modals are opaque', () => {
 
   it('the bell panel is opaque and has a dimmed backdrop', () => {
     const src = readFileSync('src/components/school/NotificationBell.jsx', 'utf8')
-    const panel = classNames(src).find((n) => /absolute right-0 top-full/.test(n.value))
-    expect(panel).toBeTruthy()
+    const lib = readFileSync('src/lib/teacherNotifications.js', 'utf8')
+    const panel = classNames(src).find((n) => n.value === 'BELL_PANEL_CLASS') ?? { value: lib.match(/BELL_PANEL_CLASS =([\s\S]*?)\n\n|BELL_PANEL_CLASS =([\s\S]*)$/)?.[0] }
+    expect(src).toContain('className={BELL_PANEL_CLASS}')
+    expect(panel.value).toBeTruthy()
     expect(panel.value).not.toMatch(TRANSLUCENT)
-    expect(panel.value).toMatch(/(^|\s)bg-galaxy-bg-light(\s|$)/)
+    expect(panel.value).toMatch(/bg-galaxy-bg-light/)
     expect(src).toMatch(/data-testid="bell-backdrop"[\s\S]{0,120}className="fixed inset-0 z-40 bg-black\/\d+"/)
   })
 

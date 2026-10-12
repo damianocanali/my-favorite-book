@@ -232,11 +232,11 @@ struct ClassDeviceAccountCard: View {
                 } else {
                     Text(SignInCopy.askOwner(device.displayName))
                         .font(.subheadline)
-                        .foregroundStyle(.white.opacity(0.75))
+                        .foregroundStyle(TeacherTheme.secondaryText)
                 }
             } else {
                 Text(SignInCopy.accountNone)
-                    .foregroundStyle(.white.opacity(0.75))
+                    .foregroundStyle(TeacherTheme.secondaryText)
                 Button { picking = true } label: {
                     Text(SignInCopy.accountPick)
                         .font(.subheadline.weight(.semibold))
@@ -250,7 +250,8 @@ struct ClassDeviceAccountCard: View {
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 18))
+        .background(TeacherTheme.cardFill, in: RoundedRectangle(cornerRadius: 18))
+        .overlay(RoundedRectangle(cornerRadius: 18).strokeBorder(TeacherTheme.cardStroke))
         .task(id: store.device?.classId) {
             guard let device = store.device, device.setByUserId != auth.user?.id.uuidString else { return }
             ownClassIds = await loadOwnClassIds(auth)
