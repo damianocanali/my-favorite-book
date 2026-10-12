@@ -59,9 +59,11 @@ function MicButton({ boxId, dictation }) {
  * Props: `assignment` (from GET /api/school/assignments, with worksheet),
  * `userId` (the signed-in child, for the device draft), `books` (their
  * shelf, for "add to one of my books"), `onClose`, `onHandedIn()` (reload
- * the list), `onMakePages({ texts, bookId|null })`.
+ * the list), `onMakePages({ texts, bookId|null })`. `teacherTheme`: the
+ * teacher area's contrast scope (teacher-ui) — only from a teacher call
+ * site; a child's view never sets it.
  */
-export default function WorksheetFill({ assignment, userId, books = [], onClose, onHandedIn, onMakePages }) {
+export default function WorksheetFill({ assignment, userId, books = [], onClose, onHandedIn, onMakePages, teacherTheme = false }) {
   const { t, i18n } = useTranslation()
   const panelRef = useRef(null)
   const worksheet = assignment.worksheet
@@ -229,7 +231,7 @@ export default function WorksheetFill({ assignment, userId, books = [], onClose,
       role="dialog"
       aria-modal="true"
       aria-label={assignment.title}
-      className="fixed inset-0 z-[70] overflow-y-auto bg-galaxy-bg focus:outline-none"
+      className={`fixed inset-0 z-[70] overflow-y-auto bg-galaxy-bg focus:outline-none ${teacherTheme ? 'teacher-ui' : ''}`}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
     >

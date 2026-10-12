@@ -114,3 +114,16 @@ describe('the /worksheets page and its full-size preview', () => {
     expect(page).toContain('list={results.some((x) => x.id === previewTemplate.id) ? results : [previewTemplate]}')
   })
 })
+
+describe('the assign picker renders', () => {
+  it('every sheet as a card, shelf by shelf, with the filters; an unknown template\'s own prompts when editing', async () => {
+    const { createElement } = await import('react')
+    const { renderToStaticMarkup } = await import('react-dom/server')
+    const { default: WorksheetPicker } = await import('../src/components/school/WorksheetPicker.jsx')
+    const html = renderToStaticMarkup(createElement(WorksheetPicker, { value: { templateId: null, prompts: {}, word: '' }, onChange: () => {} }))
+    expect((html.match(/aria-pressed="false"/g) ?? []).length).toBeGreaterThanOrEqual(33)
+    expect(html).toContain('id="ws-picker-search"')
+    const edit = renderToStaticMarkup(createElement(WorksheetPicker, { value: { templateId: 'from_the_future', prompts: { a: 'Ask A' }, word: '' }, onChange: () => {} }))
+    expect(edit).toContain('value="Ask A"')
+  })
+})

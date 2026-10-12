@@ -52,3 +52,38 @@ describe('class list with ?assign=worksheet and no classes', () => {
     }
   })
 })
+
+describe('"Assign to my class" from a library sheet (round 6B)', () => {
+  it('carries the sheet through the class list to the class page', async () => {
+    const { assignWorksheetHref, assignTemplate } = await import('../src/components/school/assignIntent.js')
+    expect(assignWorksheetHref('haiku')).toBe('/teacher/classes?assign=worksheet&template=haiku')
+    expect(assignWorksheetHref('story-map')).toBe('/teacher/classes?assign=worksheet&template=beginning_middle_end')
+    expect(assignWorksheetHref('nope')).toBe('/teacher/classes?assign=worksheet')
+    expect(assignTemplate(new URLSearchParams('assign=worksheet&template=haiku'))).toBe('haiku')
+    expect(assignTemplate(new URLSearchParams('template=haiku'))).toBeNull()
+    expect(assignTemplate(new URLSearchParams('assign=worksheet&template=nope'))).toBeNull()
+    expect(classHref('c1', 'worksheet', 'haiku')).toBe('/teacher/class/c1?assign=worksheet&template=haiku')
+    expect(classHref('c1', null, 'haiku')).toBe('/teacher/class/c1')
+  })
+
+  it('the class page opens the form on that sheet, prompts filled, and drops the params once used', async () => {
+    const { readFileSync } = await import('node:fs')
+    expect(readFileSync('src/pages/TeacherPage.jsx', 'utf8')).toContain('to={classHref(cls.id, intent, intentTemplate)}')
+    const cls = readFileSync('src/pages/TeacherClassPage.jsx', 'utf8')
+    expect(cls).toContain('startTemplate={assignTemplate(searchParams)}')
+    expect(cls).toContain("next.delete('template')")
+    const section = readFileSync('src/components/school/AssignmentsSection.jsx', 'utf8')
+    expect(section).toContain("initialTemplateId={formTarget === 'new' ? initialTemplate : null}")
+    const form = readFileSync('src/components/school/AssignmentForm.jsx', 'utf8')
+    expect(form).toContain("? { templateId: preset, prompts: defaultPrompts(t, preset), word: '' }")
+    expect(form).toContain('className="teacher-ui fixed inset-0')
+  })
+
+  it('the assign picker has the library\'s search, shelves and grade filter', async () => {
+    const { readFileSync } = await import('node:fs')
+    const picker = readFileSync('src/components/school/WorksheetPicker.jsx', 'utf8')
+    expect(picker).toContain('<LibraryFilters compact value={filters} onChange={changeFilters} idPrefix="ws-picker" />')
+    expect(picker).toContain('filterTemplates(filters, t)')
+    expect(picker).toContain('groupByCategory(results)')
+  })
+})

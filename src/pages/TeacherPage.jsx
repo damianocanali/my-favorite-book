@@ -10,7 +10,7 @@ import { schoolFetch } from '../lib/schoolApi'
 import { teacherErrorText } from '../components/school/teacherErrors'
 import { useAuthStore, selectIsTeacher } from '../stores/useAuthStore'
 import { MAX_SEATS } from '../../lib/school/license.js'
-import { assignIntent, classHref } from '../components/school/assignIntent.js'
+import { assignIntent, assignTemplate, classHref } from '../components/school/assignIntent.js'
 import { useIsBillingAdmin } from '../hooks/useIsBillingAdmin'
 import { forBillingRole } from '../components/school/billingCopy'
 
@@ -39,6 +39,7 @@ export default function TeacherPage() {
   // "Assign a worksheet" from the library lands here to pick a class.
   const [searchParams] = useSearchParams()
   const intent = assignIntent(searchParams)
+  const intentTemplate = assignTemplate(searchParams)
   // The school plan page is for school billing admins only (round 5).
   const billingAdmin = useIsBillingAdmin()
 
@@ -279,7 +280,7 @@ export default function TeacherPage() {
                     </div>
                   </div>
                   <Link
-                    to={classHref(cls.id, intent)}
+                    to={classHref(cls.id, intent, intentTemplate)}
                     className="flex items-center gap-1 px-3 py-2 rounded-xl font-body font-semibold text-sm text-galaxy-secondary border border-galaxy-secondary/40 hover:bg-galaxy-secondary/10 transition-colors shrink-0"
                   >
                     {t('school:teacher.card.open')} <ChevronRight size={14} />

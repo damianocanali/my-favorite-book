@@ -1,10 +1,14 @@
 // The worksheet half of the new/edit assignment form (spec 2026-10-01 §2):
-// choose a template (cards with a small preview of its boxes), then edit
-// the prompts, pre-filled in the teacher's language. Controlled: the
+// choose a template from the worksheet library (teacher round 6B: the same
+// 33 sheets, shelves, grade filter and search as /worksheets, compact), then
+// edit the prompts, pre-filled in the teacher's language. Controlled: the
 // parent (AssignmentForm) owns `value` = { templateId, prompts, word }.
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { RotateCcw } from 'lucide-react'
 import { WORKSHEET_TEMPLATES, PROMPT_TEXT_MAX, ACROSTIC_WORD_MAX } from '../../../lib/school/worksheets.js'
+import { filterTemplates, groupByCategory, hasActiveFilters } from '../../lib/worksheets/library.js'
+import LibraryFilters, { LibraryEmpty } from '../worksheets/LibraryFilters'
 import { defaultPrompts } from './worksheetUi'
 
 const SIZE_HEIGHT = { small: 'h-2', medium: 'h-4', large: 'h-6' }
@@ -26,12 +30,15 @@ function TemplateCard({ template, selected, onPick }) {
       </div>
       <span className="font-body font-semibold text-sm text-galaxy-text">{t(`school:worksheet.templates.${template.id}.title`)}</span>
       <span className="font-body text-xs text-galaxy-text-muted">{t(`school:worksheet.templates.${template.id}.description`)}</span>
+      <span className="font-body text-[10px] font-semibold text-galaxy-secondary">{t(`school:worksheet.grades.${template.gradeBand}`)}</span>
     </button>
   )
 }
 
 export default function WorksheetPicker({ value, onChange, canChangeTemplate = true }) {
   const { t } = useTranslation()
+  const [filters, setFilters] = useState({ q: '', cat: null, grade: null })
+  const changeFilters = (patch) => setFilters((f) => ({ ...f, ...patch }))
 
   function pick(templateId) {
     if (value?.templateId === templateId) return
@@ -39,17 +46,36 @@ export default function WorksheetPicker({ value, onChange, canChangeTemplate = t
   }
 
   if (!value?.templateId) {
+    const results = filterTemplates(filters, t)
+    const grid = (list) => (
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+        {list.map((tpl) => <TemplateCard key={tpl.id} template={tpl} selected={false} onPick={pick} />)}
+      </div>
+    )
     return (
-      <div className="space-y-2">
+      <div className="space-y-3">
         <p className="text-galaxy-text-muted text-sm font-body font-semibold">{t('school:worksheet.teacher.choose_template')}</p>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-          {WORKSHEET_TEMPLATES.map((tpl) => <TemplateCard key={tpl.id} template={tpl} selected={false} onPick={pick} />)}
-        </div>
+        <LibraryFilters compact value={filters} onChange={changeFilters} idPrefix="ws-picker" />
+        {results.length === 0 ? (
+          <LibraryEmpty compact value={filters} onChange={changeFilters} />
+        ) : hasActiveFilters(filters) ? grid(results) : (
+          <div className="space-y-4">
+            {groupByCategory(results).map((g) => (
+              <section key={g.category} aria-label={t(`school:worksheet.categories.${g.category}`)} className="space-y-1.5">
+                <p className="font-heading text-sm font-bold text-galaxy-text">{t(`school:worksheet.categories.${g.category}`)}</p>
+                {grid(g.templates)}
+              </section>
+            ))}
+          </div>
+        )}
       </div>
     )
   }
 
   const template = WORKSHEET_TEMPLATES.find((x) => x.id === value.templateId)
+  // A template this build doesn't know (editing a newer assignment): its
+  // own prompts are the boxes.
+  const boxes = template?.boxes ?? Object.keys(value.prompts ?? {}).map((id) => ({ id }))
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-2">
@@ -80,7 +106,7 @@ export default function WorksheetPicker({ value, onChange, canChangeTemplate = t
       </div>
 
       <ol className="space-y-2">
-        {template.boxes.map((b, i) => (
+        {boxes.map((b, i) => (
           <li key={b.id} className="space-y-1">
             <label htmlFor={`ws-prompt-${b.id}`} className="text-galaxy-text-muted text-xs font-body">
               {t('school:worksheet.teacher.box_label', { number: i + 1 })}
