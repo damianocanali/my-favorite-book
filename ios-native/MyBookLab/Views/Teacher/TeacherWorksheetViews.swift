@@ -24,17 +24,21 @@ struct TeacherWorksheetPicker: View {
     @State private var grade: WorksheetTemplate.GradeBand?
 
     var body: some View {
-        if let def = worksheet, let template = def.template {
+        // A template this build doesn't know (editing a newer assignment):
+        // its own prompts are the boxes, as on the web.
+        if let def = worksheet, def.template != nil || !def.prompts.isEmpty {
             Section {
-                ForEach(Array(template.boxes.enumerated()), id: \.element.id) { i, box in
+                ForEach(Array(Self.boxIds(def).enumerated()), id: \.element) { i, id in
                     VStack(alignment: .leading, spacing: 4) {
                         Text(WorksheetCopy.teacherBoxLabel(i + 1)).font(.caption).foregroundStyle(.secondary)
-                        TextField(text: promptBinding(box.id), axis: .vertical) { Text(WorksheetCopy.teacherPromptsHeading) }
+                        TextField(text: promptBinding(id), axis: .vertical) { Text(WorksheetCopy.teacherPromptsHeading) }
                             .lineLimit(1...4)
                     }
                 }
-                Button { resetPrompts() } label: {
-                    Label { Text(WorksheetCopy.teacherResetPrompts) } icon: { Image(systemName: "arrow.counterclockwise") }
+                if def.template != nil {
+                    Button { resetPrompts() } label: {
+                        Label { Text(WorksheetCopy.teacherResetPrompts) } icon: { Image(systemName: "arrow.counterclockwise") }
+                    }
                 }
                 if canChangeTemplate {
                     Button { worksheet = nil; word = "" } label: { Text(WorksheetCopy.teacherChangeTemplate) }
@@ -137,6 +141,12 @@ struct TeacherWorksheetPicker: View {
     private func resetPrompts() {
         guard let id = worksheet?.templateId else { return }
         worksheet?.prompts = Self.defaultPrompts(id)
+    }
+
+    /// The boxes whose prompts the teacher edits: the template's, or for one
+    /// this build doesn't know, the assignment's own prompt keys, sorted.
+    static func boxIds(_ def: WorksheetDefinition) -> [String] {
+        def.template?.boxIds ?? def.prompts.keys.sorted()
     }
 
     static func defaultPrompts(_ templateId: String) -> [String: String] {

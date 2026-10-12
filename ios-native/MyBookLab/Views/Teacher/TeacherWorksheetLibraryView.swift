@@ -123,7 +123,6 @@ struct WorksheetLibraryEmpty: View {
 }
 
 struct TeacherWorksheetLibraryView: View {
-    @Environment(\.horizontalSizeClass) private var hSize
     @State private var query = ""
     @State private var category: WorksheetTemplate.Category?
     @State private var grade: WorksheetTemplate.GradeBand?
@@ -134,10 +133,8 @@ struct TeacherWorksheetLibraryView: View {
     private var filtering: Bool {
         !WorksheetLibrarySearch.normalized(query).isEmpty || category != nil || grade != nil
     }
-    /// Wider cards on the iPad's full width; the iPhone keeps two columns.
-    private var columns: [GridItem] {
-        [GridItem(.adaptive(minimum: hSize == .regular ? 200 : 150), spacing: 14)]
-    }
+    /// As before round 6B: one column on an iPhone, as many as fit on an iPad.
+    private let columns = [GridItem(.adaptive(minimum: 200), spacing: 14)]
 
     var body: some View {
         NavigationStack {
@@ -346,6 +343,7 @@ struct WorksheetSheetPreview: View {
         VStack(alignment: .leading, spacing: 14) {
             Text(WorksheetCopy.heading(definition.templateId)).font(.title2.bold())
                 .frame(maxWidth: .infinity)
+                .accessibilityAddTraits(.isHeader)
             HStack(spacing: 16) {
                 field(AppText("worksheets.sheet.header.name", defaultValue: "Name"))
                 field(AppText("worksheets.sheet.header.date", defaultValue: "Date"))
@@ -380,7 +378,7 @@ struct WorksheetSheetPreview: View {
         .foregroundStyle(.black)
         .padding(24)
         .background(.white, in: RoundedRectangle(cornerRadius: 10))
-        .accessibilityElement(children: .combine)
+        .accessibilityElement(children: .contain)
     }
 
     private func field(_ label: LocalizedStringResource) -> some View {

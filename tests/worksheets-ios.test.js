@@ -173,8 +173,11 @@ describe('the iPad worksheet library (round 6B)', () => {
     expect(library).toContain('WorksheetLibraryEmpty(')
     expect(library).toContain('TeacherCard {')
     expect(library).not.toMatch(/\.white\.opacity\(0\.0[68]\), in: RoundedRectangle/)
-    // The iPhone keeps its two-column grid; only regular width widens it.
-    expect(library).toContain('GridItem(.adaptive(minimum: hSize == .regular ? 200 : 150), spacing: 14)')
+    // As before: one column on an iPhone, as many as fit on an iPad.
+    expect(library).toContain('GridItem(.adaptive(minimum: 200), spacing: 14)')
+    // The preview keeps its pieces separate for VoiceOver, heading first.
+    expect(library).toContain('.accessibilityElement(children: .contain)')
+    expect(library).toMatch(/Text\(WorksheetCopy\.heading\(definition\.templateId\)\)[^\n]*\n[^\n]*\n\s+\.accessibilityAddTraits\(\.isHeader\)/)
   })
 
   it('search matches the same fields as the web, ignoring case and accents', () => {
@@ -196,6 +199,13 @@ describe('the iPad worksheet library (round 6B)', () => {
     expect(picker).toContain('WorksheetLibraryFilters(category: $category, grade: $grade)')
     expect(picker).toContain('WorksheetLibrarySearch.filter(query: query, category: category, grade: grade)')
     expect(picker).toContain('TeacherCard {')
+  })
+
+  it('editing an assignment whose template this build doesn\'t know edits its own prompts (web too)', () => {
+    expect(picker).toContain('if let def = worksheet, def.template != nil || !def.prompts.isEmpty {')
+    expect(picker).toContain('def.template?.boxIds ?? def.prompts.keys.sorted()')
+    const form = readFileSync('ios-native/MyBookLab/Views/Teacher/TeacherClassesView.swift', 'utf8')
+    expect(form).toContain('let ids = TeacherWorksheetPicker.boxIds(def)')
   })
 
   it('a child\'s fill-in handles every template, and one this build doesn\'t know', () => {
