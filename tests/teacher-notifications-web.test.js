@@ -208,3 +208,17 @@ describe('bellActionError (the bell\'s remove / clear-all failure banner)', () =
     }
   })
 })
+
+describe('bell panel placement (phones)', () => {
+  it('is fixed with a 16px safe-area gutter below sm and anchored from sm up', async () => {
+    const { BELL_PANEL_CLASS: c } = await import('../src/lib/teacherNotifications.js')
+    expect(c).toMatch(/(^| )fixed /)
+    expect(c).toContain('left-[max(1rem,var(--sal))]')
+    expect(c).toContain('right-[max(1rem,var(--sar))]')
+    expect(c).toContain('top-[calc(var(--sat)+4rem)]')
+    expect(c).toContain('max-h-[calc(100dvh-')
+    expect(c).toContain('sm:absolute')
+    expect(c).toContain('sm:w-80')
+    expect(c).not.toMatch(/(^| )w-80/)
+  })
+})
