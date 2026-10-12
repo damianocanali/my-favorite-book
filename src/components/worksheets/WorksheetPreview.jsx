@@ -23,6 +23,8 @@ export default function WorksheetPreview({
   const { t } = useTranslation()
   const panelRef = useRef(null)
   const stageRef = useRef(null)
+  const prevRef = useRef(null)
+  const nextRef = useRef(null)
   const stageWidth = useElementWidth(stageRef)
   const index = list.findIndex((x) => x.id === template.id)
   const prev = index > 0 ? list[index - 1] : null
@@ -48,6 +50,19 @@ export default function WorksheetPreview({
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [prev, next, onNavigate, onClose])
+
+  // Stepping to the first / last sheet disables the button that was just
+  // pressed: focus moves to the other one (or the dialog) instead of
+  // falling out to <body>.
+  useEffect(() => {
+    const active = document.activeElement
+    const lost = !active || active === document.body
+    if ((active === prevRef.current || lost) && !prev && prevRef.current?.disabled) {
+      ;(next ? nextRef.current : panelRef.current)?.focus()
+    } else if ((active === nextRef.current || lost) && !next && nextRef.current?.disabled) {
+      ;(prev ? prevRef.current : panelRef.current)?.focus()
+    }
+  }, [prev, next])
 
   const sheetWidth = Math.min(SHEET_WIDTH_PX, stageWidth)
   const btn = 'inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-sm font-body font-semibold transition-colors'
@@ -98,6 +113,7 @@ export default function WorksheetPreview({
         <div className="max-w-4xl mx-auto flex flex-wrap items-center gap-2">
           <div className="flex gap-1">
             <button
+              ref={prevRef}
               type="button"
               disabled={!prev}
               onClick={() => prev && onNavigate(prev.id)}
@@ -108,6 +124,7 @@ export default function WorksheetPreview({
               <ChevronLeft size={16} aria-hidden="true" />
             </button>
             <button
+              ref={nextRef}
               type="button"
               disabled={!next}
               onClick={() => next && onNavigate(next.id)}

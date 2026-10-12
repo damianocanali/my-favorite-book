@@ -46,6 +46,15 @@ describe('parseWorksheetParams', () => {
     expect(out.prompt).toBe('line one line two end')
   })
 
+  it('the prompt cap keeps "Today\'s prompt" to two printed lines, and Customize enforces the same cap', async () => {
+    expect(MAX_PROMPT_LENGTH).toBe(140)
+    const { readFileSync } = await import('node:fs')
+    const panel = readFileSync('src/components/worksheets/CustomizePanel.jsx', 'utf8')
+    expect(panel).toContain('maxLength={MAX_PROMPT_LENGTH}')
+    // No clamp on the sheet: the cap is what keeps it short.
+    expect(readFileSync('src/components/worksheets/sheets.jsx', 'utf8')).not.toMatch(/TodayPrompt[\s\S]{0,400}line-clamp/)
+  })
+
   it('caps prompt length', () => {
     const long = 'x'.repeat(MAX_PROMPT_LENGTH + 50)
     const out = parseWorksheetParams(paramsFrom('prompt=' + long))

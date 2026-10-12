@@ -30,3 +30,18 @@ describe('getWorksheetTemplate', () => {
     expect(getWorksheetTemplate(null)).toBeNull()
   })
 })
+
+describe('the footer QR ref', () => {
+  it('a sheet that was one of the first printables keeps its old id; the rest use the kebab id', async () => {
+    const { qrRef } = await import('../src/lib/worksheets/templates.js')
+    expect(qrRef('beginning_middle_end')).toBe('story-map')
+    expect(qrRef('story-map')).toBe('story-map')
+    expect(qrRef('book_report')).toBe('book-report')
+    expect(qrRef('storyboard')).toBe('storyboard')
+    // The five-box story map never takes the old sheet's ref.
+    expect(qrRef('story_map')).toBe('story_map')
+    const { WORKSHEET_TEMPLATES: all } = await import('../lib/school/worksheets.js')
+    const refs = all.map((t) => qrRef(t.id))
+    expect(new Set(refs).size).toBe(refs.length)
+  })
+})

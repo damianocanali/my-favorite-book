@@ -20,7 +20,7 @@ import { Star } from 'lucide-react'
 import WorksheetHeader from './WorksheetHeader'
 import WorksheetFooter from './WorksheetFooter'
 import { getWorksheetTemplate, schoolKey } from '../../lib/worksheets/templates.js'
-import { printLayout, LABEL_IN, LINE_IN, GAP_IN, DRAW_GAP_IN } from '../../lib/worksheets/printLayout.js'
+import { printLayout, LABEL_IN, LINE_IN, GAP_IN, DRAW_GAP_IN, BESPOKE_IN } from '../../lib/worksheets/printLayout.js'
 import { FEELINGS, NEEDS } from '../../lib/checkIn.js'
 import { getAllStartersForPosition } from '../../lib/sentenceStarters.js'
 
@@ -54,7 +54,7 @@ function Label({ children, className = '' }) {
 function TodayPrompt({ t, prompt }) {
   if (!prompt) return null
   return (
-    <p className="text-sm font-semibold border border-black rounded-md px-3 py-2 mb-3 bg-black/[0.03] line-clamp-2 shrink-0">
+    <p className="text-sm font-semibold border border-black rounded-md px-3 py-2 mb-3 bg-black/[0.03] shrink-0 break-words">
       {t('sheet.today_prompt', { prompt })}
     </p>
   )
@@ -131,18 +131,23 @@ export function GenericSheetBody({ templateId, tSchool, labels = null, word = nu
 // for a position in a stable order (unlike getPromptsForPage's random 4,
 // used in-editor); `tGames` is the sheet-language-fixed translator, so the
 // strip is independent of whatever the site chrome is showing.
+//
+// The hand-made bodies draw every block at its BESPOKE_IN height
+// (printLayout.js), so their fit is checked like the generic one's; only a
+// drawing box grows into leftover room.
 const STRIP_COUNTS = { opening: 3, middle: 3, ending: 2 }
 
 function SentenceStartersBody({ t, tGames }) {
+  const B = BESPOKE_IN.sentence_starters
   const rows = Object.entries(STRIP_COUNTS).flatMap(([position, count]) =>
     getAllStartersForPosition(position, tGames).slice(0, count)
-  )
+  ).slice(0, B.rows)
   return (
-    <div className="flex flex-col h-full gap-3">
-      <p className="font-semibold text-sm">{t('sheet.sentence_starters.finish_prompt')}</p>
-      <div className="flex-1 flex flex-col justify-between gap-4">
+    <div className="flex flex-col h-full" style={{ gap: inch(GAP_IN) }}>
+      <p className="font-semibold text-sm shrink-0" style={{ height: inch(B.prompt) }}>{t('sheet.sentence_starters.finish_prompt')}</p>
+      <div className="shrink-0" style={{ height: inch(B.rows * B.row) }}>
         {rows.map((starter, i) => (
-          <div key={i} className="flex items-end gap-1 text-sm">
+          <div key={i} className="flex items-end gap-1 text-sm" style={{ height: inch(B.row) }}>
             <span className="whitespace-nowrap italic">{starter}</span>
             <span className="flex-1 border-b border-black h-4" />
           </div>
@@ -153,19 +158,20 @@ function SentenceStartersBody({ t, tGames }) {
 }
 
 function BookReportBody({ t, tSchool }) {
+  const B = BESPOKE_IN.book_report
   const label = labelFor(tSchool, 'book_report', null)
   const field = (id, lines) => (
-    <div className="flex flex-col gap-1 min-w-0 flex-1">
-      <p className="font-bold text-sm leading-tight">{label(id)}</p>
+    <div className="flex flex-col min-w-0 flex-1">
+      <Label>{label(id)}</Label>
       <WriteLines count={lines} />
     </div>
   )
   return (
-    <div className="flex flex-col h-full gap-3">
-      <div className="flex gap-4">{field('title', 1)}{field('author', 1)}</div>
-      {field('about', 3)}
-      <div className="flex gap-4">{field('favorite', 3)}{field('would_recommend', 3)}</div>
-      <div className="flex items-center gap-2">
+    <div className="flex flex-col h-full" style={{ gap: inch(GAP_IN) }}>
+      <div className="flex gap-4 shrink-0" style={{ height: inch(B.titleRow) }}>{field('title', 1)}{field('author', 1)}</div>
+      <div className="flex shrink-0" style={{ height: inch(B.about) }}>{field('about', 3)}</div>
+      <div className="flex gap-4 shrink-0" style={{ height: inch(B.favoriteRow) }}>{field('favorite', 3)}{field('would_recommend', 3)}</div>
+      <div className="flex items-center gap-2 shrink-0" style={{ height: inch(B.stars) }}>
         <p className="font-bold text-sm">{t('sheet.book_report.rating_label')}</p>
         <div className="flex gap-1" aria-hidden="true">
           {Array.from({ length: 5 }, (_, i) => (
@@ -173,8 +179,10 @@ function BookReportBody({ t, tSchool }) {
           ))}
         </div>
       </div>
-      <p className="font-bold text-sm">{tSchool(schoolKey('book_report', 'picture'))}</p>
-      <DrawBox className="flex-1" style={{ minHeight: '1.2in' }} />
+      <div className="flex flex-col flex-1" style={{ minHeight: inch(B.pictureLabel + B.pictureMin) }}>
+        <Label>{tSchool(schoolKey('book_report', 'picture'))}</Label>
+        <DrawBox className="flex-1" />
+      </div>
     </div>
   )
 }
@@ -182,33 +190,39 @@ function BookReportBody({ t, tSchool }) {
 // Circles to ring how you feel, chips for what would help, then a drawing
 // box and the two "why / what helps" lines the assigned sheet asks too.
 function FeelingsCheckinBody({ t, tSchool, tCheckin }) {
+  const B = BESPOKE_IN.feelings_checkin
   const label = labelFor(tSchool, 'feelings_checkin', null)
   return (
-    <div className="flex flex-col h-full gap-4">
-      <p className="font-bold text-lg">{t('sheet.feelings_checkin.how_feeling')}</p>
-      <div className="grid grid-cols-3 gap-4">
-        {FEELINGS.map((f) => (
-          <div key={f.id} className="flex flex-col items-center">
-            <div className="w-24 h-24 rounded-full border-2 border-black flex items-center justify-center text-center px-2">
-              <span className="text-base font-semibold">{tCheckin(`feeling.${f.id}`)}</span>
+    <div className="flex flex-col h-full" style={{ gap: inch(GAP_IN) }}>
+      <p className="font-bold text-lg shrink-0 leading-tight" style={{ height: inch(B.heading) }}>{t('sheet.feelings_checkin.how_feeling')}</p>
+      <div
+        className="grid grid-cols-3 shrink-0"
+        style={{ rowGap: inch(B.circleGap), gridAutoRows: inch(B.circle), height: inch(B.circleRows * B.circle + (B.circleRows - 1) * B.circleGap) }}
+      >
+        {FEELINGS.slice(0, B.circleRows * 3).map((f) => (
+          <div key={f.id} className="flex justify-center">
+            <div className="rounded-full border-2 border-black flex items-center justify-center text-center px-2" style={{ width: inch(B.circle), height: inch(B.circle) }}>
+              <span className="text-base font-semibold leading-tight">{tCheckin(`feeling.${f.id}`)}</span>
             </div>
           </div>
         ))}
       </div>
-      <p className="font-bold text-lg">{t('sheet.feelings_checkin.i_need')}</p>
-      <div className="flex flex-wrap gap-3">
+      <p className="font-bold text-lg shrink-0 leading-tight" style={{ height: inch(B.needHeading) }}>{t('sheet.feelings_checkin.i_need')}</p>
+      <div className="flex flex-wrap content-start gap-3 shrink-0 overflow-hidden" style={{ height: inch(B.chips) }}>
         {NEEDS.map((n) => (
           <span key={n.id} className="border-2 border-black rounded-full px-4 py-1.5 text-base font-semibold">
             {tCheckin(`need.${n.id}`)}
           </span>
         ))}
       </div>
-      <p className="font-bold text-base">{tSchool(schoolKey('feelings_checkin', 'picture'))}</p>
-      <DrawBox className="flex-1" style={{ minHeight: '0.8in' }} />
-      <div className="flex gap-4">
+      <div className="flex flex-col flex-1" style={{ minHeight: inch(B.pictureLabel + B.pictureMin) }}>
+        <Label>{tSchool(schoolKey('feelings_checkin', 'picture'))}</Label>
+        <DrawBox className="flex-1" />
+      </div>
+      <div className="flex gap-4 shrink-0" style={{ height: inch(B.whyRow) }}>
         {['why', 'what_helps'].map((id) => (
           <div key={id} className="flex-1 min-w-0">
-            <p className="font-bold text-sm leading-tight">{label(id)}</p>
+            <Label>{label(id)}</Label>
             <WriteLines count={2} />
           </div>
         ))}
@@ -218,7 +232,7 @@ function FeelingsCheckinBody({ t, tSchool, tCheckin }) {
 }
 
 // A big idea in the middle, six bubbles around it, joined by spokes. Laid
-// out in a fixed 7.5 x 6in box (well inside the body's 7.2in budget).
+// out in a fixed box BESPOKE_IN.word_web.web tall.
 const WEB_IDEAS = ['idea_one', 'idea_two', 'idea_three', 'idea_four', 'idea_five', 'idea_six']
 // Bubble centres in percent of the box, clockwise from top-left.
 const WEB_SPOTS = [[18, 16], [50, 11], [82, 16], [82, 84], [50, 89], [18, 84]]
@@ -226,7 +240,7 @@ const WEB_SPOTS = [[18, 16], [50, 11], [82, 16], [82, 84], [50, 89], [18, 84]]
 function WordWebBody({ tSchool }) {
   const label = labelFor(tSchool, 'word_web', null)
   return (
-    <div className="relative w-full" style={{ height: '6in' }}>
+    <div className="relative w-full" style={{ height: inch(BESPOKE_IN.word_web.web) }}>
       <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
         {WEB_SPOTS.map(([x, y], i) => (
           <line key={i} x1="50" y1="50" x2={x} y2={y} stroke="black" strokeWidth="1.5" vectorEffect="non-scaling-stroke" />

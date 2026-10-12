@@ -59,11 +59,9 @@ function MicButton({ boxId, dictation }) {
  * Props: `assignment` (from GET /api/school/assignments, with worksheet),
  * `userId` (the signed-in child, for the device draft), `books` (their
  * shelf, for "add to one of my books"), `onClose`, `onHandedIn()` (reload
- * the list), `onMakePages({ texts, bookId|null })`. `teacherTheme`: the
- * teacher area's contrast scope (teacher-ui) — only from a teacher call
- * site; a child's view never sets it.
+ * the list), `onMakePages({ texts, bookId|null })`.
  */
-export default function WorksheetFill({ assignment, userId, books = [], onClose, onHandedIn, onMakePages, teacherTheme = false }) {
+export default function WorksheetFill({ assignment, userId, books = [], onClose, onHandedIn, onMakePages }) {
   const { t, i18n } = useTranslation()
   const panelRef = useRef(null)
   const worksheet = assignment.worksheet
@@ -231,7 +229,7 @@ export default function WorksheetFill({ assignment, userId, books = [], onClose,
       role="dialog"
       aria-modal="true"
       aria-label={assignment.title}
-      className={`fixed inset-0 z-[70] overflow-y-auto bg-galaxy-bg focus:outline-none ${teacherTheme ? 'teacher-ui' : ''}`}
+      className="fixed inset-0 z-[70] overflow-y-auto bg-galaxy-bg focus:outline-none"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
     >
@@ -239,7 +237,7 @@ export default function WorksheetFill({ assignment, userId, books = [], onClose,
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="text-xs font-body font-semibold text-galaxy-secondary uppercase tracking-wide">
-              {t(`school:worksheet.templates.${worksheet.templateId}.title`)}
+              {t(`school:worksheet.templates.${worksheet.templateId}.title`, { defaultValue: t('school:worksheet.teacher.chip') })}
             </p>
             <h2 className="font-heading text-2xl font-bold text-galaxy-text break-words">{assignment.title}</h2>
             {assignment.prompt?.trim() && (

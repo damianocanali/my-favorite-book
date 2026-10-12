@@ -1004,9 +1004,9 @@
       "describing_words": {
         "title": "Parole per descrivere",
         "description": "Scegli una cosa, disegnala e trova cinque parole per descriverla.",
-        "heading": "Le parole per descriverlo",
+        "heading": "Parole per descrivere",
         "keywords": "aggettivi, descrivere, parole, lessico, sensi",
-        "picture": "Disegnalo qui",
+        "picture": "Disegna qui",
         "boxes": {
           "thing": "Che cosa descrivi?",
           "word_one": "Che aspetto ha?",

@@ -8,7 +8,10 @@
 // on top of that, not instead of it.
 import { resolveTemplateId } from '../../../lib/school/worksheets.js'
 
-export const MAX_PROMPT_LENGTH = 200
+// "Today's prompt" prints on at most two lines of the sheet, after the
+// longer (Italian) "Traccia di oggi:" prefix — measured in Chrome with the
+// widest realistic text (tests/worksheets-params.test.js pins the cap).
+export const MAX_PROMPT_LENGTH = 140
 export const MAX_CLASS_NAME_LENGTH = 60
 
 function sanitizeText(raw, maxLength) {

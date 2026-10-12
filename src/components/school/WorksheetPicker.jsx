@@ -79,7 +79,7 @@ export default function WorksheetPicker({ value, onChange, canChangeTemplate = t
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-2">
-        <p className="font-body font-semibold text-galaxy-text text-sm">{t(`school:worksheet.templates.${value.templateId}.title`)}</p>
+        <p className="font-body font-semibold text-galaxy-text text-sm">{t(`school:worksheet.templates.${value.templateId}.title`, { defaultValue: t('school:worksheet.teacher.chip') })}</p>
         {canChangeTemplate && (
           <button
             type="button"

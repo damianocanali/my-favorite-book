@@ -7,6 +7,7 @@ import { useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { X, Printer } from 'lucide-react'
 import { parseNameList, MAX_NAMES } from '../../lib/worksheets/names.js'
+import { MAX_PROMPT_LENGTH } from '../../lib/worksheets/params.js'
 import { enterInertBackground, exitInertBackground } from '../../lib/worksheets/inert.js'
 
 export default function CustomizePanel({ t, template, values, onChange, onPrint, onClose }) {
@@ -74,7 +75,7 @@ export default function CustomizePanel({ t, template, values, onChange, onPrint,
             id="ws-prompt"
             value={values.prompt}
             onChange={(e) => onChange({ prompt: e.target.value })}
-            maxLength={200}
+            maxLength={MAX_PROMPT_LENGTH}
             rows={2}
             className="w-full px-3 py-2.5 glass border border-white/15 rounded-xl text-galaxy-text focus:border-galaxy-primary focus:outline-none font-body resize-none"
           />

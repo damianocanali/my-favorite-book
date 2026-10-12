@@ -94,6 +94,21 @@ describe('the /worksheets page and its full-size preview', () => {
     expect(page).toContain('parseWorksheetParams(searchParams)')
   })
 
+  it('a card opens the preview through its title button stretched over the card; no block content inside a button', () => {
+    const card = page.slice(page.indexOf('const card = (template) => ('), page.indexOf('  return (\n    <div className="max-w-5xl'))
+    expect(card).toContain("after:absolute after:inset-0")
+    expect(card).toMatch(/<h3[^>]*>\s*<button/)
+    // The thumbnail sits outside every button; actions above the overlay.
+    const btns = [...card.matchAll(/<button[\s\S]*?<\/button>/g)].map((m) => m[0])
+    for (const b of btns) expect(b).not.toMatch(/<(div|p|h\d|section|CardThumbnail)\b/)
+    expect(card).toContain('relative z-10 flex items-center')
+  })
+
+  it('stepping to the end hands focus to the other nav button, never <body>', () => {
+    expect(preview).toContain('(next ? nextRef.current : panelRef.current)?.focus()')
+    expect(preview).toContain('(prev ? prevRef.current : panelRef.current)?.focus()')
+  })
+
   it('thumbnails render lazily (33 live sheets)', () => {
     expect(page).toContain('<WorksheetThumbnail lazy')
     expect(thumb).toContain('new IntersectionObserver(')

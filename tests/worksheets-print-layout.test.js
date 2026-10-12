@@ -14,6 +14,7 @@ import itLocale from '../src/i18n/locales/it/index.js'
 import { WORKSHEET_TEMPLATES, boxIds } from '../lib/school/worksheets.js'
 import {
   printLayout, layoutBoxIds, BODY_BUDGET_IN, SHEET_IN, CHROME_IN, LABEL_IN, LINE_IN,
+  BESPOKE_IN, bespokeHeight, labelCharLimit, labelsFit,
 } from '../src/lib/worksheets/printLayout.js'
 import WorksheetSheet, { SHEET_BODIES } from '../src/components/worksheets/sheets.jsx'
 
@@ -43,6 +44,31 @@ describe('printLayout: every sheet fits one Letter page', () => {
       if (t.print?.body) expect(SHEET_BODIES[t.print.body], t.id).toBeTruthy()
     })
   }
+
+  // The four hand-made bodies aren't laid out from boxes, but they draw every
+  // block at a BESPOKE_IN height too (only a drawing box grows), so their
+  // minimum height is a sum checked against the same budget.
+  for (const name of ['sentence_starters', 'book_report', 'feelings_checkin', 'word_web']) {
+    it(`hand-made ${name}: fits (${bespokeHeight(name)}in of ${BODY_BUDGET_IN}in)`, () => {
+      expect(WORKSHEET_TEMPLATES.find((t) => t.print?.body === name), name).toBeTruthy()
+      expect(BESPOKE_IN[name]).toBeTruthy()
+      expect(bespokeHeight(name)).toBeLessThanOrEqual(BODY_BUDGET_IN)
+    })
+  }
+
+  it('every hand-made body the catalogue names has a budget', () => {
+    for (const t of WORKSHEET_TEMPLATES) if (t.print?.body) expect(bespokeHeight(t.print.body), t.id).not.toBeNull()
+  })
+
+  it('every default prompt (EN and IT) fits its two-line label, so the library sheets never clip one', () => {
+    for (const lang of ['en', 'it']) {
+      const school = (lang === 'en' ? en : itLocale).school.worksheet.templates
+      for (const t of WORKSHEET_TEMPLATES) {
+        expect(labelsFit(t.id, school[t.id].boxes), `${lang}:${t.id}`).toBe(true)
+      }
+    }
+    expect([labelCharLimit(1), labelCharLimit(2), labelCharLimit(3)]).toEqual([156, 76, 48])
+  })
 
   it('unknown templates have no layout', () => {
     expect(printLayout('nope')).toBeNull()

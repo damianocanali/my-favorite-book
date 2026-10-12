@@ -169,26 +169,30 @@ export default function WorksheetsPage() {
   const [previewId, setPreviewId] = useState(null)
   const previewTemplate = previewId ? getWorksheetTemplate(previewId) : null
 
+  // A card: the thumbnail, title, description and grade, with the title's
+  // button stretched over the whole card (::after overlay) so a click
+  // anywhere opens the preview — no block content inside a <button>. Print
+  // and Customize sit above the overlay.
   const card = (template) => (
-    <div key={template.id} className="glass rounded-2xl p-2.5 sm:p-4 border border-galaxy-text-muted/10 flex flex-col gap-2.5 min-w-0">
-      <button
-        type="button"
-        onClick={() => setPreviewId(template.id)}
-        className="group text-left flex flex-col gap-2.5 min-w-0 rounded-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-galaxy-secondary"
-        aria-label={`${t('school:worksheet.library.view')}: ${t(schoolKey(template.id, 'title'))}`}
-      >
-        <CardThumbnail templateId={template.id} sheetProps={{ t, tSchool: tSchoolSite, tCheckin: tCheckinSite, tGames: tGamesSite }} />
-        <span className="block min-w-0">
-          <span className="block font-heading font-bold text-galaxy-text group-hover:text-galaxy-secondary transition-colors break-words">
+    <div key={template.id} className="group relative glass rounded-2xl p-2.5 sm:p-4 border border-galaxy-text-muted/10 flex flex-col gap-2.5 min-w-0">
+      <CardThumbnail templateId={template.id} sheetProps={{ t, tSchool: tSchoolSite, tCheckin: tCheckinSite, tGames: tGamesSite }} />
+      <div className="min-w-0">
+        <h3 className="font-heading font-bold text-galaxy-text group-hover:text-galaxy-secondary transition-colors break-words">
+          <button
+            type="button"
+            onClick={() => setPreviewId(template.id)}
+            aria-label={`${t('school:worksheet.library.view')}: ${t(schoolKey(template.id, 'title'))}`}
+            className="text-left after:absolute after:inset-0 after:rounded-2xl after:content-[''] focus:outline-none focus-visible:after:outline focus-visible:after:outline-2 focus-visible:after:outline-galaxy-secondary"
+          >
             {t(schoolKey(template.id, 'title'))}
-          </span>
-          <span className="block text-xs text-galaxy-text-muted font-body mt-0.5 line-clamp-3">{t(schoolKey(template.id, 'description'))}</span>
-          <span className="inline-block mt-2 px-2 py-0.5 rounded-full text-[10px] font-body font-semibold border border-galaxy-secondary/30 text-galaxy-secondary">
-            {t(`school:worksheet.grades.${template.gradeBand}`)}
-          </span>
+          </button>
+        </h3>
+        <p className="text-xs text-galaxy-text-muted font-body mt-0.5 line-clamp-3">{t(schoolKey(template.id, 'description'))}</p>
+        <span className="inline-block mt-2 px-2 py-0.5 rounded-full text-[10px] font-body font-semibold border border-galaxy-secondary/30 text-galaxy-secondary">
+          {t(`school:worksheet.grades.${template.gradeBand}`)}
         </span>
-      </button>
-      <div className="flex items-center gap-1.5 mt-auto pt-1">
+      </div>
+      <div className="relative z-10 flex items-center gap-1.5 mt-auto pt-1">
         <button
           type="button"
           onClick={() => quickPrint(template.id)}

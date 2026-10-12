@@ -15,6 +15,7 @@ import { enterWorksheetsPrintMode, exitWorksheetsPrintMode } from '../school/pri
 import { fillLayout, BOX_LINES } from '../school/worksheetUi.js'
 import { GenericSheetBody } from './sheets.jsx'
 import { getTemplate } from '../../../lib/school/worksheets.js'
+import { labelsFit } from '../../lib/worksheets/printLayout.js'
 
 function Lines({ count }) {
   return (
@@ -42,9 +43,11 @@ export function AssignmentWorksheetSheet({ t, tSheet, title, studentName = '', c
       <p className="text-xs text-center text-black/70 mb-2">{t(`school:worksheet.templates.${worksheet.templateId}.title`, { defaultValue: '' })}</p>
       <WorksheetHeader t={tSheet} className={className} teacherName="" studentName={studentName} />
       {/* Blank: the library's one-page layout (drawing boxes and all) with
-          the teacher's prompts as the labels. A template this build doesn't
-          know falls back to the plain list below. */}
-      {!filled && getTemplate(worksheet.templateId) ? (
+          the teacher's prompts as the labels — when every prompt fits its
+          two-line label. A longer prompt (they can be 300 characters), or a
+          template this build doesn't know, prints in the plain list below,
+          where every prompt wraps in full. */}
+      {!filled && getTemplate(worksheet.templateId) && labelsFit(worksheet.templateId, worksheet.prompts ?? {}) ? (
         <div className="worksheet-body flex-1 min-h-0 overflow-hidden">
           <GenericSheetBody templateId={worksheet.templateId} tSchool={t} labels={worksheet.prompts ?? {}} word={worksheet.word || null} />
         </div>
