@@ -215,10 +215,36 @@ describe('bell panel placement (phones)', () => {
     expect(c).toMatch(/(^| )fixed /)
     expect(c).toContain('left-[max(1rem,var(--sal))]')
     expect(c).toContain('right-[max(1rem,var(--sar))]')
-    expect(c).toContain('top-[calc(var(--sat)+4rem)]')
+    expect(c).toContain('top-[calc(var(--sat)+var(--teacher-header-h,3.5rem)+0.5rem)]')
     expect(c).toContain('max-h-[calc(100dvh-')
     expect(c).toContain('sm:absolute')
     expect(c).toContain('sm:w-80')
     expect(c).not.toMatch(/(^| )w-80/)
+  })
+})
+
+describe('teacher-ui contrast CSS does not override interactive states', () => {
+  const css = readFileSync('src/index.css', 'utf8')
+  const teacher = css.slice(css.indexOf('/* ── Teacher area'), css.indexOf('/* Solid action buttons.'))
+  it('every teacher border-color rule is zero-specificity (:where) and the card shorthand is gone', () => {
+    expect(teacher).not.toMatch(/\bborder:\s/)
+    const rules = teacher.match(/[^{}]+\{[^}]*border-color[^}]*\}/g) ?? []
+    expect(rules.length).toBeGreaterThan(0)
+    for (const r of rules) {
+      const selector = r.slice(0, r.indexOf('{'))
+      // strip :where(...) groups; nothing but the .teacher-ui scope may remain
+      let rest = selector, prev
+      do { prev = rest; rest = rest.replace(/:where\((?:[^()]|\([^()]*\))*\)/g, '') } while (rest !== prev)
+      expect(rest.replace(/\/\*[\s\S]*?\*\//g, '').trim()).toBe('.teacher-ui')
+    }
+    expect(teacher).toContain(':where(:not([class*="border-"]))')
+    expect(teacher).toContain(':not([class*="border-red"])')
+  })
+  it('text overrides match exact tokens, not hover:/disabled:/placeholder: variants', () => {
+    expect(teacher).not.toMatch(/\[class\*="text-/)
+    expect(teacher).toContain('[class~="text-white/60"]')
+  })
+  it('keeps a visible focus ring', () => {
+    expect(teacher).toMatch(/:focus-visible\s*\{[^}]*outline:\s*2px solid/)
   })
 })

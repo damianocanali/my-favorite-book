@@ -90,5 +90,5 @@ export function bellActionError(t, action, res) {
 // inside while the panel's header stays put. From `sm` up it is the anchored
 // dropdown it always was.
 export const BELL_PANEL_CLASS =
-  'fixed left-[max(1rem,var(--sal))] right-[max(1rem,var(--sar))] top-[calc(var(--sat)+4rem)] z-50 flex max-h-[calc(100dvh-var(--sat)-5rem)] flex-col overflow-hidden rounded-2xl border border-white/10 bg-galaxy-bg-light shadow-xl shadow-black/50 ' +
+  'fixed left-[max(1rem,var(--sal))] right-[max(1rem,var(--sar))] top-[calc(var(--sat)+var(--teacher-header-h,3.5rem)+0.5rem)] z-50 flex max-h-[calc(100dvh-var(--sat)-var(--teacher-header-h,3.5rem)-1.5rem)] flex-col overflow-hidden rounded-2xl border border-white/10 bg-galaxy-bg-light shadow-xl shadow-black/50 ' +
   'sm:absolute sm:inset-auto sm:right-0 sm:top-full sm:mt-2 sm:block sm:max-h-none sm:w-80 sm:overflow-visible'

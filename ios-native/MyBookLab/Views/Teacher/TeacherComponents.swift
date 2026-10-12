@@ -30,8 +30,13 @@ struct TeacherCard<Content: View>: View {
         content()
             .padding(16)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(TeacherTheme.cardFill, in: RoundedRectangle(cornerRadius: 18))
-            .background(tint == .white ? Color.clear : tint.opacity(0.12), in: RoundedRectangle(cornerRadius: 18))
+            .background {
+                // Opaque base with the tint washed ON TOP of it, so a tinted card still shows its colour.
+                ZStack {
+                    RoundedRectangle(cornerRadius: 18).fill(TeacherTheme.cardFill)
+                    if tint != .white { RoundedRectangle(cornerRadius: 18).fill(tint.opacity(0.14)) }
+                }
+            }
             .overlay(RoundedRectangle(cornerRadius: 18).strokeBorder(TeacherTheme.cardStroke))
     }
 }
