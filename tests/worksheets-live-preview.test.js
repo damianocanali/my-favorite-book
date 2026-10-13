@@ -103,3 +103,62 @@ describe('Customize: the live sheet', () => {
     expect(tr.tSchool('school:worksheet.templates.acrostic.heading')).toBe(itCat.school.worksheet.templates.acrostic.heading)
   })
 })
+
+describe('assign form: the live preview', async () => {
+  const { default: AssignPreview, previewWorksheet } = await import('../src/components/school/AssignPreview.jsx')
+  const draft = (prompts, extra = {}) => ({ templateId: 'beginning_middle_end', prompts, word: '', ...extra })
+  const base = { beginning: 'How does it start?', middle: 'What happens next?', end: 'How does it end?' }
+  const screen = (props) => plain(renderToStaticMarkup(createElement(AssignPreview, { title: 'Our story', prompt: 'Use full sentences.', ...props })))
+  const paper = (props) => plain(renderToStaticMarkup(createElement(AssignPreview, { title: 'Our story', prompt: '', initialMode: 'paper', width: 400, ...props })))
+
+  it('on screen: the child\'s own boxes, and editing a box prompt updates the text', () => {
+    const before = screen({ worksheet: draft(base) })
+    expect(before).toContain('data-testid="assign-preview-screen"')
+    expect(before).toContain('inert=""')
+    expect(before).toContain('Our story')
+    expect(before).toContain('Use full sentences.')
+    expect(before).toContain('What happens next?')
+    const after = screen({ worksheet: draft({ ...base, middle: 'Then the dragon sneezed. What next?' }) })
+    expect(after).toContain('Then the dragon sneezed. What next?')
+    expect(after).not.toContain('What happens next?')
+    // Read-only preview: no word help, no read-aloud / dictation buttons.
+    expect(after).toContain('readOnly=""')
+    expect(after).not.toMatch(RAW_KEY)
+  })
+
+  it('printed: the printable blank, with the edited prompts; a long prompt wraps in full', () => {
+    const html = paper({ worksheet: draft({ ...base, end: 'How does the dragon feel at the end?' }) })
+    expect(html).toContain('data-testid="assignment-sheet"')
+    expect(html).toContain('How does the dragon feel at the end?')
+    expect(html).toContain('data-box="end"') // the library's one-page layout
+    const long = 'Tell me about the ending of your story in lots of detail, including who was there, what they said, how they felt about it, and what you would change if you could write it again tomorrow'
+    const wrapped = paper({ worksheet: draft({ ...base, end: long }) })
+    expect(wrapped).toContain(long)
+    expect(wrapped).not.toContain('data-box="end"') // the full-wrap list
+  })
+
+  it('the acrostic word shows as the child will get it (cleaned like the API)', () => {
+    const ws = { templateId: 'acrostic', prompts: { word: 'The word', lines: 'A line per letter' }, word: ' sun ' }
+    expect(previewWorksheet(ws).word).toBe('SUN')
+    const html = screen({ worksheet: ws })
+    expect(html).toContain('>SUN<')
+    expect(html).toMatch(/>S<[\s\S]*>U<[\s\S]*>N</)
+    expect(previewWorksheet({ ...ws, word: '' }).word).toBe(null)
+  })
+
+  it('sits in the form: beside the fields on lg, Edit | Preview below', () => {
+    const form = readFileSync('src/components/school/AssignmentForm.jsx', 'utf8')
+    expect(form).toContain('<AssignPreview worksheet={worksheet} title={title} prompt={prompt} />')
+    expect(form).toContain("showPreview ? 'lg:max-w-6xl' : ''")
+    expect(form).toContain('lg:grid lg:grid-cols-2')
+    expect(form).toMatch(/className="lg:hidden flex gap-1/)
+  })
+})
+
+describe('student-facing views stay out of the teacher scope', () => {
+  it('the child\'s fill-in view and its shared boxes never carry teacher-ui', () => {
+    for (const f of ['src/components/school/WorksheetFill.jsx', 'src/components/school/WorksheetFillBody.jsx']) {
+      expect(readFileSync(f, 'utf8'), f).not.toContain('teacher-ui')
+    }
+  })
+})

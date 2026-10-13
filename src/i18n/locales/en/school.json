@@ -1342,7 +1342,13 @@
       "print_filled": "Print",
       "answers_heading": "Answers",
       "no_answer": "(empty)",
-      "acrostic_word_locked": "Locked after publishing: children may already be writing to this word."
+      "acrostic_word_locked": "Locked after publishing: children may already be writing to this word.",
+      "preview_edit": "Edit",
+      "preview_tab": "Preview",
+      "preview_heading": "What the class will see",
+      "preview_hint": "Updates as you type.",
+      "preview_screen": "On screen",
+      "preview_paper": "Printed"
     },
     "student": {
       "start": "Start worksheet",
