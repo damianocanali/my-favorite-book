@@ -11,7 +11,7 @@ import SignInCards from '../components/school/SignInCards'
 import StudentBooks from '../components/school/StudentBooks'
 import StudentAvatarEditor from '../components/school/StudentAvatarEditor'
 import AssignmentsSection from '../components/school/AssignmentsSection'
-import { assignIntent } from '../components/school/assignIntent.js'
+import { assignIntent, assignTemplate } from '../components/school/assignIntent.js'
 import AssignmentReview from '../components/school/AssignmentReview'
 import ClassDeviceCard from '../components/school/ClassDeviceCard'
 import WritingYearSection from '../components/school/WritingYearSection'
@@ -352,9 +352,11 @@ export default function TeacherClassPage() {
         // the New assignment form on "A worksheet"; the param is dropped
         // once consumed so a refresh doesn't reopen it.
         startAssign={assignIntent(searchParams)}
+        startTemplate={assignTemplate(searchParams)}
         onStartAssignConsumed={() => {
           const next = new URLSearchParams(searchParams)
           next.delete('assign')
+          next.delete('template')
           setSearchParams(next, { replace: true })
         }}
       />

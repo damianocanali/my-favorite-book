@@ -10,6 +10,7 @@ import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'node:fs'
 import {
   WORKSHEET_TEMPLATES, PROMPT_TEXT_MAX, ANSWER_MAX, ACROSTIC_WORD_MAX, PAGE_TEXT_MAX, BOOK_PAGES_MAX,
+  WORKSHEET_CATEGORIES, GRADE_BANDS,
 } from '../lib/school/worksheets.js'
 
 const model = readFileSync('ios-native/MyBookLab/Models/Worksheets.swift', 'utf8')
@@ -22,15 +23,20 @@ const unescape = (s) => s.replace(/\\"/g, '"').replace(/\\\\/g, '\\')
 
 describe('Worksheets.swift ↔ lib', () => {
   it('the same templates, boxes, sizes, page mapping and join, in order', () => {
-    const swift = [...model.matchAll(/WorksheetTemplate\(id: "([a-z_]+)", boxes: \[(.*?)\],\s*pages: \[(.*?)\], join: \.([a-z]+)\)/gs)]
-      .map(([, id, boxes, pages, join]) => ({
+    const swift = [...model.matchAll(/WorksheetTemplate\(id: "([a-z_]+)", category: \.([a-z]+), grade: \.([a-z0-9]+),\s*boxes: \[(.*?)\],\s*pages: \[(.*?)\], join: \.([a-z]+)\)/gs)]
+      .map(([, id, category, gradeBand, boxes, pages, join]) => ({
         id,
+        category,
+        gradeBand,
         boxes: [...boxes.matchAll(/\.init\("([a-z_]+)", \.([a-z]+)(, perLetter: true)?\)/g)]
           .map((m) => ({ id: m[1], size: m[2], ...(m[3] ? { perLetter: true } : {}) })),
         pages: [...pages.matchAll(/\[([^\]]*)\]/g)].map((m) => [...m[1].matchAll(/"([a-z_]+)"/g)].map((x) => x[1])),
         join,
       }))
-    expect(swift).toEqual(WORKSHEET_TEMPLATES.map((t) => ({ id: t.id, boxes: t.boxes, pages: t.pages, join: t.join })))
+    expect(swift).toEqual(WORKSHEET_TEMPLATES.map((t) => ({ id: t.id, category: t.category, gradeBand: t.gradeBand, boxes: t.boxes, pages: t.pages, join: t.join })))
+    // The shelves and grade bands, in lib's order.
+    expect(model).toContain(`case ${WORKSHEET_CATEGORIES.join(', ')}\n`)
+    expect(model).toContain(`enum GradeBand: String, CaseIterable, Sendable { case ${GRADE_BANDS.join(', ')} }`)
   })
 
   it('the same limits', () => {
@@ -47,10 +53,11 @@ describe('Worksheets.swift ↔ lib', () => {
 })
 
 describe('WorksheetCopy ↔ web ↔ catalog', () => {
-  it('a title, a description and a default prompt for every template and box', () => {
+  it('a title, a description, a heading, keywords, a picture label and a default prompt for every template and box', () => {
     for (const t of WORKSHEET_TEMPLATES) {
-      expect(copy).toContain(`case "${t.id}": AppText("school.worksheet.templates.${t.id}.title"`)
-      expect(copy).toContain(`case "${t.id}": AppText("school.worksheet.templates.${t.id}.description"`)
+      for (const field of ['title', 'description', 'heading', 'keywords', ...(t.print?.picture ? ['picture'] : [])]) {
+        expect(copy, `${t.id}.${field}`).toContain(`case "${t.id}": AppText("school.worksheet.templates.${t.id}.${field}"`)
+      }
       for (const b of t.boxes) {
         expect(copy).toContain(`case ("${t.id}", "${b.id}"): AppText("school.worksheet.templates.${t.id}.boxes.${b.id}"`)
       }
@@ -58,7 +65,7 @@ describe('WorksheetCopy ↔ web ↔ catalog', () => {
   })
 
   it('every key it uses is in the catalog: EN = code default = web EN, IT = web IT', () => {
-    const uses = [...copy.matchAll(/AppText\("(school\.worksheet\.[a-z_.]+)", defaultValue: "((?:[^"\\]|\\.)*)"\)/g)]
+    const uses = [...copy.matchAll(/AppText\("(school\.worksheet\.[a-z0-9_.]+)", defaultValue: "((?:[^"\\]|\\.)*)"\)/g)]
     expect(uses.length).toBeGreaterThan(60)
     for (const [, key, def] of uses) {
       const entry = catalog[key]
@@ -152,5 +159,58 @@ describe('the iPad flows treat a worksheet as a worksheet', () => {
     expect(fill).toContain('speaker.toggle(text, language: promptLanguage)')
     expect(fill).toContain('WorksheetDrafts.write(next, userId: userId, assignmentId: assignment.id)')
     expect(fill).toContain('SchoolAssignments.handInWorksheet(\n            assignmentId: assignment.id, answers: WorksheetLayout.answersForSubmit(definition, answers))')
+  })
+})
+
+describe('the iPad worksheet library (round 6B)', () => {
+  const library = readFileSync('ios-native/MyBookLab/Views/Teacher/TeacherWorksheetLibraryView.swift', 'utf8')
+  const picker = readFileSync('ios-native/MyBookLab/Views/Teacher/TeacherWorksheetViews.swift', 'utf8')
+
+  it('the Worksheets tab: search, shelves, grade filter, grouped shelves, teacher cards, iPad-only wide grid', () => {
+    expect(library).toContain('.searchable(text: $query, prompt: Text(WorksheetCopy.librarySearchPlaceholder))')
+    expect(library).toContain('WorksheetLibraryFilters(category: $category, grade: $grade)')
+    expect(library).toContain('ForEach(WorksheetLibrarySearch.grouped(list)) { shelf in')
+    expect(library).toContain('WorksheetLibraryEmpty(')
+    expect(library).toContain('TeacherCard {')
+    expect(library).not.toMatch(/\.white\.opacity\(0\.0[68]\), in: RoundedRectangle/)
+    // As before: one column on an iPhone, as many as fit on an iPad.
+    expect(library).toContain('GridItem(.adaptive(minimum: 200), spacing: 14)')
+    // The preview keeps its pieces separate for VoiceOver, heading first.
+    expect(library).toContain('.accessibilityElement(children: .contain)')
+    expect(library).toMatch(/Text\(WorksheetCopy\.heading\(definition\.templateId\)\)[^\n]*\n[^\n]*\n\s+\.accessibilityAddTraits\(\.isHeader\)/)
+  })
+
+  it('search matches the same fields as the web, ignoring case and accents', () => {
+    expect(library).toContain('.folding(options: [.caseInsensitive, .diacriticInsensitive], locale: nil)')
+    for (const f of ['title', 'description', 'heading', 'category', 'keywords']) expect(library).toContain(`WorksheetCopy.${f}(`)
+    expect(library).toContain('words.allSatisfy { hay.contains($0) }')
+    expect(model).toContain('return grade == .all || grade == filter')
+  })
+
+  it('the preview shows the sheet\'s heading, drawing box and every box; Assign and Print from it', () => {
+    expect(library).toContain('WorksheetSheetPreview(definition: definition)')
+    expect(library).toContain('Text(WorksheetCopy.heading(definition.templateId))')
+    expect(library).toContain('if let picture {')
+    expect(library).toContain('TeacherAssignmentForm(classId: c.id, existing: nil, presetTemplateId: templateId)')
+    expect(library).toContain('WorksheetPDF.make(title: title, worksheet: definition,')
+  })
+
+  it('the assignment form\'s picker has the same search and filters, on teacher cards', () => {
+    expect(picker).toContain('WorksheetLibraryFilters(category: $category, grade: $grade)')
+    expect(picker).toContain('WorksheetLibrarySearch.filter(query: query, category: category, grade: grade)')
+    expect(picker).toContain('TeacherCard {')
+  })
+
+  it('editing an assignment whose template this build doesn\'t know edits its own prompts (web too)', () => {
+    expect(picker).toContain('if let def = worksheet, def.template != nil || !def.prompts.isEmpty {')
+    expect(picker).toContain('def.template?.boxIds ?? def.prompts.keys.sorted()')
+    const form = readFileSync('ios-native/MyBookLab/Views/Teacher/TeacherClassesView.swift', 'utf8')
+    expect(form).toContain('let ids = TeacherWorksheetPicker.boxIds(def)')
+  })
+
+  it('a child\'s fill-in handles every template, and one this build doesn\'t know', () => {
+    expect(model).toContain('return def.prompts.keys.sorted().map { .box(id: $0, prompt: def.prompts[$0] ?? "", size: .medium) }')
+    const fill = readFileSync('ios-native/MyBookLab/Views/WorksheetFillView.swift', 'utf8')
+    expect(fill).toContain('WorksheetLayout.items(definition, childWord: answers?["word"])')
   })
 })

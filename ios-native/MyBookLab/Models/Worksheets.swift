@@ -9,6 +9,12 @@ import Foundation
 struct WorksheetTemplate: Hashable, Sendable {
     enum Size: String, Sendable { case small, medium, large }
     enum Join: Sendable { case lines, paragraph }
+    /// The library's shelves, in display order (lib WORKSHEET_CATEGORIES).
+    enum Category: String, CaseIterable, Sendable {
+        case plan, characters, words, poems, opinions, reading, facts, me
+    }
+    /// Grades K-2, grades 3-5, or any grade (lib GRADE_BANDS).
+    enum GradeBand: String, CaseIterable, Sendable { case k2, g35, all }
 
     struct Box: Hashable, Sendable {
         let id: String
@@ -21,12 +27,21 @@ struct WorksheetTemplate: Hashable, Sendable {
     }
 
     let id: String
+    let category: Category
+    let grade: GradeBand
     let boxes: [Box]
     /// Which boxes become which book page in "Turn into book pages".
     let pages: [[String]]
     let join: Join
 
     var boxIds: [String] { boxes.map(\.id) }
+
+    /// Shown under a grade filter: an any-grade sheet is under both
+    /// (lib matchesGrade). nil = every grade.
+    func matches(grade filter: GradeBand?) -> Bool {
+        guard let filter, filter != .all else { return true }
+        return grade == .all || grade == filter
+    }
 }
 
 enum WorksheetTemplates {
@@ -38,26 +53,109 @@ enum WorksheetTemplates {
     static let pageTextMax = 500
     static let bookPagesMax = 24
 
-    // Same order and contents as WORKSHEET_TEMPLATES in lib/school/worksheets.js.
+    // Same order and contents as WORKSHEET_TEMPLATES in lib/school/worksheets.js
+    // (33 sheets in eight categories). The first nine of lib's history
+    // (story_map … my_week) are live data: their ids and box ids never change.
     static let all: [WorksheetTemplate] = [
-        WorksheetTemplate(id: "story_map", boxes: [.init("characters", .medium), .init("setting", .medium), .init("problem", .medium), .init("events", .large), .init("ending", .medium)],
+        WorksheetTemplate(id: "story_map", category: .plan, grade: .all,
+                          boxes: [.init("characters", .medium), .init("setting", .medium), .init("problem", .medium), .init("events", .large), .init("ending", .medium)],
                           pages: [["characters", "setting"], ["problem", "events"], ["ending"]], join: .lines),
-        WorksheetTemplate(id: "character_profile", boxes: [.init("name", .small), .init("looks_like", .medium), .init("likes", .medium), .init("wants", .medium), .init("afraid_of", .medium)],
-                          pages: [["name", "looks_like"], ["likes", "wants"], ["afraid_of"]], join: .lines),
-        WorksheetTemplate(id: "beginning_middle_end", boxes: [.init("beginning", .large), .init("middle", .large), .init("end", .large)],
+        WorksheetTemplate(id: "beginning_middle_end", category: .plan, grade: .k2,
+                          boxes: [.init("beginning", .large), .init("middle", .large), .init("end", .large)],
                           pages: [["beginning"], ["middle"], ["end"]], join: .lines),
-        WorksheetTemplate(id: "five_senses", boxes: [.init("place", .small), .init("see", .medium), .init("hear", .medium), .init("smell", .medium), .init("touch", .medium), .init("taste", .medium)],
-                          pages: [["place", "see", "hear"], ["smell", "touch", "taste"]], join: .lines),
-        WorksheetTemplate(id: "letter", boxes: [.init("greeting", .small), .init("opening", .medium), .init("body", .large), .init("closing", .medium), .init("signature", .small)],
-                          pages: [["greeting", "opening", "body", "closing", "signature"]], join: .lines),
-        WorksheetTemplate(id: "opinion", boxes: [.init("opinion", .medium), .init("reason", .medium), .init("example", .medium), .init("conclusion", .medium)],
-                          pages: [["opinion", "reason", "example", "conclusion"]], join: .paragraph),
-        WorksheetTemplate(id: "acrostic", boxes: [.init("word", .small), .init("lines", .large, perLetter: true)],
-                          pages: [["lines"]], join: .lines),
-        WorksheetTemplate(id: "sequence", boxes: [.init("first", .medium), .init("next", .medium), .init("then", .medium), .init("last", .medium)],
+        WorksheetTemplate(id: "sequence", category: .plan, grade: .k2,
+                          boxes: [.init("first", .medium), .init("next", .medium), .init("then", .medium), .init("last", .medium)],
                           pages: [["first"], ["next"], ["then"], ["last"]], join: .lines),
-        WorksheetTemplate(id: "my_week", boxes: [.init("best", .medium), .init("learned", .medium), .init("tricky", .medium), .init("felt_good", .medium), .init("next_week", .medium)],
+        WorksheetTemplate(id: "storyboard", category: .plan, grade: .all,
+                          boxes: [.init("panel_one", .medium), .init("panel_two", .medium), .init("panel_three", .medium), .init("panel_four", .medium), .init("panel_five", .medium), .init("panel_six", .medium)],
+                          pages: [["panel_one", "panel_two"], ["panel_three", "panel_four"], ["panel_five", "panel_six"]], join: .lines),
+        WorksheetTemplate(id: "problem_solution", category: .plan, grade: .k2,
+                          boxes: [.init("problem", .medium), .init("tries", .large), .init("solution", .medium)],
+                          pages: [["problem"], ["tries"], ["solution"]], join: .lines),
+        WorksheetTemplate(id: "story_mountain", category: .plan, grade: .g35,
+                          boxes: [.init("beginning", .medium), .init("build_up", .medium), .init("big_moment", .medium), .init("wind_down", .medium), .init("ending", .medium)],
+                          pages: [["beginning", "build_up"], ["big_moment"], ["wind_down", "ending"]], join: .lines),
+        WorksheetTemplate(id: "character_profile", category: .characters, grade: .k2,
+                          boxes: [.init("name", .small), .init("looks_like", .medium), .init("likes", .medium), .init("wants", .medium), .init("afraid_of", .medium)],
+                          pages: [["name", "looks_like"], ["likes", "wants"], ["afraid_of"]], join: .lines),
+        WorksheetTemplate(id: "setting_sketch", category: .characters, grade: .k2,
+                          boxes: [.init("place", .small), .init("when", .small), .init("looks_like", .medium), .init("sounds_smells", .medium)],
+                          pages: [["place", "when", "looks_like", "sounds_smells"]], join: .lines),
+        WorksheetTemplate(id: "five_senses", category: .characters, grade: .all,
+                          boxes: [.init("place", .small), .init("see", .medium), .init("hear", .medium), .init("smell", .medium), .init("touch", .medium), .init("taste", .medium)],
+                          pages: [["place", "see", "hear"], ["smell", "touch", "taste"]], join: .lines),
+        WorksheetTemplate(id: "character_change", category: .characters, grade: .g35,
+                          boxes: [.init("character", .small), .init("at_start", .medium), .init("what_happened", .medium), .init("at_end", .medium)],
+                          pages: [["character", "at_start"], ["what_happened"], ["at_end"]], join: .lines),
+        WorksheetTemplate(id: "sentence_starters", category: .words, grade: .k2,
+                          boxes: [.init("sentence_one", .medium), .init("sentence_two", .medium), .init("sentence_three", .medium), .init("sentence_four", .medium)],
+                          pages: [["sentence_one", "sentence_two", "sentence_three", "sentence_four"]], join: .paragraph),
+        WorksheetTemplate(id: "describing_words", category: .words, grade: .k2,
+                          boxes: [.init("thing", .small), .init("word_one", .small), .init("word_two", .small), .init("word_three", .small), .init("word_four", .small), .init("word_five", .small)],
+                          pages: [["thing", "word_one", "word_two", "word_three", "word_four", "word_five"]], join: .lines),
+        WorksheetTemplate(id: "word_web", category: .words, grade: .all,
+                          boxes: [.init("center", .small), .init("idea_one", .small), .init("idea_two", .small), .init("idea_three", .small), .init("idea_four", .small), .init("idea_five", .small), .init("idea_six", .small)],
+                          pages: [["center", "idea_one", "idea_two", "idea_three", "idea_four", "idea_five", "idea_six"]], join: .lines),
+        WorksheetTemplate(id: "stretch_sentence", category: .words, grade: .k2,
+                          boxes: [.init("who", .small), .init("did_what", .small), .init("where", .small), .init("when", .small), .init("why", .small), .init("my_sentence", .large)],
+                          pages: [["my_sentence"]], join: .lines),
+        WorksheetTemplate(id: "dialogue", category: .words, grade: .g35,
+                          boxes: [.init("character_a", .small), .init("character_b", .small), .init("conversation", .large)],
+                          pages: [["conversation"]], join: .lines),
+        WorksheetTemplate(id: "acrostic", category: .poems, grade: .all,
+                          boxes: [.init("word", .small), .init("lines", .large, perLetter: true)],
+                          pages: [["lines"]], join: .lines),
+        WorksheetTemplate(id: "haiku", category: .poems, grade: .g35,
+                          boxes: [.init("line_one", .small), .init("line_two", .small), .init("line_three", .small)],
+                          pages: [["line_one", "line_two", "line_three"]], join: .lines),
+        WorksheetTemplate(id: "i_am_poem", category: .poems, grade: .all,
+                          boxes: [.init("i_am", .small), .init("i_wonder", .small), .init("i_hear", .small), .init("i_see", .small), .init("i_want", .small), .init("i_am_again", .small)],
+                          pages: [["i_am", "i_wonder", "i_hear", "i_see", "i_want", "i_am_again"]], join: .lines),
+        WorksheetTemplate(id: "cinquain", category: .poems, grade: .g35,
+                          boxes: [.init("noun", .small), .init("two_describing", .small), .init("three_doing", .small), .init("feeling_phrase", .small), .init("another_name", .small)],
+                          pages: [["noun", "two_describing", "three_doing", "feeling_phrase", "another_name"]], join: .lines),
+        WorksheetTemplate(id: "opinion", category: .opinions, grade: .g35,
+                          boxes: [.init("opinion", .medium), .init("reason", .medium), .init("example", .medium), .init("conclusion", .medium)],
+                          pages: [["opinion", "reason", "example", "conclusion"]], join: .paragraph),
+        WorksheetTemplate(id: "letter", category: .opinions, grade: .all,
+                          boxes: [.init("greeting", .small), .init("opening", .medium), .init("body", .large), .init("closing", .medium), .init("signature", .small)],
+                          pages: [["greeting", "opening", "body", "closing", "signature"]], join: .lines),
+        WorksheetTemplate(id: "thank_you", category: .opinions, grade: .k2,
+                          boxes: [.init("to", .small), .init("thank_you_for", .medium), .init("because", .medium), .init("from", .small)],
+                          pages: [["to", "thank_you_for", "because", "from"]], join: .lines),
+        WorksheetTemplate(id: "persuade", category: .opinions, grade: .g35,
+                          boxes: [.init("should", .medium), .init("reason_one", .medium), .init("reason_two", .medium), .init("reason_three", .medium), .init("so", .medium)],
+                          pages: [["should", "reason_one", "reason_two", "reason_three", "so"]], join: .paragraph),
+        WorksheetTemplate(id: "book_report", category: .reading, grade: .all,
+                          boxes: [.init("title", .small), .init("author", .small), .init("about", .medium), .init("favorite", .medium), .init("would_recommend", .medium)],
+                          pages: [["title", "author", "about"], ["favorite", "would_recommend"]], join: .lines),
+        WorksheetTemplate(id: "favorite_part", category: .reading, grade: .k2,
+                          boxes: [.init("title", .small), .init("part", .medium), .init("why", .medium)],
+                          pages: [["title", "part", "why"]], join: .lines),
+        WorksheetTemplate(id: "predict", category: .reading, grade: .all,
+                          boxes: [.init("title", .small), .init("clues", .medium), .init("prediction", .medium), .init("what_happened", .medium)],
+                          pages: [["clues", "prediction"], ["what_happened"]], join: .lines),
+        WorksheetTemplate(id: "compare_books", category: .reading, grade: .g35,
+                          boxes: [.init("book_one", .small), .init("book_two", .small), .init("same", .medium), .init("different", .medium)],
+                          pages: [["book_one", "book_two", "same"], ["different"]], join: .lines),
+        WorksheetTemplate(id: "all_about", category: .facts, grade: .all,
+                          boxes: [.init("topic", .small), .init("fact_one", .medium), .init("fact_two", .medium), .init("fact_three", .medium), .init("wow_fact", .medium)],
+                          pages: [["topic", "fact_one"], ["fact_two", "fact_three"], ["wow_fact"]], join: .lines),
+        WorksheetTemplate(id: "how_to", category: .facts, grade: .all,
+                          boxes: [.init("what", .small), .init("need", .medium), .init("step_one", .medium), .init("step_two", .medium), .init("step_three", .medium), .init("step_four", .medium)],
+                          pages: [["what", "need"], ["step_one", "step_two"], ["step_three", "step_four"]], join: .lines),
+        WorksheetTemplate(id: "about_author", category: .me, grade: .k2,
+                          boxes: [.init("my_name", .small), .init("i_like", .medium), .init("i_write_about", .medium), .init("fun_fact", .medium)],
+                          pages: [["my_name", "i_like", "i_write_about", "fun_fact"]], join: .lines),
+        WorksheetTemplate(id: "feelings_checkin", category: .me, grade: .k2,
+                          boxes: [.init("feeling", .small), .init("why", .medium), .init("what_helps", .medium)],
+                          pages: [["feeling", "why", "what_helps"]], join: .lines),
+        WorksheetTemplate(id: "my_week", category: .me, grade: .all,
+                          boxes: [.init("best", .medium), .init("learned", .medium), .init("tricky", .medium), .init("felt_good", .medium), .init("next_week", .medium)],
                           pages: [["best", "learned", "tricky", "felt_good", "next_week"]], join: .lines),
+        WorksheetTemplate(id: "all_about_me", category: .me, grade: .k2,
+                          boxes: [.init("favorites", .medium), .init("good_at", .medium), .init("learning", .medium), .init("dream", .medium)],
+                          pages: [["favorites", "good_at"], ["learning", "dream"]], join: .lines),
     ]
 
     static func find(_ id: String?) -> WorksheetTemplate? {
@@ -129,7 +227,12 @@ enum WorksheetItem: Identifiable, Hashable {
 
 enum WorksheetLayout {
     static func items(_ def: WorksheetDefinition, childWord: String? = nil) -> [WorksheetItem] {
-        guard let template = def.template else { return [] }
+        // A template this build doesn't know (added after it shipped): a
+        // plain box per prompt the assignment carries, so the child can still
+        // answer — the server knows the template and checks the box ids.
+        guard let template = def.template else {
+            return def.prompts.keys.sorted().map { .box(id: $0, prompt: def.prompts[$0] ?? "", size: .medium) }
+        }
         let effective = def.word ?? WorksheetTemplates.cleanAcrosticWord(childWord)
         return template.boxes.map { b in
             let prompt = def.prompts[b.id] ?? ""

@@ -6,9 +6,12 @@
 // components that render these values do so as plain text (no
 // dangerouslySetInnerHTML anywhere in this tree); this is defense in depth
 // on top of that, not instead of it.
-import { getWorksheetTemplate } from './templates.js'
+import { resolveTemplateId } from '../../../lib/school/worksheets.js'
 
-export const MAX_PROMPT_LENGTH = 200
+// "Today's prompt" prints on at most two lines of the sheet, after the
+// longer (Italian) "Traccia di oggi:" prefix — measured in Chrome with the
+// widest realistic text (tests/worksheets-params.test.js pins the cap).
+export const MAX_PROMPT_LENGTH = 140
 export const MAX_CLASS_NAME_LENGTH = 60
 
 function sanitizeText(raw, maxLength) {
@@ -23,11 +26,12 @@ function sanitizeText(raw, maxLength) {
 /**
  * @param {URLSearchParams} searchParams
  * @returns {{ template: string|null, prompt: string, className: string }}
+ * `template` is the real template id: an old printable alias
+ * (?template=story-map) comes back as the sheet it became.
  */
 export function parseWorksheetParams(searchParams) {
-  const templateId = searchParams.get('template')
   return {
-    template: getWorksheetTemplate(templateId) ? templateId : null,
+    template: resolveTemplateId(searchParams.get('template')),
     prompt: sanitizeText(searchParams.get('prompt'), MAX_PROMPT_LENGTH),
     className: sanitizeText(searchParams.get('class'), MAX_CLASS_NAME_LENGTH),
   }

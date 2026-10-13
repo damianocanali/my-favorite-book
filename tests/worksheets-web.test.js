@@ -150,7 +150,9 @@ describe('print: the assignment sheet renders blank and filled', () => {
     expect(html).toContain('Ann')
     expect(html).toContain('worksheet-sheet')
     expect(html).not.toContain('worksheet-sheet-flow')
-    expect((html.match(/border-b border-black h-4/g) ?? []).length).toBeGreaterThanOrEqual(4)
+    expect((html.match(/data-line=""/g) ?? []).length).toBeGreaterThanOrEqual(4)
+    // The library's one-page layout, with the drawing panels on paper.
+    expect(html).toContain('data-layout-height')
   })
 
   it('filled: the child\'s answers in place of the lines, and the sheet grows to fit', () => {
@@ -164,6 +166,26 @@ describe('print: the assignment sheet renders blank and filled', () => {
     expect(html).toContain('SUN')
     expect(html).toContain('Sunny')
     expect(html).toMatch(/>S<\/span>[\s\S]*>U<\/span>[\s\S]*>N<\/span>/)
+  })
+
+  it('a template this build doesn\'t know still prints and fills in: a box per prompt', () => {
+    const w = { templateId: 'from_the_future', prompts: { one: 'First?', two: 'Second?' } }
+    expect(fillLayout(w).map((b) => [b.type, b.id, b.prompt])).toEqual([['box', 'one', 'First?'], ['box', 'two', 'Second?']])
+    const html = render({ title: 'T', worksheet: w, answers: null })
+    expect(html).toContain('First?')
+    expect(html).toContain('Second?')
+  })
+
+  it('a 300-character teacher prompt prints in full: the full-wrapping list, never a clamped label', () => {
+    const long = `Think about ${'the most important moment in the story and why it changed everything '.repeat(5)}`.slice(0, 300)
+    expect(long).toHaveLength(300)
+    const w = { templateId: 'sequence', prompts: { ...SEQ.prompts, first: long } }
+    const html = render({ title: 'T', worksheet: w, answers: null })
+    expect(html).toContain(long)
+    expect(html).not.toContain('line-clamp')
+    expect(html).not.toContain('data-layout-height')
+    // Short prompts keep the one-page layout.
+    expect(render({ title: 'T', worksheet: SEQ, answers: null })).toContain('data-layout-height')
   })
 
   it('every template prints', () => {

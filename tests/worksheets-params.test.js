@@ -17,8 +17,13 @@ function paramsFrom(query) {
 
 describe('parseWorksheetParams', () => {
   it('parses a well-formed teacher-hook link', () => {
-    const out = parseWorksheetParams(paramsFrom('template=story-map&prompt=Write+about+a+dragon&class=Room+12'))
-    expect(out).toEqual({ template: 'story-map', prompt: 'Write about a dragon', className: 'Room 12' })
+    const out = parseWorksheetParams(paramsFrom('template=haiku&prompt=Write+about+a+dragon&class=Room+12'))
+    expect(out).toEqual({ template: 'haiku', prompt: 'Write about a dragon', className: 'Room 12' })
+  })
+
+  it('an old printable id (a printed QR code, a saved link) resolves to the sheet it became', () => {
+    expect(parseWorksheetParams(paramsFrom('template=story-map')).template).toBe('beginning_middle_end')
+    expect(parseWorksheetParams(paramsFrom('template=book-report')).template).toBe('book_report')
   })
 
   it('drops an unknown template id rather than passing it through', () => {
@@ -39,6 +44,15 @@ describe('parseWorksheetParams', () => {
   it('collapses newlines and tabs into single spaces', () => {
     const out = parseWorksheetParams(paramsFrom('prompt=' + encodeURIComponent('line one\nline two\tend')))
     expect(out.prompt).toBe('line one line two end')
+  })
+
+  it('the prompt cap keeps "Today\'s prompt" to two printed lines, and Customize enforces the same cap', async () => {
+    expect(MAX_PROMPT_LENGTH).toBe(140)
+    const { readFileSync } = await import('node:fs')
+    const panel = readFileSync('src/components/worksheets/CustomizePanel.jsx', 'utf8')
+    expect(panel).toContain('maxLength={MAX_PROMPT_LENGTH}')
+    // No clamp on the sheet: the cap is what keeps it short.
+    expect(readFileSync('src/components/worksheets/sheets.jsx', 'utf8')).not.toMatch(/TodayPrompt[\s\S]{0,400}line-clamp/)
   })
 
   it('caps prompt length', () => {

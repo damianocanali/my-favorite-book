@@ -643,13 +643,14 @@ struct TeacherAssignmentForm: View {
         guard !p.isEmpty || kind == "worksheet" else { error = TeacherCopy.promptRequired; return }
         var ws: WorksheetDefinition?
         if kind == "worksheet" {
-            guard var def = worksheet, let template = def.template else { error = WorksheetCopy.teacherTemplateRequired; return }
-            for id in template.boxIds {
+            guard var def = worksheet, def.template != nil || !def.prompts.isEmpty else { error = WorksheetCopy.teacherTemplateRequired; return }
+            let ids = TeacherWorksheetPicker.boxIds(def)
+            for id in ids {
                 let v = (def.prompts[id] ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
                 guard !v.isEmpty else { error = WorksheetCopy.teacherPromptRequired; return }
                 def.prompts[id] = v
             }
-            def.prompts = def.prompts.filter { template.boxIds.contains($0.key) }
+            def.prompts = def.prompts.filter { ids.contains($0.key) }
             def.word = nil
             if def.isAcrostic, !acrosticWord.trimmingCharacters(in: .whitespaces).isEmpty {
                 guard let w = WorksheetTemplates.cleanAcrosticWord(acrosticWord) else {

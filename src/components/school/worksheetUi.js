@@ -28,7 +28,10 @@ export const BOX_ROWS = { small: 2, medium: 4, large: 7 }
 /// `prompts`: the assignment's (or a hand-in's frozen) prompts by box id.
 export function fillLayout({ templateId, prompts = {}, word = null }, childWord = '') {
   const template = getTemplate(templateId)
-  if (!template) return []
+  // A template this build doesn't know (a newer one, or a stale cached
+  // bundle): a plain box per prompt the assignment carries, so the child can
+  // still answer — the server knows the template and checks the box ids.
+  if (!template) return Object.entries(prompts ?? {}).map(([id, prompt]) => ({ type: 'box', id, prompt: String(prompt ?? ''), size: 'medium' }))
   const effective = word || cleanAcrosticWord(childWord ?? '') || null
   return template.boxes.map((b) => {
     const prompt = prompts[b.id] ?? ''

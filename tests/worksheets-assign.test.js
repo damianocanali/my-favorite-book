@@ -8,7 +8,8 @@ import { readFileSync } from 'node:fs'
 import {
   WORKSHEET_TEMPLATES, TEMPLATE_IDS, PROMPT_TEXT_MAX, ANSWER_MAX, BOX_SIZES, BOOK_PAGES_MAX, PAGE_TEXT_MAX,
   getTemplate, boxIds, cleanWorksheet, cleanAnswers, snapshotWorksheet, worksheetPages, splitPageText,
-  pagesThatFit, cleanAcrosticWord,
+  pagesThatFit, cleanAcrosticWord, FROZEN_TEMPLATE_IDS, WORKSHEET_CATEGORIES, GRADE_BANDS, matchesGrade,
+  TEMPLATE_ALIASES, resolveTemplateId,
 } from '../lib/school/worksheets.js'
 
 const en = JSON.parse(readFileSync('src/i18n/locales/en/school.json', 'utf8'))
@@ -17,11 +18,47 @@ const itL = JSON.parse(readFileSync('src/i18n/locales/it/school.json', 'utf8'))
 const prompts = (id, text = 'Write here') => Object.fromEntries(boxIds(getTemplate(id)).map((b) => [b, text]))
 
 describe('templates', () => {
-  it('the nine v1 templates, in the spec\'s order', () => {
-    expect(TEMPLATE_IDS).toEqual([
+  it('one library of 33 sheets, the nine live ones among them with their box ids exactly as before', () => {
+    expect(TEMPLATE_IDS).toHaveLength(33)
+    expect(new Set(TEMPLATE_IDS).size).toBe(33)
+    expect(FROZEN_TEMPLATE_IDS).toEqual([
       'story_map', 'character_profile', 'beginning_middle_end', 'five_senses', 'letter',
       'opinion', 'acrostic', 'sequence', 'my_week',
     ])
+    // Live assignments and hand-ins reference these box ids: frozen.
+    const frozen = {
+      story_map: ['characters', 'setting', 'problem', 'events', 'ending'],
+      character_profile: ['name', 'looks_like', 'likes', 'wants', 'afraid_of'],
+      beginning_middle_end: ['beginning', 'middle', 'end'],
+      five_senses: ['place', 'see', 'hear', 'smell', 'touch', 'taste'],
+      letter: ['greeting', 'opening', 'body', 'closing', 'signature'],
+      opinion: ['opinion', 'reason', 'example', 'conclusion'],
+      acrostic: ['word', 'lines'],
+      sequence: ['first', 'next', 'then', 'last'],
+      my_week: ['best', 'learned', 'tricky', 'felt_good', 'next_week'],
+    }
+    for (const [id, boxes] of Object.entries(frozen)) expect(boxIds(getTemplate(id)), id).toEqual(boxes)
+    expect(getTemplate('acrostic').boxes[1]).toEqual({ id: 'lines', size: 'large', perLetter: true })
+  })
+
+  it('every sheet is on one of the eight shelves, with a grade band; every shelf has sheets; listed shelf by shelf', () => {
+    expect(WORKSHEET_CATEGORIES).toEqual(['plan', 'characters', 'words', 'poems', 'opinions', 'reading', 'facts', 'me'])
+    for (const t of WORKSHEET_TEMPLATES) {
+      expect(WORKSHEET_CATEGORIES, t.id).toContain(t.category)
+      expect(GRADE_BANDS, t.id).toContain(t.gradeBand)
+    }
+    for (const c of WORKSHEET_CATEGORIES) expect(WORKSHEET_TEMPLATES.some((t) => t.category === c), c).toBe(true)
+    const order = WORKSHEET_TEMPLATES.map((t) => WORKSHEET_CATEGORIES.indexOf(t.category))
+    expect(order).toEqual([...order].sort((a, b) => a - b))
+  })
+
+  it('a grade filter keeps that band and the any-grade sheets', () => {
+    const k2 = getTemplate('beginning_middle_end')
+    const g35 = getTemplate('opinion')
+    const any = getTemplate('story_map')
+    expect([k2, g35, any].map((t) => matchesGrade(t, 'k2'))).toEqual([true, false, true])
+    expect([k2, g35, any].map((t) => matchesGrade(t, 'g35'))).toEqual([false, true, true])
+    expect([k2, g35, any].every((t) => matchesGrade(t, null) && matchesGrade(t, 'all'))).toBe(true)
   })
 
   it('every box has a unique id and a known size; every page group names real boxes, each box once', () => {
@@ -31,21 +68,46 @@ describe('templates', () => {
       expect(ids.length).toBeLessThanOrEqual(12)
       for (const b of t.boxes) {
         expect(BOX_SIZES).toContain(b.size)
+        // Migration 023's CHECK: letters and underscores only (no digits).
         expect(b.id).toMatch(/^[a-z_]{1,40}$/)
       }
       expect(t.id).toMatch(/^[a-z_]{1,40}$/)
       const mapped = t.pages.flat()
       for (const id of mapped) expect(ids, `${t.id}:${id}`).toContain(id)
       expect(new Set(mapped).size).toBe(mapped.length)
+      expect(t.pages.length, t.id).toBeLessThanOrEqual(4)
       expect(['lines', 'paragraph']).toContain(t.join)
     }
+    // Only the acrostic expands per letter (cleanAnswers' line_N rule).
+    expect(WORKSHEET_TEMPLATES.filter((t) => t.boxes.some((b) => b.perLetter)).map((t) => t.id)).toEqual(['acrostic'])
   })
 
-  it('aligns with the free printable sheets where the same sheet exists', () => {
-    // src/components/worksheets/sheets.jsx CharacterProfileBody's fields.
-    expect(boxIds(getTemplate('character_profile'))).toEqual(['name', 'looks_like', 'likes', 'wants', 'afraid_of'])
-    // The printable "story-map" is beginning / middle / end.
-    expect(boxIds(getTemplate('beginning_middle_end'))).toEqual(['beginning', 'middle', 'end'])
+  it('the old printable ids still resolve (deep links), to the sheet each one became', () => {
+    expect(resolveTemplateId('story-map')).toBe('beginning_middle_end')
+    expect(resolveTemplateId('character-profile')).toBe('character_profile')
+    expect(resolveTemplateId('setting-sketch')).toBe('setting_sketch')
+    expect(resolveTemplateId('storyboard')).toBe('storyboard')
+    expect(resolveTemplateId('sentence-starters')).toBe('sentence_starters')
+    expect(resolveTemplateId('book-report')).toBe('book_report')
+    expect(resolveTemplateId('feelings-checkin')).toBe('feelings_checkin')
+    expect(resolveTemplateId('about-author')).toBe('about_author')
+    for (const id of Object.values(TEMPLATE_ALIASES)) expect(getTemplate(id)).not.toBeNull()
+    expect(resolveTemplateId('haiku')).toBe('haiku')
+    expect(resolveTemplateId('nope')).toBeNull()
+    expect(resolveTemplateId('constructor')).toBeNull()
+    expect(resolveTemplateId(undefined)).toBeNull()
+    // The API never takes an alias: assignments store the real id.
+    expect(cleanWorksheet({ templateId: 'story-map', prompts: { beginning: 'a', middle: 'b', end: 'c' } }).ok).toBe(false)
+  })
+
+  it('a new sheet needs no migration: it validates, and a hand-in to it is accepted', () => {
+    const w = cleanWorksheet({ templateId: 'how_to', prompts: prompts('how_to') })
+    expect(w.ok).toBe(true)
+    expect(cleanAnswers(w.worksheet, { step_one: 'Get bread.' })).toMatchObject({ ok: true, answers: { step_one: 'Get bread.' } })
+    expect(worksheetPages('how_to', { what: 'A sandwich', step_one: 'Get bread.', step_two: 'Add jam.' }))
+      .toEqual(['A sandwich', 'Get bread.\nAdd jam.'])
+    expect(worksheetPages('persuade', { should: 'We need a longer break.', reason_one: 'We play more.' }))
+      .toEqual(['We need a longer break. We play more.'])
   })
 })
 
@@ -57,6 +119,13 @@ describe('web copy ↔ lib', () => {
         const c = d.worksheet.templates[t.id]
         expect(c.title).toMatch(/\S/)
         expect(c.description).toMatch(/\S/)
+        // The printed sheet's big title, and a few search synonyms.
+        expect(c.heading, `${lang}:${t.id}`).toMatch(/\S/)
+        expect(c.keywords.split(',').map((k) => k.trim()).filter(Boolean).length, `${lang}:${t.id}`).toBeGreaterThanOrEqual(3)
+        // A drawing box on paper has its own label; no label without one.
+        expect('picture' in c, `${lang}:${t.id}`).toBe(!!t.print?.picture)
+        if (t.print?.picture) expect(c.picture).toMatch(/\S/)
+        expect(Object.keys(c).filter((k) => !['title', 'description', 'heading', 'keywords', 'picture', 'boxes'].includes(k))).toEqual([])
         expect(Object.keys(c.boxes), `${lang}:${t.id}`).toEqual(boxIds(t))
         for (const id of boxIds(t)) {
           expect(c.boxes[id]).toMatch(/\S/)
@@ -65,8 +134,18 @@ describe('web copy ↔ lib', () => {
         }
       }
     }
+    for (const [lang, d] of [['en', en], ['it', itL]]) {
+      expect(Object.keys(d.worksheet.categories), lang).toEqual(WORKSHEET_CATEGORIES)
+      expect(Object.keys(d.worksheet.grades).sort(), lang).toEqual([...GRADE_BANDS].sort())
+      for (const v of [...Object.values(d.worksheet.categories), ...Object.values(d.worksheet.grades), ...Object.values(d.worksheet.library)]) {
+        expect(v).toMatch(/\S/)
+      }
+    }
+    expect(Object.keys(itL.worksheet.library)).toEqual(Object.keys(en.worksheet.library))
+    for (const c of WORKSHEET_CATEGORIES) expect(itL.worksheet.categories[c]).not.toBe(en.worksheet.categories[c])
     for (const t of WORKSHEET_TEMPLATES) {
       expect(itL.worksheet.templates[t.id].title).not.toBe(en.worksheet.templates[t.id].title)
+      expect(itL.worksheet.templates[t.id].keywords).not.toBe(en.worksheet.templates[t.id].keywords)
       for (const id of boxIds(t)) expect(itL.worksheet.templates[t.id].boxes[id]).not.toBe(en.worksheet.templates[t.id].boxes[id])
     }
   })

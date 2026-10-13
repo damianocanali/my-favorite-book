@@ -237,7 +237,7 @@ export default function WorksheetFill({ assignment, userId, books = [], onClose,
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="text-xs font-body font-semibold text-galaxy-secondary uppercase tracking-wide">
-              {t(`school:worksheet.templates.${worksheet.templateId}.title`)}
+              {t(`school:worksheet.templates.${worksheet.templateId}.title`, { defaultValue: t('school:worksheet.teacher.chip') })}
             </p>
             <h2 className="font-heading text-2xl font-bold text-galaxy-text break-words">{assignment.title}</h2>
             {assignment.prompt?.trim() && (

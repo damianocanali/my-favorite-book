@@ -1,9 +1,11 @@
-// Free printable story worksheets (brief §11 / task WS): a public, no
-// sign-in library of 8 templates. Public and unauthenticated like /gallery
+// The worksheet library (brief §11 / task WS; teacher round 6B): a public,
+// no sign-in library of all 33 worksheets, searchable, by shelf and grade,
+// each viewable full size, printable, customizable and — for a signed-in
+// teacher — assignable. Public and unauthenticated like /gallery
 // or /example — this is the teacher-acquisition surface (spec
 // 2026-09-26-schools-design.md §11), so it deliberately sits outside every
 // auth/consumer-only route guard.
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -12,18 +14,35 @@ import i18next, { loadLocale } from '../i18n/index.js'
 import WorksheetSheet from '../components/worksheets/sheets.jsx'
 import WorksheetThumbnail from '../components/worksheets/WorksheetThumbnail'
 import CustomizePanel from '../components/worksheets/CustomizePanel'
-import { WORKSHEET_TEMPLATES, GRADE_BANDS, getWorksheetTemplate } from '../lib/worksheets/templates.js'
+import WorksheetPreview from '../components/worksheets/WorksheetPreview'
+import LibraryFilters, { LibraryEmpty } from '../components/worksheets/LibraryFilters'
+import { getWorksheetTemplate, schoolKey } from '../lib/worksheets/templates.js'
+import { filterTemplates, groupByCategory, parseLibraryParams, withLibraryParams, hasActiveFilters } from '../lib/worksheets/library.js'
+import { useElementWidth } from '../hooks/useElementWidth'
 import { parseWorksheetParams } from '../lib/worksheets/params.js'
 import { parseNameList } from '../lib/worksheets/names.js'
 import { useTeacherMode } from '../hooks/useTeacherMode'
 import { ASSIGN_WORKSHEET_HREF } from '../components/school/assignIntent.js'
 import { enterWorksheetsPrintMode, exitWorksheetsPrintMode } from '../components/school/printMode.js'
 
+const GRID = 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5'
+
+// A live, lazily rendered thumbnail as wide as its card.
+function CardThumbnail({ templateId, sheetProps }) {
+  const ref = useRef(null)
+  const width = useElementWidth(ref)
+  return (
+    <div ref={ref} className="w-full">
+      <WorksheetThumbnail lazy width={width} templateId={templateId} {...sheetProps} />
+    </div>
+  )
+}
+
 const DEFAULT_VALUES = { prompt: '', className: '', teacherName: '', sheetLocale: 'en', namesRaw: '' }
 
 export default function WorksheetsPage() {
-  const { t, i18n } = useTranslation(['worksheets', 'checkin', 'games'])
-  const [searchParams] = useSearchParams()
+  const { t, i18n } = useTranslation(['worksheets', 'checkin', 'games', 'school'])
+  const [searchParams, setSearchParams] = useSearchParams()
   // A signed-in teacher reaches this page from their own Worksheets tab;
   // they also get the way into assigning one (the public visitor doesn't).
   const teacherMode = useTeacherMode()
@@ -34,6 +53,8 @@ export default function WorksheetsPage() {
   // actual print job, a fixed one (see printJob below).
   const tCheckinSite = (key, opts) => t(`checkin:${key}`, opts)
   const tGamesSite = (key, opts) => t(`games:${key}`, opts)
+  // Keys passed to tSchool already carry their 'school:' namespace.
+  const tSchoolSite = t
 
   const [customTarget, setCustomTarget] = useState(null) // template id, or null when the panel is closed
   const [values, setValues] = useState(DEFAULT_VALUES)
@@ -126,6 +147,72 @@ export default function WorksheetsPage() {
 
   const openTemplate = customTarget ? getWorksheetTemplate(customTarget) : null
 
+  // Search, shelf and grade live in the URL (?q=&cat=&grade=) so a link or
+  // Back brings the same view; typing replaces the entry, a chip adds one.
+  // The box shows what was typed straight away (`query`); the URL follows
+  // through a functional update so fast typing never drops a letter, and a
+  // Back / link that changes ?q= puts its value back in the box.
+  const urlFilters = parseLibraryParams(searchParams)
+  const [query, setQuery] = useState(urlFilters.q)
+  useEffect(() => {
+    setQuery((cur) => (cur === urlFilters.q ? cur : urlFilters.q))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [urlFilters.q])
+  const filters = { ...urlFilters, q: query }
+  const setFilters = (patch) => {
+    if ('q' in patch) setQuery(patch.q)
+    const typingOnly = Object.keys(patch).length === 1 && 'q' in patch
+    setSearchParams((prev) => withLibraryParams(prev, patch), { replace: typingOnly })
+  }
+  const filtering = hasActiveFilters(filters)
+  const results = filterTemplates(filters, t)
+  const [previewId, setPreviewId] = useState(null)
+  const previewTemplate = previewId ? getWorksheetTemplate(previewId) : null
+
+  // A card: the thumbnail, title, description and grade, with the title's
+  // button stretched over the whole card (::after overlay) so a click
+  // anywhere opens the preview — no block content inside a <button>. Print
+  // and Customize sit above the overlay.
+  const card = (template) => (
+    <div key={template.id} className="group relative glass rounded-2xl p-2.5 sm:p-4 border border-galaxy-text-muted/10 flex flex-col gap-2.5 min-w-0">
+      <CardThumbnail templateId={template.id} sheetProps={{ t, tSchool: tSchoolSite, tCheckin: tCheckinSite, tGames: tGamesSite }} />
+      <div className="min-w-0">
+        <h3 className="font-heading font-bold text-galaxy-text group-hover:text-galaxy-secondary transition-colors break-words">
+          <button
+            type="button"
+            onClick={() => setPreviewId(template.id)}
+            aria-label={`${t('school:worksheet.library.view')}: ${t(schoolKey(template.id, 'title'))}`}
+            className="text-left after:absolute after:inset-0 after:rounded-2xl after:content-[''] focus:outline-none focus-visible:after:outline focus-visible:after:outline-2 focus-visible:after:outline-galaxy-secondary"
+          >
+            {t(schoolKey(template.id, 'title'))}
+          </button>
+        </h3>
+        <p className="text-xs text-galaxy-text-muted font-body mt-0.5 line-clamp-3">{t(schoolKey(template.id, 'description'))}</p>
+        <span className="inline-block mt-2 px-2 py-0.5 rounded-full text-[10px] font-body font-semibold border border-galaxy-secondary/30 text-galaxy-secondary">
+          {t(`school:worksheet.grades.${template.gradeBand}`)}
+        </span>
+      </div>
+      <div className="relative z-10 flex items-center gap-1.5 mt-auto pt-1">
+        <button
+          type="button"
+          onClick={() => quickPrint(template.id)}
+          className="flex-1 min-w-0 flex items-center justify-center gap-1.5 px-2 py-2 rounded-xl text-sm font-body font-bold text-white btn-fill-primary transition-colors"
+        >
+          <Printer size={15} aria-hidden="true" /> <span className="truncate">{t('actions.print')}</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => openCustomize(template.id)}
+          aria-label={t('actions.customize')}
+          title={t('actions.customize')}
+          className="shrink-0 flex items-center justify-center gap-1.5 px-2.5 py-2 rounded-xl text-sm font-body font-semibold text-galaxy-text border border-galaxy-text-muted/25 hover:border-galaxy-secondary/50 transition-colors min-w-[40px]"
+        >
+          <SlidersHorizontal size={14} aria-hidden="true" /> <span className="hidden lg:inline">{t('actions.customize')}</span>
+        </button>
+      </div>
+    </div>
+  )
+
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
       <div className="text-center max-w-2xl mx-auto mb-8">
@@ -144,41 +231,44 @@ export default function WorksheetsPage() {
         )}
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        {WORKSHEET_TEMPLATES.map((template) => (
-          <div
-            key={template.id}
-            className="glass rounded-2xl p-4 border border-galaxy-text-muted/10 flex flex-col gap-3"
-          >
-            <div className="flex justify-center">
-              <WorksheetThumbnail templateId={template.id} t={t} tCheckin={tCheckinSite} tGames={tGamesSite} />
-            </div>
-            <div>
-              <h2 className="font-heading font-bold text-galaxy-text">{t(template.titleKey)}</h2>
-              <p className="text-xs text-galaxy-text-muted font-body mt-0.5">{t(template.descriptionKey)}</p>
-              <span className="inline-block mt-2 px-2 py-0.5 rounded-full text-[10px] font-body font-semibold border border-galaxy-secondary/30 text-galaxy-secondary">
-                {t(`grid.grade_band.${template.gradeBand === GRADE_BANDS.K2 ? 'k2' : 'g35'}`)}
-              </span>
-            </div>
-            <div className="flex items-center gap-2 mt-auto pt-1">
-              <button
-                type="button"
-                onClick={() => quickPrint(template.id)}
-                className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-sm font-body font-bold text-white btn-fill-primary transition-colors"
-              >
-                <Printer size={15} /> {t('actions.print')}
-              </button>
-              <button
-                type="button"
-                onClick={() => openCustomize(template.id)}
-                className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-sm font-body font-semibold text-galaxy-text border border-galaxy-text-muted/25 hover:border-galaxy-secondary/50 transition-colors"
-              >
-                <SlidersHorizontal size={14} /> {t('actions.customize')}
-              </button>
-            </div>
-          </div>
-        ))}
+      <div className="mb-6">
+        <LibraryFilters value={filters} onChange={setFilters} />
       </div>
+
+      {results.length === 0 ? (
+        <LibraryEmpty value={filters} onChange={setFilters} />
+      ) : filtering ? (
+        <div className={GRID}>{results.map(card)}</div>
+      ) : (
+        // No filter: shelf by shelf, each under its heading.
+        <div className="space-y-10">
+          {groupByCategory(results).map((group) => (
+            <section key={group.category} aria-labelledby={`ws-cat-${group.category}`}>
+              <h2 id={`ws-cat-${group.category}`} className="font-heading text-xl font-bold text-galaxy-text mb-3">
+                {t(`school:worksheet.categories.${group.category}`)}
+              </h2>
+              <div className={GRID}>{group.templates.map(card)}</div>
+            </section>
+          ))}
+        </div>
+      )}
+
+      {previewTemplate && (
+        <WorksheetPreview
+          template={previewTemplate}
+          list={results.some((x) => x.id === previewTemplate.id) ? results : [previewTemplate]}
+          sheetProps={{ t, tSchool: tSchoolSite, tCheckin: tCheckinSite, tGames: tGamesSite }}
+          teacherMode={teacherMode}
+          onNavigate={setPreviewId}
+          onClose={() => setPreviewId(null)}
+          onPrint={() => quickPrint(previewTemplate.id)}
+          onCustomize={() => {
+            // One dialog at a time: each makes the page behind it inert.
+            setPreviewId(null)
+            openCustomize(previewTemplate.id)
+          }}
+        />
+      )}
 
       {openTemplate && (
         <CustomizePanel
@@ -200,6 +290,7 @@ export default function WorksheetsPage() {
               key={i}
               templateId={printJob.templateId}
               t={i18next.getFixedT(printJob.sheetLocale, 'worksheets')}
+              tSchool={i18next.getFixedT(printJob.sheetLocale)}
               tCheckin={i18next.getFixedT(printJob.sheetLocale, 'checkin')}
               tGames={i18next.getFixedT(printJob.sheetLocale, 'games')}
               prompt={printJob.prompt}

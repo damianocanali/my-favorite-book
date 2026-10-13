@@ -18,7 +18,7 @@ export default function WorksheetAnswers({ worksheet, answers = {} }) {
   return (
     <section className="space-y-3" aria-label={t('school:worksheet.teacher.answers_heading')}>
       <p className="text-xs font-body font-semibold text-galaxy-secondary uppercase tracking-wide">
-        {t(`school:worksheet.templates.${worksheet.templateId}.title`)}
+        {t(`school:worksheet.templates.${worksheet.templateId}.title`, { defaultValue: t('school:worksheet.teacher.chip') })}
       </p>
       {layout.map((box) => (
         <div key={box.id} className="rounded-xl border border-galaxy-text-muted/15 bg-white/[0.03] p-3 space-y-1">

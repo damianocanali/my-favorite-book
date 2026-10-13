@@ -8,7 +8,8 @@ import { teacherErrorText } from './teacherErrors'
 import { isoToLocalInput, localInputToIso } from './assignmentUi'
 import { useSpeechSynthesis } from '../../hooks/useSpeechSynthesis'
 import WorksheetPicker from './WorksheetPicker'
-import { cleanAcrosticWord } from '../../../lib/school/worksheets.js'
+import { cleanAcrosticWord, getTemplate } from '../../../lib/school/worksheets.js'
+import { defaultPrompts } from './worksheetUi'
 
 const TITLE_MAX = 80
 const PROMPT_MAX = 1000
@@ -24,17 +25,23 @@ const PROMPT_MAX = 1000
 // "A book" or "A worksheet"; a worksheet then picks a template and edits
 // its prompts (WorksheetPicker). What an assignment is never changes after
 // it is created, and the template only while it is still a draft.
-export default function AssignmentForm({ classId, assignment, initialKind = null, onClose, onSaved }) {
+export default function AssignmentForm({ classId, assignment, initialKind = null, initialTemplateId = null, onClose, onSaved }) {
   const { t } = useTranslation()
   const panelRef = useRef(null)
   const isEdit = !!assignment
 
   const [kind, setKind] = useState(assignment ? (assignment.kind === 'worksheet' ? 'worksheet' : 'book') : (initialKind === 'worksheet' ? 'worksheet' : null))
+  // "Assign to my class" from a library sheet opens straight on that sheet,
+  // its prompts, title and instructions filled in (the teacher can still
+  // change any of it, or pick another sheet).
+  const preset = !assignment && initialKind === 'worksheet' && getTemplate(initialTemplateId) ? initialTemplateId : null
   const [worksheet, setWorksheet] = useState(() => (assignment?.worksheet
     ? { templateId: assignment.worksheet.templateId, prompts: { ...assignment.worksheet.prompts }, word: assignment.worksheet.word ?? '' }
-    : { templateId: null, prompts: {}, word: '' }))
-  const [title, setTitle] = useState(assignment?.title ?? '')
-  const [prompt, setPrompt] = useState(assignment?.prompt ?? '')
+    : preset
+      ? { templateId: preset, prompts: defaultPrompts(t, preset), word: '' }
+      : { templateId: null, prompts: {}, word: '' }))
+  const [title, setTitle] = useState(assignment?.title ?? (preset ? t(`school:worksheet.templates.${preset}.title`).slice(0, TITLE_MAX) : ''))
+  const [prompt, setPrompt] = useState(assignment?.prompt ?? (preset ? t(`school:worksheet.templates.${preset}.description`).slice(0, PROMPT_MAX) : ''))
   const [due, setDue] = useState(isoToLocalInput(assignment?.due_at))
   const [allowLate, setAllowLate] = useState(assignment ? assignment.allow_late : true)
   const [saving, setSaving] = useState(false)
