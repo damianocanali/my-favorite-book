@@ -316,7 +316,8 @@ export default function CustomizePanel({ t, template, initialValues, onPrint, on
           <button
             type="button"
             onClick={() => onPrint(values)}
-            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl font-body font-bold text-sm text-white btn-fill-primary transition-colors"
+            disabled={localeFailed}
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl font-body font-bold text-sm text-white btn-fill-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Printer size={16} /> {t('actions.print')}
           </button>

@@ -580,7 +580,9 @@ struct TeacherAssignmentForm: View {
                 ToolbarItem(placement: .cancellationAction) {
                     Button { dismiss() } label: { Text(TeacherCopy.cancel) }
                 }
-                if !sideBySide, previewDefinition != nil {
+                // Wait for the first width measurement so an iPad doesn't flash
+                // the button before the side pane appears.
+                if availableWidth > 0, !sideBySide, previewDefinition != nil {
                     ToolbarItem(placement: .primaryAction) {
                         Button { showingPreview = true } label: {
                             Label { Text(WorksheetCopy.teacherPreviewTab) } icon: { Image(systemName: "eye") }

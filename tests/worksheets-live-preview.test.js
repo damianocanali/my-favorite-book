@@ -219,7 +219,7 @@ describe('iPad: the assign form\'s live preview', () => {
     expect(form).toContain('private var sideBySide: Bool { sideBySideCapable && availableWidth >= 720 }')
     expect(form).toContain('.onGeometryChange(for: CGFloat.self) { $0.size.width } action: { availableWidth = $0 }')
     expect(form).toContain('if sideBySide, let def = previewDefinition {')
-    expect(form).toContain('if !sideBySide, previewDefinition != nil {')
+    expect(form).toContain('if availableWidth > 0, !sideBySide, previewDefinition != nil {')
     expect(form).not.toContain('userInterfaceIdiom')
     expect(form).toContain('.sheet(isPresented: $showingPreview)')
     expect(form).not.toContain('.confirmationDialog')
