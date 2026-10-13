@@ -17641,6 +17641,114 @@
         }
       }
     },
+    "school.worksheet.teacher.preview_edit": {
+      "comment": "Assign form live preview (TeacherWorksheetLivePreview / web AssignPreview).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modifica"
+          }
+        }
+      }
+    },
+    "school.worksheet.teacher.preview_heading": {
+      "comment": "Assign form live preview (TeacherWorksheetLivePreview / web AssignPreview).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What the class will see"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cosa vedrà la classe"
+          }
+        }
+      }
+    },
+    "school.worksheet.teacher.preview_hint": {
+      "comment": "Assign form live preview (TeacherWorksheetLivePreview / web AssignPreview).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Updates as you type."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Si aggiorna mentre scrivi."
+          }
+        }
+      }
+    },
+    "school.worksheet.teacher.preview_paper": {
+      "comment": "Assign form live preview (TeacherWorksheetLivePreview / web AssignPreview).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Printed"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stampata"
+          }
+        }
+      }
+    },
+    "school.worksheet.teacher.preview_screen": {
+      "comment": "Assign form live preview (TeacherWorksheetLivePreview / web AssignPreview).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "On screen"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sullo schermo"
+          }
+        }
+      }
+    },
+    "school.worksheet.teacher.preview_tab": {
+      "comment": "Assign form live preview (TeacherWorksheetLivePreview / web AssignPreview).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preview"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anteprima"
+          }
+        }
+      }
+    },
     "school.worksheet.teacher.print_blank": {
       "extractionState": "manual",
       "localizations": {

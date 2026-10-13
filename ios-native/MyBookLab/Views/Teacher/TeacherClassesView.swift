@@ -508,6 +508,7 @@ struct TeacherAssignmentForm: View {
 
     @Environment(AuthStore.self) private var auth
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.horizontalSizeClass) private var hSize
 
     @State private var title = ""
     @State private var prompt = ""
@@ -521,86 +522,26 @@ struct TeacherAssignmentForm: View {
     @State private var saving = false
     @State private var error: LocalizedStringResource?
     @State private var didInit = false
+    /// iPhone: the live preview, opened from the toolbar.
+    @State private var showingPreview = false
+
+    /// What the live preview draws (nil: not a worksheet, or none picked yet).
+    private var previewDefinition: WorksheetDefinition? {
+        TeacherWorksheetLivePreview.definition(kind: kind, worksheet: worksheet, word: acrosticWord)
+    }
 
     var body: some View {
         NavigationStack {
-            Form {
-                if existing == nil {
-                    Section {
-                        Picker(selection: $kind) {
-                            Text(WorksheetCopy.teacherKindBook).tag("book")
-                            Text(WorksheetCopy.teacherKindWorksheet).tag("worksheet")
-                        } label: { Text(WorksheetCopy.teacherKindLabel) }
-                        .pickerStyle(.segmented)
-                    } header: {
-                        Text(WorksheetCopy.teacherKindLabel)
-                    } footer: {
-                        Text(kind == "worksheet" ? WorksheetCopy.teacherKindWorksheetHint : WorksheetCopy.teacherKindBookHint)
-                    }
+            // iPad (regular width): the live preview beside the form. The
+            // HStack is always there so the Form keeps its identity (focus,
+            // scroll) when the preview appears; iPhone is just the Form.
+            HStack(spacing: 0) {
+                form
+                if hSize == .regular, let def = previewDefinition {
+                    Divider()
+                    TeacherWorksheetLivePreview(definition: def)
+                        .frame(minWidth: 280, idealWidth: 380, maxWidth: 440)
                 }
-                if kind == "worksheet" {
-                    TeacherWorksheetPicker(
-                        worksheet: $worksheet, word: $acrosticWord,
-                        canChangeTemplate: existing == nil || existing?.status == "draft"
-                    ) { templateId in
-                        // An empty title and instructions take the template's own.
-                        if title.trimmingCharacters(in: .whitespaces).isEmpty {
-                            title = TeacherStickers.truncated(String(appLocalized: WorksheetCopy.title(templateId)), max: TeacherStickers.titleMax)
-                        }
-                        if prompt.trimmingCharacters(in: .whitespaces).isEmpty {
-                            prompt = TeacherStickers.truncated(String(appLocalized: WorksheetCopy.description(templateId)), max: TeacherStickers.promptMax)
-                        }
-                    }
-                }
-                Section {
-                    TextField(text: $title) { Text(TeacherCopy.formTitle) }
-                        .onChange(of: title) { _, v in
-                            let cut = TeacherStickers.truncated(v, max: TeacherStickers.titleMax)
-                            if cut != v { title = cut }
-                        }
-                } header: { Text(TeacherCopy.formTitle) }
-
-                Section {
-                    TextField(text: $prompt, axis: .vertical) { Text(TeacherCopy.formPrompt) }
-                        .lineLimit(4...10)
-                        .onChange(of: prompt) { _, v in
-                            let cut = TeacherStickers.truncated(v, max: TeacherStickers.promptMax)
-                            if cut != v { prompt = cut }
-                        }
-                } header: {
-                    Text(kind == "worksheet" ? WorksheetCopy.teacherInstructionsLabel : TeacherCopy.formPrompt)
-                } footer: {
-                    Text(verbatim: "\(prompt.utf16.count)/\(TeacherStickers.promptMax)")
-                        .frame(maxWidth: .infinity, alignment: .trailing)
-                }
-
-                Section {
-                    Toggle(isOn: $hasDue) { Text(TeacherCopy.formHasDue) }
-                    if hasDue {
-                        DatePicker(selection: $due) { Text(TeacherCopy.formDue) }
-                    }
-                    Toggle(isOn: $allowLate) { Text(TeacherCopy.formAllowLate) }
-                }
-
-                if let error {
-                    Section { Text(error).foregroundStyle(.red) }
-                }
-
-                Section {
-                    if existing != nil {
-                        Button { Task { await save(status: nil) } } label: {
-                            Text(saving ? TeacherCopy.formSaving : TeacherCopy.formSave).bold()
-                        }
-                    } else {
-                        Button { Task { await save(status: "draft") } } label: {
-                            Text(saving ? TeacherCopy.formSaving : TeacherCopy.formSaveDraft)
-                        }
-                        Button { Task { await save(status: "published") } } label: {
-                            Text(TeacherCopy.formPublishNow).bold()
-                        }
-                    }
-                }
-                .disabled(saving)
             }
             .navigationTitle(Text(existing == nil ? TeacherCopy.formNew : TeacherCopy.formEdit))
             .navigationBarTitleDisplayMode(.inline)
@@ -608,6 +549,29 @@ struct TeacherAssignmentForm: View {
                 ToolbarItem(placement: .cancellationAction) {
                     Button { dismiss() } label: { Text(TeacherCopy.cancel) }
                 }
+                if hSize != .regular, previewDefinition != nil {
+                    ToolbarItem(placement: .primaryAction) {
+                        Button { showingPreview = true } label: {
+                            Label { Text(WorksheetCopy.teacherPreviewTab) } icon: { Image(systemName: "eye") }
+                                .labelStyle(.titleAndIcon)
+                        }
+                    }
+                }
+            }
+            .sheet(isPresented: $showingPreview) {
+                NavigationStack {
+                    Group {
+                        if let def = previewDefinition { TeacherWorksheetLivePreview(definition: def) }
+                    }
+                    .navigationTitle(Text(WorksheetCopy.teacherPreviewTab))
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                        ToolbarItem(placement: .confirmationAction) {
+                            Button { showingPreview = false } label: { Text(TeacherCopy.done) }
+                        }
+                    }
+                }
+                .preferredColorScheme(.dark)
             }
             .onAppear {
                 guard !didInit else { return }
@@ -631,6 +595,88 @@ struct TeacherAssignmentForm: View {
             }
         }
         .preferredColorScheme(.dark)
+        .modifier(TeacherAssignmentFormSizing(wide: kind == "worksheet"))
+    }
+
+    private var form: some View {
+        Form {
+            if existing == nil {
+                Section {
+                    Picker(selection: $kind) {
+                        Text(WorksheetCopy.teacherKindBook).tag("book")
+                        Text(WorksheetCopy.teacherKindWorksheet).tag("worksheet")
+                    } label: { Text(WorksheetCopy.teacherKindLabel) }
+                    .pickerStyle(.segmented)
+                } header: {
+                    Text(WorksheetCopy.teacherKindLabel)
+                } footer: {
+                    Text(kind == "worksheet" ? WorksheetCopy.teacherKindWorksheetHint : WorksheetCopy.teacherKindBookHint)
+                }
+            }
+            if kind == "worksheet" {
+                TeacherWorksheetPicker(
+                    worksheet: $worksheet, word: $acrosticWord,
+                    canChangeTemplate: existing == nil || existing?.status == "draft"
+                ) { templateId in
+                    // An empty title and instructions take the template's own.
+                    if title.trimmingCharacters(in: .whitespaces).isEmpty {
+                        title = TeacherStickers.truncated(String(appLocalized: WorksheetCopy.title(templateId)), max: TeacherStickers.titleMax)
+                    }
+                    if prompt.trimmingCharacters(in: .whitespaces).isEmpty {
+                        prompt = TeacherStickers.truncated(String(appLocalized: WorksheetCopy.description(templateId)), max: TeacherStickers.promptMax)
+                    }
+                }
+            }
+            Section {
+                TextField(text: $title) { Text(TeacherCopy.formTitle) }
+                    .onChange(of: title) { _, v in
+                        let cut = TeacherStickers.truncated(v, max: TeacherStickers.titleMax)
+                        if cut != v { title = cut }
+                    }
+            } header: { Text(TeacherCopy.formTitle) }
+
+            Section {
+                TextField(text: $prompt, axis: .vertical) { Text(TeacherCopy.formPrompt) }
+                    .lineLimit(4...10)
+                    .onChange(of: prompt) { _, v in
+                        let cut = TeacherStickers.truncated(v, max: TeacherStickers.promptMax)
+                        if cut != v { prompt = cut }
+                    }
+            } header: {
+                Text(kind == "worksheet" ? WorksheetCopy.teacherInstructionsLabel : TeacherCopy.formPrompt)
+            } footer: {
+                Text(verbatim: "\(prompt.utf16.count)/\(TeacherStickers.promptMax)")
+                    .frame(maxWidth: .infinity, alignment: .trailing)
+            }
+
+            Section {
+                Toggle(isOn: $hasDue) { Text(TeacherCopy.formHasDue) }
+                if hasDue {
+                    DatePicker(selection: $due) { Text(TeacherCopy.formDue) }
+                }
+                Toggle(isOn: $allowLate) { Text(TeacherCopy.formAllowLate) }
+            }
+
+            if let error {
+                Section { Text(error).foregroundStyle(.red) }
+            }
+
+            Section {
+                if existing != nil {
+                    Button { Task { await save(status: nil) } } label: {
+                        Text(saving ? TeacherCopy.formSaving : TeacherCopy.formSave).bold()
+                    }
+                } else {
+                    Button { Task { await save(status: "draft") } } label: {
+                        Text(saving ? TeacherCopy.formSaving : TeacherCopy.formSaveDraft)
+                    }
+                    Button { Task { await save(status: "published") } } label: {
+                        Text(TeacherCopy.formPublishNow).bold()
+                    }
+                }
+            }
+            .disabled(saving)
+        }
     }
 
     /// Editing only ever changes title/prompt/due/late; status moves are the

@@ -162,3 +162,26 @@ describe('student-facing views stay out of the teacher scope', () => {
     }
   })
 })
+
+describe('iPad: the assign form\'s live preview', () => {
+  const form = readFileSync('ios-native/MyBookLab/Views/Teacher/TeacherClassesView.swift', 'utf8')
+  const views = readFileSync('ios-native/MyBookLab/Views/Teacher/TeacherWorksheetViews.swift', 'utf8')
+  const library = readFileSync('ios-native/MyBookLab/Views/Teacher/TeacherWorksheetLibraryView.swift', 'utf8')
+
+  it('beside the form only at regular width; a Preview button (sheet) on iPhone', () => {
+    expect(form).toContain('if hSize == .regular, let def = previewDefinition {')
+    expect(form).toContain('if hSize != .regular, previewDefinition != nil {')
+    expect(form).toContain('.sheet(isPresented: $showingPreview)')
+    expect(form).not.toContain('.confirmationDialog')
+  })
+
+  it('reuses the library\'s full-sheet preview, fed with the draft prompts and cleaned word', () => {
+    expect(views).toMatch(/struct TeacherWorksheetLivePreview: View \{[\s\S]*?WorksheetSheetPreview\(definition: definition\)/)
+    expect(views).toContain('def.word = def.isAcrostic ? WorksheetTemplates.cleanAcrosticWord(word) : nil')
+    expect(views).toContain('TeacherCard {')
+    expect(views).toContain('TeacherTheme.sheetBackground')
+    // The preview draws the teacher's word and its letters.
+    expect(library).toContain('if let word = definition.word, !word.isEmpty {')
+    expect(library).toContain('Text(verbatim: l.letter)')
+  })
+})

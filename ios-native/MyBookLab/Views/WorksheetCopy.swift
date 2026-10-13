@@ -406,6 +406,13 @@ enum WorksheetCopy {
     static var teacherAnswersHeading: LocalizedStringResource { AppText("school.worksheet.teacher.answers_heading", defaultValue: "Answers") }
     static var teacherNoAnswer: LocalizedStringResource { AppText("school.worksheet.teacher.no_answer", defaultValue: "(empty)") }
     static var teacherAcrosticWordLocked: LocalizedStringResource { AppText("school.worksheet.teacher.acrostic_word_locked", defaultValue: "Locked after publishing: children may already be writing to this word.") }
+    // Live preview in the assign form (web twins: AssignPreview / AssignmentForm).
+    static var teacherPreviewEdit: LocalizedStringResource { AppText("school.worksheet.teacher.preview_edit", defaultValue: "Edit") }
+    static var teacherPreviewTab: LocalizedStringResource { AppText("school.worksheet.teacher.preview_tab", defaultValue: "Preview") }
+    static var teacherPreviewHeading: LocalizedStringResource { AppText("school.worksheet.teacher.preview_heading", defaultValue: "What the class will see") }
+    static var teacherPreviewHint: LocalizedStringResource { AppText("school.worksheet.teacher.preview_hint", defaultValue: "Updates as you type.") }
+    static var teacherPreviewScreen: LocalizedStringResource { AppText("school.worksheet.teacher.preview_screen", defaultValue: "On screen") }
+    static var teacherPreviewPaper: LocalizedStringResource { AppText("school.worksheet.teacher.preview_paper", defaultValue: "Printed") }
     // MARK: student
 
     static var studentStart: LocalizedStringResource { AppText("school.worksheet.student.start", defaultValue: "Start worksheet") }

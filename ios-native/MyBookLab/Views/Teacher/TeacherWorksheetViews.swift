@@ -159,6 +159,60 @@ struct TeacherWorksheetPicker: View {
     }
 }
 
+// MARK: - Live preview (assign form)
+
+/// The worksheet as the class will get it, redrawn as the teacher edits the
+/// prompts or the acrostic word: the library's own full-sheet preview
+/// (WorksheetSheetPreview) fed with the form's draft. Beside the form on
+/// iPad (regular width); in a sheet behind a "Preview" button on iPhone.
+struct TeacherWorksheetLivePreview: View {
+    let definition: WorksheetDefinition
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 12) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(WorksheetCopy.teacherPreviewHeading).font(.headline).foregroundStyle(.white)
+                        .accessibilityAddTraits(.isHeader)
+                    Text(WorksheetCopy.teacherPreviewHint).font(.caption).foregroundStyle(TeacherTheme.secondaryText)
+                }
+                TeacherCard {
+                    WorksheetSheetPreview(definition: definition)
+                }
+            }
+            .padding(16)
+        }
+        .background(TeacherTheme.sheetBackground)
+    }
+
+    /// The form's draft as the saved assignment will carry it: the acrostic
+    /// word cleaned the way save() (and the API) cleans it — an unusable or
+    /// empty one leaves the word to each child. nil = nothing to preview yet.
+    static func definition(kind: String, worksheet: WorksheetDefinition?, word: String) -> WorksheetDefinition? {
+        guard kind == "worksheet", var def = worksheet, def.template != nil || !def.prompts.isEmpty else { return nil }
+        def.word = def.isAcrostic ? WorksheetTemplates.cleanAcrosticWord(word) : nil
+        return def
+    }
+}
+
+/// iPad: a larger sheet for the form while it shows the preview beside it
+/// (iOS 18+; on 17 the form sheet keeps its size and the two share it).
+struct TeacherAssignmentFormSizing: ViewModifier {
+    let wide: Bool
+
+    func body(content: Content) -> some View {
+        if #available(iOS 18.0, *) {
+            if wide {
+                content.presentationSizing(.page)
+            } else {
+                content.presentationSizing(.form)
+            }
+        } else {
+            content
+        }
+    }
+}
+
 // MARK: - Review: a hand-in's answers
 
 struct TeacherWorksheetAnswers: View {
