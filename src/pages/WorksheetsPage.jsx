@@ -21,6 +21,7 @@ import { filterTemplates, groupByCategory, parseLibraryParams, withLibraryParams
 import { useElementWidth } from '../hooks/useElementWidth'
 import { parseWorksheetParams } from '../lib/worksheets/params.js'
 import { parseNameList } from '../lib/worksheets/names.js'
+import { sheetTranslators } from '../lib/worksheets/sheetLocale.js'
 import { useTeacherMode } from '../hooks/useTeacherMode'
 import { ASSIGN_WORKSHEET_HREF } from '../components/school/assignIntent.js'
 import { enterWorksheetsPrintMode, exitWorksheetsPrintMode } from '../components/school/printMode.js'
@@ -276,6 +277,7 @@ export default function WorksheetsPage() {
           template={openTemplate}
           values={values}
           onChange={(patch) => setValues((v) => ({ ...v, ...patch }))}
+          teacherMode={teacherMode}
           onPrint={printFromCustomize}
           onClose={() => setCustomTarget(null)}
         />
@@ -289,10 +291,7 @@ export default function WorksheetsPage() {
             <WorksheetSheet
               key={i}
               templateId={printJob.templateId}
-              t={i18next.getFixedT(printJob.sheetLocale, 'worksheets')}
-              tSchool={i18next.getFixedT(printJob.sheetLocale)}
-              tCheckin={i18next.getFixedT(printJob.sheetLocale, 'checkin')}
-              tGames={i18next.getFixedT(printJob.sheetLocale, 'games')}
+              {...sheetTranslators(i18next, printJob.sheetLocale)}
               prompt={printJob.prompt}
               className={printJob.className}
               teacherName={printJob.teacherName}

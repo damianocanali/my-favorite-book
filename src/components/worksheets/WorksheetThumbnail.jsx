@@ -16,16 +16,35 @@ const PX_PER_IN = 96
 export const SHEET_WIDTH_PX = 8.5 * PX_PER_IN
 export const SHEET_HEIGHT_PX = 11 * PX_PER_IN
 
-/// A sheet scaled to `width` px (its height follows the Letter ratio).
-export function ScaledSheet({ width, ...sheetProps }) {
+/// Any one-page Letter sheet (`children`, laid out at its real 8.5 x 11in)
+/// scaled to `width` px; its height follows the Letter ratio.
+export function ScaledPage({ width, children }) {
   const scale = width / SHEET_WIDTH_PX
   return (
     <div className="overflow-hidden bg-white" style={{ width, height: SHEET_HEIGHT_PX * scale }}>
       <div style={{ width: SHEET_WIDTH_PX, height: SHEET_HEIGHT_PX, transform: `scale(${scale})`, transformOrigin: 'top left' }}>
-        <WorksheetSheet {...sheetProps} />
+        {children}
       </div>
     </div>
   )
+}
+
+/// A library sheet scaled to `width` px (its height follows the Letter ratio).
+export function ScaledSheet({ width, ...sheetProps }) {
+  return (
+    <ScaledPage width={width}>
+      <WorksheetSheet {...sheetProps} />
+    </ScaledPage>
+  )
+}
+
+/// The width a Letter page gets in a `box` ({ width, height } px): as wide
+/// as the box, never past its true size, and — with `fitHeight` — no taller
+/// than the box either (the whole page in view, no scrolling).
+export function fitSheetWidth(box, { fitHeight = false } = {}) {
+  const byWidth = Math.min(SHEET_WIDTH_PX, Math.max(0, box.width))
+  if (!fitHeight || !(box.height > 0)) return Math.floor(byWidth)
+  return Math.floor(Math.min(byWidth, box.height * (SHEET_WIDTH_PX / SHEET_HEIGHT_PX)))
 }
 
 export default function WorksheetThumbnail({ width = 150, lazy = false, ...sheetProps }) {
