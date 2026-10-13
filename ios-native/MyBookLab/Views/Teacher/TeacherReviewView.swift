@@ -100,7 +100,7 @@ struct TeacherReviewView: View {
                 }
             }
             if rows.isEmpty {
-                Text(TeacherCopy.reviewEmpty).foregroundStyle(.white.opacity(0.7))
+                Text(TeacherCopy.reviewEmpty).foregroundStyle(TeacherTheme.secondaryText)
                     .frame(maxWidth: .infinity).padding(.vertical, 24)
             }
             ForEach(rows) { row in
@@ -108,7 +108,7 @@ struct TeacherReviewView: View {
                     Button { openRow(row) } label: { studentRow(row) }
                         .buttonStyle(.plain)
                 } else {
-                    studentRow(row).opacity(0.7)
+                    studentRow(row).opacity(0.85)
                 }
             }
         } else {
@@ -131,12 +131,12 @@ struct TeacherReviewView: View {
                                 Text(TeacherCopy.version(v))
                             }
                         }
-                        .font(.caption).foregroundStyle(.white.opacity(0.65))
+                        .font(.caption).foregroundStyle(TeacherTheme.secondaryText)
                     }
                 }
                 Spacer(minLength: 6)
                 if let n = row.feedback_count, n > 0 {
-                    Text(TeacherCopy.feedbackCount(n)).font(.caption).foregroundStyle(.white.opacity(0.65))
+                    Text(TeacherCopy.feedbackCount(n)).font(.caption).foregroundStyle(TeacherTheme.secondaryText)
                 }
                 // Grading at a glance: the newest level, "Sent back" while
                 // waiting on the child (only while the assignment is still
@@ -149,7 +149,7 @@ struct TeacherReviewView: View {
                 if let level = row.level { GradeLevelChip(level: level) }
                 HandInChip(state: HandInState(row: row))
                 if row.isHandedIn {
-                    Image(systemName: "chevron.right").font(.caption).foregroundStyle(.white.opacity(0.5))
+                    Image(systemName: "chevron.right").font(.caption).foregroundStyle(TeacherTheme.secondaryText)
                 }
             }
         }
@@ -197,7 +197,7 @@ struct TeacherReviewView: View {
                                 Text(TeacherCopy.openBook).font(.caption).foregroundStyle(.cyan)
                             }
                             Spacer()
-                            Image(systemName: "chevron.right").font(.caption).foregroundStyle(.white.opacity(0.5))
+                            Image(systemName: "chevron.right").font(.caption).foregroundStyle(TeacherTheme.secondaryText)
                         }
                     }
                 }
@@ -328,14 +328,15 @@ struct TeacherFeedbackPanel: View {
                 TextField(text: $comment, axis: .vertical) { Text(TeacherCopy.feedbackPlaceholder) }
                     .lineLimit(2...6)
                     .padding(10)
-                    .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
+                    .background(TeacherTheme.cardFill, in: RoundedRectangle(cornerRadius: 12))
+                    .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(TeacherTheme.inputStroke))
                     .foregroundStyle(.white)
                     .onChange(of: comment) { _, v in
                         let cut = TeacherStickers.truncated(v, max: TeacherStickers.commentMax)
                         if cut != v { comment = cut }
                     }
                 Text(verbatim: "\(comment.utf16.count)/\(TeacherStickers.commentMax)")
-                    .font(.caption2).foregroundStyle(.white.opacity(0.5))
+                    .font(.caption2).foregroundStyle(TeacherTheme.secondaryText)
                     .frame(maxWidth: .infinity, alignment: .trailing)
 
                 if let error { Text(error).font(.footnote).foregroundStyle(.red) }
@@ -367,7 +368,7 @@ struct TeacherFeedbackPanel: View {
                                     }
                                     Text(f.seen_at != nil ? TeacherCopy.feedbackSeen : TeacherCopy.feedbackNotSeen)
                                 }
-                                .font(.caption).foregroundStyle(.white.opacity(0.6))
+                                .font(.caption).foregroundStyle(TeacherTheme.secondaryText)
                             }
                         }
                         .font(.subheadline)

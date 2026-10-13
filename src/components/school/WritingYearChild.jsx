@@ -124,7 +124,7 @@ export default function WritingYearChild({ classId, student, onClose, onChanged 
   const kindLabel = (i) => t(`school:writing_year.teacher.kind_${i.kind}`)
 
   return createPortal(
-    <motion.div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 px-4" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+    <motion.div className="teacher-ui fixed inset-0 z-[70] flex items-center justify-center bg-black/60 px-4" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
       <motion.div
         ref={panelRef}
         tabIndex={-1}

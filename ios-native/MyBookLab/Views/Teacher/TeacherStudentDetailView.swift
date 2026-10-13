@@ -129,7 +129,7 @@ struct TeacherStudentDetailView: View {
             TeacherErrorBlock(message: TeacherCopy.error(booksError)) { Task { await loadBooks() } }
         } else if let books {
             if books.isEmpty {
-                Text(TeacherCopy.booksEmpty).foregroundStyle(.white.opacity(0.7)).padding(.vertical, 24)
+                Text(TeacherCopy.booksEmpty).foregroundStyle(TeacherTheme.secondaryText).padding(.vertical, 24)
             } else {
                 VStack(spacing: 10) {
                     ForEach(books) { book in
@@ -168,11 +168,11 @@ struct TeacherStudentDetailView: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(verbatim: b.title ?? "—").font(.headline).foregroundStyle(.white).lineLimit(2)
                     if let when = TeacherDates.relative(b.updated_at) {
-                        Text(TeacherCopy.updated(when)).font(.caption).foregroundStyle(.white.opacity(0.65))
+                        Text(TeacherCopy.updated(when)).font(.caption).foregroundStyle(TeacherTheme.secondaryText)
                     }
                 }
                 Spacer()
-                Image(systemName: "chevron.right").font(.caption).foregroundStyle(.white.opacity(0.5))
+                Image(systemName: "chevron.right").font(.caption).foregroundStyle(TeacherTheme.secondaryText)
             }
         }
     }
@@ -183,7 +183,7 @@ struct TeacherStudentDetailView: View {
             TeacherErrorBlock(message: TeacherCopy.error(checkinsError)) { Task { await loadCheckins() } }
         } else if let checkins {
             if checkins.isEmpty {
-                Text(TeacherCopy.checkinsEmpty).foregroundStyle(.white.opacity(0.7)).padding(.vertical, 24)
+                Text(TeacherCopy.checkinsEmpty).foregroundStyle(TeacherTheme.secondaryText).padding(.vertical, 24)
             } else {
                 VStack(alignment: .leading, spacing: 18) {
                     ForEach(CheckinDay.group(checkins)) { day in

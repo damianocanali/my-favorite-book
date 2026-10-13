@@ -96,7 +96,7 @@ struct TeacherClassesView: View {
                     if !verified { TeacherVerificationCard() }
                     if classes.isEmpty {
                         Text(TeacherCopy.classesEmpty)
-                            .foregroundStyle(.white.opacity(0.75))
+                            .foregroundStyle(TeacherTheme.secondaryText)
                             .multilineTextAlignment(.center)
                             .padding(.top, 32)
                     }
@@ -142,11 +142,11 @@ struct TeacherClassesView: View {
                         Text(TeacherCopy.studentCount(c.student_count ?? 0))
                         if let code = c.code { Text(TeacherCopy.classCode(code)) }
                     }
-                    .font(.caption).foregroundStyle(.white.opacity(0.65))
+                    .font(.caption).foregroundStyle(TeacherTheme.secondaryText)
                     LicenseBadge(license: c.license)
                 }
                 Spacer()
-                Image(systemName: "chevron.right").font(.caption).foregroundStyle(.white.opacity(0.5))
+                Image(systemName: "chevron.right").font(.caption).foregroundStyle(TeacherTheme.secondaryText)
             }
         }
     }
@@ -291,7 +291,7 @@ struct TeacherClassDetailView: View {
                 LicenseBadge(license: summary.license)
             }
             .font(.subheadline)
-            .foregroundStyle(.white.opacity(0.75))
+            .foregroundStyle(TeacherTheme.secondaryText)
         }
     }
 
@@ -342,7 +342,7 @@ struct TeacherClassDetailView: View {
             if assignments.isEmpty {
                 TeacherCard {
                     Text(TeacherCopy.assignmentsEmpty)
-                        .foregroundStyle(.white.opacity(0.7))
+                        .foregroundStyle(TeacherTheme.secondaryText)
                         .frame(maxWidth: .infinity)
                 }
             }
@@ -379,11 +379,11 @@ struct TeacherClassDetailView: View {
                                 Text(verbatim: "·")
                                 Text(TeacherCopy.handedInCount(a.counts?.handed_in ?? 0, a.counts?.total_students ?? 0))
                             }
-                            .font(.caption).foregroundStyle(.white.opacity(0.65))
+                            .font(.caption).foregroundStyle(TeacherTheme.secondaryText)
                         }
                         Spacer()
                         Text(TeacherCopy.review).font(.caption.bold()).foregroundStyle(.cyan)
-                        Image(systemName: "chevron.right").font(.caption).foregroundStyle(.white.opacity(0.5))
+                        Image(systemName: "chevron.right").font(.caption).foregroundStyle(TeacherTheme.secondaryText)
                     }
                 }
                 .buttonStyle(.plain)
@@ -426,7 +426,7 @@ struct TeacherClassDetailView: View {
             }
             .font(.caption.weight(.semibold))
             .padding(.horizontal, 10).padding(.vertical, 6)
-            .overlay(Capsule().strokeBorder(.white.opacity(destructive ? 0 : 0.3)))
+            .overlay(Capsule().strokeBorder(destructive ? Color.clear : TeacherTheme.inputStroke))
             .foregroundStyle(destructive ? Color(red: 1, green: 0.5, blue: 0.5) : .white)
         }
         .buttonStyle(.plain)

@@ -3,8 +3,9 @@ import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Bell, X } from 'lucide-react'
 import { schoolFetch } from '../../lib/schoolApi'
-import { notificationText, notificationHref, unreadBadge, bellActionError } from '../../lib/teacherNotifications'
+import { notificationText, notificationHref, unreadBadge, bellActionError, BELL_PANEL_CLASS } from '../../lib/teacherNotifications'
 import { relativeTime } from './relativeTime'
+
 
 const POLL_MS = 60 * 1000
 
@@ -165,7 +166,7 @@ export default function NotificationBell() {
         <div
           role="dialog"
           aria-label={t('school:notifications.title')}
-          className="absolute right-0 top-full z-50 mt-2 w-80 max-w-[calc(100vw-2rem)] rounded-2xl border border-white/10 bg-galaxy-bg-light shadow-xl shadow-black/50"
+          className={BELL_PANEL_CLASS}
         >
           <div className="flex items-center justify-between gap-2 border-b border-white/10 px-4 py-3">
             <h2 className="font-heading text-sm font-bold text-galaxy-text">{t('school:notifications.title')}</h2>
@@ -230,7 +231,7 @@ export default function NotificationBell() {
             </div>
           )}
 
-          <ul className="max-h-[60vh] overflow-y-auto">
+          <ul className="min-h-0 flex-1 overflow-y-auto sm:max-h-[60vh] sm:flex-none">
             {error && items.length === 0 && (
               <li className="px-4 py-6 text-center font-body text-sm text-red-400">{t('school:notifications.error')}</li>
             )}

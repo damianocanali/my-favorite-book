@@ -208,3 +208,60 @@ describe('bellActionError (the bell\'s remove / clear-all failure banner)', () =
     }
   })
 })
+
+describe('bell panel placement (phones)', () => {
+  it('is fixed with a 16px safe-area gutter below sm and anchored from sm up', async () => {
+    const { BELL_PANEL_CLASS: c } = await import('../src/lib/teacherNotifications.js')
+    expect(c).toMatch(/(^| )fixed /)
+    expect(c).toContain('left-[max(1rem,var(--sal))]')
+    expect(c).toContain('right-[max(1rem,var(--sar))]')
+    expect(c).toContain('top-[calc(var(--sat)+var(--teacher-header-h,3.5rem)+0.5rem)]')
+    expect(c).toContain('max-h-[calc(100dvh-')
+    expect(c).toContain('sm:absolute')
+    expect(c).toContain('sm:w-80')
+    expect(c).not.toMatch(/(^| )w-80/)
+  })
+})
+
+describe('teacher-ui contrast CSS does not override interactive states', () => {
+  const css = readFileSync('src/index.css', 'utf8')
+  const teacher = css.slice(css.indexOf('/* ── Teacher area'), css.indexOf('/* Solid action buttons.'))
+  it('every teacher border-color rule is zero-specificity (:where) and the card shorthand is gone', () => {
+    expect(teacher).not.toMatch(/\bborder:\s/)
+    const rules = teacher.match(/[^{}]+\{[^}]*border-color[^}]*\}/g) ?? []
+    expect(rules.length).toBeGreaterThan(0)
+    for (const r of rules) {
+      const selector = r.slice(0, r.indexOf('{'))
+      // strip :where(...) groups; nothing but the .teacher-ui scope may remain
+      let rest = selector, prev
+      do { prev = rest; rest = rest.replace(/:where\((?:[^()]|\([^()]*\))*\)/g, '') } while (rest !== prev)
+      expect(rest.replace(/\/\*[\s\S]*?\*\//g, '').trim()).toBe('.teacher-ui')
+    }
+    expect(teacher).toContain(':where(:not([class*="border-"]))')
+    expect(teacher).toContain(':not([class^="border-red"])')
+    expect(teacher).not.toContain('[class*="border-red"]')
+  })
+  it('text overrides match exact tokens, not hover:/disabled:/placeholder: variants', () => {
+    expect(teacher).not.toMatch(/\[class\*="text-/)
+    expect(teacher).toContain('[class~="text-white/60"]')
+  })
+  it('keeps a visible focus ring', () => {
+    expect(teacher).toMatch(/:focus-visible\s*\{[^}]*outline:\s*2px solid/)
+  })
+})
+
+describe('student-facing components never carry teacher-ui', () => {
+  it('PreviewPage and MyAssignments direct imports are free of the teacher-ui scope', async () => {
+    const { dirname, resolve } = await import('node:path')
+    const { existsSync } = await import('node:fs')
+    for (const entry of ['src/pages/PreviewPage.jsx', 'src/components/school/MyAssignments.jsx']) {
+      const src = readFileSync(entry, 'utf8')
+      expect(src, entry).not.toContain('teacher-ui')
+      for (const m of src.matchAll(/from '(\.[^']+)'/g)) {
+        const base = resolve(dirname(entry), m[1])
+        const file = ['', '.jsx', '.js'].map((e) => base + e).find((f) => existsSync(f) && /\.jsx?$/.test(f))
+        if (file) expect(readFileSync(file, 'utf8'), file).not.toContain('teacher-ui')
+      }
+    }
+  })
+})

@@ -607,7 +607,7 @@ struct TeacherSignInCardsView: View {
                 Label { Text(TeacherCopy.cardsSavePDF) } icon: { Image(systemName: "square.and.arrow.down") }
                     .font(.headline)
                     .frame(maxWidth: .infinity, minHeight: 52)
-                    .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(Color.white.opacity(0.5)))
+                    .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(TeacherTheme.inputStroke))
                     .foregroundStyle(.white)
             }
         }

@@ -108,7 +108,7 @@ struct TeacherNudgeSheet: View {
             HStack(spacing: 12) {
                 Image(systemName: on ? "checkmark.circle.fill" : "circle")
                     .font(.title3)
-                    .foregroundStyle(on ? .cyan : .white.opacity(0.5))
+                    .foregroundStyle(on ? .cyan : TeacherTheme.secondaryText)
                     .accessibilityHidden(true)
                 TeacherStudentAvatar(emoji: s.avatar_emoji, url: s.avatar_url, size: 32)
                 VStack(alignment: .leading, spacing: 4) {
@@ -180,14 +180,15 @@ struct TeacherNudgeSheet: View {
                 TextField(text: $custom, axis: .vertical) { Text(NudgeCopy.placeholder) }
                     .lineLimit(2...4)
                     .padding(10)
-                    .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
+                    .background(TeacherTheme.cardFill, in: RoundedRectangle(cornerRadius: 12))
+                    .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(TeacherTheme.inputStroke))
                     .foregroundStyle(.white)
                     .onChange(of: custom) { _, v in
                         let cut = TeacherStickers.truncated(v, max: NudgeRules.messageMax)
                         if cut != v { custom = cut }
                     }
                 Text(verbatim: "\(custom.utf16.count)/\(NudgeRules.messageMax)")
-                    .font(.caption2).foregroundStyle(.white.opacity(0.6))
+                    .font(.caption2).foregroundStyle(TeacherTheme.secondaryText)
                     .frame(maxWidth: .infinity, alignment: .trailing)
             }
             Text(NudgeCopy.signedAs).font(.caption).foregroundStyle(TeacherTheme.secondaryText)
@@ -208,7 +209,7 @@ struct TeacherNudgeSheet: View {
         return Button { choice = c } label: {
             HStack(spacing: 12) {
                 Image(systemName: on ? "largecircle.fill.circle" : "circle")
-                    .foregroundStyle(on ? .cyan : .white.opacity(0.5))
+                    .foregroundStyle(on ? .cyan : TeacherTheme.secondaryText)
                     .accessibilityHidden(true)
                 label()
                     .font(.body)

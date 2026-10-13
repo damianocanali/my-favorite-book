@@ -52,6 +52,67 @@ body {
   padding: 16px;
 }
 
+/* ── Teacher area: opaque, higher-contrast surfaces ───────────────────
+   Scoped to the `teacher-ui` root (AppShell teacherMode, and the teacher-only
+   portalled modals) so the kids/family look and the student area keep the
+   translucent iOS-parity glass. Every border-COLOUR rule is wrapped in
+   :where() (zero specificity) and skips elements that set their own border
+   colour, so focus:/hover:/error borders (utilities, specificity 0,1,0 or
+   0,2,0) always win. Ratios vs #2A2147: white 14.9:1, muted #DAD3E8 10.3:1,
+   placeholder #B9B0CF 7.2:1, field border #8A80AA 4.1:1 (3.5:1 on #352A5C). */
+.teacher-ui :where(.glass, .glass-recessed, .glass-raised, .ios-card) {
+  background-color: #2A2147;
+  border-width: 1px;
+  border-style: solid;
+}
+.teacher-ui :where(.glass-recessed) { background-color: #221A3C; }
+.teacher-ui :where(.glass-raised) { background-color: #352A5C; }
+.teacher-ui :where(.glass, .glass-recessed, .glass-raised, .ios-card):where(:not([class*="border-"])) {
+  border-color: #8A80AA;
+}
+/* Hairline dividers / card edges set by utility: visible, not interactive. */
+.teacher-ui :where([class~="border-galaxy-text-muted/10"], [class~="border-galaxy-text-muted/15"], [class~="border-galaxy-text-muted/20"], [class~="border-white/10"], [class~="border-white/15"]) {
+  border-color: rgba(255, 255, 255, 0.22);
+}
+/* Stronger edges (buttons, chips, controls): 3:1+ against the surface. */
+.teacher-ui :where([class~="border-galaxy-text-muted/25"], [class~="border-galaxy-text-muted/30"], [class~="border-galaxy-text-muted/40"], [class~="border-galaxy-text-muted/50"], [class~="border-galaxy-text-muted/60"], [class~="border-white/30"]) {
+  border-color: #8A80AA;
+}
+.teacher-ui :where(input:not([type="checkbox"]):not([type="radio"]), select, textarea):where(:not([class^="border-red"]):not([class*=" border-red"]):not([class^="border-amber"]):not([class*=" border-amber"])) {
+  border-color: #8A80AA;
+}
+/* Low-alpha text tokens (exact class tokens only, so hover:/disabled:/
+   placeholder: variants keep working). */
+.teacher-ui :where([class~="text-galaxy-text-muted/40"]),
+.teacher-ui :where([class~="text-galaxy-text-muted/50"]),
+.teacher-ui :where([class~="text-galaxy-text-muted/60"]),
+.teacher-ui :where([class~="text-galaxy-text-muted/70"]),
+.teacher-ui :where([class~="text-white/40"]),
+.teacher-ui :where([class~="text-white/50"]),
+.teacher-ui :where([class~="text-white/55"]),
+.teacher-ui :where([class~="text-white/60"]),
+.teacher-ui :where([class~="text-white/70"]) {
+  color: #DAD3E8;
+}
+/* Inactive tab / header icon buttons: keep clearly dimmer than the active
+   white (#A79FC2 is 6.3:1 on #0D0A29, 4.9:1 on #2A2147). */
+.teacher-ui :where(nav, header) :where([class~="text-white/55"], [class~="text-white/60"]) {
+  color: #A79FC2;
+}
+.teacher-ui :where([class~="text-galaxy-text-muted/30"]) {
+  color: #9A91B8; /* decorative / disabled-looking: 5:1 on #2A2147 */
+}
+.teacher-ui ::placeholder {
+  color: #B9B0CF;
+  opacity: 1;
+}
+/* Fields drop their default outline (focus:outline-none): give every
+   interactive teacher control a visible keyboard focus ring. */
+.teacher-ui :where(input, select, textarea, button, a, [tabindex]:not([tabindex="-1"])):focus-visible {
+  outline: 2px solid #64D2FF;
+  outline-offset: 2px;
+}
+
 /* Solid action buttons. iOS fills these with the SparkleButton gradient
    and a hairline white border (RoundedRectangle(cornerRadius: 12), so
    pair with rounded-xl — only SparkleButton itself is a capsule). */

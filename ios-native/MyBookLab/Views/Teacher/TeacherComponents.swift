@@ -9,15 +9,19 @@ import SwiftUI
 enum TeacherTheme {
     static let cardFill = Color(red: 0.13, green: 0.11, blue: 0.27)
     static let cardFillStrong = Color(red: 0.19, green: 0.16, blue: 0.38)
-    static let cardStroke = Color.white.opacity(0.12)
-    /// Secondary text on the opaque fills: never below 0.7 white.
-    static let secondaryText = Color.white.opacity(0.78)
+    /// Visible 1pt card edge (~2:1 on cardFill; decorative).
+    static let cardStroke = Color.white.opacity(0.22)
+    /// Edge of fields and controls: #8A80AA, 4.4:1 on cardFill (WCAG 1.4.11).
+    static let inputStroke = Color(red: 0.541, green: 0.502, blue: 0.667)
+    /// Secondary text on the opaque fills (white 88%): 12.6:1 on cardFill,
+    /// 10.4:1 on cardFillStrong, so body copy clears AA with room to spare.
+    static let secondaryText = Color.white.opacity(0.88)
     static let urgent = Color(red: 1, green: 0.42, blue: 0.42)
     /// Behind a sheet or popover's list (solid, not the starfield).
     static let sheetBackground = Color(red: 0.07, green: 0.06, blue: 0.16)
 }
 
-/// The translucent rounded card every teacher section sits on.
+/// The opaque rounded card every teacher section sits on.
 struct TeacherCard<Content: View>: View {
     var tint: Color = .white
     @ViewBuilder var content: () -> Content
@@ -26,7 +30,14 @@ struct TeacherCard<Content: View>: View {
         content()
             .padding(16)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(tint.opacity(0.08), in: RoundedRectangle(cornerRadius: 18))
+            .background {
+                // Opaque base with the tint washed ON TOP of it, so a tinted card still shows its colour.
+                ZStack {
+                    RoundedRectangle(cornerRadius: 18).fill(TeacherTheme.cardFill)
+                    if tint != .white { RoundedRectangle(cornerRadius: 18).fill(tint.opacity(0.14)) }
+                }
+            }
+            .overlay(RoundedRectangle(cornerRadius: 18).strokeBorder(TeacherTheme.cardStroke))
     }
 }
 
@@ -61,7 +72,7 @@ struct TeacherChip: View {
         switch tone {
         case .good: Color(red: 0.43, green: 0.91, blue: 0.72)
         case .warn: Color(red: 0.99, green: 0.83, blue: 0.45)
-        case .muted: .white.opacity(0.7)
+        case .muted: TeacherTheme.secondaryText
         case .urgent: Color(red: 1, green: 0.45, blue: 0.45)
         }
     }

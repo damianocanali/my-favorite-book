@@ -16,6 +16,16 @@ import NotificationBell from '../school/NotificationBell'
 import { PAGE_ACTIONS_ID } from './PageActions'
 import { isFocusedAuthRoute } from '../../lib/focusedAuthRoutes'
 
+// Publishes the teacher header's real height as --teacher-header-h so the
+// phone notifications panel (fixed, see BELL_PANEL_CLASS) sits right under it.
+function trackHeaderHeight(el) {
+  if (!el || el.__ro || typeof ResizeObserver === 'undefined') return
+  const apply = () => document.documentElement.style.setProperty('--teacher-header-h', `${el.offsetHeight}px`)
+  apply()
+  el.__ro = new ResizeObserver(apply)
+  el.__ro.observe(el)
+}
+
 // Shell mirrors the native app: a translucent bottom tab bar for the five
 // primary destinations (see TabBar.jsx), and a slim, mostly-transparent
 // header. On iOS almost every screen calls
@@ -121,7 +131,7 @@ export default function AppShell({ children }) {
   // (Account page) falls through to the unchanged consumer layout below.
   if (teacherMode) {
     return (
-      <div className="min-h-screen relative">
+      <div className="teacher-ui min-h-screen relative">
         <a href="#main-content" className="skip-to-content">{t('nav:a11y.skip_to_content')}</a>
 
         {/* Teacher area: the still backdrop (no twinkle, no sparkles). */}
@@ -133,7 +143,7 @@ export default function AppShell({ children }) {
             modal's own z-[70]+ competes at the root and lands above both
             the header and the tab bar instead of being trapped beneath
             them. */}
-        <header className="relative z-50 flex items-center justify-between gap-2 px-3 sm:px-6 py-3">
+        <header className="relative z-50 flex items-center justify-between gap-2 px-3 sm:px-6 py-3" ref={trackHeaderHeight}>
           <Link
             to="/teacher"
             className="flex items-center gap-2 text-white transition-opacity hover:opacity-80"
