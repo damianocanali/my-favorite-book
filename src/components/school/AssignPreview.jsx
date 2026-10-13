@@ -39,7 +39,7 @@ export default function AssignPreview({ worksheet: draft, title, prompt, initial
   const shownTitle = title?.trim() || t(`school:worksheet.templates.${worksheet.templateId}.title`, { defaultValue: t('school:worksheet.teacher.chip') })
   const lang = i18n.language === 'it' ? 'it' : 'en'
 
-  const seg = (id) => `flex-1 px-3 py-1.5 rounded-lg text-xs font-body font-semibold transition-colors ${
+  const seg = (id) => `flex-1 whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-body font-semibold transition-colors ${
     mode === id ? 'bg-galaxy-primary text-white' : 'text-galaxy-text-muted hover:text-galaxy-text'
   }`
 
