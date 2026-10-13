@@ -281,6 +281,7 @@ export default function AssignmentsSection({ classId, className, locale, onOpenR
       {formTarget && (
         <AssignmentForm
           classId={classId}
+          className={className}
           assignment={formTarget === 'new' ? null : formTarget}
           initialKind={formTarget === 'new' ? initialKind : null}
           initialTemplateId={formTarget === 'new' ? initialTemplate : null}

@@ -45,29 +45,49 @@ export function LiveSheet({ templateId, locale, values, studentName = '', width 
 }
 
 /// "Copy 3 of 24 · Maya" with ‹ › — flips the preview through the copies.
+/// Screen readers hear the new copy only when ‹ or › is pressed (a separate
+/// live region), not on every keystroke in the names box.
 export function CopyPager({ t, names, index, onIndex }) {
+  const [announcement, setAnnouncement] = useState('')
   if (!names.length) return null
+  const label = (i) => t('customize.preview_copy', { n: i + 1, total: names.length, name: names[i] })
+  const go = (i) => {
+    onIndex(i)
+    setAnnouncement(label(i))
+  }
   const btn = 'p-2 rounded-lg text-galaxy-text border border-galaxy-text-muted/25 disabled:opacity-40 min-w-[40px] min-h-[40px] flex items-center justify-center'
   return (
     <div className="flex items-center justify-center gap-2 min-w-0" data-testid="customize-copy-pager">
-      <button type="button" className={btn} disabled={index <= 0} onClick={() => onIndex(index - 1)} aria-label={t('customize.prev_copy')}>
+      <button type="button" className={btn} disabled={index <= 0} onClick={() => go(index - 1)} aria-label={t('customize.prev_copy')}>
         <ChevronLeft size={16} aria-hidden="true" />
       </button>
-      <p className="text-sm font-body text-galaxy-text truncate min-w-0" aria-live="polite">
-        {t('customize.preview_copy', { n: index + 1, total: names.length, name: names[index] })}
-      </p>
-      <button type="button" className={btn} disabled={index >= names.length - 1} onClick={() => onIndex(index + 1)} aria-label={t('customize.next_copy')}>
+      <p className="text-sm font-body text-galaxy-text truncate min-w-0">{label(index)}</p>
+      <button type="button" className={btn} disabled={index >= names.length - 1} onClick={() => go(index + 1)} aria-label={t('customize.next_copy')}>
         <ChevronRight size={16} aria-hidden="true" />
       </button>
+      <p className="sr-only" aria-live="polite" data-testid="customize-copy-announce">{announcement}</p>
     </div>
   )
 }
 
-export default function CustomizePanel({ t, template, values, onChange, onPrint, onClose, teacherMode = false }) {
+/// The draft lives HERE, not in WorksheetsPage, so a keystroke re-renders
+/// only this panel and never the 33-card library behind it. The page gets
+/// the values back on Print and on close (it remembers the teacher name and
+/// sheet language for the next sheet).
+export default function CustomizePanel({ t, template, initialValues, onPrint, onClose, teacherMode = false }) {
   const panelRef = useRef(null)
   const stageRef = useRef(null)
+  const [values, setValues] = useState(initialValues)
+  const onChange = (patch) => setValues((v) => ({ ...v, ...patch }))
+  const valuesRef = useRef(values)
+  valuesRef.current = values
+  const close = () => onClose(valuesRef.current)
   const names = parseNameList(values.namesRaw)
   const [copy, setCopy] = useState(0)
+  // Keep the stored copy inside the list when names are removed.
+  useEffect(() => {
+    setCopy((c) => Math.min(c, Math.max(0, names.length - 1)))
+  }, [names.length])
   const copyIndex = previewCopyIndex(names, copy)
   const [view, setView] = useState('edit') // the phone's Edit | Preview switch
   const wide = useMediaQuery('(min-width: 768px)')
@@ -77,14 +97,23 @@ export default function CustomizePanel({ t, template, values, onChange, onPrint,
   // The preview draws in the sheet language only once its catalogue is in
   // memory; until then the previous language's render stays up (with a
   // small spinner) — never raw keys. Same loadLocale the print job awaits.
+  // A failed load (offline, a stale chunk) says so instead of spinning forever.
   const [readyLocale, setReadyLocale] = useState(() => (isSheetLocaleReady(i18next, values.sheetLocale) ? values.sheetLocale : 'en'))
+  const [localeFailed, setLocaleFailed] = useState(false)
+  const [localeAttempt, setLocaleAttempt] = useState(0) // bumped by Try again
   useEffect(() => {
     let live = true
+    setLocaleFailed(false)
     if (isSheetLocaleReady(i18next, values.sheetLocale)) setReadyLocale(values.sheetLocale)
-    else loadLocale(values.sheetLocale).then(() => { if (live) setReadyLocale(values.sheetLocale) })
+    else {
+      loadLocale(values.sheetLocale).then(
+        () => { if (live) setReadyLocale(values.sheetLocale) },
+        () => { if (live) setLocaleFailed(true) },
+      )
+    }
     return () => { live = false }
-  }, [values.sheetLocale])
-  const loadingLocale = readyLocale !== values.sheetLocale
+  }, [values.sheetLocale, localeAttempt])
+  const loadingLocale = readyLocale !== values.sheetLocale && !localeFailed
 
   // Review round 1: #root goes `inert` for as long as this panel is open —
   // see inert.js's own comment for why that's preferred over hand-rolling a
@@ -96,7 +125,7 @@ export default function CustomizePanel({ t, template, values, onChange, onPrint,
     enterInertBackground(document)
     panelRef.current?.focus()
     const onKey = (e) => {
-      if (e.key === 'Escape') onClose()
+      if (e.key === 'Escape') close()
     }
     window.addEventListener('keydown', onKey)
     return () => {
@@ -135,7 +164,7 @@ export default function CustomizePanel({ t, template, values, onChange, onPrint,
           </h2>
           <button
             type="button"
-            onClick={onClose}
+            onClick={close}
             aria-label={t('customize.close')}
             className="p-2 rounded-lg text-galaxy-text-muted hover:text-galaxy-text transition-colors shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center"
           >
@@ -170,6 +199,18 @@ export default function CustomizePanel({ t, template, values, onChange, onPrint,
                   width={sheetWidth}
                 />
               </div>
+              {localeFailed && (
+                <div className="absolute top-6 left-6 right-6 flex flex-wrap items-center gap-2 px-3 py-2 rounded-lg bg-galaxy-bg-light border border-red-400/60" role="alert">
+                  <p className="flex-1 min-w-0 text-sm font-body text-red-300">{t('customize.preview_locale_error')}</p>
+                  <button
+                    type="button"
+                    onClick={() => setLocaleAttempt((n) => n + 1)}
+                    className="shrink-0 px-3 py-1.5 rounded-lg text-sm font-body font-semibold text-galaxy-text border border-galaxy-text-muted/30 hover:border-galaxy-text-muted/50"
+                  >
+                    {t('customize.preview_retry')}
+                  </button>
+                </div>
+              )}
               {loadingLocale && (
                 <div className="absolute top-6 right-6 flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-galaxy-bg-light border border-galaxy-text-muted/25" role="status">
                   <span className="w-3.5 h-3.5 border-2 border-galaxy-secondary border-t-transparent rounded-full animate-spin" aria-hidden="true" />
@@ -267,14 +308,14 @@ export default function CustomizePanel({ t, template, values, onChange, onPrint,
         <div className="shrink-0 flex flex-wrap items-center justify-end gap-2 px-4 md:px-6 py-3 border-t border-galaxy-text-muted/15">
           <button
             type="button"
-            onClick={onClose}
+            onClick={close}
             className="px-4 py-2.5 rounded-xl font-body font-semibold text-sm text-galaxy-text-muted hover:text-galaxy-text transition-colors"
           >
             {t('customize.close')}
           </button>
           <button
             type="button"
-            onClick={onPrint}
+            onClick={() => onPrint(values)}
             className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl font-body font-bold text-sm text-white btn-fill-primary transition-colors"
           >
             <Printer size={16} /> {t('actions.print')}

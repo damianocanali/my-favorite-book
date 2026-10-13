@@ -13,27 +13,32 @@ import i18next from '../../i18n/index.js'
 import { WorksheetFillTitle, WorksheetFillBoxes } from './WorksheetFillBody'
 import { AssignmentWorksheetSheet } from '../worksheets/AssignmentSheet'
 import { ScaledPage, fitSheetWidth } from '../worksheets/WorksheetThumbnail'
-import { useElementWidth } from '../../hooks/useElementWidth'
+import { useElementSize } from '../../hooks/useElementWidth'
 import { fillLayout } from './worksheetUi'
 import { cleanAcrosticWord } from '../../../lib/school/worksheets.js'
 
-/// The form's draft worksheet as the saved assignment will carry it (the
-/// acrostic word cleaned the way the API cleans it; an unusable one = the
-/// child picks the word).
+/// The form's draft worksheet as the saved assignment will carry it: the
+/// prompts trimmed as save() trims them, the acrostic word cleaned the way
+/// the API cleans it (an unusable one = the child picks the word).
 export function previewWorksheet(draft) {
+  const prompts = Object.fromEntries(Object.entries(draft.prompts ?? {}).map(([id, text]) => [id, String(text ?? '').trim()]))
   return {
     templateId: draft.templateId,
-    prompts: draft.prompts ?? {},
+    prompts,
     word: draft.templateId === 'acrostic' ? cleanAcrosticWord(draft.word ?? '') || null : null,
   }
 }
 
-export default function AssignPreview({ worksheet: draft, title, prompt, initialMode = 'screen', width: fixedWidth = null }) {
+/// `fitHeight` (the lg side pane): the preview fills its parent's height —
+/// the printed page scaled so all of it is in view, the on-screen boxes
+/// scrolling inside — instead of growing with its content.
+export default function AssignPreview({ worksheet: draft, title, prompt, className = '', initialMode = 'screen', width: fixedWidth = null, fitHeight = false }) {
   const { t, i18n } = useTranslation()
   const [mode, setMode] = useState(initialMode)
   const stageRef = useRef(null)
-  const measured = useElementWidth(stageRef)
-  const width = fixedWidth ?? fitSheetWidth({ width: measured, height: 0 })
+  const stage = useElementSize(stageRef)
+  // 8px under the page for its shadow when it is fitted to the height.
+  const width = fixedWidth ?? fitSheetWidth(fitHeight ? { width: stage.width, height: stage.height - 8 } : stage, { fitHeight })
   const worksheet = useMemo(() => previewWorksheet(draft), [draft])
   const layout = useMemo(() => fillLayout(worksheet), [worksheet])
   const shownTitle = title?.trim() || t(`school:worksheet.templates.${worksheet.templateId}.title`, { defaultValue: t('school:worksheet.teacher.chip') })
@@ -44,7 +49,7 @@ export default function AssignPreview({ worksheet: draft, title, prompt, initial
   }`
 
   return (
-    <section aria-label={t('school:worksheet.teacher.preview_heading')} className="space-y-3" data-testid="assign-preview">
+    <section aria-label={t('school:worksheet.teacher.preview_heading')} className={fitHeight ? 'h-full min-h-0 flex flex-col gap-3' : 'space-y-3'} data-testid="assign-preview">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="min-w-0">
           <p className="text-galaxy-text text-sm font-body font-semibold">{t('school:worksheet.teacher.preview_heading')}</p>
@@ -56,7 +61,7 @@ export default function AssignPreview({ worksheet: draft, title, prompt, initial
         </div>
       </div>
 
-      <div ref={stageRef} className="w-full min-w-0">
+      <div ref={stageRef} className={fitHeight ? 'flex-1 min-h-0 w-full min-w-0 overflow-y-auto overflow-x-hidden' : 'w-full min-w-0'}>
         {mode === 'screen' ? (
           // The child's own full-screen backdrop, scaled down only by width.
           <div inert className="rounded-2xl bg-galaxy-bg border border-galaxy-text-muted/15 p-4 space-y-4 select-none" data-testid="assign-preview-screen">
@@ -71,6 +76,7 @@ export default function AssignPreview({ worksheet: draft, title, prompt, initial
                   t={t}
                   tSheet={i18next.getFixedT(lang, 'worksheets')}
                   title={shownTitle}
+                  className={className}
                   worksheet={worksheet}
                   answers={null}
                 />

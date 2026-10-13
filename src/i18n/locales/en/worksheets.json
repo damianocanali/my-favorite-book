@@ -44,7 +44,9 @@
     "preview_copy": "Copy {{n}} of {{total}} · {{name}}",
     "prev_copy": "Previous copy",
     "next_copy": "Next copy",
-    "preview_loading": "Loading the sheet language…"
+    "preview_loading": "Loading the sheet language…",
+    "preview_locale_error": "Couldn't load that language. Check your connection and try again.",
+    "preview_retry": "Try again"
   },
   "actions": {
     "print": "Print",

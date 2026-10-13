@@ -44,7 +44,9 @@
     "preview_copy": "Copia {{n}} di {{total}} · {{name}}",
     "prev_copy": "Copia precedente",
     "next_copy": "Copia successiva",
-    "preview_loading": "Caricamento della lingua della scheda…"
+    "preview_loading": "Caricamento della lingua della scheda…",
+    "preview_locale_error": "Impossibile caricare la lingua. Controlla la connessione e riprova.",
+    "preview_retry": "Riprova"
   },
   "actions": {
     "print": "Stampa",

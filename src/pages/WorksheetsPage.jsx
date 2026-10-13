@@ -58,6 +58,10 @@ export default function WorksheetsPage() {
   const tSchoolSite = t
 
   const [customTarget, setCustomTarget] = useState(null) // template id, or null when the panel is closed
+  // What the Customize panel opens with. While it's open the panel owns the
+  // draft (so typing never re-renders this page's 33-card grid); it hands
+  // the values back on Print / close, and the teacher name and sheet
+  // language carry over to the next sheet.
   const [values, setValues] = useState(DEFAULT_VALUES)
   const [printJob, setPrintJob] = useState(null)
 
@@ -133,8 +137,12 @@ export default function WorksheetsPage() {
     })
   }
 
-  async function printFromCustomize() {
-    if (values.sheetLocale !== 'en') await loadLocale(values.sheetLocale)
+  async function printFromCustomize(values) {
+    setValues(values)
+    if (values.sheetLocale !== 'en') {
+      // The panel already shows the load error; keep it open, print nothing.
+      try { await loadLocale(values.sheetLocale) } catch { return }
+    }
     setPrintJob({
       templateId: customTarget,
       prompt: values.prompt,
@@ -275,11 +283,10 @@ export default function WorksheetsPage() {
         <CustomizePanel
           t={t}
           template={openTemplate}
-          values={values}
-          onChange={(patch) => setValues((v) => ({ ...v, ...patch }))}
+          initialValues={values}
           teacherMode={teacherMode}
           onPrint={printFromCustomize}
-          onClose={() => setCustomTarget(null)}
+          onClose={(last) => { setValues(last); setCustomTarget(null) }}
         />
       )}
 

@@ -9,6 +9,7 @@ import { isoToLocalInput, localInputToIso } from './assignmentUi'
 import { useSpeechSynthesis } from '../../hooks/useSpeechSynthesis'
 import WorksheetPicker from './WorksheetPicker'
 import AssignPreview from './AssignPreview'
+import { useMediaQuery } from '../../hooks/useElementWidth'
 import { cleanAcrosticWord, getTemplate } from '../../../lib/school/worksheets.js'
 import { defaultPrompts } from './worksheetUi'
 
@@ -26,7 +27,7 @@ const PROMPT_MAX = 1000
 // "A book" or "A worksheet"; a worksheet then picks a template and edits
 // its prompts (WorksheetPicker). What an assignment is never changes after
 // it is created, and the template only while it is still a draft.
-export default function AssignmentForm({ classId, assignment, initialKind = null, initialTemplateId = null, onClose, onSaved }) {
+export default function AssignmentForm({ classId, className = '', assignment, initialKind = null, initialTemplateId = null, onClose, onSaved }) {
   const { t } = useTranslation()
   const panelRef = useRef(null)
   const isEdit = !!assignment
@@ -49,6 +50,8 @@ export default function AssignmentForm({ classId, assignment, initialKind = null
   const [error, setError] = useState(null)
   // Below lg the live preview takes the form's place: Edit | Preview.
   const [view, setView] = useState('edit')
+  // lg: the side pane is as tall as the modal allows, the sheet fitted in it.
+  const previewFitHeight = useMediaQuery('(min-width: 1024px)')
 
   const { speak, stop: stopSpeaking, isSpeaking, isSupported: ttsSupported } = useSpeechSynthesis()
 
@@ -285,8 +288,8 @@ export default function AssignmentForm({ classId, assignment, initialKind = null
         </div>
 
         {showPreview && (
-          <div className={`${view === 'preview' ? '' : 'hidden lg:block'} min-w-0 lg:sticky lg:top-0`}>
-            <AssignPreview worksheet={worksheet} title={title} prompt={prompt} />
+          <div className={`${view === 'preview' ? '' : 'hidden lg:block'} min-w-0 lg:sticky lg:top-0 lg:h-[calc(90vh-7rem)]`}>
+            <AssignPreview worksheet={worksheet} title={title} prompt={prompt} className={className} fitHeight={previewFitHeight} />
           </div>
         )}
         </div>

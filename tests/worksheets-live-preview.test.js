@@ -70,6 +70,35 @@ describe('Customize: the live sheet', () => {
     expect(previewCopyIndex(names, -1)).toBe(0)
   })
 
+  it('the pager label is not a live region; presses announce through a separate sr-only one', () => {
+    const t = i18next.getFixedT('en', 'worksheets')
+    const html = renderToStaticMarkup(createElement(CopyPager, { t, names: ['Ava', 'Ben'], index: 0, onIndex: () => {} }))
+    expect(html.match(/aria-live/g)).toHaveLength(1)
+    expect(html).toMatch(/<p class="sr-only" aria-live="polite" data-testid="customize-copy-announce"><\/p>/)
+    const panel = readFileSync('src/components/worksheets/CustomizePanel.jsx', 'utf8')
+    expect(panel).toContain('setAnnouncement(label(i))')
+  })
+
+  it('clamps the stored copy when names go, and a failed language load says so (with Try again)', () => {
+    const panel = readFileSync('src/components/worksheets/CustomizePanel.jsx', 'utf8')
+    expect(panel).toMatch(/setCopy\(\(c\) => Math\.min\(c, Math\.max\(0, names\.length - 1\)\)\)\n\s+\}, \[names\.length\]\)/)
+    expect(panel).toContain("() => { if (live) setLocaleFailed(true) },")
+    expect(panel).toContain("t('customize.preview_locale_error')")
+    expect(panel).toContain('setLocaleAttempt((n) => n + 1)')
+    const page = readFileSync('src/pages/WorksheetsPage.jsx', 'utf8')
+    expect(page).toContain('try { await loadLocale(values.sheetLocale) } catch { return }')
+  })
+
+  it('typing re-renders only the panel: the draft lives in it, not in the library page', () => {
+    const panel = readFileSync('src/components/worksheets/CustomizePanel.jsx', 'utf8')
+    const page = readFileSync('src/pages/WorksheetsPage.jsx', 'utf8')
+    expect(panel).toContain('const [values, setValues] = useState(initialValues)')
+    expect(page).toContain('initialValues={values}')
+    expect(page).not.toMatch(/onChange=\{\(patch\) => setValues/)
+    expect(page).toContain('onClose={(last) => { setValues(last); setCustomTarget(null) }}')
+    expect(panel).toContain('onClick={() => onPrint(values)}')
+  })
+
   it('fits the page to its pane: width on a phone, the whole page on a wide screen, never past true size', () => {
     expect(fitSheetWidth({ width: 343, height: 500 })).toBe(343)
     expect(fitSheetWidth({ width: 600, height: 500 }, { fitHeight: true })).toBe(Math.floor(500 * SHEET_WIDTH_PX / SHEET_HEIGHT_PX))
@@ -137,6 +166,15 @@ describe('assign form: the live preview', async () => {
     expect(wrapped).not.toContain('data-box="end"') // the full-wrap list
   })
 
+  it('printed: carries the class name, like Print blank', () => {
+    const html = paper({ worksheet: draft(base), className: 'Room 4' })
+    expect(html).toContain('Room 4')
+  })
+
+  it('prompts are trimmed as save() trims them', () => {
+    expect(previewWorksheet(draft({ ...base, middle: '   Then?  ' })).prompts.middle).toBe('Then?')
+  })
+
   it('the acrostic word shows as the child will get it (cleaned like the API)', () => {
     const ws = { templateId: 'acrostic', prompts: { word: 'The word', lines: 'A line per letter' }, word: ' sun ' }
     expect(previewWorksheet(ws).word).toBe('SUN')
@@ -148,7 +186,13 @@ describe('assign form: the live preview', async () => {
 
   it('sits in the form: beside the fields on lg, Edit | Preview below', () => {
     const form = readFileSync('src/components/school/AssignmentForm.jsx', 'utf8')
-    expect(form).toContain('<AssignPreview worksheet={worksheet} title={title} prompt={prompt} />')
+    expect(form).toContain('<AssignPreview worksheet={worksheet} title={title} prompt={prompt} className={className} fitHeight={previewFitHeight} />')
+    // The lg pane is bounded by the modal's height; the page is fitted in it.
+    expect(form).toContain('lg:sticky lg:top-0 lg:h-[calc(90vh-7rem)]')
+    expect(form).toContain("useMediaQuery('(min-width: 1024px)')")
+    // The class name reaches the printed preview, as Print blank passes it.
+    const section = readFileSync('src/components/school/AssignmentsSection.jsx', 'utf8')
+    expect(section).toMatch(/<AssignmentForm\n\s+classId=\{classId\}\n\s+className=\{className\}/)
     expect(form).toContain("showPreview ? 'lg:max-w-6xl' : ''")
     expect(form).toContain('lg:grid lg:grid-cols-2')
     expect(form).toMatch(/className="lg:hidden flex gap-1/)
@@ -169,10 +213,22 @@ describe('iPad: the assign form\'s live preview', () => {
   const library = readFileSync('ios-native/MyBookLab/Views/Teacher/TeacherWorksheetLibraryView.swift', 'utf8')
 
   it('beside the form only at regular width; a Preview button (sheet) on iPhone', () => {
-    expect(form).toContain('if hSize == .regular, let def = previewDefinition {')
-    expect(form).toContain('if hSize != .regular, previewDefinition != nil {')
+    // Regular in BOTH directions (an iPhone Plus / Max in landscape is
+    // regular-width, compact-height) and room for both panes.
+    expect(form).toContain('private var sideBySideCapable: Bool { hSize == .regular && vSize == .regular }')
+    expect(form).toContain('private var sideBySide: Bool { sideBySideCapable && availableWidth >= 720 }')
+    expect(form).toContain('.onGeometryChange(for: CGFloat.self) { $0.size.width } action: { availableWidth = $0 }')
+    expect(form).toContain('if sideBySide, let def = previewDefinition {')
+    expect(form).toContain('if !sideBySide, previewDefinition != nil {')
+    expect(form).not.toContain('userInterfaceIdiom')
     expect(form).toContain('.sheet(isPresented: $showingPreview)')
     expect(form).not.toContain('.confirmationDialog')
+  })
+
+  it('asks for the page sheet only when side-by-side-capable with a template chosen; kind known at init', () => {
+    expect(form).toContain('.modifier(TeacherAssignmentFormSizing(wide: sideBySideCapable && previewDefinition != nil))')
+    expect(form).toContain('_kind = State(initialValue: "worksheet")')
+    expect(form).toContain('_worksheet = State(initialValue: existing.worksheet)')
   })
 
   it('reuses the library\'s full-sheet preview, fed with the draft prompts and cleaned word', () => {
