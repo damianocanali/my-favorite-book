@@ -509,6 +509,7 @@ struct TeacherAssignmentForm: View {
     @Environment(AuthStore.self) private var auth
     @Environment(\.dismiss) private var dismiss
     @Environment(\.horizontalSizeClass) private var hSize
+    @Environment(\.verticalSizeClass) private var vSize
 
     @State private var title = ""
     @State private var prompt = ""
@@ -524,6 +525,35 @@ struct TeacherAssignmentForm: View {
     @State private var didInit = false
     /// iPhone: the live preview, opened from the toolbar.
     @State private var showingPreview = false
+    /// The form's own width, for the side-by-side decision.
+    @State private var availableWidth: CGFloat = 0
+
+    init(classId: String, existing: TeacherAssignment?, presetTemplateId: String? = nil,
+         onSaved: @escaping (TeacherAssignment, _ wasNew: Bool) -> Void) {
+        self.classId = classId
+        self.existing = existing
+        self.presetTemplateId = presetTemplateId
+        self.onSaved = onSaved
+        // Known before the sheet appears, so its size (TeacherAssignmentFormSizing)
+        // is right from the first frame instead of changing in onAppear.
+        if let existing, existing.isWorksheet {
+            _kind = State(initialValue: "worksheet")
+            _worksheet = State(initialValue: existing.worksheet)
+            _acrosticWord = State(initialValue: existing.worksheet?.word ?? "")
+        } else if existing == nil, let id = presetTemplateId, WorksheetTemplates.find(id) != nil {
+            _kind = State(initialValue: "worksheet")
+            _worksheet = State(initialValue: WorksheetDefinition(templateId: id, prompts: TeacherWorksheetPicker.defaultPrompts(id), word: nil))
+        }
+    }
+
+    /// Size classes that can hold the preview beside the form: iPad, not an
+    /// iPhone Plus / Max in landscape (regular width but compact height).
+    private var sideBySideCapable: Bool { hSize == .regular && vSize == .regular }
+
+    /// The preview goes beside the form only with room for both; otherwise
+    /// (iPhone, a narrow iPad split / slide over, the iOS 17 form sheet) the
+    /// toolbar's Preview button opens it in a sheet.
+    private var sideBySide: Bool { sideBySideCapable && availableWidth >= 720 }
 
     /// What the live preview draws (nil: not a worksheet, or none picked yet).
     private var previewDefinition: WorksheetDefinition? {
@@ -537,19 +567,20 @@ struct TeacherAssignmentForm: View {
             // scroll) when the preview appears; iPhone is just the Form.
             HStack(spacing: 0) {
                 form
-                if hSize == .regular, let def = previewDefinition {
+                if sideBySide, let def = previewDefinition {
                     Divider()
                     TeacherWorksheetLivePreview(definition: def)
                         .frame(minWidth: 280, idealWidth: 380, maxWidth: 440)
                 }
             }
+            .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { availableWidth = $0 }
             .navigationTitle(Text(existing == nil ? TeacherCopy.formNew : TeacherCopy.formEdit))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button { dismiss() } label: { Text(TeacherCopy.cancel) }
                 }
-                if hSize != .regular, previewDefinition != nil {
+                if !sideBySide, previewDefinition != nil {
                     ToolbarItem(placement: .primaryAction) {
                         Button { showingPreview = true } label: {
                             Label { Text(WorksheetCopy.teacherPreviewTab) } icon: { Image(systemName: "eye") }
@@ -595,7 +626,9 @@ struct TeacherAssignmentForm: View {
             }
         }
         .preferredColorScheme(.dark)
-        .modifier(TeacherAssignmentFormSizing(wide: kind == "worksheet"))
+        // The larger page sheet only where the preview can sit beside the
+        // form, and only once there is a sheet to preview.
+        .modifier(TeacherAssignmentFormSizing(wide: sideBySideCapable && previewDefinition != nil))
     }
 
     private var form: some View {
