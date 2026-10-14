@@ -106,19 +106,10 @@ struct TeacherWorksheetPicker: View {
         }
     }
 
-    /// A tiny picture of the sheet (one bar per box, sized like the box),
-    /// the name, what it's for and the grade band, on the teacher card.
+    /// The library's card (WorksheetLibraryCard), a size smaller: every
+    /// card the same size, the sheet drawn as its page.
     private func card(_ t: WorksheetTemplate) -> some View {
-        TeacherCard {
-            VStack(alignment: .leading, spacing: 8) {
-                WorksheetMiniature(template: t, scale: 0.8)
-                Text(WorksheetCopy.title(t.id)).font(.subheadline.bold()).foregroundStyle(.primary)
-                Text(WorksheetCopy.description(t.id)).font(.caption).foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-                Text(WorksheetCopy.grade(t.grade)).font(.caption2.bold()).foregroundStyle(.cyan)
-            }
-        }
-        .contentShape(RoundedRectangle(cornerRadius: 18))
+        WorksheetLibraryCard(template: t, thumbnailWidth: 104, compact: true)
     }
 
     private func promptBinding(_ id: String) -> Binding<String> {

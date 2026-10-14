@@ -171,7 +171,8 @@ describe('the iPad worksheet library (round 6B)', () => {
     expect(library).toContain('WorksheetLibraryFilters(category: $category, grade: $grade)')
     expect(library).toContain('ForEach(WorksheetLibrarySearch.grouped(list)) { shelf in')
     expect(library).toContain('WorksheetLibraryEmpty(')
-    expect(library).toContain('TeacherCard {')
+    // The cards (round 7: WorksheetLibraryCard) are teacher cards.
+    expect(readFileSync('ios-native/MyBookLab/Views/Teacher/TeacherWorksheetPage.swift', 'utf8')).toMatch(/struct WorksheetLibraryCard: View \{[\s\S]*?TeacherCard \{/)
     expect(library).not.toMatch(/\.white\.opacity\(0\.0[68]\), in: RoundedRectangle/)
     // As before: one column on an iPhone, as many as fit on an iPad.
     expect(library).toContain('GridItem(.adaptive(minimum: 200), spacing: 14)')
@@ -212,5 +213,48 @@ describe('the iPad worksheet library (round 6B)', () => {
     expect(model).toContain('return def.prompts.keys.sorted().map { .box(id: $0, prompt: def.prompts[$0] ?? "", size: .medium) }')
     const fill = readFileSync('ios-native/MyBookLab/Views/WorksheetFillView.swift', 'utf8')
     expect(fill).toContain('WorksheetLayout.items(definition, childWord: answers?["word"])')
+  })
+})
+
+describe('iPad round 7: uniform cards with a real page thumbnail', () => {
+  const page = readFileSync('ios-native/MyBookLab/Views/Teacher/TeacherWorksheetPage.swift', 'utf8')
+  const library = readFileSync('ios-native/MyBookLab/Views/Teacher/TeacherWorksheetLibraryView.swift', 'utf8')
+  const picker = readFileSync('ios-native/MyBookLab/Views/Teacher/TeacherWorksheetViews.swift', 'utf8')
+
+  it('the page\'s print hints are lib\'s, template by template', () => {
+    const swift = Object.fromEntries([...page.matchAll(/^ {8}"([a-z_]+)": \.init\((.*)\),$/gm)].map(([, id, args]) => {
+      const out = {}
+      const rows = args.match(/rows: \[(\[.*?\])\](?=, [a-zA-Z]+:|$)/)
+      if (rows) out.rows = [...rows[1].matchAll(/\[([^\]]*)\]/g)].map((m) => [...m[1].matchAll(/"([a-z_]+)"/g)].map((x) => x[1]))
+      const dict = (name) => {
+        const m = args.match(new RegExp(`${name}: \\[([^\\]]*)\\]`))
+        return m ? Object.fromEntries([...m[1].matchAll(/"([a-z_]+)": ([\d.]+)/g)].map((x) => [x[1], Number(x[2])])) : undefined
+      }
+      if (dict('lines')) out.lines = dict('lines')
+      if (dict('drawIn')) out.drawIn = dict('drawIn')
+      const pic = args.match(/picture: \.init\(atTop: (true|false), height: ([\d.]+)\)/)
+      if (pic) out.picture = { at: pic[1] === 'true' ? 'top' : 'bottom', height: Number(pic[2]) }
+      const body = args.match(/body: "([a-z_]+)"/)
+      if (body) out.body = body[1]
+      return [id, out]
+    }))
+    expect(swift).toEqual(Object.fromEntries(WORKSHEET_TEMPLATES.map((t) => [t.id, t.print ?? {}])))
+  })
+
+  it('a portrait Letter page scaled into a fixed frame, no GeometryReader per card', () => {
+    expect(page).toContain('static let size = CGSize(width: 612, height: 792)')
+    expect(page).toContain('.scaleEffect(width / WorksheetPage.size.width, anchor: .topLeading)')
+    expect(page).not.toContain('GeometryReader {')
+    expect(page).toContain('Text(WorksheetCopy.heading(definition.templateId))')
+    expect(page).toContain('case "word_web": wordWeb')
+    expect(page).toContain('case "feelings_checkin": feelings')
+  })
+
+  it('every card the same size: two reserved lines each, the grade pinned to the bottom, in both grids', () => {
+    expect(page.match(/\.lineLimit\(2, reservesSpace: true\)/g)).toHaveLength(2)
+    expect(page).toMatch(/Spacer\(minLength: 0\)\n\s+Text\(WorksheetCopy\.grade\(template\.grade\)\)/)
+    expect(library).toContain('NavigationLink(value: t.id) { WorksheetLibraryCard(template: t) }')
+    expect(picker).toContain('WorksheetLibraryCard(template: t, thumbnailWidth: 104, compact: true)')
+    expect(library + picker).not.toContain('WorksheetMiniature')
   })
 })

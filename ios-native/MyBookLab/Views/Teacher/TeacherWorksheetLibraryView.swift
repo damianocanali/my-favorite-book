@@ -184,53 +184,10 @@ struct TeacherWorksheetLibraryView: View {
     private func grid(_ templates: [WorksheetTemplate]) -> some View {
         LazyVGrid(columns: columns, spacing: 14) {
             ForEach(templates, id: \.id) { t in
-                NavigationLink(value: t.id) { TeacherWorksheetCard(template: t) }
+                NavigationLink(value: t.id) { WorksheetLibraryCard(template: t) }
                     .buttonStyle(.plain)
             }
         }
-    }
-}
-
-/// A tiny picture of the sheet (one bar per box, sized like the box), the
-/// name, what it's for and the grade band — on the teacher area's card.
-struct TeacherWorksheetCard: View {
-    let template: WorksheetTemplate
-
-    var body: some View {
-        TeacherCard {
-            VStack(alignment: .leading, spacing: 8) {
-                WorksheetMiniature(template: template, scale: 1)
-                Text(WorksheetCopy.title(template.id)).font(.headline).foregroundStyle(.primary)
-                Text(WorksheetCopy.description(template.id)).font(.caption).foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-                Text(WorksheetCopy.grade(template.grade)).font(.caption2.bold()).foregroundStyle(.cyan)
-            }
-        }
-        .contentShape(RoundedRectangle(cornerRadius: 18))
-    }
-}
-
-/// One bar per box, sized like the box, on a white page (the drawing box
-/// shown as a taller frame when the sheet has one on paper).
-struct WorksheetMiniature: View {
-    let template: WorksheetTemplate
-    var scale: CGFloat = 1
-
-    var body: some View {
-        VStack(spacing: 3 * scale) {
-            if WorksheetCopy.picture(template.id) != nil {
-                RoundedRectangle(cornerRadius: 2).stroke(.black.opacity(0.6), lineWidth: 1.2)
-                    .frame(height: 22 * scale)
-            }
-            ForEach(template.boxes, id: \.id) { b in
-                RoundedRectangle(cornerRadius: 2)
-                    .stroke(.black.opacity(0.45))
-                    .frame(height: (b.size == .small ? 6 : b.size == .medium ? 12 : 20) * scale)
-            }
-        }
-        .padding(10 * scale)
-        .background(.white.opacity(0.92), in: RoundedRectangle(cornerRadius: 6))
-        .accessibilityHidden(true)
     }
 }
 

@@ -142,3 +142,15 @@ describe('the assign picker renders', () => {
     expect(edit).toContain('value="Ask A"')
   })
 })
+
+describe('round 7: every card the same size, the sheet drawn as its page', () => {
+  it('the chooser\'s cards use the library\'s page thumbnail and reserve two lines each', async () => {
+    const { readFileSync } = await import('node:fs')
+    const picker = readFileSync('src/components/school/WorksheetPicker.jsx', 'utf8')
+    expect(picker).toContain('<WorksheetThumbnail lazy width={width} templateId={templateId} {...sheetProps} />')
+    expect(picker).not.toContain('SIZE_HEIGHT')
+    expect(picker.match(/line-clamp-2 min-h-\[/g)).toHaveLength(2)
+    const page = readFileSync('src/pages/WorksheetsPage.jsx', 'utf8')
+    expect(page.match(/line-clamp-2 min-h-\[/g)).toHaveLength(2)
+  })
+})
