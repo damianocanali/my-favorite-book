@@ -40,8 +40,10 @@ struct WorksheetFillView: View {
     }
     private var userId: String? { auth.user?.id.uuidString }
     private var items: [WorksheetItem] { WorksheetLayout.items(definition, childWord: answers?["word"]) }
+    /// No worksheet definition reached this device (nothing to fill in).
+    private var unavailable: Bool { assignment.worksheet == nil }
     /// Open, and not past a due date that refuses late work.
-    private var canSubmit: Bool { assignment.canSubmit && !(assignment.past_due == true && assignment.allow_late == false) }
+    private var canSubmit: Bool { !unavailable && assignment.canSubmit && !(assignment.past_due == true && assignment.allow_late == false) }
     private var ready: Bool { WorksheetLayout.hasAnswers(answers ?? [:]) && changedSinceHandIn }
     /// The teacher's prompts are read in the class's language.
     private var promptLanguage: String? { assignment.class_locale }
@@ -60,7 +62,13 @@ struct WorksheetFillView: View {
                         if loadFailed {
                             Text(HandInCopy.error("generic")).foregroundStyle(.red)
                         }
-                        if answers == nil && !loadFailed {
+                        if unavailable {
+                            // Round 7: the definition didn't come through.
+                            // Say so here; never send the child to the book editor.
+                            Text(WorksheetCopy.studentUnavailable)
+                                .font(.title3).foregroundStyle(.white)
+                                .fixedSize(horizontal: false, vertical: true)
+                        } else if answers == nil && !loadFailed {
                             ProgressView().tint(.white).frame(maxWidth: .infinity).padding(.vertical, 40)
                         } else if answers != nil {
                             ForEach(items) { item in itemView(item) }

@@ -17063,6 +17063,24 @@
         }
       }
     },
+    "school.worksheet.student.unavailable": {
+      "comment": "Worksheet fill-in: the assignment's worksheet didn't reach the device (web: school worksheet.student.unavailable).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This worksheet can’t open on this device right now. Ask your teacher for help."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questa scheda ora non si apre su questo dispositivo. Chiedi aiuto all’insegnante."
+          }
+        }
+      }
+    },
     "school.worksheet.student.continue": {
       "extractionState": "manual",
       "localizations": {

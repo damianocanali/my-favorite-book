@@ -233,7 +233,7 @@ export default function AssignmentsSection({ classId, className, locale, onOpenR
                       and the class name, straight into the Customize panel
                       (WorksheetsPage reads these same query params via
                       parseWorksheetParams). */}
-                  {isWorksheet(a) ? (
+                  {isWorksheet(a) && a.worksheet ? (
                     // A worksheet assignment prints its own boxes and
                     // prompts, blank, for a paper day.
                     <button

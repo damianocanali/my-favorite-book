@@ -258,3 +258,39 @@ describe('iPad round 7: uniform cards with a real page thumbnail', () => {
     expect(library + picker).not.toContain('WorksheetMiniature')
   })
 })
+
+describe('round 7: a student\'s worksheet assignment always opens the worksheet', () => {
+  const model = readFileSync('ios-native/MyBookLab/Models/StudentAssignment.swift', 'utf8')
+  const section = readFileSync('ios-native/MyBookLab/Views/StudentAssignmentsView.swift', 'utf8')
+  const fill = readFileSync('ios-native/MyBookLab/Views/WorksheetFillView.swift', 'utf8')
+
+  it('the kind alone routes it (a missing or unreadable definition never sends a child to the book editor)', () => {
+    expect(model).toContain('var isWorksheet: Bool { kind == "worksheet" }')
+    // An unreadable worksheet is nil, not a failed list that hides every card.
+    expect(model).toContain('worksheet = try? c.decodeIfPresent(WorksheetDefinition.self, forKey: .worksheet)')
+    // Every key the synthesized decoder read is still read.
+    for (const k of ['id', 'title', 'prompt', 'due_at', 'status', 'allow_late', 'created_at', 'past_due', 'my_submission', 'kind', 'class_locale']) {
+      expect(model).toContain(`forKey: .${k})`)
+    }
+  })
+
+  it('every way a child starts it goes through startOrContinue, whose first branch is the worksheet', () => {
+    expect(section).toMatch(/private func startOrContinue\([\s\S]*?\{\n[^\n]*\n\s+if assignment\.isWorksheet \{\n\s+worksheetFor = assignment\n\s+return true/)
+    // The card's Start / Continue / Hand in again / Try again, and the nudge.
+    expect(section).toContain('startOrContinue(assignment)\n                                },')
+    expect(section).toContain('if startOrContinue(a, nudge: n) { dismissNudge(n) }')
+    expect(section).toContain('onTryAgain: assignment.canTryAgain ? {\n                        feedbackFor = nil\n                        startOrContinue(assignment)')
+    // The only place that begins a new book for an assignment is behind it.
+    expect(section.match(/draft\.book\?\.assignmentId = assignment\.id/g)).toHaveLength(1)
+  })
+
+  it('without a definition the fill-in view says so and offers no hand-in', () => {
+    expect(fill).toContain('private var unavailable: Bool { assignment.worksheet == nil }')
+    expect(fill).toContain('Text(WorksheetCopy.studentUnavailable)')
+    expect(fill).toContain('private var canSubmit: Bool { !unavailable && assignment.canSubmit')
+    expect(catalog['school.worksheet.student.unavailable'].localizations.it.stringUnit.value).toBe(
+      itL.worksheet.student.unavailable)
+    expect(catalog['school.worksheet.student.unavailable'].localizations.en.stringUnit.value).toBe(
+      en.worksheet.student.unavailable)
+  })
+})

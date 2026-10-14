@@ -32,10 +32,14 @@ const SEQ = { templateId: 'sequence', prompts: { first: 'First…', next: 'Next�
 const ACR = { templateId: 'acrostic', prompts: { word: 'Pick a word', lines: 'A line per letter' } }
 
 describe('worksheetUi', () => {
-  it('isWorksheet needs both the kind and the definition', () => {
+  it('isWorksheet: the kind alone decides — a worksheet never falls through to the book editor (round 7)', () => {
     expect(isWorksheet({ kind: 'worksheet', worksheet: SEQ })).toBe(true)
-    expect(isWorksheet({ kind: 'worksheet' })).toBe(false)
+    // Its definition missing or unreadable: still the fill-in view (which says so).
+    expect(isWorksheet({ kind: 'worksheet' })).toBe(true)
+    expect(isWorksheet({ kind: 'worksheet', worksheet: null })).toBe(true)
     expect(isWorksheet({ kind: 'book' })).toBe(false)
+    expect(isWorksheet({})).toBe(false)
+    expect(isWorksheet(null)).toBe(false)
   })
 
   it('defaultPrompts reads the template\'s own prompts from the catalogue', () => {
@@ -220,5 +224,21 @@ describe('the child\'s fill-in view reuses the existing pieces', () => {
   it('a worksheet card opens the fill-in view, never the book draft; nudges go the same way', () => {
     expect(mine).toMatch(/function startOrContinue\(assignment\) \{\n\s+markOpened\(assignment\.id\)\n[\s\S]*?if \(isWorksheet\(assignment\)\) \{\n\s+setWorksheetFor\(assignment\)/)
     expect(mine).toMatch(/if \(isWorksheet\(assignment\)\) \{\n\s+markOpened\(assignment\.id\)\n\s+setWorksheetFor\(assignment\)/)
+  })
+})
+
+describe('round 7: a worksheet assignment without its definition', () => {
+  it('opens the fill-in view with a note and the way back — never a crash, never the book editor', async () => {
+    const { createElement } = await import('react')
+    const { default: WorksheetFill } = await import('../src/components/school/WorksheetFill.jsx')
+    const html = renderToStaticMarkup(createElement(WorksheetFill, {
+      assignment: { id: 'a1', title: 'My morning', kind: 'worksheet', worksheet: null, status: 'published' },
+      userId: 'u1', onClose: () => {},
+    }))
+    expect(html).toContain('data-testid="worksheet-unavailable"')
+    expect(html).toContain('My morning')
+    expect(html).toContain('aria-label="school:worksheet.student.close"')
+    expect(en.worksheet.student.unavailable).toBeTruthy()
+    expect(JSON.parse(readFileSync('src/i18n/locales/it/school.json', 'utf8')).worksheet.student.unavailable).toBeTruthy()
   })
 })

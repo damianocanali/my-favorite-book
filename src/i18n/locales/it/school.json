@@ -1364,6 +1364,7 @@
       "word_placeholder": "Scrivi la tua parola",
       "line_for": "Verso per {{letter}}",
       "close": "Chiudi la scheda",
+      "unavailable": "Questa scheda ora non si apre su questo dispositivo. Chiedi aiuto all’insegnante.",
       "make_pages": "Trasforma in pagine del libro",
       "make_pages_heading": "Crea pagine del libro",
       "make_pages_hint": "Le tue risposte diventano pagine su cui continuare a scrivere.",

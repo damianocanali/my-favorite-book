@@ -28,7 +28,36 @@ import {
  * shelf, for "add to one of my books"), `onClose`, `onHandedIn()` (reload
  * the list), `onMakePages({ texts, bookId|null })`.
  */
-export default function WorksheetFill({ assignment, userId, books = [], onClose, onHandedIn, onMakePages }) {
+export default function WorksheetFill(props) {
+  // Round 7: a worksheet assignment whose definition didn't come through
+  // still opens here — with a note and the way back — never the book editor.
+  if (!props.assignment?.worksheet?.templateId) return <WorksheetUnavailable title={props.assignment?.title ?? ''} onClose={props.onClose} />
+  return <WorksheetFillView {...props} />
+}
+
+function WorksheetUnavailable({ title, onClose }) {
+  const { t } = useTranslation()
+  return (
+    <div role="dialog" aria-modal="true" aria-label={title} className="fixed inset-0 z-[70] overflow-y-auto bg-galaxy-bg" data-testid="worksheet-unavailable">
+      <div className="max-w-3xl mx-auto px-4 py-6 space-y-4">
+        <div className="flex items-start justify-between gap-3">
+          <h2 className="font-heading text-2xl font-bold text-galaxy-text">{title}</h2>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label={t('school:worksheet.student.close')}
+            className="p-3 rounded-full text-galaxy-text-muted hover:text-galaxy-text transition-colors shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center"
+          >
+            <X size={22} />
+          </button>
+        </div>
+        <p className="font-body text-galaxy-text">{t('school:worksheet.student.unavailable')}</p>
+      </div>
+    </div>
+  )
+}
+
+function WorksheetFillView({ assignment, userId, books = [], onClose, onHandedIn, onMakePages }) {
   const { t, i18n } = useTranslation()
   const panelRef = useRef(null)
   const worksheet = assignment.worksheet

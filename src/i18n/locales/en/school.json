@@ -1364,6 +1364,7 @@
       "word_placeholder": "Type your word",
       "line_for": "Line for {{letter}}",
       "close": "Close worksheet",
+      "unavailable": "This worksheet can’t open on this device right now. Ask your teacher for help.",
       "make_pages": "Turn into book pages",
       "make_pages_heading": "Make book pages",
       "make_pages_hint": "Your answers become pages you can keep writing.",
