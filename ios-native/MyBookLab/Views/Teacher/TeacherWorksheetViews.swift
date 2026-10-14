@@ -315,7 +315,9 @@ enum WorksheetPDF {
         for sheet in sheets {
             let renderer = ImageRenderer(content:
                 WorksheetPage(definition: def, title: title, studentName: sheet.studentName)
-                    .environment(\.colorScheme, .light))
+                    .environment(\.colorScheme, .light)
+                    // ImageRenderer doesn't inherit the app's environment.
+                    .environment(\.locale, AppLanguage.locale))
             renderer.proposedSize = ProposedViewSize(WorksheetPage.size)
             renderer.render { _, draw in
                 pdf.beginPDFPage(nil)

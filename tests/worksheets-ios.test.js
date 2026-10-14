@@ -181,7 +181,7 @@ describe('the iPad worksheet library (round 6B)', () => {
     // VoiceOver, heading first.
     const page = readFileSync('ios-native/MyBookLab/Views/Teacher/TeacherWorksheetPage.swift', 'utf8')
     expect(page).toContain('.accessibilityElement(children: .contain)')
-    expect(page).toMatch(/headingText\n(?:[^\n]*\n){5}\s+\.accessibilityAddTraits\(\.isHeader\)/)
+    expect(page).toMatch(/headingText\n(?:[^\n]*\n){5,8}\s+\.accessibilityAddTraits\(\.isHeader\)/)
     expect(page).toContain('return Text(WorksheetCopy.heading(definition.templateId))')
   })
 

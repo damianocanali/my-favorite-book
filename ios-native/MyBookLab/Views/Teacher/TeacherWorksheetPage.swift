@@ -168,8 +168,9 @@ struct WorksheetPage: View {
         VStack(alignment: .leading, spacing: 0) {
             headingText
                 .font(.system(size: 26, weight: .bold, design: .rounded))
-                .lineLimit(1)
-                .minimumScaleFactor(0.6)
+                .lineLimit(2)
+                .minimumScaleFactor(0.7)
+                .multilineTextAlignment(.center)
                 .frame(maxWidth: .infinity)
                 .frame(height: 40)
                 .accessibilityAddTraits(.isHeader)
@@ -235,9 +236,11 @@ struct WorksheetPage: View {
 
     private func box(_ b: WorksheetPrintLayout.Box) -> some View {
         VStack(alignment: .leading, spacing: 0) {
+            // 10.5pt matches the web label the labels-fit rule is calibrated on.
             Text(verbatim: label(b.id))
-                .font(.system(size: 12, weight: .bold))
+                .font(.system(size: 10.5, weight: .bold))
                 .lineLimit(2)
+                .minimumScaleFactor(0.8)
                 .frame(height: px(WorksheetPrintLayout.labelIn), alignment: .topLeading)
             if b.drawIn > 0 {
                 RoundedRectangle(cornerRadius: 6).stroke(.black, lineWidth: 1.5)
@@ -320,6 +323,7 @@ struct WorksheetPage: View {
                     .font(.system(size: bold ? 12 : 10, weight: bold ? .bold : .semibold))
                     .multilineTextAlignment(.center)
                     .lineLimit(2)
+                    .minimumScaleFactor(0.6)
                     .padding(.horizontal, 16).padding(.top, 10)
             }
             .frame(width: width, height: height)
@@ -330,7 +334,7 @@ struct WorksheetPage: View {
     // "what helps" side by side (sheets.jsx FeelingsCheckinBody).
     private var feelings: some View {
         VStack(alignment: .leading, spacing: px(WorksheetPrintLayout.gapIn)) {
-            Text(verbatim: label("feeling")).font(.system(size: 15, weight: .bold)).lineLimit(1)
+            Text(verbatim: label("feeling")).font(.system(size: 15, weight: .bold)).lineLimit(1).minimumScaleFactor(0.6)
                 .frame(height: px(WorksheetPrintLayout.labelIn), alignment: .topLeading)
             VStack(spacing: px(0.15)) {
                 ForEach(0..<2, id: \.self) { _ in
