@@ -242,3 +242,31 @@ describe('round 7: a worksheet assignment without its definition', () => {
     expect(JSON.parse(readFileSync('src/i18n/locales/it/school.json', 'utf8')).worksheet.student.unavailable).toBeTruthy()
   })
 })
+
+describe('round 7 fix round 1', () => {
+  it('past a due date that refuses late work, the child\'s answers open read-only and say why', async () => {
+    const { createElement } = await import('react')
+    const { WorksheetFillBoxes } = await import('../src/components/school/WorksheetFillBody.jsx')
+    const layout = fillLayout(SEQ)
+    const answers = { first: 'Woke up' }
+    const locked = renderToStaticMarkup(createElement(WorksheetFillBoxes, { layout, worksheet: SEQ, answers, onChange: () => {}, readOnly: true }))
+    expect(locked.match(/<textarea[^>]*readOnly=""/g)).toHaveLength(4)
+    expect(locked).toContain('Woke up')
+    const open = renderToStaticMarkup(createElement(WorksheetFillBoxes, { layout, worksheet: SEQ, answers, onChange: () => {} }))
+    expect(open).not.toMatch(/<textarea[^>]*readOnly=""/)
+    // The fill-in view wires it to the same rule as the hand-in, with the past-due copy instead of "saved here".
+    const fill = readFileSync('src/components/school/WorksheetFill.jsx', 'utf8')
+    expect(fill).toContain("const pastDueLocked = !!assignment.past_due && assignment.allow_late === false")
+    expect(fill).toContain('readOnly={pastDueLocked} />')
+    expect(fill).toMatch(/\{pastDueLocked \? \(\n\s+<p[^>]*data-testid="worksheet-past-due">\{t\('school:student\.hand_in\.errors\.past_due'\)\}<\/p>/)
+  })
+
+  it('the teacher\'s row: a library hand-off is cleared on close and on save; a worksheet without its definition shows no print or library link', () => {
+    const section = readFileSync('src/components/school/AssignmentsSection.jsx', 'utf8')
+    expect(section).toMatch(/const clearInitial = \(\) => \{\n\s+setInitialKind\(null\)\n\s+setInitialTemplate\(null\)\n\s+\}/)
+    expect(section).toContain('onClose={() => { setFormTarget(null); clearInitial() }}')
+    expect(section).toMatch(/const wasNew = formTarget === 'new'\n\s+setFormTarget\(null\)\n\s+clearInitial\(\)/)
+    expect(section).toContain('{isWorksheet(a) ? (a.worksheet ? (')
+    expect(section).toContain(') : null) : (')
+  })
+})

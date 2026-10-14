@@ -139,7 +139,8 @@ describe('the iPad flows treat a worksheet as a worksheet', () => {
     expect(fill).toContain('speaker.toggle(text, language: promptLanguage)')
     expect(fill).not.toMatch(/\.font\(\.system\(size:/)
     // Hand in follows past-due-no-late and waits for a change.
-    expect(fill).toContain('assignment.canSubmit && !(assignment.past_due == true && assignment.allow_late == false)')
+    expect(fill).toContain('private var pastDueLocked: Bool { assignment.past_due == true && assignment.allow_late == false }')
+    expect(fill).toContain('assignment.canSubmit && !pastDueLocked')
     expect(fill).toContain('changedSinceHandIn = false')
     // A newer hand-in wins over an older device draft.
     expect(model).toMatch(/submitted > draft\.updatedAt \{\n\s+return \.handedIn/)
@@ -176,9 +177,11 @@ describe('the iPad worksheet library (round 6B)', () => {
     expect(library).not.toMatch(/\.white\.opacity\(0\.0[68]\), in: RoundedRectangle/)
     // As before: one column on an iPhone, as many as fit on an iPad.
     expect(library).toContain('GridItem(.adaptive(minimum: 200), spacing: 14)')
-    // The preview keeps its pieces separate for VoiceOver, heading first.
-    expect(library).toContain('.accessibilityElement(children: .contain)')
-    expect(library).toMatch(/Text\(WorksheetCopy\.heading\(definition\.templateId\)\)[^\n]*\n[^\n]*\n\s+\.accessibilityAddTraits\(\.isHeader\)/)
+    // The preview (round 7: WorksheetPage) keeps its pieces separate for
+    // VoiceOver, heading first.
+    const page = readFileSync('ios-native/MyBookLab/Views/Teacher/TeacherWorksheetPage.swift', 'utf8')
+    expect(page).toContain('.accessibilityElement(children: .contain)')
+    expect(page).toMatch(/Text\(WorksheetCopy\.heading\(definition\.templateId\)\)(?:\n[^\n]*){5}\n\s+\.accessibilityAddTraits\(\.isHeader\)/)
   })
 
   it('search matches the same fields as the web, ignoring case and accents', () => {
@@ -189,9 +192,10 @@ describe('the iPad worksheet library (round 6B)', () => {
   })
 
   it('the preview shows the sheet\'s heading, drawing box and every box; Assign and Print from it', () => {
-    expect(library).toContain('WorksheetSheetPreview(definition: definition)')
-    expect(library).toContain('Text(WorksheetCopy.heading(definition.templateId))')
-    expect(library).toContain('if let picture {')
+    expect(library).toContain('WorksheetPageFitted(definition: definition)')
+    const page = readFileSync('ios-native/MyBookLab/Views/Teacher/TeacherWorksheetPage.swift', 'utf8')
+    expect(page).toContain('Text(WorksheetCopy.heading(definition.templateId))')
+    expect(page).toContain('if let p = layout.picture, p.atTop { pictureBlock(picture, min: p.height) }')
     expect(library).toContain('TeacherAssignmentForm(classId: c.id, existing: nil, presetTemplateId: templateId,\n                                  presetWorksheet: custom == nil ? nil : definition)')
     expect(library).toContain('WorksheetPDF.make(title: title, worksheet: definition,')
   })
@@ -292,5 +296,15 @@ describe('round 7: a student\'s worksheet assignment always opens the worksheet'
       itL.worksheet.student.unavailable)
     expect(catalog['school.worksheet.student.unavailable'].localizations.en.stringUnit.value).toBe(
       en.worksheet.student.unavailable)
+  })
+})
+
+describe('round 7 fix round 1 (iPad)', () => {
+  const fill = readFileSync('ios-native/MyBookLab/Views/WorksheetFillView.swift', 'utf8')
+  it('unavailable: no "saved on this iPad", no load error; past due without late work: read-only with the past-due copy', () => {
+    expect(fill).toContain('if loadFailed, !unavailable {')
+    expect(fill).toMatch(/if pastDueLocked, !unavailable \{\n\s+Text\(HandInCopy\.error\("past_due"\)\)[^\n]*\n\s+\} else if !unavailable \{\n\s+Label \{ Text\(WorksheetCopy\.studentSavedHere\) \}/)
+    expect(fill.match(/\.disabled\(pastDueLocked\)/g)).toHaveLength(2)
+    expect(fill).toContain('guard !pastDueLocked else { return }')
   })
 })

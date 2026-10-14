@@ -230,7 +230,13 @@ describe('iPad: the assign form\'s live preview', () => {
 
   it('round 7: full screen at regular width (a portrait iPad sheet is too narrow for both panes); kind known at init', () => {
     expect(views).toContain('struct TeacherAssignmentFormPresentation<Item: Identifiable, Form: View>: ViewModifier {')
-    expect(views).toContain('let fullScreen = hSize == .regular')
+    // Latched when the form opens: a size-class change mid-edit never swaps cover and sheet.
+    expect(views).toContain('let fullScreen = latchedFullScreen ?? (hSize == .regular)')
+    expect(views).toContain('.onChange(of: item?.id, initial: true) { _, id in')
+    expect(views).toContain('latchedFullScreen = id == nil ? nil : (latchedFullScreen ?? (hSize == .regular))')
+    // Alone, the full-screen form keeps a readable width.
+    expect(form).toContain('.frame(maxWidth: sideBySide ? .infinity : Self.formMaxWidth)')
+    expect(form).toContain('static let formMaxWidth: CGFloat = 700')
     expect(views).toContain('.fullScreenCover(item: fullScreen ? $item : .constant(nil), onDismiss: onDismiss, content: form)')
     expect(views).toContain('.sheet(item: fullScreen ? .constant(nil) : $item, onDismiss: onDismiss, content: form)')
     expect(views).not.toContain('presentationSizing')
@@ -244,20 +250,24 @@ describe('iPad: the assign form\'s live preview', () => {
   it('round 7: the library\'s Customize edits the prompts with the sheet redrawn live, and Assign / Print carry them', () => {
     expect(library).toContain('Text(customizing ? TeacherCopy.done : TeacherCopy.worksheetsCustomize)')
     expect(library).toContain('custom?.prompts[id] = cut')
-    expect(library).toContain('WorksheetSheetPreview(definition: definition)')
+    expect(library).toContain('WorksheetPageFitted(definition: definition)')
     expect(library).toContain('WorksheetPDF.make(title: title, worksheet: definition,')
     expect(library).toContain('private var sideBySide: Bool { customizing && hSize == .regular && width >= 700 }')
     // The form starts on the customized prompts when they are for its template.
     expect(form).toContain('if let custom, custom.templateId == id { return custom }')
   })
 
-  it('reuses the library\'s full-sheet preview, fed with the draft prompts and cleaned word', () => {
-    expect(views).toMatch(/struct TeacherWorksheetLivePreview: View \{[\s\S]*?WorksheetSheetPreview\(definition: definition\)/)
+  it('reuses the cards\' page (fitted to the pane), fed with the draft prompts and cleaned word', () => {
+    expect(views).toMatch(/struct TeacherWorksheetLivePreview: View \{[\s\S]*?WorksheetPageFitted\(definition: definition\)/)
     expect(views).toContain('def.word = def.isAcrostic ? WorksheetTemplates.cleanAcrosticWord(word) : nil')
     expect(views).toContain('TeacherCard {')
     expect(views).toContain('TeacherTheme.sheetBackground')
-    // The preview draws the teacher's word and its letters.
-    expect(library).toContain('if let word = definition.word, !word.isEmpty {')
-    expect(library).toContain('Text(verbatim: l.letter)')
+    // The page draws the teacher's word and its letters.
+    const page = readFileSync('ios-native/MyBookLab/Views/Teacher/TeacherWorksheetPage.swift', 'utf8')
+    expect(page).toContain('} else if b.id == "word", let word = definition.word, !word.isEmpty {')
+    expect(page).toContain('let letters = (definition.word ?? "").map(String.init)')
+    // Thumbnail, preview and live preview are the same WorksheetPage.
+    expect(page).toMatch(/struct WorksheetPageFitted: View \{[\s\S]*?WorksheetPage\(definition: definition\)/)
+    expect(page).toMatch(/struct WorksheetPageThumbnail: View \{[\s\S]*?WorksheetPage\(definition: definition\)/)
   })
 })

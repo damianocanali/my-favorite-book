@@ -571,6 +571,8 @@ struct TeacherAssignmentForm: View {
     /// preview is never unreachable waiting on a measurement.
     private var sideBySide: Bool { sideBySideCapable && availableWidth >= Self.sideBySideMinWidth }
     static let sideBySideMinWidth: CGFloat = 700
+    /// The form's width on its own (full screen on an iPad).
+    static let formMaxWidth: CGFloat = 700
     /// The preview pane: a good share of the width, the form keeps the rest.
     private var previewWidth: CGFloat { min(480, max(320, (availableWidth * 0.45).rounded())) }
 
@@ -585,13 +587,19 @@ struct TeacherAssignmentForm: View {
             // HStack is always there so the Form keeps its identity (focus,
             // scroll) when the preview appears; iPhone is just the Form.
             HStack(spacing: 0) {
+                // Alone (a book, or the preview behind its button), the form
+                // keeps a readable width, centred, instead of stretching
+                // across a full-screen iPad.
                 form
+                    .frame(maxWidth: sideBySide ? .infinity : Self.formMaxWidth)
                 if sideBySide, let def = previewDefinition {
                     Divider()
                     TeacherWorksheetLivePreview(definition: def)
                         .frame(width: previewWidth)
                 }
             }
+            .frame(maxWidth: .infinity)
+            .background(Color(.systemGroupedBackground))
             .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { availableWidth = $0 }
             .navigationTitle(Text(existing == nil ? TeacherCopy.formNew : TeacherCopy.formEdit))
             .navigationBarTitleDisplayMode(.inline)

@@ -142,6 +142,7 @@ struct WorksheetPage: View {
                 .minimumScaleFactor(0.6)
                 .frame(maxWidth: .infinity)
                 .frame(height: 40)
+                .accessibilityAddTraits(.isHeader)
             HStack(spacing: 24) {
                 field(AppText("worksheets.sheet.header.name", defaultValue: "Name"))
                 field(AppText("worksheets.sheet.header.date", defaultValue: "Date"))
@@ -158,6 +159,8 @@ struct WorksheetPage: View {
         .frame(width: Self.size.width, height: Self.size.height, alignment: .top)
         .foregroundStyle(.black)
         .background(.white)
+        // VoiceOver: the heading, then each label in order, kept separate.
+        .accessibilityElement(children: .contain)
     }
 
     @ViewBuilder
@@ -346,6 +349,33 @@ struct WorksheetPageThumbnail: View {
             .shadow(color: .black.opacity(0.25), radius: 3, y: 1)
             .allowsHitTesting(false)
             .accessibilityHidden(true)
+    }
+}
+
+/// The page as large as its pane is wide (the library's preview, the assign
+/// form's live preview): the same WorksheetPage as the cards, so thumbnail,
+/// preview and live preview all look alike. Its height follows 8.5 : 11;
+/// the surrounding ScrollView scrolls it. One width measurement per
+/// preview (there are one or two on screen, never a grid of them).
+struct WorksheetPageFitted: View {
+    let definition: WorksheetDefinition
+
+    @State private var width: CGFloat = 0
+
+    var body: some View {
+        Color.clear
+            .aspectRatio(WorksheetPage.size.width / WorksheetPage.size.height, contentMode: .fit)
+            .frame(maxWidth: .infinity)
+            .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { width = $0 }
+            .overlay(alignment: .topLeading) {
+                if width > 0 {
+                    WorksheetPage(definition: definition)
+                        .scaleEffect(width / WorksheetPage.size.width, anchor: .topLeading)
+                        .frame(width: width, height: width * WorksheetPage.size.height / WorksheetPage.size.width,
+                               alignment: .topLeading)
+                }
+            }
+            .clipShape(RoundedRectangle(cornerRadius: 8))
     }
 }
 

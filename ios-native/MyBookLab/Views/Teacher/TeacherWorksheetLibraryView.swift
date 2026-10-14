@@ -338,7 +338,7 @@ struct TeacherWorksheetDetailView: View {
             if customizing {
                 Text(WorksheetCopy.teacherPreviewHint).font(.caption).foregroundStyle(TeacherTheme.secondaryText)
             }
-            WorksheetSheetPreview(definition: definition)
+            WorksheetPageFitted(definition: definition)
         }
     }
 
@@ -403,90 +403,6 @@ struct TeacherWorksheetDetailView: View {
         let data = WorksheetPDF.make(title: title, worksheet: definition,
                                      sheets: [.init(studentName: "", answers: nil)])
         WorksheetPrinter.print(data, jobName: title)
-    }
-}
-
-/// The blank sheet, drawn natively: a white page with the sheet's heading,
-/// Name / Date, the drawing box when it has one on paper, and every box's
-/// label with ruled lines (one per small box, three per medium, six per
-/// large; twelve letter rows for the acrostic). Not pixel-identical to the
-/// printed page — the same structure, readable at full width.
-struct WorksheetSheetPreview: View {
-    let definition: WorksheetDefinition
-
-    private var picture: LocalizedStringResource? { WorksheetCopy.picture(definition.templateId) }
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            Text(WorksheetCopy.heading(definition.templateId)).font(.title2.bold())
-                .frame(maxWidth: .infinity)
-                .accessibilityAddTraits(.isHeader)
-            HStack(spacing: 16) {
-                field(AppText("worksheets.sheet.header.name", defaultValue: "Name"))
-                field(AppText("worksheets.sheet.header.date", defaultValue: "Date"))
-            }
-            Rectangle().fill(.black).frame(height: 1.5)
-            if let picture {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(picture).font(.subheadline.bold())
-                    RoundedRectangle(cornerRadius: 6).stroke(.black, lineWidth: 1.5).frame(height: 150)
-                }
-            }
-            ForEach(WorksheetLayout.items(definition)) { item in
-                switch item {
-                case .box(_, let prompt, let size):
-                    promptAndLines(prompt, size == .small ? 1 : size == .medium ? 3 : 6)
-                case .word(let prompt, _):
-                    // The teacher's word (the assign form's live preview),
-                    // else a line for the child to choose one.
-                    if let word = definition.word, !word.isEmpty {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(verbatim: prompt).font(.subheadline.bold())
-                            Text(verbatim: word).font(.title2.bold()).tracking(6)
-                        }
-                    } else {
-                        promptAndLines(prompt, 1)
-                    }
-                case .letters(let prompt, let letters):
-                    VStack(alignment: .leading, spacing: 0) {
-                        Text(verbatim: prompt).font(.subheadline.bold())
-                        // One row per letter of the word; twelve blank rows without one.
-                        let rows = letters.isEmpty ? (0..<12).map { WorksheetItem.Letter(id: "line_\($0 + 1)", letter: "") } : letters
-                        ForEach(rows) { l in
-                            HStack(alignment: .bottom, spacing: 8) {
-                                if l.letter.isEmpty {
-                                    Rectangle().fill(.black).frame(width: 22, height: 1.5)
-                                } else {
-                                    Text(verbatim: l.letter).font(.headline.bold()).frame(width: 22)
-                                }
-                                Rectangle().fill(.black.opacity(0.35)).frame(height: 0.7)
-                            }
-                            .padding(.top, 18)
-                        }
-                    }
-                }
-            }
-        }
-        .foregroundStyle(.black)
-        .padding(24)
-        .background(.white, in: RoundedRectangle(cornerRadius: 10))
-        .accessibilityElement(children: .contain)
-    }
-
-    private func field(_ label: LocalizedStringResource) -> some View {
-        HStack(alignment: .bottom, spacing: 4) {
-            Text(label).font(.footnote)
-            Rectangle().fill(.black.opacity(0.5)).frame(height: 0.7)
-        }
-    }
-
-    private func promptAndLines(_ prompt: String, _ lines: Int) -> some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Text(verbatim: prompt).font(.subheadline.bold())
-            ForEach(0..<lines, id: \.self) { _ in
-                Rectangle().fill(.black.opacity(0.35)).frame(height: 0.7).padding(.top, 18)
-            }
-        }
     }
 }
 

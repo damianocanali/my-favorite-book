@@ -66,7 +66,7 @@ export function WorksheetFillTitle({ templateId, title, prompt, speech }) {
   )
 }
 
-function BoxEditor({ id, prompt, rows, label, scaffold = false, answers, onChange, speech, dictation, preview }) {
+function BoxEditor({ id, prompt, rows, label, scaffold = false, answers, onChange, speech, dictation, preview, readOnly = false }) {
   const { t } = useTranslation()
   const value = answers?.[id] ?? ''
   return (
@@ -82,14 +82,14 @@ function BoxEditor({ id, prompt, rows, label, scaffold = false, answers, onChang
         <textarea
           value={value}
           onChange={(e) => onChange?.(id, e.target.value)}
-          readOnly={preview}
+          readOnly={preview || readOnly}
           tabIndex={preview ? -1 : undefined}
           rows={rows}
           maxLength={ANSWER_MAX}
           aria-label={label ? t('school:worksheet.student.line_for', { letter: label }) : prompt}
           className="flex-1 min-w-0 px-4 py-3 bg-white/[0.06] border border-white/15 rounded-xl text-galaxy-text text-xl font-body focus:border-galaxy-primary focus:outline-none resize-y"
         />
-        <MicButton boxId={id} dictation={dictation} />
+        {!readOnly && <MicButton boxId={id} dictation={dictation} />}
       </div>
       {value.length >= ANSWER_MAX && (
         <p className="text-amber-300 text-sm font-body">{t('school:worksheet.student.box_full')}</p>
@@ -97,7 +97,7 @@ function BoxEditor({ id, prompt, rows, label, scaffold = false, answers, onChang
       {/* Word help only on the big free-writing boxes, and always the
           "middle of a story" starters: a worksheet box has no page
           position for opening/ending starters to fit. */}
-      {scaffold && !preview && (
+      {scaffold && !preview && !readOnly && (
         <WritingScaffold
           page={{ id, pageNumber: 2, text: value }}
           totalPages={3}
@@ -109,10 +109,12 @@ function BoxEditor({ id, prompt, rows, label, scaffold = false, answers, onChang
   )
 }
 
-/// Every box of `layout` (worksheetUi's fillLayout), in order.
-export function WorksheetFillBoxes({ layout, worksheet, answers, onChange, speech = null, dictation = null, preview = false }) {
+/// Every box of `layout` (worksheetUi's fillLayout), in order. `readOnly`:
+/// the child's own answers, shown but not editable (past a due date that
+/// refuses late work) — read-aloud stays, dictation and word help go.
+export function WorksheetFillBoxes({ layout, worksheet, answers, onChange, speech = null, dictation = null, preview = false, readOnly = false }) {
   const { t } = useTranslation()
-  const shared = { answers, onChange, speech, dictation, preview }
+  const shared = { answers, onChange, speech, dictation, preview, readOnly }
   return (
     <div className="space-y-4">
       {layout.map((box) => {
@@ -130,7 +132,7 @@ export function WorksheetFillBoxes({ layout, worksheet, answers, onChange, speec
                   type="text"
                   value={answers?.word ?? ''}
                   onChange={(e) => onChange?.('word', e.target.value.replace(/\s/g, ''))}
-                  readOnly={preview}
+                  readOnly={preview || readOnly}
                   tabIndex={preview ? -1 : undefined}
                   maxLength={ACROSTIC_WORD_MAX}
                   placeholder={t('school:worksheet.student.word_placeholder')}

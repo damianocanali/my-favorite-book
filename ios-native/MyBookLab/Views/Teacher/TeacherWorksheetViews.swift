@@ -153,8 +153,8 @@ struct TeacherWorksheetPicker: View {
 // MARK: - Live preview (assign form)
 
 /// The worksheet as the class will get it, redrawn as the teacher edits the
-/// prompts or the acrostic word: the library's own full-sheet preview
-/// (WorksheetSheetPreview) fed with the form's draft. Beside the form on
+/// prompts or the acrostic word: the same page as the library's cards and
+/// preview (WorksheetPage, fitted to the pane) fed with the form's draft. Beside the form on
 /// iPad (regular width); in a sheet behind a "Preview" button on iPhone.
 struct TeacherWorksheetLivePreview: View {
     let definition: WorksheetDefinition
@@ -168,7 +168,7 @@ struct TeacherWorksheetLivePreview: View {
                     Text(WorksheetCopy.teacherPreviewHint).font(.caption).foregroundStyle(TeacherTheme.secondaryText)
                 }
                 TeacherCard {
-                    WorksheetSheetPreview(definition: definition)
+                    WorksheetPageFitted(definition: definition)
                 }
             }
             .padding(16)
@@ -197,12 +197,19 @@ struct TeacherAssignmentFormPresentation<Item: Identifiable, Form: View>: ViewMo
     let form: (Item) -> Form
 
     @Environment(\.horizontalSizeClass) private var hSize
+    /// The style chosen when the form opened, kept until it closes: a size
+    /// class change mid-edit (Split View, Stage Manager) must not swap the
+    /// cover for a sheet, which would dismiss the form and lose the input.
+    @State private var latchedFullScreen: Bool?
 
     func body(content: Content) -> some View {
-        let fullScreen = hSize == .regular
+        let fullScreen = latchedFullScreen ?? (hSize == .regular)
         content
             .sheet(item: fullScreen ? .constant(nil) : $item, onDismiss: onDismiss, content: form)
             .fullScreenCover(item: fullScreen ? $item : .constant(nil), onDismiss: onDismiss, content: form)
+            .onChange(of: item?.id, initial: true) { _, id in
+                latchedFullScreen = id == nil ? nil : (latchedFullScreen ?? (hSize == .regular))
+            }
     }
 }
 

@@ -42,8 +42,11 @@ struct WorksheetFillView: View {
     private var items: [WorksheetItem] { WorksheetLayout.items(definition, childWord: answers?["word"]) }
     /// No worksheet definition reached this device (nothing to fill in).
     private var unavailable: Bool { assignment.worksheet == nil }
+    /// Past a due date that refuses late work: the answers show read-only,
+    /// so a child can't type what can never be handed in.
+    private var pastDueLocked: Bool { assignment.past_due == true && assignment.allow_late == false }
     /// Open, and not past a due date that refuses late work.
-    private var canSubmit: Bool { !unavailable && assignment.canSubmit && !(assignment.past_due == true && assignment.allow_late == false) }
+    private var canSubmit: Bool { !unavailable && assignment.canSubmit && !pastDueLocked }
     private var ready: Bool { WorksheetLayout.hasAnswers(answers ?? [:]) && changedSinceHandIn }
     /// The teacher's prompts are read in the class's language.
     private var promptLanguage: String? { assignment.class_locale }
@@ -59,7 +62,7 @@ struct WorksheetFillView: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 18) {
                         header
-                        if loadFailed {
+                        if loadFailed, !unavailable {
                             Text(HandInCopy.error("generic")).foregroundStyle(.red)
                         }
                         if unavailable {
@@ -169,6 +172,7 @@ struct WorksheetFillView: View {
                     .padding(12)
                     .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 14))
                     .accessibilityLabel(Text(WorksheetCopy.studentWordLabel))
+                    .disabled(pastDueLocked)
                 }
             }
         case .letters(let prompt, let letters):
@@ -201,6 +205,7 @@ struct WorksheetFillView: View {
         VStack(alignment: .leading, spacing: 4) {
             TextField(text: binding(id, max: WorksheetTemplates.answerMax), axis: .vertical) { EmptyView() }
                 .accessibilityLabel(label)
+                .disabled(pastDueLocked)
                 .font(.system(.title2, design: .rounded))
                 .foregroundStyle(.white)
                 .lineLimit(2...20)
@@ -228,6 +233,7 @@ struct WorksheetFillView: View {
         Binding(
             get: { answers?[id] ?? "" },
             set: { v in
+                guard !pastDueLocked else { return }
                 var text = noSpaces ? v.filter { !$0.isWhitespace } : v
                 // UTF-16 units: the unit the server's 2000 limit counts.
                 text = TeacherStickers.truncated(text, max: max)
@@ -243,8 +249,14 @@ struct WorksheetFillView: View {
 
     @ViewBuilder
     private var footer: some View {
-        Label { Text(WorksheetCopy.studentSavedHere) } icon: { Image(systemName: "checkmark.circle") }
-            .font(.caption).foregroundStyle(.white.opacity(0.6))
+        // Nothing is saved when there is nothing to fill in; past a due date
+        // that refuses late work, the answers are read-only and say why.
+        if pastDueLocked, !unavailable {
+            Text(HandInCopy.error("past_due")).font(.subheadline.bold()).foregroundStyle(.orange)
+        } else if !unavailable {
+            Label { Text(WorksheetCopy.studentSavedHere) } icon: { Image(systemName: "checkmark.circle") }
+                .font(.caption).foregroundStyle(.white.opacity(0.6))
+        }
 
         if let error {
             Text(HandInCopy.error(error)).font(.subheadline.bold()).foregroundStyle(.red)
