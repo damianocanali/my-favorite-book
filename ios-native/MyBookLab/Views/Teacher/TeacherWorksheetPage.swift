@@ -82,6 +82,31 @@ enum WorksheetPrintLayout {
         return Layout(rows: rows, picture: hint.picture, rowsHeight: rowsHeight)
     }
 
+    // labelsFit (printLayout.js): a label is two lines of bold text at
+    // most; 10.5 characters per inch per line, over the row's share of the
+    // 7.5 in writing width (0.2 in between boxes).
+    static let labelCharsPerIn = 10.5
+    static let rowGapIn = 0.2
+    static let writingWidthIn = 7.5
+
+    /// How many characters fit in a box's two-line label, in a row of `n`.
+    static func labelCharLimit(_ boxesInRow: Int) -> Int {
+        let n = Double(max(boxesInRow, 1))
+        let width = (writingWidthIn - rowGapIn * (n - 1)) / n
+        return Int((width * labelCharsPerIn).rounded(.down)) * 2
+    }
+
+    /// Whether every prompt fits its label on the one-page layout. When one
+    /// doesn't (prompts can be 300 characters), a blank sheet prints in the
+    /// full-wrapping list instead — as on the web. Counted in UTF-16 units,
+    /// like JavaScript's length.
+    static func labelsFit(_ def: WorksheetDefinition) -> Bool {
+        guard let template = def.template else { return false }
+        return layout(template).rows.allSatisfy { row in
+            row.boxes.allSatisfy { (def.prompts[$0.id] ?? "").utf16.count <= labelCharLimit(row.boxes.count) }
+        }
+    }
+
     /// Same contents as the templates' `print` in lib/school/worksheets.js.
     static let hints: [String: WorksheetPrintHint] = [
         "story_map": .init(rows: [["characters", "setting"], ["problem"], ["events"], ["ending"]]),
@@ -125,6 +150,11 @@ enum WorksheetPrintLayout {
 /// own). Black on white, like paper, in any appearance.
 struct WorksheetPage: View {
     let definition: WorksheetDefinition
+    /// The assignment's title as the page heading (printing an assignment,
+    /// the assign form's preview); nil or empty = the sheet's own heading.
+    var title: String? = nil
+    /// A per-child copy's name, written on the Name line.
+    var studentName: String = ""
 
     static let size = CGSize(width: 612, height: 792)
     private static let inch: CGFloat = 72
@@ -136,7 +166,7 @@ struct WorksheetPage: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text(WorksheetCopy.heading(definition.templateId))
+            headingText
                 .font(.system(size: 26, weight: .bold, design: .rounded))
                 .lineLimit(1)
                 .minimumScaleFactor(0.6)
@@ -144,7 +174,7 @@ struct WorksheetPage: View {
                 .frame(height: 40)
                 .accessibilityAddTraits(.isHeader)
             HStack(spacing: 24) {
-                field(AppText("worksheets.sheet.header.name", defaultValue: "Name"))
+                field(AppText("worksheets.sheet.header.name", defaultValue: "Name"), value: studentName)
                 field(AppText("worksheets.sheet.header.date", defaultValue: "Date"))
                     .frame(width: 170)
             }
@@ -161,6 +191,13 @@ struct WorksheetPage: View {
         .background(.white)
         // VoiceOver: the heading, then each label in order, kept separate.
         .accessibilityElement(children: .contain)
+    }
+
+    private var headingText: Text {
+        if let title, !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            return Text(verbatim: title)
+        }
+        return Text(WorksheetCopy.heading(definition.templateId))
     }
 
     @ViewBuilder
@@ -325,10 +362,16 @@ struct WorksheetPage: View {
         }
     }
 
-    private func field(_ title: LocalizedStringResource) -> some View {
+    private func field(_ title: LocalizedStringResource, value: String = "") -> some View {
         HStack(alignment: .bottom, spacing: 6) {
             Text(title).font(.system(size: 13))
             Rectangle().fill(.black.opacity(0.6)).frame(height: 0.8)
+                .overlay(alignment: .bottomLeading) {
+                    if !value.isEmpty {
+                        Text(verbatim: value).font(.system(size: 15, weight: .semibold)).lineLimit(1)
+                            .padding(.leading, 4).padding(.bottom, 2)
+                    }
+                }
         }
     }
 }
@@ -353,14 +396,18 @@ struct WorksheetPageThumbnail: View {
 }
 
 /// The page as large as its pane is wide (the library's preview, the assign
-/// form's live preview): the same WorksheetPage as the cards, so thumbnail,
-/// preview and live preview all look alike. Its height follows 8.5 : 11;
-/// the surrounding ScrollView scrolls it. One width measurement per
-/// preview (there are one or two on screen, never a grid of them).
+/// form's live preview): the same WorksheetPage as the cards and the print,
+/// so thumbnail, preview, live preview and paper all look alike. Its height
+/// follows 8.5 : 11; the surrounding ScrollView scrolls it. A tap (or the
+/// corner button) opens it full screen, pinch-zoomable, so the teacher can
+/// read every prompt at size. One width measurement per preview (one or two
+/// on screen, never a grid of them).
 struct WorksheetPageFitted: View {
     let definition: WorksheetDefinition
+    var title: String? = nil
 
     @State private var width: CGFloat = 0
+    @State private var zoomed = false
 
     var body: some View {
         Color.clear
@@ -369,13 +416,74 @@ struct WorksheetPageFitted: View {
             .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { width = $0 }
             .overlay(alignment: .topLeading) {
                 if width > 0 {
-                    WorksheetPage(definition: definition)
+                    WorksheetPage(definition: definition, title: title)
                         .scaleEffect(width / WorksheetPage.size.width, anchor: .topLeading)
                         .frame(width: width, height: width * WorksheetPage.size.height / WorksheetPage.size.width,
                                alignment: .topLeading)
                 }
             }
             .clipShape(RoundedRectangle(cornerRadius: 8))
+            .contentShape(Rectangle())
+            .onTapGesture { zoomed = true }
+            .overlay(alignment: .topTrailing) {
+                Button { zoomed = true } label: {
+                    Image(systemName: "arrow.up.left.and.arrow.down.right")
+                        .font(.body.bold())
+                        .frame(width: 44, height: 44)
+                        .background(TeacherTheme.cardFillStrong.opacity(0.92), in: Circle())
+                        .foregroundStyle(.white)
+                }
+                .padding(6)
+                .accessibilityLabel(Text(TeacherCopy.worksheetsViewFullSize))
+            }
+            .fullScreenCover(isPresented: $zoomed) {
+                WorksheetPageZoomView(definition: definition, title: title)
+            }
+    }
+}
+
+/// The page full screen: as wide as the screen to start, pinch (or double
+/// tap) to zoom up to 4x, scrolling both ways.
+struct WorksheetPageZoomView: View {
+    let definition: WorksheetDefinition
+    var title: String? = nil
+
+    @Environment(\.dismiss) private var dismiss
+    @State private var width: CGFloat = 0
+    @State private var zoom: CGFloat = 1
+    @GestureState private var pinch: CGFloat = 1
+
+    private var scale: CGFloat {
+        let fit = max(width - 32, 1) / WorksheetPage.size.width
+        return fit * min(4, max(1, zoom * pinch))
+    }
+
+    var body: some View {
+        NavigationStack {
+            ScrollView([.horizontal, .vertical]) {
+                WorksheetPage(definition: definition, title: title)
+                    .scaleEffect(scale, anchor: .topLeading)
+                    .frame(width: WorksheetPage.size.width * scale, height: WorksheetPage.size.height * scale,
+                           alignment: .topLeading)
+                    .padding(16)
+            }
+            .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { width = $0 }
+            .gesture(
+                MagnifyGesture()
+                    .updating($pinch) { value, state, _ in state = value.magnification }
+                    .onEnded { value in zoom = min(4, max(1, zoom * value.magnification)) }
+            )
+            .onTapGesture(count: 2) { withAnimation(.snappy) { zoom = zoom > 1.01 ? 1 : 2 } }
+            .background(TeacherTheme.sheetBackground)
+            .navigationTitle(Text(TeacherCopy.worksheetsPreview))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button { dismiss() } label: { Text(TeacherCopy.done) }
+                }
+            }
+        }
+        .preferredColorScheme(.dark)
     }
 }
 

@@ -25445,6 +25445,24 @@
         }
       }
     },
+    "school.teacher.worksheet_library.view_full_size": {
+      "comment": "Worksheet preview button (and tap): open the page full screen, pinch to zoom.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View the sheet full size"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vedi la scheda a grandezza piena"
+          }
+        }
+      }
+    },
     "school.teacher.worksheet_library.pick_class": {
       "comment": "Class picker title when assigning a worksheet.",
       "extractionState": "manual",

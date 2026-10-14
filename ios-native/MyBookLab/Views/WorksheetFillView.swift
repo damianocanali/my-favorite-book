@@ -162,6 +162,10 @@ struct WorksheetFillView: View {
                         .font(.system(.largeTitle, design: .rounded).bold())
                         .tracking(10)
                         .foregroundStyle(.cyan)
+                } else if pastDueLocked {
+                    readOnlyAnswer(answers?["word"], font: .system(.largeTitle, design: .rounded).bold(),
+                                   label: Text(WorksheetCopy.studentWordLabel))
+                        .tracking(10)
                 } else {
                     TextField(text: binding("word", max: WorksheetTemplates.acrosticWordMax, noSpaces: true)) {
                         Text(WorksheetCopy.studentWordPlaceholder)
@@ -172,7 +176,6 @@ struct WorksheetFillView: View {
                     .padding(12)
                     .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 14))
                     .accessibilityLabel(Text(WorksheetCopy.studentWordLabel))
-                    .disabled(pastDueLocked)
                 }
             }
         case .letters(let prompt, let letters):
@@ -201,11 +204,40 @@ struct WorksheetFillView: View {
 
     /// `label`: the box's accessibility label, on the text field itself so
     /// the "box is full" note below keeps its own.
+    @ViewBuilder
     private func editor(id: String, minHeight: CGFloat, label: Text) -> some View {
+        if pastDueLocked {
+            readOnlyAnswer(answers?[id], font: .system(.title2, design: .rounded), label: label)
+        } else {
+            writableEditor(id: id, minHeight: minHeight, label: label)
+        }
+    }
+
+    /// Past a due date that refuses late work: what the child wrote, as
+    /// plain readable text (nothing to type into, nothing dimmed).
+    private func readOnlyAnswer(_ text: String?, font: Font, label: Text) -> some View {
+        let value = (text ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        return Group {
+            if value.isEmpty {
+                Text(verbatim: "—").foregroundStyle(.white.opacity(0.6))
+            } else {
+                Text(verbatim: value).foregroundStyle(.white)
+            }
+        }
+        .font(font)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.vertical, 6)
+        .fixedSize(horizontal: false, vertical: true)
+        .textSelection(.enabled)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(label)
+        .accessibilityValue(Text(verbatim: value))
+    }
+
+    private func writableEditor(id: String, minHeight: CGFloat, label: Text) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             TextField(text: binding(id, max: WorksheetTemplates.answerMax), axis: .vertical) { EmptyView() }
                 .accessibilityLabel(label)
-                .disabled(pastDueLocked)
                 .font(.system(.title2, design: .rounded))
                 .foregroundStyle(.white)
                 .lineLimit(2...20)

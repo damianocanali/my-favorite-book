@@ -258,7 +258,7 @@ describe('iPad: the assign form\'s live preview', () => {
   })
 
   it('reuses the cards\' page (fitted to the pane), fed with the draft prompts and cleaned word', () => {
-    expect(views).toMatch(/struct TeacherWorksheetLivePreview: View \{[\s\S]*?WorksheetPageFitted\(definition: definition\)/)
+    expect(views).toMatch(/struct TeacherWorksheetLivePreview: View \{[\s\S]*?WorksheetPageFitted\(definition: definition, title: title\)/)
     expect(views).toContain('def.word = def.isAcrostic ? WorksheetTemplates.cleanAcrosticWord(word) : nil')
     expect(views).toContain('TeacherCard {')
     expect(views).toContain('TeacherTheme.sheetBackground')
@@ -267,7 +267,7 @@ describe('iPad: the assign form\'s live preview', () => {
     expect(page).toContain('} else if b.id == "word", let word = definition.word, !word.isEmpty {')
     expect(page).toContain('let letters = (definition.word ?? "").map(String.init)')
     // Thumbnail, preview and live preview are the same WorksheetPage.
-    expect(page).toMatch(/struct WorksheetPageFitted: View \{[\s\S]*?WorksheetPage\(definition: definition\)/)
+    expect(page).toMatch(/struct WorksheetPageFitted: View \{[\s\S]*?WorksheetPage\(definition: definition, title: title\)/)
     expect(page).toMatch(/struct WorksheetPageThumbnail: View \{[\s\S]*?WorksheetPage\(definition: definition\)/)
   })
 })

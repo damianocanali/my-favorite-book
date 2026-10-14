@@ -23,6 +23,7 @@ enum TeacherCopy {
     static var worksheetsPreview: LocalizedStringResource { AppText("school.teacher.worksheet_library.preview", defaultValue: "Preview") }
     static var worksheetsAssign: LocalizedStringResource { AppText("school.teacher.worksheet_library.assign", defaultValue: "Assign to a class") }
     static var worksheetsCustomize: LocalizedStringResource { AppText("school.teacher.worksheet_library.customize", defaultValue: "Customize") }
+    static var worksheetsViewFullSize: LocalizedStringResource { AppText("school.teacher.worksheet_library.view_full_size", defaultValue: "View the sheet full size") }
     static var worksheetsPickClass: LocalizedStringResource { AppText("school.teacher.worksheet_library.pick_class", defaultValue: "Choose a class") }
     static var worksheetsNoClasses: LocalizedStringResource { AppText("school.teacher.worksheet_library.no_classes", defaultValue: "Create a class first, in Classes.") }
     static func worksheetsSaved(_ className: String) -> LocalizedStringResource { AppText("school.teacher.worksheet_library.saved", defaultValue: "Saved in \(className).") }

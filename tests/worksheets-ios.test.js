@@ -181,7 +181,8 @@ describe('the iPad worksheet library (round 6B)', () => {
     // VoiceOver, heading first.
     const page = readFileSync('ios-native/MyBookLab/Views/Teacher/TeacherWorksheetPage.swift', 'utf8')
     expect(page).toContain('.accessibilityElement(children: .contain)')
-    expect(page).toMatch(/Text\(WorksheetCopy\.heading\(definition\.templateId\)\)(?:\n[^\n]*){5}\n\s+\.accessibilityAddTraits\(\.isHeader\)/)
+    expect(page).toMatch(/headingText\n(?:[^\n]*\n){5}\s+\.accessibilityAddTraits\(\.isHeader\)/)
+    expect(page).toContain('return Text(WorksheetCopy.heading(definition.templateId))')
   })
 
   it('search matches the same fields as the web, ignoring case and accents', () => {
@@ -304,7 +305,41 @@ describe('round 7 fix round 1 (iPad)', () => {
   it('unavailable: no "saved on this iPad", no load error; past due without late work: read-only with the past-due copy', () => {
     expect(fill).toContain('if loadFailed, !unavailable {')
     expect(fill).toMatch(/if pastDueLocked, !unavailable \{\n\s+Text\(HandInCopy\.error\("past_due"\)\)[^\n]*\n\s+\} else if !unavailable \{\n\s+Label \{ Text\(WorksheetCopy\.studentSavedHere\) \}/)
-    expect(fill.match(/\.disabled\(pastDueLocked\)/g)).toHaveLength(2)
+    // Fix round 2: plain readable text, not dimmed disabled fields.
+    expect(fill).not.toContain('.disabled(pastDueLocked)')
+    expect(fill).toMatch(/if pastDueLocked \{\n\s+readOnlyAnswer\(answers\?\[id\]/)
+    expect(fill).toMatch(/\} else if pastDueLocked \{\n\s+readOnlyAnswer\(answers\?\["word"\]/)
     expect(fill).toContain('guard !pastDueLocked else { return }')
+  })
+})
+
+describe('round 7 fix round 2: the iPad prints what the teacher previewed', () => {
+  const views = readFileSync('ios-native/MyBookLab/Views/Teacher/TeacherWorksheetViews.swift', 'utf8')
+  const page = readFileSync('ios-native/MyBookLab/Views/Teacher/TeacherWorksheetPage.swift', 'utf8')
+  const form = readFileSync('ios-native/MyBookLab/Views/Teacher/TeacherClassesView.swift', 'utf8')
+
+  it('a blank sheet is WorksheetPage rendered as a vector PDF page, one page per name', () => {
+    expect(views).toMatch(/static func pagePDF\([\s\S]*?CGContext\(consumer: consumer, mediaBox: &box, nil\)[\s\S]*?for sheet in sheets \{[\s\S]*?ImageRenderer\(content:\n\s+WorksheetPage\(definition: def, title: title, studentName: sheet\.studentName\)/)
+    expect(views).toContain('renderer.render { _, draw in\n                pdf.beginPDFPage(nil)\n                draw(pdf)')
+    expect(views).not.toMatch(/renderer\.(uiImage|cgImage)/)
+    expect(page).toContain('static let size = CGSize(width: 612, height: 792)')
+  })
+
+  it('the web\'s fallback: filled, unknown template or a label that doesn\'t fit prints the full-wrapping list', () => {
+    expect(views).toContain('sheets.allSatisfy { $0.answers == nil } && WorksheetPrintLayout.labelsFit(def)')
+    expect(views).toContain('static func listPDF(title: String, worksheet def: WorksheetDefinition, sheets: [Sheet]) -> Data {')
+    // labelsFit mirrors printLayout.js.
+    expect(page).toContain('static let labelCharsPerIn = 10.5')
+    expect(page).toContain('static let rowGapIn = 0.2')
+    expect(page).toContain('return Int((width * labelCharsPerIn).rounded(.down)) * 2')
+    expect(page).toContain('(def.prompts[$0.id] ?? "").utf16.count <= labelCharLimit(row.boxes.count)')
+  })
+
+  it('the preview carries the title the print will; a tap opens it full screen and pinch-zoomable; the pane is half the width', () => {
+    expect(form).toContain('TeacherWorksheetLivePreview(definition: def, title: title)')
+    expect(page).toContain('WorksheetPageZoomView(definition: definition, title: title)')
+    expect(page).toContain('MagnifyGesture()')
+    expect(page).toContain('.accessibilityLabel(Text(TeacherCopy.worksheetsViewFullSize))')
+    expect(form).toContain('private var previewWidth: CGFloat { min(560, max(320, (availableWidth * 0.5).rounded())) }')
   })
 })

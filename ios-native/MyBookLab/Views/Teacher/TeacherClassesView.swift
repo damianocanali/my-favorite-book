@@ -573,8 +573,9 @@ struct TeacherAssignmentForm: View {
     static let sideBySideMinWidth: CGFloat = 700
     /// The form's width on its own (full screen on an iPad).
     static let formMaxWidth: CGFloat = 700
-    /// The preview pane: a good share of the width, the form keeps the rest.
-    private var previewWidth: CGFloat { min(480, max(320, (availableWidth * 0.45).rounded())) }
+    /// The preview pane: half the width (up to 560 pt), so the page's
+    /// labels stay readable; the form keeps the rest. Full size is a tap away.
+    private var previewWidth: CGFloat { min(560, max(320, (availableWidth * 0.5).rounded())) }
 
     /// What the live preview draws (nil: not a worksheet, or none picked yet).
     private var previewDefinition: WorksheetDefinition? {
@@ -594,7 +595,7 @@ struct TeacherAssignmentForm: View {
                     .frame(maxWidth: sideBySide ? .infinity : Self.formMaxWidth)
                 if sideBySide, let def = previewDefinition {
                     Divider()
-                    TeacherWorksheetLivePreview(definition: def)
+                    TeacherWorksheetLivePreview(definition: def, title: title)
                         .frame(width: previewWidth)
                 }
             }
@@ -620,7 +621,7 @@ struct TeacherAssignmentForm: View {
             .sheet(isPresented: $showingPreview) {
                 NavigationStack {
                     Group {
-                        if let def = previewDefinition { TeacherWorksheetLivePreview(definition: def) }
+                        if let def = previewDefinition { TeacherWorksheetLivePreview(definition: def, title: title) }
                     }
                     .navigationTitle(Text(WorksheetCopy.teacherPreviewTab))
                     .navigationBarTitleDisplayMode(.inline)
