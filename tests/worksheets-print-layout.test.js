@@ -122,3 +122,15 @@ describe('every sheet renders, in English and Italian, with real copy', () => {
     expect(html).toContain(en.school.worksheet.templates.beginning_middle_end.heading)
   })
 })
+
+describe('the printed Name line (round 7, owner)', () => {
+  it('the name sits just above its rule; the line box is the label\'s own height, so the header reserve holds', async () => {
+    const { readFileSync } = await import('node:fs')
+    const header = readFileSync('src/components/worksheets/WorksheetHeader.jsx', 'utf8')
+    // text-sm is a 20px line: an h-5 line box keeps the row 20px (h-4 let the name overflow onto the rule).
+    expect(header).toContain('className="flex-1 border-b border-black h-5 flex items-end leading-none pb-[3px] pl-1" data-testid="sheet-name-line"')
+    expect(header).toContain('<span className="flex-1 border-b border-black h-5" />')
+    expect(header).not.toContain('h-4')
+    expect(header).toContain('<div className="flex items-end gap-4 text-sm">')
+  })
+})

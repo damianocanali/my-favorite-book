@@ -50,7 +50,7 @@ describe('Customize: the live sheet', () => {
 
   it('with pasted names the Name line shows copy N; without, it is blank', () => {
     const named = renderToStaticMarkup(createElement(LiveSheet, { templateId: 'acrostic', locale: 'en', values, studentName: 'Maya', width: 300 }))
-    expect(named).toMatch(/border-b border-black h-4">Maya</)
+    expect(named).toMatch(/data-testid="sheet-name-line">Maya</)
     const blank = renderToStaticMarkup(createElement(LiveSheet, { templateId: 'acrostic', locale: 'en', values, studentName: '', width: 300 }))
     expect(blank).not.toContain('Maya')
     expect(renderToStaticMarkup(createElement(LiveSheet, { templateId: 'acrostic', locale: 'en', values, width: 0 }))).toBe('')
