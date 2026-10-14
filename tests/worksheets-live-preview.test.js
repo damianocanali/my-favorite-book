@@ -212,23 +212,43 @@ describe('iPad: the assign form\'s live preview', () => {
   const views = readFileSync('ios-native/MyBookLab/Views/Teacher/TeacherWorksheetViews.swift', 'utf8')
   const library = readFileSync('ios-native/MyBookLab/Views/Teacher/TeacherWorksheetLibraryView.swift', 'utf8')
 
-  it('beside the form only at regular width; a Preview button (sheet) on iPhone', () => {
+  it('beside the form only at regular width with room; otherwise a Preview button that never waits on a measurement', () => {
     // Regular in BOTH directions (an iPhone Plus / Max in landscape is
     // regular-width, compact-height) and room for both panes.
     expect(form).toContain('private var sideBySideCapable: Bool { hSize == .regular && vSize == .regular }')
-    expect(form).toContain('private var sideBySide: Bool { sideBySideCapable && availableWidth >= 720 }')
+    expect(form).toContain('private var sideBySide: Bool { sideBySideCapable && availableWidth >= Self.sideBySideMinWidth }')
+    expect(form).toContain('static let sideBySideMinWidth: CGFloat = 700')
     expect(form).toContain('.onGeometryChange(for: CGFloat.self) { $0.size.width } action: { availableWidth = $0 }')
     expect(form).toContain('if sideBySide, let def = previewDefinition {')
-    expect(form).toContain('if availableWidth > 0, !sideBySide, previewDefinition != nil {')
+    // Round 7: no `availableWidth > 0` gate — unmeasured = the button.
+    expect(form).toContain('if !sideBySide, previewDefinition != nil {')
+    expect(form).not.toContain('availableWidth > 0')
     expect(form).not.toContain('userInterfaceIdiom')
     expect(form).toContain('.sheet(isPresented: $showingPreview)')
     expect(form).not.toContain('.confirmationDialog')
   })
 
-  it('asks for the page sheet only when side-by-side-capable with a template chosen; kind known at init', () => {
-    expect(form).toContain('.modifier(TeacherAssignmentFormSizing(wide: sideBySideCapable && previewDefinition != nil))')
+  it('round 7: full screen at regular width (a portrait iPad sheet is too narrow for both panes); kind known at init', () => {
+    expect(views).toContain('struct TeacherAssignmentFormPresentation<Item: Identifiable, Form: View>: ViewModifier {')
+    expect(views).toContain('let fullScreen = hSize == .regular')
+    expect(views).toContain('.fullScreenCover(item: fullScreen ? $item : .constant(nil), onDismiss: onDismiss, content: form)')
+    expect(views).toContain('.sheet(item: fullScreen ? .constant(nil) : $item, onDismiss: onDismiss, content: form)')
+    expect(views).not.toContain('presentationSizing')
+    // Both ways in: the class's "+" and the library's Assign.
+    expect(form).toContain('.teacherAssignmentForm(item: $formTarget) { target in')
+    expect(library).toContain('.teacherAssignmentForm(item: $formClass) { c in')
     expect(form).toContain('_kind = State(initialValue: "worksheet")')
     expect(form).toContain('_worksheet = State(initialValue: existing.worksheet)')
+  })
+
+  it('round 7: the library\'s Customize edits the prompts with the sheet redrawn live, and Assign / Print carry them', () => {
+    expect(library).toContain('Text(customizing ? TeacherCopy.done : TeacherCopy.worksheetsCustomize)')
+    expect(library).toContain('custom?.prompts[id] = cut')
+    expect(library).toContain('WorksheetSheetPreview(definition: definition)')
+    expect(library).toContain('WorksheetPDF.make(title: title, worksheet: definition,')
+    expect(library).toContain('private var sideBySide: Bool { customizing && hSize == .regular && width >= 700 }')
+    // The form starts on the customized prompts when they are for its template.
+    expect(form).toContain('if let custom, custom.templateId == id { return custom }')
   })
 
   it('reuses the library\'s full-sheet preview, fed with the draft prompts and cleaned word', () => {

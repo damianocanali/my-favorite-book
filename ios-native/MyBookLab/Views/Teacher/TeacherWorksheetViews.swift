@@ -186,21 +186,31 @@ struct TeacherWorksheetLivePreview: View {
     }
 }
 
-/// iPad: a larger sheet for the form while it shows the preview beside it
-/// (iOS 18+; on 17 the form sheet keeps its size and the two share it).
-struct TeacherAssignmentFormSizing: ViewModifier {
-    let wide: Bool
+/// How the new / edit assignment form is presented (iPad round 7): full
+/// screen at regular width, so the live preview has room beside the form
+/// on any iPad, in portrait too (a sheet there is narrower than the two
+/// panes need, which left the preview behind a button); the ordinary sheet
+/// on iPhone and in a narrow split view.
+struct TeacherAssignmentFormPresentation<Item: Identifiable, Form: View>: ViewModifier {
+    @Binding var item: Item?
+    var onDismiss: (() -> Void)?
+    let form: (Item) -> Form
+
+    @Environment(\.horizontalSizeClass) private var hSize
 
     func body(content: Content) -> some View {
-        if #available(iOS 18.0, *) {
-            if wide {
-                content.presentationSizing(.page)
-            } else {
-                content.presentationSizing(.form)
-            }
-        } else {
-            content
-        }
+        let fullScreen = hSize == .regular
+        content
+            .sheet(item: fullScreen ? .constant(nil) : $item, onDismiss: onDismiss, content: form)
+            .fullScreenCover(item: fullScreen ? $item : .constant(nil), onDismiss: onDismiss, content: form)
+    }
+}
+
+extension View {
+    func teacherAssignmentForm<Item: Identifiable, Form: View>(
+        item: Binding<Item?>, onDismiss: (() -> Void)? = nil, @ViewBuilder form: @escaping (Item) -> Form
+    ) -> some View {
+        modifier(TeacherAssignmentFormPresentation(item: item, onDismiss: onDismiss, form: form))
     }
 }
 

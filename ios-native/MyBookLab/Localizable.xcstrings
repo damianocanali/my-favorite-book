@@ -25409,6 +25409,24 @@
         }
       }
     },
+    "school.teacher.worksheet_library.customize": {
+      "comment": "Worksheet detail button: edit the sheet's prompts with the sheet redrawn live (web: worksheets actions.customize).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Customize"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Personalizza"
+          }
+        }
+      }
+    },
     "school.teacher.worksheet_library.pick_class": {
       "comment": "Class picker title when assigning a worksheet.",
       "extractionState": "manual",

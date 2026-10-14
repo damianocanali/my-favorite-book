@@ -7,7 +7,9 @@
 // box's label and room to write, the drawing box when it has one), with
 // "Print blank" (the same AirPrint PDF as an assignment's, WorksheetPDF) and
 // "Assign to a class" (pick a class, then the ordinary New assignment form,
-// already on this worksheet). Counterpart of the web's /worksheets.
+// already on this worksheet), and "Customize" (round 7: edit the prompts with
+// the sheet redrawn as you type; Print and Assign carry them). Counterpart
+// of the web's /worksheets.
 // No prices, nothing to buy (App Store 3.1.3).
 import SwiftUI
 
@@ -195,19 +197,37 @@ struct TeacherWorksheetDetailView: View {
     let templateId: String
 
     @Environment(TeacherStore.self) private var teacher
+    @Environment(\.horizontalSizeClass) private var hSize
     @State private var picking = false
     /// Chosen in the picker; the form opens once the picker has fully gone,
     /// so the two sheets never race.
     @State private var pendingClass: TeacherClass?
     @State private var formClass: TeacherClass?
     @State private var savedIn: TeacherClass?
+    /// Customize (iPad round 7, the web library's Customize): the teacher's
+    /// prompts, edited here with the sheet redrawn beside (or under) them as
+    /// they type; Print blank and Assign carry them. nil = the template's own.
+    @State private var custom: WorksheetDefinition?
+    @State private var customWord = ""
+    @State private var customizing = false
+    @State private var width: CGFloat = 0
 
-    private var definition: WorksheetDefinition {
+    private var template: WorksheetTemplate? { WorksheetTemplates.find(templateId) }
+    private var defaults: WorksheetDefinition {
         WorksheetDefinition(templateId: templateId,
                             prompts: TeacherWorksheetPicker.defaultPrompts(templateId),
                             word: nil)
     }
-    private var template: WorksheetTemplate? { WorksheetTemplates.find(templateId) }
+    /// What the preview draws, Print blank prints and Assign starts from.
+    private var definition: WorksheetDefinition {
+        guard var def = custom else { return defaults }
+        def.prompts = def.prompts.mapValues { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+        def.word = def.isAcrostic ? WorksheetTemplates.cleanAcrosticWord(customWord) : nil
+        return def
+    }
+    /// Editor and sheet side by side only with room for both (an iPad, not
+    /// a narrow split view); stacked otherwise — the sheet is live either way.
+    private var sideBySide: Bool { customizing && hSize == .regular && width >= 700 }
 
     var body: some View {
         ZStack {
@@ -236,28 +256,24 @@ struct TeacherWorksheetDetailView: View {
                         .background(.green.opacity(0.12), in: RoundedRectangle(cornerRadius: 12))
                     }
 
-                    HStack(spacing: 12) {
-                        Button { printBlank() } label: {
-                            Label { Text(WorksheetCopy.teacherPrintBlank) } icon: { Image(systemName: "printer.fill") }
-                                .frame(maxWidth: .infinity)
-                        }
-                        .buttonStyle(.bordered)
-                        Button { picking = true } label: {
-                            Label { Text(TeacherCopy.worksheetsAssign) } icon: { Image(systemName: "paperplane.fill") }
-                                .frame(maxWidth: .infinity)
-                        }
-                        .buttonStyle(.borderedProminent)
-                    }
-                    .controlSize(.large)
-                    .tint(.cyan)
+                    actions
 
-                    Text(TeacherCopy.worksheetsPreview).font(.headline)
-                    WorksheetSheetPreview(definition: definition)
+                    if sideBySide {
+                        HStack(alignment: .top, spacing: 20) {
+                            editor.frame(maxWidth: .infinity)
+                            preview.frame(maxWidth: .infinity)
+                        }
+                    } else {
+                        if customizing { editor }
+                        preview
+                    }
                 }
                 .padding()
-                .frame(maxWidth: 760)
+                .frame(maxWidth: customizing ? 1100 : 760)
                 .frame(maxWidth: .infinity)
+                .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { width = $0 }
             }
+            .scrollDismissesKeyboard(.interactively)
         }
         .navigationTitle(Text(WorksheetCopy.title(templateId)))
         .navigationBarTitleDisplayMode(.inline)
@@ -270,12 +286,116 @@ struct TeacherWorksheetDetailView: View {
                 picking = false
             }
         }
-        .sheet(item: $formClass) { c in
-            TeacherAssignmentForm(classId: c.id, existing: nil, presetTemplateId: templateId) { _, _ in
+        .teacherAssignmentForm(item: $formClass) { c in
+            TeacherAssignmentForm(classId: c.id, existing: nil, presetTemplateId: templateId,
+                                  presetWorksheet: custom == nil ? nil : definition) { _, _ in
                 formClass = nil
                 savedIn = c
             }
         }
+    }
+
+    private var actions: some View {
+        ViewThatFits(in: .horizontal) {
+            HStack(spacing: 12) { actionButtons }
+            VStack(spacing: 10) { actionButtons }
+        }
+        .controlSize(.large)
+        .tint(.cyan)
+    }
+
+    @ViewBuilder
+    private var actionButtons: some View {
+        Button {
+            if customizing {
+                customizing = false
+            } else {
+                if custom == nil { custom = defaults }
+                customizing = true
+            }
+        } label: {
+            Label {
+                Text(customizing ? TeacherCopy.done : TeacherCopy.worksheetsCustomize)
+            } icon: { Image(systemName: customizing ? "checkmark" : "slider.horizontal.3") }
+                .frame(maxWidth: .infinity)
+        }
+        .buttonStyle(.bordered)
+        Button { printBlank() } label: {
+            Label { Text(WorksheetCopy.teacherPrintBlank) } icon: { Image(systemName: "printer.fill") }
+                .frame(maxWidth: .infinity)
+        }
+        .buttonStyle(.bordered)
+        Button { picking = true } label: {
+            Label { Text(TeacherCopy.worksheetsAssign) } icon: { Image(systemName: "paperplane.fill") }
+                .frame(maxWidth: .infinity)
+        }
+        .buttonStyle(.borderedProminent)
+    }
+
+    private var preview: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(TeacherCopy.worksheetsPreview).font(.headline)
+            if customizing {
+                Text(WorksheetCopy.teacherPreviewHint).font(.caption).foregroundStyle(TeacherTheme.secondaryText)
+            }
+            WorksheetSheetPreview(definition: definition)
+        }
+    }
+
+    /// The prompts, one field per box (the assign form's own rules: one
+    /// line each, at most promptMax), Reset, and the acrostic's word.
+    private var editor: some View {
+        TeacherCard {
+            VStack(alignment: .leading, spacing: 14) {
+                Text(WorksheetCopy.teacherPromptsHeading).font(.headline).foregroundStyle(.white)
+                Text(WorksheetCopy.teacherPromptsHint).font(.caption).foregroundStyle(TeacherTheme.secondaryText)
+                ForEach(Array((template?.boxIds ?? []).enumerated()), id: \.element) { i, id in
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(WorksheetCopy.teacherBoxLabel(i + 1)).font(.caption).foregroundStyle(TeacherTheme.secondaryText)
+                        TextField(text: promptBinding(id), axis: .vertical) { Text(WorksheetCopy.teacherPromptsHeading) }
+                            .lineLimit(1...4)
+                            .padding(10)
+                            .background(TeacherTheme.cardFillStrong, in: RoundedRectangle(cornerRadius: 10))
+                            .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(TeacherTheme.inputStroke))
+                    }
+                }
+                if template?.id == "acrostic" {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(WorksheetCopy.teacherAcrosticWordLabel).font(.caption).foregroundStyle(TeacherTheme.secondaryText)
+                        TextField(text: $customWord) { Text(WorksheetCopy.teacherAcrosticWordLabel) }
+                            .textInputAutocapitalization(.characters)
+                            .autocorrectionDisabled()
+                            .padding(10)
+                            .background(TeacherTheme.cardFillStrong, in: RoundedRectangle(cornerRadius: 10))
+                            .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(TeacherTheme.inputStroke))
+                            .onChange(of: customWord) { _, v in
+                                let cut = String(v.filter { !$0.isWhitespace }.prefix(WorksheetTemplates.acrosticWordMax))
+                                if cut != v { customWord = cut }
+                            }
+                        Text(WorksheetCopy.teacherAcrosticWordHint).font(.caption2).foregroundStyle(TeacherTheme.secondaryText)
+                    }
+                }
+                Button {
+                    custom = defaults
+                    customWord = ""
+                } label: {
+                    Label { Text(WorksheetCopy.teacherResetPrompts) } icon: { Image(systemName: "arrow.counterclockwise") }
+                }
+                .tint(.cyan)
+            }
+        }
+    }
+
+    private func promptBinding(_ id: String) -> Binding<String> {
+        Binding(
+            get: { custom?.prompts[id] ?? "" },
+            set: { v in
+                var cut = v.replacingOccurrences(of: "\n", with: " ")
+                if cut.utf16.count > WorksheetTemplates.promptMax { cut = TeacherStickers.truncated(cut, max: WorksheetTemplates.promptMax) }
+                if custom == nil { custom = defaults }
+                custom?.prompts[id] = cut
+            }
+        )
     }
 
     private func printBlank() {

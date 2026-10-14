@@ -192,7 +192,7 @@ describe('the iPad worksheet library (round 6B)', () => {
     expect(library).toContain('WorksheetSheetPreview(definition: definition)')
     expect(library).toContain('Text(WorksheetCopy.heading(definition.templateId))')
     expect(library).toContain('if let picture {')
-    expect(library).toContain('TeacherAssignmentForm(classId: c.id, existing: nil, presetTemplateId: templateId)')
+    expect(library).toContain('TeacherAssignmentForm(classId: c.id, existing: nil, presetTemplateId: templateId,\n                                  presetWorksheet: custom == nil ? nil : definition)')
     expect(library).toContain('WorksheetPDF.make(title: title, worksheet: definition,')
   })
 
