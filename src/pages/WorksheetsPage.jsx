@@ -186,7 +186,7 @@ export default function WorksheetsPage() {
     <div key={template.id} className="group relative glass rounded-2xl p-2.5 sm:p-4 border border-galaxy-text-muted/10 flex flex-col gap-2.5 min-w-0">
       <CardThumbnail templateId={template.id} sheetProps={{ t, tSchool: tSchoolSite, tCheckin: tCheckinSite, tGames: tGamesSite }} />
       <div className="min-w-0">
-        <h3 className="font-heading font-bold text-galaxy-text group-hover:text-galaxy-secondary transition-colors break-words line-clamp-2 min-h-[3rem]">
+        <h3 className="font-heading font-bold text-galaxy-text group-hover:text-galaxy-secondary transition-colors break-words">
           <button
             type="button"
             onClick={() => setPreviewId(template.id)}
@@ -196,7 +196,7 @@ export default function WorksheetsPage() {
             {t(schoolKey(template.id, 'title'))}
           </button>
         </h3>
-        <p className="text-xs text-galaxy-text-muted font-body mt-0.5 line-clamp-2 min-h-[2rem]">{t(schoolKey(template.id, 'description'))}</p>
+        <p className="text-xs text-galaxy-text-muted font-body mt-0.5 line-clamp-3">{t(schoolKey(template.id, 'description'))}</p>
         <span className="inline-block mt-2 px-2 py-0.5 rounded-full text-[10px] font-body font-semibold border border-galaxy-secondary/30 text-galaxy-secondary">
           {t(`school:worksheet.grades.${template.gradeBand}`)}
         </span>

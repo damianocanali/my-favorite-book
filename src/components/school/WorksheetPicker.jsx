@@ -3,55 +3,35 @@
 // 33 sheets, shelves, grade filter and search as /worksheets, compact), then
 // edit the prompts, pre-filled in the teacher's language. Controlled: the
 // parent (AssignmentForm) owns `value` = { templateId, prompts, word }.
-import { useRef, useState } from 'react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { RotateCcw } from 'lucide-react'
 import { WORKSHEET_TEMPLATES, PROMPT_TEXT_MAX, ACROSTIC_WORD_MAX } from '../../../lib/school/worksheets.js'
 import { filterTemplates, groupByCategory, hasActiveFilters } from '../../lib/worksheets/library.js'
 import LibraryFilters, { LibraryEmpty } from '../worksheets/LibraryFilters'
 import { defaultPrompts } from './worksheetUi'
-import WorksheetThumbnail from '../worksheets/WorksheetThumbnail'
-import { useElementWidth } from '../../hooks/useElementWidth'
 
-// iPad round 7: the sheet drawn as its page (the library's own thumbnail,
-// rendered once near the viewport), as wide as the card; the name and what
-// it's for kept to two lines each with the room reserved, so every card in
-// the chooser is the same size.
-function CardThumbnail({ templateId }) {
-  const { t } = useTranslation(['worksheets', 'checkin', 'games', 'school'])
-  const ref = useRef(null)
-  const width = useElementWidth(ref)
-  const sheetProps = {
-    t,
-    tSchool: t,
-    tCheckin: (key, opts) => t(`checkin:${key}`, opts),
-    tGames: (key, opts) => t(`games:${key}`, opts),
-  }
-  return (
-    <div ref={ref} className="w-full" aria-hidden="true">
-      <WorksheetThumbnail lazy width={width} templateId={templateId} {...sheetProps} />
-    </div>
-  )
-}
+const SIZE_HEIGHT = { small: 'h-2', medium: 'h-4', large: 'h-6' }
 
-// The title's button is stretched over the whole card (::after), as on the
-// library's cards, so the page thumbnail isn't block content in a <button>.
 function TemplateCard({ template, selected, onPick }) {
   const { t } = useTranslation()
   return (
-    <div className={`relative rounded-xl p-3 border transition-colors flex flex-col gap-2 h-full min-w-0 ${selected ? 'border-galaxy-secondary bg-galaxy-secondary/10' : 'border-galaxy-text-muted/20 hover:border-galaxy-secondary/50'}`}>
-      <CardThumbnail templateId={template.id} />
-      <button
-        type="button"
-        onClick={() => onPick(template.id)}
-        aria-pressed={selected}
-        className="text-left font-body font-semibold text-sm text-galaxy-text line-clamp-2 min-h-[2.5rem] after:absolute after:inset-0 after:rounded-xl after:content-[''] focus:outline-none focus-visible:after:outline focus-visible:after:outline-2 focus-visible:after:outline-galaxy-secondary"
-      >
-        {t(`school:worksheet.templates.${template.id}.title`)}
-      </button>
-      <span className="font-body text-xs text-galaxy-text-muted line-clamp-2 min-h-[2rem]">{t(`school:worksheet.templates.${template.id}.description`)}</span>
-      <span className="font-body text-[10px] font-semibold text-galaxy-secondary mt-auto">{t(`school:worksheet.grades.${template.gradeBand}`)}</span>
-    </div>
+    <button
+      type="button"
+      onClick={() => onPick(template.id)}
+      aria-pressed={selected}
+      className={`text-left rounded-xl p-3 border transition-colors flex flex-col gap-2 ${selected ? 'border-galaxy-secondary bg-galaxy-secondary/10' : 'border-galaxy-text-muted/20 hover:border-galaxy-secondary/50'}`}
+    >
+      {/* A tiny picture of the sheet: one bar per box, sized like the box. */}
+      <div className="rounded-md bg-white/90 p-2 space-y-1" aria-hidden="true">
+        {template.boxes.map((b) => (
+          <div key={b.id} className={`rounded-sm border border-black/40 ${SIZE_HEIGHT[b.size]}`} />
+        ))}
+      </div>
+      <span className="font-body font-semibold text-sm text-galaxy-text">{t(`school:worksheet.templates.${template.id}.title`)}</span>
+      <span className="font-body text-xs text-galaxy-text-muted">{t(`school:worksheet.templates.${template.id}.description`)}</span>
+      <span className="font-body text-[10px] font-semibold text-galaxy-secondary">{t(`school:worksheet.grades.${template.gradeBand}`)}</span>
+    </button>
   )
 }
 

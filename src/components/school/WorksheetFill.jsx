@@ -154,9 +154,6 @@ function WorksheetFillView({ assignment, userId, books = [], onClose, onHandedIn
 
   const layout = useMemo(() => fillLayout(worksheet, answers?.word ?? ''), [worksheet, answers?.word])
   const canSubmit = canHandInWorksheet(assignment)
-  // Past a due date that refuses late work: their answers, read-only — no
-  // typing something that can never be handed in.
-  const pastDueLocked = !!assignment.past_due && assignment.allow_late === false
   const ready = answers !== null && hasAnswers(answers) && changedSinceHandIn
 
   async function handIn() {
@@ -212,14 +209,10 @@ function WorksheetFillView({ assignment, userId, books = [], onClose, onHandedIn
             <div className="w-8 h-8 border-2 border-galaxy-secondary border-t-transparent rounded-full animate-spin" />
           </div>
         ) : answers !== null && (
-          <WorksheetFillBoxes layout={layout} worksheet={worksheet} answers={answers} onChange={update} speech={speech} dictation={dictation} readOnly={pastDueLocked} />
+          <WorksheetFillBoxes layout={layout} worksheet={worksheet} answers={answers} onChange={update} speech={speech} dictation={dictation} />
         )}
 
-        {pastDueLocked ? (
-          <p className="text-amber-300 font-body text-sm" data-testid="worksheet-past-due">{t('school:student.hand_in.errors.past_due')}</p>
-        ) : (
-          <p className="text-xs font-body text-galaxy-text-muted flex items-center gap-1"><Check size={12} aria-hidden="true" /> {t('school:worksheet.student.saved_here')}</p>
-        )}
+        <p className="text-xs font-body text-galaxy-text-muted flex items-center gap-1"><Check size={12} aria-hidden="true" /> {t('school:worksheet.student.saved_here')}</p>
 
         {error && (
           <p role="alert" className="text-red-400 font-body text-sm">
