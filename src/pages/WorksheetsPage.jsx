@@ -21,6 +21,7 @@ import { filterTemplates, groupByCategory, parseLibraryParams, withLibraryParams
 import { useElementWidth } from '../hooks/useElementWidth'
 import { parseWorksheetParams } from '../lib/worksheets/params.js'
 import { parseNameList } from '../lib/worksheets/names.js'
+import { sheetTranslators } from '../lib/worksheets/sheetLocale.js'
 import { useTeacherMode } from '../hooks/useTeacherMode'
 import { ASSIGN_WORKSHEET_HREF } from '../components/school/assignIntent.js'
 import { enterWorksheetsPrintMode, exitWorksheetsPrintMode } from '../components/school/printMode.js'
@@ -57,6 +58,10 @@ export default function WorksheetsPage() {
   const tSchoolSite = t
 
   const [customTarget, setCustomTarget] = useState(null) // template id, or null when the panel is closed
+  // What the Customize panel opens with. While it's open the panel owns the
+  // draft (so typing never re-renders this page's 33-card grid); it hands
+  // the values back on Print / close, and the teacher name and sheet
+  // language carry over to the next sheet.
   const [values, setValues] = useState(DEFAULT_VALUES)
   const [printJob, setPrintJob] = useState(null)
 
@@ -132,8 +137,12 @@ export default function WorksheetsPage() {
     })
   }
 
-  async function printFromCustomize() {
-    if (values.sheetLocale !== 'en') await loadLocale(values.sheetLocale)
+  async function printFromCustomize(values) {
+    setValues(values)
+    if (values.sheetLocale !== 'en') {
+      // The panel already shows the load error; keep it open, print nothing.
+      try { await loadLocale(values.sheetLocale) } catch { return }
+    }
     setPrintJob({
       templateId: customTarget,
       prompt: values.prompt,
@@ -274,10 +283,10 @@ export default function WorksheetsPage() {
         <CustomizePanel
           t={t}
           template={openTemplate}
-          values={values}
-          onChange={(patch) => setValues((v) => ({ ...v, ...patch }))}
+          initialValues={values}
+          teacherMode={teacherMode}
           onPrint={printFromCustomize}
-          onClose={() => setCustomTarget(null)}
+          onClose={(last) => { setValues(last); setCustomTarget(null) }}
         />
       )}
 
@@ -289,10 +298,7 @@ export default function WorksheetsPage() {
             <WorksheetSheet
               key={i}
               templateId={printJob.templateId}
-              t={i18next.getFixedT(printJob.sheetLocale, 'worksheets')}
-              tSchool={i18next.getFixedT(printJob.sheetLocale)}
-              tCheckin={i18next.getFixedT(printJob.sheetLocale, 'checkin')}
-              tGames={i18next.getFixedT(printJob.sheetLocale, 'games')}
+              {...sheetTranslators(i18next, printJob.sheetLocale)}
               prompt={printJob.prompt}
               className={printJob.className}
               teacherName={printJob.teacherName}

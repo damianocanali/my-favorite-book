@@ -8,6 +8,8 @@ import { teacherErrorText } from './teacherErrors'
 import { isoToLocalInput, localInputToIso } from './assignmentUi'
 import { useSpeechSynthesis } from '../../hooks/useSpeechSynthesis'
 import WorksheetPicker from './WorksheetPicker'
+import AssignPreview from './AssignPreview'
+import { useMediaQuery } from '../../hooks/useElementWidth'
 import { cleanAcrosticWord, getTemplate } from '../../../lib/school/worksheets.js'
 import { defaultPrompts } from './worksheetUi'
 
@@ -25,7 +27,7 @@ const PROMPT_MAX = 1000
 // "A book" or "A worksheet"; a worksheet then picks a template and edits
 // its prompts (WorksheetPicker). What an assignment is never changes after
 // it is created, and the template only while it is still a draft.
-export default function AssignmentForm({ classId, assignment, initialKind = null, initialTemplateId = null, onClose, onSaved }) {
+export default function AssignmentForm({ classId, className = '', assignment, initialKind = null, initialTemplateId = null, onClose, onSaved }) {
   const { t } = useTranslation()
   const panelRef = useRef(null)
   const isEdit = !!assignment
@@ -46,6 +48,10 @@ export default function AssignmentForm({ classId, assignment, initialKind = null
   const [allowLate, setAllowLate] = useState(assignment ? assignment.allow_late : true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(null)
+  // Below lg the live preview takes the form's place: Edit | Preview.
+  const [view, setView] = useState('edit')
+  // lg: the side pane is as tall as the modal allows, the sheet fitted in it.
+  const previewFitHeight = useMediaQuery('(min-width: 1024px)')
 
   const { speak, stop: stopSpeaking, isSpeaking, isSupported: ttsSupported } = useSpeechSynthesis()
 
@@ -73,6 +79,7 @@ export default function AssignmentForm({ classId, assignment, initialKind = null
   function changeWorksheet(next, { picked = false } = {}) {
     setWorksheet(next)
     setError(null)
+    if (!next.templateId) setView('edit')
     if (picked && next.templateId) {
       if (!title.trim()) setTitle(t(`school:worksheet.templates.${next.templateId}.title`).slice(0, TITLE_MAX))
       if (!prompt.trim()) setPrompt(t(`school:worksheet.templates.${next.templateId}.description`).slice(0, PROMPT_MAX))
@@ -127,6 +134,14 @@ export default function AssignmentForm({ classId, assignment, initialKind = null
     else setError(teacherErrorText(t, res.code || 'generic'))
   }
 
+  // A worksheet with its template picked gets the live preview: beside the
+  // fields from lg up, behind the Edit | Preview switch below that.
+  const showPreview = kind === 'worksheet' && !!worksheet.templateId
+  const editing = !showPreview || view === 'edit'
+  const tab = (id) => `flex-1 px-3 py-2 rounded-lg text-sm font-body font-semibold transition-colors ${
+    view === id ? 'bg-galaxy-primary text-white' : 'text-galaxy-text-muted hover:text-galaxy-text'
+  }`
+
   const heading = isEdit
     ? t('school:teacher.assignments.form.edit_heading')
     : t('school:teacher.assignments.form.new_heading')
@@ -147,7 +162,7 @@ export default function AssignmentForm({ classId, assignment, initialKind = null
         // panel for why: this sits directly over the class page's own
         // Assignments list, and `.glass`'s translucent white/8% let that
         // list's text show through underneath this form's own fields.
-        className="w-full max-w-lg max-h-[90vh] overflow-y-auto bg-galaxy-bg-light rounded-2xl p-6 border border-galaxy-text-muted/10 focus:outline-none space-y-4"
+        className={`w-full max-w-lg ${showPreview ? 'lg:max-w-6xl' : ''} max-h-[90vh] overflow-y-auto overflow-x-hidden bg-galaxy-bg-light rounded-2xl p-6 border border-galaxy-text-muted/10 focus:outline-none space-y-4`}
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
       >
@@ -163,6 +178,15 @@ export default function AssignmentForm({ classId, assignment, initialKind = null
           </button>
         </div>
 
+        {showPreview && (
+          <div className="lg:hidden flex gap-1 p-1 rounded-xl border border-galaxy-text-muted/25" role="group" aria-label={t('school:worksheet.teacher.preview_heading')}>
+            <button type="button" className={tab('edit')} aria-pressed={view === 'edit'} onClick={() => setView('edit')}>{t('school:worksheet.teacher.preview_edit')}</button>
+            <button type="button" className={tab('preview')} aria-pressed={view === 'preview'} onClick={() => setView('preview')}>{t('school:worksheet.teacher.preview_tab')}</button>
+          </div>
+        )}
+
+        <div className={showPreview ? 'lg:grid lg:grid-cols-2 lg:gap-6 lg:items-start' : ''}>
+        <div className={`${editing ? '' : 'hidden lg:block'} space-y-4 min-w-0`}>
         {!isEdit && (
           <fieldset className="space-y-2">
             <legend className="text-galaxy-text-muted text-sm font-body font-semibold mb-1">{t('school:worksheet.teacher.kind_label')}</legend>
@@ -261,6 +285,14 @@ export default function AssignmentForm({ classId, assignment, initialKind = null
           <span className="font-body text-galaxy-text text-sm">{t('school:teacher.assignments.form.allow_late_label')}</span>
         </label>
         </>)}
+        </div>
+
+        {showPreview && (
+          <div className={`${view === 'preview' ? '' : 'hidden lg:block'} min-w-0 lg:sticky lg:top-0 lg:h-[calc(90vh-7rem)]`}>
+            <AssignPreview worksheet={worksheet} title={title} prompt={prompt} className={className} fitHeight={previewFitHeight} />
+          </div>
+        )}
+        </div>
 
         {error && <p className="text-red-400 text-sm font-body">{error}</p>}
 

@@ -197,7 +197,9 @@ describe('print: the assignment sheet renders blank and filled', () => {
 })
 
 describe('the child\'s fill-in view reuses the existing pieces', () => {
-  const fill = readFileSync('src/components/school/WorksheetFill.jsx', 'utf8')
+  // The boxes themselves live in WorksheetFillBody.jsx, shared with the
+  // teacher's live preview in the assign form.
+  const fill = readFileSync('src/components/school/WorksheetFill.jsx', 'utf8') + readFileSync('src/components/school/WorksheetFillBody.jsx', 'utf8')
   const mine = readFileSync('src/components/school/MyAssignments.jsx', 'utf8')
 
   it('read-aloud, dictation, word help, device autosave, hand-in with answers', () => {
@@ -205,7 +207,7 @@ describe('the child\'s fill-in view reuses the existing pieces', () => {
     expect(fill).toContain("from '../../hooks/useSpeechRecognition'")
     expect(fill).toContain("from '../editor/WritingScaffold'")
     // Word help only on large boxes, with fixed middle-of-story starters.
-    expect(fill).toContain("{ scaffold: box.size === 'large' }")
+    expect(fill).toContain("scaffold={box.size === 'large'}")
     expect(fill).toMatch(/page=\{\{ id, pageNumber: 2, text: value \}\}\n\s+totalPages=\{3\}/)
     // Prompts read in the class language; a hand-in clears the draft.
     expect(fill).toContain('synth.speak(text, assignment.class_locale)')

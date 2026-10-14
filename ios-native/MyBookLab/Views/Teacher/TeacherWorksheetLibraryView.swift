@@ -360,13 +360,28 @@ struct WorksheetSheetPreview: View {
                 case .box(_, let prompt, let size):
                     promptAndLines(prompt, size == .small ? 1 : size == .medium ? 3 : 6)
                 case .word(let prompt, _):
-                    promptAndLines(prompt, 1)
-                case .letters(let prompt, _):
+                    // The teacher's word (the assign form's live preview),
+                    // else a line for the child to choose one.
+                    if let word = definition.word, !word.isEmpty {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(verbatim: prompt).font(.subheadline.bold())
+                            Text(verbatim: word).font(.title2.bold()).tracking(6)
+                        }
+                    } else {
+                        promptAndLines(prompt, 1)
+                    }
+                case .letters(let prompt, let letters):
                     VStack(alignment: .leading, spacing: 0) {
                         Text(verbatim: prompt).font(.subheadline.bold())
-                        ForEach(0..<12, id: \.self) { _ in
+                        // One row per letter of the word; twelve blank rows without one.
+                        let rows = letters.isEmpty ? (0..<12).map { WorksheetItem.Letter(id: "line_\($0 + 1)", letter: "") } : letters
+                        ForEach(rows) { l in
                             HStack(alignment: .bottom, spacing: 8) {
-                                Rectangle().fill(.black).frame(width: 22, height: 1.5)
+                                if l.letter.isEmpty {
+                                    Rectangle().fill(.black).frame(width: 22, height: 1.5)
+                                } else {
+                                    Text(verbatim: l.letter).font(.headline.bold()).frame(width: 22)
+                                }
                                 Rectangle().fill(.black.opacity(0.35)).frame(height: 0.7)
                             }
                             .padding(.top, 18)

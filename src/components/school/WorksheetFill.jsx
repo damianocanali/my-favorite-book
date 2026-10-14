@@ -10,50 +10,17 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion } from 'motion/react'
 import { useTranslation } from 'react-i18next'
-import { X, Volume2, VolumeX, Mic, MicOff, Send, BookPlus, Check } from 'lucide-react'
+import { X, Send, BookPlus, Check } from 'lucide-react'
 import { schoolFetch } from '../../lib/schoolApi'
 import { celebrateBig } from '../../lib/celebrate'
 import { useSpeechSynthesis } from '../../hooks/useSpeechSynthesis'
 import { useSpeechRecognition } from '../../hooks/useSpeechRecognition'
-import WritingScaffold from '../editor/WritingScaffold'
+import { WorksheetFillTitle, WorksheetFillBoxes } from './WorksheetFillBody'
 import { ANSWER_MAX, ACROSTIC_WORD_MAX, BOOK_PAGES_MAX } from '../../../lib/school/worksheets.js'
 import {
-  fillLayout, BOX_ROWS, readWorksheetDraft, writeWorksheetDraft, removeWorksheetDraft, answersForSubmit, hasAnswers,
+  fillLayout, readWorksheetDraft, writeWorksheetDraft, removeWorksheetDraft, answersForSubmit, hasAnswers,
   pagesFor, startingPoint, canHandInWorksheet,
 } from './worksheetUi'
-
-function ListenButton({ text, speech }) {
-  const { t } = useTranslation()
-  if (!speech.isSupported || !text) return null
-  const active = speech.isSpeaking && speech.current === text
-  return (
-    <button
-      type="button"
-      onClick={() => (active ? speech.stop() : speech.say(text))}
-      aria-label={active ? t('school:actions.stop_listening') : t('school:worksheet.student.listen')}
-      className="shrink-0 p-3 rounded-full bg-galaxy-secondary/15 text-galaxy-secondary hover:bg-galaxy-secondary/25 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
-    >
-      {active ? <VolumeX size={20} aria-hidden="true" /> : <Volume2 size={20} aria-hidden="true" />}
-    </button>
-  )
-}
-
-function MicButton({ boxId, dictation }) {
-  const { t } = useTranslation()
-  if (!dictation.isSupported) return null
-  const active = dictation.isListening && dictation.box === boxId
-  return (
-    <button
-      type="button"
-      onClick={() => (active ? dictation.stop() : dictation.start(boxId))}
-      aria-label={active ? t('school:worksheet.student.stop_dictate') : t('school:worksheet.student.dictate')}
-      aria-pressed={active}
-      className={`shrink-0 p-3 rounded-full transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center ${active ? 'bg-red-500/25 text-red-300' : 'bg-white/[0.06] text-galaxy-text-muted hover:text-galaxy-text'}`}
-    >
-      {active ? <MicOff size={20} aria-hidden="true" /> : <Mic size={20} aria-hidden="true" />}
-    </button>
-  )
-}
 
 /**
  * Props: `assignment` (from GET /api/school/assignments, with worksheet),
@@ -182,46 +149,6 @@ export default function WorksheetFill({ assignment, userId, books = [], onClose,
   const pageTexts = answers ? pagesFor(worksheet, answersForSubmit(worksheet, answers)) : []
   const canMakePages = (handedIn || !!submission) && pageTexts.length > 0
 
-  function boxEditor(id, prompt, rows, label, { scaffold = false } = {}) {
-    const value = answers?.[id] ?? ''
-    return (
-      <div key={id} className="glass rounded-2xl p-4 border border-galaxy-text-muted/10 space-y-2">
-        {prompt && (
-          <div className="flex items-start gap-2">
-            <p className="flex-1 font-heading text-lg font-bold text-galaxy-text">{prompt}</p>
-            <ListenButton text={prompt} speech={speech} />
-          </div>
-        )}
-        <div className="flex items-start gap-2">
-          {label && <span className="font-heading text-2xl font-bold text-galaxy-secondary w-8 shrink-0 pt-2" aria-hidden="true">{label}</span>}
-          <textarea
-            value={value}
-            onChange={(e) => update(id, e.target.value)}
-            rows={rows}
-            maxLength={ANSWER_MAX}
-            aria-label={label ? t('school:worksheet.student.line_for', { letter: label }) : prompt}
-            className="flex-1 px-4 py-3 bg-white/[0.06] border border-white/15 rounded-xl text-galaxy-text text-xl font-body focus:border-galaxy-primary focus:outline-none resize-y"
-          />
-          <MicButton boxId={id} dictation={dictation} />
-        </div>
-        {value.length >= ANSWER_MAX && (
-          <p className="text-amber-300 text-sm font-body">{t('school:worksheet.student.box_full')}</p>
-        )}
-        {/* Word help only on the big free-writing boxes, and always the
-            "middle of a story" starters: a worksheet box has no page
-            position for opening/ending starters to fit. */}
-        {scaffold && (
-          <WritingScaffold
-            page={{ id, pageNumber: 2, text: value }}
-            totalPages={3}
-            characterName=""
-            onInsertText={(boxId, text) => update(boxId, text)}
-          />
-        )}
-      </div>
-    )
-  }
-
   return createPortal(
     <motion.div
       ref={panelRef}
@@ -235,18 +162,7 @@ export default function WorksheetFill({ assignment, userId, books = [], onClose,
     >
       <div className="max-w-3xl mx-auto px-4 py-6 space-y-4">
         <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <p className="text-xs font-body font-semibold text-galaxy-secondary uppercase tracking-wide">
-              {t(`school:worksheet.templates.${worksheet.templateId}.title`, { defaultValue: t('school:worksheet.teacher.chip') })}
-            </p>
-            <h2 className="font-heading text-2xl font-bold text-galaxy-text break-words">{assignment.title}</h2>
-            {assignment.prompt?.trim() && (
-              <div className="flex items-start gap-2 mt-1">
-                <p className="flex-1 font-body text-galaxy-text-muted">{assignment.prompt}</p>
-                <ListenButton text={assignment.prompt} speech={speech} />
-              </div>
-            )}
-          </div>
+          <WorksheetFillTitle templateId={worksheet.templateId} title={assignment.title} prompt={assignment.prompt} speech={speech} />
           <button
             type="button"
             onClick={onClose}
@@ -264,47 +180,7 @@ export default function WorksheetFill({ assignment, userId, books = [], onClose,
             <div className="w-8 h-8 border-2 border-galaxy-secondary border-t-transparent rounded-full animate-spin" />
           </div>
         ) : answers !== null && (
-          <div className="space-y-4">
-            {layout.map((box) => {
-              if (box.type === 'word') {
-                return (
-                  <div key="word" className="glass rounded-2xl p-4 border border-galaxy-text-muted/10 space-y-2">
-                    <div className="flex items-start gap-2">
-                      <p className="flex-1 font-heading text-lg font-bold text-galaxy-text">{box.prompt}</p>
-                      <ListenButton text={box.prompt} speech={speech} />
-                    </div>
-                    {box.fixed ? (
-                      <p className="font-heading text-3xl font-bold tracking-[0.3em] text-galaxy-secondary">{worksheet.word}</p>
-                    ) : (
-                      <input
-                        type="text"
-                        value={answers.word ?? ''}
-                        onChange={(e) => update('word', e.target.value.replace(/\s/g, ''))}
-                        maxLength={ACROSTIC_WORD_MAX}
-                        placeholder={t('school:worksheet.student.word_placeholder')}
-                        aria-label={t('school:worksheet.student.word_label')}
-                        className="w-full px-4 py-3 bg-white/[0.06] border border-white/15 rounded-xl text-galaxy-text text-2xl font-heading uppercase tracking-[0.3em] focus:border-galaxy-primary focus:outline-none"
-                      />
-                    )}
-                  </div>
-                )
-              }
-              if (box.type === 'letters') {
-                return (
-                  <div key="lines" className="space-y-3">
-                    {box.prompt && (
-                      <div className="flex items-start gap-2">
-                        <p className="flex-1 font-heading text-lg font-bold text-galaxy-text">{box.prompt}</p>
-                        <ListenButton text={box.prompt} speech={speech} />
-                      </div>
-                    )}
-                    {box.letters.map((l) => boxEditor(l.id, null, 2, l.letter))}
-                  </div>
-                )
-              }
-              return boxEditor(box.id, box.prompt, BOX_ROWS[box.size] ?? 4, null, { scaffold: box.size === 'large' })
-            })}
-          </div>
+          <WorksheetFillBoxes layout={layout} worksheet={worksheet} answers={answers} onChange={update} speech={speech} dictation={dictation} />
         )}
 
         <p className="text-xs font-body text-galaxy-text-muted flex items-center gap-1"><Check size={12} aria-hidden="true" /> {t('school:worksheet.student.saved_here')}</p>

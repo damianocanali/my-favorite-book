@@ -1342,7 +1342,13 @@
       "print_filled": "Stampa",
       "answers_heading": "Risposte",
       "no_answer": "(vuoto)",
-      "acrostic_word_locked": "Bloccata dopo la pubblicazione: la classe potrebbe già scrivere su questa parola."
+      "acrostic_word_locked": "Bloccata dopo la pubblicazione: la classe potrebbe già scrivere su questa parola.",
+      "preview_edit": "Modifica",
+      "preview_tab": "Anteprima",
+      "preview_heading": "Cosa vedrà la classe",
+      "preview_hint": "Si aggiorna mentre scrivi.",
+      "preview_screen": "Sullo schermo",
+      "preview_paper": "Stampata"
     },
     "student": {
       "start": "Inizia la scheda",

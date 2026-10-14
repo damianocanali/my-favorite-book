@@ -36,7 +36,17 @@
     "prefill_placeholder": "Aurora\nMarco\nGiulia",
     "prefill_count_one": "{{count}} copia verrà stampata",
     "prefill_count_other": "{{count}} copie verranno stampate",
-    "close": "Chiudi"
+    "close": "Chiudi",
+    "edit_tab": "Modifica",
+    "preview_tab": "Anteprima",
+    "preview_label": "Anteprima dal vivo",
+    "preview_hint": "Anteprima dal vivo: è esattamente ciò che verrà stampato.",
+    "preview_copy": "Copia {{n}} di {{total}} · {{name}}",
+    "prev_copy": "Copia precedente",
+    "next_copy": "Copia successiva",
+    "preview_loading": "Caricamento della lingua della scheda…",
+    "preview_locale_error": "Impossibile caricare la lingua. Controlla la connessione e riprova.",
+    "preview_retry": "Riprova"
   },
   "actions": {
     "print": "Stampa",
