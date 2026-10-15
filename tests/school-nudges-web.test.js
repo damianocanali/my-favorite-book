@@ -1,4 +1,5 @@
 // Pure helpers behind the nudge UI (src/components/school/nudgeUi.js).
+import { readFileSync } from 'node:fs'
 import { describe, it, expect } from 'vitest'
 import {
   nudgeReasons, suggestedIds, openNotHandedIn, isOpenAssignment, openAssignments, cleanMessage, truncateUtf16,
@@ -107,6 +108,24 @@ describe('child side', () => {
     const pastNoLate = { ...open, past_due: true, allow_late: false }
     expect(nudgeAction(n, { assignments: [pastNoLate], books }).kind).toBe('book')
     expect(nudgeAction(n, { assignments: [{ ...pastNoLate, allow_late: true }], books }).kind).toBe('assignment')
+  })
+
+  it('round 7: a nudge about a worksheet opens the worksheet, never a new book', () => {
+    const n = { assignment: { id: 'w1' } }
+    const books = [{ id: 'b', updatedAt: '2026-09-01' }]
+    const ws = { id: 'w1', kind: 'worksheet', status: 'published', my_submission: null, worksheet: { templateId: 'sequence', prompts: {} } }
+    expect(nudgeAction(n, { assignments: [ws], books })).toEqual({ kind: 'assignment', assignment: ws })
+    const handed = { ...ws, my_submission: { id: 's' } }
+    expect(nudgeAction(n, { assignments: [handed], books })).toEqual({ kind: 'worksheet', assignment: handed })
+    const pastNoLate = { ...ws, past_due: true, allow_late: false }
+    expect(nudgeAction(n, { assignments: [pastNoLate], books })).toEqual({ kind: 'worksheet', assignment: pastNoLate })
+    // Closed and never handed in: nothing to open (not on the home either).
+    expect(nudgeAction(n, { assignments: [{ ...ws, status: 'closed' }], books }).kind).toBe('book')
+    const mine = readFileSync('src/components/school/MyAssignments.jsx', 'utf8')
+    expect(mine).toMatch(/if \(next\.kind === 'worksheet'\) \{\n\s+dismissNudge\(\)\n\s+openHandedIn\(next\.assignment\)/)
+    const ios = readFileSync('ios-native/MyBookLab/Views/StudentAssignmentsView.swift', 'utf8')
+    expect(ios).toContain('a.isWorksheet, a.showsOnHome else { return nil }')
+    expect(ios).toMatch(/if let w = nudgeWorksheet\(n\) \{\n\s+markOpened\(w\)\n\s+dismissNudge\(n\)\n\s+worksheetFor = w/)
   })
 })
 

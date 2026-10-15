@@ -7,7 +7,11 @@ import {
   getTemplate, boxIds, acrosticLetters, cleanAcrosticWord, worksheetPages, pagesThatFit,
 } from '../../../lib/school/worksheets.js'
 
-export const isWorksheet = (assignment) => assignment?.kind === 'worksheet' && !!assignment?.worksheet
+// Round 7: the kind alone decides. A worksheet whose definition is missing
+// or unreadable still opens the fill-in view (which says so), never the
+// book editor — a child told to fill in a worksheet must not end up
+// writing a new book.
+export const isWorksheet = (assignment) => assignment?.kind === 'worksheet'
 
 /// The template's own prompts in the teacher's language (school.json
 /// worksheet.templates.<id>.boxes.*): what the teacher starts editing from.

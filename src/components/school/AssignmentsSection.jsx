@@ -56,6 +56,10 @@ export default function AssignmentsSection({ classId, className, locale, onOpenR
   // on "A worksheet" (and on the sheet the link names, if any), once.
   const [initialKind, setInitialKind] = useState(null)
   const [initialTemplate, setInitialTemplate] = useState(null)
+  const clearInitial = () => {
+    setInitialKind(null)
+    setInitialTemplate(null)
+  }
   useEffect(() => {
     if (!startAssign) return
     setInitialKind(startAssign)
@@ -233,9 +237,11 @@ export default function AssignmentsSection({ classId, className, locale, onOpenR
                       and the class name, straight into the Customize panel
                       (WorksheetsPage reads these same query params via
                       parseWorksheetParams). */}
-                  {isWorksheet(a) ? (
+                  {isWorksheet(a) ? (a.worksheet ? (
                     // A worksheet assignment prints its own boxes and
-                    // prompts, blank, for a paper day.
+                    // prompts, blank, for a paper day. Without its
+                    // definition there is nothing to print: no button, and
+                    // never the book's library link either.
                     <button
                       type="button"
                       onClick={() => setPrintJob({ title: a.title, className, worksheet: a.worksheet, sheets: [{ studentName: '', answers: null }] })}
@@ -243,7 +249,7 @@ export default function AssignmentsSection({ classId, className, locale, onOpenR
                     >
                       <Printer size={13} /> {t('school:worksheet.teacher.print_blank')}
                     </button>
-                  ) : (
+                  ) : null) : (
                   <Link
                     to={{
                       pathname: '/worksheets',
@@ -285,7 +291,9 @@ export default function AssignmentsSection({ classId, className, locale, onOpenR
           assignment={formTarget === 'new' ? null : formTarget}
           initialKind={formTarget === 'new' ? initialKind : null}
           initialTemplateId={formTarget === 'new' ? initialTemplate : null}
-          onClose={() => { setFormTarget(null); setInitialTemplate(null) }}
+          // A library hand-off is one form's start, not the section's
+          // default: the next "New assignment" opens on the usual choice.
+          onClose={() => { setFormTarget(null); clearInitial() }}
           onSaved={(saved) => {
             // A freshly-created assignment's POST response has no `counts`
             // (assignments.js's teacherShape only adds that on the list
@@ -297,6 +305,7 @@ export default function AssignmentsSection({ classId, className, locale, onOpenR
             // has real counts for, so that path keeps using upsert().
             const wasNew = formTarget === 'new'
             setFormTarget(null)
+            clearInitial()
             if (wasNew) load()
             else upsert(saved)
           }}

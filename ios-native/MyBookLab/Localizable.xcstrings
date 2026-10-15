@@ -17063,6 +17063,24 @@
         }
       }
     },
+    "school.worksheet.student.unavailable": {
+      "comment": "Worksheet fill-in: the assignment's worksheet didn't reach the device (web: school worksheet.student.unavailable).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This worksheet can’t open on this device right now. Ask your teacher for help."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questa scheda ora non si apre su questo dispositivo. Chiedi aiuto all’insegnante."
+          }
+        }
+      }
+    },
     "school.worksheet.student.continue": {
       "extractionState": "manual",
       "localizations": {
@@ -25405,6 +25423,42 @@
           "stringUnit": {
             "state": "translated",
             "value": "Assegna a una classe"
+          }
+        }
+      }
+    },
+    "school.teacher.worksheet_library.customize": {
+      "comment": "Worksheet detail button: edit the sheet's prompts with the sheet redrawn live (web: worksheets actions.customize).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Customize"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Personalizza"
+          }
+        }
+      }
+    },
+    "school.teacher.worksheet_library.view_full_size": {
+      "comment": "Worksheet preview button (and tap): open the page full screen, pinch to zoom.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View the sheet full size"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vedi la scheda a grandezza piena"
           }
         }
       }

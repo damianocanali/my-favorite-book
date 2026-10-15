@@ -177,6 +177,26 @@ describe('student GET: the worksheet definition comes with the assignment', () =
     expect(body.assignments[0]).toMatchObject({ kind: 'worksheet', worksheet: SEQ })
   })
 
+  it('every template\'s worksheet reaches the child untouched, newer box ids included (round 7)', async () => {
+    const { WORKSHEET_TEMPLATES } = await import('../lib/school/worksheets.js')
+    const rows = WORKSHEET_TEMPLATES.map((t, i) => row({
+      id: `${ASSIGN_ID.slice(0, -2)}${String(i).padStart(2, '0')}`,
+      worksheet: { templateId: t.id, prompts: Object.fromEntries(boxIds(t).map((id) => [id, `Ask ${id}`])) },
+    }))
+    mockSupabase({ user: STUDENT_USER, routes: [
+      studentSelfRoute,
+      { method: 'GET', match: '/rest/v1/assignments', reply: { body: rows } },
+      { method: 'GET', match: '/rest/v1/class_submissions', reply: { body: [] } },
+    ] })
+    const body = await (await (await loadAssignments())(req('assignments'))).json()
+    expect(body.assignments).toHaveLength(WORKSHEET_TEMPLATES.length)
+    body.assignments.forEach((a, i) => {
+      expect(a.kind).toBe('worksheet')
+      expect(a.worksheet).toEqual(rows[i].worksheet)
+    })
+    expect(body.assignments.find((a) => a.worksheet.templateId === 'storyboard').worksheet.prompts.panel_one).toBe('Ask panel_one')
+  })
+
   it('carries the class language, for reading the teacher\'s prompts aloud', async () => {
     const itStudent = { ...studentSelfRoute, reply: { body: [{ ...studentSelfRoute.reply.body[0], classrooms: { ...studentSelfRoute.reply.body[0].classrooms, locale: 'it' } }] } }
     mockSupabase({ user: STUDENT_USER, routes: [

@@ -257,7 +257,7 @@ struct TeacherClassDetailView: View {
                 }
             }
         }
-        .sheet(item: $formTarget) { target in
+        .teacherAssignmentForm(item: $formTarget) { target in
             TeacherAssignmentForm(classId: classId, existing: {
                 if case .edit(let a) = target { return a }
                 return nil
@@ -502,8 +502,10 @@ struct TeacherClassDetailView: View {
 struct TeacherAssignmentForm: View {
     let classId: String
     let existing: TeacherAssignment?
-    /// From the Worksheets tab: a new assignment already on this worksheet.
+    /// From the Worksheets tab: a new assignment already on this worksheet,
+    /// with the prompts the teacher customized there (nil: the template's).
     var presetTemplateId: String? = nil
+    var presetWorksheet: WorksheetDefinition? = nil
     let onSaved: (TeacherAssignment, _ wasNew: Bool) -> Void
 
     @Environment(AuthStore.self) private var auth
@@ -529,21 +531,32 @@ struct TeacherAssignmentForm: View {
     @State private var availableWidth: CGFloat = 0
 
     init(classId: String, existing: TeacherAssignment?, presetTemplateId: String? = nil,
+         presetWorksheet: WorksheetDefinition? = nil,
          onSaved: @escaping (TeacherAssignment, _ wasNew: Bool) -> Void) {
         self.classId = classId
         self.existing = existing
         self.presetTemplateId = presetTemplateId
+        self.presetWorksheet = presetWorksheet
         self.onSaved = onSaved
-        // Known before the sheet appears, so its size (TeacherAssignmentFormSizing)
-        // is right from the first frame instead of changing in onAppear.
+        // Known before the form appears, so its first frame already shows the
+        // worksheet (and the live preview) instead of changing in onAppear.
         if let existing, existing.isWorksheet {
             _kind = State(initialValue: "worksheet")
             _worksheet = State(initialValue: existing.worksheet)
             _acrosticWord = State(initialValue: existing.worksheet?.word ?? "")
-        } else if existing == nil, let id = presetTemplateId, WorksheetTemplates.find(id) != nil {
+        } else if existing == nil, let def = Self.preset(presetTemplateId, presetWorksheet) {
             _kind = State(initialValue: "worksheet")
-            _worksheet = State(initialValue: WorksheetDefinition(templateId: id, prompts: TeacherWorksheetPicker.defaultPrompts(id), word: nil))
+            _worksheet = State(initialValue: def)
+            _acrosticWord = State(initialValue: def.word ?? "")
         }
+    }
+
+    /// The worksheet a library hand-off starts on: the customized one when
+    /// it is for this template, else the template's own prompts.
+    static func preset(_ templateId: String?, _ custom: WorksheetDefinition?) -> WorksheetDefinition? {
+        guard let id = templateId, WorksheetTemplates.find(id) != nil else { return nil }
+        if let custom, custom.templateId == id { return custom }
+        return WorksheetDefinition(templateId: id, prompts: TeacherWorksheetPicker.defaultPrompts(id), word: nil)
     }
 
     /// Size classes that can hold the preview beside the form: iPad, not an
@@ -551,9 +564,18 @@ struct TeacherAssignmentForm: View {
     private var sideBySideCapable: Bool { hSize == .regular && vSize == .regular }
 
     /// The preview goes beside the form only with room for both; otherwise
-    /// (iPhone, a narrow iPad split / slide over, the iOS 17 form sheet) the
-    /// toolbar's Preview button opens it in a sheet.
-    private var sideBySide: Bool { sideBySideCapable && availableWidth >= 720 }
+    /// (iPhone, a narrow iPad split / slide over) the toolbar's Preview
+    /// button opens it in a sheet. On an iPad the form is full screen
+    /// (teacherAssignmentForm), so even a portrait iPad mini (744 pt) has
+    /// room. Until the width is measured it is the Preview button: the
+    /// preview is never unreachable waiting on a measurement.
+    private var sideBySide: Bool { sideBySideCapable && availableWidth >= Self.sideBySideMinWidth }
+    static let sideBySideMinWidth: CGFloat = 700
+    /// The form's width on its own (full screen on an iPad).
+    static let formMaxWidth: CGFloat = 700
+    /// The preview pane: half the width (up to 560 pt), so the page's
+    /// labels stay readable; the form keeps the rest. Full size is a tap away.
+    private var previewWidth: CGFloat { min(560, max(320, (availableWidth * 0.5).rounded())) }
 
     /// What the live preview draws (nil: not a worksheet, or none picked yet).
     private var previewDefinition: WorksheetDefinition? {
@@ -566,13 +588,19 @@ struct TeacherAssignmentForm: View {
             // HStack is always there so the Form keeps its identity (focus,
             // scroll) when the preview appears; iPhone is just the Form.
             HStack(spacing: 0) {
+                // Alone (a book, or the preview behind its button), the form
+                // keeps a readable width, centred, instead of stretching
+                // across a full-screen iPad.
                 form
+                    .frame(maxWidth: sideBySide ? .infinity : Self.formMaxWidth)
                 if sideBySide, let def = previewDefinition {
                     Divider()
-                    TeacherWorksheetLivePreview(definition: def)
-                        .frame(minWidth: 280, idealWidth: 380, maxWidth: 440)
+                    TeacherWorksheetLivePreview(definition: def, title: title)
+                        .frame(width: previewWidth)
                 }
             }
+            .frame(maxWidth: .infinity)
+            .background(Color(.systemGroupedBackground))
             .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { availableWidth = $0 }
             .navigationTitle(Text(existing == nil ? TeacherCopy.formNew : TeacherCopy.formEdit))
             .navigationBarTitleDisplayMode(.inline)
@@ -580,9 +608,8 @@ struct TeacherAssignmentForm: View {
                 ToolbarItem(placement: .cancellationAction) {
                     Button { dismiss() } label: { Text(TeacherCopy.cancel) }
                 }
-                // Wait for the first width measurement so an iPad doesn't flash
-                // the button before the side pane appears.
-                if availableWidth > 0, !sideBySide, previewDefinition != nil {
+                // Whenever the preview isn't beside the form, it is one tap away.
+                if !sideBySide, previewDefinition != nil {
                     ToolbarItem(placement: .primaryAction) {
                         Button { showingPreview = true } label: {
                             Label { Text(WorksheetCopy.teacherPreviewTab) } icon: { Image(systemName: "eye") }
@@ -594,7 +621,7 @@ struct TeacherAssignmentForm: View {
             .sheet(isPresented: $showingPreview) {
                 NavigationStack {
                     Group {
-                        if let def = previewDefinition { TeacherWorksheetLivePreview(definition: def) }
+                        if let def = previewDefinition { TeacherWorksheetLivePreview(definition: def, title: title) }
                     }
                     .navigationTitle(Text(WorksheetCopy.teacherPreviewTab))
                     .navigationBarTitleDisplayMode(.inline)
@@ -619,18 +646,16 @@ struct TeacherAssignmentForm: View {
                     }
                     if let d = TeacherDates.parse(existing.due_at) { hasDue = true; due = d }
                     allowLate = existing.allow_late ?? true
-                } else if let id = presetTemplateId, WorksheetTemplates.find(id) != nil {
+                } else if let id = presetTemplateId, let def = Self.preset(id, presetWorksheet) {
                     kind = "worksheet"
-                    worksheet = WorksheetDefinition(templateId: id, prompts: TeacherWorksheetPicker.defaultPrompts(id), word: nil)
+                    worksheet = def
+                    acrosticWord = def.word ?? ""
                     title = TeacherStickers.truncated(String(appLocalized: WorksheetCopy.title(id)), max: TeacherStickers.titleMax)
                     prompt = TeacherStickers.truncated(String(appLocalized: WorksheetCopy.description(id)), max: TeacherStickers.promptMax)
                 }
             }
         }
         .preferredColorScheme(.dark)
-        // The larger page sheet only where the preview can sit beside the
-        // form, and only once there is a sheet to preview.
-        .modifier(TeacherAssignmentFormSizing(wide: sideBySideCapable && previewDefinition != nil))
     }
 
     private var form: some View {

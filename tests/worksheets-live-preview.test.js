@@ -50,7 +50,7 @@ describe('Customize: the live sheet', () => {
 
   it('with pasted names the Name line shows copy N; without, it is blank', () => {
     const named = renderToStaticMarkup(createElement(LiveSheet, { templateId: 'acrostic', locale: 'en', values, studentName: 'Maya', width: 300 }))
-    expect(named).toMatch(/border-b border-black h-4">Maya</)
+    expect(named).toMatch(/data-testid="sheet-name-line">Maya</)
     const blank = renderToStaticMarkup(createElement(LiveSheet, { templateId: 'acrostic', locale: 'en', values, studentName: '', width: 300 }))
     expect(blank).not.toContain('Maya')
     expect(renderToStaticMarkup(createElement(LiveSheet, { templateId: 'acrostic', locale: 'en', values, width: 0 }))).toBe('')
@@ -212,32 +212,62 @@ describe('iPad: the assign form\'s live preview', () => {
   const views = readFileSync('ios-native/MyBookLab/Views/Teacher/TeacherWorksheetViews.swift', 'utf8')
   const library = readFileSync('ios-native/MyBookLab/Views/Teacher/TeacherWorksheetLibraryView.swift', 'utf8')
 
-  it('beside the form only at regular width; a Preview button (sheet) on iPhone', () => {
+  it('beside the form only at regular width with room; otherwise a Preview button that never waits on a measurement', () => {
     // Regular in BOTH directions (an iPhone Plus / Max in landscape is
     // regular-width, compact-height) and room for both panes.
     expect(form).toContain('private var sideBySideCapable: Bool { hSize == .regular && vSize == .regular }')
-    expect(form).toContain('private var sideBySide: Bool { sideBySideCapable && availableWidth >= 720 }')
+    expect(form).toContain('private var sideBySide: Bool { sideBySideCapable && availableWidth >= Self.sideBySideMinWidth }')
+    expect(form).toContain('static let sideBySideMinWidth: CGFloat = 700')
     expect(form).toContain('.onGeometryChange(for: CGFloat.self) { $0.size.width } action: { availableWidth = $0 }')
     expect(form).toContain('if sideBySide, let def = previewDefinition {')
-    expect(form).toContain('if availableWidth > 0, !sideBySide, previewDefinition != nil {')
+    // Round 7: no `availableWidth > 0` gate — unmeasured = the button.
+    expect(form).toContain('if !sideBySide, previewDefinition != nil {')
+    expect(form).not.toContain('availableWidth > 0')
     expect(form).not.toContain('userInterfaceIdiom')
     expect(form).toContain('.sheet(isPresented: $showingPreview)')
     expect(form).not.toContain('.confirmationDialog')
   })
 
-  it('asks for the page sheet only when side-by-side-capable with a template chosen; kind known at init', () => {
-    expect(form).toContain('.modifier(TeacherAssignmentFormSizing(wide: sideBySideCapable && previewDefinition != nil))')
+  it('round 7: full screen at regular width (a portrait iPad sheet is too narrow for both panes); kind known at init', () => {
+    expect(views).toContain('struct TeacherAssignmentFormPresentation<Item: Identifiable, Form: View>: ViewModifier {')
+    // Latched when the form opens: a size-class change mid-edit never swaps cover and sheet.
+    expect(views).toContain('let fullScreen = latchedFullScreen ?? (hSize == .regular)')
+    expect(views).toContain('.onChange(of: item?.id, initial: true) { _, id in')
+    expect(views).toContain('latchedFullScreen = id == nil ? nil : (latchedFullScreen ?? (hSize == .regular))')
+    // Alone, the full-screen form keeps a readable width.
+    expect(form).toContain('.frame(maxWidth: sideBySide ? .infinity : Self.formMaxWidth)')
+    expect(form).toContain('static let formMaxWidth: CGFloat = 700')
+    expect(views).toContain('.fullScreenCover(item: fullScreen ? $item : .constant(nil), onDismiss: onDismiss, content: form)')
+    expect(views).toContain('.sheet(item: fullScreen ? .constant(nil) : $item, onDismiss: onDismiss, content: form)')
+    expect(views).not.toContain('presentationSizing')
+    // Both ways in: the class's "+" and the library's Assign.
+    expect(form).toContain('.teacherAssignmentForm(item: $formTarget) { target in')
+    expect(library).toContain('.teacherAssignmentForm(item: $formClass) { c in')
     expect(form).toContain('_kind = State(initialValue: "worksheet")')
     expect(form).toContain('_worksheet = State(initialValue: existing.worksheet)')
   })
 
-  it('reuses the library\'s full-sheet preview, fed with the draft prompts and cleaned word', () => {
-    expect(views).toMatch(/struct TeacherWorksheetLivePreview: View \{[\s\S]*?WorksheetSheetPreview\(definition: definition\)/)
+  it('round 7: the library\'s Customize edits the prompts with the sheet redrawn live, and Assign / Print carry them', () => {
+    expect(library).toContain('Text(customizing ? TeacherCopy.done : TeacherCopy.worksheetsCustomize)')
+    expect(library).toContain('custom?.prompts[id] = cut')
+    expect(library).toContain('WorksheetPageFitted(definition: definition)')
+    expect(library).toContain('WorksheetPDF.make(title: title, worksheet: definition,')
+    expect(library).toContain('private var sideBySide: Bool { customizing && hSize == .regular && width >= 700 }')
+    // The form starts on the customized prompts when they are for its template.
+    expect(form).toContain('if let custom, custom.templateId == id { return custom }')
+  })
+
+  it('reuses the cards\' page (fitted to the pane), fed with the draft prompts and cleaned word', () => {
+    expect(views).toMatch(/struct TeacherWorksheetLivePreview: View \{[\s\S]*?WorksheetPageFitted\(definition: definition, title: title\)/)
     expect(views).toContain('def.word = def.isAcrostic ? WorksheetTemplates.cleanAcrosticWord(word) : nil')
     expect(views).toContain('TeacherCard {')
     expect(views).toContain('TeacherTheme.sheetBackground')
-    // The preview draws the teacher's word and its letters.
-    expect(library).toContain('if let word = definition.word, !word.isEmpty {')
-    expect(library).toContain('Text(verbatim: l.letter)')
+    // The page draws the teacher's word and its letters.
+    const page = readFileSync('ios-native/MyBookLab/Views/Teacher/TeacherWorksheetPage.swift', 'utf8')
+    expect(page).toContain('} else if b.id == "word", let word = definition.word, !word.isEmpty {')
+    expect(page).toContain('let letters = (definition.word ?? "").map(String.init)')
+    // Thumbnail, preview and live preview are the same WorksheetPage.
+    expect(page).toMatch(/struct WorksheetPageFitted: View \{[\s\S]*?WorksheetPage\(definition: definition, title: title\)/)
+    expect(page).toMatch(/struct WorksheetPageThumbnail: View \{[\s\S]*?WorksheetPage\(definition: definition\)/)
   })
 })

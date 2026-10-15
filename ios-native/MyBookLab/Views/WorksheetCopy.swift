@@ -428,6 +428,7 @@ enum WorksheetCopy {
     static var studentWordPlaceholder: LocalizedStringResource { AppText("school.worksheet.student.word_placeholder", defaultValue: "Type your word") }
     static func studentLineFor(_ letter: String) -> LocalizedStringResource { AppText("school.worksheet.student.line_for", defaultValue: "Line for \(letter)") }
     static var studentClose: LocalizedStringResource { AppText("school.worksheet.student.close", defaultValue: "Close worksheet") }
+    static var studentUnavailable: LocalizedStringResource { AppText("school.worksheet.student.unavailable", defaultValue: "This worksheet can’t open on this device right now. Ask your teacher for help.") }
     static var studentMakePages: LocalizedStringResource { AppText("school.worksheet.student.make_pages", defaultValue: "Turn into book pages") }
     static var studentMakePagesHeading: LocalizedStringResource { AppText("school.worksheet.student.make_pages_heading", defaultValue: "Make book pages") }
     static var studentMakePagesHint: LocalizedStringResource { AppText("school.worksheet.student.make_pages_hint", defaultValue: "Your answers become pages you can keep writing.") }

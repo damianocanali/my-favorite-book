@@ -1,7 +1,7 @@
 // Worksheet assignments on the teacher's iPad (spec 2026-10-01 §2): the
 // worksheet half of the new/edit assignment form (the library's 33 sheets
-// with its search, shelves and grade filter; editable prompts), a hand-in's answers in the review, and printing — a PDF drawn
-// the same way as the sign-in cards (SignInCardsPDF) and sent to AirPrint.
+// with its search, shelves and grade filter; editable prompts), a hand-in's answers in the review, and printing — the
+// previewed WorksheetPage as a vector PDF page (or the full-wrapping list), sent to AirPrint.
 // Counterparts of the web's WorksheetPicker, WorksheetAnswers and
 // AssignmentSheet.
 import SwiftUI
@@ -106,19 +106,10 @@ struct TeacherWorksheetPicker: View {
         }
     }
 
-    /// A tiny picture of the sheet (one bar per box, sized like the box),
-    /// the name, what it's for and the grade band, on the teacher card.
+    /// The library's card (WorksheetLibraryCard), a size smaller: every
+    /// card the same size, the sheet drawn as its page.
     private func card(_ t: WorksheetTemplate) -> some View {
-        TeacherCard {
-            VStack(alignment: .leading, spacing: 8) {
-                WorksheetMiniature(template: t, scale: 0.8)
-                Text(WorksheetCopy.title(t.id)).font(.subheadline.bold()).foregroundStyle(.primary)
-                Text(WorksheetCopy.description(t.id)).font(.caption).foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-                Text(WorksheetCopy.grade(t.grade)).font(.caption2.bold()).foregroundStyle(.cyan)
-            }
-        }
-        .contentShape(RoundedRectangle(cornerRadius: 18))
+        WorksheetLibraryCard(template: t, thumbnailWidth: 104, compact: true)
     }
 
     private func promptBinding(_ id: String) -> Binding<String> {
@@ -162,11 +153,13 @@ struct TeacherWorksheetPicker: View {
 // MARK: - Live preview (assign form)
 
 /// The worksheet as the class will get it, redrawn as the teacher edits the
-/// prompts or the acrostic word: the library's own full-sheet preview
-/// (WorksheetSheetPreview) fed with the form's draft. Beside the form on
+/// prompts or the acrostic word: the same page as the library's cards and
+/// preview (WorksheetPage, fitted to the pane) fed with the form's draft. Beside the form on
 /// iPad (regular width); in a sheet behind a "Preview" button on iPhone.
 struct TeacherWorksheetLivePreview: View {
     let definition: WorksheetDefinition
+    /// The form's title: the heading the printed sheet will carry.
+    var title: String? = nil
 
     var body: some View {
         ScrollView {
@@ -177,7 +170,7 @@ struct TeacherWorksheetLivePreview: View {
                     Text(WorksheetCopy.teacherPreviewHint).font(.caption).foregroundStyle(TeacherTheme.secondaryText)
                 }
                 TeacherCard {
-                    WorksheetSheetPreview(definition: definition)
+                    WorksheetPageFitted(definition: definition, title: title)
                 }
             }
             .padding(16)
@@ -195,21 +188,38 @@ struct TeacherWorksheetLivePreview: View {
     }
 }
 
-/// iPad: a larger sheet for the form while it shows the preview beside it
-/// (iOS 18+; on 17 the form sheet keeps its size and the two share it).
-struct TeacherAssignmentFormSizing: ViewModifier {
-    let wide: Bool
+/// How the new / edit assignment form is presented (iPad round 7): full
+/// screen at regular width, so the live preview has room beside the form
+/// on any iPad, in portrait too (a sheet there is narrower than the two
+/// panes need, which left the preview behind a button); the ordinary sheet
+/// on iPhone and in a narrow split view.
+struct TeacherAssignmentFormPresentation<Item: Identifiable, Form: View>: ViewModifier {
+    @Binding var item: Item?
+    var onDismiss: (() -> Void)?
+    let form: (Item) -> Form
+
+    @Environment(\.horizontalSizeClass) private var hSize
+    /// The style chosen when the form opened, kept until it closes: a size
+    /// class change mid-edit (Split View, Stage Manager) must not swap the
+    /// cover for a sheet, which would dismiss the form and lose the input.
+    @State private var latchedFullScreen: Bool?
 
     func body(content: Content) -> some View {
-        if #available(iOS 18.0, *) {
-            if wide {
-                content.presentationSizing(.page)
-            } else {
-                content.presentationSizing(.form)
+        let fullScreen = latchedFullScreen ?? (hSize == .regular)
+        content
+            .sheet(item: fullScreen ? .constant(nil) : $item, onDismiss: onDismiss, content: form)
+            .fullScreenCover(item: fullScreen ? $item : .constant(nil), onDismiss: onDismiss, content: form)
+            .onChange(of: item?.id, initial: true) { _, id in
+                latchedFullScreen = id == nil ? nil : (latchedFullScreen ?? (hSize == .regular))
             }
-        } else {
-            content
-        }
+    }
+}
+
+extension View {
+    func teacherAssignmentForm<Item: Identifiable, Form: View>(
+        item: Binding<Item?>, onDismiss: (() -> Void)? = nil, @ViewBuilder form: @escaping (Item) -> Form
+    ) -> some View {
+        modifier(TeacherAssignmentFormPresentation(item: item, onDismiss: onDismiss, form: form))
     }
 }
 
@@ -267,16 +277,61 @@ struct TeacherWorksheetAnswers: View {
 
 // MARK: - Print (AirPrint)
 
-/// US Letter worksheets: the assignment title, the template name, Name /
-/// Date, then every box's prompt with ruled lines (blank) or the child's
-/// answer (filled). A filled sheet runs onto more pages when it must.
+/// US Letter worksheets for AirPrint, one page per sheet (one per name).
+/// A blank sheet is the very page the teacher saw in the thumbnails and
+/// previews: WorksheetPage, drawn as vectors into a 612 x 792 pt PDF page
+/// (round 7). As on the web (AssignmentWorksheetSheet), a filled sheet, a
+/// template this build doesn't know, or a prompt too long for its two-line
+/// label prints in the full-wrapping list instead (`listPDF`), running onto
+/// more pages when it must.
 enum WorksheetPDF {
     struct Sheet {
         let studentName: String
         let answers: [String: String]?
     }
 
+    /// The one-page layout applies: every sheet blank, every label fits.
+    static func usesPage(_ def: WorksheetDefinition, sheets: [Sheet]) -> Bool {
+        sheets.allSatisfy { $0.answers == nil } && WorksheetPrintLayout.labelsFit(def)
+    }
+
+    @MainActor
     static func make(title: String, worksheet def: WorksheetDefinition, sheets: [Sheet]) -> Data {
+        usesPage(def, sheets: sheets)
+            ? pagePDF(title: title, worksheet: def, sheets: sheets)
+            : listPDF(title: title, worksheet: def, sheets: sheets)
+    }
+
+    /// WorksheetPage per sheet, rendered by ImageRenderer straight into a
+    /// PDF context: text and lines stay vector, nothing is rasterized.
+    @MainActor
+    static func pagePDF(title: String, worksheet def: WorksheetDefinition, sheets: [Sheet]) -> Data {
+        let data = NSMutableData()
+        var box = CGRect(origin: .zero, size: WorksheetPage.size)
+        guard let consumer = CGDataConsumer(data: data as CFMutableData),
+              let pdf = CGContext(consumer: consumer, mediaBox: &box, nil) else {
+            return listPDF(title: title, worksheet: def, sheets: sheets)
+        }
+        for sheet in sheets {
+            let renderer = ImageRenderer(content:
+                WorksheetPage(definition: def, title: title, studentName: sheet.studentName)
+                    .environment(\.colorScheme, .light)
+                    // ImageRenderer doesn't inherit the app's environment.
+                    .environment(\.locale, AppLanguage.locale))
+            renderer.proposedSize = ProposedViewSize(WorksheetPage.size)
+            renderer.render { _, draw in
+                pdf.beginPDFPage(nil)
+                draw(pdf)
+                pdf.endPDFPage()
+            }
+        }
+        pdf.closePDF()
+        return data as Data
+    }
+
+    /// The full-wrapping list: title, template name, Name / Date, then each
+    /// prompt with ruled lines (blank) or the child's answer (filled).
+    static func listPDF(title: String, worksheet def: WorksheetDefinition, sheets: [Sheet]) -> Data {
         let page = CGRect(x: 0, y: 0, width: 612, height: 792)
         let margin: CGFloat = 36
         let width = page.width - margin * 2

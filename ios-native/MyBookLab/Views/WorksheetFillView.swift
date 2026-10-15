@@ -40,8 +40,13 @@ struct WorksheetFillView: View {
     }
     private var userId: String? { auth.user?.id.uuidString }
     private var items: [WorksheetItem] { WorksheetLayout.items(definition, childWord: answers?["word"]) }
+    /// No worksheet definition reached this device (nothing to fill in).
+    private var unavailable: Bool { assignment.worksheet == nil }
+    /// Past a due date that refuses late work: the answers show read-only,
+    /// so a child can't type what can never be handed in.
+    private var pastDueLocked: Bool { assignment.past_due == true && assignment.allow_late == false }
     /// Open, and not past a due date that refuses late work.
-    private var canSubmit: Bool { assignment.canSubmit && !(assignment.past_due == true && assignment.allow_late == false) }
+    private var canSubmit: Bool { !unavailable && assignment.canSubmit && !pastDueLocked }
     private var ready: Bool { WorksheetLayout.hasAnswers(answers ?? [:]) && changedSinceHandIn }
     /// The teacher's prompts are read in the class's language.
     private var promptLanguage: String? { assignment.class_locale }
@@ -57,10 +62,16 @@ struct WorksheetFillView: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 18) {
                         header
-                        if loadFailed {
+                        if loadFailed, !unavailable {
                             Text(HandInCopy.error("generic")).foregroundStyle(.red)
                         }
-                        if answers == nil && !loadFailed {
+                        if unavailable {
+                            // Round 7: the definition didn't come through.
+                            // Say so here; never send the child to the book editor.
+                            Text(WorksheetCopy.studentUnavailable)
+                                .font(.title3).foregroundStyle(.white)
+                                .fixedSize(horizontal: false, vertical: true)
+                        } else if answers == nil && !loadFailed {
                             ProgressView().tint(.white).frame(maxWidth: .infinity).padding(.vertical, 40)
                         } else if answers != nil {
                             ForEach(items) { item in itemView(item) }
@@ -151,6 +162,10 @@ struct WorksheetFillView: View {
                         .font(.system(.largeTitle, design: .rounded).bold())
                         .tracking(10)
                         .foregroundStyle(.cyan)
+                } else if pastDueLocked {
+                    readOnlyAnswer(answers?["word"], font: .system(.largeTitle, design: .rounded).bold(),
+                                   label: Text(WorksheetCopy.studentWordLabel))
+                        .tracking(10)
                 } else {
                     TextField(text: binding("word", max: WorksheetTemplates.acrosticWordMax, noSpaces: true)) {
                         Text(WorksheetCopy.studentWordPlaceholder)
@@ -189,7 +204,37 @@ struct WorksheetFillView: View {
 
     /// `label`: the box's accessibility label, on the text field itself so
     /// the "box is full" note below keeps its own.
+    @ViewBuilder
     private func editor(id: String, minHeight: CGFloat, label: Text) -> some View {
+        if pastDueLocked {
+            readOnlyAnswer(answers?[id], font: .system(.title2, design: .rounded), label: label)
+        } else {
+            writableEditor(id: id, minHeight: minHeight, label: label)
+        }
+    }
+
+    /// Past a due date that refuses late work: what the child wrote, as
+    /// plain readable text (nothing to type into, nothing dimmed).
+    private func readOnlyAnswer(_ text: String?, font: Font, label: Text) -> some View {
+        let value = (text ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        return Group {
+            if value.isEmpty {
+                Text(verbatim: "—").foregroundStyle(.white.opacity(0.6))
+            } else {
+                Text(verbatim: value).foregroundStyle(.white)
+            }
+        }
+        .font(font)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.vertical, 6)
+        .fixedSize(horizontal: false, vertical: true)
+        .textSelection(.enabled)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(label)
+        .accessibilityValue(Text(verbatim: value))
+    }
+
+    private func writableEditor(id: String, minHeight: CGFloat, label: Text) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             TextField(text: binding(id, max: WorksheetTemplates.answerMax), axis: .vertical) { EmptyView() }
                 .accessibilityLabel(label)
@@ -220,6 +265,7 @@ struct WorksheetFillView: View {
         Binding(
             get: { answers?[id] ?? "" },
             set: { v in
+                guard !pastDueLocked else { return }
                 var text = noSpaces ? v.filter { !$0.isWhitespace } : v
                 // UTF-16 units: the unit the server's 2000 limit counts.
                 text = TeacherStickers.truncated(text, max: max)
@@ -235,8 +281,14 @@ struct WorksheetFillView: View {
 
     @ViewBuilder
     private var footer: some View {
-        Label { Text(WorksheetCopy.studentSavedHere) } icon: { Image(systemName: "checkmark.circle") }
-            .font(.caption).foregroundStyle(.white.opacity(0.6))
+        // Nothing is saved when there is nothing to fill in; past a due date
+        // that refuses late work, the answers are read-only and say why.
+        if pastDueLocked, !unavailable {
+            Text(HandInCopy.error("past_due")).font(.subheadline.bold()).foregroundStyle(.orange)
+        } else if !unavailable {
+            Label { Text(WorksheetCopy.studentSavedHere) } icon: { Image(systemName: "checkmark.circle") }
+                .font(.caption).foregroundStyle(.white.opacity(0.6))
+        }
 
         if let error {
             Text(HandInCopy.error(error)).font(.subheadline.bold()).foregroundStyle(.red)

@@ -139,7 +139,8 @@ describe('the iPad flows treat a worksheet as a worksheet', () => {
     expect(fill).toContain('speaker.toggle(text, language: promptLanguage)')
     expect(fill).not.toMatch(/\.font\(\.system\(size:/)
     // Hand in follows past-due-no-late and waits for a change.
-    expect(fill).toContain('assignment.canSubmit && !(assignment.past_due == true && assignment.allow_late == false)')
+    expect(fill).toContain('private var pastDueLocked: Bool { assignment.past_due == true && assignment.allow_late == false }')
+    expect(fill).toContain('assignment.canSubmit && !pastDueLocked')
     expect(fill).toContain('changedSinceHandIn = false')
     // A newer hand-in wins over an older device draft.
     expect(model).toMatch(/submitted > draft\.updatedAt \{\n\s+return \.handedIn/)
@@ -171,13 +172,17 @@ describe('the iPad worksheet library (round 6B)', () => {
     expect(library).toContain('WorksheetLibraryFilters(category: $category, grade: $grade)')
     expect(library).toContain('ForEach(WorksheetLibrarySearch.grouped(list)) { shelf in')
     expect(library).toContain('WorksheetLibraryEmpty(')
-    expect(library).toContain('TeacherCard {')
+    // The cards (round 7: WorksheetLibraryCard) are teacher cards.
+    expect(readFileSync('ios-native/MyBookLab/Views/Teacher/TeacherWorksheetPage.swift', 'utf8')).toMatch(/struct WorksheetLibraryCard: View \{[\s\S]*?TeacherCard \{/)
     expect(library).not.toMatch(/\.white\.opacity\(0\.0[68]\), in: RoundedRectangle/)
     // As before: one column on an iPhone, as many as fit on an iPad.
     expect(library).toContain('GridItem(.adaptive(minimum: 200), spacing: 14)')
-    // The preview keeps its pieces separate for VoiceOver, heading first.
-    expect(library).toContain('.accessibilityElement(children: .contain)')
-    expect(library).toMatch(/Text\(WorksheetCopy\.heading\(definition\.templateId\)\)[^\n]*\n[^\n]*\n\s+\.accessibilityAddTraits\(\.isHeader\)/)
+    // The preview (round 7: WorksheetPage) keeps its pieces separate for
+    // VoiceOver, heading first.
+    const page = readFileSync('ios-native/MyBookLab/Views/Teacher/TeacherWorksheetPage.swift', 'utf8')
+    expect(page).toContain('.accessibilityElement(children: .contain)')
+    expect(page).toMatch(/headingText\n(?:[^\n]*\n){5,8}\s+\.accessibilityAddTraits\(\.isHeader\)/)
+    expect(page).toContain('return Text(WorksheetCopy.heading(definition.templateId))')
   })
 
   it('search matches the same fields as the web, ignoring case and accents', () => {
@@ -188,10 +193,11 @@ describe('the iPad worksheet library (round 6B)', () => {
   })
 
   it('the preview shows the sheet\'s heading, drawing box and every box; Assign and Print from it', () => {
-    expect(library).toContain('WorksheetSheetPreview(definition: definition)')
-    expect(library).toContain('Text(WorksheetCopy.heading(definition.templateId))')
-    expect(library).toContain('if let picture {')
-    expect(library).toContain('TeacherAssignmentForm(classId: c.id, existing: nil, presetTemplateId: templateId)')
+    expect(library).toContain('WorksheetPageFitted(definition: definition)')
+    const page = readFileSync('ios-native/MyBookLab/Views/Teacher/TeacherWorksheetPage.swift', 'utf8')
+    expect(page).toContain('Text(WorksheetCopy.heading(definition.templateId))')
+    expect(page).toContain('if let p = layout.picture, p.atTop { pictureBlock(picture, min: p.height) }')
+    expect(library).toContain('TeacherAssignmentForm(classId: c.id, existing: nil, presetTemplateId: templateId,\n                                  presetWorksheet: custom == nil ? nil : definition)')
     expect(library).toContain('WorksheetPDF.make(title: title, worksheet: definition,')
   })
 
@@ -212,5 +218,128 @@ describe('the iPad worksheet library (round 6B)', () => {
     expect(model).toContain('return def.prompts.keys.sorted().map { .box(id: $0, prompt: def.prompts[$0] ?? "", size: .medium) }')
     const fill = readFileSync('ios-native/MyBookLab/Views/WorksheetFillView.swift', 'utf8')
     expect(fill).toContain('WorksheetLayout.items(definition, childWord: answers?["word"])')
+  })
+})
+
+describe('iPad round 7: uniform cards with a real page thumbnail', () => {
+  const page = readFileSync('ios-native/MyBookLab/Views/Teacher/TeacherWorksheetPage.swift', 'utf8')
+  const library = readFileSync('ios-native/MyBookLab/Views/Teacher/TeacherWorksheetLibraryView.swift', 'utf8')
+  const picker = readFileSync('ios-native/MyBookLab/Views/Teacher/TeacherWorksheetViews.swift', 'utf8')
+
+  it('the page\'s print hints are lib\'s, template by template', () => {
+    const swift = Object.fromEntries([...page.matchAll(/^ {8}"([a-z_]+)": \.init\((.*)\),$/gm)].map(([, id, args]) => {
+      const out = {}
+      const rows = args.match(/rows: \[(\[.*?\])\](?=, [a-zA-Z]+:|$)/)
+      if (rows) out.rows = [...rows[1].matchAll(/\[([^\]]*)\]/g)].map((m) => [...m[1].matchAll(/"([a-z_]+)"/g)].map((x) => x[1]))
+      const dict = (name) => {
+        const m = args.match(new RegExp(`${name}: \\[([^\\]]*)\\]`))
+        return m ? Object.fromEntries([...m[1].matchAll(/"([a-z_]+)": ([\d.]+)/g)].map((x) => [x[1], Number(x[2])])) : undefined
+      }
+      if (dict('lines')) out.lines = dict('lines')
+      if (dict('drawIn')) out.drawIn = dict('drawIn')
+      const pic = args.match(/picture: \.init\(atTop: (true|false), height: ([\d.]+)\)/)
+      if (pic) out.picture = { at: pic[1] === 'true' ? 'top' : 'bottom', height: Number(pic[2]) }
+      const body = args.match(/body: "([a-z_]+)"/)
+      if (body) out.body = body[1]
+      return [id, out]
+    }))
+    expect(swift).toEqual(Object.fromEntries(WORKSHEET_TEMPLATES.map((t) => [t.id, t.print ?? {}])))
+  })
+
+  it('a portrait Letter page scaled into a fixed frame, no GeometryReader per card', () => {
+    expect(page).toContain('static let size = CGSize(width: 612, height: 792)')
+    expect(page).toContain('.scaleEffect(width / WorksheetPage.size.width, anchor: .topLeading)')
+    expect(page).not.toContain('GeometryReader {')
+    expect(page).toContain('Text(WorksheetCopy.heading(definition.templateId))')
+    expect(page).toContain('case "word_web": wordWeb')
+    expect(page).toContain('case "feelings_checkin": feelings')
+  })
+
+  it('every card the same size: two reserved lines each, the grade pinned to the bottom, in both grids', () => {
+    expect(page.match(/\.lineLimit\(2, reservesSpace: true\)/g)).toHaveLength(2)
+    expect(page).toMatch(/Spacer\(minLength: 0\)\n\s+Text\(WorksheetCopy\.grade\(template\.grade\)\)/)
+    expect(library).toContain('NavigationLink(value: t.id) { WorksheetLibraryCard(template: t) }')
+    expect(picker).toContain('WorksheetLibraryCard(template: t, thumbnailWidth: 104, compact: true)')
+    expect(library + picker).not.toContain('WorksheetMiniature')
+  })
+})
+
+describe('round 7: a student\'s worksheet assignment always opens the worksheet', () => {
+  const model = readFileSync('ios-native/MyBookLab/Models/StudentAssignment.swift', 'utf8')
+  const section = readFileSync('ios-native/MyBookLab/Views/StudentAssignmentsView.swift', 'utf8')
+  const fill = readFileSync('ios-native/MyBookLab/Views/WorksheetFillView.swift', 'utf8')
+
+  it('the kind alone routes it (a missing or unreadable definition never sends a child to the book editor)', () => {
+    expect(model).toContain('var isWorksheet: Bool { kind == "worksheet" }')
+    // An unreadable worksheet is nil, not a failed list that hides every card.
+    expect(model).toContain('worksheet = try? c.decodeIfPresent(WorksheetDefinition.self, forKey: .worksheet)')
+    // Every key the synthesized decoder read is still read.
+    for (const k of ['id', 'title', 'prompt', 'due_at', 'status', 'allow_late', 'created_at', 'past_due', 'my_submission', 'kind', 'class_locale']) {
+      expect(model).toContain(`forKey: .${k})`)
+    }
+  })
+
+  it('every way a child starts it goes through startOrContinue, whose first branch is the worksheet', () => {
+    expect(section).toMatch(/private func startOrContinue\([\s\S]*?\{\n[^\n]*\n\s+if assignment\.isWorksheet \{\n\s+worksheetFor = assignment\n\s+return true/)
+    // The card's Start / Continue / Hand in again / Try again, and the nudge.
+    expect(section).toContain('startOrContinue(assignment)\n                                },')
+    expect(section).toContain('if startOrContinue(a, nudge: n) { dismissNudge(n) }')
+    expect(section).toContain('onTryAgain: assignment.canTryAgain ? {\n                        feedbackFor = nil\n                        startOrContinue(assignment)')
+    // The only place that begins a new book for an assignment is behind it.
+    expect(section.match(/draft\.book\?\.assignmentId = assignment\.id/g)).toHaveLength(1)
+  })
+
+  it('without a definition the fill-in view says so and offers no hand-in', () => {
+    expect(fill).toContain('private var unavailable: Bool { assignment.worksheet == nil }')
+    expect(fill).toContain('Text(WorksheetCopy.studentUnavailable)')
+    expect(fill).toContain('private var canSubmit: Bool { !unavailable && assignment.canSubmit')
+    expect(catalog['school.worksheet.student.unavailable'].localizations.it.stringUnit.value).toBe(
+      itL.worksheet.student.unavailable)
+    expect(catalog['school.worksheet.student.unavailable'].localizations.en.stringUnit.value).toBe(
+      en.worksheet.student.unavailable)
+  })
+})
+
+describe('round 7 fix round 1 (iPad)', () => {
+  const fill = readFileSync('ios-native/MyBookLab/Views/WorksheetFillView.swift', 'utf8')
+  it('unavailable: no "saved on this iPad", no load error; past due without late work: read-only with the past-due copy', () => {
+    expect(fill).toContain('if loadFailed, !unavailable {')
+    expect(fill).toMatch(/if pastDueLocked, !unavailable \{\n\s+Text\(HandInCopy\.error\("past_due"\)\)[^\n]*\n\s+\} else if !unavailable \{\n\s+Label \{ Text\(WorksheetCopy\.studentSavedHere\) \}/)
+    // Fix round 2: plain readable text, not dimmed disabled fields.
+    expect(fill).not.toContain('.disabled(pastDueLocked)')
+    expect(fill).toMatch(/if pastDueLocked \{\n\s+readOnlyAnswer\(answers\?\[id\]/)
+    expect(fill).toMatch(/\} else if pastDueLocked \{\n\s+readOnlyAnswer\(answers\?\["word"\]/)
+    expect(fill).toContain('guard !pastDueLocked else { return }')
+  })
+})
+
+describe('round 7 fix round 2: the iPad prints what the teacher previewed', () => {
+  const views = readFileSync('ios-native/MyBookLab/Views/Teacher/TeacherWorksheetViews.swift', 'utf8')
+  const page = readFileSync('ios-native/MyBookLab/Views/Teacher/TeacherWorksheetPage.swift', 'utf8')
+  const form = readFileSync('ios-native/MyBookLab/Views/Teacher/TeacherClassesView.swift', 'utf8')
+
+  it('a blank sheet is WorksheetPage rendered as a vector PDF page, one page per name', () => {
+    expect(views).toMatch(/static func pagePDF\([\s\S]*?CGContext\(consumer: consumer, mediaBox: &box, nil\)[\s\S]*?for sheet in sheets \{[\s\S]*?ImageRenderer\(content:\n\s+WorksheetPage\(definition: def, title: title, studentName: sheet\.studentName\)/)
+    expect(views).toContain('renderer.render { _, draw in\n                pdf.beginPDFPage(nil)\n                draw(pdf)')
+    expect(views).not.toMatch(/renderer\.(uiImage|cgImage)/)
+    expect(page).toContain('static let size = CGSize(width: 612, height: 792)')
+  })
+
+  it('the web\'s fallback: filled, unknown template or a label that doesn\'t fit prints the full-wrapping list', () => {
+    expect(views).toContain('sheets.allSatisfy { $0.answers == nil } && WorksheetPrintLayout.labelsFit(def)')
+    expect(views).toContain('static func listPDF(title: String, worksheet def: WorksheetDefinition, sheets: [Sheet]) -> Data {')
+    // labelsFit mirrors printLayout.js.
+    expect(page).toContain('static let labelCharsPerIn = 10.5')
+    expect(page).toContain('static let rowGapIn = 0.2')
+    expect(page).toContain('return Int((width * labelCharsPerIn).rounded(.down)) * 2')
+    expect(page).toContain('(def.prompts[$0.id] ?? "").utf16.count <= labelCharLimit(row.boxes.count)')
+  })
+
+  it('the preview carries the title the print will; a tap opens it full screen and pinch-zoomable; the pane is half the width', () => {
+    expect(form).toContain('TeacherWorksheetLivePreview(definition: def, title: title)')
+    expect(page).toContain('WorksheetPageZoomView(definition: definition, title: title)')
+    expect(page).toContain('MagnifyGesture()')
+    expect(page).toContain('.accessibilityLabel(Text(TeacherCopy.worksheetsViewFullSize))')
+    expect(form).toContain('private var previewWidth: CGFloat { min(560, max(320, (availableWidth * 0.5).rounded())) }')
   })
 })

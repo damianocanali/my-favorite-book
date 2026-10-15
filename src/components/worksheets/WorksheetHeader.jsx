@@ -7,11 +7,14 @@ export default function WorksheetHeader({ t, className, teacherName, studentName
       <div className="flex items-end gap-4 text-sm">
         <span className="flex items-end gap-1 flex-1">
           {t('sheet.header.name')}:
-          <span className="flex-1 border-b border-black h-4">{studentName || ''}</span>
+          {/* The line box is as tall as the label's line (h-5 = text-sm's
+              20px), so the row is no taller; the name sits on the line like
+              handwriting, 3px above the rule, never on it. */}
+          <span className="flex-1 border-b border-black h-5 flex items-end leading-none pb-[3px] pl-1" data-testid="sheet-name-line">{studentName || ''}</span>
         </span>
         <span className="flex items-end gap-1 flex-1">
           {t('sheet.header.date')}:
-          <span className="flex-1 border-b border-black h-4" />
+          <span className="flex-1 border-b border-black h-5" />
         </span>
       </div>
       {(className || teacherName) && (

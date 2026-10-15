@@ -401,6 +401,16 @@ struct MyAssignmentsSection: View {
         return a
     }
 
+    /// A linked worksheet the child can't start fresh any more (handed in,
+    /// or closed by its date) but can still open (round 7): the nudge opens
+    /// it rather than falling through to a book. Same rule as the card.
+    private func nudgeWorksheet(_ n: StudentNudge) -> StudentAssignment? {
+        guard let id = n.assignment?.id,
+              let a = assignments?.first(where: { $0.id == id }),
+              a.isWorksheet, a.showsOnHome else { return nil }
+        return a
+    }
+
     /// Most recently edited book on the shelf (ISO-8601 strings sort by time).
     private var mostRecentBook: Book? {
         bookshelf.books.max { $0.updatedAt < $1.updatedAt }
@@ -411,19 +421,30 @@ struct MyAssignmentsSection: View {
             if a.isWorksheet { return isStarted(a) ? WorksheetCopy.studentContinue : WorksheetCopy.studentStart }
             return isStarted(a) ? AssignmentCopy.continueWriting : AssignmentCopy.startWriting
         }
+        if let w = nudgeWorksheet(n) {
+            return w.my_submission != nil ? WorksheetCopy.studentOpen
+                : isStarted(w) ? WorksheetCopy.studentContinue : WorksheetCopy.studentStart
+        }
         if let open = BookDraftStore.shared.book, Self.hasWork(open) { return NudgeCopy.keepWriting }
         return mostRecentBook != nil ? NudgeCopy.keepWriting : NudgeCopy.createBook
     }
 
     /// The linked assignment's Start/Continue writing (same path as its
-    /// card); otherwise the book in progress, the most recent book, or a
-    /// new one. Never wipes an open draft that has work in it.
+    /// card; a linked worksheet always opens); otherwise the book in
+    /// progress, the most recent book, or a new one. Never wipes an open
+    /// draft that has work in it.
     private func nudgeAction(_ n: StudentNudge) {
         if let a = nudgeAssignment(n) {
             markOpened(a)
             // Waiting on "replace?": the dialog carries the nudge and marks
             // it seen only on Replace.
             if startOrContinue(a, nudge: n) { dismissNudge(n) }
+            return
+        }
+        if let w = nudgeWorksheet(n) {
+            markOpened(w)
+            dismissNudge(n)
+            worksheetFor = w
             return
         }
         dismissNudge(n)

@@ -40,8 +40,11 @@ struct StudentAssignment: Decodable, Identifiable, Hashable, Sendable {
     /// teacher's text for the class, so they are read aloud in it.
     var class_locale: String? = nil
 
-    /// A worksheet opens its fill-in view instead of the book editor.
-    var isWorksheet: Bool { kind == "worksheet" && worksheet != nil }
+    /// A worksheet opens its fill-in view instead of the book editor. The
+    /// kind alone decides (round 7): a worksheet whose definition is missing
+    /// or unreadable still opens the fill-in view, which says so — never
+    /// the book editor, where a child would end up writing a new book.
+    var isWorksheet: Bool { kind == "worksheet" }
 
     enum CardStatus { case notStarted, handedIn, closed }
 
@@ -162,6 +165,32 @@ struct StudentAssignment: Decodable, Identifiable, Hashable, Sendable {
         return f
     }()
     nonisolated(unsafe) private static let isoPlain = ISO8601DateFormatter()
+}
+
+extension StudentAssignment {
+    private enum CodingKeys: String, CodingKey {
+        case id, title, prompt, due_at, status, allow_late, created_at, past_due, my_submission
+        case kind, worksheet, class_locale
+    }
+
+    /// As the synthesized decoder, except a `worksheet` this build can't
+    /// read is left nil instead of failing the whole list (which would
+    /// hide every assignment); `isWorksheet` still routes it to the fill-in.
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decode(String.self, forKey: .id)
+        title = try c.decode(String.self, forKey: .title)
+        prompt = try c.decodeIfPresent(String.self, forKey: .prompt)
+        due_at = try c.decodeIfPresent(String.self, forKey: .due_at)
+        status = try c.decode(String.self, forKey: .status)
+        allow_late = try c.decodeIfPresent(Bool.self, forKey: .allow_late)
+        created_at = try c.decodeIfPresent(String.self, forKey: .created_at)
+        past_due = try c.decodeIfPresent(Bool.self, forKey: .past_due)
+        my_submission = try c.decodeIfPresent(MySubmission.self, forKey: .my_submission)
+        kind = try c.decodeIfPresent(String.self, forKey: .kind)
+        worksheet = try? c.decodeIfPresent(WorksheetDefinition.self, forKey: .worksheet)
+        class_locale = try c.decodeIfPresent(String.self, forKey: .class_locale)
+    }
 }
 
 /// POST /api/school/submit's success body.

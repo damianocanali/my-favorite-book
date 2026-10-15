@@ -105,14 +105,20 @@ export function nudgeTeacher(t, nudge) {
 }
 
 /// What the child's big button does: the linked assignment (if it is still
-/// one they can write for), else the book in progress, the most recent
-/// book, or a new one.
+/// one they can write for; a linked worksheet always opens), else the book
+/// in progress, the most recent book, or a new one.
 export function nudgeAction(nudge, { assignments = [], books = [], draft = null } = {}) {
   const linked = nudge?.assignment?.id ? assignments.find((a) => a.id === nudge.assignment.id) : null
   // The student list carries past_due rather than a raw clock comparison.
   const writable = linked && linked.status === 'published' && !linked.my_submission
     && !(linked.past_due && linked.allow_late === false)
   if (writable) return { kind: 'assignment', assignment: linked }
+  // Round 7: a nudge about a worksheet the child can no longer start fresh
+  // (handed in, or closed by its date) opens that worksheet — never a new
+  // book. Same rule as the card: open, or handed in and still on the home.
+  if (linked && linked.kind === 'worksheet' && (linked.status === 'published' || linked.my_submission)) {
+    return { kind: 'worksheet', assignment: linked }
+  }
   if (draftHasWork(draft)) return { kind: 'draft' }
   const recent = [...books].sort((a, b) => String(b.updatedAt ?? '').localeCompare(String(a.updatedAt ?? '')))[0]
   if (recent) return { kind: 'book', book: recent }

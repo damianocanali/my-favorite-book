@@ -186,6 +186,8 @@ export default function MyAssignments() {
   const nudgeNext = nudge ? nudgeAction(nudge, { assignments: assignments ?? [], books, draft }) : null
   const nudgeLabel = !nudgeNext
     ? ''
+    : nudgeNext.kind === 'worksheet'
+      ? (nudgeNext.assignment.my_submission ? t('school:worksheet.student.open') : isStarted(nudgeNext.assignment.id) ? t('school:worksheet.student.continue') : t('school:worksheet.student.start'))
     : nudgeNext.kind === 'assignment' && isWorksheet(nudgeNext.assignment)
       ? (isStarted(nudgeNext.assignment.id) ? t('school:worksheet.student.continue') : t('school:worksheet.student.start'))
     : nudgeNext.kind === 'assignment'
@@ -216,6 +218,11 @@ export default function MyAssignments() {
     if (!next) return
     if (next.kind === 'assignment') {
       if (startOrContinue(next.assignment)) dismissNudge()
+      return
+    }
+    if (next.kind === 'worksheet') {
+      dismissNudge()
+      openHandedIn(next.assignment)
       return
     }
     dismissNudge()
