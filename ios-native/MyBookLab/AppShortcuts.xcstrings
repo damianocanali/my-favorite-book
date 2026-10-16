@@ -1,20 +1,6 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "Open my books in ${applicationName}" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringSet" : {
-            "state" : "new",
-            "values" : [
-              "Open my books in ${applicationName}",
-              "Show my bookshelf in ${applicationName}"
-            ]
-          }
-        }
-      }
-    },
     "OpenMyBooksIntent.description" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -88,20 +74,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Apri i miei libri"
-          }
-        }
-      }
-    },
-    "Start a story in ${applicationName}" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringSet" : {
-            "state" : "new",
-            "values" : [
-              "Start a story in ${applicationName}",
-              "Create a book in ${applicationName}"
-            ]
           }
         }
       }
