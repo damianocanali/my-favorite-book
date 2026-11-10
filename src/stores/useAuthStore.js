@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { readLocalOwner, writeLocalOwner, belongsToSomeoneElse } from '../lib/localOwner'
 import { supabase } from '../lib/supabase'
 import { useBookshelfStore, setBookshelfUserId } from './useBookshelfStore'
 import { useBookStore } from './useBookStore'
@@ -44,6 +45,14 @@ function clearLocalUserData() {
   // the app keeps in localStorage, and this is a shared/family device by
   // assumption, so it must not outlive the person who entered it.
   usePrintOrderStore.getState().reset()
+  writeLocalOwner(null)
+}
+
+/// Before a signed-in user sees or syncs anything local: if this browser's
+/// local data is someone else's, clear it; then record who owns it now.
+function claimLocalDataFor(userId) {
+  if (belongsToSomeoneElse(userId, readLocalOwner())) clearLocalUserData()
+  writeLocalOwner(userId)
 }
 
 export const useAuthStore = create((set, get) => ({
@@ -79,6 +88,7 @@ export const useAuthStore = create((set, get) => ({
     }
 
     if (user) {
+      claimLocalDataFor(user.id)
       setBookshelfUserId(user.id)
       useBookshelfStore.getState().loadCloudBooks(user.id)
       useAvatarStore.getState().refreshCoins()
@@ -112,6 +122,7 @@ export const useAuthStore = create((set, get) => ({
           useCheckInStore.getState().clear()
         }
       }
+      if (newUser) claimLocalDataFor(newUser.id)
       set({ user: newUser })
       setBookshelfUserId(newUser?.id ?? null)
       if (newUser) {
