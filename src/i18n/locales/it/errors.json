@@ -14,7 +14,8 @@
     "email_required": "Scrivi la tua email.",
     "not_configured": "Autenticazione non configurata.",
     "reset_link_invalid": "Il link non è valido o è scaduto. Chiedine uno nuovo.",
-    "generic_retry": "Qualcosa è andato storto. Riprova."
+    "generic_retry": "Qualcosa è andato storto. Riprova.",
+    "reset_link_expired": "Questo link è già stato usato o è scaduto. I link funzionano una sola volta, per un'ora, e vale solo quello dell'email più recente."
   },
   "ai": {
     "daily_limit": "Hai raggiunto il limite di creazioni per oggi: torna domani!",

@@ -14,7 +14,8 @@
     "email_required": "Please enter your email.",
     "not_configured": "Auth not configured.",
     "reset_link_invalid": "Invalid or expired reset link. Please request a new one.",
-    "generic_retry": "Something went wrong. Please try again."
+    "generic_retry": "Something went wrong. Please try again.",
+    "reset_link_expired": "This link has already been used or has expired. Reset links work once, for one hour, and only the newest email's link works."
   },
   "ai": {
     "daily_limit": "You've reached today's creation limit — come back tomorrow!",

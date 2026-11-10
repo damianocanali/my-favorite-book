@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { motion } from 'motion/react'
 import { useTranslation } from 'react-i18next'
 import { Lock, Eye, EyeOff, CheckCircle } from 'lucide-react'
 import { supabase } from '../lib/supabase'
+import { readResetLink } from '../lib/resetLink'
 
 export default function ResetPasswordPage() {
   const { t } = useTranslation()
@@ -15,18 +16,38 @@ export default function ResetPasswordPage() {
   const [error, setError] = useState('')
   const [done, setDone] = useState(false)
   const [ready, setReady] = useState(false)
+  // Set when the link itself was refused: the form is replaced by a way to
+  // ask for a new one.
+  const [linkError, setLinkError] = useState('')
 
   useEffect(() => {
-    // Supabase puts the session tokens in the URL hash after clicking the email link
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        setReady(true)
-      } else {
-        setError(t('errors:auth.reset_link_invalid'))
-      }
+    let live = true
+    const link = readResetLink(window.location.search, window.location.hash)
+    // Don't leave tokens or error codes in the address bar or history.
+    if (window.location.hash || window.location.search) {
+      window.history.replaceState(null, '', window.location.pathname)
+    }
+    if (link.kind === 'error') {
+      setLinkError(t(link.reason === 'expired' ? 'errors:auth.reset_link_expired' : 'errors:auth.reset_link_invalid'))
+      return
+    }
+    // The client may finish reading the link just after mount.
+    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
+      if (live && session && (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN')) setReady(true)
     })
-    // Runs once on mount: this checks the reset link's session, and re-running
-    // it because `t` changed identity on a locale switch would be pointless.
+    const check = link.kind === 'code'
+      ? supabase.auth.exchangeCodeForSession(link.code).then(({ data, error }) => !error && !!data?.session)
+      : supabase.auth.getSession().then(({ data: { session } }) => !!session)
+    check
+      .catch(() => false)
+      .then((ok) => {
+        if (!live) return
+        if (ok) setReady(true)
+        else setLinkError(t('errors:auth.reset_link_invalid'))
+      })
+    return () => { live = false; sub?.subscription?.unsubscribe() }
+    // Runs once on mount: this reads the reset link, and re-running it
+    // because `t` changed identity on a locale switch would be pointless.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -64,7 +85,17 @@ export default function ResetPasswordPage() {
           </p>
         </div>
 
-        {done ? (
+        {linkError && !ready ? (
+          <div role="alert" className="glass rounded-2xl p-6 border border-galaxy-text-muted/10 text-center space-y-4">
+            <p className="text-galaxy-text font-body text-sm">{linkError}</p>
+            <Link
+              to="/login?reset=1"
+              className="inline-block px-4 py-2.5 rounded-xl font-body font-bold text-sm text-white btn-fill-primary"
+            >
+              {t('auth:reset_password.send_new_link')}
+            </Link>
+          </div>
+        ) : done ? (
           <div className="glass rounded-2xl p-6 border border-galaxy-text-muted/10 text-center space-y-3">
             <CheckCircle size={40} className="mx-auto text-green-400" />
             <p className="text-galaxy-text font-body font-semibold">{t('auth:reset_password.done_title')}</p>
