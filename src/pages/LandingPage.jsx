@@ -11,6 +11,7 @@ import { formatMoneyCents } from '../i18n/formats'
 import SparkleButton from '../components/ui/SparkleButton'
 import { playTrack } from '../services/audioService'
 import AtlasCodeNote from '../components/referral/AtlasCodeNote'
+import LeadSignupForm from '../components/marketing/LeadSignupForm'
 
 // Deliberately NOT translated. Each letter is animated with its own stagger
 // delay, so the wordmark is an animation timeline as much as a string — and
@@ -353,6 +354,10 @@ export default function LandingPage() {
           </div>
         </motion.div>
       )}
+
+      {/* Free-worksheets email signup: signed-out web visitors only (the
+          form hides itself for signed-in accounts, students and the apps). */}
+      <LeadSignupForm className="relative z-10 w-full max-w-xl mt-12 px-4" />
 
       {/* Footer */}
       <div className="relative z-10 w-full max-w-4xl mt-12 mb-8 px-2 text-center">

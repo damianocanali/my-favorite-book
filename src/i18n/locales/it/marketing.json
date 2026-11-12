@@ -83,5 +83,19 @@
     "terms": "Termini di servizio",
     "worksheets": "Schede gratuite",
     "copyright": "© {{year}} My Book Lab"
+  },
+  "lead_form": {
+    "title": "Ricevi le schede gratuite via email",
+    "note": "Per genitori e insegnanti. Quattro brevi email, poi ci fermiamo.",
+    "email_label": "Indirizzo email",
+    "email_placeholder": "tu@esempio.it",
+    "role_label": "Sono",
+    "role_parent": "Genitore",
+    "role_teacher": "Insegnante",
+    "submit": "Inviamele",
+    "sending": "Invio in corso…",
+    "consent": "Ho almeno 18 anni e voglio ricevere queste email. Puoi annullare l'iscrizione in qualsiasi momento.",
+    "done": "Controlla la posta. Le schede stanno arrivando.",
+    "error": "Qualcosa non ha funzionato. Controlla l'indirizzo e riprova."
   }
 }
