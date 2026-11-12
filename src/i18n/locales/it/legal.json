@@ -27,6 +27,7 @@
       "item_classroom": "Per rendere disponibili le funzioni di classe a insegnanti e alunni",
       "item_payments": "Per gestire i pagamenti e consegnare i libri stampati",
       "item_limits": "Per far rispettare i limiti di utilizzo e proteggere dagli abusi le funzioni AI a pagamento",
+      "item_email": "Per inviare le email che ci hai chiesto, come la serie di schede gratuite per genitori e insegnanti. Ognuna di queste email contiene un link per annullare l'iscrizione.",
       "no_sale": "Non vendiamo dati personali e non li usiamo per pubblicità comportamentale."
     },
     "gallery": {
@@ -46,6 +47,7 @@
       "desc_stripe": "gestione dei pagamenti per gli abbonamenti sul web e i libri stampati",
       "desc_apple_iap": "gestione degli abbonamenti e degli acquisti di monete effettuati nell'app iOS",
       "desc_lulu": "il nostro partner di stampa. Riceve il file del libro e i dati di spedizione per gli ordini stampati.",
+      "desc_resend": "invio delle email. Riceve l'indirizzo email delle persone a cui scriviamo.",
       "no_trackers": "Non usiamo reti pubblicitarie né tracker di analisi e non vendiamo dati a terze parti."
     },
     "parental_controls": {

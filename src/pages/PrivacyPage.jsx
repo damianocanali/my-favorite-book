@@ -19,11 +19,12 @@ const VENDORS = {
   revenuecat: 'RevenueCat',
   apple: 'Apple',
   lulu: 'Lulu',
+  resend: 'Resend',
 }
 
 // ISO so the rendered date follows the locale ("September 1, 2026" /
 // "1 settembre 2026") instead of being frozen in English.
-const LAST_UPDATED = '2026-09-01'
+const LAST_UPDATED = '2026-11-10'
 
 export default function PrivacyPage() {
   const navigate = useNavigate()
@@ -106,6 +107,7 @@ export default function PrivacyPage() {
               <li>{t('legal:privacy.use.item_classroom')}</li>
               <li>{t('legal:privacy.use.item_payments')}</li>
               <li>{t('legal:privacy.use.item_limits')}</li>
+              <li>{t('legal:privacy.use.item_email')}</li>
             </ul>
             <p className="mt-2">{t('legal:privacy.use.no_sale')}</p>
           </section>
@@ -152,6 +154,9 @@ export default function PrivacyPage() {
               </li>
               <li>
                 <strong>{VENDORS.lulu}:</strong> {t('legal:privacy.third_parties.desc_lulu')}
+              </li>
+              <li>
+                <strong>{VENDORS.resend}:</strong> {t('legal:privacy.third_parties.desc_resend')}
               </li>
             </ul>
             <p className="mt-2">{t('legal:privacy.third_parties.no_trackers')}</p>

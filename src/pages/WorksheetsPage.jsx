@@ -23,6 +23,7 @@ import { parseWorksheetParams } from '../lib/worksheets/params.js'
 import { parseNameList } from '../lib/worksheets/names.js'
 import { sheetTranslators } from '../lib/worksheets/sheetLocale.js'
 import { useTeacherMode } from '../hooks/useTeacherMode'
+import LeadSignupForm from '../components/marketing/LeadSignupForm'
 import { ASSIGN_WORKSHEET_HREF } from '../components/school/assignIntent.js'
 import { enterWorksheetsPrintMode, exitWorksheetsPrintMode } from '../components/school/printMode.js'
 
@@ -238,6 +239,8 @@ export default function WorksheetsPage() {
             <p className="text-xs text-galaxy-text-muted font-body">{t('teacher.assign_hint')}</p>
           </div>
         )}
+        {/* Signed-out visitors only (the form hides itself otherwise). */}
+        <LeadSignupForm className="mt-6 text-left" />
       </div>
 
       <div className="mb-6">

@@ -27,6 +27,7 @@
       "item_classroom": "To enable classroom features for teachers and students",
       "item_payments": "To process payments and deliver printed books",
       "item_limits": "To enforce usage limits and protect against abuse of paid AI features",
+      "item_email": "To send emails you asked for, such as the free worksheets series for parents and teachers. Every one of these emails has an unsubscribe link.",
       "no_sale": "We do not sell personal information, and we do not use it for behavioural advertising."
     },
     "gallery": {
@@ -46,6 +47,7 @@
       "desc_stripe": "payment processing for web subscriptions and printed books",
       "desc_apple_iap": "manage subscriptions and coin purchases made in the iOS app",
       "desc_lulu": "our print partner. Receives the book file and the shipping details for printed orders.",
+      "desc_resend": "email delivery. Receives the email address of people we send email to.",
       "no_trackers": "We do not use advertising networks or analytics trackers, and we do not sell data to third parties."
     },
     "parental_controls": {
